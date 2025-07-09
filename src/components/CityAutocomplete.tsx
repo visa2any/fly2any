@@ -15,7 +15,6 @@ interface CityAutocompleteProps {
 }
 
 export default function CityAutocomplete({
-  value,
   onChange,
   placeholder,
   label,

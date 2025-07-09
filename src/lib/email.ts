@@ -1,3 +1,5 @@
+import { Lead, ServiceData } from './database';
+
 interface EmailData {
   to: string;
   subject: string;
@@ -52,8 +54,8 @@ class EmailService {
   }
 
   // Template para email de confirmação de lead
-  generateConfirmationEmail(leadData: any): EmailData {
-    const servicos = leadData.selectedServices?.map((s: any) => {
+  generateConfirmationEmail(leadData: Lead): EmailData {
+    const servicos = leadData.selectedServices?.map((s: ServiceData) => {
       const serviceNames = {
         'voos': '✈️ Voos',
         'hoteis': '🏨 Hotéis',
@@ -286,7 +288,7 @@ class EmailService {
 export const emailService = new EmailService();
 
 // Utility functions
-export async function sendConfirmationEmail(leadData: any) {
+export async function sendConfirmationEmail(leadData: Lead) {
   const emailData = emailService.generateConfirmationEmail(leadData);
   return emailService.sendEmail(emailData);
 }

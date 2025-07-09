@@ -1,7 +1,7 @@
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    fbq: (...args: any[]) => void;
+    gtag: (...args: unknown[]) => void;
+    fbq: (...args: unknown[]) => void;
   }
 }
 
@@ -16,7 +16,7 @@ export const pageview = (url: string) => {
   }
 };
 
-export const event = (action: string, parameters?: Record<string, any>) => {
+export const event = (action: string, parameters?: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', action, parameters);
   }
@@ -25,14 +25,14 @@ export const event = (action: string, parameters?: Record<string, any>) => {
 // Facebook Pixel
 export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || 'XXXXXXXXXX';
 
-export const fbEvent = (eventName: string, parameters?: Record<string, any>) => {
+export const fbEvent = (eventName: string, parameters?: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('track', eventName, parameters);
   }
 };
 
 // Conversion tracking events
-export const trackFormSubmit = (formType: string, data: any) => {
+export const trackFormSubmit = (formType: string, data: Record<string, unknown>) => {
   // Google Analytics
   event('form_submit', {
     form_type: formType,
@@ -50,7 +50,7 @@ export const trackFormSubmit = (formType: string, data: any) => {
   });
 };
 
-export const trackQuoteRequest = (data: any) => {
+export const trackQuoteRequest = (data: Record<string, unknown>) => {
   // Google Analytics
   event('generate_lead', {
     currency: 'USD',

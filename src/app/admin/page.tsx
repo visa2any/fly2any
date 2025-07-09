@@ -1,23 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
-interface Lead {
-  id: string;
-  tipo: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
-  nome: string;
-  sobrenome: string;
-  email: string;
-  telefone: string;
-  whatsapp?: string;
+import { Lead as DatabaseLead } from '@/lib/database';
+
+interface Lead extends DatabaseLead {
   status: 'novo' | 'em_analise' | 'cotado' | 'proposta_enviada' | 'fechado' | 'perdido' | 'follow_up';
   prioridade: 'alta' | 'media' | 'baixa';
-  data: string;
-  ultimaInteracao: string;
   valor?: number;
-  observacoes?: string;
+  tipo: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
   detalhes: Record<string, string | number>;
+  data: string; // Alias for createdAt
+  ultimaInteracao: string;
+  origem: string;
+  destino: string;
+  dataIda: string;
+  dataVolta: string;
+  adultos: number;
+  criancas: number;
+  classeVoo: string;
+  orcamentoAproximado?: string;
 }
 
 export default function AdminDashboard() {
@@ -28,6 +31,13 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Memoize toggleDarkMode to prevent unnecessary recreations
+  const toggleDarkMode = useCallback(() => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('admin_dark_mode', newDarkMode.toString());
+  }, [isDarkMode]);
 
   // Keyboard shortcuts handler
   useEffect(() => {
@@ -60,7 +70,7 @@ export default function AdminDashboard() {
 
     document.addEventListener('keydown', handleKeyboard);
     return () => document.removeEventListener('keydown', handleKeyboard);
-  }, [selectedLead]);
+  }, [selectedLead, toggleDarkMode]);
 
   // Estados para dados reais
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -81,7 +91,7 @@ export default function AdminDashboard() {
         const data = await response.json();
         
         // Converter dados do formato da API para o formato do admin
-        const convertedLeads: Lead[] = data.leads.map((lead: any) => ({
+        const convertedLeads: Lead[] = data.leads.map((lead: Lead) => ({
           id: lead.id,
           tipo: lead.selectedServices[0]?.serviceType || 'voos',
           nome: lead.nome,
@@ -93,6 +103,7 @@ export default function AdminDashboard() {
           prioridade: 'media', // Prioridade padrão
           data: lead.createdAt,
           ultimaInteracao: lead.createdAt,
+          createdAt: lead.createdAt,
           valor: 0, // Valor a ser preenchido manualmente
           observacoes: lead.observacoes || '',
           detalhes: {
@@ -154,11 +165,6 @@ export default function AdminDashboard() {
     localStorage.removeItem('admin_logged_in');
   };
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('admin_dark_mode', newDarkMode.toString());
-  };
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = searchTerm === '' || 
@@ -1476,7 +1482,7 @@ export default function AdminDashboard() {
                     <div style={{ marginBottom: '16px' }}>
                       <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textMuted }}>Data do Lead:</span>
                       <div style={{ fontSize: '16px', color: theme.text, marginTop: '4px' }}>
-                        {formatDate(selectedLead.data)}
+                        {formatDate(selectedLead.createdAt)}
                       </div>
                     </div>
                     {selectedLead.valor && (

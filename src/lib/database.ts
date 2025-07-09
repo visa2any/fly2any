@@ -4,14 +4,25 @@ import path from 'path';
 // Verificar se está no ambiente correto
 const isServerSide = typeof window === 'undefined';
 
-interface LeadData {
+export interface ServiceData {
+  serviceType: string;
+  origem?: string;
+  destino?: string;
+  dataIda?: string;
+  dataVolta?: string;
+  adultos?: number;
+  criancas?: number;
+  classeVoo?: string;
+}
+
+export interface Lead {
   id: string;
   nome: string;
   sobrenome: string;
   email: string;
   telefone: string;
   whatsapp: string;
-  selectedServices: any[];
+  selectedServices: ServiceData[];
   origem: string;
   destino: string;
   dataIda: string;
@@ -30,6 +41,8 @@ interface LeadData {
   createdAt: string;
   updatedAt: string;
 }
+
+// Remove the conflicting type alias and replace all LeadData references with Lead
 
 class DatabaseManager {
   private dataDir: string;
@@ -50,7 +63,7 @@ class DatabaseManager {
   }
 
   // Ler leads existentes
-  private async readLeads(): Promise<LeadData[]> {
+  private async readLeads(): Promise<Lead[]> {
     if (!isServerSide) {
       console.warn('Database operations only available on server side');
       return [];
@@ -60,14 +73,14 @@ class DatabaseManager {
       await this.ensureDataDirectory();
       const data = await fs.readFile(this.leadsFile, 'utf-8');
       return JSON.parse(data);
-    } catch (error) {
+    } catch {
       // Se arquivo não existe, retorna array vazio
       return [];
     }
   }
 
   // Escrever leads
-  private async writeLeads(leads: LeadData[]): Promise<void> {
+  private async writeLeads(leads: Lead[]): Promise<void> {
     if (!isServerSide) {
       console.warn('Database operations only available on server side');
       return;
@@ -78,11 +91,11 @@ class DatabaseManager {
   }
 
   // Salvar novo lead
-  async saveLead(leadData: any): Promise<{ success: boolean; leadId: string; error?: string }> {
+  async saveLead(leadData: Lead): Promise<{ success: boolean; leadId: string; error?: string }> {
     try {
       const leads = await this.readLeads();
       
-      const newLead: LeadData = {
+      const newLead: Lead = {
         id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         nome: leadData.nome,
         sobrenome: leadData.sobrenome || '',
@@ -125,7 +138,7 @@ class DatabaseManager {
   }
 
   // Buscar lead por ID
-  async getLeadById(id: string): Promise<LeadData | null> {
+  async getLeadById(id: string): Promise<Lead | null> {
     try {
       const leads = await this.readLeads();
       return leads.find(lead => lead.id === id) || null;
@@ -136,7 +149,7 @@ class DatabaseManager {
   }
 
   // Buscar leads por email
-  async getLeadsByEmail(email: string): Promise<LeadData[]> {
+  async getLeadsByEmail(email: string): Promise<Lead[]> {
     try {
       const leads = await this.readLeads();
       return leads.filter(lead => lead.email === email);
@@ -148,7 +161,7 @@ class DatabaseManager {
 
   // Listar todos os leads (com paginação)
   async getAllLeads(page: number = 1, limit: number = 50): Promise<{
-    leads: LeadData[];
+    leads: Lead[];
     total: number;
     page: number;
     totalPages: number;
@@ -232,7 +245,7 @@ class DatabaseManager {
 export const database = new DatabaseManager();
 
 // Utility functions
-export async function saveLead(leadData: any) {
+export async function saveLead(leadData: Lead) {
   return database.saveLead(leadData);
 }
 

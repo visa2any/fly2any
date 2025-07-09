@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Lead } from '@/lib/database';
 
 interface ServiceFormData {
   serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
@@ -46,7 +47,7 @@ interface LeadData {
 }
 
 // Validação de dados
-function validateLeadData(data: any): { isValid: boolean; errors: string[] } {
+function validateLeadData(data: LeadData): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Campos obrigatórios
@@ -115,7 +116,34 @@ async function sendToN8N(leadData: LeadData) {
 async function saveToDatabase(leadData: LeadData) {
   try {
     const { saveLead } = await import('@/lib/database');
-    const result = await saveLead(leadData);
+    
+    // Transform LeadData to Lead
+    const lead: Lead = {
+      ...leadData,
+      id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      sobrenome: leadData.sobrenome || '',
+      telefone: leadData.telefone || '',
+      selectedServices: leadData.selectedServices || [],
+      origem: leadData.origem || '',
+      destino: leadData.destino || '',
+      dataIda: leadData.dataIda || '',
+      dataVolta: leadData.dataVolta || '',
+      tipoViagem: leadData.tipoViagem || 'ida-volta',
+      classeVoo: leadData.classeVoo || 'economica',
+      adultos: leadData.adultos || 1,
+      criancas: leadData.criancas || 0,
+      bebes: leadData.bebes || 0,
+      companhiaPreferida: leadData.companhiaPreferida || '',
+      horarioPreferido: leadData.horarioPreferido || 'qualquer',
+      escalas: leadData.escalas || 'qualquer',
+      orcamentoAproximado: leadData.orcamentoAproximado,
+      flexibilidadeDatas: leadData.flexibilidadeDatas || false,
+      observacoes: leadData.observacoes || ''
+    };
+
+    const result = await saveLead(lead);
     
     if (result.success) {
       console.log(`Lead salvo no banco com sucesso: ${result.leadId}`);
@@ -134,7 +162,34 @@ async function saveToDatabase(leadData: LeadData) {
 async function sendConfirmationEmail(leadData: LeadData) {
   try {
     const { sendConfirmationEmail } = await import('@/lib/email');
-    const result = await sendConfirmationEmail(leadData);
+    
+    // Transform LeadData to Lead
+    const lead: Lead = {
+      ...leadData,
+      id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      sobrenome: leadData.sobrenome || '',
+      telefone: leadData.telefone || '',
+      selectedServices: leadData.selectedServices || [],
+      origem: leadData.origem || '',
+      destino: leadData.destino || '',
+      dataIda: leadData.dataIda || '',
+      dataVolta: leadData.dataVolta || '',
+      tipoViagem: leadData.tipoViagem || 'ida-volta',
+      classeVoo: leadData.classeVoo || 'economica',
+      adultos: leadData.adultos || 1,
+      criancas: leadData.criancas || 0,
+      bebes: leadData.bebes || 0,
+      companhiaPreferida: leadData.companhiaPreferida || '',
+      horarioPreferido: leadData.horarioPreferido || 'qualquer',
+      escalas: leadData.escalas || 'qualquer',
+      orcamentoAproximado: leadData.orcamentoAproximado,
+      flexibilidadeDatas: leadData.flexibilidadeDatas || false,
+      observacoes: leadData.observacoes || ''
+    };
+
+    const result = await sendConfirmationEmail(lead);
     
     if (result.success) {
       console.log(`Email de confirmação enviado para ${leadData.email}: ${result.messageId}`);

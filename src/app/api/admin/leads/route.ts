@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllLeads, getLeadStats } from '@/lib/database';
+import { getAllLeads, getLeadStats, type ServiceData } from '@/lib/database';
 
 // Função simples de autenticação (desenvolvimento local)
-function isAuthenticated(request: NextRequest): boolean {
+function isAuthenticated(): boolean {
   // Em desenvolvimento, permite acesso local
   return true;
 }
@@ -10,7 +10,7 @@ function isAuthenticated(request: NextRequest): boolean {
 export async function GET(request: NextRequest) {
   try {
     // Verificar autenticação
-    if (!isAuthenticated(request)) {
+    if (!isAuthenticated()) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticação
-    if (!isAuthenticated(request)) {
+    if (!isAuthenticated()) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const { action, leadId } = await request.json();
+    const { action } = await request.json();
 
     if (action === 'export') {
       // Exportar todos os leads
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         email: lead.email,
         whatsapp: lead.whatsapp,
         telefone: lead.telefone,
-        servicos: lead.selectedServices.map(s => s.serviceType).join(', '),
+        servicos: lead.selectedServices.map((s: ServiceData) => s.serviceType).join(', '),
         origem: lead.origem,
         destino: lead.destino,
         dataIda: lead.dataIda,

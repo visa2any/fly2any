@@ -2,8 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { trackFormSubmit, trackQuoteRequest, trackButtonClick } from '@/lib/analytics';
-import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon, PlusIcon, MinusIcon, CalendarIcon, UsersIcon, LocationIcon, ClockIcon, ArrowRightIcon, ArrowLeftIcon, PhoneIcon, MailIcon, ChatIcon, CheckIcon, StarIcon, BedIcon } from '@/components/Icons';
+import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics';
+import { 
+  FlightIcon, 
+  HotelIcon, 
+  CarIcon, 
+  TourIcon, 
+  InsuranceIcon, 
+  CalendarIcon, 
+  UsersIcon, 
+  BedIcon,
+  PhoneIcon,
+  CheckIcon,
+  StarIcon,
+  ChatIcon,
+  MailIcon,
+  LocationIcon
+} from '@/components/Icons';
 import Logo from '@/components/Logo';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import DatePicker from '@/components/DatePicker';
@@ -86,7 +101,6 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isPassengerDropdownOpen, setIsPassengerDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     selectedServices: [],
     currentServiceIndex: 0,
@@ -118,7 +132,6 @@ export default function Home() {
   });
 
   const [isAddingService, setIsAddingService] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -170,7 +183,6 @@ export default function Home() {
   // Calculate progress percentage
   const getProgressPercentage = () => {
     const totalSteps = 3;
-    const currentStepProgress = ((currentStep - 1) / totalSteps);
     
     // Add progress within current step
     let stepProgress = 0;
@@ -345,9 +357,39 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
+      // Convert form data to plain object
+      const formDataObj = {
+        selectedServices: formData.selectedServices,
+        currentServiceIndex: formData.currentServiceIndex,
+        origem: formData.origem,
+        destino: formData.destino,
+        dataIda: formData.dataIda,
+        dataVolta: formData.dataVolta,
+        tipoViagem: formData.tipoViagem,
+        classeVoo: formData.classeVoo,
+        adultos: formData.adultos,
+        criancas: formData.criancas,
+        bebes: formData.bebes,
+        companhiaPreferida: formData.companhiaPreferida,
+        horarioPreferido: formData.horarioPreferido,
+        escalas: formData.escalas,
+        nome: formData.nome,
+        sobrenome: formData.sobrenome,
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        orcamentoAproximado: formData.orcamentoAproximado,
+        flexibilidadeDatas: formData.flexibilidadeDatas,
+        observacoes: formData.observacoes
+      };
+
       // Track conversion events
-      trackFormSubmit('quote_request', formData);
-      trackQuoteRequest(formData);
+      if (typeof trackFormSubmit === 'function') {
+        trackFormSubmit('quote_request', formDataObj);
+      }
+      if (typeof trackQuoteRequest === 'function') {
+        trackQuoteRequest(formDataObj);
+      }
 
       // Send to API
       const response = await fetch('/api/leads', {
@@ -374,7 +416,6 @@ export default function Home() {
         // Clear any validation errors and touched fields
         setValidationErrors({});
         setTouchedFields({});
-        setErrors({});
         
         // Close any open dropdowns
         const dropdown = document.getElementById('passengers-dropdown');
@@ -1689,7 +1730,7 @@ export default function Home() {
                           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Tipo de Viagem</label>
                           <select
                             value={getCurrentService()?.tipoViagem || 'ida-volta'}
-                            onChange={(e) => updateCurrentService({ tipoViagem: e.target.value as any })}
+                            onChange={(e) => updateCurrentService({ tipoViagem: e.target.value as 'ida-volta' | 'somente-ida' | 'multiplas-cidades' })}
                             style={{
                               width: '100%',
                               padding: '10px 12px',
@@ -1933,7 +1974,7 @@ export default function Home() {
                           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Classe</label>
                           <select
                             value={getCurrentService()?.classeVoo || 'economica'}
-                            onChange={(e) => updateCurrentService({ classeVoo: e.target.value as any })}
+                            onChange={(e) => updateCurrentService({ classeVoo: e.target.value as 'economica' | 'premium' | 'executiva' | 'primeira' })}
                             style={{
                               width: '100%',
                               padding: '10px 12px',
@@ -2656,7 +2697,7 @@ export default function Home() {
                       marginBottom: '16px',
                       fontStyle: 'italic'
                     }}>
-                      "{testimonial.text}"
+                      &quot;{testimonial.text}&quot;
                     </p>
                     <div style={{
                       borderTop: '1px solid rgba(255, 255, 255, 0.1)',

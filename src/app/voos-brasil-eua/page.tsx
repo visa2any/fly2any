@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FlightIcon, PhoneIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 
@@ -96,11 +97,6 @@ export default function VoosBrasilEUA() {
     fontFamily: 'Inter, sans-serif'
   };
 
-  const glassEffect = {
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)'
-  };
 
   const cardStyle = {
     background: 'rgba(255, 255, 255, 0.08)',
@@ -616,9 +612,11 @@ export default function VoosBrasilEUA() {
                   borderRadius: '12px',
                   padding: '12px'
                 }}>
-                  <img 
+                  <Image 
                     src={airline.logo} 
                     alt={`${airline.name} logo`}
+                    width={140}
+                    height={60}
                     style={{
                       maxHeight: '60px',
                       maxWidth: '140px',

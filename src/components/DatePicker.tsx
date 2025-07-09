@@ -41,7 +41,6 @@ export default function DatePicker({
   const [displayValue, setDisplayValue] = useState('');
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const months = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',

@@ -1,9 +1,9 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { trackFormSubmit, trackQuoteRequest, trackButtonClick } from '@/lib/analytics';
-import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon, PlusIcon, MinusIcon, CalendarIcon, UsersIcon, LocationIcon, ClockIcon, ArrowRightIcon, ArrowLeftIcon, PhoneIcon, MailIcon, ChatIcon, CheckIcon, StarIcon } from '@/components/Icons';
+import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics';
+import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import DatePicker from '@/components/DatePicker';
@@ -61,9 +61,7 @@ interface FormData {
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isPassengerDropdownOpen, setIsPassengerDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     selectedServices: [],
     currentServiceIndex: 0,
@@ -95,14 +93,11 @@ export default function Home() {
     observacoes: ''
   });
 
-  const [showQuotationModeSelection, setShowQuotationModeSelection] = useState(true);
-  const [isAddingService, setIsAddingService] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
-    
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
         setIsMobile(window.innerWidth < 1024);
@@ -153,24 +148,101 @@ export default function Home() {
     }));
 
     setCurrentStep(2);
-    setShowQuotationModeSelection(false);
-    setIsAddingService(false);
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.nome) newErrors.nome = 'Nome é obrigatório';
+    if (!formData.email) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email inválido';
+    }
+    if (!formData.telefone) newErrors.telefone = 'Telefone é obrigatório';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
 
     try {
+      // Convert form data to plain object
+      const formDataObj = {
+        selectedServices: formData.selectedServices,
+        currentServiceIndex: formData.currentServiceIndex,
+        origem: formData.origem,
+        destino: formData.destino,
+        dataIda: formData.dataIda,
+        dataVolta: formData.dataVolta,
+        tipoViagem: formData.tipoViagem,
+        classeVoo: formData.classeVoo,
+        adultos: formData.adultos,
+        criancas: formData.criancas,
+        bebes: formData.bebes,
+        companhiaPreferida: formData.companhiaPreferida,
+        horarioPreferido: formData.horarioPreferido,
+        escalas: formData.escalas,
+        nome: formData.nome,
+        sobrenome: formData.sobrenome,
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        orcamentoAproximado: formData.orcamentoAproximado,
+        flexibilidadeDatas: formData.flexibilidadeDatas,
+        observacoes: formData.observacoes
+      };
+
       // Track conversion events
-      trackFormSubmit('quote_request', formData);
-      trackQuoteRequest(formData);
+      if (typeof trackFormSubmit === 'function') {
+        trackFormSubmit('quote_request', formDataObj);
+      }
+      if (typeof trackQuoteRequest === 'function') {
+        trackQuoteRequest(formDataObj);
+      }
 
       // Simulated API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      alert('🎉 Formulário enviado! Nossa equipe entrará em contato em até 2 horas.');
-    } catch (error) {
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          selectedServices: [],
+          currentServiceIndex: 0,
+          quotationMode: 'individual',
+          origem: '',
+          destino: '',
+          dataIda: '',
+          dataVolta: '',
+          tipoViagem: 'ida-volta',
+          classeVoo: 'economica',
+          adultos: 1,
+          criancas: 0,
+          bebes: 0,
+          companhiaPreferida: '',
+          horarioPreferido: 'qualquer',
+          escalas: 'qualquer',
+          nome: '',
+          sobrenome: '',
+          email: '',
+          telefone: '',
+          whatsapp: '',
+          serviceType: '',
+          orcamentoAproximado: '',
+          flexibilidadeDatas: false,
+          observacoes: ''
+        });
+        setCurrentStep(1);
+      }, 2000);
+    } catch {
       alert('❌ Erro ao enviar formulário. Tente novamente.');
     } finally {
       setIsSubmitting(false);
@@ -227,7 +299,7 @@ export default function Home() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <div style={containerStyle}>
         {/* Floating Background Elements */}
         <div style={floatingElement1Style}></div>
@@ -477,11 +549,12 @@ export default function Home() {
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
-                            border: '1px solid #d1d5db',
+                            border: errors.nome ? '1px solid #ef4444' : '1px solid #d1d5db',
                             borderRadius: '8px'
                           }}
                           placeholder="Seu nome"
                         />
+                        {errors.nome && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{errors.nome}</div>}
                       </div>
 
                       <div style={{ marginBottom: '16px' }}>
@@ -493,11 +566,12 @@ export default function Home() {
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
-                            border: '1px solid #d1d5db',
+                            border: errors.email ? '1px solid #ef4444' : '1px solid #d1d5db',
                             borderRadius: '8px'
                           }}
                           placeholder="Seu email"
                         />
+                        {errors.email && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{errors.email}</div>}
                       </div>
 
                       <div style={{ marginBottom: '16px' }}>
@@ -509,11 +583,12 @@ export default function Home() {
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
-                            border: '1px solid #d1d5db',
+                            border: errors.telefone ? '1px solid #ef4444' : '1px solid #d1d5db',
                             borderRadius: '8px'
                           }}
                           placeholder="Seu telefone"
                         />
+                        {errors.telefone && <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{errors.telefone}</div>}
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
@@ -544,7 +619,54 @@ export default function Home() {
             </div>
           </div>
         </section>
+      {showSuccess ? (
+      <div style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 9999,
+        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        color: 'white',
+        padding: '16px 24px',
+        borderRadius: '12px',
+        boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        fontSize: '16px',
+        fontWeight: '600',
+        maxWidth: '400px'
+      }}>
+        <div style={{ fontSize: '24px' }}>🎉</div>
+        <div>
+          <div style={{ fontWeight: '700', marginBottom: '4px' }}>
+            Cotação enviada com sucesso!
+          </div>
+          <div style={{ fontSize: '14px', opacity: 0.9 }}>
+            Nossa equipe entrará em contato em até 2 horas.
+          </div>
+        </div>
+        <button
+          onClick={() => setShowSuccess(false)}
+          style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: 'none',
+            color: 'white',
+            borderRadius: '50%',
+            width: '24px',
+            height: '24px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px'
+          }}
+        >
+          ×
+        </button>
       </div>
-    </>
+      ) : null}
+      </div>
+    </React.Fragment>
   );
 }

@@ -248,7 +248,7 @@ export default function Blog() {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            {categories.slice(0, 4).map((cat, index) => (
+            {categories.slice(0, 4).map((cat) => (
               <Link
                 key={cat.name}
                 href={`/blog/categoria/${cat.name.toLowerCase().replace(' ', '-')}`}
