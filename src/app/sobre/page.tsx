@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FlightIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: "Sobre a Fly2Any | Nossa História e Missão",
@@ -27,13 +28,13 @@ export default function Sobre() {
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '16px 24px',
+          padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Logo size="md" showText={true} />
-          <nav style={{ display: 'flex', gap: '24px' }}>
+          <Logo size="sm" showText={true} />
+          <nav style={{ display: 'none' }} className="hidden-mobile">{/* Hidden on mobile */}
             <Link href="/" style={{
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
@@ -137,20 +138,33 @@ export default function Sobre() {
             </Link>
           </nav>
         </div>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Sobre' }
+            ]} 
+          />
+        </div>
       </header>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 48px' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ fontSize: '36px', fontWeight: '700', color: 'white', marginBottom: '16px', fontFamily: 'Poppins, sans-serif' }}>
+      <div className="container-mobile spacing-mobile">
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h2 className="text-mobile-3xl" style={{ 
+              fontWeight: '700', 
+              color: 'white', 
+              marginBottom: '16px', 
+              fontFamily: 'Poppins, sans-serif' 
+            }}>
               Sobre a Fly2Any
             </h2>
-            <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)' }}>
+            <p className="text-mobile-lg" style={{ color: 'rgb(219, 234, 254)' }}>
               Conectando brasileiros nos EUA ao Brasil com excelência e confiança
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '48px', marginBottom: '48px' }}>
+          <div className="grid-mobile" style={{ gridTemplateColumns: '1fr', gap: '32px', marginBottom: '32px' }}>
             <div>
               <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '16px', fontFamily: 'Poppins, sans-serif' }}>
                 Nossa História

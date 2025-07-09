@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function CotacaoCarros() {
   const [formData, setFormData] = useState({
@@ -26,9 +27,55 @@ export default function CotacaoCarros() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setSubmitted(true);
+    
+    try {
+      // Preparar dados para envio
+      const leadData = {
+        selectedServices: [{
+          serviceType: 'carros',
+          local: formData.local,
+          dataRetirada: formData.dataRetirada,
+          dataEntrega: formData.dataEntrega,
+          categoria: formData.categoria,
+          tipoVeiculo: formData.categoria
+        }],
+        currentServiceIndex: 0,
+        nome: formData.nome,
+        sobrenome: '',
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        localRetirada: formData.local,
+        dataRetirada: formData.dataRetirada,
+        dataEntrega: formData.dataEntrega,
+        categoriaVeiculo: formData.categoria,
+        observacoes: ''
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar cotação');
+      }
+
+      const result = await response.json();
+      console.log('Cotação enviada com sucesso:', result);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao enviar cotação:', error);
+      alert('Erro ao enviar cotação. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -76,6 +123,13 @@ export default function CotacaoCarros() {
               Cotação de Aluguel de Carros
             </div>
           </div>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Cotação', href: '/cotacao' },
+              { label: 'Carros' }
+            ]}
+          />
         </div>
       </header>
 

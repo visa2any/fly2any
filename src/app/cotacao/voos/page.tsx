@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 interface FormData {
   origem: string;
@@ -56,11 +57,65 @@ export default function CotacaoVoos() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simular envio do formulário
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setSubmitted(true);
+    try {
+      // Preparar dados para envio
+      const leadData = {
+        selectedServices: [{
+          serviceType: 'voos',
+          origem: formData.origem,
+          destino: formData.destino,
+          dataIda: formData.dataIda,
+          dataVolta: formData.dataVolta,
+          adultos: formData.adultos,
+          criancas: formData.criancas,
+          classeVoo: formData.classe
+        }],
+        currentServiceIndex: 0,
+        nome: formData.nome,
+        sobrenome: '',
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        origem: formData.origem,
+        destino: formData.destino,
+        dataIda: formData.dataIda,
+        dataVolta: formData.dataVolta,
+        tipoViagem: formData.tipoViagem,
+        classeVoo: formData.classe,
+        adultos: formData.adultos,
+        criancas: formData.criancas,
+        bebes: formData.bebes,
+        companhiaPreferida: '',
+        horarioPreferido: 'qualquer',
+        escalas: 'qualquer',
+        flexibilidadeDatas: formData.flexivel,
+        observacoes: formData.observacoes || ''
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar cotação');
+      }
+
+      const result = await response.json();
+      console.log('Cotação enviada com sucesso:', result);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao enviar cotação:', error);
+      alert('Erro ao enviar cotação. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -104,26 +159,68 @@ export default function CotacaoVoos() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700">
+    <div style={{ minHeight: '100vh' }} className="bg-gradient-hero">
       {/* Header */}
-      <header className="bg-white shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">F</span>
+      <header style={{ 
+        background: 'white',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50
+      }}>
+        <div className="container-mobile" style={{ padding: '12px 16px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            marginBottom: '8px'
+          }}>
+            <Link href="/" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              textDecoration: 'none'
+            }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                background: '#2563eb',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>F</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800">Flyy2Any</h1>
+              <h1 style={{ 
+                fontSize: '18px',
+                fontWeight: 'bold',
+                color: '#1f2937',
+                margin: 0
+              }}>
+                Fly2Any
+              </h1>
             </Link>
-            <div className="text-sm text-gray-600">
+            <div style={{ 
+              fontSize: '12px',
+              color: '#6b7280',
+              fontWeight: '500'
+            }}>
               Passo {currentStep} de 3
             </div>
           </div>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Cotação', href: '/cotacao' },
+              { label: 'Voos' }
+            ]} 
+          />
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="container-mobile spacing-mobile">
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
@@ -131,24 +228,44 @@ export default function CotacaoVoos() {
               <span className="text-white text-sm">Passageiros</span>
               <span className="text-white text-sm">Contato</span>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
+            <div style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '10px',
+              height: '6px',
+              overflow: 'hidden'
+            }}>
               <div 
-                className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / 3) * 100}%` }}
-              ></div>
+                style={{
+                  background: 'linear-gradient(90deg, #facc15, #f59e0b)',
+                  height: '100%',
+                  borderRadius: '10px',
+                  transition: 'width 0.3s ease',
+                  width: `${(currentStep / 3) * 100}%`
+                }}
+              />
             </div>
           </div>
 
           {/* Form */}
-          <div className="bg-white rounded-lg shadow-xl p-8">
+          <div className="card-mobile" style={{ 
+            background: 'white',
+            color: '#1f2937',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+          }}>
             <form onSubmit={handleSubmit}>
               {currentStep === 1 && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                <div className="form-mobile">
+                  <h2 className="text-mobile-2xl" style={{ 
+                    fontWeight: 'bold',
+                    color: '#1f2937',
+                    marginBottom: '24px',
+                    textAlign: 'center'
+                  }}>
                     Dados da Viagem
                   </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid-mobile" style={{ gridTemplateColumns: '1fr', gap: '16px' }}>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Cidade de Origem (EUA)

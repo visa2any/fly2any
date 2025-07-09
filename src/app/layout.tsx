@@ -32,7 +32,13 @@ export const metadata: Metadata = {
     description: "Especialistas em passagens aéreas para brasileiros nos EUA. Voos, hotéis, carros, passeios e seguro viagem para o Brasil.",
     images: [
       {
-        url: "/og-image-placeholder.svg",
+        url: "/og-image.webp",
+        width: 1200,
+        height: 630,
+        alt: "Fly2Any - Voos Brasil-EUA",
+      },
+      {
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Fly2Any - Voos Brasil-EUA",
@@ -43,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Fly2Any - Voos Brasil-EUA | Passagens Aéreas para Brasileiros",
     description: "Especialistas em passagens aéreas para brasileiros nos EUA. Cotação gratuita em 2 horas!",
-    images: ["/og-image-placeholder.svg"],
+    images: ["/og-image.webp"],
   },
   alternates: {
     canonical: "https://fly2any.com",
@@ -63,7 +69,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta name="theme-color" content="#1e40af" />
         
         {/* Google Analytics 4 */}

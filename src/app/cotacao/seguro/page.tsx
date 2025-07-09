@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function CotacaoSeguro() {
   const [formData, setFormData] = useState({
@@ -28,9 +29,58 @@ export default function CotacaoSeguro() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setSubmitted(true);
+    
+    try {
+      // Preparar dados para envio
+      const leadData = {
+        selectedServices: [{
+          serviceType: 'seguro',
+          tipoSeguro: formData.tipoSeguro,
+          dataInicio: formData.dataInicio,
+          dataFim: formData.dataFim,
+          pessoas: formData.pessoas,
+          idade: formData.idade,
+          cobertura: formData.cobertura
+        }],
+        currentServiceIndex: 0,
+        nome: formData.nome,
+        sobrenome: '',
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        tipoSeguro: formData.tipoSeguro,
+        dataInicioSeguro: formData.dataInicio,
+        dataFimSeguro: formData.dataFim,
+        numeroPassageiros: formData.pessoas,
+        faixaEtaria: formData.idade,
+        coberturaDesejada: formData.cobertura,
+        observacoes: ''
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar cotação');
+      }
+
+      const result = await response.json();
+      console.log('Cotação enviada com sucesso:', result);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao enviar cotação:', error);
+      alert('Erro ao enviar cotação. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -78,6 +128,13 @@ export default function CotacaoSeguro() {
               Cotação de Seguro Viagem
             </div>
           </div>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Cotação', href: '/cotacao' },
+              { label: 'Seguro' }
+            ]}
+          />
         </div>
       </header>
 

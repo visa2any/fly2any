@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function CotacaoPasseios() {
   const [formData, setFormData] = useState({
@@ -27,9 +28,55 @@ export default function CotacaoPasseios() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setSubmitted(true);
+    
+    try {
+      // Preparar dados para envio
+      const leadData = {
+        selectedServices: [{
+          serviceType: 'passeios',
+          destino: formData.destino,
+          dataViagem: formData.dataViagem,
+          tipoPasseio: formData.tipoPasseio,
+          pessoas: formData.pessoas,
+          observacoes: formData.observacoes
+        }],
+        currentServiceIndex: 0,
+        nome: formData.nome,
+        sobrenome: '',
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        destinoPasseio: formData.destino,
+        dataPasseio: formData.dataViagem,
+        tipoPasseio: formData.tipoPasseio,
+        numeroPassageiros: formData.pessoas,
+        observacoes: formData.observacoes || ''
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar cotação');
+      }
+
+      const result = await response.json();
+      console.log('Cotação enviada com sucesso:', result);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao enviar cotação:', error);
+      alert('Erro ao enviar cotação. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -77,6 +124,13 @@ export default function CotacaoPasseios() {
               Cotação de Passeios
             </div>
           </div>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Cotação', href: '/cotacao' },
+              { label: 'Passeios' }
+            ]}
+          />
         </div>
       </header>
 

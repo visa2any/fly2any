@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import OptimizedImage from "@/components/OptimizedImage";
 import { FlightIcon, PhoneIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 
@@ -612,11 +612,12 @@ export default function VoosBrasilEUA() {
                   borderRadius: '12px',
                   padding: '12px'
                 }}>
-                  <Image 
+                  <OptimizedImage 
                     src={airline.logo} 
                     alt={`${airline.name} logo`}
                     width={140}
                     height={60}
+                    loading="lazy"
                     style={{
                       maxHeight: '60px',
                       maxWidth: '140px',

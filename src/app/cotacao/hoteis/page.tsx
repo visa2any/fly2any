@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 interface FormData {
   destino: string;
@@ -61,9 +62,63 @@ export default function CotacaoHoteis() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setSubmitted(true);
+    
+    try {
+      // Preparar dados para envio
+      const leadData = {
+        selectedServices: [{
+          serviceType: 'hoteis',
+          destino: formData.destino,
+          dataIda: formData.checkin,
+          dataVolta: formData.checkout,
+          adultos: formData.adultos,
+          criancas: formData.criancas
+        }],
+        currentServiceIndex: 0,
+        nome: formData.nome,
+        sobrenome: '',
+        email: formData.email,
+        telefone: formData.telefone,
+        whatsapp: formData.whatsapp,
+        origem: '',
+        destino: formData.destino,
+        dataIda: formData.checkin,
+        dataVolta: formData.checkout,
+        tipoViagem: 'ida-volta',
+        classeVoo: 'economica',
+        adultos: formData.adultos,
+        criancas: formData.criancas,
+        bebes: 0,
+        companhiaPreferida: '',
+        horarioPreferido: 'qualquer',
+        escalas: 'qualquer',
+        observacoes: formData.observacoes || ''
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao enviar cotação');
+      }
+
+      const result = await response.json();
+      console.log('Cotação de hotéis enviada com sucesso:', result);
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao enviar cotação de hotéis:', error);
+      alert('Erro ao enviar cotação. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -121,6 +176,13 @@ export default function CotacaoHoteis() {
               Cotação de Hotéis - Passo {currentStep} de 3
             </div>
           </div>
+          <Breadcrumbs 
+            items={[
+              { label: 'Início', href: '/' },
+              { label: 'Cotação', href: '/cotacao' },
+              { label: 'Hotéis' }
+            ]} 
+          />
         </div>
       </header>
 
