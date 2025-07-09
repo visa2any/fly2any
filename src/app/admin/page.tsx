@@ -62,121 +62,64 @@ export default function AdminDashboard() {
     return () => document.removeEventListener('keydown', handleKeyboard);
   }, [selectedLead]);
 
-  // Dados mock para demonstração
-  const mockLeads: Lead[] = [
-    {
-      id: '1',
-      tipo: 'voos',
-      nome: 'Maria',
-      sobrenome: 'Silva',
-      email: 'maria@email.com',
-      telefone: '+1 (555) 123-4567',
-      whatsapp: '+1 (555) 123-4567',
-      status: 'novo',
-      prioridade: 'alta',
-      data: '2024-01-15T10:30:00Z',
-      ultimaInteracao: '2024-01-15T10:30:00Z',
-      valor: 1250,
-      observacoes: 'Cliente interessado em voo para férias em família. Prefere horários matutinos.',
-      detalhes: {
-        origem: 'MIA - Miami International',
-        destino: 'GRU - São Paulo/Guarulhos',
-        dataIda: '15/02/2024',
-        dataVolta: '28/02/2024',
-        adultos: 2,
-        criancas: 1,
-        classe: 'Econômica Premium',
-        flexibilidade: 'Até 3 dias'
+  // Estados para dados reais
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Carregar dados reais da API
+  useEffect(() => {
+    const fetchLeads = async () => {
+      if (!isAuthenticated) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch('/api/admin/leads');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar leads');
+        }
+        const data = await response.json();
+        
+        // Converter dados do formato da API para o formato do admin
+        const convertedLeads: Lead[] = data.leads.map((lead: any) => ({
+          id: lead.id,
+          tipo: lead.selectedServices[0]?.serviceType || 'voos',
+          nome: lead.nome,
+          sobrenome: lead.sobrenome || '',
+          email: lead.email,
+          telefone: lead.telefone || '',
+          whatsapp: lead.whatsapp || '',
+          status: 'novo', // Todos os leads novos começam como 'novo'
+          prioridade: 'media', // Prioridade padrão
+          data: lead.createdAt,
+          ultimaInteracao: lead.createdAt,
+          valor: 0, // Valor a ser preenchido manualmente
+          observacoes: lead.observacoes || '',
+          detalhes: {
+            origem: lead.origem || lead.selectedServices[0]?.origem || '',
+            destino: lead.destino || lead.selectedServices[0]?.destino || '',
+            dataIda: lead.dataIda || lead.selectedServices[0]?.dataIda || '',
+            dataVolta: lead.dataVolta || lead.selectedServices[0]?.dataVolta || '',
+            adultos: lead.adultos || lead.selectedServices[0]?.adultos || 1,
+            criancas: lead.criancas || lead.selectedServices[0]?.criancas || 0,
+            classe: lead.classeVoo || lead.selectedServices[0]?.classeVoo || 'economica',
+            orcamento: lead.orcamentoAproximado || ''
+          }
+        }));
+        
+        setLeads(convertedLeads);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao carregar leads:', err);
+        setError('Erro ao carregar dados');
+        setLeads([]);
+      } finally {
+        setLoading(false);
       }
-    },
-    {
-      id: '2',
-      tipo: 'hoteis',
-      nome: 'João',
-      sobrenome: 'Santos',
-      email: 'joao@email.com',
-      telefone: '+1 (555) 987-6543',
-      status: 'em_analise',
-      prioridade: 'media',
-      data: '2024-01-14T14:15:00Z',
-      ultimaInteracao: '2024-01-14T16:20:00Z',
-      valor: 800,
-      observacoes: 'Procura hotel 4 estrelas próximo à praia. Lua de mel.',
-      detalhes: {
-        destino: 'Rio de Janeiro - Copacabana',
-        checkin: '10/02/2024',
-        checkout: '17/02/2024',
-        adultos: 2,
-        quartos: 1,
-        categoria: '4 estrelas superior',
-        amenidades: 'Vista mar, spa'
-      }
-    },
-    {
-      id: '3',
-      tipo: 'carros',
-      nome: 'Ana',
-      sobrenome: 'Costa',
-      email: 'ana@email.com',
-      telefone: '+1 (555) 456-7890',
-      status: 'cotado',
-      prioridade: 'baixa',
-      data: '2024-01-13T09:45:00Z',
-      ultimaInteracao: '2024-01-13T11:30:00Z',
-      valor: 420,
-      detalhes: {
-        local: 'Aeroporto GRU - Terminal 3',
-        dataRetirada: '20/02/2024 - 14:00',
-        dataEntrega: '27/02/2024 - 10:00',
-        categoria: 'Compacto Automático',
-        seguro: 'Proteção Total',
-        condutor: 'Principal + 1 adicional'
-      }
-    },
-    {
-      id: '4',
-      tipo: 'passeios',
-      nome: 'Carlos',
-      sobrenome: 'Mendes',
-      email: 'carlos@email.com',
-      telefone: '+1 (555) 321-0987',
-      status: 'proposta_enviada',
-      prioridade: 'alta',
-      data: '2024-01-12T16:20:00Z',
-      ultimaInteracao: '2024-01-13T09:15:00Z',
-      valor: 3200,
-      observacoes: 'Família com adolescentes. Interessados em ecoturismo e aventura.',
-      detalhes: {
-        destino: 'Amazônia - Manaus',
-        duracao: '7 dias / 6 noites',
-        pessoas: 4,
-        tipo: 'Ecoturismo Premium',
-        hospedagem: 'Lodge na floresta',
-        atividades: 'Pesca, trilhas, canoa'
-      }
-    },
-    {
-      id: '5',
-      tipo: 'seguro',
-      nome: 'Fernanda',
-      sobrenome: 'Lima',
-      email: 'fernanda@email.com',
-      telefone: '+1 (555) 654-3210',
-      status: 'fechado',
-      prioridade: 'media',
-      data: '2024-01-11T13:30:00Z',
-      ultimaInteracao: '2024-01-12T10:45:00Z',
-      valor: 180,
-      detalhes: {
-        destino: 'Brasil - Múltiplas cidades',
-        duracao: '21 dias',
-        cobertura: 'Completa Plus',
-        valorCobertura: 'USD 150,000',
-        esportes: 'Incluído',
-        covid: 'Cobertura total'
-      }
-    }
-  ];
+    };
+
+    fetchLeads();
+  }, [isAuthenticated]);
 
   // Atualizar hora a cada minuto
   useEffect(() => {
@@ -217,7 +160,7 @@ export default function AdminDashboard() {
     localStorage.setItem('admin_dark_mode', newDarkMode.toString());
   };
 
-  const filteredLeads = mockLeads.filter(lead => {
+  const filteredLeads = leads.filter(lead => {
     const matchesSearch = searchTerm === '' || 
       lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.sobrenome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -228,21 +171,7 @@ export default function AdminDashboard() {
     return matchesSearch && matchesStatus;
   });
 
-  // Cores adaptativas para modo claro/escuro
-  const theme = {
-    bg: isDarkMode ? '#0f172a' : '#f8fafc',
-    cardBg: isDarkMode ? '#1e293b' : '#ffffff',
-    text: isDarkMode ? '#f1f5f9' : '#1e293b',
-    textSecondary: isDarkMode ? '#cbd5e1' : '#64748b',
-    textMuted: isDarkMode ? '#94a3b8' : '#94a3b8',
-    border: isDarkMode ? '#334155' : '#e2e8f0',
-    headerBg: isDarkMode ? '#1e293b' : '#ffffff',
-    modalBg: isDarkMode ? '#1e293b' : '#ffffff',
-    inputBg: isDarkMode ? '#334155' : '#ffffff',
-    inputBorder: isDarkMode ? '#475569' : '#d1d5db',
-    shadow: isDarkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-    accent: '#3b82f6'
-  };
+  // Cores adaptativas para modo claro/escuro (removido - usando o theme mais completo abaixo)
 
   const getStatusColor = (status: Lead['status']) => {
     const colors = {
@@ -315,12 +244,12 @@ export default function AdminDashboard() {
   };
 
   const getStats = () => {
-    const total = mockLeads.length;
-    const novos = mockLeads.filter(l => l.status === 'novo').length;
-    const emAnalise = mockLeads.filter(l => l.status === 'em_analise').length;
-    const fechados = mockLeads.filter(l => l.status === 'fechado').length;
-    const totalValor = mockLeads.reduce((sum, lead) => sum + (lead.valor || 0), 0);
-    const altaPrioridade = mockLeads.filter(l => l.prioridade === 'alta').length;
+    const total = leads.length;
+    const novos = leads.filter(l => l.status === 'novo').length;
+    const emAnalise = leads.filter(l => l.status === 'em_analise').length;
+    const fechados = leads.filter(l => l.status === 'fechado').length;
+    const totalValor = leads.reduce((sum, lead) => sum + (lead.valor || 0), 0);
+    const altaPrioridade = leads.filter(l => l.prioridade === 'alta').length;
     
     return { total, novos, emAnalise, fechados, totalValor, altaPrioridade };
   };
@@ -473,12 +402,149 @@ export default function AdminDashboard() {
     );
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          borderRadius: '20px',
+          padding: '48px 40px',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)'
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid #e5e7eb',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            margin: '0 auto 24px auto',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#1f2937',
+            margin: '0 0 8px 0'
+          }}>
+            Carregando dados...
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: 0
+          }}>
+            Aguarde enquanto buscamos os leads
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.98)',
+          borderRadius: '20px',
+          padding: '48px 40px',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)'
+        }}>
+          <div style={{
+            fontSize: '48px',
+            marginBottom: '24px'
+          }}>
+            ⚠️
+          </div>
+          <h3 style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#dc2626',
+            margin: '0 0 8px 0'
+          }}>
+            Erro ao carregar dados
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: '#6b7280',
+            margin: '0 0 24px 0'
+          }}>
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Tema baseado no dark mode
+  const theme = {
+    bg: isDarkMode ? '#0f172a' : '#f8fafc',
+    headerBg: isDarkMode ? '#1e293b' : '#ffffff',
+    cardBg: isDarkMode ? '#1e293b' : '#ffffff',
+    text: isDarkMode ? '#f1f5f9' : '#1e293b',
+    textSecondary: isDarkMode ? '#cbd5e1' : '#64748b',
+    textMuted: isDarkMode ? '#94a3b8' : '#94a3b8',
+    border: isDarkMode ? '#334155' : '#e2e8f0',
+    modalBg: isDarkMode ? '#1e293b' : '#ffffff',
+    inputBg: isDarkMode ? '#334155' : '#ffffff',
+    inputBorder: isDarkMode ? '#475569' : '#d1d5db',
+    shadow: isDarkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+    accent: '#3b82f6',
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    buttonHover: isDarkMode ? '#334155' : '#f1f5f9'
+  };
+
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: theme.bg,
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      transition: 'background-color 0.3s ease'
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      <div style={{ 
+        minHeight: '100vh', 
+        backgroundColor: theme.bg,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        transition: 'background-color 0.3s ease'
     }}>
       {/* Header */}
       <header style={{
@@ -1636,5 +1702,6 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
+    </>
   );
 }

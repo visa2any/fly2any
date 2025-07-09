@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         message: 'Erro interno do servidor',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+        error: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
       },
       { status: 500 }
     );

@@ -66,7 +66,7 @@ const PhoneInputInline: React.FC<PhoneInputInlineProps> = ({
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
-    const fullNumber = selectedCountry.dialCode + ' ' + inputValue;
+    const fullNumber = selectedCountry?.dialCode + ' ' + inputValue;
     onChange(fullNumber);
   };
 

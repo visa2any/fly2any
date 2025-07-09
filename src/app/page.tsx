@@ -454,9 +454,9 @@ export default function Home() {
         {/* Header */}
         <header style={headerStyle}>
           <div style={{
-            maxWidth: '1280px',
+            maxWidth: '1400px',
             margin: '0 auto',
-            padding: '16px 24px',
+            padding: '16px 32px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
@@ -575,12 +575,12 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: '80px 0'
+          padding: '120px 0 80px 0'
         }}>
           <div style={{
-            maxWidth: '1280px',
+            maxWidth: '1400px',
             margin: '0 auto',
-            padding: '0 24px',
+            padding: '0 32px',
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
             gap: '64px',
@@ -601,23 +601,24 @@ export default function Home() {
                 backdropFilter: 'blur(10px)',
                 borderRadius: '50px',
                 border: '1px solid rgba(250, 204, 21, 0.3)',
-                marginBottom: '24px'
+                marginBottom: '32px',
+                marginTop: '20px'
               }}>
                 <span style={{
                   color: '#fde047',
                   fontWeight: '500',
                   fontSize: '14px'
-                }}>✈️ Especialistas em Brasil-EUA</span>
+                }}>🌎 Conectando você ao mundo há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '40px' : '72px',
-                fontWeight: '800',
+                fontSize: isMobile ? '36px' : '64px',
+                fontWeight: '700',
                 fontFamily: 'Poppins, sans-serif',
-                lineHeight: '1.1',
+                lineHeight: '1.2',
                 margin: '0 0 24px 0',
-                letterSpacing: '-0.02em'
+                letterSpacing: '-0.01em',
+                maxWidth: '100%'
               }}>
-                Sua Viagem dos <br />
                 <span style={{
                   background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ea580c)',
                   WebkitBackgroundClip: 'text',
@@ -625,8 +626,8 @@ export default function Home() {
                   backgroundClip: 'text',
                   textShadow: '0 4px 8px rgba(0,0,0,0.1)'
                 }}>
-                  Sonhos
-                </span> ao Brasil
+                  Fly2Any
+                </span>, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
                 fontSize: '22px',
@@ -636,8 +637,8 @@ export default function Home() {
                 marginBottom: '40px',
                 fontWeight: '400'
               }}>
-                Conectamos brasileiros nos EUA ao Brasil com atendimento personalizado, 
-                preços exclusivos e experiência incomparável há mais de 10 anos.
+                Conectamos brasileiros, americanos e outras nacionalidades ao Brasil e ao mundo 
+                com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
               
               {/* Trust Indicators */}
@@ -735,7 +736,7 @@ export default function Home() {
                 </button>
                 
                 <a
-                  href="https://wa.me/15551234567"
+                  href="https://wa.me/5511951944717"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -797,14 +798,15 @@ export default function Home() {
                 </div>
                 
                 <h3 style={{
-                  fontSize: '28px',
+                  fontSize: '26px',
                   fontWeight: '800',
                   color: '#111827',
                   fontFamily: 'Poppins, sans-serif',
                   margin: '0 0 8px 0',
-                  letterSpacing: '-0.02em'
+                  letterSpacing: '-0.02em',
+                  lineHeight: '1.2'
                 }}>
-                  Cotação em 2 Horas
+                  Sua Cotação em até 2 horas, menor preço garantido!
                 </h3>
                 <p style={{
                   color: '#6b7280',
@@ -812,7 +814,7 @@ export default function Home() {
                   fontSize: '16px',
                   lineHeight: '1.5'
                 }}>
-                  Preencha os dados e receba as <strong>melhores ofertas</strong> do mercado
+                  Preencha os dados e receba as <strong>melhores ofertas</strong> do mercado com preço imbatível
                 </p>
 
                 {/* Progress Bar */}
@@ -1995,7 +1997,7 @@ export default function Home() {
                         </button>
                         
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          {formData.quotationMode === 'multiple' && (
+                          {formData.selectedServices.length > 0 && (
                             <button 
                               type="button" 
                               onClick={() => {
@@ -2149,34 +2151,34 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* WhatsApp (Principal) */}
-                      <div style={{ marginBottom: '16px' }}>
-                        <PhoneInput
-                          value={formData.whatsapp}
-                          onChange={(value) => handleInputChange('whatsapp', value)}
-                          onBlur={() => handleFieldBlur('whatsapp')}
-                          placeholder="Seu WhatsApp"
-                          label="WhatsApp"
-                          required={true}
-                          error={validationErrors.whatsapp}
-                          touched={touchedFields.whatsapp}
-                          defaultCountry="BR"
-                        />
-                      </div>
-
-                      {/* Telefone Alternativo */}
-                      <div style={{ marginBottom: '16px' }}>
-                        <PhoneInput
-                          value={formData.telefone}
-                          onChange={(value) => handleInputChange('telefone', value)}
-                          onBlur={() => handleFieldBlur('telefone')}
-                          placeholder="Telefone alternativo"
-                          label="Telefone Alternativo"
-                          required={false}
-                          error={validationErrors.telefone}
-                          touched={touchedFields.telefone}
-                          defaultCountry="BR"
-                        />
+                      {/* Telefones na mesma linha */}
+                      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                        <div style={{ flex: 1 }}>
+                          <PhoneInput
+                            value={formData.whatsapp}
+                            onChange={(value) => handleInputChange('whatsapp', value)}
+                            onBlur={() => handleFieldBlur('whatsapp')}
+                            placeholder="Seu WhatsApp"
+                            label="WhatsApp"
+                            required={true}
+                            error={validationErrors.whatsapp}
+                            touched={touchedFields.whatsapp}
+                            defaultCountry="BR"
+                          />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <PhoneInput
+                            value={formData.telefone}
+                            onChange={(value) => handleInputChange('telefone', value)}
+                            onBlur={() => handleFieldBlur('telefone')}
+                            placeholder="Telefone alternativo"
+                            label="Telefone Alternativo"
+                            required={false}
+                            error={validationErrors.telefone}
+                            touched={touchedFields.telefone}
+                            defaultCountry="BR"
+                          />
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
@@ -2326,9 +2328,9 @@ export default function Home() {
           background: 'rgba(0, 0, 0, 0.1)'
         }}>
           <div style={{
-            maxWidth: '1280px',
+            maxWidth: '1400px',
             margin: '0 auto',
-            padding: '0 24px'
+            padding: '0 32px'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
               <h2 style={{
@@ -2380,10 +2382,10 @@ export default function Home() {
                   highlight: 'Economize até 40%'
                 },
                 {
-                  icon: '🇧🇷',
-                  title: 'Atendimento Brasileiro',
-                  description: 'Equipe brasileira que entende suas necessidades e fala sua língua',
-                  highlight: 'Suporte 24/7 em português'
+                  icon: '🌎',
+                  title: 'Atendimento Multilíngue',
+                  description: 'Equipe especializada que fala português, espanhol e inglês',
+                  highlight: 'Suporte 24/7 em 3 idiomas'
                 },
                 {
                   icon: '✈️',
@@ -2822,7 +2824,7 @@ export default function Home() {
               </button>
               
               <a
-                href="https://wa.me/15551234567"
+                href="https://wa.me/5511951944717"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -2888,9 +2890,9 @@ export default function Home() {
           color: 'white'
         }}>
           <div style={{
-            maxWidth: '1280px',
+            maxWidth: '1400px',
             margin: '0 auto',
-            padding: '0 24px'
+            padding: '0 32px'
           }}>
             {/* Main Footer Content */}
             <div style={{
@@ -2950,35 +2952,31 @@ export default function Home() {
                 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <a href="tel:+15551234567" style={{
-                    color: 'rgba(219, 234, 254, 0.8)',
-                    textDecoration: 'none',
-                    fontSize: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    transition: 'color 0.3s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
-                    <PhoneIcon style={{ width: '20px', height: '20px' }} />
-                    +1 (555) 123-4567
-                  </a>
-                  <a href="mailto:contato@fly2any.com" style={{
-                    color: 'rgba(219, 234, 254, 0.8)',
-                    textDecoration: 'none',
-                    fontSize: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    transition: 'color 0.3s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
+                  <button
+                    onClick={() => {
+                      const contactForm = document.getElementById('contact-form');
+                      if (contactForm) {
+                        contactForm.style.display = contactForm.style.display === 'none' ? 'block' : 'none';
+                      }
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'rgba(219, 234, 254, 0.8)',
+                      fontSize: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      transition: 'color 0.3s',
+                      cursor: 'pointer',
+                      padding: '0'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
                     <MailIcon style={{ width: '20px', height: '20px' }} />
-                    contato@fly2any.com
-                  </a>
-                  <a href="https://wa.me/15551234567" style={{
+                    Enviar Mensagem
+                  </button>
+                  <a href="https://wa.me/5511951944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
@@ -2992,6 +2990,93 @@ export default function Home() {
                     <ChatIcon style={{ width: '20px', height: '20px' }} />
                     WhatsApp 24/7
                   </a>
+                </div>
+                
+                {/* Contact Form */}
+                <div id="contact-form" style={{
+                  display: 'none',
+                  marginTop: '24px',
+                  padding: '24px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
+                  <h4 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    marginBottom: '16px',
+                    color: 'white',
+                    fontFamily: 'Poppins, sans-serif'
+                  }}>
+                    Envie sua Mensagem
+                  </h4>
+                  <form style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <input
+                      type="text"
+                      placeholder="Seu Nome"
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                    <input
+                      type="email"
+                      placeholder="Seu Email"
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                    <textarea
+                      placeholder="Sua Mensagem"
+                      rows={4}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: 'white',
+                        fontSize: '14px',
+                        outline: 'none',
+                        resize: 'vertical'
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      style={{
+                        padding: '12px 24px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      Enviar Mensagem
+                    </button>
+                  </form>
                 </div>
               </div>
 
@@ -3173,7 +3258,7 @@ export default function Home() {
                   color: 'rgba(147, 197, 253, 0.6)',
                   fontSize: '12px'
                 }}>
-                  Conectando brasileiros ao Brasil há mais de 10 anos.
+                  Conectando você ao mundo há 21 anos.
                 </p>
               </div>
               
