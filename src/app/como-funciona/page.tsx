@@ -394,7 +394,7 @@ export default function ComoFunciona() {
                 <Link href="/" style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
                   ✈️ Solicitar Cotação
                 </Link>
-                <a href="https://wa.me/15551234567" style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
+                <a href="https://wa.me/5511951944717" style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
                   💬 Falar no WhatsApp
                 </a>
               </div>
@@ -489,7 +489,7 @@ export default function ComoFunciona() {
                 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <a href="tel:+15551234567" style={{
+                  <a href="https://wa.me/5511951944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
@@ -499,9 +499,9 @@ export default function ComoFunciona() {
                     transition: 'color 0.3s'
                   }}>
                     <span style={{ fontSize: '20px' }}>📞</span>
-                    +1 (555) 123-4567
+                    WhatsApp
                   </a>
-                  <a href="mailto:contato@fly2any.com" style={{
+                  <a href="/contato" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
@@ -511,9 +511,9 @@ export default function ComoFunciona() {
                     transition: 'color 0.3s'
                   }}>
                     <span style={{ fontSize: '20px' }}>✉️</span>
-                    contato@fly2any.com
+                    Enviar mensagem
                   </a>
-                  <a href="https://wa.me/15551234567" style={{
+                  <a href="https://wa.me/5511951944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',

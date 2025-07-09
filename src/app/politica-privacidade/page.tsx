@@ -135,9 +135,8 @@ export default function PoliticaPrivacidade() {
                     Para exercer seus direitos ou esclarecer dúvidas sobre esta política, entre em contato:
                   </p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Email: privacidade@fly2any.com</li>
-                    <li>Telefone: +1 (555) 123-4567</li>
-                    <li>WhatsApp: +1 (555) 123-4567</li>
+                    <li>Formulário de contato: /contato</li>
+                    <li>WhatsApp: https://wa.me/5511951944717</li>
                   </ul>
                 </section>
 

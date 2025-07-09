@@ -134,8 +134,11 @@ export default function RootLayout({
               "name": "Fly2Any",
               "description": "Especialistas em passagens aéreas para brasileiros nos EUA",
               "url": "https://fly2any.com",
-              "telephone": "+1-555-123-4567",
-              "email": "contato@fly2any.com",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "customer service",
+                "availableLanguage": ["Portuguese", "English"]
+              },
               "logo": "https://fly2any.com/logo.png",
               "image": "https://fly2any.com/og-image.jpg",
               "foundingDate": "2014",
@@ -143,12 +146,13 @@ export default function RootLayout({
                 "@type": "Person",
                 "name": "Fly2Any Team"
               },
-              "address": {
-                "@type": "PostalAddress",
-                "addressCountry": "US",
-                "addressLocality": "Miami",
-                "addressRegion": "FL",
-                "postalCode": "33101"
+              "serviceArea": {
+                "@type": "GeoCircle",
+                "geoMidpoint": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 25.7617,
+                  "longitude": -80.1918
+                }
               },
               "areaServed": [
                 {

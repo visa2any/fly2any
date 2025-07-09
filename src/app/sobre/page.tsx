@@ -341,7 +341,7 @@ export default function Sobre() {
               
               {/* Contact Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <a href="tel:+15551234567" style={{
+                <a href="https://wa.me/5511951944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
@@ -351,9 +351,9 @@ export default function Sobre() {
                   transition: 'color 0.3s'
                 }}>
                   <PhoneIcon style={{ width: '20px', height: '20px' }} />
-                  +1 (555) 123-4567
+                  WhatsApp
                 </a>
-                <a href="mailto:contato@fly2any.com" style={{
+                <a href="/contato" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
@@ -363,9 +363,9 @@ export default function Sobre() {
                   transition: 'color 0.3s'
                 }}>
                   <MailIcon style={{ width: '20px', height: '20px' }} />
-                  contato@fly2any.com
+                  Enviar mensagem
                 </a>
-                <a href="https://wa.me/15551234567" style={{
+                <a href="https://wa.me/5511951944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',

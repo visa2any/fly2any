@@ -18,7 +18,7 @@ export default function FloatingChat() {
   const handleWhatsAppClick = () => {
     trackWhatsAppClick();
     trackButtonClick('whatsapp_floating', 'floating_chat');
-    window.open('https://wa.me/15551234567?text=Olá! Gostaria de solicitar uma cotação de viagem.', '_blank');
+    window.open('https://wa.me/5511951944717?text=Olá! Gostaria de solicitar uma cotação de viagem.', '_blank');
   };
 
   const toggleExpanded = () => {

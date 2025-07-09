@@ -240,7 +240,7 @@ class EmailService {
         <div class="contact-info">
           <h3>💬 Dúvidas? Fale Conosco!</h3>
           <p>Nossa equipe está disponível para esclarecer qualquer dúvida:</p>
-          <a href="https://wa.me/5511999999999" class="whatsapp-btn">
+          <a href="https://wa.me/5511951944717" class="whatsapp-btn">
             📱 Falar no WhatsApp
           </a>
         </div>
@@ -270,7 +270,7 @@ class EmailService {
 
     Nossa equipe entrará em contato em até 2 horas úteis!
 
-    Dúvidas? Entre em contato conosco pelo WhatsApp: https://wa.me/5511999999999
+    Dúvidas? Entre em contato conosco pelo WhatsApp: https://wa.me/5511951944717
 
     Fly2Any - Conectando brasileiros ao mundo há mais de 10 anos
     `;

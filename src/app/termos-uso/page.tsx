@@ -143,9 +143,8 @@ export default function TermosUso() {
                   <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">8. Suporte ao Cliente</h2>
                   <p className="mb-4">Oferecemos suporte através de:</p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Email: contato@fly2any.com</li>
-                    <li>WhatsApp: +1 (555) 123-4567</li>
-                    <li>Telefone: +1 (555) 123-4567</li>
+                    <li>Formulário de contato: /contato</li>
+                    <li>WhatsApp: https://wa.me/5511951944717</li>
                     <li>Horário: Segunda a sexta, 9h às 18h (EST)</li>
                   </ul>
                 </section>
@@ -172,8 +171,7 @@ export default function TermosUso() {
                     Para questões sobre estes termos, entre em contato:
                   </p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Email: legal@fly2any.com</li>
-                    <li>Endereço: Miami, FL - Estados Unidos</li>
+                    <li>Formulário de contato: /contato</li>
                     <li>CNPJ: [Número do CNPJ]</li>
                   </ul>
                 </section>
