@@ -1,0 +1,112 @@
+declare global {
+  interface Window {
+    gtag: (...args: any[]) => void;
+    fbq: (...args: any[]) => void;
+  }
+}
+
+// Google Analytics 4
+export const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX';
+
+export const pageview = (url: string) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('config', GA_TRACKING_ID, {
+      page_location: url,
+    });
+  }
+};
+
+export const event = (action: string, parameters?: Record<string, any>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', action, parameters);
+  }
+};
+
+// Facebook Pixel
+export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || 'XXXXXXXXXX';
+
+export const fbEvent = (eventName: string, parameters?: Record<string, any>) => {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', eventName, parameters);
+  }
+};
+
+// Conversion tracking events
+export const trackFormSubmit = (formType: string, data: any) => {
+  // Google Analytics
+  event('form_submit', {
+    form_type: formType,
+    service_type: data.serviceType,
+    destination: data.destino,
+    origin: data.origem,
+  });
+
+  // Facebook Pixel
+  fbEvent('Lead', {
+    content_name: formType,
+    content_category: data.serviceType,
+    value: 1,
+    currency: 'USD',
+  });
+};
+
+export const trackQuoteRequest = (data: any) => {
+  // Google Analytics
+  event('generate_lead', {
+    currency: 'USD',
+    value: 1,
+    service_type: data.serviceType,
+    destination: data.destino,
+  });
+
+  // Facebook Pixel
+  fbEvent('InitiateCheckout', {
+    content_name: 'Quote Request',
+    content_category: data.serviceType,
+    value: 1,
+    currency: 'USD',
+  });
+};
+
+export const trackPageView = (pageName: string) => {
+  // Google Analytics
+  event('page_view', {
+    page_title: pageName,
+  });
+
+  // Facebook Pixel
+  fbEvent('PageView');
+};
+
+export const trackButtonClick = (buttonName: string, location: string) => {
+  // Google Analytics
+  event('click', {
+    event_category: 'engagement',
+    event_label: buttonName,
+    page_location: location,
+  });
+};
+
+export const trackWhatsAppClick = () => {
+  // Google Analytics
+  event('contact', {
+    method: 'whatsapp',
+  });
+
+  // Facebook Pixel
+  fbEvent('Contact', {
+    method: 'whatsapp',
+  });
+};
+
+export const trackPhoneClick = () => {
+  // Google Analytics
+  event('contact', {
+    method: 'phone',
+  });
+
+  // Facebook Pixel
+  fbEvent('Contact', {
+    method: 'phone',
+  });
+};

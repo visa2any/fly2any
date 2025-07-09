@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://fly2any.com/sitemap.xml
+
+# Specific crawler instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+
+# Allow important pages
+Allow: /voos-brasil-eua
+Allow: /hoteis-brasil
+Allow: /aluguel-carros-brasil
+Allow: /seguro-viagem-brasil
+Allow: /blog/
+Allow: /depoimentos
+Allow: /faq
+Allow: /como-funciona
