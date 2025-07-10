@@ -131,43 +131,66 @@ export default function RootLayout({
             `,
           }}
         />
+        {/* Schema.org Organization Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": ["TravelAgency", "LocalBusiness"],
+              "@type": ["TravelAgency", "LocalBusiness", "Organization"],
               "name": "Fly2Any",
-              "description": "Especialistas em passagens aéreas para brasileiros nos EUA",
+              "alternateName": "Fly2Any Travel Agency",
+              "description": "Especialistas em passagens aéreas para brasileiros nos EUA há mais de 10 anos. Voos, hotéis, carros, seguro viagem e passeios.",
               "url": "https://fly2any.com",
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "contactType": "customer service",
-                "availableLanguage": ["Portuguese", "English"]
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://fly2any.com/og-image.webp",
+                "width": 1200,
+                "height": 630
               },
-              "logo": "https://fly2any.com/logo.png",
-              "image": "https://fly2any.com/og-image.jpg",
+              "image": [
+                "https://fly2any.com/og-image.webp",
+                "https://fly2any.com/og-image.png"
+              ],
               "foundingDate": "2014",
               "founder": {
-                "@type": "Person",
+                "@type": "Organization",
                 "name": "Fly2Any Team"
               },
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "US",
+                "addressRegion": "FL",
+                "addressLocality": "Miami"
+              },
+              "contactPoint": [
+                {
+                  "@type": "ContactPoint",
+                  "contactType": "customer service",
+                  "availableLanguage": ["Portuguese", "English", "Spanish"],
+                  "hoursAvailable": "Mo-Fr 09:00-18:00",
+                  "areaServed": ["US", "BR"]
+                }
+              ],
               "serviceArea": {
                 "@type": "GeoCircle",
                 "geoMidpoint": {
                   "@type": "GeoCoordinates",
                   "latitude": 25.7617,
                   "longitude": -80.1918
-                }
+                },
+                "geoRadius": "10000"
               },
               "areaServed": [
                 {
                   "@type": "Country",
-                  "name": "Brazil"
+                  "name": "Brazil",
+                  "@id": "https://www.wikidata.org/wiki/Q155"
                 },
                 {
                   "@type": "Country", 
-                  "name": "United States"
+                  "name": "United States",
+                  "@id": "https://www.wikidata.org/wiki/Q30"
                 }
               ],
               "serviceType": [
@@ -175,26 +198,39 @@ export default function RootLayout({
                 "Reservas de Hotel",
                 "Aluguel de Carros",
                 "Seguro Viagem",
-                "Passeios Turísticos"
+                "Passeios Turísticos",
+                "Assistência de Viagem"
               ],
-              "priceRange": "$$",
               "hasOfferCatalog": {
                 "@type": "OfferCatalog",
-                "name": "Serviços de Viagem",
+                "name": "Serviços de Viagem Fly2Any",
                 "itemListElement": [
                   {
                     "@type": "Offer",
+                    "name": "Voos Miami-São Paulo",
+                    "url": "https://fly2any.com/voos-miami-sao-paulo",
                     "itemOffered": {
                       "@type": "Service",
-                      "name": "Passagens Aéreas Brasil-EUA",
-                      "description": "Voos diretos e com conexão entre Brasil e Estados Unidos"
+                      "name": "Passagens Aéreas Miami-São Paulo",
+                      "description": "Voos diretos e com conexão entre Miami e São Paulo"
                     }
                   },
                   {
                     "@type": "Offer",
+                    "name": "Voos New York-Rio de Janeiro",
+                    "url": "https://fly2any.com/voos-new-york-rio-janeiro",
                     "itemOffered": {
                       "@type": "Service",
-                      "name": "Hotéis no Brasil",
+                      "name": "Passagens Aéreas New York-Rio de Janeiro",
+                      "description": "Voos diretos e com conexão entre New York e Rio de Janeiro"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "name": "Hotéis no Brasil",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Reservas de Hotéis Brasil",
                       "description": "Reservas de hotéis em todo o território brasileiro"
                     }
                   }
@@ -219,7 +255,22 @@ export default function RootLayout({
                     "@type": "Person",
                     "name": "Maria Silva"
                   },
-                  "reviewBody": "Excelente atendimento, conseguiram um preço incrível para minha viagem ao Brasil!"
+                  "reviewBody": "Excelente atendimento, conseguiram um preço incrível para minha viagem ao Brasil!",
+                  "datePublished": "2024-06-15"
+                },
+                {
+                  "@type": "Review",
+                  "reviewRating": {
+                    "@type": "Rating",
+                    "ratingValue": "5",
+                    "bestRating": "5"
+                  },
+                  "author": {
+                    "@type": "Person",
+                    "name": "João Santos"
+                  },
+                  "reviewBody": "Já uso há anos, sempre conseguem os melhores preços e o atendimento é impecável.",
+                  "datePublished": "2024-05-20"
                 }
               ],
               "sameAs": [
@@ -241,9 +292,39 @@ export default function RootLayout({
                 "USD",
                 "BRL"
               ],
+              "potentialAction": [
+                {
+                  "@type": "SearchAction",
+                  "target": "https://fly2any.com/cotacao/voos?origem={origin}&destino={destination}",
+                  "query-input": [
+                    "required name=origin",
+                    "required name=destination"
+                  ]
+                }
+              ],
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": "https://fly2any.com"
+              }
+            }),
+          }}
+        />
+
+        {/* Schema.org WebSite Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Fly2Any",
+              "url": "https://fly2any.com",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://fly2any.com/search?q={search_term_string}",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://fly2any.com/cotacao/voos?origem={search_term_string}"
+                },
                 "query-input": "required name=search_term_string"
               }
             }),

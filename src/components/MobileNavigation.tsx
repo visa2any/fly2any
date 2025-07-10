@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
-import { FlightIcon, PhoneIcon, MailIcon, ChatIcon } from './Icons';
+import { FlightIcon, PhoneIcon, ChatIcon } from './Icons';
 
 interface MobileNavigationProps {
   currentPath?: string;

@@ -8,11 +8,9 @@ import {
   CarIcon, 
   TourIcon, 
   InsuranceIcon,
-  PhoneIcon,
   CheckIcon,
   StarIcon,
-  ChatIcon,
-  MailIcon
+  ChatIcon
 } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import MobileNavigation from '@/components/MobileNavigation';

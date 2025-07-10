@@ -65,6 +65,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
+      url: `${baseUrl}/voos-miami-sao-paulo`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/voos-new-york-rio-janeiro`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}/hoteis-brasil`,
       lastModified: currentDate,
       changeFrequency: 'daily' as const,

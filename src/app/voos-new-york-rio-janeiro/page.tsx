@@ -6,7 +6,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: "Voos New York - Rio de Janeiro | Passagens Aéreas JFK-GIG | Fly2Any",
-  description: "Voos diretos New York para Rio de Janeiro com os melhores preços. Passagens aéreas JFK-GIG com especialistas brasileiros. Cotação gratuita em 2 horas!",
+  description: "Voos diretos New York para Rio de Janeiro com os melhores preços. Passagens aéreas JFK-GIG com especialistas brasileiros. Cotação gratuita em 2 horas'!",
   keywords: "voos new york rio janeiro, passagens aereas JFK GIG, voos nyc brasil, passagens new york rio, voos diretos new york",
   openGraph: {
     title: "Voos New York - Rio de Janeiro | Passagens Aéreas JFK-GIG | Fly2Any",
@@ -273,7 +273,7 @@ export default function VoosNewYorkRioJaneiro() {
               lineHeight: '1.5'
             }}>
               Nossa equipe especializada encontrará as melhores opções de voos New York-Rio de Janeiro para você.
-              Atendimento em português 24 horas por dia.
+              Atendimento em português 24 horas por dia'.
             </p>
             
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>

@@ -1,19 +1,8 @@
-import type { Metadata } from "next";
+'use client';
 import Link from "next/link";
-import { FlightIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';
+import { FlightIcon, PhoneIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import Breadcrumbs from '@/components/Breadcrumbs';
-
-export const metadata: Metadata = {
-  title: "Sobre a Fly2Any | Nossa História e Missão",
-  description: "Conheça a Fly2Any, especialista em viagens Brasil-EUA há mais de 10 anos. Nossa missão é conectar brasileiros nos Estados Unidos ao Brasil com excelência.",
-  keywords: "sobre fly2any, agência viagem brasileiros, história fly2any, missão empresa",
-  openGraph: {
-    title: "Sobre a Fly2Any | Nossa História e Missão",
-    description: "Conheça nossa história e missão de conectar brasileiros nos EUA ao Brasil.",
-    url: "https://fly2any.com/sobre",
-  },
-};
 
 export default function Sobre() {
   return (
@@ -39,7 +28,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -54,7 +42,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -67,7 +54,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -82,7 +68,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -97,7 +82,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -112,7 +96,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -127,7 +110,6 @@ export default function Sobre() {
               color: 'rgba(255, 255, 255, 0.9)',
               textDecoration: 'none',
               fontWeight: '500',
-              transition: 'color 0.3s',
               fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
@@ -195,7 +177,7 @@ export default function Sobre() {
             </div>
           </div>
 
-          <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)', marginBottom: '48px' }}>
+          <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)', marginBottom: '48px' }}>
             <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '24px', textAlign: 'center', fontFamily: 'Poppins, sans-serif' }}>
               Por que escolher a Fly2Any?
             </h3>
@@ -275,7 +257,7 @@ export default function Sobre() {
             </p>
             <Link 
               href="/" 
-              style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+              style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', border: 'none', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
             >
               ✈️ Solicitar Cotação
             </Link>
@@ -355,42 +337,41 @@ export default function Sobre() {
               
               {/* Contact Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <a href="https://wa.me/5511951944717" style={{
+                <div style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  transition: 'color 0.3s'
+                  gap: '12px'
                 }}>
                   <PhoneIcon style={{ width: '20px', height: '20px' }} />
                   WhatsApp
-                </a>
-                <a href="/contato" style={{
+                </div>
+                <div style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  transition: 'color 0.3s'
+                  gap: '12px'
                 }}>
-                  <MailIcon style={{ width: '20px', height: '20px' }} />
+                  <svg style={{ width: '20px', height: '20px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                   Enviar mensagem
-                </a>
-                <a href="https://wa.me/5511951944717" style={{
+                </div>
+                <div style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  transition: 'color 0.3s'
+                  gap: '12px'
                 }}>
                   <ChatIcon style={{ width: '20px', height: '20px' }} />
                   WhatsApp 24/7
-                </a>
+                </div>
               </div>
             </div>
 
@@ -422,7 +403,6 @@ export default function Sobre() {
                       color: 'rgba(219, 234, 254, 0.8)',
                       textDecoration: 'none',
                       fontSize: '15px',
-                      transition: 'color 0.3s',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px'
@@ -462,8 +442,7 @@ export default function Sobre() {
                     <Link href={item.href} style={{
                       color: 'rgba(219, 234, 254, 0.8)',
                       textDecoration: 'none',
-                      fontSize: '15px',
-                      transition: 'color 0.3s'
+                      fontSize: '15px'
                     }}>
                       {item.name}
                     </Link>
@@ -498,8 +477,7 @@ export default function Sobre() {
                     <Link href={item.href} style={{
                       color: 'rgba(219, 234, 254, 0.8)',
                       textDecoration: 'none',
-                      fontSize: '15px',
-                      transition: 'color 0.3s'
+                      fontSize: '15px'
                     }}>
                       {item.name}
                     </Link>
