@@ -1,8 +1,8 @@
 // Comprehensive Tracking System for Paid Ads
 declare global {
   interface Window {
-    gtag: any;
-    fbq: any;
+    gtag: (...args: unknown[]) => void;
+    fbq: (...args: unknown[]) => void;
     uetq: any; // Bing UET
     dataLayer: any[];
   }

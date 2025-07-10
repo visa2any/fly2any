@@ -307,13 +307,20 @@ export async function GET(request: NextRequest) {
     const days = parseInt(searchParams.get('days') || '7');
     const resolved = searchParams.get('resolved') === 'true';
     
-    const result = await sql`
-      SELECT * FROM performance_alerts 
-      WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
-      ${resolved ? sql`AND resolved = true` : sql``}
-      ORDER BY created_at DESC
-      LIMIT 100
-    `;
+    const result = resolved 
+      ? await sql`
+          SELECT * FROM performance_alerts 
+          WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
+          AND resolved = true
+          ORDER BY created_at DESC 
+          LIMIT 100
+        `
+      : await sql`
+          SELECT * FROM performance_alerts 
+          WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
+          ORDER BY created_at DESC 
+          LIMIT 100
+        `;
 
     return NextResponse.json({
       success: true,

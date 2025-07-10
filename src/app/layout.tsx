@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import Image from "next/image";
+import ChatAgent from "@/components/ChatAgent";
 import "./globals.css";
 
 const inter = Inter({
@@ -73,27 +74,33 @@ export default function RootLayout({
         <meta name="theme-color" content="#1e40af" />
         
         {/* Google Analytics 4 */}
-        <script 
-          async 
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX'}`}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX'}', {
-                page_location: window.location.href,
-                page_title: document.title,
-                send_page_view: true
-              });
-            `,
-          }}
-        />
+        {process.env.NEXT_PUBLIC_GA_ID && process.env.NEXT_PUBLIC_GA_ID !== 'G-XXXXXXXXXX' && (
+          <>
+            <script 
+              async 
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
+                    page_location: window.location.href,
+                    page_title: document.title,
+                    send_page_view: true
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
 
         {/* Facebook Pixel */}
-        {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+        {process.env.NEXT_PUBLIC_FB_PIXEL_ID && 
+         process.env.NEXT_PUBLIC_FB_PIXEL_ID !== 'null' && 
+         process.env.NEXT_PUBLIC_FB_PIXEL_ID !== 'XXXXXXXXXX' && (
           <>
             <script
               dangerouslySetInnerHTML={{
@@ -124,7 +131,8 @@ export default function RootLayout({
         )}
 
         {/* Microsoft Clarity */}
-        {process.env.NEXT_PUBLIC_CLARITY_ID && (
+        {process.env.NEXT_PUBLIC_CLARITY_ID && 
+         process.env.NEXT_PUBLIC_CLARITY_ID !== 'XXXXXXXXXX' && (
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -139,7 +147,8 @@ export default function RootLayout({
         )}
 
         {/* Google Ads Conversion Tracking */}
-        {process.env.NEXT_PUBLIC_GOOGLE_ADS_ID && (
+        {process.env.NEXT_PUBLIC_GOOGLE_ADS_ID && 
+         process.env.NEXT_PUBLIC_GOOGLE_ADS_ID !== 'AW-XXXXXXXXXX' && (
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -154,7 +163,8 @@ export default function RootLayout({
         )}
 
         {/* Microsoft Advertising (Bing) UET */}
-        {process.env.NEXT_PUBLIC_BING_UET_ID && (
+        {process.env.NEXT_PUBLIC_BING_UET_ID && 
+         process.env.NEXT_PUBLIC_BING_UET_ID !== 'XXXXXXXXXX' && (
           <script
             dangerouslySetInnerHTML={{
               __html: `
@@ -406,6 +416,7 @@ export default function RootLayout({
       </head>
       <body className="font-inter antialiased">
         {children}
+        <ChatAgent />
       </body>
     </html>
   );

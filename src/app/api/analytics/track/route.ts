@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     // Get client IP
     const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : request.ip || 'unknown';
+    const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || 'unknown';
 
     // Insert tracking event
     const result = await sql`
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid data format', details: error.errors },
+        { error: 'Invalid data format', details: error.format() },
         { status: 400 }
       );
     }
@@ -179,31 +179,38 @@ export async function GET(request: NextRequest) {
 
     await ensureAnalyticsTable();
 
-    let query = sql`
-      SELECT 
-        event_name,
-        COUNT(*) as event_count,
-        SUM(value) as total_value,
-        AVG(value) as avg_value,
-        campaign_source,
-        campaign_medium,
-        DATE(created_at) as event_date
-      FROM analytics_events 
-      WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
-    `;
-
-    if (event_name) {
-      query = sql`${query} AND event_name = ${event_name}`;
-    }
-
-    query = sql`
-      ${query}
-      GROUP BY event_name, campaign_source, campaign_medium, DATE(created_at)
-      ORDER BY created_at DESC
-      LIMIT 1000
-    `;
-
-    const result = await query;
+    const result = event_name 
+      ? await sql`
+          SELECT 
+            event_name,
+            COUNT(*) as event_count,
+            SUM(value) as total_value,
+            AVG(value) as avg_value,
+            campaign_source,
+            campaign_medium,
+            DATE(created_at) as event_date
+          FROM analytics_events 
+          WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
+          AND event_name = ${event_name}
+          GROUP BY event_name, campaign_source, campaign_medium, DATE(created_at)
+          ORDER BY created_at DESC
+          LIMIT 1000
+        `
+      : await sql`
+          SELECT 
+            event_name,
+            COUNT(*) as event_count,
+            SUM(value) as total_value,
+            AVG(value) as avg_value,
+            campaign_source,
+            campaign_medium,
+            DATE(created_at) as event_date
+          FROM analytics_events 
+          WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
+          GROUP BY event_name, campaign_source, campaign_medium, DATE(created_at)
+          ORDER BY created_at DESC
+          LIMIT 1000
+        `;
 
     return NextResponse.json({
       success: true,
