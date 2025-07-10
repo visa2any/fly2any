@@ -14,7 +14,7 @@ export default function Logo({ size = 'md', showText = true, variant = 'default'
   
   const currentSize = sizes[size];
   const isWhite = variant === 'white';
-  const HeadingTag = headingLevel as keyof JSX.IntrinsicElements;
+  const HeadingTag = headingLevel === 'h1' ? 'h1' : 'div';
 
   return (
     <div style={{
