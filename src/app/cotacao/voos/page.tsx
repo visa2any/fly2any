@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { trackFormSubmission } from '@/lib/tracking';
 
 interface FormData {
   origem: string;
@@ -108,6 +109,15 @@ export default function CotacaoVoos() {
 
       const result = await response.json();
       console.log('Cotação enviada com sucesso:', result);
+      
+      // Track conversion for all advertising platforms
+      trackFormSubmission({
+        name: formData.nome,
+        email: formData.email,
+        phone: formData.telefone,
+        route: `${formData.origem} → ${formData.destino}`,
+        message: formData.observacoes
+      }, 'flight_quote');
       
       setSubmitted(true);
     } catch (error) {

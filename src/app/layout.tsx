@@ -131,6 +131,51 @@ export default function RootLayout({
             `,
           }}
         />
+
+        {/* Google Ads Conversion Tracking */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.gtag = window.gtag || function(){(window.dataLayer = window.dataLayer || []).push(arguments)};
+              gtag('config', '${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'AW-XXXXXXXXXX'}', {
+                allow_enhanced_conversions: true,
+                conversion_linker: true
+              });
+            `,
+          }}
+        />
+
+        {/* Microsoft Advertising (Bing) UET */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,t,r,u){
+                var f,n,i;
+                w[u]=w[u]||[],f=function(){
+                  var o={ti:"${process.env.NEXT_PUBLIC_BING_UET_ID || 'XXXXXXXXXX'}"};
+                  o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")
+                },n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){
+                  var s=this.readyState;s&&s!=="loaded"&&s!=="complete"||(f(),n.onload=n.onreadystatechange=null)
+                },i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i)
+              })(window,document,"script","//bat.bing.com/bat.js","uetq");
+            `,
+          }}
+        />
+
+        {/* Initialize Tracking Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('DOMContentLoaded', function() {
+                if (typeof window !== 'undefined') {
+                  import('/src/lib/tracking.js').then(module => {
+                    module.tracking.initialize();
+                  }).catch(console.error);
+                }
+              });
+            `,
+          }}
+        />
         {/* Schema.org Organization Data */}
         <script
           type="application/ld+json"
