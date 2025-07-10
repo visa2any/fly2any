@@ -46,27 +46,37 @@ export default function HomeMobile() {
         }}/>
 
         {/* Hero Section */}
-        <div style={{ padding: '20px', marginBottom: '40px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <Logo size="lg" showText={true} variant="white" />
+        <div style={{ 
+          padding: '16px 16px 0 16px',
+          marginBottom: '24px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ 
+            textAlign: 'center', 
+            marginBottom: '16px',
+            paddingTop: '8px'
+          }}>
+            <Logo size="md" showText={true} variant="white" />
           </div>
           <h1 style={{ 
-            fontSize: '28px',
-            fontWeight: '800', 
+            fontSize: '24px',
+            fontWeight: '700', 
             color: 'white', 
-            marginBottom: '16px',
+            marginBottom: '12px',
             fontFamily: 'Poppins, sans-serif',
-            lineHeight: '1.2',
-            textAlign: 'center'
+            lineHeight: '1.3',
+            textAlign: 'center',
+            padding: '0 8px'
           }}>
             Sua Ponte para o Brasil
           </h1>
           <p style={{ 
-            fontSize: '16px',
+            fontSize: '14px',
             color: 'rgba(255, 255, 255, 0.9)', 
-            marginBottom: '32px',
-            lineHeight: '1.5',
-            textAlign: 'center'
+            marginBottom: '24px',
+            lineHeight: '1.4',
+            textAlign: 'center',
+            padding: '0 8px'
           }}>
             Especialistas em viagens para brasileiros nos EUA há mais de 10 anos
           </p>
@@ -75,9 +85,9 @@ export default function HomeMobile() {
           <div style={{ 
             display: 'grid',
             gridTemplateColumns: '1fr', 
-            gap: '16px', 
-            marginBottom: '32px',
-            padding: '0 16px'
+            gap: '12px', 
+            marginBottom: '24px',
+            padding: '0 8px'
           }}>
             {[...Array(3)].map((_, i) => (
               <div key={i} style={{ 
