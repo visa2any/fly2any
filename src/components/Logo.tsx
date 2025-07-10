@@ -2,9 +2,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
   variant?: 'default' | 'white';
+  headingLevel?: 'h1' | 'div';
 }
 
-export default function Logo({ size = 'md', showText = true, variant = 'default' }: LogoProps) {
+export default function Logo({ size = 'md', showText = true, variant = 'default', headingLevel = 'h1' }: LogoProps) {
   const sizes = {
     sm: { container: 36, text: 20, tagline: 9 },
     md: { container: 48, text: 32, tagline: 11 },
@@ -13,6 +14,7 @@ export default function Logo({ size = 'md', showText = true, variant = 'default'
   
   const currentSize = sizes[size];
   const isWhite = variant === 'white';
+  const HeadingTag = headingLevel as keyof JSX.IntrinsicElements;
 
   return (
     <div style={{
@@ -77,7 +79,7 @@ export default function Logo({ size = 'md', showText = true, variant = 'default'
       {/* Clean Typography */}
       {showText && (
         <div>
-          <h1 style={{
+          <HeadingTag style={{
             fontSize: `${currentSize.text}px`,
             fontWeight: '700',
             fontFamily: 'Poppins, sans-serif',
@@ -93,7 +95,7 @@ export default function Logo({ size = 'md', showText = true, variant = 'default'
               fontWeight: '800'
             }}>2</span>
             <span style={{ color: isWhite ? '#1f2937' : 'white' }}>Any</span>
-          </h1>
+          </HeadingTag>
           <p style={{
             color: isWhite ? '#6b7280' : 'rgba(219, 234, 254, 0.9)',
             fontSize: `${currentSize.tagline}px`,
