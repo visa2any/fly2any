@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import Logo from './Logo';
-import { FlightIcon, PhoneIcon, ChatIcon } from './Icons';
+import { FlightIcon, PhoneIcon } from './Icons';
 
 interface MobileNavigationProps {
   currentPath?: string;
@@ -11,8 +9,7 @@ interface MobileNavigationProps {
 }
 
 export default function MobileNavigation({ currentPath = '/', style }: MobileNavigationProps) {
-  // Always show mobile navigation
-  const isOpen = true;
+  // Navigation is always visible
 
   const navigationItems = [
     { href: '/', label: 'Início', icon: 'home' },
