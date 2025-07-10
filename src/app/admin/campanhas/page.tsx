@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   ChartBarIcon, 
   CurrencyDollarIcon, 
   EyeIcon, 
   PhoneIcon,
   EnvelopeIcon,
-  CalendarIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
+  ArrowTrendingUpIcon
 } from '@heroicons/react/24/outline';
 
 interface AnalyticsData {
@@ -42,11 +40,7 @@ export default function CampaignDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('30');
   const [selectedEvent, setSelectedEvent] = useState('all');
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [selectedPeriod, selectedEvent]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -66,7 +60,11 @@ export default function CampaignDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod, selectedEvent]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   const calculateStats = (data: AnalyticsData[]) => {
     const totalEvents = data.reduce((sum, item) => sum + item.event_count, 0);

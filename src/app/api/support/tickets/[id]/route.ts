@@ -4,10 +4,11 @@ import { sql } from '@vercel/postgres';
 // Get specific ticket details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = parseInt(params.id);
+    const resolvedParams = await params;
+    const ticketId = parseInt(resolvedParams.id);
     
     const ticketResult = await sql`
       SELECT 
@@ -44,10 +45,11 @@ export async function GET(
 // Update ticket (status, assignment, etc.)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = parseInt(params.id);
+    const resolvedParams = await params;
+    const ticketId = parseInt(resolvedParams.id);
     const body = await request.json();
     
     const {
@@ -181,10 +183,11 @@ export async function PATCH(
 // Delete ticket (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = parseInt(params.id);
+    const resolvedParams = await params;
+    const ticketId = parseInt(resolvedParams.id);
     
     // Soft delete by setting status to 'deleted'
     const result = await sql`

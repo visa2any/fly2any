@@ -4,10 +4,11 @@ import { sql } from '@vercel/postgres';
 // Get messages for a specific ticket
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = parseInt(params.id);
+    const resolvedParams = await params;
+    const ticketId = parseInt(resolvedParams.id);
     
     const messages = await sql`
       SELECT 
@@ -41,10 +42,11 @@ export async function GET(
 // Add message to a ticket
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const ticketId = parseInt(params.id);
+    const resolvedParams = await params;
+    const ticketId = parseInt(resolvedParams.id);
     const body = await request.json();
     
     const {

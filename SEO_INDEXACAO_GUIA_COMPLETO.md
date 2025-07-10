@@ -33,7 +33,7 @@
 3. **Verificar propriedade**:
    ```html
    <!-- Adicionar no <head> do layout.tsx -->
-   <meta name="google-site-verification" content="SEU_CODIGO_AQUI" />
+   <meta name="google-site-verification" content="google-site-verifiwcation=lT3RftN0whX9Y2qpcg8-1LJisCT2yVrA6-3fVSE5jHM" />
    ```
 4. **Enviar sitemap**:
    - URL: `https://fly2any.com/sitemap.xml`

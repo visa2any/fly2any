@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,20 +76,7 @@ export default function SupportDashboard() {
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Load tickets and conversations
-  useEffect(() => {
-    loadTickets();
-    loadWhatsAppConversations();
-  }, [filterStatus, filterPriority]);
-
-  // Load ticket messages when ticket is selected
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketMessages(selectedTicket.id);
-    }
-  }, [selectedTicket]);
-
-  const loadTickets = async () => {
+  const loadTickets = useCallback(async () => {
     try {
       const params = new URLSearchParams({
         status: filterStatus,
@@ -108,7 +95,20 @@ export default function SupportDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterPriority]);
+
+  // Load tickets and conversations
+  useEffect(() => {
+    loadTickets();
+    loadWhatsAppConversations();
+  }, [loadTickets]);
+
+  // Load ticket messages when ticket is selected
+  useEffect(() => {
+    if (selectedTicket) {
+      loadTicketMessages(selectedTicket.id);
+    }
+  }, [selectedTicket]);
 
   const loadWhatsAppConversations = async () => {
     try {
@@ -175,7 +175,7 @@ export default function SupportDashboard() {
       if (response.ok) {
         loadTickets();
         if (selectedTicket?.id === ticketId) {
-          setSelectedTicket({ ...selectedTicket, status: status as any });
+          setSelectedTicket({ ...selectedTicket, status: status as 'open' | 'in_progress' | 'closed' });
         }
       }
     } catch (error) {
