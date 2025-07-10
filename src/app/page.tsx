@@ -616,7 +616,7 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: '120px 0 80px 0'
+          padding: '60px 0 80px 0'
         }}>
           <div style={{
             maxWidth: '1400px',

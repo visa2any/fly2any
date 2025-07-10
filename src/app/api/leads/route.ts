@@ -50,11 +50,15 @@ interface LeadData {
 function validateLeadData(data: LeadData): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
+  console.log('=== VALIDAÇÃO CAMPOS ===');
+  
   // Campos obrigatórios
+  console.log('Validando nome:', data.nome, typeof data.nome);
   if (!data.nome || typeof data.nome !== 'string' || data.nome.trim().length < 2) {
     errors.push('Nome é obrigatório e deve ter pelo menos 2 caracteres');
   }
 
+  console.log('Validando email:', data.email, typeof data.email);
   if (!data.email || typeof data.email !== 'string') {
     errors.push('Email é obrigatório');
   } else {
@@ -64,13 +68,18 @@ function validateLeadData(data: LeadData): { isValid: boolean; errors: string[] 
     }
   }
 
+  console.log('Validando whatsapp:', data.whatsapp, typeof data.whatsapp, data.whatsapp?.length);
   if (!data.whatsapp || typeof data.whatsapp !== 'string' || data.whatsapp.length < 10) {
     errors.push('WhatsApp é obrigatório e deve ter pelo menos 10 dígitos');
   }
 
+  console.log('Validando selectedServices:', data.selectedServices, Array.isArray(data.selectedServices), data.selectedServices?.length);
   if (!data.selectedServices || !Array.isArray(data.selectedServices) || data.selectedServices.length === 0) {
     errors.push('Pelo menos um serviço deve ser selecionado');
   }
+  
+  console.log('Errors encontrados:', errors);
+  console.log('=====================');
 
   return {
     isValid: errors.length === 0,
@@ -208,16 +217,19 @@ export async function POST(request: NextRequest) {
   try {
     const leadData: LeadData = await request.json();
     
-    console.log('Recebido lead:', {
-      nome: leadData.nome,
-      email: leadData.email,
-      whatsapp: leadData.whatsapp,
-      servicos: leadData.selectedServices?.length || 0
-    });
+    console.log('=== DEBUG LEAD DATA ===');
+    console.log('Dados completos recebidos:', JSON.stringify(leadData, null, 2));
+    console.log('Tipo selectedServices:', typeof leadData.selectedServices);
+    console.log('Array.isArray(selectedServices):', Array.isArray(leadData.selectedServices));
+    console.log('Quantidade de serviços:', leadData.selectedServices?.length || 0);
+    console.log('======================');
 
     // Validar dados
     const validation = validateLeadData(leadData);
     if (!validation.isValid) {
+      console.log('=== VALIDATION ERRORS ===');
+      console.log('Errors:', validation.errors);
+      console.log('=========================');
       return NextResponse.json(
         { 
           success: false, 

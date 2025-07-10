@@ -7,9 +7,9 @@ export interface City {
 
 export const cities: City[] = [
   // Brasil - TODAS as principais cidades com aeroportos
-  { code: 'GRU', name: 'São Paulo', country: 'Brasil', flag: '🇧🇷' },
+  { code: 'GRU', name: 'São Paulo (Guarulhos)', country: 'Brasil', flag: '🇧🇷' },
   { code: 'CGH', name: 'São Paulo (Congonhas)', country: 'Brasil', flag: '🇧🇷' },
-  { code: 'VCP', name: 'Campinas', country: 'Brasil', flag: '🇧🇷' },
+  { code: 'VCP', name: 'São Paulo (Viracopos/Campinas)', country: 'Brasil', flag: '🇧🇷' },
   { code: 'GIG', name: 'Rio de Janeiro (Galeão)', country: 'Brasil', flag: '🇧🇷' },
   { code: 'SDU', name: 'Rio de Janeiro (Santos Dumont)', country: 'Brasil', flag: '🇧🇷' },
   { code: 'BSB', name: 'Brasília', country: 'Brasil', flag: '🇧🇷' },

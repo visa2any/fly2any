@@ -15,12 +15,22 @@ const countries: Country[] = [
   { code: 'US', name: 'Estados Unidos', flag: '🇺🇸', dialCode: '+1' },
   { code: 'CA', name: 'Canadá', flag: '🇨🇦', dialCode: '+1' },
   { code: 'AR', name: 'Argentina', flag: '🇦🇷', dialCode: '+54' },
+  { code: 'CL', name: 'Chile', flag: '🇨🇱', dialCode: '+56' },
+  { code: 'CO', name: 'Colômbia', flag: '🇨🇴', dialCode: '+57' },
+  { code: 'PE', name: 'Peru', flag: '🇵🇪', dialCode: '+51' },
+  { code: 'UY', name: 'Uruguai', flag: '🇺🇾', dialCode: '+598' },
+  { code: 'PY', name: 'Paraguai', flag: '🇵🇾', dialCode: '+595' },
   { code: 'MX', name: 'México', flag: '🇲🇽', dialCode: '+52' },
   { code: 'PT', name: 'Portugal', flag: '🇵🇹', dialCode: '+351' },
   { code: 'ES', name: 'Espanha', flag: '🇪🇸', dialCode: '+34' },
   { code: 'FR', name: 'França', flag: '🇫🇷', dialCode: '+33' },
   { code: 'DE', name: 'Alemanha', flag: '🇩🇪', dialCode: '+49' },
   { code: 'IT', name: 'Itália', flag: '🇮🇹', dialCode: '+39' },
+  { code: 'GB', name: 'Reino Unido', flag: '🇬🇧', dialCode: '+44' },
+  { code: 'AU', name: 'Austrália', flag: '🇦🇺', dialCode: '+61' },
+  { code: 'JP', name: 'Japão', flag: '🇯🇵', dialCode: '+81' },
+  { code: 'KR', name: 'Coreia do Sul', flag: '🇰🇷', dialCode: '+82' },
+  { code: 'CN', name: 'China', flag: '🇨🇳', dialCode: '+86' },
 ];
 
 interface PhoneInputSimpleProps {
