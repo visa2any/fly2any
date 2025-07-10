@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { 
   FlightIcon, 
   HotelIcon, 
@@ -27,62 +28,87 @@ export default function HomeMobile() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-      <MobileNavigation currentPath="/" />
-      
-      {/* Hero Section */}
-      <div className="container-mobile spacing-mobile">
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ marginBottom: '20px' }}>
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      </Head>
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)',
+        paddingBottom: '80px'
+      }}>
+        <MobileNavigation currentPath="/" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100
+        }}/>
+
+        {/* Hero Section */}
+        <div style={{ padding: '20px', marginBottom: '40px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <Logo size="lg" showText={true} variant="white" />
           </div>
-          <h1 className="text-mobile-3xl" style={{ 
+          <h1 style={{ 
+            fontSize: '28px',
             fontWeight: '800', 
             color: 'white', 
             marginBottom: '16px',
             fontFamily: 'Poppins, sans-serif',
-            lineHeight: '1.2'
+            lineHeight: '1.2',
+            textAlign: 'center'
           }}>
             Sua Ponte para o Brasil
           </h1>
-          <p className="text-mobile-lg" style={{ 
+          <p style={{ 
+            fontSize: '16px',
             color: 'rgba(255, 255, 255, 0.9)', 
             marginBottom: '32px',
-            lineHeight: '1.5'
+            lineHeight: '1.5',
+            textAlign: 'center'
           }}>
             Especialistas em viagens para brasileiros nos EUA há mais de 10 anos
           </p>
           
           {/* Key Benefits */}
-          <div className="grid-mobile" style={{ gridTemplateColumns: '1fr', gap: '12px', marginBottom: '32px' }}>
-            <div className="flex-mobile-center" style={{ gap: '8px' }}>
-              <CheckIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-              <span className="text-mobile-base" style={{ color: 'white' }}>
-                Cotação gratuita em 2 horas
-              </span>
-            </div>
-            <div className="flex-mobile-center" style={{ gap: '8px' }}>
-              <CheckIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-              <span className="text-mobile-base" style={{ color: 'white' }}>
-                Atendimento 24h em português
-              </span>
-            </div>
-            <div className="flex-mobile-center" style={{ gap: '8px' }}>
-              <CheckIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-              <span className="text-mobile-base" style={{ color: 'white' }}>
-                Melhores preços garantidos
-              </span>
-            </div>
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: '1fr', 
+            gap: '16px', 
+            marginBottom: '32px',
+            padding: '0 16px'
+          }}>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <CheckIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
+                <span style={{ 
+                  fontSize: '14px',
+                  color: 'white'
+                }}>
+                  {i === 0 && 'Cotação gratuita em 2 horas'}
+                  {i === 1 && 'Atendimento 24h em português'}
+                  {i === 2 && 'Melhores preços garantidos'}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Services */}
-        <div className="card-mobile" style={{ 
+        <div style={{ 
           background: 'rgba(255, 255, 255, 0.1)', 
-          marginBottom: '32px',
+          margin: '0 20px 32px',
+          borderRadius: '12px',
+          padding: '20px',
           textAlign: 'center'
         }}>
-          <h2 className="text-mobile-xl" style={{ 
+          <h2 style={{ 
+            fontSize: '20px',
             fontWeight: '700', 
             color: 'white', 
             marginBottom: '24px',
@@ -91,7 +117,11 @@ export default function HomeMobile() {
             O que você precisa?
           </h2>
           
-          <div className="grid-mobile" style={{ gridTemplateColumns: '1fr', gap: '12px' }}>
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: '1fr', 
+            gap: '12px'
+          }}>
             {services.map((service) => (
               <Link
                 key={service.id}
@@ -100,13 +130,14 @@ export default function HomeMobile() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '16px',
-                  padding: '16px',
+                  padding: '20px 16px',
                   borderRadius: '12px',
                   background: selectedService === service.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
-                  color: 'white'
+                  color: 'white',
+                  minHeight: '80px'
                 }}
                 onClick={() => setSelectedService(service.id)}
               >
@@ -123,14 +154,16 @@ export default function HomeMobile() {
                   <service.icon style={{ width: '24px', height: '24px', color: 'white' }} />
                 </div>
                 <div style={{ flex: 1, textAlign: 'left' }}>
-                  <h3 className="text-mobile-base" style={{ 
+                  <h3 style={{ 
+                    fontSize: '16px',
                     fontWeight: '600', 
                     marginBottom: '4px',
                     color: 'white'
                   }}>
                     {service.name}
                   </h3>
-                  <p className="text-mobile-sm" style={{ 
+                  <p style={{ 
+                    fontSize: '14px',
                     color: 'rgba(255, 255, 255, 0.7)',
                     margin: 0
                   }}>
@@ -147,12 +180,15 @@ export default function HomeMobile() {
         </div>
 
         {/* Featured Routes */}
-        <div className="card-mobile" style={{ 
+        <div style={{ 
           background: 'rgba(255, 255, 255, 0.1)', 
-          marginBottom: '32px',
+          margin: '0 20px 32px',
+          borderRadius: '12px',
+          padding: '20px',
           textAlign: 'center'
         }}>
-          <h2 className="text-mobile-xl" style={{ 
+          <h2 style={{ 
+            fontSize: '20px',
             fontWeight: '700', 
             color: 'white', 
             marginBottom: '24px',
@@ -161,31 +197,38 @@ export default function HomeMobile() {
             Rotas Populares
           </h2>
           
-          <div className="grid-mobile" style={{ gridTemplateColumns: '1fr', gap: '12px' }}>
+          <div style={{ 
+            display: 'grid',
+            gridTemplateColumns: '1fr', 
+            gap: '12px'
+          }}>
             <Link
               href="/voos-miami-sao-paulo"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '16px',
+                padding: '20px 16px',
                 borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                color: 'white'
+                color: 'white',
+                minHeight: '80px'
               }}
             >
               <div style={{ textAlign: 'left' }}>
-                <h3 className="text-mobile-base" style={{ 
+                <h3 style={{ 
+                  fontSize: '16px',
                   fontWeight: '600', 
                   marginBottom: '4px',
                   color: 'white'
                 }}>
                   Miami → São Paulo
                 </h3>
-                <p className="text-mobile-sm" style={{ 
+                <p style={{ 
+                  fontSize: '14px',
                   color: 'rgba(255, 255, 255, 0.7)',
                   margin: 0
                 }}>
@@ -194,31 +237,34 @@ export default function HomeMobile() {
               </div>
               <FlightIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
             </Link>
-            
+
             <Link
               href="/voos-new-york-rio-janeiro"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '16px',
+                padding: '20px 16px',
                 borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 textDecoration: 'none',
                 transition: 'all 0.2s ease',
-                color: 'white'
+                color: 'white',
+                minHeight: '80px'
               }}
             >
               <div style={{ textAlign: 'left' }}>
-                <h3 className="text-mobile-base" style={{ 
+                <h3 style={{ 
+                  fontSize: '16px',
                   fontWeight: '600', 
                   marginBottom: '4px',
                   color: 'white'
                 }}>
                   New York → Rio de Janeiro
                 </h3>
-                <p className="text-mobile-sm" style={{ 
+                <p style={{ 
+                  fontSize: '14px',
                   color: 'rgba(255, 255, 255, 0.7)',
                   margin: 0
                 }}>
@@ -227,7 +273,7 @@ export default function HomeMobile() {
               </div>
               <FlightIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
             </Link>
-            
+
             <Link
               href="/voos-brasil-eua"
               style={{
@@ -243,7 +289,10 @@ export default function HomeMobile() {
                 color: 'white'
               }}
             >
-              <span className="text-mobile-base" style={{ fontWeight: '600' }}>
+              <span style={{ 
+                fontSize: '16px',
+                fontWeight: '600'
+              }}>
                 Ver todas as rotas
               </span>
             </Link>
@@ -251,9 +300,11 @@ export default function HomeMobile() {
         </div>
 
         {/* Social Proof */}
-        <div className="card-mobile" style={{ 
+        <div style={{ 
           background: 'rgba(255, 255, 255, 0.1)', 
-          marginBottom: '32px',
+          margin: '0 20px 32px',
+          borderRadius: '12px',
+          padding: '20px',
           textAlign: 'center'
         }}>
           <div style={{ marginBottom: '20px' }}>
@@ -262,7 +313,8 @@ export default function HomeMobile() {
                 <StarIcon key={i} style={{ width: '20px', height: '20px', color: '#facc15' }} />
               ))}
             </div>
-            <p className="text-mobile-base" style={{ 
+            <p style={{ 
+              fontSize: '16px',
               color: 'white', 
               fontWeight: '600',
               margin: 0
@@ -278,14 +330,16 @@ export default function HomeMobile() {
             border: '1px solid rgba(255, 255, 255, 0.2)',
             marginBottom: '16px'
           }}>
-            <p className="text-mobile-sm" style={{ 
+            <p style={{ 
+              fontSize: '14px',
               color: 'rgba(255, 255, 255, 0.9)',
               fontStyle: 'italic',
               marginBottom: '8px'
             }}>
               "Excelente atendimento! Conseguiram um preço incrível para minha viagem ao Brasil."
             </p>
-            <p className="text-mobile-sm" style={{ 
+            <p style={{ 
+              fontSize: '14px',
               color: 'rgba(255, 255, 255, 0.7)',
               margin: 0
             }}>
@@ -295,12 +349,16 @@ export default function HomeMobile() {
         </div>
 
         {/* Contact CTA */}
-        <div className="card-mobile" style={{ 
+        <div style={{ 
           background: 'rgba(250, 204, 21, 0.1)', 
           border: '1px solid rgba(250, 204, 21, 0.3)',
+          margin: '0 20px',
+          borderRadius: '12px',
+          padding: '20px',
           textAlign: 'center'
         }}>
-          <h2 className="text-mobile-xl" style={{ 
+          <h2 style={{ 
+            fontSize: '20px',
             fontWeight: '700', 
             color: 'white', 
             marginBottom: '16px',
@@ -308,7 +366,8 @@ export default function HomeMobile() {
           }}>
             Pronto para viajar?
           </h2>
-          <p className="text-mobile-base" style={{ 
+          <p style={{ 
+            fontSize: '16px',
             color: 'rgba(255, 255, 255, 0.9)', 
             marginBottom: '24px',
             lineHeight: '1.5'
@@ -319,10 +378,18 @@ export default function HomeMobile() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Link 
               href="/cotacao/voos"
-              className="btn-mobile btn-mobile-primary"
               style={{
-                width: '100%',
-                justifyContent: 'center'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '16px',
+                borderRadius: '8px',
+                background: '#2563eb',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '16px'
               }}
             >
               <FlightIcon style={{ width: '20px', height: '20px' }} />
@@ -331,10 +398,19 @@ export default function HomeMobile() {
             
             <Link 
               href="/contato"
-              className="btn-mobile btn-mobile-secondary"
               style={{
-                width: '100%',
-                justifyContent: 'center'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '16px',
+                borderRadius: '8px',
+                background: 'transparent',
+                border: '1px solid white',
+                color: 'white',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '16px'
               }}
             >
               <ChatIcon style={{ width: '20px', height: '20px' }} />
@@ -343,6 +419,6 @@ export default function HomeMobile() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

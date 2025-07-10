@@ -7,9 +7,10 @@ import { FlightIcon, PhoneIcon, ChatIcon } from './Icons';
 
 interface MobileNavigationProps {
   currentPath?: string;
+  style?: React.CSSProperties;
 }
 
-export default function MobileNavigation({ currentPath = '/' }: MobileNavigationProps) {
+export default function MobileNavigation({ currentPath = '/', style }: MobileNavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -114,7 +115,8 @@ export default function MobileNavigation({ currentPath = '/' }: MobileNavigation
         transition: 'right 0.3s ease',
         boxShadow: '-2px 0 10px rgba(0, 0, 0, 0.1)',
         overflow: 'auto',
-        paddingTop: '80px'
+        paddingTop: '80px',
+        ...style
       }}>
         <div style={{ padding: '20px' }}>
           <ul style={{
