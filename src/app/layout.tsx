@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     canonical: "https://fly2any.com",
   },
   other: {
-    "google-site-verification": "fly2any-google-verification-code-placeholder",
+    "google-site-verification": "lT3RftN0whX9Y2qpcg8-1LJisCT2yVrA6-3fVSE5jHM",
   },
 };
 
