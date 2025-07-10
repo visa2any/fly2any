@@ -91,32 +91,36 @@ export default function AdminDashboard() {
         const data = await response.json();
         
         // Converter dados do formato da API para o formato do admin
-        const convertedLeads: Lead[] = data.leads.map((lead: Lead) => ({
-          id: lead.id,
-          tipo: lead.selectedServices[0]?.serviceType || 'voos',
-          nome: lead.nome,
-          sobrenome: lead.sobrenome || '',
-          email: lead.email,
-          telefone: lead.telefone || '',
-          whatsapp: lead.whatsapp || '',
-          status: 'novo', // Todos os leads novos começam como 'novo'
-          prioridade: 'media', // Prioridade padrão
-          data: lead.createdAt,
-          ultimaInteracao: lead.createdAt,
-          createdAt: lead.createdAt,
-          valor: 0, // Valor a ser preenchido manualmente
-          observacoes: lead.observacoes || '',
-          detalhes: {
-            origem: lead.origem || lead.selectedServices[0]?.origem || '',
-            destino: lead.destino || lead.selectedServices[0]?.destino || '',
-            dataIda: lead.dataIda || lead.selectedServices[0]?.dataIda || '',
-            dataVolta: lead.dataVolta || lead.selectedServices[0]?.dataVolta || '',
-            adultos: lead.adultos || lead.selectedServices[0]?.adultos || 1,
-            criancas: lead.criancas || lead.selectedServices[0]?.criancas || 0,
-            classe: lead.classeVoo || lead.selectedServices[0]?.classeVoo || 'economica',
-            orcamento: lead.orcamentoAproximado || ''
-          }
-        }));
+        const convertedLeads: Lead[] = data.leads.map((lead: Lead) => {
+          const firstService = lead.selectedServices && lead.selectedServices.length > 0 ? lead.selectedServices[0] : null;
+          
+          return {
+            id: lead.id,
+            tipo: firstService?.serviceType || 'voos',
+            nome: lead.nome,
+            sobrenome: lead.sobrenome || '',
+            email: lead.email,
+            telefone: lead.telefone || '',
+            whatsapp: lead.whatsapp || '',
+            status: 'novo', // Todos os leads novos começam como 'novo'
+            prioridade: 'media', // Prioridade padrão
+            data: lead.createdAt,
+            ultimaInteracao: lead.createdAt,
+            createdAt: lead.createdAt,
+            valor: 0, // Valor a ser preenchido manualmente
+            observacoes: lead.observacoes || '',
+            detalhes: {
+              origem: lead.origem || firstService?.origem || '',
+              destino: lead.destino || firstService?.destino || '',
+              dataIda: lead.dataIda || firstService?.dataIda || '',
+              dataVolta: lead.dataVolta || firstService?.dataVolta || '',
+              adultos: lead.adultos || firstService?.adultos || 1,
+              criancas: lead.criancas || firstService?.criancas || 0,
+              classe: lead.classeVoo || firstService?.classeVoo || 'economica',
+              orcamento: lead.orcamentoAproximado || ''
+            }
+          };
+        });
         
         setLeads(convertedLeads);
         setError(null);

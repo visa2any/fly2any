@@ -44,54 +44,79 @@ export class TrackingManager {
   public initialize() {
     if (this.isInitialized) return;
     
-    this.initializeGoogleAds();
-    this.initializeMetaPixel();
-    this.initializeBingUET();
-    this.initializeCustomTracking();
-    
-    this.isInitialized = true;
-    console.log('🎯 Tracking Manager initialized');
+    try {
+      this.initializeGoogleAds();
+      this.initializeMetaPixel();
+      this.initializeBingUET();
+      this.initializeCustomTracking();
+      
+      this.isInitialized = true;
+      console.log('🎯 Tracking Manager initialized successfully');
+    } catch (error) {
+      console.warn('🚨 Tracking Manager initialization failed:', error);
+    }
   }
 
   // Google Ads Enhanced Conversions
   private initializeGoogleAds() {
-    // Enhanced conversions setup
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
-        allow_enhanced_conversions: true,
-        conversion_linker: true,
-      });
+    try {
+      // Enhanced conversions setup
+      if (typeof window !== 'undefined' && window.gtag && process.env.NEXT_PUBLIC_GA_ID) {
+        window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+          allow_enhanced_conversions: true,
+          conversion_linker: true,
+        });
+        console.log('✅ Google Ads tracking initialized');
+      }
+    } catch (error) {
+      console.warn('❌ Google Ads initialization failed:', error);
     }
   }
 
   // Meta Pixel Advanced Events
   private initializeMetaPixel() {
-    if (typeof window !== 'undefined' && window.fbq) {
-      // Advanced Matching for better attribution
-      window.fbq('init', process.env.NEXT_PUBLIC_FB_PIXEL_ID, {
-        em: 'auto', // Automatic email hashing
-        fn: 'auto', // Automatic first name
-        ln: 'auto', // Automatic last name
-        ph: 'auto', // Automatic phone
-      });
+    try {
+      if (typeof window !== 'undefined' && window.fbq && process.env.NEXT_PUBLIC_FB_PIXEL_ID) {
+        // Advanced Matching for better attribution
+        window.fbq('init', process.env.NEXT_PUBLIC_FB_PIXEL_ID, {
+          em: 'auto', // Automatic email hashing
+          fn: 'auto', // Automatic first name
+          ln: 'auto', // Automatic last name
+          ph: 'auto', // Automatic phone
+        });
+        console.log('✅ Meta Pixel tracking initialized');
+      }
+    } catch (error) {
+      console.warn('❌ Meta Pixel initialization failed:', error);
     }
   }
 
   // Bing UET (Universal Event Tracking)
   private initializeBingUET() {
-    if (typeof window !== 'undefined') {
-      window.uetq = window.uetq || [];
-      window.uetq.push('event', 'page_view', {});
+    try {
+      if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_BING_UET_ID) {
+        window.uetq = window.uetq || [];
+        window.uetq.push('event', 'page_view', {});
+        console.log('✅ Bing UET tracking initialized');
+      }
+    } catch (error) {
+      console.warn('❌ Bing UET initialization failed:', error);
     }
   }
 
   // Custom tracking for internal analytics
   private initializeCustomTracking() {
-    // UTM parameter capture
-    this.captureUTMParameters();
-    
-    // Session tracking
-    this.initializeSessionTracking();
+    try {
+      // UTM parameter capture
+      this.captureUTMParameters();
+      
+      // Session tracking
+      this.initializeSessionTracking();
+      
+      console.log('✅ Custom tracking initialized');
+    } catch (error) {
+      console.warn('❌ Custom tracking initialization failed:', error);
+    }
   }
 
   // Capture UTM parameters for attribution
