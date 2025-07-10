@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
  
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://fly2any.com'
+  const baseUrl = 'https://www.fly2any.com'
   const currentDate = new Date()
   
   // Static pages
