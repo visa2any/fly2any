@@ -621,7 +621,7 @@ export default function RootLayout({
               whatsappButton.onmouseout = function() { this.style.transform = 'scale(1)'; };
               whatsappButton.onclick = function() {
                 const message = encodeURIComponent('Olá! Gostaria de solicitar uma cotação de viagem.');
-                const phone = '551951944717';
+                const phone = '551151944717';
                 
                 // Detectar dispositivo
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

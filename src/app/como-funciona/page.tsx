@@ -394,7 +394,7 @@ export default function ComoFunciona() {
                 <Link href="/" style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
                   ✈️ Solicitar Cotação
                 </Link>
-                <a href="https://wa.me/551951944717" style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
+                <a href="https://wa.me/551151944717" style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 40px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', fontSize: '20px', textDecoration: 'none' }}>
                   💬 Falar no WhatsApp
                 </a>
               </div>
@@ -489,7 +489,7 @@ export default function ComoFunciona() {
                 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <a href="https://wa.me/551951944717" style={{
+                  <a href="https://wa.me/551151944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
@@ -513,7 +513,7 @@ export default function ComoFunciona() {
                     <span style={{ fontSize: '20px' }}>✉️</span>
                     Enviar mensagem
                   </a>
-                  <a href="https://wa.me/551951944717" style={{
+                  <a href="https://wa.me/551151944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',

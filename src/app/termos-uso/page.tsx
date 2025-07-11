@@ -144,7 +144,7 @@ export default function TermosUso() {
                   <p className="mb-4">Oferecemos suporte através de:</p>
                   <ul className="list-disc list-inside space-y-2 ml-4">
                     <li>Formulário de contato: /contato</li>
-                    <li>WhatsApp: https://wa.me/551951944717</li>
+                    <li>WhatsApp: https://wa.me/551151944717</li>
                     <li>Horário: Segunda a sexta, 9h às 18h (EST)</li>
                   </ul>
                 </section>
