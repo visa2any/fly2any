@@ -343,7 +343,7 @@ export default function Contato() {
               </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <a href="https://wa.me/5511951944717" style={{
+                <a href="https://wa.me/551151944717" style={{
                   color: 'rgba(219, 234, 254, 1)',
                   textDecoration: 'none',
                   display: 'flex',

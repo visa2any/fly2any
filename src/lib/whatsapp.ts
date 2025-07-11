@@ -460,3 +460,8 @@ Tem mais alguma pergunta?`
 
 // Export singleton instance
 export const whatsappService = WhatsAppService.getInstance();
+
+// Export convenience function for direct use
+export async function sendWhatsAppMessage(phone: string, message: string): Promise<boolean> {
+  return await whatsappService.sendMessage(phone, message);
+}

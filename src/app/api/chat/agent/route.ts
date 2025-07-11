@@ -8,19 +8,29 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+interface UserInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+interface ChatContext {
+  page?: string;
+  previousMessages?: ChatMessage[];
+  userInfo?: UserInfo;
+}
+
+interface ChatMetadata {
+  action?: string;
+  data?: Record<string, unknown>;
+}
+
 interface ChatRequest {
   sessionId: string;
   message: string;
-  metadata?: any;
-  userInfo?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-  };
-  context?: {
-    page: string;
-    previousMessages: ChatMessage[];
-  };
+  metadata?: ChatMetadata;
+  userInfo?: UserInfo;
+  context?: ChatContext;
 }
 
 // Sistema de prompts para o agente AI
@@ -172,7 +182,7 @@ async function initializeChatTables() {
   }
 }
 
-async function saveMessage(sessionId: string, content: string, sender: 'user' | 'agent', messageType: string = 'text', metadata?: any) {
+async function saveMessage(sessionId: string, content: string, sender: 'user' | 'agent', messageType: string = 'text', metadata?: ChatMetadata) {
   try {
     await sql`
       INSERT INTO chat_messages (session_id, content, sender, message_type, metadata)
@@ -183,7 +193,7 @@ async function saveMessage(sessionId: string, content: string, sender: 'user' | 
   }
 }
 
-async function updateSession(sessionId: string, userInfo?: any, intent?: string) {
+async function updateSession(sessionId: string, userInfo?: UserInfo, intent?: string) {
   try {
     await sql`
       INSERT INTO chat_sessions (id, user_name, user_email, user_phone, intent)
@@ -201,7 +211,7 @@ async function updateSession(sessionId: string, userInfo?: any, intent?: string)
   }
 }
 
-async function generateAIResponse(userMessage: string, context: any): Promise<any> {
+async function generateAIResponse(userMessage: string, context: ChatContext): Promise<{content: string; type: string; metadata?: any; action?: string; data?: Record<string, unknown>}> {
   // Build context for AI
   const contextMessages = context.previousMessages ? 
     context.previousMessages.slice(-3).map((msg: ChatMessage) => 
@@ -214,11 +224,18 @@ async function generateAIResponse(userMessage: string, context: any): Promise<an
   const pageContext = context.page ? 
     `\nPágina atual: ${context.page}` : '';
 
+  // Set defaults if not provided
+  const effectiveContext = {
+    ...context,
+    page: context.page || 'unknown',
+    previousMessages: context.previousMessages || []
+  };
+
   // Detect intent from message
   const intent = detectIntent(userMessage);
   
   // Generate response based on intent
-  const response = await generateResponseByIntent(userMessage, intent, context);
+  const response = await generateResponseByIntent(userMessage, intent, effectiveContext);
 
   return response;
 }
@@ -251,7 +268,7 @@ function detectIntent(message: string): string {
   return 'general_inquiry';
 }
 
-async function generateResponseByIntent(message: string, intent: string, context: any): Promise<any> {
+async function generateResponseByIntent(message: string, intent: string, context: ChatContext): Promise<{content: string; type: string; metadata?: any; action?: string; data?: Record<string, unknown>}> {
   const responses = {
     flight_quote: {
       content: '✈️ Perfeito! Vou te ajudar com a cotação de voos. Para encontrar as melhores opções, preciso de alguns detalhes:\n\n📍 Qual a origem e destino?\n📅 Quais as datas de ida e volta?\n👥 Quantos passageiros?\n💺 Prefere classe econômica ou executiva?\n\n🎯 Cotação gratuita em até 2 horas!',

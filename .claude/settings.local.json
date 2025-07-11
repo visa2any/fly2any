@@ -45,7 +45,12 @@
       "Bash(git push:*)",
       "WebFetch(domain:www.bing.com)",
       "Bash(touch:*)",
-      "Bash(npm:*)"
+      "Bash(npm:*)",
+      "Bash(vercel:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(kill:*)",
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(pgrep:*)"
     ],
     "deny": []
   }

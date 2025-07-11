@@ -8,8 +8,13 @@ import {
   UserIcon,
   SparklesIcon,
   PhoneIcon,
-  AtSymbolIcon
+  AtSymbolIcon,
+  DocumentTextIcon,
+  StarIcon,
+  GlobeAltIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
+import LeadCaptureSimple from './LeadCaptureSimple';
 
 interface Message {
   id: string;
@@ -77,6 +82,13 @@ export default function ChatAgent() {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [userInfo, setUserInfo] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
+  const [chatMode, setChatMode] = useState<'basic' | 'premium'>('premium');
+  const [language, setLanguage] = useState<'pt' | 'en' | 'es'>('pt');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [chatHistory, setChatHistory] = useState<Message[][]>([]);
+  const [currentConversation, setCurrentConversation] = useState(0);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -176,6 +188,9 @@ export default function ChatAgent() {
       case 'show_contact_form':
         setShowContactForm(true);
         break;
+      case 'show_lead_capture':
+        setShowLeadCapture(true);
+        break;
       case 'redirect_quote':
         window.location.href = `/cotacao/${data.type}`;
         break;
@@ -187,6 +202,18 @@ export default function ChatAgent() {
         break;
       case 'whatsapp':
         window.open('https://wa.me/1234567890?text=Olá, vim do site da Fly2Any');
+        break;
+      case 'change_language':
+        setLanguage(data.language);
+        break;
+      case 'toggle_mode':
+        setChatMode(prev => prev === 'basic' ? 'premium' : 'basic');
+        break;
+      case 'new_conversation':
+        startNewConversation();
+        break;
+      case 'save_conversation':
+        saveCurrentConversation();
         break;
     }
   };
@@ -254,6 +281,72 @@ export default function ChatAgent() {
     });
   };
 
+  const startNewConversation = () => {
+    // Save current conversation
+    if (messages.length > 1) {
+      setChatHistory(prev => [...prev, messages]);
+    }
+    
+    // Start new conversation
+    setMessages(INITIAL_MESSAGES);
+    setCurrentConversation(prev => prev + 1);
+  };
+
+  const saveCurrentConversation = () => {
+    if (messages.length > 1) {
+      setChatHistory(prev => [...prev, messages]);
+      
+      // Save to localStorage
+      localStorage.setItem(`chat_history_${sessionId}`, JSON.stringify(chatHistory));
+    }
+  };
+
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+    if (!isMinimized) {
+      setUnreadCount(0);
+    }
+  };
+
+  const getLanguageText = (key: string) => {
+    const texts = {
+      pt: {
+        title: 'Ana - Assistente Fly2Any',
+        subtitle: 'Online • Resposta automática',
+        placeholder: 'Digite sua mensagem...',
+        send: 'Enviar',
+        minimize: 'Minimizar',
+        newConversation: 'Nova Conversa',
+        saveConversation: 'Salvar Conversa',
+        changeLanguage: 'Idioma',
+        chatMode: 'Modo Chat'
+      },
+      en: {
+        title: 'Ana - Fly2Any Assistant',
+        subtitle: 'Online • Auto response',
+        placeholder: 'Type your message...',
+        send: 'Send',
+        minimize: 'Minimize',
+        newConversation: 'New Conversation',
+        saveConversation: 'Save Conversation',
+        changeLanguage: 'Language',
+        chatMode: 'Chat Mode'
+      },
+      es: {
+        title: 'Ana - Asistente Fly2Any',
+        subtitle: 'En línea • Respuesta automática',
+        placeholder: 'Escribe tu mensaje...',
+        send: 'Enviar',
+        minimize: 'Minimizar',
+        newConversation: 'Nueva Conversación',
+        saveConversation: 'Guardar Conversación',
+        changeLanguage: 'Idioma',
+        chatMode: 'Modo Chat'
+      }
+    };
+    return (texts as any)[language][key] || (texts as any).pt[key];
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentMessage.trim()) {
@@ -276,8 +369,10 @@ export default function ChatAgent() {
         className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg transition-all duration-300 ${
           isOpen 
             ? 'bg-red-500 hover:bg-red-600' 
-            : 'bg-blue-600 hover:bg-blue-700'
-        } text-white`}
+            : chatMode === 'premium' 
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+              : 'bg-blue-600 hover:bg-blue-700'
+        } text-white relative group`}
         style={{ zIndex: 9999 }}
       >
         {isOpen ? (
@@ -287,14 +382,40 @@ export default function ChatAgent() {
         )}
         
         {!isOpen && (
-          <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+          <>
+            {/* Premium Badge */}
+            {chatMode === 'premium' && (
+              <div className="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded-full flex items-center justify-center">
+                <StarIcon className="w-2 h-2 text-yellow-800" />
+              </div>
+            )}
+            
+            {/* Online Indicator */}
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+            
+            {/* Unread Messages */}
+            {unreadCount > 0 && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold">{unreadCount}</span>
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* Tooltip */}
+        {!isOpen && (
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+            {chatMode === 'premium' ? '🌟 Chat Premium' : '💬 Chat de Atendimento'}
+          </div>
         )}
       </button>
 
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-lg shadow-2xl border flex flex-col z-50"
+          className={`fixed bottom-24 right-6 w-96 bg-white rounded-lg shadow-2xl border flex flex-col z-50 transition-all duration-300 ${
+            isMinimized ? 'h-16' : 'h-[600px]'
+          }`}
           style={{ zIndex: 9998 }}
         >
           {/* Header */}
@@ -304,21 +425,88 @@ export default function ChatAgent() {
                 <SparklesIcon className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold">Ana - Assistente Fly2Any</h3>
-                <p className="text-xs text-blue-200">Online • Resposta automática</p>
+                <h3 className="font-semibold">{getLanguageText('title')}</h3>
+                <p className="text-xs text-blue-200">{getLanguageText('subtitle')}</p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-blue-200 hover:text-white"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
+            
+            <div className="flex items-center space-x-2">
+              {/* Premium Features */}
+              {chatMode === 'premium' && (
+                <>
+                  {/* Language Selector */}
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        const languages = ['pt', 'en', 'es'];
+                        const currentIndex = languages.indexOf(language);
+                        const nextIndex = (currentIndex + 1) % languages.length;
+                        setLanguage(languages[nextIndex] as 'pt' | 'en' | 'es');
+                      }}
+                      className="text-blue-200 hover:text-white p-1 rounded"
+                      title={getLanguageText('changeLanguage')}
+                    >
+                      <GlobeAltIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  {/* New Conversation */}
+                  <button
+                    onClick={startNewConversation}
+                    className="text-blue-200 hover:text-white p-1 rounded"
+                    title={getLanguageText('newConversation')}
+                  >
+                    <DocumentTextIcon className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Save Conversation */}
+                  <button
+                    onClick={saveCurrentConversation}
+                    className="text-blue-200 hover:text-white p-1 rounded"
+                    title={getLanguageText('saveConversation')}
+                  >
+                    <StarIcon className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Notifications */}
+                  {unreadCount > 0 && (
+                    <div className="relative">
+                      <BellIcon className="w-4 h-4 text-yellow-300" />
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {/* Minimize/Maximize */}
+              <button
+                onClick={toggleMinimize}
+                className="text-blue-200 hover:text-white p-1 rounded"
+                title={getLanguageText('minimize')}
+              >
+                {isMinimized ? (
+                  <div className="w-4 h-4 border-2 border-current" />
+                ) : (
+                  <div className="w-4 h-4 border-2 border-current border-b-0" />
+                )}
+              </button>
+              
+              {/* Close */}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-blue-200 hover:text-white p-1 rounded"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {messages.map((message) => (
+          {!isMinimized && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -368,30 +556,58 @@ export default function ChatAgent() {
               </div>
             )}
             
-            <div ref={messagesEndRef} />
-          </div>
+              <div ref={messagesEndRef} />
+            </div>
+          )}
 
           {/* Input */}
-          <div className="p-4 border-t bg-white rounded-b-lg">
-            <form onSubmit={handleSubmit} className="flex space-x-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Digite sua mensagem..."
-                className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                disabled={isTyping}
-              />
-              <button
-                type="submit"
-                disabled={!currentMessage.trim() || isTyping}
-                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <PaperAirplaneIcon className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
+          {!isMinimized && (
+            <div className="p-4 border-t bg-white rounded-b-lg">
+              <form onSubmit={handleSubmit} className="flex space-x-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  placeholder={getLanguageText('placeholder')}
+                  className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  disabled={isTyping}
+                />
+                <button
+                  type="submit"
+                  disabled={!currentMessage.trim() || isTyping}
+                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={getLanguageText('send')}
+                >
+                  <PaperAirplaneIcon className="w-5 h-5" />
+                </button>
+              </form>
+              
+              {/* Premium Quick Actions */}
+              {chatMode === 'premium' && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShowLeadCapture(true)}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors"
+                  >
+                    🎯 Cotação Completa
+                  </button>
+                  <button
+                    onClick={() => handleAgentAction('transfer_human')}
+                    className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs hover:bg-orange-200 transition-colors"
+                  >
+                    👨‍💼 Falar com Humano
+                  </button>
+                  <button
+                    onClick={() => handleAgentAction('whatsapp')}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors"
+                  >
+                    📱 WhatsApp
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -463,6 +679,13 @@ export default function ChatAgent() {
           </div>
         </div>
       )}
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureSimple
+        isOpen={showLeadCapture}
+        onClose={() => setShowLeadCapture(false)}
+        context="chat"
+      />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllLeads, getLeadStats, type ServiceData } from '@/lib/database';
+import { DatabaseService } from '@/lib/database';
 
 // Função simples de autenticação (desenvolvimento local)
 function isAuthenticated(): boolean {
@@ -22,14 +22,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const stats = searchParams.get('stats') === 'true';
 
-    if (stats) {
-      // Retornar estatísticas
-      const statsData = await getLeadStats();
-      return NextResponse.json(statsData);
-    } else {
-      // Retornar lista de leads
-      const leadsData = await getAllLeads(page, limit);
-      return NextResponse.json(leadsData);
+    try {
+      // Inicializar tabelas se necessário
+      await DatabaseService.initializeTables();
+      
+      if (stats) {
+        // Retornar estatísticas
+        const statsData = await DatabaseService.getLeadStats();
+        return NextResponse.json(statsData);
+      } else {
+        // Retornar lista de leads
+        const leadsData = await DatabaseService.getAllLeads(page, limit);
+        return NextResponse.json(leadsData);
+      }
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Fallback para dados mock se DB falhar
+      const mockData = {
+        leads: [],
+        total: 0,
+        page: 1,
+        totalPages: 0
+      };
+      return NextResponse.json(mockData);
     }
   } catch (error) {
     console.error('Erro ao buscar leads:', error);
@@ -53,34 +68,45 @@ export async function POST(request: NextRequest) {
     const { action } = await request.json();
 
     if (action === 'export') {
-      // Exportar todos os leads
-      const { leads } = await getAllLeads(1, 10000);
-      
-      const csvData = leads.map(lead => ({
-        id: lead.id,
-        nome: lead.nome,
-        sobrenome: lead.sobrenome,
-        email: lead.email,
-        whatsapp: lead.whatsapp,
-        telefone: lead.telefone,
-        servicos: lead.selectedServices.map((s: ServiceData) => s.serviceType).join(', '),
-        origem: lead.origem,
-        destino: lead.destino,
-        dataIda: lead.dataIda,
-        dataVolta: lead.dataVolta,
-        adultos: lead.adultos,
-        criancas: lead.criancas,
-        bebes: lead.bebes,
-        orcamento: lead.orcamentoAproximado,
-        observacoes: lead.observacoes,
-        criadoEm: lead.createdAt
-      }));
+      try {
+        // Inicializar tabelas se necessário
+        await DatabaseService.initializeTables();
+        
+        // Exportar todos os leads
+        const { leads } = await DatabaseService.getAllLeads(1, 10000);
+        
+        const csvData = leads.map(lead => ({
+          id: lead.id,
+          nome: lead.nome,
+          email: lead.email,
+          whatsapp: lead.whatsapp,
+          servicos: Array.isArray(lead.selectedServices) ? lead.selectedServices.join(', ') : '',
+          origem: lead.origem,
+          destino: lead.destino,
+          dataPartida: lead.dataPartida,
+          dataRetorno: lead.dataRetorno,
+          numeroPassageiros: lead.numeroPassageiros,
+          tipoViagem: lead.tipoViagem,
+          orcamento: lead.orcamentoTotal,
+          prioridadeOrcamento: lead.prioridadeOrcamento,
+          status: lead.status,
+          priority: lead.priority,
+          source: lead.source,
+          criadoEm: lead.createdAt
+        }));
 
-      return NextResponse.json({
-        success: true,
-        data: csvData,
-        total: csvData.length
-      });
+        return NextResponse.json({
+          success: true,
+          data: csvData,
+          total: csvData.length
+        });
+      } catch (dbError) {
+        console.error('Export error:', dbError);
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to export leads'
+        });
+      }
     }
 
     return NextResponse.json(

@@ -55,7 +55,7 @@ class EmailService {
 
   // Template para email de confirmação de lead
   generateConfirmationEmail(leadData: Lead): EmailData {
-    const servicos = leadData.selectedServices?.map((s: ServiceData) => {
+    const servicos = leadData.selectedServices?.map((serviceName: string) => {
       const serviceNames = {
         'voos': '✈️ Voos',
         'hoteis': '🏨 Hotéis',
@@ -63,7 +63,7 @@ class EmailService {
         'passeios': '🎫 Passeios',
         'seguro': '🛡️ Seguro'
       };
-      return serviceNames[s.serviceType as keyof typeof serviceNames] || s.serviceType;
+      return serviceNames[serviceName as keyof typeof serviceNames] || serviceName;
     }).join(', ') || 'Não especificado';
 
     const html = `
@@ -200,7 +200,7 @@ class EmailService {
           ` : ''}
           <div class="info-row">
             <span class="info-label">Passageiros:</span>
-            <span class="info-value">${leadData.adultos || 1} adulto(s)${leadData.criancas > 0 ? `, ${leadData.criancas} criança(s)` : ''}${leadData.bebes > 0 ? `, ${leadData.bebes} bebê(s)` : ''}</span>
+            <span class="info-value">${leadData.adultos || 1} adulto(s)${leadData.criancas ? `, ${leadData.criancas} criança(s)` : ''}${leadData.bebes ? `, ${leadData.bebes} bebê(s)` : ''}</span>
           </div>
         </div>
 
@@ -240,7 +240,7 @@ class EmailService {
         <div class="contact-info">
           <h3>💬 Dúvidas? Fale Conosco!</h3>
           <p>Nossa equipe está disponível para esclarecer qualquer dúvida:</p>
-          <a href="https://wa.me/5511951944717" class="whatsapp-btn">
+          <a href="https://wa.me/551151944717" class="whatsapp-btn">
             📱 Falar no WhatsApp
           </a>
         </div>
@@ -266,11 +266,11 @@ class EmailService {
     - Destino: ${leadData.destino || 'Não especificado'}
     - Data de Ida: ${leadData.dataIda || 'Não especificado'}
     ${leadData.dataVolta ? `- Data de Volta: ${leadData.dataVolta}` : ''}
-    - Passageiros: ${leadData.adultos || 1} adulto(s)${leadData.criancas > 0 ? `, ${leadData.criancas} criança(s)` : ''}${leadData.bebes > 0 ? `, ${leadData.bebes} bebê(s)` : ''}
+    - Passageiros: ${leadData.adultos || 1} adulto(s)${leadData.criancas ? `, ${leadData.criancas} criança(s)` : ''}${leadData.bebes ? `, ${leadData.bebes} bebê(s)` : ''}
 
     Nossa equipe entrará em contato em até 2 horas úteis!
 
-    Dúvidas? Entre em contato conosco pelo WhatsApp: https://wa.me/5511951944717
+    Dúvidas? Entre em contato conosco pelo WhatsApp: https://wa.me/551151944717
 
     Fly2Any - Conectando brasileiros ao mundo há mais de 10 anos
     `;

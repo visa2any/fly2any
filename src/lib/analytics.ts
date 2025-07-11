@@ -110,3 +110,31 @@ export const trackPhoneClick = () => {
     method: 'phone',
   });
 };
+
+// Track conversion events
+export const trackConversion = (email: string, eventType: string, services: string[]): Promise<boolean> => {
+  return new Promise((resolve) => {
+    try {
+      // Google Analytics
+      event('conversion', {
+        event_type: eventType,
+        email: email,
+        services: services.join(','),
+        value: 1,
+      });
+
+      // Facebook Pixel
+      fbEvent('Purchase', {
+        content_type: 'lead',
+        content_ids: services,
+        value: 1,
+        currency: 'USD',
+      });
+
+      resolve(true);
+    } catch (error) {
+      console.error('Error tracking conversion:', error);
+      resolve(false);
+    }
+  });
+};

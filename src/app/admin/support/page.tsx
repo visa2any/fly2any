@@ -1,559 +1,601 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  MessageSquare, 
-  Phone, 
-  User, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle, 
-  Send,
-  Filter,
-  Search,
-  Mail,
-  Headphones,
-  Bot,
-  Users,
-  PhoneCall,
-  MessageCircle
-} from 'lucide-react';
+import React, { useState } from 'react';
 
-interface SupportTicket {
-  id: number;
-  session_id?: string;
-  source: string;
-  user_name: string;
-  user_email?: string;
-  user_phone?: string;
-  subject: string;
-  message: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  status: 'open' | 'in_progress' | 'closed';
-  department: string;
-  assigned_to?: string;
-  created_at: string;
-  updated_at: string;
-  message_count?: number;
-  last_message_at?: string;
-}
+const ticketsData = [
+  {
+    id: 1,
+    subject: 'Problema com reserva de hotel',
+    customer: 'Maria Silva',
+    email: 'maria@email.com',
+    priority: 'Alta',
+    status: 'Aberto',
+    category: 'Reservas',
+    createdAt: '2024-01-15T10:30:00',
+    updatedAt: '2024-01-15T14:20:00',
+    description: 'Cliente relata que não conseguiu confirmar a reserva do hotel em Paris. Sistema apresentou erro durante o pagamento.',
+    messages: [
+      {
+        id: 1,
+        sender: 'Maria Silva',
+        type: 'customer',
+        message: 'Estou tentando fazer a reserva há 2 dias mas o sistema não aceita meu cartão.',
+        timestamp: '2024-01-15T10:30:00'
+      },
+      {
+        id: 2,
+        sender: 'Suporte',
+        type: 'agent',
+        message: 'Olá Maria, vamos verificar o problema. Pode me informar os últimos 4 dígitos do cartão?',
+        timestamp: '2024-01-15T11:15:00'
+      }
+    ]
+  },
+  {
+    id: 2,
+    subject: 'Cancelamento de viagem',
+    customer: 'João Santos',
+    email: 'joao@email.com',
+    priority: 'Média',
+    status: 'Em andamento',
+    category: 'Cancelamentos',
+    createdAt: '2024-01-15T09:15:00',
+    updatedAt: '2024-01-15T13:45:00',
+    description: 'Cliente deseja cancelar viagem para Londres devido a problemas pessoais.',
+    messages: [
+      {
+        id: 1,
+        sender: 'João Santos',
+        type: 'customer',
+        message: 'Preciso cancelar minha viagem para Londres. É possível reembolso?',
+        timestamp: '2024-01-15T09:15:00'
+      }
+    ]
+  },
+  {
+    id: 3,
+    subject: 'Dúvida sobre documentação',
+    customer: 'Ana Costa',
+    email: 'ana@email.com',
+    priority: 'Baixa',
+    status: 'Resolvido',
+    category: 'Documentação',
+    createdAt: '2024-01-14T16:20:00',
+    updatedAt: '2024-01-15T08:30:00',
+    description: 'Cliente tem dúvidas sobre visto para Dubai.',
+    messages: [
+      {
+        id: 1,
+        sender: 'Ana Costa',
+        type: 'customer',
+        message: 'Preciso de visto para viajar para Dubai?',
+        timestamp: '2024-01-14T16:20:00'
+      },
+      {
+        id: 2,
+        sender: 'Suporte',
+        type: 'agent',
+        message: 'Para brasileiros, não é necessário visto para Dubai para estadias de até 90 dias.',
+        timestamp: '2024-01-15T08:30:00'
+      }
+    ]
+  }
+];
 
-interface TicketMessage {
-  id: number;
-  ticket_id: number;
-  sender_type: 'customer' | 'agent' | 'system';
-  sender_name: string;
-  message: string;
-  created_at: string;
-}
+const priorityOptions = ['Todas', 'Alta', 'Média', 'Baixa'];
+const statusOptions = ['Todos', 'Aberto', 'Em andamento', 'Resolvido', 'Fechado'];
+const categoryOptions = ['Todas', 'Reservas', 'Cancelamentos', 'Documentação', 'Pagamentos', 'Outros'];
 
-interface WhatsAppConversation {
-  id: number;
-  phone: string;
-  name?: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  recent_message?: string;
-}
+const getPriorityBadge = (priority: string) => {
+  const badges = {
+    'Alta': 'admin-badge admin-badge-danger',
+    'Média': 'admin-badge admin-badge-warning',
+    'Baixa': 'admin-badge admin-badge-info'
+  };
+  return badges[priority as keyof typeof badges] || 'admin-badge admin-badge-neutral';
+};
 
-export default function SupportDashboard() {
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [whatsappConversations, setWhatsappConversations] = useState<WhatsAppConversation[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [ticketMessages, setTicketMessages] = useState<TicketMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('tickets');
-  const [filterStatus, setFilterStatus] = useState('open');
-  const [filterPriority, setFilterPriority] = useState('all');
+const getStatusBadge = (status: string) => {
+  const badges = {
+    'Aberto': 'admin-badge admin-badge-danger',
+    'Em andamento': 'admin-badge admin-badge-warning',
+    'Resolvido': 'admin-badge admin-badge-success',
+    'Fechado': 'admin-badge admin-badge-neutral'
+  };
+  return badges[status as keyof typeof badges] || 'admin-badge admin-badge-neutral';
+};
+
+const formatDateTime = (dateString: string) => {
+  return new Date(dateString).toLocaleString('pt-BR');
+};
+
+export default function SupportPage() {
+  const [selectedPriority, setSelectedPriority] = useState('Todas');
+  const [selectedStatus, setSelectedStatus] = useState('Todos');
+  const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState<typeof ticketsData[0] | null>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [showCreateTicket, setShowCreateTicket] = useState(false);
+  const [showEditTicket, setShowEditTicket] = useState(false);
+  const [tickets, setTickets] = useState(ticketsData);
+  const [ticketForm, setTicketForm] = useState({
+    subject: '',
+    customer: '',
+    email: '',
+    priority: 'Média',
+    category: 'Outros',
+    description: ''
+  });
 
-  const loadTickets = useCallback(async () => {
-    try {
-      const params = new URLSearchParams({
-        status: filterStatus,
-        ...(filterPriority !== 'all' && { priority: filterPriority }),
-        limit: '100'
-      });
-      
-      const response = await fetch(`/api/support/tickets?${params}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setTickets(data.tickets);
+  const filteredTickets = tickets.filter(ticket => {
+    const matchesPriority = selectedPriority === 'Todas' || ticket.priority === selectedPriority;
+    const matchesStatus = selectedStatus === 'Todos' || ticket.status === selectedStatus;
+    const matchesCategory = selectedCategory === 'Todas' || ticket.category === selectedCategory;
+    const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    return matchesPriority && matchesStatus && matchesCategory && matchesSearch;
+  });
+
+  const stats = {
+    total: tickets.length,
+    aberto: tickets.filter(t => t.status === 'Aberto').length,
+    andamento: tickets.filter(t => t.status === 'Em andamento').length,
+    resolvido: tickets.filter(t => t.status === 'Resolvido').length,
+    alta: tickets.filter(t => t.priority === 'Alta').length
+  };
+
+  const handleCreateTicket = () => {
+    const newTicket = {
+      id: tickets.length + 1,
+      ...ticketForm,
+      status: 'Aberto',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messages: [{
+        id: 1,
+        sender: ticketForm.customer,
+        type: 'customer' as const,
+        message: ticketForm.description,
+        timestamp: new Date().toISOString()
+      }]
+    };
+    setTickets([newTicket, ...tickets]);
+    setShowCreateTicket(false);
+    resetTicketForm();
+  };
+
+  const handleUpdateTicketStatus = (ticketId: number, newStatus: string) => {
+    setTickets(tickets.map(ticket => 
+      ticket.id === ticketId 
+        ? { ...ticket, status: newStatus, updatedAt: new Date().toISOString() }
+        : ticket
+    ));
+  };
+
+  const handleDeleteTicket = (ticketId: number) => {
+    if (confirm('Tem certeza que deseja excluir este ticket?')) {
+      setTickets(tickets.filter(ticket => ticket.id !== ticketId));
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(null);
       }
-    } catch (error) {
-      console.error('Error loading tickets:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [filterStatus, filterPriority]);
-
-  // Load tickets and conversations
-  useEffect(() => {
-    loadTickets();
-    loadWhatsAppConversations();
-  }, [loadTickets]);
-
-  // Load ticket messages when ticket is selected
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketMessages(selectedTicket.id);
-    }
-  }, [selectedTicket]);
-
-  const loadWhatsAppConversations = async () => {
-    try {
-      const response = await fetch('/api/whatsapp/conversations');
-      const data = await response.json();
-      
-      if (data.success) {
-        setWhatsappConversations(data.conversations || []);
-      }
-    } catch (error) {
-      console.error('Error loading WhatsApp conversations:', error);
     }
   };
 
-  const loadTicketMessages = async (ticketId: number) => {
-    try {
-      const response = await fetch(`/api/support/tickets/${ticketId}/messages`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setTicketMessages(data.messages);
-      }
-    } catch (error) {
-      console.error('Error loading ticket messages:', error);
-    }
+  const resetTicketForm = () => {
+    setTicketForm({
+      subject: '',
+      customer: '',
+      email: '',
+      priority: 'Média',
+      category: 'Outros',
+      description: ''
+    });
   };
 
-  const sendMessage = async () => {
-    if (!selectedTicket || !newMessage.trim()) return;
-
-    try {
-      const response = await fetch(`/api/support/tickets/${selectedTicket.id}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: newMessage,
-          sender_type: 'agent',
-          sender_name: 'Agente'
-        })
-      });
-
-      if (response.ok) {
-        setNewMessage('');
-        loadTicketMessages(selectedTicket.id);
-        loadTickets(); // Refresh ticket list
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
+  const handleSendMessage = () => {
+    if (newMessage.trim() && selectedTicket) {
+      // Aqui seria integrado com a API para enviar a mensagem
+      console.log('Enviando mensagem:', newMessage);
+      setNewMessage('');
     }
   };
-
-  const updateTicketStatus = async (ticketId: number, status: string) => {
-    try {
-      const response = await fetch(`/api/support/tickets/${ticketId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status })
-      });
-
-      if (response.ok) {
-        loadTickets();
-        if (selectedTicket?.id === ticketId) {
-          setSelectedTicket({ ...selectedTicket, status: status as 'open' | 'in_progress' | 'closed' });
-        }
-      }
-    } catch (error) {
-      console.error('Error updating ticket status:', error);
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'normal': return 'bg-blue-500';
-      case 'low': return 'bg-gray-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getSourceIcon = (source: string) => {
-    switch (source) {
-      case 'chat':
-      case 'chat_transfer':
-        return <Bot className="h-4 w-4" />;
-      case 'whatsapp':
-        return <MessageCircle className="h-4 w-4" />;
-      case 'lead_form':
-        return <Mail className="h-4 w-4" />;
-      default:
-        return <MessageSquare className="h-4 w-4" />;
-    }
-  };
-
-  const filteredTickets = tickets.filter(ticket => 
-    ticket.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.user_email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard de Atendimento</h1>
-          <p className="text-gray-600">Gerencie tickets, chat e WhatsApp em um só lugar</p>
-        </div>
-        
-        <div className="flex gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'open').length}</p>
-                <p className="text-sm text-gray-600">Tickets Abertos</p>
-              </div>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+                Central de Suporte
+              </h1>
+              <p className="text-sm text-admin-text-secondary">
+                Tickets de suporte e atendimento
+              </p>
             </div>
-          </Card>
-          
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold">{whatsappConversations.filter(c => c.status === 'active').length}</p>
-                <p className="text-sm text-gray-600">WhatsApp Ativo</p>
-              </div>
-            </div>
-          </Card>
+            <button 
+              onClick={() => setShowCreateTicket(true)}
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border-0 font-semibold flex items-center gap-2"
+            >
+              <span className="text-lg">🎫</span>
+              Novo Ticket
+            </button>
+          </div>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="tickets">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Tickets de Suporte
-          </TabsTrigger>
-          <TabsTrigger value="whatsapp">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            WhatsApp
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            <Users className="h-4 w-4 mr-2" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+      {/* Stats */}
+      <div className="admin-stats-grid">
+        <div className="admin-stats-card">
+          <div className="admin-stats-value">{stats.total}</div>
+          <div className="admin-stats-label">Total de Tickets</div>
+        </div>
+        <div className="admin-stats-card">
+          <div className="admin-stats-value text-red-600">{stats.aberto}</div>
+          <div className="admin-stats-label">Abertos</div>
+        </div>
+        <div className="admin-stats-card">
+          <div className="admin-stats-value text-amber-600">{stats.andamento}</div>
+          <div className="admin-stats-label">Em Andamento</div>
+        </div>
+        <div className="admin-stats-card">
+          <div className="admin-stats-value text-emerald-600">{stats.resolvido}</div>
+          <div className="admin-stats-label">Resolvidos</div>
+        </div>
+      </div>
 
-        <TabsContent value="tickets" className="space-y-4">
-          <div className="flex gap-4 items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar tickets..."
+      {/* Filters */}
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-64">
+              <label className="admin-label">Buscar</label>
+              <input
+                type="text"
+                className="admin-input"
+                placeholder="Assunto, cliente ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
               />
             </div>
-            
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Abertos</SelectItem>
-                <SelectItem value="in_progress">Em Progresso</SelectItem>
-                <SelectItem value="closed">Fechados</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas Prioridades</SelectItem>
-                <SelectItem value="urgent">Urgente</SelectItem>
-                <SelectItem value="high">Alta</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="low">Baixa</SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+              <label className="admin-label">Status</label>
+              <select 
+                className="admin-input"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="admin-label">Prioridade</label>
+              <select 
+                className="admin-input"
+                value={selectedPriority}
+                onChange={(e) => setSelectedPriority(e.target.value)}
+              >
+                {priorityOptions.map(priority => (
+                  <option key={priority} value={priority}>{priority}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="admin-label">Categoria</label>
+              <select 
+                className="admin-input"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categoryOptions.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Ticket List */}
-            <div className="lg:col-span-1 space-y-4">
-              <h3 className="font-semibold">Tickets ({filteredTickets.length})</h3>
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+      {/* Tickets Table */}
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <h2 className="admin-card-title">Tickets ({filteredTickets.length})</h2>
+          <p className="admin-card-description">
+            Lista de todos os tickets de suporte
+          </p>
+        </div>
+        <div className="admin-card-content">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-admin-border-color">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">ID</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Assunto</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Cliente</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Categoria</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Prioridade</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Atualizado</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredTickets.map((ticket) => (
-                  <Card 
-                    key={ticket.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedTicket?.id === ticket.id ? 'ring-2 ring-blue-500' : ''
-                    }`}
-                    onClick={() => setSelectedTicket(ticket)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          {getSourceIcon(ticket.source)}
-                          <span className="font-medium">#{ticket.id}</span>
-                        </div>
-                        <Badge className={`${getPriorityColor(ticket.priority)} text-white`}>
-                          {ticket.priority}
-                        </Badge>
+                  <tr key={ticket.id} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
+                    <td className="py-3 px-2 text-admin-text-primary font-mono">#{ticket.id}</td>
+                    <td className="py-3 px-2">
+                      <div className="font-medium text-admin-text-primary">{ticket.subject}</div>
+                      <div className="text-sm text-admin-text-secondary truncate max-w-48">
+                        {ticket.description}
                       </div>
-                      
-                      <h4 className="font-medium truncate">{ticket.subject}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{ticket.user_name}</p>
-                      
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock className="h-3 w-3" />
-                        {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
-                        {ticket.message_count && (
-                          <>
-                            <MessageSquare className="h-3 w-3 ml-2" />
-                            {ticket.message_count}
-                          </>
-                        )}
+                    </td>
+                    <td className="py-3 px-2">
+                      <div className="font-medium text-admin-text-primary">{ticket.customer}</div>
+                      <div className="text-sm text-admin-text-secondary">{ticket.email}</div>
+                    </td>
+                    <td className="py-3 px-2 text-admin-text-primary">{ticket.category}</td>
+                    <td className="py-3 px-2">
+                      <span className={getPriorityBadge(ticket.priority)}>
+                        {ticket.priority}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <span className={getStatusBadge(ticket.status)}>
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2 text-admin-text-secondary text-sm">
+                      {formatDateTime(ticket.updatedAt)}
+                    </td>
+                    <td className="py-3 px-2">
+                      <div className="flex gap-2">
+                        <button 
+                          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs py-1 px-3 rounded-lg hover:scale-105 transition-all duration-200 border-0"
+                          onClick={() => setSelectedTicket(ticket)}
+                        >
+                          👁️ Ver
+                        </button>
+                        <select 
+                          value={ticket.status}
+                          onChange={(e) => handleUpdateTicketStatus(ticket.id, e.target.value)}
+                          className="text-xs border rounded px-2 py-1"
+                        >
+                          <option value="Aberto">Aberto</option>
+                          <option value="Em andamento">Em andamento</option>
+                          <option value="Resolvido">Resolvido</option>
+                          <option value="Fechado">Fechado</option>
+                        </select>
+                        <button 
+                          className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs py-1 px-3 rounded-lg hover:scale-105 transition-all duration-200 border-0"
+                          onClick={() => handleDeleteTicket(ticket.id)}
+                        >
+                          🗑️
+                        </button>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Ticket Detail Modal */}
+      {selectedTicket && (
+        <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
+          <div className="admin-card max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="admin-card-header">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="admin-card-title">Ticket #{selectedTicket.id}</h2>
+                  <p className="admin-card-description">{selectedTicket.subject}</p>
+                </div>
+                <button 
+                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  onClick={() => setSelectedTicket(null)}
+                >
+                  ✕
+                </button>
               </div>
             </div>
+            
+            <div className="admin-card-content flex-1 overflow-y-auto">
+              {/* Ticket Info */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-admin-bg-secondary/30 rounded-lg">
+                <div>
+                  <label className="admin-label">Cliente</label>
+                  <div className="text-admin-text-primary">{selectedTicket.customer}</div>
+                  <div className="text-sm text-admin-text-secondary">{selectedTicket.email}</div>
+                </div>
+                <div>
+                  <label className="admin-label">Status</label>
+                  <span className={getStatusBadge(selectedTicket.status)}>
+                    {selectedTicket.status}
+                  </span>
+                </div>
+                <div>
+                  <label className="admin-label">Prioridade</label>
+                  <span className={getPriorityBadge(selectedTicket.priority)}>
+                    {selectedTicket.priority}
+                  </span>
+                </div>
+                <div>
+                  <label className="admin-label">Categoria</label>
+                  <div className="text-admin-text-primary">{selectedTicket.category}</div>
+                </div>
+              </div>
 
-            {/* Ticket Details */}
-            <div className="lg:col-span-2">
-              {selectedTicket ? (
-                <Card>
-                  <CardHeader className="border-b">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {getSourceIcon(selectedTicket.source)}
-                          Ticket #{selectedTicket.id}
-                          <Badge className={`${getPriorityColor(selectedTicket.priority)} text-white`}>
-                            {selectedTicket.priority}
-                          </Badge>
-                        </CardTitle>
-                        <CardDescription>{selectedTicket.subject}</CardDescription>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select 
-                          value={selectedTicket.status}
-                          onValueChange={(status) => updateTicketStatus(selectedTicket.id, status)}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="open">Aberto</SelectItem>
-                            <SelectItem value="in_progress">Em Progresso</SelectItem>
-                            <SelectItem value="closed">Fechado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Cliente:</span> {selectedTicket.user_name}
-                      </div>
-                      <div>
-                        <span className="font-medium">Fonte:</span> {selectedTicket.source}
-                      </div>
-                      {selectedTicket.user_email && (
-                        <div>
-                          <span className="font-medium">Email:</span> {selectedTicket.user_email}
-                        </div>
-                      )}
-                      {selectedTicket.user_phone && (
-                        <div>
-                          <span className="font-medium">Telefone:</span> {selectedTicket.user_phone}
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="p-4">
-                    {/* Messages */}
-                    <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
-                      {ticketMessages.map((msg) => (
-                        <div 
-                          key={msg.id}
-                          className={`flex ${msg.sender_type === 'agent' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            msg.sender_type === 'agent' 
-                              ? 'bg-blue-500 text-white' 
-                              : msg.sender_type === 'system'
-                              ? 'bg-gray-100 text-gray-600'
-                              : 'bg-gray-200 text-gray-900'
-                          }`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-medium">{msg.sender_name}</span>
-                              <span className="text-xs opacity-75">
-                                {new Date(msg.created_at).toLocaleTimeString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className="text-sm">{msg.message}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Message Input */}
-                    {selectedTicket.status !== 'closed' && (
-                      <div className="flex gap-2">
-                        <Textarea
-                          placeholder="Digite sua resposta..."
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          rows={3}
-                          className="flex-1"
-                        />
-                        <Button 
-                          onClick={sendMessage}
-                          disabled={!newMessage.trim()}
-                          className="self-end"
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="flex items-center justify-center h-64">
-                    <div className="text-center text-gray-500">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Selecione um ticket para ver os detalhes</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="whatsapp">
-          <Card>
-            <CardHeader>
-              <CardTitle>Conversas WhatsApp</CardTitle>
-              <CardDescription>Gerencie conversas ativas do WhatsApp</CardDescription>
-            </CardHeader>
-            <CardContent>
+              {/* Messages */}
               <div className="space-y-4">
-                {whatsappConversations.map((conversation) => (
-                  <div key={conversation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <MessageCircle className="h-8 w-8 text-green-500" />
-                      <div>
-                        <h4 className="font-medium">
-                          {conversation.name || 'Cliente WhatsApp'}
-                        </h4>
-                        <p className="text-sm text-gray-600">{conversation.phone}</p>
-                        <p className="text-xs text-gray-500">
-                          Última atividade: {new Date(conversation.updated_at).toLocaleString('pt-BR')}
-                        </p>
+                <h3 className="font-semibold text-admin-text-primary">Conversação</h3>
+                {selectedTicket.messages.map((message) => (
+                  <div key={message.id} className={`p-4 rounded-lg ${
+                    message.type === 'customer' 
+                      ? 'bg-admin-bg-secondary/50 ml-8' 
+                      : 'bg-blue-50 mr-8'
+                  }`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="font-medium text-admin-text-primary">
+                        {message.sender}
+                      </div>
+                      <div className="text-sm text-admin-text-secondary">
+                        {formatDateTime(message.timestamp)}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <PhoneCall className="h-4 w-4 mr-2" />
-                        Ver Conversa
-                      </Button>
+                    <div className="text-admin-text-primary">
+                      {message.message}
                     </div>
                   </div>
                 ))}
-                
-                {whatsappConversations.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhuma conversa WhatsApp ativa</p>
-                  </div>
-                )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-8 w-8 text-blue-500" />
-                  <div>
-                    <p className="text-2xl font-bold">{tickets.length}</p>
-                    <p className="text-sm text-gray-600">Total Tickets</p>
-                  </div>
+              {/* Reply Form */}
+              <div className="mt-6 border-t border-admin-border-color pt-6">
+                <label className="admin-label">Nova Mensagem</label>
+                <textarea
+                  className="admin-input h-24 resize-none"
+                  placeholder="Digite sua resposta..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                />
+                <div className="flex gap-2 mt-4">
+                  <button 
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 border-0 font-medium"
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim()}
+                  >
+                    📤 Enviar Resposta
+                  </button>
+                  <button 
+                    onClick={() => selectedTicket && handleUpdateTicketStatus(selectedTicket.id, 'Resolvido')}
+                    className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 border-0 font-medium"
+                  >
+                    ✅ Resolver
+                  </button>
+                  <button 
+                    onClick={() => selectedTicket && setTickets(tickets.map(t => 
+                      t.id === selectedTicket.id ? {...t, priority: 'Alta', updatedAt: new Date().toISOString()} : t
+                    ))}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-200 border-0 font-medium"
+                  >
+                    ⚠️ Escalar
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-8 w-8 text-red-500" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {tickets.filter(t => t.priority === 'urgent' || t.priority === 'high').length}
-                    </p>
-                    <p className="text-sm text-gray-600">Alta Prioridade</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-8 w-8 text-green-500" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {tickets.filter(t => t.status === 'closed').length}
-                    </p>
-                    <p className="text-sm text-gray-600">Resolvidos</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-8 w-8 text-green-500" />
-                  <div>
-                    <p className="text-2xl font-bold">{whatsappConversations.length}</p>
-                    <p className="text-sm text-gray-600">WhatsApp</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
+
+      {/* Create Ticket Modal */}
+      {showCreateTicket && (
+        <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
+          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="admin-card-header">
+              <div className="flex justify-between items-center">
+                <h2 className="admin-card-title">Criar Novo Ticket</h2>
+                <button 
+                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  onClick={() => { setShowCreateTicket(false); resetTicketForm(); }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="admin-card-content">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="admin-label">Nome do Cliente *</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={ticketForm.customer}
+                    onChange={(e) => setTicketForm({...ticketForm, customer: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Email *</label>
+                  <input
+                    type="email"
+                    className="admin-input"
+                    value={ticketForm.email}
+                    onChange={(e) => setTicketForm({...ticketForm, email: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="admin-label">Assunto *</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={ticketForm.subject}
+                    onChange={(e) => setTicketForm({...ticketForm, subject: e.target.value})}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Prioridade</label>
+                  <select 
+                    className="admin-input"
+                    value={ticketForm.priority}
+                    onChange={(e) => setTicketForm({...ticketForm, priority: e.target.value})}
+                  >
+                    <option value="Baixa">Baixa</option>
+                    <option value="Média">Média</option>
+                    <option value="Alta">Alta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="admin-label">Categoria</label>
+                  <select 
+                    className="admin-input"
+                    value={ticketForm.category}
+                    onChange={(e) => setTicketForm({...ticketForm, category: e.target.value})}
+                  >
+                    <option value="Reservas">Reservas</option>
+                    <option value="Cancelamentos">Cancelamentos</option>
+                    <option value="Documentação">Documentação</option>
+                    <option value="Pagamentos">Pagamentos</option>
+                    <option value="Outros">Outros</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="admin-label">Descrição do Problema *</label>
+                  <textarea
+                    className="admin-input h-32 resize-none"
+                    value={ticketForm.description}
+                    onChange={(e) => setTicketForm({...ticketForm, description: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-6">
+                <button 
+                  onClick={handleCreateTicket}
+                  disabled={!ticketForm.subject || !ticketForm.customer || !ticketForm.email || !ticketForm.description}
+                  className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-2 rounded-lg hover:scale-105 transition-all duration-200 border-0 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  🎫 Criar Ticket
+                </button>
+                <button 
+                  onClick={() => { setShowCreateTicket(false); resetTicketForm(); }}
+                  className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-2 rounded-lg hover:scale-105 transition-all duration-200 border-0 font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

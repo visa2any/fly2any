@@ -23,6 +23,8 @@ import Logo from '@/components/Logo';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
+import ChatAgent from '@/components/ChatAgent';
+import LeadCaptureSimple from '@/components/LeadCaptureSimple';
 import { cities } from '@/data/cities';
 
 interface ServiceFormData {
@@ -101,6 +103,7 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showLeadCapture, setShowLeadCapture] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     selectedServices: [],
     currentServiceIndex: 0,
@@ -742,6 +745,52 @@ export default function Home() {
               }}>
                 <button
                   type="button"
+                  onClick={() => setShowLeadCapture(true)}
+                  style={{
+                    background: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
+                    color: 'white',
+                    padding: '16px 32px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 25px rgba(124, 58, 237, 0.3)',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    position: 'relative' as const
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 15px 35px rgba(124, 58, 237, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(124, 58, 237, 0.3)';
+                  }}
+                >
+                  <StarIcon style={{ width: '20px', height: '20px' }} />
+                  Cotação Premium
+                  <div style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-6px',
+                    background: '#fbbf24',
+                    color: '#92400e',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    padding: '2px 6px',
+                    borderRadius: '8px',
+                    textTransform: 'uppercase'
+                  }}>
+                    NOVO
+                  </div>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => {
                     const formSection = document.querySelector('form');
                     if (formSection) {
@@ -777,7 +826,7 @@ export default function Home() {
                 </button>
                 
                 <a
-                  href="https://wa.me/5511951944717"
+                  href="https://wa.me/551151944717"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -2864,8 +2913,8 @@ export default function Home() {
                 ✈️ Solicitar Cotação Agora
               </button>
               
-              <a
-                href="https://wa.me/5511951944717"
+                <a
+                  href="https://wa.me/551151944717"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -3379,6 +3428,15 @@ export default function Home() {
         )}
       </div>
 
+      {/* Chat Agent Premium */}
+      <ChatAgent />
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureSimple
+        isOpen={showLeadCapture}
+        onClose={() => setShowLeadCapture(false)}
+        context="popup"
+      />
     </>
   );
 }

@@ -340,7 +340,7 @@ export default function VoosBrasilEUA() {
               ✈️ <span>Solicitar Cotação</span>
             </Link>
             
-            <a href="https://wa.me/5511951944717" style={buttonWhatsApp}>
+            <a href="https://wa.me/551151944717" style={buttonWhatsApp}>
               💬 <span>WhatsApp Agora</span>
             </a>
           </div>
@@ -724,7 +724,7 @@ export default function VoosBrasilEUA() {
               ✈️ <span>Solicitar Cotação</span>
             </Link>
             
-            <a href="https://wa.me/5511951944717" style={{
+            <a href="https://wa.me/551151944717" style={{
               ...buttonWhatsApp,
               fontSize: '20px',
               padding: '24px 48px'
@@ -839,7 +839,7 @@ export default function VoosBrasilEUA() {
               
               {/* Contact Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <a href="https://wa.me/5511951944717" style={{
+                <a href="https://wa.me/551151944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
@@ -863,7 +863,7 @@ export default function VoosBrasilEUA() {
                   <span style={{ fontSize: '20px' }}>✉️</span>
                   Enviar mensagem
                 </a>
-                <a href="https://wa.me/5511951944717" style={{
+                <a href="https://wa.me/551151944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   fontSize: '16px',
