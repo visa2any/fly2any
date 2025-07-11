@@ -634,7 +634,7 @@ export default function Blog() {
               </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
-                <a href="https://wa.me/5511951944717" style={{
+                <a href="https://wa.me/551951944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   display: 'flex',
@@ -656,7 +656,7 @@ export default function Blog() {
                   <MailIcon style={{ width: '20px', height: '20px' }} />
                   Enviar mensagem
                 </a>
-                <a href="https://wa.me/5511951944717" style={{
+                <a href="https://wa.me/551951944717" style={{
                   color: 'rgba(219, 234, 254, 0.8)',
                   textDecoration: 'none',
                   display: 'flex',

@@ -410,7 +410,7 @@ export default function FAQ() {
                 
                 {/* Contact Info */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <a href="https://wa.me/5511951944717" style={{
+                  <a href="https://wa.me/551951944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
@@ -434,7 +434,7 @@ export default function FAQ() {
                     <span style={{ fontSize: '20px' }}>✉️</span>
                     Enviar mensagem
                   </a>
-                  <a href="https://wa.me/5511951944717" style={{
+                  <a href="https://wa.me/551951944717" style={{
                     color: 'rgba(219, 234, 254, 0.8)',
                     textDecoration: 'none',
                     fontSize: '16px',
