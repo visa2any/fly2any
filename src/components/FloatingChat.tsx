@@ -41,7 +41,7 @@ export default function FloatingChat() {
       )}
 
       {/* Widget de Chat */}
-      <div className="fixed bottom-6 right-24 z-40">
+      <div className="fixed bottom-6 right-32 z-[50]">
         {/* Chat expandido */}
         {isExpanded && (
           <div className="mb-4 bg-white rounded-2xl shadow-2xl w-96 animate-fade-in-up">
@@ -134,7 +134,7 @@ export default function FloatingChat() {
             </span>
             
             {/* Ripple effect */}
-            <div className="absolute inset-0 rounded-full bg-green-400 opacity-30 animate-ping"></div>
+            <div className="absolute inset-2 rounded-full bg-green-400 opacity-20 animate-ping"></div>
           </button>
         </div>
 

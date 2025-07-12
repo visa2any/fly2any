@@ -59,16 +59,18 @@ interface ChatSession {
 const INITIAL_MESSAGES: Message[] = [
   {
     id: '1',
-    content: '🛫 Olá! Sou a Ana, assistente virtual da Fly2Any. Como posso ajudar você hoje?',
+    content: '🛫 Olá! Eu sou a Ana, especialista em viagens da Fly2Any. Como posso ajudar você hoje?',
     sender: 'agent',
     timestamp: new Date(),
     type: 'quick_reply',
     metadata: {
       buttons: [
-        { text: '✈️ Cotação de Voos', action: 'quote_flight', data: { type: 'flight' } },
-        { text: '🏨 Hotéis no Brasil', action: 'quote_hotel', data: { type: 'hotel' } },
+        { text: '✈️ Voos', action: 'quote_flight', data: { type: 'flight' } },
+        { text: '🏨 Hotéis', action: 'quote_hotel', data: { type: 'hotel' } },
         { text: '🚗 Aluguel de Carros', action: 'quote_car', data: { type: 'car' } },
-        { text: '💬 Falar com Humano', action: 'transfer_human', data: { type: 'human' } }
+        { text: '🎯 Passeios', action: 'quote_tours', data: { type: 'tours' } },
+        { text: '🛡️ Seguro Viagem', action: 'quote_insurance', data: { type: 'insurance' } },
+        { text: '📋 Outros', action: 'other_services', data: { type: 'other' } }
       ]
     }
   }
@@ -311,8 +313,8 @@ export default function ChatAgent() {
   const getLanguageText = (key: string) => {
     const texts = {
       pt: {
-        title: 'Ana - Assistente Fly2Any',
-        subtitle: 'Online • Resposta automática',
+        title: 'Ana - Especialista Fly2Any',
+        subtitle: 'Online agora',
         placeholder: 'Digite sua mensagem...',
         send: 'Enviar',
         minimize: 'Minimizar',
@@ -322,8 +324,8 @@ export default function ChatAgent() {
         chatMode: 'Modo Chat'
       },
       en: {
-        title: 'Ana - Fly2Any Assistant',
-        subtitle: 'Online • Auto response',
+        title: 'Ana - Travel Specialist',
+        subtitle: 'Online now',
         placeholder: 'Type your message...',
         send: 'Send',
         minimize: 'Minimize',
@@ -334,7 +336,7 @@ export default function ChatAgent() {
       },
       es: {
         title: 'Ana - Asistente Fly2Any',
-        subtitle: 'En línea • Respuesta automática',
+        subtitle: 'En línea ahora',
         placeholder: 'Escribe tu mensaje...',
         send: 'Enviar',
         minimize: 'Minimizar',
@@ -366,14 +368,13 @@ export default function ChatAgent() {
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 z-50 p-5 rounded-full shadow-xl transition-all duration-300 transform hover:scale-110 ${
+        className={`fixed bottom-6 right-6 z-[70] p-5 rounded-full shadow-xl transition-all duration-300 transform hover:scale-110 ${
           isOpen 
             ? 'bg-red-500 hover:bg-red-600 w-16 h-16' 
             : chatMode === 'premium' 
               ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-20 h-20' 
               : 'bg-blue-600 hover:bg-blue-700 w-18 h-18'
         } text-white relative group`}
-        style={{ zIndex: 9999 }}
       >
         {isOpen ? (
           <XMarkIcon className="w-8 h-8" />
@@ -413,10 +414,9 @@ export default function ChatAgent() {
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className={`fixed bottom-24 right-6 w-[450px] bg-white rounded-xl shadow-2xl border-2 border-gray-200 flex flex-col z-50 transition-all duration-300 ${
+          className={`fixed bottom-24 right-6 w-[450px] bg-white rounded-xl shadow-2xl border-2 border-gray-200 flex flex-col z-[60] transition-all duration-300 ${
             isMinimized ? 'h-20' : 'h-[700px]'
           }`}
-          style={{ zIndex: 9998 }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg flex items-center justify-between shadow-lg">
