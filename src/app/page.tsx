@@ -24,6 +24,7 @@ import CityAutocomplete from '@/components/CityAutocomplete';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
 import ChatAgent from '@/components/ChatAgent';
+import FloatingChat from '@/components/FloatingChat';
 import LeadCaptureSimple from '@/components/LeadCaptureSimple';
 import { cities } from '@/data/cities';
 
@@ -3385,6 +3386,9 @@ export default function Home() {
 
       {/* Chat Agent Premium */}
       <ChatAgent />
+
+      {/* Floating Chat Buttons */}
+      <FloatingChat />
 
       {/* Lead Capture Modal */}
       <LeadCaptureSimple

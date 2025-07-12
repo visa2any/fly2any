@@ -646,22 +646,27 @@ export default function RootLayout({
               container.appendChild(whatsappButton);
             }
             
-            // Chat buttons criados via ChatAgent component - script desabilitado para evitar duplicação
-            /* if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', createChatButtons);
+            // Criar botões com verificação para evitar duplicação
+            function createButtonsIfNeeded() {
+              // Só criar se não existir nenhum botão de chat ainda
+              if (!document.querySelector('.fly2any-chat-button') && !document.querySelector('[class*="ChatAgent"]')) {
+                createChatButtons();
+              }
+            }
+            
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', createButtonsIfNeeded);
             } else {
-              createChatButtons();
+              createButtonsIfNeeded();
             }
             
             // Recriar após carregamento completo
-            window.addEventListener('load', createChatButtons); */
+            window.addEventListener('load', createButtonsIfNeeded);
             
-            // Verificar periodicamente se os botões ainda existem (desabilitado para evitar conflito com ChatAgent)
-            /* setInterval(function() {
-              if (!document.querySelector('.fly2any-chat-button')) {
-                createChatButtons();
-              }
-            }, 2000); */
+            // Verificar periodicamente se os botões ainda existem
+            setInterval(function() {
+              createButtonsIfNeeded();
+            }, 3000);
           `
         }} />
       </body>
