@@ -366,19 +366,19 @@ export default function ChatAgent() {
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg transition-all duration-300 ${
+        className={`fixed bottom-6 right-6 z-50 p-5 rounded-full shadow-xl transition-all duration-300 transform hover:scale-110 ${
           isOpen 
-            ? 'bg-red-500 hover:bg-red-600' 
+            ? 'bg-red-500 hover:bg-red-600 w-16 h-16' 
             : chatMode === 'premium' 
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
-              : 'bg-blue-600 hover:bg-blue-700'
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 w-20 h-20' 
+              : 'bg-blue-600 hover:bg-blue-700 w-18 h-18'
         } text-white relative group`}
         style={{ zIndex: 9999 }}
       >
         {isOpen ? (
-          <XMarkIcon className="w-6 h-6" />
+          <XMarkIcon className="w-8 h-8" />
         ) : (
-          <ChatBubbleLeftRightIcon className="w-6 h-6" />
+          <ChatBubbleLeftRightIcon className="w-8 h-8" />
         )}
         
         {!isOpen && (
@@ -413,8 +413,8 @@ export default function ChatAgent() {
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className={`fixed bottom-24 right-6 w-96 bg-white rounded-lg shadow-2xl border flex flex-col z-50 transition-all duration-300 ${
-            isMinimized ? 'h-16' : 'h-[600px]'
+          className={`fixed bottom-24 right-6 w-[450px] bg-white rounded-xl shadow-2xl border-2 border-gray-200 flex flex-col z-50 transition-all duration-300 ${
+            isMinimized ? 'h-20' : 'h-[700px]'
           }`}
           style={{ zIndex: 9998 }}
         >

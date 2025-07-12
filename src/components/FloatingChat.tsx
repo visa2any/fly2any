@@ -44,7 +44,7 @@ export default function FloatingChat() {
       <div className="fixed bottom-6 right-24 z-40">
         {/* Chat expandido */}
         {isExpanded && (
-          <div className="mb-4 bg-white rounded-2xl shadow-2xl w-80 animate-fade-in-up">
+          <div className="mb-4 bg-white rounded-2xl shadow-2xl w-96 animate-fade-in-up">
             <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -124,12 +124,12 @@ export default function FloatingChat() {
           
           <button
             onClick={toggleExpanded}
-            className="group relative w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center"
+            className="group relative w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center transform hover:scale-110"
             style={{
               animation: 'float 6s ease-in-out infinite',
             }}
           >
-            <span className="text-white text-2xl group-hover:scale-110 transition-transform">
+            <span className="text-white text-3xl group-hover:scale-110 transition-transform">
               {isExpanded ? '✕' : '💬'}
             </span>
             
