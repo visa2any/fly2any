@@ -646,22 +646,22 @@ export default function RootLayout({
               container.appendChild(whatsappButton);
             }
             
-            // Criar os botões em múltiplos momentos para garantir que apareçam
-            if (document.readyState === 'loading') {
+            // Chat buttons criados via ChatAgent component - script desabilitado para evitar duplicação
+            /* if (document.readyState === 'loading') {
               document.addEventListener('DOMContentLoaded', createChatButtons);
             } else {
               createChatButtons();
             }
             
             // Recriar após carregamento completo
-            window.addEventListener('load', createChatButtons);
+            window.addEventListener('load', createChatButtons); */
             
-            // Verificar periodicamente se os botões ainda existem
-            setInterval(function() {
+            // Verificar periodicamente se os botões ainda existem (desabilitado para evitar conflito com ChatAgent)
+            /* setInterval(function() {
               if (!document.querySelector('.fly2any-chat-button')) {
                 createChatButtons();
               }
-            }, 2000);
+            }, 2000); */
           `
         }} />
       </body>

@@ -198,10 +198,10 @@ export default function ChatAgent() {
         handleTransferToHuman();
         break;
       case 'call_now':
-        window.open('tel:+1234567890');
+        window.open('tel:+551151944717');
         break;
       case 'whatsapp':
-        window.open('https://wa.me/1234567890?text=Olá, vim do site da Fly2Any');
+        window.open('https://wa.me/551151944717?text=Olá, vim do site da Fly2Any e gostaria de falar com um atendente sobre cotações de viagem.');
         break;
       case 'change_language':
         setLanguage(data.language);
@@ -419,14 +419,17 @@ export default function ChatAgent() {
           style={{ zIndex: 9998 }}
         >
           {/* Header */}
-          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg flex items-center justify-between shadow-lg">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <SparklesIcon className="w-5 h-5" />
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                <SparklesIcon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">{getLanguageText('title')}</h3>
-                <p className="text-xs text-blue-200">{getLanguageText('subtitle')}</p>
+                <h3 className="font-bold text-lg">{getLanguageText('title')}</h3>
+                <p className="text-sm text-blue-100 flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  {getLanguageText('subtitle')}
+                </p>
               </div>
             </div>
             
@@ -576,7 +579,7 @@ export default function ChatAgent() {
                 <button
                   type="submit"
                   disabled={!currentMessage.trim() || isTyping}
-                  className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg"
                   title={getLanguageText('send')}
                 >
                   <PaperAirplaneIcon className="w-5 h-5" />
@@ -588,19 +591,19 @@ export default function ChatAgent() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={() => setShowLeadCapture(true)}
-                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors"
+                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-xs hover:from-green-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 shadow-md font-medium"
                   >
                     🎯 Cotação Completa
                   </button>
                   <button
                     onClick={() => handleAgentAction('transfer_human')}
-                    className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs hover:bg-orange-200 transition-colors"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full text-xs hover:from-orange-600 hover:to-red-600 transition-all duration-200 transform hover:scale-105 shadow-md font-medium"
                   >
                     👨‍💼 Falar com Humano
                   </button>
                   <button
                     onClick={() => handleAgentAction('whatsapp')}
-                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs hover:bg-green-200 transition-colors"
+                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-full text-xs hover:from-green-700 hover:to-green-800 transition-all duration-200 transform hover:scale-105 shadow-md font-medium"
                   >
                     📱 WhatsApp
                   </button>
