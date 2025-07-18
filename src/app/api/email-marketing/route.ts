@@ -19,13 +19,26 @@ export async function POST(request: NextRequest) {
       // Usar Gmail App Password ao invés do Resend
       const nodemailer = await import('nodemailer');
       
+      // Verificar se as variáveis de ambiente estão carregadas
+      if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Credenciais Gmail não configuradas. Verifique GMAIL_EMAIL e GMAIL_APP_PASSWORD no .env.local' 
+        }, { status: 500 });
+      }
+      
       const transporter = nodemailer.default.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
           user: process.env.GMAIL_EMAIL,
           pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        tls: {
+          rejectUnauthorized: false
         }
-      } as any);
+      });
       
       const templates = {
         promotional: {
