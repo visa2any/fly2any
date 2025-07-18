@@ -19,11 +19,15 @@ export async function POST(request: NextRequest) {
       // Usar Gmail App Password ao invés do Resend
       const nodemailer = await import('nodemailer');
       
+      // Debug: verificar valores das variáveis
+      console.log('GMAIL_EMAIL:', process.env.GMAIL_EMAIL);
+      console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '****' : 'undefined');
+      
       // Verificar se as variáveis de ambiente estão carregadas
       if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
         return NextResponse.json({ 
           success: false, 
-          error: 'Credenciais Gmail não configuradas. Verifique GMAIL_EMAIL e GMAIL_APP_PASSWORD no .env.local' 
+          error: `Credenciais Gmail não configuradas. GMAIL_EMAIL: ${process.env.GMAIL_EMAIL ? 'OK' : 'MISSING'}, GMAIL_APP_PASSWORD: ${process.env.GMAIL_APP_PASSWORD ? 'OK' : 'MISSING'}` 
         }, { status: 500 });
       }
       
