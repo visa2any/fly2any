@@ -1,0 +1,83 @@
+{
+  "name": "Fly2Any MCP Automation Configuration",
+  "version": "1.0.0",
+  "description": "Configuração inteligente de MCPs para tarefas específicas",
+  "workflows": {
+    "git_operations": {
+      "mcps": ["github", "filesystem"],
+      "triggers": [
+        "commit", "push", "pull", "merge", "branch", "pr", "issue",
+        "git status", "git diff", "git log", "create pull request"
+      ],
+      "auto_activate": true,
+      "description": "Operações Git e GitHub"
+    },
+    "file_manipulation": {
+      "mcps": ["filesystem", "sequential"],
+      "triggers": [
+        "refactor", "rename", "move file", "edit file", "create file",
+        "delete file", "copy file", "find file", "search code"
+      ],
+      "auto_activate": true,
+      "description": "Manipulação de arquivos e código"
+    },
+    "api_development": {
+      "mcps": ["fetch", "context7", "sequential"],
+      "triggers": [
+        "test api", "call endpoint", "http request", "rest api",
+        "graphql", "webhook", "api docs", "swagger", "postman"
+      ],
+      "auto_activate": true,
+      "description": "Desenvolvimento e teste de APIs"
+    },
+    "web_automation": {
+      "mcps": ["puppeteer", "fetch"],
+      "triggers": [
+        "scrape", "screenshot", "web test", "automation", "browser",
+        "selenium", "e2e test", "ui test", "crawl"
+      ],
+      "auto_activate": true,
+      "description": "Automação web e scraping"
+    },
+    "documentation": {
+      "mcps": ["context7", "filesystem", "github"],
+      "triggers": [
+        "docs", "documentation", "readme", "guide", "tutorial",
+        "use context7", "library docs", "framework docs"
+      ],
+      "auto_activate": true,
+      "description": "Documentação e referências"
+    },
+    "complex_planning": {
+      "mcps": ["sequential", "filesystem", "github"],
+      "triggers": [
+        "plan", "architecture", "design", "structure", "organize",
+        "break down", "steps", "workflow", "process"
+      ],
+      "auto_activate": true,
+      "description": "Planejamento e arquitetura"
+    },
+    "full_development": {
+      "mcps": ["github", "filesystem", "fetch", "sequential", "context7", "puppeteer"],
+      "triggers": [
+        "implement feature", "build app", "create system", "full stack",
+        "end to end", "complete project", "deploy"
+      ],
+      "auto_activate": true,
+      "description": "Desenvolvimento completo"
+    }
+  },
+  "smart_suggestions": {
+    "enabled": true,
+    "context_awareness": true,
+    "learn_patterns": true
+  },
+  "aliases": {
+    "git": "Ativa GitHub + FileSystem MCPs",
+    "api": "Ativa Fetch + Context7 + Sequential MCPs", 
+    "web": "Ativa Puppeteer + Fetch MCPs",
+    "docs": "Ativa Context7 + FileSystem + GitHub MCPs",
+    "plan": "Ativa Sequential + FileSystem + GitHub MCPs",
+    "all": "Ativa todos os MCPs disponíveis"
+  }
+}

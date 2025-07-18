@@ -1,0 +1,206 @@
+{
+  "name": "Email Marketing Final Working",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-marketing-final",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-final",
+      "name": "Email Webhook Final",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "id": "batch-final",
+      "name": "Split in Batches Final",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "contacts",
+        "options": {}
+      },
+      "id": "split-final",
+      "name": "Split Contacts Final",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "sendTo": "={{ $json.email }}",
+        "subject": "={{ $node(\"Email Webhook Final\").first().json.subject }}",
+        "message": "={{ $node(\"Email Webhook Final\").first().json.htmlContent }}",
+        "options": {
+          "contentType": "html"
+        }
+      },
+      "id": "gmail-final",
+      "name": "Send Gmail Final",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "wait-final",
+      "name": "Rate Limit Final",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $node(\"Split in Batches Final\").context.noItemsLeft }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-final",
+      "name": "Check Complete Final",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Emails enviados com sucesso!\",\n  \"campaignId\": \"{{ $node(\"Email Webhook Final\").first().json.campaignId }}\",\n  \"totalContacts\": {{ $node(\"Email Webhook Final\").first().json.contacts.length }},\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "id": "response-final",
+      "name": "Success Response Final",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1400, 240]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "continue-final",
+      "name": "Continue Final",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1400, 360]
+    }
+  ],
+  "connections": {
+    "Email Webhook Final": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in Batches Final": {
+      "main": [
+        [
+          {
+            "node": "Split Contacts Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Contacts Final": {
+      "main": [
+        [
+          {
+            "node": "Send Gmail Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail Final": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Final": {
+      "main": [
+        [
+          {
+            "node": "Check Complete Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Complete Final": {
+      "main": [
+        [
+          {
+            "node": "Success Response Final",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Continue Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Final": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

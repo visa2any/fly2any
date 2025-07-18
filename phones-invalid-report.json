@@ -1,0 +1,12 @@
+{
+  "total": 0,
+  "examples": [],
+  "stats": {
+    "totalProcessed": 752,
+    "validPhones": 752,
+    "invalidPhones": 0,
+    "duplicates": 0,
+    "brazilianNumbers": 752,
+    "internationalNumbers": 0
+  }
+}

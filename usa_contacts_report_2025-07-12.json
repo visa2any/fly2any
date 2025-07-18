@@ -1,0 +1,273 @@
+{
+  "summary": {
+    "totalProcessed": 14247,
+    "validNumbers": 14238,
+    "invalidNumbers": 9,
+    "duplicates": 0,
+    "highQualityNumbers": 14238
+  },
+  "stateBreakdown": [
+    {
+      "estado": "Connecticut",
+      "total": 8752,
+      "provavelmente_ativos": 8752,
+      "alta_confianca": 8752,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Florida",
+      "total": 4392,
+      "provavelmente_ativos": 4392,
+      "alta_confianca": 4392,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New Jersey",
+      "total": 416,
+      "provavelmente_ativos": 416,
+      "alta_confianca": 416,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Massachusetts",
+      "total": 399,
+      "provavelmente_ativos": 399,
+      "alta_confianca": 399,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Georgia",
+      "total": 127,
+      "provavelmente_ativos": 127,
+      "alta_confianca": 127,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New York",
+      "total": 74,
+      "provavelmente_ativos": 74,
+      "alta_confianca": 74,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Pennsylvania",
+      "total": 23,
+      "provavelmente_ativos": 23,
+      "alta_confianca": 23,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "California",
+      "total": 9,
+      "provavelmente_ativos": 9,
+      "alta_confianca": 9,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New Hampshire",
+      "total": 8,
+      "provavelmente_ativos": 8,
+      "alta_confianca": 8,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Rhode Island",
+      "total": 6,
+      "provavelmente_ativos": 6,
+      "alta_confianca": 6,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "North Carolina",
+      "total": 5,
+      "provavelmente_ativos": 5,
+      "alta_confianca": 5,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Illinois",
+      "total": 4,
+      "provavelmente_ativos": 4,
+      "alta_confianca": 4,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Virginia",
+      "total": 4,
+      "provavelmente_ativos": 4,
+      "alta_confianca": 4,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Ohio",
+      "total": 3,
+      "provavelmente_ativos": 3,
+      "alta_confianca": 3,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "South Carolina",
+      "total": 3,
+      "provavelmente_ativos": 3,
+      "alta_confianca": 3,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Maryland",
+      "total": 2,
+      "provavelmente_ativos": 2,
+      "alta_confianca": 2,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Arkansas",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Washington",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Iowa",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Nevada",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "West Virginia",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Tennessee",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New Mexico",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Michigan",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Utah",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Minnesota",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Idaho",
+      "total": 1,
+      "provavelmente_ativos": 1,
+      "alta_confianca": 1,
+      "taxa_ativacao": "100.0%"
+    }
+  ],
+  "topStates": [
+    {
+      "estado": "Connecticut",
+      "total": 8752,
+      "provavelmente_ativos": 8752,
+      "alta_confianca": 8752,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Florida",
+      "total": 4392,
+      "provavelmente_ativos": 4392,
+      "alta_confianca": 4392,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New Jersey",
+      "total": 416,
+      "provavelmente_ativos": 416,
+      "alta_confianca": 416,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Massachusetts",
+      "total": 399,
+      "provavelmente_ativos": 399,
+      "alta_confianca": 399,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Georgia",
+      "total": 127,
+      "provavelmente_ativos": 127,
+      "alta_confianca": 127,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New York",
+      "total": 74,
+      "provavelmente_ativos": 74,
+      "alta_confianca": 74,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Pennsylvania",
+      "total": 23,
+      "provavelmente_ativos": 23,
+      "alta_confianca": 23,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "California",
+      "total": 9,
+      "provavelmente_ativos": 9,
+      "alta_confianca": 9,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "New Hampshire",
+      "total": 8,
+      "provavelmente_ativos": 8,
+      "alta_confianca": 8,
+      "taxa_ativacao": "100.0%"
+    },
+    {
+      "estado": "Rhode Island",
+      "total": 6,
+      "provavelmente_ativos": 6,
+      "alta_confianca": 6,
+      "taxa_ativacao": "100.0%"
+    }
+  ],
+  "processedAt": "2025-07-12T22:46:34.241Z"
+}

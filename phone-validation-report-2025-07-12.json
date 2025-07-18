@@ -1,0 +1,14 @@
+{
+  "stats": {
+    "total": 17726,
+    "validUSA": 14247,
+    "validBrazilian": 3347,
+    "international": 0,
+    "invalid": 0,
+    "duplicates": 0
+  },
+  "validUSAPhones": 14247,
+  "validBrazilianPhones": 3347,
+  "invalidExamples": [],
+  "processedAt": "2025-07-12T22:32:33.417Z"
+}

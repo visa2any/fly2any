@@ -1,0 +1,70 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://fly2any.com/sitemap.xml
+
+# Priority crawling for search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# AI Crawlers (for ChatGPT, Bard, etc.)
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Block admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /data/
+Disallow: /scripts/
+Disallow: /test-*
+
+# Allow important service pages
+Allow: /voos-brasil-eua
+Allow: /voos-miami-sao-paulo
+Allow: /voos-new-york-rio-janeiro
+Allow: /hoteis-brasil
+Allow: /aluguel-carros-brasil
+Allow: /seguro-viagem-brasil
+Allow: /blog/
+Allow: /cotacao/
+Allow: /faq
+Allow: /como-funciona
+Allow: /sobre
+Allow: /contato
+
+# Social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /

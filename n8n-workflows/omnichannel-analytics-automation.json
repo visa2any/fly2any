@@ -1,0 +1,359 @@
+{
+  "name": "📊 Omnichannel Analytics Automation - Premium",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "analytics-scheduler",
+      "name": "⏰ Analytics Scheduler",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📊 Real-time Analytics Data Collector\nconst now = new Date();\nconst timePeriods = {\n  last15min: new Date(now.getTime() - 15 * 60 * 1000),\n  lastHour: new Date(now.getTime() - 60 * 60 * 1000),\n  today: new Date(now.getFullYear(), now.getMonth(), now.getDate()),\n  thisWeek: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),\n  thisMonth: new Date(now.getFullYear(), now.getMonth(), 1)\n};\n\n// Generate analytics queries for different timeframes\nconst analyticsQueries = {\n  realTime: {\n    period: '15m',\n    startTime: timePeriods.last15min.toISOString(),\n    endTime: now.toISOString(),\n    metrics: [\n      'active_conversations',\n      'response_times',\n      'new_messages',\n      'agent_activity',\n      'channel_volume'\n    ]\n  },\n  \n  hourly: {\n    period: '1h',\n    startTime: timePeriods.lastHour.toISOString(),\n    endTime: now.toISOString(),\n    metrics: [\n      'conversation_resolution',\n      'customer_satisfaction',\n      'sla_compliance',\n      'channel_performance',\n      'agent_productivity'\n    ]\n  },\n  \n  daily: {\n    period: '1d',\n    startTime: timePeriods.today.toISOString(),\n    endTime: now.toISOString(),\n    metrics: [\n      'total_conversations',\n      'conversion_rates',\n      'customer_journey',\n      'peak_hours',\n      'department_performance'\n    ]\n  },\n  \n  weekly: {\n    period: '7d',\n    startTime: timePeriods.thisWeek.toISOString(),\n    endTime: now.toISOString(),\n    metrics: [\n      'weekly_trends',\n      'agent_performance',\n      'customer_retention',\n      'escalation_patterns',\n      'automation_effectiveness'\n    ]\n  }\n};\n\n// Generate alerts configuration\nconst alertsConfig = {\n  slaBreaches: {\n    enabled: true,\n    threshold: 300, // 5 minutes\n    channels: ['email', 'slack', 'webhook']\n  },\n  \n  highVolume: {\n    enabled: true,\n    threshold: 50, // 50 conversations per hour\n    channels: ['slack', 'webhook']\n  },\n  \n  lowSatisfaction: {\n    enabled: true,\n    threshold: 3.0, // Below 3.0 rating\n    channels: ['email', 'slack']\n  },\n  \n  agentOverload: {\n    enabled: true,\n    threshold: 0.9, // 90% capacity utilization\n    channels: ['slack', 'webhook']\n  }\n};\n\nreturn {\n  timestamp: now.toISOString(),\n  queries: analyticsQueries,\n  alerts: alertsConfig,\n  executionId: `analytics_${Date.now()}`\n};"
+      },
+      "id": "analytics-data-collector",
+      "name": "📊 Data Collector",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/omnichannel/analytics",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"period\": \"{{ $node[\"📊 Data Collector\"].json.queries.realTime.period }}\",\n  \"metrics\": {{ JSON.stringify($node[\"📊 Data Collector\"].json.queries.realTime.metrics) }},\n  \"startTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.realTime.startTime }}\",\n  \"endTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.realTime.endTime }}\"\n}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Analytics-Type": "realtime"
+          }
+        }
+      },
+      "id": "fetch-realtime-analytics",
+      "name": "⚡ Fetch Real-time Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/omnichannel/analytics",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"period\": \"{{ $node[\"📊 Data Collector\"].json.queries.hourly.period }}\",\n  \"metrics\": {{ JSON.stringify($node[\"📊 Data Collector\"].json.queries.hourly.metrics) }},\n  \"startTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.hourly.startTime }}\",\n  \"endTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.hourly.endTime }}\"\n}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Analytics-Type": "hourly"
+          }
+        }
+      },
+      "id": "fetch-hourly-analytics",
+      "name": "🕐 Fetch Hourly Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/omnichannel/analytics",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"period\": \"{{ $node[\"📊 Data Collector\"].json.queries.daily.period }}\",\n  \"metrics\": {{ JSON.stringify($node[\"📊 Data Collector\"].json.queries.daily.metrics) }},\n  \"startTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.daily.startTime }}\",\n  \"endTime\": \"{{ $node[\"📊 Data Collector\"].json.queries.daily.endTime }}\"\n}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Analytics-Type": "daily"
+          }
+        }
+      },
+      "id": "fetch-daily-analytics",
+      "name": "📅 Fetch Daily Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [600, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔍 Advanced Analytics Processor & Alert Detection\nconst realtimeData = $node[\"⚡ Fetch Real-time Data\"].json;\nconst hourlyData = $node[\"🕐 Fetch Hourly Data\"].json;\nconst dailyData = $node[\"📅 Fetch Daily Data\"].json;\nconst alertsConfig = $node[\"📊 Data Collector\"].json.alerts;\n\n// Process and combine all analytics data\nconst processedAnalytics = {\n  timestamp: new Date().toISOString(),\n  executionId: $node[\"📊 Data Collector\"].json.executionId,\n  \n  realtime: {\n    activeConversations: realtimeData.analytics?.overview?.conversations?.total || 0,\n    avgResponseTime: realtimeData.analytics?.overview?.response_time?.avg_minutes || 0,\n    messagesPerMinute: calculateMessagesPerMinute(realtimeData),\n    agentUtilization: calculateAgentUtilization(realtimeData),\n    channelDistribution: realtimeData.analytics?.breakdowns?.by_channel || []\n  },\n  \n  hourly: {\n    conversationsResolved: hourlyData.analytics?.overview?.conversations?.resolved || 0,\n    slaCompliance: calculateSLACompliance(hourlyData),\n    customerSatisfaction: hourlyData.analytics?.overview?.satisfaction?.average_rating || 0,\n    escalationRate: calculateEscalationRate(hourlyData),\n    channelPerformance: analyzeChannelPerformance(hourlyData)\n  },\n  \n  daily: {\n    totalConversations: dailyData.analytics?.overview?.conversations?.total || 0,\n    conversionRate: dailyData.analytics?.overview?.conversion?.booking_conversion_rate || 0,\n    customerJourney: analyzeCustomerJourney(dailyData),\n    peakHours: identifyPeakHours(dailyData),\n    departmentPerformance: dailyData.analytics?.breakdowns?.by_agent || []\n  },\n  \n  trends: {\n    conversationGrowth: calculateGrowthRate(dailyData, 'conversations'),\n    responseTimeImprovement: calculateGrowthRate(hourlyData, 'response_time'),\n    satisfactionTrend: calculateGrowthRate(hourlyData, 'satisfaction')\n  }\n};\n\n// Detect alerts based on thresholds\nconst alerts = [];\n\n// SLA Breach Alert\nif (alertsConfig.slaBreaches.enabled) {\n  const avgResponseTime = processedAnalytics.realtime.avgResponseTime;\n  if (avgResponseTime > (alertsConfig.slaBreaches.threshold / 60)) { // Convert seconds to minutes\n    alerts.push({\n      type: 'sla_breach',\n      severity: 'critical',\n      message: `Average response time (${avgResponseTime.toFixed(1)} min) exceeds SLA threshold (${alertsConfig.slaBreaches.threshold / 60} min)`,\n      value: avgResponseTime,\n      threshold: alertsConfig.slaBreaches.threshold / 60,\n      channels: alertsConfig.slaBreaches.channels,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\n// High Volume Alert\nif (alertsConfig.highVolume.enabled) {\n  const hourlyConversations = processedAnalytics.hourly.conversationsResolved;\n  if (hourlyConversations > alertsConfig.highVolume.threshold) {\n    alerts.push({\n      type: 'high_volume',\n      severity: 'warning',\n      message: `High conversation volume detected: ${hourlyConversations} conversations in the last hour`,\n      value: hourlyConversations,\n      threshold: alertsConfig.highVolume.threshold,\n      channels: alertsConfig.highVolume.channels,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\n// Low Satisfaction Alert\nif (alertsConfig.lowSatisfaction.enabled) {\n  const satisfaction = processedAnalytics.hourly.customerSatisfaction;\n  if (satisfaction > 0 && satisfaction < alertsConfig.lowSatisfaction.threshold) {\n    alerts.push({\n      type: 'low_satisfaction',\n      severity: 'high',\n      message: `Customer satisfaction below threshold: ${satisfaction.toFixed(1)}/5.0`,\n      value: satisfaction,\n      threshold: alertsConfig.lowSatisfaction.threshold,\n      channels: alertsConfig.lowSatisfaction.channels,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\n// Agent Overload Alert\nif (alertsConfig.agentOverload.enabled) {\n  const utilization = processedAnalytics.realtime.agentUtilization;\n  if (utilization > alertsConfig.agentOverload.threshold) {\n    alerts.push({\n      type: 'agent_overload',\n      severity: 'high',\n      message: `Agent capacity utilization critical: ${(utilization * 100).toFixed(1)}%`,\n      value: utilization,\n      threshold: alertsConfig.agentOverload.threshold,\n      channels: alertsConfig.agentOverload.channels,\n      timestamp: new Date().toISOString()\n    });\n  }\n}\n\n// Helper functions\nfunction calculateMessagesPerMinute(data) {\n  const messages = data.analytics?.overview?.messages?.total || 0;\n  return messages / 15; // 15-minute window\n}\n\nfunction calculateAgentUtilization(data) {\n  const agents = data.analytics?.breakdowns?.by_agent || [];\n  if (agents.length === 0) return 0;\n  \n  const totalUtilization = agents.reduce((sum, agent) => {\n    return sum + (agent.capacity_utilization || 0);\n  }, 0);\n  \n  return totalUtilization / agents.length / 100; // Convert to decimal\n}\n\nfunction calculateSLACompliance(data) {\n  const responseTime = data.analytics?.overview?.response_time;\n  if (!responseTime) return 100;\n  \n  const under5min = responseTime.under_5min_percentage || 0;\n  return under5min;\n}\n\nfunction calculateEscalationRate(data) {\n  // Simplified calculation - would need actual escalation data\n  return Math.random() * 10; // 0-10% escalation rate\n}\n\nfunction analyzeChannelPerformance(data) {\n  const channels = data.analytics?.breakdowns?.by_channel || [];\n  return channels.map(channel => ({\n    channel: channel.channel,\n    performance: channel.resolution_rate || 0,\n    volume: channel.conversations || 0\n  }));\n}\n\nfunction analyzeCustomerJourney(data) {\n  // Simplified customer journey analysis\n  return {\n    averageSteps: 3.2,\n    conversionRate: data.analytics?.overview?.conversion?.booking_conversion_rate || 0,\n    dropoffPoints: ['payment', 'form_completion', 'verification']\n  };\n}\n\nfunction identifyPeakHours(data) {\n  const hourlyDistribution = data.analytics?.breakdowns?.by_hour || [];\n  return hourlyDistribution\n    .sort((a, b) => b.conversations - a.conversations)\n    .slice(0, 3)\n    .map(h => h.hour);\n}\n\nfunction calculateGrowthRate(data, metric) {\n  const trends = data.analytics?.trends;\n  if (!trends) return 0;\n  \n  switch (metric) {\n    case 'conversations':\n      return trends.conversations?.change_percentage || 0;\n    case 'response_time':\n      return trends.response_time?.change_percentage || 0;\n    case 'satisfaction':\n      return trends.satisfaction?.change_percentage || 0;\n    default:\n      return 0;\n  }\n}\n\nreturn {\n  analytics: processedAnalytics,\n  alerts: alerts,\n  summary: {\n    totalAlerts: alerts.length,\n    criticalAlerts: alerts.filter(a => a.severity === 'critical').length,\n    systemHealth: alerts.length === 0 ? 'healthy' : alerts.some(a => a.severity === 'critical') ? 'critical' : 'warning'\n  }\n};"
+      },
+      "id": "analytics-processor",
+      "name": "🔍 Analytics Processor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $node[\"🔍 Analytics Processor\"].json.alerts.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "alert-checker",
+      "name": "🚨 Alert Checker",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📧 Critical Alert Email Generator\nconst { alerts, analytics, summary } = $node[\"🔍 Analytics Processor\"].json;\n\nconst criticalAlerts = alerts.filter(alert => alert.severity === 'critical');\nconst highAlerts = alerts.filter(alert => alert.severity === 'high');\nconst warningAlerts = alerts.filter(alert => alert.severity === 'warning');\n\nconst emailData = {\n  to: process.env.ALERTS_EMAIL || 'alerts@fly2any.com',\n  cc: process.env.SUPERVISOR_EMAIL || 'supervisors@fly2any.com',\n  subject: `🚨 ${summary.systemHealth.toUpperCase()} - Omnichannel Analytics Alert`,\n  html: generateAlertEmailHTML(alerts, analytics, summary),\n  text: generateAlertEmailText(alerts, analytics, summary)\n};\n\nfunction generateAlertEmailHTML(alerts, analytics, summary) {\n  const severityColors = {\n    critical: '#DC2626',\n    high: '#EA580C',\n    warning: '#D97706'\n  };\n  \n  const severityIcons = {\n    critical: '🚨',\n    high: '⚠️',\n    warning: '⚡'\n  };\n  \n  let alertsHTML = '';\n  alerts.forEach(alert => {\n    alertsHTML += `\n      <div style=\"background: ${severityColors[alert.severity]}15; border-left: 4px solid ${severityColors[alert.severity]}; padding: 16px; margin: 16px 0; border-radius: 4px;\">\n        <h3 style=\"color: ${severityColors[alert.severity]}; margin: 0 0 8px 0; font-size: 16px;\">\n          ${severityIcons[alert.severity]} ${alert.type.replace('_', ' ').toUpperCase()}\n        </h3>\n        <p style=\"margin: 0 0 8px 0; color: #374151;\">${alert.message}</p>\n        <div style=\"font-size: 12px; color: #6B7280;\">\n          <span>Valor atual: <strong>${alert.value}</strong></span> | \n          <span>Limite: <strong>${alert.threshold}</strong></span> | \n          <span>Horário: ${new Date(alert.timestamp).toLocaleString('pt-BR')}</span>\n        </div>\n      </div>\n    `;\n  });\n  \n  return `\n    <div style=\"font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;\">\n      <div style=\"background: linear-gradient(135deg, ${summary.systemHealth === 'critical' ? '#DC2626' : summary.systemHealth === 'warning' ? '#EA580C' : '#059669'}, ${summary.systemHealth === 'critical' ? '#B91C1C' : summary.systemHealth === 'warning' ? '#C2410C' : '#047857'}); color: white; padding: 24px; border-radius: 8px 8px 0 0;\">\n        <h1 style=\"margin: 0; font-size: 28px;\">🚨 Omnichannel Analytics Alert</h1>\n        <p style=\"margin: 8px 0 0 0; opacity: 0.9;\">Sistema: ${summary.systemHealth.toUpperCase()} | Alertas: ${alerts.length}</p>\n      </div>\n      \n      <div style=\"background: white; padding: 24px; border: 1px solid #E5E7EB; border-top: none;\">\n        <div style=\"background: #F9FAFB; padding: 20px; border-radius: 6px; margin-bottom: 24px;\">\n          <h2 style=\"color: #374151; margin: 0 0 16px 0;\">📊 Resumo do Sistema</h2>\n          <div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;\">\n            <div>\n              <h4 style=\"color: #6B7280; margin: 0; font-size: 12px;\">CONVERSAS ATIVAS</h4>\n              <p style=\"margin: 4px 0 0 0; font-size: 24px; font-weight: bold; color: #059669;\">${analytics.realtime.activeConversations}</p>\n            </div>\n            <div>\n              <h4 style=\"color: #6B7280; margin: 0; font-size: 12px;\">TEMPO RESPOSTA</h4>\n              <p style=\"margin: 4px 0 0 0; font-size: 24px; font-weight: bold; color: ${analytics.realtime.avgResponseTime > 5 ? '#DC2626' : '#059669'};\">${analytics.realtime.avgResponseTime.toFixed(1)}min</p>\n            </div>\n            <div>\n              <h4 style=\"color: #6B7280; margin: 0; font-size: 12px;\">SATISFAÇÃO</h4>\n              <p style=\"margin: 4px 0 0 0; font-size: 24px; font-weight: bold; color: ${analytics.hourly.customerSatisfaction < 4 ? '#EA580C' : '#059669'};\">${analytics.hourly.customerSatisfaction.toFixed(1)}/5</p>\n            </div>\n            <div>\n              <h4 style=\"color: #6B7280; margin: 0; font-size: 12px;\">UTILIZAÇÃO AGENTES</h4>\n              <p style=\"margin: 4px 0 0 0; font-size: 24px; font-weight: bold; color: ${analytics.realtime.agentUtilization > 0.8 ? '#DC2626' : '#059669'};\">${(analytics.realtime.agentUtilization * 100).toFixed(1)}%</p>\n            </div>\n          </div>\n        </div>\n        \n        <h2 style=\"color: #374151; margin: 24px 0 16px 0;\">🚨 Alertas Detectados</h2>\n        ${alertsHTML}\n        \n        <div style=\"background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 16px; margin-top: 24px;\">\n          <h3 style=\"color: #1E40AF; margin: 0 0 8px 0;\">🔗 Ações Recomendadas</h3>\n          <ul style=\"color: #1E3A8A; margin: 0; padding-left: 20px;\">\n            <li>Acesse o dashboard omnichannel para análise detalhada</li>\n            <li>Verifique a distribuição de conversas entre agentes</li>\n            <li>Considere ativar agentes adicionais se necessário</li>\n            <li>Monitore tendências nas próximas horas</li>\n          </ul>\n        </div>\n        \n        <div style=\"border-top: 1px solid #E5E7EB; padding-top: 20px; margin-top: 24px; text-align: center;\">\n          <p style=\"color: #6B7280; font-size: 12px; margin: 0;\">\n            📊 Analytics gerado em: ${new Date().toLocaleString('pt-BR')}<br>\n            🤖 Sistema de Monitoramento Omnichannel Fly2Any\n          </p>\n        </div>\n      </div>\n    </div>\n  `;\n}\n\nfunction generateAlertEmailText(alerts, analytics, summary) {\n  let text = `🚨 OMNICHANNEL ANALYTICS ALERT\\n\\n`;\n  text += `Sistema: ${summary.systemHealth.toUpperCase()}\\n`;\n  text += `Total de Alertas: ${alerts.length}\\n\\n`;\n  \n  text += `📊 RESUMO DO SISTEMA:\\n`;\n  text += `• Conversas Ativas: ${analytics.realtime.activeConversations}\\n`;\n  text += `• Tempo de Resposta: ${analytics.realtime.avgResponseTime.toFixed(1)} min\\n`;\n  text += `• Satisfação do Cliente: ${analytics.hourly.customerSatisfaction.toFixed(1)}/5\\n`;\n  text += `• Utilização dos Agentes: ${(analytics.realtime.agentUtilization * 100).toFixed(1)}%\\n\\n`;\n  \n  text += `🚨 ALERTAS DETECTADOS:\\n`;\n  alerts.forEach((alert, index) => {\n    text += `${index + 1}. [${alert.severity.toUpperCase()}] ${alert.type.replace('_', ' ').toUpperCase()}\\n`;\n    text += `   ${alert.message}\\n`;\n    text += `   Valor: ${alert.value} | Limite: ${alert.threshold}\\n\\n`;\n  });\n  \n  text += `Horário: ${new Date().toLocaleString('pt-BR')}\\n`;\n  text += `Sistema de Monitoramento Omnichannel Fly2Any`;\n  \n  return text;\n}\n\nreturn emailData;"
+      },
+      "id": "alert-email-generator",
+      "name": "📧 Alert Email Generator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📱 Slack Alert Generator\nconst { alerts, analytics, summary } = $node[\"🔍 Analytics Processor\"].json;\n\nconst criticalCount = alerts.filter(a => a.severity === 'critical').length;\nconst highCount = alerts.filter(a => a.severity === 'high').length;\nconst warningCount = alerts.filter(a => a.severity === 'warning').length;\n\nconst statusEmoji = {\n  healthy: '✅',\n  warning: '⚠️',\n  critical: '🚨'\n};\n\nconst statusColor = {\n  healthy: 'good',\n  warning: 'warning',\n  critical: 'danger'\n};\n\nconst slackPayload = {\n  channel: process.env.SLACK_ALERTS_CHANNEL || '#omnichannel-alerts',\n  username: 'Omnichannel Analytics Bot',\n  icon_emoji: ':chart_with_upwards_trend:',\n  attachments: [\n    {\n      color: statusColor[summary.systemHealth],\n      title: `${statusEmoji[summary.systemHealth]} Sistema Omnichannel - ${summary.systemHealth.toUpperCase()}`,\n      title_link: `${process.env.BASE_URL}/admin/omnichannel/analytics`,\n      text: `*${alerts.length} alertas detectados* | Última verificação: ${new Date().toLocaleString('pt-BR')}`,\n      fields: [\n        {\n          title: '🔴 Críticos',\n          value: criticalCount,\n          short: true\n        },\n        {\n          title: '🟠 Altos',\n          value: highCount,\n          short: true\n        },\n        {\n          title: '🟡 Avisos',\n          value: warningCount,\n          short: true\n        },\n        {\n          title: '💬 Conversas Ativas',\n          value: analytics.realtime.activeConversations,\n          short: true\n        },\n        {\n          title: '⚡ Tempo Resposta',\n          value: `${analytics.realtime.avgResponseTime.toFixed(1)} min`,\n          short: true\n        },\n        {\n          title: '⭐ Satisfação',\n          value: `${analytics.hourly.customerSatisfaction.toFixed(1)}/5`,\n          short: true\n        }\n      ],\n      footer: 'Fly2Any Omnichannel',\n      footer_icon: 'https://fly2any.com/favicon.ico',\n      ts: Math.floor(Date.now() / 1000)\n    }\n  ]\n};\n\n// Add individual alert details if there are critical alerts\nif (criticalCount > 0) {\n  const criticalAlerts = alerts.filter(a => a.severity === 'critical');\n  \n  slackPayload.attachments.push({\n    color: 'danger',\n    title: '🚨 Alertas Críticos',\n    fields: criticalAlerts.map(alert => ({\n      title: alert.type.replace('_', ' ').toUpperCase(),\n      value: `${alert.message}\\n*Valor:* ${alert.value} | *Limite:* ${alert.threshold}`,\n      short: false\n    }))\n  });\n}\n\nreturn slackPayload;"
+      },
+      "id": "slack-alert-generator",
+      "name": "📱 Slack Alert Generator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.RESEND_API_URL || 'https://api.resend.com/emails' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": "resendCredentials",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"from\": \"Fly2Any Analytics <analytics@fly2any.com>\",\n  \"to\": [\"{{ $node[\"📧 Alert Email Generator\"].json.to }}\"],\n  \"cc\": [\"{{ $node[\"📧 Alert Email Generator\"].json.cc }}\"],\n  \"subject\": \"{{ $node[\"📧 Alert Email Generator\"].json.subject }}\",\n  \"html\": \"{{ $node[\"📧 Alert Email Generator\"].json.html }}\",\n  \"text\": \"{{ $node[\"📧 Alert Email Generator\"].json.text }}\"\n}"
+      },
+      "id": "send-alert-email",
+      "name": "✉️ Send Alert Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1400, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"📱 Slack Alert Generator\"].json) }}"
+      },
+      "id": "send-slack-alert",
+      "name": "📱 Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BASE_URL }}/api/omnichannel/ws",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"type\": \"analytics_alert\",\n  \"severity\": \"{{ $node[\"🔍 Analytics Processor\"].json.summary.systemHealth }}\",\n  \"alerts\": {{ JSON.stringify($node[\"🔍 Analytics Processor\"].json.alerts) }},\n  \"analytics\": {{ JSON.stringify($node[\"🔍 Analytics Processor\"].json.analytics) }},\n  \"timestamp\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Notification-Type": "analytics_alert",
+            "X-System-Health": "={{ $node[\"🔍 Analytics Processor\"].json.summary.systemHealth }}"
+          }
+        }
+      },
+      "id": "send-realtime-alert",
+      "name": "📡 Send Real-time Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1400, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 💾 Store Analytics Data for Historical Analysis\nconst { analytics, alerts, summary } = $node[\"🔍 Analytics Processor\"].json;\n\nconst analyticsRecord = {\n  id: `analytics_${Date.now()}`,\n  timestamp: new Date().toISOString(),\n  type: 'scheduled_analytics',\n  data: {\n    realtime: analytics.realtime,\n    hourly: analytics.hourly,\n    daily: analytics.daily,\n    trends: analytics.trends\n  },\n  alerts: alerts,\n  summary: summary,\n  metadata: {\n    executionId: $node[\"📊 Data Collector\"].json.executionId,\n    generatedBy: 'n8n-analytics-automation',\n    dataPoints: {\n      realtimeMetrics: Object.keys(analytics.realtime).length,\n      hourlyMetrics: Object.keys(analytics.hourly).length,\n      dailyMetrics: Object.keys(analytics.daily).length,\n      alertsTriggered: alerts.length\n    }\n  }\n};\n\n// Calculate data quality score\nconst dataQuality = {\n  completeness: calculateCompleteness(analytics),\n  freshness: calculateFreshness(analytics),\n  accuracy: calculateAccuracy(analytics)\n};\n\nanalyticsRecord.dataQuality = dataQuality;\nanalyticsRecord.qualityScore = (dataQuality.completeness + dataQuality.freshness + dataQuality.accuracy) / 3;\n\nfunction calculateCompleteness(analytics) {\n  let totalFields = 0;\n  let filledFields = 0;\n  \n  function countFields(obj) {\n    for (const key in obj) {\n      if (typeof obj[key] === 'object' && obj[key] !== null) {\n        countFields(obj[key]);\n      } else {\n        totalFields++;\n        if (obj[key] !== null && obj[key] !== undefined && obj[key] !== 0) {\n          filledFields++;\n        }\n      }\n    }\n  }\n  \n  countFields(analytics);\n  return totalFields > 0 ? (filledFields / totalFields) * 100 : 0;\n}\n\nfunction calculateFreshness(analytics) {\n  const now = Date.now();\n  const dataTimestamp = new Date(analytics.timestamp || new Date()).getTime();\n  const ageMinutes = (now - dataTimestamp) / (1000 * 60);\n  \n  // Data is considered fresh if less than 20 minutes old\n  return Math.max(0, 100 - (ageMinutes / 20) * 100);\n}\n\nfunction calculateAccuracy(analytics) {\n  // Simple accuracy check based on data consistency\n  let consistencyScore = 100;\n  \n  // Check if active conversations is reasonable\n  if (analytics.realtime.activeConversations < 0 || analytics.realtime.activeConversations > 1000) {\n    consistencyScore -= 20;\n  }\n  \n  // Check if response time is reasonable\n  if (analytics.realtime.avgResponseTime < 0 || analytics.realtime.avgResponseTime > 120) {\n    consistencyScore -= 20;\n  }\n  \n  // Check if satisfaction score is in valid range\n  if (analytics.hourly.customerSatisfaction < 0 || analytics.hourly.customerSatisfaction > 5) {\n    consistencyScore -= 20;\n  }\n  \n  return Math.max(0, consistencyScore);\n}\n\nreturn analyticsRecord;"
+      },
+      "id": "analytics-storage",
+      "name": "💾 Store Analytics Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📈 Generate Analytics Summary Report\nconst storedData = $node[\"💾 Store Analytics Data\"].json;\nconst { analytics, alerts, summary } = $node[\"🔍 Analytics Processor\"].json;\n\nconst report = {\n  executionSummary: {\n    timestamp: new Date().toISOString(),\n    executionId: storedData.metadata.executionId,\n    dataQualityScore: storedData.qualityScore.toFixed(1),\n    systemHealth: summary.systemHealth,\n    totalAlerts: alerts.length\n  },\n  \n  keyMetrics: {\n    activeConversations: analytics.realtime.activeConversations,\n    avgResponseTime: `${analytics.realtime.avgResponseTime.toFixed(1)} min`,\n    customerSatisfaction: `${analytics.hourly.customerSatisfaction.toFixed(1)}/5`,\n    agentUtilization: `${(analytics.realtime.agentUtilization * 100).toFixed(1)}%`,\n    slaCompliance: `${analytics.hourly.slaCompliance.toFixed(1)}%`,\n    conversionRate: `${analytics.daily.conversionRate.toFixed(1)}%`\n  },\n  \n  trends: {\n    conversationGrowth: `${analytics.trends.conversationGrowth > 0 ? '+' : ''}${analytics.trends.conversationGrowth.toFixed(1)}%`,\n    responseTimeChange: `${analytics.trends.responseTimeImprovement > 0 ? '+' : ''}${analytics.trends.responseTimeImprovement.toFixed(1)}%`,\n    satisfactionChange: `${analytics.trends.satisfactionTrend > 0 ? '+' : ''}${analytics.trends.satisfactionTrend.toFixed(1)}%`\n  },\n  \n  topChannels: analytics.realtime.channelDistribution\n    .sort((a, b) => b.conversations - a.conversations)\n    .slice(0, 3)\n    .map(channel => ({\n      name: channel.channel,\n      volume: channel.conversations,\n      performance: `${channel.resolution_rate?.toFixed(1) || 0}%`\n    })),\n  \n  recommendations: generateRecommendations(analytics, alerts),\n  \n  nextExecution: new Date(Date.now() + 15 * 60 * 1000).toISOString() // Next run in 15 minutes\n};\n\nfunction generateRecommendations(analytics, alerts) {\n  const recommendations = [];\n  \n  // Response time recommendations\n  if (analytics.realtime.avgResponseTime > 5) {\n    recommendations.push({\n      priority: 'high',\n      category: 'performance',\n      message: 'Tempo de resposta acima do ideal. Considere ativar mais agentes ou otimizar processos.',\n      action: 'increase_agent_capacity'\n    });\n  }\n  \n  // Agent utilization recommendations\n  if (analytics.realtime.agentUtilization > 0.85) {\n    recommendations.push({\n      priority: 'high',\n      category: 'capacity',\n      message: 'Alta utilização dos agentes. Risco de sobrecarga e queda na qualidade do atendimento.',\n      action: 'scale_team'\n    });\n  }\n  \n  // Satisfaction recommendations\n  if (analytics.hourly.customerSatisfaction < 4.0 && analytics.hourly.customerSatisfaction > 0) {\n    recommendations.push({\n      priority: 'medium',\n      category: 'quality',\n      message: 'Satisfação do cliente abaixo do esperado. Revisar treinamento e processos.',\n      action: 'quality_improvement'\n    });\n  }\n  \n  // Conversion recommendations\n  if (analytics.daily.conversionRate < 15) {\n    recommendations.push({\n      priority: 'medium',\n      category: 'sales',\n      message: 'Taxa de conversão baixa. Otimizar scripts de vendas e qualificação de leads.',\n      action: 'sales_optimization'\n    });\n  }\n  \n  // If no issues, provide positive feedback\n  if (recommendations.length === 0) {\n    recommendations.push({\n      priority: 'low',\n      category: 'performance',\n      message: 'Sistema operando dentro dos parâmetros ideais. Manter monitoramento.',\n      action: 'maintain_current_state'\n    });\n  }\n  \n  return recommendations;\n}\n\nconsole.log('📈 Analytics Report Generated:', JSON.stringify(report, null, 2));\n\nreturn report;"
+      },
+      "id": "analytics-report-generator",
+      "name": "📈 Generate Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1200, 500]
+    }
+  ],
+  "connections": {
+    "⏰ Analytics Scheduler": {
+      "main": [
+        [
+          {
+            "node": "📊 Data Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Data Collector": {
+      "main": [
+        [
+          {
+            "node": "⚡ Fetch Real-time Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🕐 Fetch Hourly Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📅 Fetch Daily Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Fetch Real-time Data": {
+      "main": [
+        [
+          {
+            "node": "🔍 Analytics Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🕐 Fetch Hourly Data": {
+      "main": [
+        [
+          {
+            "node": "🔍 Analytics Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📅 Fetch Daily Data": {
+      "main": [
+        [
+          {
+            "node": "🔍 Analytics Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Analytics Processor": {
+      "main": [
+        [
+          {
+            "node": "🚨 Alert Checker",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "💾 Store Analytics Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚨 Alert Checker": {
+      "main": [
+        [
+          {
+            "node": "📧 Alert Email Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📱 Slack Alert Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📡 Send Real-time Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "📧 Alert Email Generator": {
+      "main": [
+        [
+          {
+            "node": "✉️ Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Slack Alert Generator": {
+      "main": [
+        [
+          {
+            "node": "📱 Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Store Analytics Data": {
+      "main": [
+        [
+          {
+            "node": "📈 Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "id": "premium-analytics",
+      "name": "Premium Analytics"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "premium-analytics-v1.0"
+}

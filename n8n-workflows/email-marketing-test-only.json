@@ -1,0 +1,90 @@
+{
+  "name": "Email Marketing Test Only",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-marketing-test-only",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-test-only",
+      "name": "Email Webhook Test",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "id": "batch-test-only",
+      "name": "Split in Batches Test",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "contacts",
+        "options": {}
+      },
+      "id": "split-test-only",
+      "name": "Split Contacts Test",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Webhook funcionando perfeitamente!\",\n  \"campaignId\": \"{{ $node(\"Email Webhook Test\").first().json.campaignId }}\",\n  \"emailsProcessed\": {{ $node(\"Email Webhook Test\").first().json.contacts.length }},\n  \"subject\": \"{{ $node(\"Email Webhook Test\").first().json.subject }}\",\n  \"batchSize\": \"{{ $node(\"Split in Batches Test\").context.batchSize }}\",\n  \"timestamp\": \"{{ new Date().toISOString() }}\",\n  \"status\": \"PRONTO PARA ENVIO COM GMAIL\"\n}",
+        "options": {}
+      },
+      "id": "response-test-only",
+      "name": "Success Response Test",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 300]
+    }
+  ],
+  "connections": {
+    "Email Webhook Test": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in Batches Test": {
+      "main": [
+        [
+          {
+            "node": "Split Contacts Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Contacts Test": {
+      "main": [
+        [
+          {
+            "node": "Success Response Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

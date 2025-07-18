@@ -1,0 +1,415 @@
+{
+  "name": "📱 Omnichannel Social Media Integration - Premium",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "social-media-hub",
+        "options": {}
+      },
+      "id": "social-media-webhook",
+      "name": "📱 Social Media Hub",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "social-media-hub"
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🎯 Multi-Platform Message Router\nconst payload = $input.all()[0].json;\nconst headers = $input.all()[0].headers;\n\n// Detect platform from webhook data\nlet platform = 'unknown';\nlet messageData = {};\n\n// Instagram Detection\nif (payload.object === 'instagram' && payload.entry) {\n  platform = 'instagram';\n  messageData = processInstagramWebhook(payload);\n}\n// Facebook Detection\nelse if (payload.object === 'page' && payload.entry) {\n  platform = 'facebook';\n  messageData = processFacebookWebhook(payload);\n}\n// Telegram Detection\nelse if (payload.message || payload.callback_query) {\n  platform = 'telegram';\n  messageData = processTelegramWebhook(payload);\n}\n// WhatsApp Detection (Meta Business API)\nelse if (payload.object === 'whatsapp_business_account') {\n  platform = 'whatsapp';\n  messageData = processWhatsAppWebhook(payload);\n}\n// LinkedIn Detection\nelse if (headers['linkedin-signature']) {\n  platform = 'linkedin';\n  messageData = processLinkedInWebhook(payload);\n}\n// Twitter/X Detection\nelse if (headers['x-twitter-webhooks-signature']) {\n  platform = 'twitter';\n  messageData = processTwitterWebhook(payload);\n}\n\nfunction processInstagramWebhook(payload) {\n  const entry = payload.entry[0];\n  const messaging = entry.messaging?.[0];\n  \n  if (!messaging?.message) return null;\n  \n  return {\n    platform: 'instagram',\n    senderId: messaging.sender.id,\n    messageId: messaging.message.mid,\n    content: messaging.message.text || '[Mídia recebida]',\n    timestamp: new Date(messaging.timestamp).toISOString(),\n    messageType: messaging.message.attachments ? 'media' : 'text',\n    attachments: messaging.message.attachments || [],\n    raw: payload\n  };\n}\n\nfunction processFacebookWebhook(payload) {\n  const entry = payload.entry[0];\n  const messaging = entry.messaging?.[0];\n  \n  if (!messaging?.message || messaging.message.is_echo) return null;\n  \n  return {\n    platform: 'facebook',\n    senderId: messaging.sender.id,\n    messageId: messaging.message.mid,\n    content: messaging.message.text || '[Mídia recebida]',\n    timestamp: new Date(parseInt(messaging.timestamp)).toISOString(),\n    messageType: messaging.message.attachments ? 'media' : 'text',\n    attachments: messaging.message.attachments || [],\n    quickReply: messaging.message.quick_reply,\n    raw: payload\n  };\n}\n\nfunction processTelegramWebhook(payload) {\n  const message = payload.message || payload.edited_message;\n  const callbackQuery = payload.callback_query;\n  \n  if (callbackQuery) {\n    return {\n      platform: 'telegram',\n      senderId: callbackQuery.from.id.toString(),\n      messageId: `callback_${callbackQuery.id}`,\n      content: `Callback: ${callbackQuery.data}`,\n      timestamp: new Date().toISOString(),\n      messageType: 'callback',\n      callbackData: callbackQuery.data,\n      raw: payload\n    };\n  }\n  \n  if (!message || message.chat.type !== 'private') return null;\n  \n  return {\n    platform: 'telegram',\n    senderId: message.from.id.toString(),\n    messageId: `tg_${message.message_id}`,\n    content: message.text || getAttachmentDescription(message),\n    timestamp: new Date(message.date * 1000).toISOString(),\n    messageType: getMessageType(message),\n    attachments: getAttachments(message),\n    raw: payload\n  };\n}\n\nfunction processWhatsAppWebhook(payload) {\n  const entry = payload.entry[0];\n  const changes = entry.changes[0];\n  const messages = changes.value.messages;\n  \n  if (!messages || messages.length === 0) return null;\n  \n  const message = messages[0];\n  \n  return {\n    platform: 'whatsapp',\n    senderId: message.from,\n    messageId: message.id,\n    content: message.text?.body || '[Mídia recebida]',\n    timestamp: new Date(parseInt(message.timestamp) * 1000).toISOString(),\n    messageType: message.type,\n    attachments: getWhatsAppAttachments(message),\n    raw: payload\n  };\n}\n\nfunction processLinkedInWebhook(payload) {\n  // Simplified LinkedIn processing\n  return {\n    platform: 'linkedin',\n    senderId: payload.senderId || 'unknown',\n    messageId: payload.messageId || `li_${Date.now()}`,\n    content: payload.content || 'LinkedIn message',\n    timestamp: new Date().toISOString(),\n    messageType: 'text',\n    raw: payload\n  };\n}\n\nfunction processTwitterWebhook(payload) {\n  // Simplified Twitter/X processing\n  return {\n    platform: 'twitter',\n    senderId: payload.senderId || 'unknown',\n    messageId: payload.messageId || `tw_${Date.now()}`,\n    content: payload.content || 'Twitter message',\n    timestamp: new Date().toISOString(),\n    messageType: 'text',\n    raw: payload\n  };\n}\n\nfunction getAttachmentDescription(message) {\n  if (message.photo) return '[Foto enviada]';\n  if (message.document) return `[Documento: ${message.document.file_name || 'arquivo'}]`;\n  if (message.voice) return '[Mensagem de voz]';\n  if (message.video) return '[Vídeo enviado]';\n  if (message.sticker) return '[Sticker enviado]';\n  return '[Mensagem sem texto]';\n}\n\nfunction getMessageType(message) {\n  if (message.text) return 'text';\n  if (message.photo) return 'photo';\n  if (message.document) return 'document';\n  if (message.voice) return 'voice';\n  if (message.video) return 'video';\n  return 'unknown';\n}\n\nfunction getAttachments(message) {\n  const attachments = [];\n  if (message.photo) attachments.push({ type: 'photo', data: message.photo });\n  if (message.document) attachments.push({ type: 'document', data: message.document });\n  if (message.voice) attachments.push({ type: 'voice', data: message.voice });\n  if (message.video) attachments.push({ type: 'video', data: message.video });\n  return attachments;\n}\n\nfunction getWhatsAppAttachments(message) {\n  const attachments = [];\n  if (message.image) attachments.push({ type: 'image', data: message.image });\n  if (message.document) attachments.push({ type: 'document', data: message.document });\n  if (message.audio) attachments.push({ type: 'audio', data: message.audio });\n  if (message.video) attachments.push({ type: 'video', data: message.video });\n  return attachments;\n}\n\nreturn {\n  platform,\n  messageData,\n  isValid: messageData !== null,\n  timestamp: new Date().toISOString(),\n  webhook: {\n    headers: headers,\n    body: payload\n  }\n};"
+      },
+      "id": "platform-router",
+      "name": "🎯 Platform Router",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $node[\"🎯 Platform Router\"].json.isValid }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "message-validator",
+      "name": "✅ Message Validator",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🧠 Advanced Intent Detection for Social Media\nconst { platform, messageData } = $node[\"🎯 Platform Router\"].json;\nconst content = messageData.content.toLowerCase();\n\n// Enhanced intent patterns for social media\nconst intents = {\n  customer_service: {\n    patterns: [\n      /ajuda|help|suporte|support|problema|issue/,\n      /não.*funciona|not.*working|erro|error/,\n      /reclamação|complaint|insatisfeito|unsatisfied/\n    ],\n    confidence: 0,\n    priority: 'high',\n    department: 'support',\n    autoResponse: true\n  },\n  \n  sales_inquiry: {\n    patterns: [\n      /preço|price|custo|cost|valor|quanto.*custa/,\n      /comprar|buy|adquirir|purchase|cotação|quote/,\n      /voo|flight|passagem|ticket|viagem|travel/\n    ],\n    confidence: 0,\n    priority: 'high',\n    department: 'sales',\n    autoResponse: true\n  },\n  \n  booking_management: {\n    patterns: [\n      /alterar|change|cancelar|cancel|remarcar|reschedule/,\n      /reserva|booking|localizador|confirmation/,\n      /check.*in|bagagem|luggage|assento|seat/\n    ],\n    confidence: 0,\n    priority: 'urgent',\n    department: 'support',\n    autoResponse: false\n  },\n  \n  complaint: {\n    patterns: [\n      /reclamação|complaint|insatisfeito|dissatisfied/,\n      /péssimo|terrible|horrível|awful|ruim|bad/,\n      /reembolso|refund|devolução|compensation/\n    ],\n    confidence: 0,\n    priority: 'urgent',\n    department: 'support',\n    autoResponse: false\n  },\n  \n  praise: {\n    patterns: [\n      /obrigado|thank.*you|parabéns|congratulations/,\n      /excelente|excellent|ótimo|great|maravilhoso|wonderful/,\n      /recomendo|recommend|satisfeito|satisfied/\n    ],\n    confidence: 0,\n    priority: 'low',\n    department: 'marketing',\n    autoResponse: true\n  },\n  \n  social_mention: {\n    patterns: [\n      /@fly2any|#fly2any|fly2any/,\n      /mencionou|mentioned|tagged|marcou/\n    ],\n    confidence: 0,\n    priority: 'normal',\n    department: 'marketing',\n    autoResponse: true\n  }\n};\n\n// Calculate intent confidence scores\nfor (const [intentName, intent] of Object.entries(intents)) {\n  const matches = intent.patterns.filter(pattern => pattern.test(content)).length;\n  intent.confidence = matches / intent.patterns.length;\n}\n\n// Find best matching intent\nconst sortedIntents = Object.entries(intents)\n  .filter(([_, intent]) => intent.confidence > 0)\n  .sort(([,a], [,b]) => b.confidence - a.confidence);\n\nconst bestIntent = sortedIntents.length > 0 ? sortedIntents[0] : ['unknown', { confidence: 0, priority: 'normal', department: 'sales', autoResponse: true }];\n\n// Platform-specific considerations\nlet platformBoost = 0;\nlet responseStyle = 'professional';\n\nswitch (platform) {\n  case 'instagram':\n  case 'facebook':\n    responseStyle = 'casual';\n    platformBoost = 0.1; // Social platforms get slight boost for engagement\n    break;\n  case 'telegram':\n    responseStyle = 'technical';\n    break;\n  case 'whatsapp':\n    responseStyle = 'personal';\n    break;\n  case 'linkedin':\n    responseStyle = 'business';\n    platformBoost = 0.2; // Business platform gets higher priority\n    break;\n  case 'twitter':\n    responseStyle = 'concise';\n    break;\n}\n\n// Detect sentiment\nconst positiveWords = ['bom', 'ótimo', 'excelente', 'good', 'great', 'excellent', 'amazing', 'love'];\nconst negativeWords = ['ruim', 'péssimo', 'terrível', 'bad', 'terrible', 'awful', 'hate', 'worst'];\n\nconst positiveCount = positiveWords.filter(word => content.includes(word)).length;\nconst negativeCount = negativeWords.filter(word => content.includes(word)).length;\n\nlet sentiment = 'neutral';\nif (positiveCount > negativeCount) sentiment = 'positive';\nelse if (negativeCount > positiveCount) sentiment = 'negative';\n\n// Urgency detection\nconst urgentWords = ['urgente', 'urgent', 'emergência', 'emergency', 'imediato', 'immediate'];\nconst isUrgent = urgentWords.some(word => content.includes(word));\n\nreturn {\n  intent: {\n    detected: bestIntent[0],\n    confidence: Math.min(bestIntent[1].confidence + platformBoost, 1.0),\n    priority: isUrgent ? 'urgent' : bestIntent[1].priority,\n    department: bestIntent[1].department,\n    shouldAutoRespond: bestIntent[1].autoResponse && !isUrgent\n  },\n  analysis: {\n    sentiment,\n    isUrgent,\n    responseStyle,\n    platform,\n    contentLength: content.length,\n    hasAttachments: messageData.attachments?.length > 0\n  },\n  routing: {\n    escalateToHuman: isUrgent || sentiment === 'negative' || bestIntent[0] === 'complaint',\n    requiresImmediate: isUrgent || bestIntent[0] === 'booking_management',\n    canBeAutomated: bestIntent[1].autoResponse && sentiment !== 'negative'\n  },\n  messageData\n};"
+      },
+      "id": "advanced-intent-detector",
+      "name": "🧠 Advanced Intent AI",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"📱 Social Media Hub\"].json.headers.origin }}/api/omnichannel/webhook/{{ $node[\"🎯 Platform Router\"].json.platform }}",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"🧠 Advanced Intent AI\"].json.messageData) }}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Platform": "={{ $node[\"🎯 Platform Router\"].json.platform }}",
+            "X-Intent": "={{ $node[\"🧠 Advanced Intent AI\"].json.intent.detected }}",
+            "X-Sentiment": "={{ $node[\"🧠 Advanced Intent AI\"].json.analysis.sentiment }}"
+          }
+        }
+      },
+      "id": "send-to-omnichannel",
+      "name": "🔄 Send to Omnichannel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $node[\"🧠 Advanced Intent AI\"].json.routing.canBeAutomated }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "automation-router",
+      "name": "🤖 Automation Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🎨 Smart Response Generator for Social Media\nconst { intent, analysis, messageData } = $node[\"🧠 Advanced Intent AI\"].json;\nconst platform = analysis.platform;\nconst responseStyle = analysis.responseStyle;\n\n// Platform-specific response templates\nconst responses = {\n  customer_service: {\n    casual: `Oi! 😊 Entendi que precisa de ajuda! Nossa equipe de suporte está aqui para resolver tudo pra você! 🛠️\\n\\n💬 Como posso ajudar especificamente?`,\n    professional: `Olá! Obrigado por entrar em contato. Nossa equipe de suporte está pronta para ajudá-lo.\\n\\n📞 WhatsApp: (555) 123-4567\\n🌐 Site: www.fly2any.com`,\n    technical: `🔧 Suporte Técnico Fly2Any\\n\\nIdentifiquei que você precisa de assistência. Para resolução mais rápida:\\n\\n/help - Menu de comandos\\n/status - Status do sistema\\n/agent - Falar com especialista`,\n    business: `Prezado cliente,\\n\\nRecebemos sua solicitação de suporte e nossa equipe especializada entrará em contato em breve.\\n\\nAtenciosamente,\\nEquipe Fly2Any`,\n    concise: `👋 Oi! Precisa de ajuda? Nossa equipe está online!\\n\\n💬 WhatsApp: (555) 123-4567`\n  },\n  \n  sales_inquiry: {\n    casual: `🛫 Que legal que você quer viajar! ✈️\\n\\nPara fazer sua cotação personalizada, me conta:\\n📍 De onde para onde?\\n📅 Que datas?\\n👥 Quantas pessoas?\\n\\n🚀 Resposta em 2h!`,\n    professional: `✈️ Fly2Any - Especialistas em Voos EUA-Brasil\\n\\nPara cotação personalizada, preciso de:\\n📍 Origem e destino\\n📅 Datas de ida e volta\\n👥 Número de passageiros\\n\\n🎯 Resposta garantida em até 2 horas!`,\n    technical: `✈️ Sistema de Cotações Fly2Any\\n\\n/quote - Iniciar cotação\\n/destinations - Ver destinos\\n/prices - Tabela de preços\\n\\nOu me informe os detalhes da viagem para cotação manual.`,\n    business: `Prezado cliente,\\n\\nTemos prazer em oferecer nossos serviços de viagem corporativa.\\n\\nPara cotação empresarial:\\n📧 corporate@fly2any.com\\n📞 (555) 123-4567`,\n    concise: `✈️ Cotação grátis!\\n📍 Origem → Destino?\\n📅 Datas?\\n👥 Passageiros?\\n\\n🚀 2h para resposta!`\n  },\n  \n  praise: {\n    casual: `Ahhh que fofo! 🥰 Obrigado pelo carinho! Vocês são demais! 💕\\n\\n✈️ Sempre aqui para tornar suas viagens incríveis! 🌟`,\n    professional: `Muito obrigado pelo seu feedback positivo! É muito gratificante saber que atendemos suas expectativas.\\n\\n✈️ Continuaremos trabalhando para oferecer o melhor serviço sempre!`,\n    technical: `📊 Feedback positivo registrado!\\n\\n⭐ Avaliação: Positiva\\n🎯 Satisfação: Alta\\n\\nObrigado por escolher a Fly2Any!`,\n    business: `Prezado cliente,\\n\\nAgradecemos imensamente seu feedback positivo. É um prazer atendê-lo.\\n\\nAtenciosamente,\\nEquipe Fly2Any`,\n    concise: `🙏 Obrigado! Você é incrível!\\n⭐ Continue voando com a gente!`\n  },\n  \n  social_mention: {\n    casual: `Eiii! 👋 Vi que falou da gente! Que demais! 🤩\\n\\n✈️ Sempre aqui para ajudar com suas viagens! Precisando de algo?`,\n    professional: `Olá! Obrigado por mencionar a Fly2Any! 🛫\\n\\nEstamos sempre à disposição para suas necessidades de viagem.\\n\\n📱 Como podemos ajudar?`,\n    technical: `🔔 Menção detectada!\\n\\nFly2Any Bot ativo:\\n/help - Comandos\\n/quote - Cotação\\n/support - Suporte`,\n    business: `Obrigado por mencionar nossos serviços!\\n\\nPara atendimento empresarial:\\n📧 corporate@fly2any.com`,\n    concise: `👋 Oi! Obrigado pela menção!\\n✈️ Fly2Any sempre aqui!`\n  }\n};\n\n// Get base response\nconst intentResponses = responses[intent.detected] || responses.customer_service;\nlet response = intentResponses[responseStyle] || intentResponses.professional;\n\n// Add platform-specific elements\nswitch (platform) {\n  case 'instagram':\n  case 'facebook':\n    // Add story/post encouragement for social platforms\n    if (intent.detected === 'praise') {\n      response += `\\n\\n📸 Marca a gente nas suas fotos de viagem! #Fly2Any #ViagemDossonhos`;\n    }\n    break;\n    \n  case 'telegram':\n    // Add bot commands hint\n    response += `\\n\\n🤖 Digite /help para ver todos os comandos disponíveis!`;\n    break;\n    \n  case 'linkedin':\n    // More professional tone\n    response = response.replace(/😊|🥰|💕|🤩/g, '').replace(/Eiii!/g, 'Olá!');\n    break;\n}\n\n// Add urgency handling\nif (analysis.isUrgent) {\n  response = `🚨 URGENTE - ` + response + `\\n\\n⚡ Prioridade máxima ativada!`;\n}\n\n// Add sentiment-based adjustments\nif (analysis.sentiment === 'negative') {\n  response = `😔 Entendemos sua preocupação. ` + response;\n}\n\nreturn {\n  platform,\n  response,\n  intent: intent.detected,\n  sentiment: analysis.sentiment,\n  messageData: {\n    to: messageData.senderId,\n    content: response,\n    platform,\n    messageType: 'auto_response',\n    metadata: {\n      intent: intent.detected,\n      confidence: intent.confidence,\n      sentiment: analysis.sentiment,\n      responseStyle,\n      generatedAt: new Date().toISOString()\n    }\n  }\n};"
+      },
+      "id": "smart-response-generator",
+      "name": "🎨 Smart Response Generator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1400, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node[\"🎨 Smart Response Generator\"].json.platform }}",
+              "operation": "equal",
+              "value2": "instagram"
+            }
+          ]
+        }
+      },
+      "id": "platform-response-router",
+      "name": "📱 Platform Response Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1600, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.instagram.com/v17.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": "instagramCredentials",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.to }}\" },\n  \"message\": { \"text\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.content }}\" }\n}"
+      },
+      "id": "send-instagram-response",
+      "name": "📸 Send Instagram Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1800, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node[\"🎨 Smart Response Generator\"].json.platform }}",
+              "operation": "equal",
+              "value2": "facebook"
+            }
+          ]
+        }
+      },
+      "id": "facebook-check",
+      "name": "👥 Facebook Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1800, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v17.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "httpHeaderAuth": "facebookCredentials",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.to }}\" },\n  \"message\": { \"text\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.content }}\" },\n  \"messaging_type\": \"RESPONSE\"\n}"
+      },
+      "id": "send-facebook-response",
+      "name": "👥 Send Facebook Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node[\"🎨 Smart Response Generator\"].json.platform }}",
+              "operation": "equal",
+              "value2": "telegram"
+            }
+          ]
+        }
+      },
+      "id": "telegram-check",
+      "name": "🤖 Telegram Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"chat_id\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.to }}\",\n  \"text\": \"{{ $node[\"🎨 Smart Response Generator\"].json.messageData.content }}\",\n  \"parse_mode\": \"HTML\"\n}"
+      },
+      "id": "send-telegram-response",
+      "name": "🤖 Send Telegram Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔔 Agent Escalation Handler\nconst { intent, analysis, routing, messageData } = $node[\"🧠 Advanced Intent AI\"].json;\nconst platform = analysis.platform;\n\nconst escalationNotification = {\n  type: 'social_media_escalation',\n  platform,\n  urgency: analysis.isUrgent ? 'critical' : 'high',\n  conversationId: null, // Will be set by omnichannel API\n  customerId: null,     // Will be set by omnichannel API\n  message: {\n    content: messageData.content,\n    senderId: messageData.senderId,\n    messageId: messageData.messageId,\n    timestamp: messageData.timestamp\n  },\n  intent: {\n    detected: intent.detected,\n    confidence: intent.confidence,\n    priority: intent.priority,\n    department: intent.department\n  },\n  analysis: {\n    sentiment: analysis.sentiment,\n    isUrgent: analysis.isUrgent,\n    hasAttachments: analysis.hasAttachments,\n    contentLength: analysis.contentLength\n  },\n  routing: {\n    requiresImmediate: routing.requiresImmediate,\n    escalateToHuman: routing.escalateToHuman,\n    department: intent.department,\n    skills: getRequiredSkills(intent.detected, platform)\n  },\n  metadata: {\n    platform,\n    originalMessage: messageData,\n    processingTime: Date.now(),\n    autoResponseSent: routing.canBeAutomated\n  }\n};\n\nfunction getRequiredSkills(intent, platform) {\n  const skills = [`social_media`, platform];\n  \n  switch (intent) {\n    case 'customer_service':\n      skills.push('customer_support', 'problem_solving');\n      break;\n    case 'sales_inquiry':\n      skills.push('sales', 'booking', 'pricing');\n      break;\n    case 'booking_management':\n      skills.push('reservations', 'modifications', 'customer_service');\n      break;\n    case 'complaint':\n      skills.push('complaint_resolution', 'customer_retention', 'management');\n      break;\n    case 'praise':\n      skills.push('customer_success', 'feedback_management');\n      break;\n  }\n  \n  return skills;\n}\n\nreturn escalationNotification;"
+      },
+      "id": "agent-escalation-handler",
+      "name": "🔔 Agent Escalation",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1400, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"📱 Social Media Hub\"].json.headers.origin }}/api/omnichannel/ws",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"🔔 Agent Escalation\"].json) }}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Notification-Type": "escalation",
+            "X-Platform": "={{ $node[\"🔔 Agent Escalation\"].json.platform }}",
+            "X-Urgency": "={{ $node[\"🔔 Agent Escalation\"].json.urgency }}"
+          }
+        }
+      },
+      "id": "send-escalation-notification",
+      "name": "📡 Send Escalation Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1600, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📊 Social Media Analytics\nconst startTime = Date.now();\nconst { intent, analysis, routing, messageData } = $node[\"🧠 Advanced Intent AI\"].json;\n\nconst analytics = {\n  workflow: 'omnichannel-social-media-integration',\n  platform: analysis.platform,\n  timestamp: new Date().toISOString(),\n  processingTime: Date.now() - startTime,\n  \n  message: {\n    platform: analysis.platform,\n    messageId: messageData.messageId,\n    contentLength: analysis.contentLength,\n    hasAttachments: analysis.hasAttachments,\n    messageType: messageData.messageType\n  },\n  \n  intent: {\n    detected: intent.detected,\n    confidence: intent.confidence,\n    priority: intent.priority,\n    department: intent.department\n  },\n  \n  analysis: {\n    sentiment: analysis.sentiment,\n    responseStyle: analysis.responseStyle,\n    isUrgent: analysis.isUrgent\n  },\n  \n  automation: {\n    autoResponseSent: routing.canBeAutomated,\n    escalatedToHuman: routing.escalateToHuman,\n    requiresImmediate: routing.requiresImmediate\n  },\n  \n  performance: {\n    intentDetectionTime: 0, // Would be measured in real implementation\n    responseGenerationTime: 0,\n    totalProcessingTime: Date.now() - startTime\n  }\n};\n\nconsole.log('📊 Social Media Analytics:', JSON.stringify(analytics, null, 2));\n\nreturn analytics;"
+      },
+      "id": "social-media-analytics",
+      "name": "📊 Social Analytics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1800, 500]
+    }
+  ],
+  "connections": {
+    "📱 Social Media Hub": {
+      "main": [
+        [
+          {
+            "node": "🎯 Platform Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Platform Router": {
+      "main": [
+        [
+          {
+            "node": "✅ Message Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Message Validator": {
+      "main": [
+        [
+          {
+            "node": "🧠 Advanced Intent AI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "🧠 Advanced Intent AI": {
+      "main": [
+        [
+          {
+            "node": "🔄 Send to Omnichannel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Send to Omnichannel": {
+      "main": [
+        [
+          {
+            "node": "🤖 Automation Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Automation Router": {
+      "main": [
+        [
+          {
+            "node": "🎨 Smart Response Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🔔 Agent Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎨 Smart Response Generator": {
+      "main": [
+        [
+          {
+            "node": "📱 Platform Response Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Platform Response Router": {
+      "main": [
+        [
+          {
+            "node": "📸 Send Instagram Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "👥 Facebook Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "👥 Facebook Check": {
+      "main": [
+        [
+          {
+            "node": "👥 Send Facebook Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🤖 Telegram Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Telegram Check": {
+      "main": [
+        [
+          {
+            "node": "🤖 Send Telegram Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "🔔 Agent Escalation": {
+      "main": [
+        [
+          {
+            "node": "📡 Send Escalation Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📡 Send Escalation Alert": {
+      "main": [
+        [
+          {
+            "node": "📊 Social Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "id": "premium-social-media",
+      "name": "Premium Social Media"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "premium-social-v1.0"
+}

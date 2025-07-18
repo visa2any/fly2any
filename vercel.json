@@ -1,0 +1,12 @@
+{
+  "env": {
+    "N8N_WEBHOOK_EMAIL_MARKETING": "https://n8n-production-81b6.up.railway.app/webhook/email-marketing-final",
+    "N8N_WEBHOOK_WHATSAPP": "https://n8n-production-81b6.up.railway.app/webhook/whatsapp"
+  },
+  "build": {
+    "env": {
+      "N8N_WEBHOOK_EMAIL_MARKETING": "https://n8n-production-81b6.up.railway.app/webhook/email-marketing-final",
+      "N8N_WEBHOOK_WHATSAPP": "https://n8n-production-81b6.up.railway.app/webhook/whatsapp"
+    }
+  }
+}

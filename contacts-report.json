@@ -1,0 +1,466 @@
+{
+  "stats": {
+    "total": 4186,
+    "validEmails": 2506,
+    "invalidEmails": 1661,
+    "validPhones": 2635,
+    "invalidPhones": 1515,
+    "emailDuplicates": 19,
+    "phoneDuplicates": 36,
+    "finalContacts": 3258
+  },
+  "duplicates": [
+    {
+      "linha": 287,
+      "nome": "ANA VEGAS",
+      "email": "",
+      "telefone": "+558603353212",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 557,
+      "nome": "CARLA DE MELO",
+      "email": "demelo39@hotmail.com",
+      "telefone": "+557742041690",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 587,
+      "nome": "CARLOS DE OLIVEIRA",
+      "email": "broncojitsu@hotmail.com",
+      "telefone": "+556237554364",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 610,
+      "nome": "CARLOS SILVA SILVA",
+      "email": "drikamorenab@hotmail.com",
+      "telefone": "+557324335254",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 734,
+      "nome": "CLAUDIA FERREIRA",
+      "email": "claudia1708@live.com",
+      "telefone": "+559546507909",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 960,
+      "nome": "DEIZIMAR ASSIS",
+      "email": "deiseassis33@hotmail.com",
+      "telefone": "+557746412868",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1091,
+      "nome": "EDMARA SANTANA",
+      "email": "edmarasabec@sbcglobal.net",
+      "telefone": "+558608050670",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1143,
+      "nome": "EDVANIA",
+      "email": "edvania352@gmail.com",
+      "telefone": "+557726266625",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 1207,
+      "nome": "ELIANI",
+      "email": "elianifaustino@hotmail.com",
+      "telefone": "+552036152793",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 1263,
+      "nome": "ELIZAMAR LAWRENCE",
+      "email": "elizamarlawrence@hotmail.com",
+      "telefone": "+558576151278",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1265,
+      "nome": "ELLISA CARNEIRO XAVIER",
+      "email": "ellisa.xavier@hotmail.com",
+      "telefone": "+558608180817",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 1719,
+      "nome": "GREICE",
+      "email": "",
+      "telefone": "+555089583926",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1761,
+      "nome": "HELIO CHAVES",
+      "email": "shgcoelho@yahoo.com",
+      "telefone": "+559786484198",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 1790,
+      "nome": "HERALDO ANICIO DA SILVA",
+      "email": "heraldo_tkm@hotmail.com",
+      "telefone": "+558607097603",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1861,
+      "nome": "IRENE LISOWSKA LISOWSKA",
+      "email": "",
+      "telefone": "+559084941713",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1901,
+      "nome": "IVAN OLIVEIRA",
+      "email": "pr.ivansilva@hotmail.com",
+      "telefone": "+558572512695",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 1903,
+      "nome": "IVAN SANTINI",
+      "email": "",
+      "telefone": "+552032338549",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 1959,
+      "nome": "JAIRO BARBOSA",
+      "email": "angelajairo1@live.com",
+      "telefone": "+556174714678",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2020,
+      "nome": "JEANINE FERREIRA",
+      "email": "farleyferreira@msn.com",
+      "telefone": "+559788754338",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2061,
+      "nome": "JOANA SIQUEIRA DA SILVA",
+      "email": "joanassilva@hotmail.com",
+      "telefone": "",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2242,
+      "nome": "JOSSIMAR",
+      "email": "joe-@hotmail.com",
+      "telefone": "+557744730085",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2292,
+      "nome": "JULIANA TELES",
+      "email": "julianafioreti@yahoo.com",
+      "telefone": "+558609970766",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2374,
+      "nome": "KATIA DE GONZALEZ",
+      "email": "katiajoseg@aol.com",
+      "telefone": "+554138885073",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2380,
+      "nome": "Katia Santos",
+      "email": "katiaccgv@superig.com.br",
+      "telefone": "+558608991169",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2394,
+      "nome": "KELLY",
+      "email": "",
+      "telefone": "+552038376620",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2517,
+      "nome": "LIBERTINO",
+      "email": "",
+      "telefone": "+555083718608",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2520,
+      "nome": "LIDIA COTURE N/A",
+      "email": "elylidia@hotmail.com",
+      "telefone": "+552033124415",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2712,
+      "nome": "MADERLENE ROSADO",
+      "email": "delenarosado64@hotmail.com",
+      "telefone": "+559084476538",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 2719,
+      "nome": "MAGNO SILVA",
+      "email": "e_pgservicesinc@hotmail.com",
+      "telefone": "+557814261039",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2722,
+      "nome": "maichael pedro",
+      "email": "alagoa_azul_@hotmail.com",
+      "telefone": "+558608900273",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2772,
+      "nome": "MARCIA BALDON N/A",
+      "email": "marcelo.baldon@hotmail.com",
+      "telefone": "+552033123863",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 2975,
+      "nome": "MARIA VALDA PORTO NUNES N/A",
+      "email": "valdausa@hotmail.com",
+      "telefone": "+558606802638",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 3038,
+      "nome": "MARTHA",
+      "email": "",
+      "telefone": "+558608167464",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3061,
+      "nome": "MEL DE SOUZA",
+      "email": "",
+      "telefone": "+552039475807",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3103,
+      "nome": "Monica Barbosa Eckman Barbosa Eckman",
+      "email": "eckmans545@comcast.net",
+      "telefone": "+557173934424",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3145,
+      "nome": "NEUSA CARINE DUTRA",
+      "email": "carine@cfmcpa.com",
+      "telefone": "+552035507037",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 3150,
+      "nome": "NEWTON DE ANDRADE",
+      "email": "celylorn@hotmail.com",
+      "telefone": "+555613053278",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 3163,
+      "nome": "NIVALDO VEIGA",
+      "email": "nivaldociro@hotmail.com",
+      "telefone": "+557025688665",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 3247,
+      "nome": "Priscila Silva",
+      "email": "priscila_pqt@hotmail.com",
+      "telefone": "+558608167824",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3522,
+      "nome": "ROSILEY FOGACA",
+      "email": "",
+      "telefone": "+558568137000",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3540,
+      "nome": "RUSTON COELHO N/A",
+      "email": "rustoncoelho@hotmail.com",
+      "telefone": "+555083103418",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3596,
+      "nome": "SARA CARVALHO",
+      "email": "saramello@live.com",
+      "telefone": "+558608999717",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 3692,
+      "nome": "SILVIA MERLIN MERLIN",
+      "email": "",
+      "telefone": "+552036481461",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3706,
+      "nome": "SIMONE LIBANIO N/A",
+      "email": "sinhacl@homail.com",
+      "telefone": "+552039402016",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3938,
+      "nome": "Valdeliro Farias",
+      "email": "valdelirogfarias@ig.com.br",
+      "telefone": "+558192362626",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 3999,
+      "nome": "VANIA ESTANEK",
+      "email": "gestanek@hotmail.com",
+      "telefone": "+558574172627",
+      "motivo": "Email duplicado"
+    },
+    {
+      "linha": 4018,
+      "nome": "vera gross",
+      "email": "veragross2008@hotmail.com",
+      "telefone": "+553475319918",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 4062,
+      "nome": "VIVIANE",
+      "email": "rick.p.ma@hotmail.com",
+      "telefone": "+555152495325",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 4074,
+      "nome": "VLADYS CARGNIN",
+      "email": "vladyszimba@hotmail.com",
+      "telefone": "+559545620679",
+      "motivo": "Telefone duplicado"
+    },
+    {
+      "linha": 4186,
+      "nome": "ZILEIDA",
+      "email": "",
+      "telefone": "+559732238667",
+      "motivo": "Telefone duplicado"
+    }
+  ],
+  "invalidContacts": [
+    "Linha 8: dados insuficientes",
+    "Linha 9: dados insuficientes",
+    "Linha 10: dados insuficientes",
+    "Linha 11: dados insuficientes",
+    "Linha 12: dados insuficientes",
+    "Linha 13: dados insuficientes",
+    "Linha 14: dados insuficientes",
+    "Linha 15: dados insuficientes",
+    "Linha 16: dados insuficientes",
+    "Linha 17: dados insuficientes",
+    "Linha 18: dados insuficientes",
+    "Linha 26: dados insuficientes",
+    "Linha 27: dados insuficientes",
+    "Linha 47: dados insuficientes",
+    "Linha 48: dados insuficientes",
+    "Linha 54: dados insuficientes",
+    "Linha 55: dados insuficientes",
+    "Linha 56: dados insuficientes",
+    "Linha 57: dados insuficientes",
+    "Linha 68: dados insuficientes",
+    "Linha 69: dados insuficientes",
+    "Linha 70: dados insuficientes",
+    "Linha 73: dados insuficientes",
+    "Linha 74: dados insuficientes",
+    "Linha 99: dados insuficientes",
+    "Linha 100: dados insuficientes",
+    "Linha 114: dados insuficientes",
+    "Linha 115: dados insuficientes",
+    "Linha 122: dados insuficientes",
+    "Linha 123: dados insuficientes",
+    "Linha 139: dados insuficientes",
+    "Linha 153: dados insuficientes",
+    "Linha 154: dados insuficientes",
+    "Linha 164: dados insuficientes",
+    "Linha 165: dados insuficientes",
+    "Linha 169: dados insuficientes",
+    "Linha 170: dados insuficientes",
+    "Linha 171: dados insuficientes",
+    "Linha 173: dados insuficientes",
+    "Linha 177: dados insuficientes",
+    "Linha 178: dados insuficientes",
+    "Linha 180: dados insuficientes",
+    "Linha 181: dados insuficientes",
+    "Linha 183: dados insuficientes",
+    "Linha 184: dados insuficientes",
+    "Linha 195: dados insuficientes",
+    "Linha 196: dados insuficientes",
+    "Linha 212: dados insuficientes",
+    "Linha 213: dados insuficientes",
+    "Linha 217: dados insuficientes",
+    "Linha 218: dados insuficientes",
+    "Linha 221: dados insuficientes",
+    "Linha 222: dados insuficientes",
+    "Linha 226: dados insuficientes",
+    "Linha 227: dados insuficientes",
+    "Linha 229: dados insuficientes",
+    "Linha 230: dados insuficientes",
+    "Linha 231: dados insuficientes",
+    "Linha 237: dados insuficientes",
+    "Linha 238: dados insuficientes",
+    "Linha 249: dados insuficientes",
+    "Linha 268: dados insuficientes",
+    "Linha 269: dados insuficientes",
+    "Linha 274: dados insuficientes",
+    "Linha 275: dados insuficientes",
+    "Linha 277: dados insuficientes",
+    "Linha 278: dados insuficientes",
+    "Linha 297: dados insuficientes",
+    "Linha 298: dados insuficientes",
+    "Linha 305: dados insuficientes",
+    "Linha 314: dados insuficientes",
+    "Linha 315: dados insuficientes",
+    "Linha 316: dados insuficientes",
+    "Linha 317: dados insuficientes",
+    "Linha 318: dados insuficientes",
+    "Linha 320: dados insuficientes",
+    "Linha 321: dados insuficientes",
+    "Linha 338: dados insuficientes",
+    "Linha 339: dados insuficientes",
+    "Linha 340: dados insuficientes",
+    "Linha 342: dados insuficientes",
+    "Linha 343: dados insuficientes",
+    "Linha 351: dados insuficientes",
+    "Linha 352: dados insuficientes",
+    "Linha 354: dados insuficientes",
+    "Linha 355: dados insuficientes",
+    "Linha 356: dados insuficientes",
+    "Linha 357: dados insuficientes",
+    "Linha 368: dados insuficientes",
+    "Linha 369: dados insuficientes",
+    "Linha 372: dados insuficientes",
+    "Linha 373: dados insuficientes",
+    "Linha 419: dados insuficientes",
+    "Linha 420: dados insuficientes",
+    "Linha 435: dados insuficientes",
+    "Linha 436: dados insuficientes",
+    "Linha 455: dados insuficientes",
+    "Linha 457: dados insuficientes",
+    "Linha 458: dados insuficientes",
+    "Linha 464: dados insuficientes"
+  ]
+}

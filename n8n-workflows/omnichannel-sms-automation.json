@@ -1,0 +1,288 @@
+{
+  "name": "🚀 Omnichannel SMS Automation - Premium",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Webhook SMS Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "webhookId": "omnichannel-sms-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🧠 Smart SMS Processing with AI Intent Detection\nconst smsData = $input.all()[0].json;\n\n// Extract SMS details\nconst from = smsData.From || smsData.from || smsData.msisdn;\nconst message = smsData.Body || smsData.text || smsData.messageBody;\nconst provider = smsData.provider || 'twilio';\nconst messageId = smsData.MessageSid || smsData['message-id'] || smsData.messageId;\n\n// Normalize phone number\nconst cleanPhone = from.replace(/\\D/g, '');\nconst isUSNumber = cleanPhone.startsWith('1');\nconst isBrazilNumber = cleanPhone.startsWith('55');\n\n// Detect customer intent using AI patterns\nconst messageWords = message.toLowerCase().split(/\\s+/);\n\n// Intent detection patterns\nconst intents = {\n  flight_quote: {\n    keywords: ['cotação', 'preço', 'voo', 'passagem', 'bilhete', 'quote', 'price', 'flight'],\n    confidence: 0,\n    priority: 'high',\n    department: 'sales'\n  },\n  booking_change: {\n    keywords: ['alterar', 'cancelar', 'remarcar', 'trocar', 'modify', 'cancel', 'change'],\n    confidence: 0,\n    priority: 'urgent',\n    department: 'support'\n  },\n  payment_issue: {\n    keywords: ['pagamento', 'cartão', 'cobrança', 'payment', 'card', 'billing'],\n    confidence: 0,\n    priority: 'high',\n    department: 'billing'\n  },\n  general_inquiry: {\n    keywords: ['informação', 'ajuda', 'dúvida', 'info', 'help', 'question'],\n    confidence: 0,\n    priority: 'normal',\n    department: 'sales'\n  }\n};\n\n// Calculate intent confidence\nfor (const [intentName, intent] of Object.entries(intents)) {\n  const matchCount = intent.keywords.filter(keyword => \n    messageWords.some(word => word.includes(keyword))\n  ).length;\n  intent.confidence = matchCount / intent.keywords.length;\n}\n\n// Find best intent\nconst bestIntent = Object.entries(intents)\n  .sort(([,a], [,b]) => b.confidence - a.confidence)[0];\n\nconst detectedIntent = bestIntent[1].confidence > 0.3 ? bestIntent[0] : 'unknown';\nconst intentData = bestIntent[1];\n\n// Determine business hours (EST)\nconst now = new Date();\nconst estHour = new Date(now.toLocaleString(\"en-US\", {timeZone: \"America/New_York\"})).getHours();\nconst isBusinessHours = estHour >= 9 && estHour < 18;\n\n// Customer classification\nlet customerType = 'prospect';\nif (cleanPhone.includes('vip') || message.includes('urgente')) {\n  customerType = 'vip';\n} else if (message.includes('cliente') || message.includes('reserva')) {\n  customerType = 'customer';\n}\n\nreturn {\n  // SMS Data\n  sms: {\n    from: from,\n    message: message,\n    messageId: messageId,\n    provider: provider,\n    timestamp: new Date().toISOString(),\n    phoneNumber: cleanPhone,\n    isUSNumber: isUSNumber,\n    isBrazilNumber: isBrazilNumber\n  },\n  \n  // Intent Analysis\n  intent: {\n    detected: detectedIntent,\n    confidence: intentData.confidence,\n    priority: intentData.priority,\n    department: intentData.department,\n    shouldAutoRespond: !isBusinessHours || detectedIntent === 'general_inquiry'\n  },\n  \n  // Customer Context\n  customer: {\n    type: customerType,\n    preferredLanguage: isBrazilNumber ? 'pt-BR' : 'en-US',\n    timezone: isBrazilNumber ? 'America/Sao_Paulo' : 'America/New_York'\n  },\n  \n  // Business Context\n  business: {\n    isBusinessHours: isBusinessHours,\n    currentHour: estHour,\n    requiresAgent: intentData.priority === 'urgent' || customerType === 'vip'\n  }\n};"
+      },
+      "id": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+      "name": "🧠 AI Intent Detection",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Webhook SMS Trigger\"].json.baseUrl }}/api/omnichannel/webhook/sms",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"🧠 AI Intent Detection\"].json.sms) }}"
+      },
+      "id": "c3d4e5f6-g7h8-9012-cdef-345678901234",
+      "name": "🔄 Send to Omnichannel API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $node[\"🧠 AI Intent Detection\"].json.intent.shouldAutoRespond }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "d4e5f6g7-h8i9-0123-defg-456789012345",
+      "name": "🤖 Should Auto-Respond?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🎯 Generate Smart Auto-Response\nconst { sms, intent, customer, business } = $node[\"🧠 AI Intent Detection\"].json;\n\nlet response = '';\nconst isPortuguese = customer.preferredLanguage === 'pt-BR';\n\n// Business hours responses\nif (business.isBusinessHours) {\n  switch (intent.detected) {\n    case 'flight_quote':\n      response = isPortuguese ? \n        `✈️ Olá! Para cotação de voos, preciso de:\\n\\n📍 Origem e destino\\n📅 Datas\\n👥 Passageiros\\n\\n🚀 Resposta em 2h!\\nWhatsApp: (555) 123-4567` :\n        `✈️ Hello! For flight quotes, I need:\\n\\n📍 Origin and destination\\n📅 Dates\\n👥 Passengers\\n\\n🚀 Response in 2h!\\nWhatsApp: (555) 123-4567`;\n      break;\n      \n    case 'booking_change':\n      response = isPortuguese ?\n        `🔄 Entendi que precisa alterar sua reserva.\\n\\nPreciso de:\\n🎫 Localizador\\n📧 Email da compra\\n\\n💬 Especialista te ajudará agora!` :\n        `🔄 I understand you need to change your booking.\\n\\nI need:\\n🎫 Booking reference\\n📧 Purchase email\\n\\n💬 Specialist will help you now!`;\n      break;\n      \n    case 'payment_issue':\n      response = isPortuguese ?\n        `💳 Problema com pagamento identificado.\\n\\n🔒 Especialista financeiro conectando...\\n⚡ Resolução em minutos!\\n\\nWhatsApp: (555) 123-4567` :\n        `💳 Payment issue identified.\\n\\n🔒 Financial specialist connecting...\\n⚡ Resolution in minutes!\\n\\nWhatsApp: (555) 123-4567`;\n      break;\n      \n    default:\n      response = isPortuguese ?\n        `🛫 Olá! Bem-vindo à Fly2Any!\\n\\n✈️ Especialistas EUA-Brasil\\n🎯 Como posso ajudar?\\n\\nWhatsApp: (555) 123-4567` :\n        `🛫 Hello! Welcome to Fly2Any!\\n\\n✈️ USA-Brazil specialists\\n🎯 How can I help?\\n\\nWhatsApp: (555) 123-4567`;\n  }\n} else {\n  // Off-hours response\n  response = isPortuguese ?\n    `🛫 Fly2Any - Mensagem recebida!\\n\\n🕐 Fora do horário comercial\\n⏰ Seg-Sex: 9h-18h (EST)\\n\\n📱 Emergência: WhatsApp (555) 123-4567\\n🌅 Retorno pela manhã!` :\n    `🛫 Fly2Any - Message received!\\n\\n🕐 Outside business hours\\n⏰ Mon-Fri: 9am-6pm (EST)\\n\\n📱 Emergency: WhatsApp (555) 123-4567\\n🌅 Response in the morning!`;\n}\n\n// Add VIP treatment\nif (customer.type === 'vip') {\n  const vipPrefix = isPortuguese ? '👑 CLIENTE VIP\\n\\n' : '👑 VIP CLIENT\\n\\n';\n  response = vipPrefix + response;\n}\n\nreturn {\n  to: sms.from,\n  message: response,\n  provider: sms.provider,\n  intent: intent.detected,\n  priority: intent.priority,\n  metadata: {\n    autoGenerated: true,\n    language: customer.preferredLanguage,\n    customerType: customer.type,\n    businessHours: business.isBusinessHours,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "e5f6g7h8-i9j0-1234-efgh-567890123456",
+      "name": "🎯 Generate Smart Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $node[\"🎯 Generate Smart Response\"].json.provider }}",
+              "operation": "equal",
+              "value2": "twilio"
+            }
+          ]
+        }
+      },
+      "id": "f6g7h8i9-j0k1-2345-fghi-678901234567",
+      "name": "📱 SMS Provider Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "httpBasicAuth": "twilioCredentials",
+        "sendBody": true,
+        "bodyContentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "To",
+              "value": "={{ $node[\"🎯 Generate Smart Response\"].json.to }}"
+            },
+            {
+              "name": "From",
+              "value": "={{ $env.TWILIO_PHONE_NUMBER }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $node[\"🎯 Generate Smart Response\"].json.message }}"
+            }
+          ]
+        }
+      },
+      "id": "g7h8i9j0-k1l2-3456-ghij-789012345678",
+      "name": "📞 Send via Twilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1400, 100]
+    },
+    {
+      "parameters": {
+        "url": "https://rest.nexmo.com/sms/json",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"from\": \"{{ $env.VONAGE_FROM_NUMBER }}\",\n  \"to\": \"{{ $node[\"🎯 Generate Smart Response\"].json.to }}\",\n  \"text\": \"{{ $node[\"🎯 Generate Smart Response\"].json.message }}\",\n  \"api_key\": \"{{ $env.VONAGE_API_KEY }}\",\n  \"api_secret\": \"{{ $env.VONAGE_API_SECRET }}\"\n}"
+      },
+      "id": "h8i9j0k1-l2m3-4567-hijk-890123456789",
+      "name": "📧 Send via Vonage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔔 Create Agent Notification\nconst { sms, intent, customer, business } = $node[\"🧠 AI Intent Detection\"].json;\n\nconst notification = {\n  type: 'new_sms_message',\n  channel: 'phone',\n  priority: intent.priority,\n  customer: {\n    phone: sms.from,\n    type: customer.type,\n    language: customer.preferredLanguage\n  },\n  message: {\n    content: sms.message,\n    intent: intent.detected,\n    confidence: intent.confidence,\n    timestamp: sms.timestamp\n  },\n  routing: {\n    department: intent.department,\n    requiresAgent: business.requiresAgent,\n    isVIP: customer.type === 'vip',\n    isUrgent: intent.priority === 'urgent'\n  },\n  metadata: {\n    provider: sms.provider,\n    messageId: sms.messageId,\n    businessHours: business.isBusinessHours,\n    autoResponseSent: intent.shouldAutoRespond\n  }\n};\n\nreturn notification;"
+      },
+      "id": "i9j0k1l2-m3n4-5678-ijkl-901234567890",
+      "name": "🔔 Agent Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Webhook SMS Trigger\"].json.baseUrl }}/api/omnichannel/ws",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"🔔 Agent Notification\"].json) }}"
+      },
+      "id": "j0k1l2m3-n4o5-6789-jklm-012345678901",
+      "name": "📡 Send Real-time Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 📊 Analytics & Logging\nconst startTime = new Date($node[\"Webhook SMS Trigger\"].json.headers['x-timestamp'] || Date.now());\nconst processingTime = Date.now() - startTime.getTime();\n\nconst analytics = {\n  workflow: 'omnichannel-sms-automation',\n  processingTime: processingTime,\n  timestamp: new Date().toISOString(),\n  sms: {\n    provider: $node[\"🧠 AI Intent Detection\"].json.sms.provider,\n    phoneNumber: $node[\"🧠 AI Intent Detection\"].json.sms.phoneNumber,\n    messageLength: $node[\"🧠 AI Intent Detection\"].json.sms.message.length\n  },\n  intent: {\n    detected: $node[\"🧠 AI Intent Detection\"].json.intent.detected,\n    confidence: $node[\"🧠 AI Intent Detection\"].json.intent.confidence,\n    priority: $node[\"🧠 AI Intent Detection\"].json.intent.priority\n  },\n  automation: {\n    autoResponseSent: $node[\"🧠 AI Intent Detection\"].json.intent.shouldAutoRespond,\n    agentNotified: true,\n    businessHours: $node[\"🧠 AI Intent Detection\"].json.business.isBusinessHours\n  },\n  customer: {\n    type: $node[\"🧠 AI Intent Detection\"].json.customer.type,\n    language: $node[\"🧠 AI Intent Detection\"].json.customer.preferredLanguage\n  }\n};\n\nconsole.log('📊 SMS Workflow Analytics:', JSON.stringify(analytics, null, 2));\n\nreturn analytics;"
+      },
+      "id": "k1l2m3n4-o5p6-7890-klmn-123456789012",
+      "name": "📊 Analytics & Logging",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1400, 500]
+    }
+  ],
+  "connections": {
+    "Webhook SMS Trigger": {
+      "main": [
+        [
+          {
+            "node": "🧠 AI Intent Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 AI Intent Detection": {
+      "main": [
+        [
+          {
+            "node": "🔄 Send to Omnichannel API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Send to Omnichannel API": {
+      "main": [
+        [
+          {
+            "node": "🤖 Should Auto-Respond?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Should Auto-Respond?": {
+      "main": [
+        [
+          {
+            "node": "🎯 Generate Smart Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🔔 Agent Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Generate Smart Response": {
+      "main": [
+        [
+          {
+            "node": "📱 SMS Provider Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔔 Agent Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 SMS Provider Router": {
+      "main": [
+        [
+          {
+            "node": "📞 Send via Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📧 Send via Vonage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔔 Agent Notification": {
+      "main": [
+        [
+          {
+            "node": "📡 Send Real-time Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📡 Send Real-time Notification": {
+      "main": [
+        [
+          {
+            "node": "📊 Analytics & Logging",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "id": "premium-omnichannel",
+      "name": "Premium Omnichannel"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "premium-sms-v1.0"
+}

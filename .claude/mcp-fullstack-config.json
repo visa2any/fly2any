@@ -1,0 +1,92 @@
+{
+  "name": "Full Stack UI/UX Automation MCP Configuration",
+  "version": "1.0.0",
+  "description": "Configuração completa MCPs para engenheiro full stack",
+  "recommended_mcps": {
+    "ui_ux_design": {
+      "figma-mcp": {
+        "description": "Integração completa com Figma",
+        "install": "npm install @figma/mcp-server",
+        "features": ["design-to-code", "ai-design-assistance", "component-generation"]
+      },
+      "ui-ux-stack": {
+        "description": "Stack completo UI/UX com inspiração + design + handoff",
+        "install": "npx create-mcp-stack@latest ui-ux-stack",
+        "features": ["inspiration-gathering", "figma-integration", "react-conversion"]
+      },
+      "photoshop-mcp": {
+        "description": "Automação Adobe Photoshop",
+        "install": "npm install photoshop-python-mcp",
+        "features": ["image-automation", "batch-processing", "ai-editing"]
+      }
+    },
+    "automation": {
+      "playwright-mcp": {
+        "description": "Automação web cross-browser",
+        "install": "npm install playwright-mcp",
+        "features": ["e2e-testing", "web-scraping", "ui-automation"]
+      },
+      "puppeteer-mcp": {
+        "description": "Automação Chrome específica",
+        "install": "npm install puppeteer-mcp",
+        "features": ["chrome-automation", "screenshot-generation", "form-automation"]
+      }
+    },
+    "full_stack_development": {
+      "supabase-mcp": {
+        "description": "Backend-as-a-Service completo",
+        "install": "npm install supabase-mcp",
+        "features": ["database-management", "auth-system", "realtime-data"]
+      },
+      "github-mcp": {
+        "description": "Integração Git/GitHub completa",
+        "install": "npm install github-mcp",
+        "features": ["pr-management", "issue-tracking", "ci-cd-automation"]
+      },
+      "storybook-mcp": {
+        "description": "Desenvolvimento de componentes",
+        "install": "npm install storybook-mcp",
+        "features": ["component-library", "documentation", "visual-testing"]
+      }
+    },
+    "mobile_frameworks": {
+      "flutter-mcp": {
+        "description": "Desenvolvimento Flutter",
+        "install": "npm install flutter-mcp",
+        "features": ["mobile-development", "cross-platform", "widget-generation"]
+      },
+      "react-native-mcp": {
+        "description": "Desenvolvimento React Native",
+        "install": "npm install react-native-mcp",
+        "features": ["mobile-apps", "native-bridge", "component-generation"]
+      }
+    }
+  },
+  "workflow_configurations": {
+    "ui_ux_designer": ["figma-mcp", "ui-ux-stack", "photoshop-mcp", "playwright-mcp"],
+    "full_stack_developer": ["github-mcp", "supabase-mcp", "storybook-mcp", "playwright-mcp"],
+    "frontend_specialist": ["figma-mcp", "storybook-mcp", "puppeteer-mcp", "react-native-mcp"],
+    "automation_engineer": ["playwright-mcp", "puppeteer-mcp", "github-mcp", "supabase-mcp"],
+    "mobile_developer": ["flutter-mcp", "react-native-mcp", "github-mcp", "storybook-mcp"]
+  },
+  "installation_script": {
+    "full_stack_setup": [
+      "npm install @figma/mcp-server",
+      "npm install playwright-mcp",
+      "npm install github-mcp",
+      "npm install supabase-mcp",
+      "npm install storybook-mcp"
+    ],
+    "ui_ux_setup": [
+      "npx create-mcp-stack@latest ui-ux-stack",
+      "npm install @figma/mcp-server",
+      "npm install photoshop-python-mcp",
+      "npm install playwright-mcp"
+    ],
+    "automation_setup": [
+      "npm install playwright-mcp",
+      "npm install puppeteer-mcp",
+      "npm install github-mcp"
+    ]
+  }
+}
