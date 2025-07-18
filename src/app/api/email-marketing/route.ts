@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
-// Força o carregamento das variáveis de ambiente
-dotenv.config({ path: '.env.local' });
+// Carrega variáveis diretamente do arquivo
+function loadEnvVars() {
+  const envPath = path.join(process.cwd(), '.env.local');
+  try {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const lines = envContent.split('\n');
+    
+    for (const line of lines) {
+      const [key, value] = line.split('=');
+      if (key && value && key.trim() === 'GMAIL_EMAIL') {
+        process.env.GMAIL_EMAIL = value.replace(/"/g, '');
+      }
+      if (key && value && key.trim() === 'GMAIL_APP_PASSWORD') {
+        process.env.GMAIL_APP_PASSWORD = value.replace(/"/g, '');
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar .env.local:', error);
+  }
+}
+
+// Força o carregamento das variáveis
+loadEnvVars();
 
 export async function POST(request: NextRequest) {
   try {
