@@ -227,80 +227,80 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="p-8">
+    <div className="admin-content">
+      <div className="admin-container">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="admin-header-section">
+          <h1 className="admin-page-title">
             Gestão de Leads
           </h1>
-          <p className="text-gray-600">
+          <p className="admin-page-description">
             Gerencie todos os leads e oportunidades de negócio
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total de Leads</p>
-                <p className="text-2xl font-bold text-gray-900">{leadsStats.total}</p>
+        <div className="admin-stats-grid">
+          <div className="admin-card admin-stats-card">
+            <div className="admin-stats-content">
+              <div className="admin-stats-info">
+                <p className="admin-stats-label">Total de Leads</p>
+                <p className="admin-stats-value">{leadsStats.total}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <span className="text-2xl">📊</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Hoje</p>
-                <p className="text-2xl font-bold text-gray-900">{leadsStats.today}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <span className="text-2xl">📅</span>
+              <div className="admin-stats-icon admin-icon-primary">
+                <span>📊</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Esta Semana</p>
-                <p className="text-2xl font-bold text-gray-900">{leadsStats.thisWeek}</p>
+          <div className="admin-card admin-stats-card">
+            <div className="admin-stats-content">
+              <div className="admin-stats-info">
+                <p className="admin-stats-label">Hoje</p>
+                <p className="admin-stats-value">{leadsStats.today}</p>
               </div>
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <span className="text-2xl">📈</span>
+              <div className="admin-stats-icon admin-icon-success">
+                <span>📅</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Este Mês</p>
-                <p className="text-2xl font-bold text-gray-900">{leadsStats.thisMonth}</p>
+          <div className="admin-card admin-stats-card">
+            <div className="admin-stats-content">
+              <div className="admin-stats-info">
+                <p className="admin-stats-label">Esta Semana</p>
+                <p className="admin-stats-value">{leadsStats.thisWeek}</p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <span className="text-2xl">🎯</span>
+              <div className="admin-stats-icon admin-icon-warning">
+                <span>📈</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="admin-card admin-stats-card">
+            <div className="admin-stats-content">
+              <div className="admin-stats-info">
+                <p className="admin-stats-label">Este Mês</p>
+                <p className="admin-stats-value">{leadsStats.thisMonth}</p>
+              </div>
+              <div className="admin-stats-icon admin-icon-info">
+                <span>🎯</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="admin-card admin-filters-card">
+          <div className="admin-filters-grid">
+            <div className="admin-form-group">
+              <label className="admin-form-label">
                 Status
               </label>
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="admin-form-select"
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>
@@ -316,14 +316,14 @@ export default function LeadsPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="admin-form-group">
+              <label className="admin-form-label">
                 Origem
               </label>
               <select
                 value={filters.source}
                 onChange={(e) => handleFilterChange('source', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="admin-form-select"
               >
                 {sourceOptions.map(source => (
                   <option key={source} value={source}>
@@ -338,8 +338,8 @@ export default function LeadsPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="admin-form-group">
+              <label className="admin-form-label">
                 Buscar
               </label>
               <input
@@ -347,75 +347,79 @@ export default function LeadsPage() {
                 value={filters.search}
                 onChange={handleSearch}
                 placeholder="Nome, email, telefone..."
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="admin-form-input"
               />
             </div>
           </div>
         </div>
 
         {/* Leads Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+        <div className="admin-card admin-table-card">
+          <div className="admin-table-container">
+            <table className="admin-table">
+              <thead className="admin-table-header">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Lead
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Contato
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Viagem
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Origem
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th">
                     Data
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="admin-table-th admin-table-th-actions">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="admin-table-body">
                 {filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium text-sm">
+                  <tr key={lead.id} className="admin-table-row">
+                    <td className="admin-table-td">
+                      <div className="admin-user-cell">
+                        <div className="admin-avatar">
+                          <span className="admin-avatar-text">
                             {lead.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
                           </span>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                        <div className="admin-user-info">
+                          <div className="admin-user-name">
                             {lead.nome}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="admin-user-meta">
                             ID: {lead.id}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lead.email}</div>
-                      <div className="text-sm text-gray-500">{lead.whatsapp}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {lead.origem} → {lead.destino}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(lead.dataPartida)} • {lead.numeroPassageiros} pax
+                    <td className="admin-table-td">
+                      <div className="admin-contact-info">
+                        <div className="admin-contact-primary">{lead.email}</div>
+                        <div className="admin-contact-secondary">{lead.whatsapp}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(lead.status)}`}>
+                    <td className="admin-table-td">
+                      <div className="admin-travel-info">
+                        <div className="admin-travel-route">
+                          {lead.origem} → {lead.destino}
+                        </div>
+                        <div className="admin-travel-details">
+                          {formatDate(lead.dataPartida)} • {lead.numeroPassageiros} pax
+                        </div>
+                      </div>
+                    </td>
+                    <td className="admin-table-td">
+                      <span className={getStatusBadge(lead.status)}>
                         {lead.status === 'novo' ? 'Novo' :
                          lead.status === 'contatado' ? 'Contatado' :
                          lead.status === 'cotacao_enviada' ? 'Cotação Enviada' :
@@ -424,20 +428,24 @@ export default function LeadsPage() {
                          lead.status === 'perdido' ? 'Perdido' : lead.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {lead.source === 'website' ? 'Website' :
-                       lead.source === 'whatsapp' ? 'WhatsApp' :
-                       lead.source === 'instagram' ? 'Instagram' :
-                       lead.source === 'google_ads' ? 'Google Ads' :
-                       lead.source === 'facebook' ? 'Facebook' : lead.source}
+                    <td className="admin-table-td">
+                      <span className="admin-source-label">
+                        {lead.source === 'website' ? 'Website' :
+                         lead.source === 'whatsapp' ? 'WhatsApp' :
+                         lead.source === 'instagram' ? 'Instagram' :
+                         lead.source === 'google_ads' ? 'Google Ads' :
+                         lead.source === 'facebook' ? 'Facebook' : lead.source}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDateTime(lead.createdAt)}
+                    <td className="admin-table-td">
+                      <span className="admin-date-label">
+                        {formatDateTime(lead.createdAt)}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="admin-table-td admin-table-actions">
                       <button
                         onClick={() => viewLead(lead)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        className="admin-btn admin-btn-sm admin-btn-primary"
                       >
                         Ver
                       </button>
@@ -581,27 +589,6 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {/* CSS Styles */}
-      <style jsx>{`
-        .admin-badge {
-          @apply inline-flex px-2 py-1 text-xs font-semibold rounded-full;
-        }
-        .admin-badge-info {
-          @apply bg-blue-100 text-blue-800;
-        }
-        .admin-badge-warning {
-          @apply bg-yellow-100 text-yellow-800;
-        }
-        .admin-badge-neutral {
-          @apply bg-gray-100 text-gray-800;
-        }
-        .admin-badge-success {
-          @apply bg-green-100 text-green-800;
-        }
-        .admin-badge-danger {
-          @apply bg-red-100 text-red-800;
-        }
-      `}</style>
     </div>
   );
 }
