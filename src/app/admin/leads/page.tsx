@@ -227,80 +227,90 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="admin-content">
-      <div className="admin-container">
-        {/* Header */}
-        <div className="admin-header-section">
-          <h1 className="admin-page-title">
-            Gestão de Leads
-          </h1>
-          <p className="admin-page-description">
-            Gerencie todos os leads e oportunidades de negócio
-          </p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+                Gestão de Leads
+              </h1>
+              <p className="text-sm text-admin-text-secondary">
+                Gerencie todos os leads e oportunidades de negócio
+              </p>
+            </div>
+            <button
+              onClick={() => fetchLeads()}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border-0 font-semibold"
+            >
+              🔄 Atualizar
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="admin-stats-grid">
-          <div className="admin-card admin-stats-card">
-            <div className="admin-stats-content">
-              <div className="admin-stats-info">
-                <p className="admin-stats-label">Total de Leads</p>
-                <p className="admin-stats-value">{leadsStats.total}</p>
-              </div>
-              <div className="admin-stats-icon admin-icon-primary">
-                <span>📊</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl">
+                📊
               </div>
             </div>
-          </div>
-
-          <div className="admin-card admin-stats-card">
-            <div className="admin-stats-content">
-              <div className="admin-stats-info">
-                <p className="admin-stats-label">Hoje</p>
-                <p className="admin-stats-value">{leadsStats.today}</p>
-              </div>
-              <div className="admin-stats-icon admin-icon-success">
-                <span>📅</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="admin-card admin-stats-card">
-            <div className="admin-stats-content">
-              <div className="admin-stats-info">
-                <p className="admin-stats-label">Esta Semana</p>
-                <p className="admin-stats-value">{leadsStats.thisWeek}</p>
-              </div>
-              <div className="admin-stats-icon admin-icon-warning">
-                <span>📈</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="admin-card admin-stats-card">
-            <div className="admin-stats-content">
-              <div className="admin-stats-info">
-                <p className="admin-stats-label">Este Mês</p>
-                <p className="admin-stats-value">{leadsStats.thisMonth}</p>
-              </div>
-              <div className="admin-stats-icon admin-icon-info">
-                <span>🎯</span>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{leadsStats.total}</div>
+            <div className="text-sm text-admin-text-secondary">Total de Leads</div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="admin-card admin-filters-card">
-          <div className="admin-filters-grid">
-            <div className="admin-form-group">
-              <label className="admin-form-label">
-                Status
-              </label>
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white flex items-center justify-center text-2xl">
+                📅
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{leadsStats.today}</div>
+            <div className="text-sm text-admin-text-secondary">Hoje</div>
+          </div>
+        </div>
+
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center text-2xl">
+                📈
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{leadsStats.thisWeek}</div>
+            <div className="text-sm text-admin-text-secondary">Esta Semana</div>
+          </div>
+        </div>
+
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white flex items-center justify-center text-2xl">
+                🎯
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{leadsStats.thisMonth}</div>
+            <div className="text-sm text-admin-text-secondary">Este Mês</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="admin-label">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="admin-form-select"
+                className="admin-input"
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>
@@ -316,14 +326,12 @@ export default function LeadsPage() {
               </select>
             </div>
 
-            <div className="admin-form-group">
-              <label className="admin-form-label">
-                Origem
-              </label>
+            <div>
+              <label className="admin-label">Origem</label>
               <select
                 value={filters.source}
                 onChange={(e) => handleFilterChange('source', e.target.value)}
-                className="admin-form-select"
+                className="admin-input"
               >
                 {sourceOptions.map(source => (
                   <option key={source} value={source}>
@@ -338,46 +346,54 @@ export default function LeadsPage() {
               </select>
             </div>
 
-            <div className="admin-form-group">
-              <label className="admin-form-label">
-                Buscar
-              </label>
+            <div>
+              <label className="admin-label">Buscar</label>
               <input
                 type="text"
                 value={filters.search}
                 onChange={handleSearch}
                 placeholder="Nome, email, telefone..."
-                className="admin-form-input"
+                className="admin-input"
               />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Leads Table */}
-        <div className="admin-card admin-table-card">
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead className="admin-table-header">
-                <tr>
-                  <th className="admin-table-th">
+      {/* Leads Table */}
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <h2 className="admin-card-title">
+            Leads ({filteredLeads.length})
+          </h2>
+          <p className="admin-card-description">
+            Lista de todos os leads recebidos
+          </p>
+        </div>
+        <div className="admin-card-content">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-admin-border-color">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Lead
                   </th>
-                  <th className="admin-table-th">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Contato
                   </th>
-                  <th className="admin-table-th">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Viagem
                   </th>
-                  <th className="admin-table-th">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Status
                   </th>
-                  <th className="admin-table-th">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Origem
                   </th>
-                  <th className="admin-table-th">
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">
                     Data
                   </th>
-                  <th className="admin-table-th admin-table-th-actions">
+                  <th className="text-right py-3 px-2 text-admin-text-secondary font-medium">
                     Ações
                   </th>
                 </tr>
@@ -458,24 +474,29 @@ export default function LeadsPage() {
 
           {/* Pagination */}
           {leadsData.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="flex-1 flex justify-between">
+            <div className="admin-pagination">
+              <div className="admin-pagination-content">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  className="admin-btn admin-btn-sm admin-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Anterior
+                  ← Anterior
                 </button>
-                <span className="text-sm text-gray-700">
-                  Página {currentPage} de {leadsData.totalPages} ({leadsData.total} leads)
-                </span>
+                <div className="admin-pagination-info">
+                  <span className="text-sm text-admin-text-secondary">
+                    Página <span className="font-semibold text-admin-text-primary">{currentPage}</span> de <span className="font-semibold text-admin-text-primary">{leadsData.totalPages}</span>
+                  </span>
+                  <span className="text-xs text-admin-text-muted block md:inline md:ml-2">
+                    ({leadsData.total} leads total)
+                  </span>
+                </div>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === leadsData.totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  className="admin-btn admin-btn-sm admin-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Próxima
+                  Próxima →
                 </button>
               </div>
             </div>
@@ -484,12 +505,12 @@ export default function LeadsPage() {
 
         {/* Empty State */}
         {filteredLeads.length === 0 && !loading && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <span className="text-6xl mb-4 block">📋</span>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="admin-empty-state">
+            <div className="admin-empty-icon">📋</div>
+            <h3 className="admin-empty-title">
               Nenhum lead encontrado
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="admin-empty-description">
               {filters.search || filters.status !== 'Todos' || filters.source !== 'Todas'
                 ? 'Tente ajustar os filtros ou fazer uma nova busca.'
                 : 'Quando você receber leads, eles aparecerão aqui.'}
@@ -499,9 +520,9 @@ export default function LeadsPage() {
                 setFilters({ status: 'Todos', source: 'Todas', search: '' });
                 fetchLeads();
               }}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              className="admin-btn admin-btn-primary"
             >
-              Limpar Filtros
+              🔄 Limpar Filtros
             </button>
           </div>
         )}
@@ -509,15 +530,15 @@ export default function LeadsPage() {
 
       {/* View Modal */}
       {isViewModalOpen && selectedLead && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Detalhes do Lead
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <div className="admin-modal-header">
+              <h3 className="admin-modal-title">
+                📋 Detalhes do Lead
               </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="admin-modal-close"
               >
                 <span className="sr-only">Fechar</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -526,61 +547,66 @@ export default function LeadsPage() {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nome</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.nome}</p>
+            <div className="admin-modal-content">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="admin-field-group">
+                  <label className="admin-label">👤 Nome</label>
+                  <p className="admin-field-value">{selectedLead.nome}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.email}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">📧 Email</label>
+                  <p className="admin-field-value">{selectedLead.email}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.whatsapp}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">📱 WhatsApp</label>
+                  <p className="admin-field-value">{selectedLead.whatsapp}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(selectedLead.status)}`}>
-                    {selectedLead.status}
+                <div className="admin-field-group">
+                  <label className="admin-label">🏷️ Status</label>
+                  <span className={getStatusBadge(selectedLead.status)}>
+                    {selectedLead.status === 'novo' ? 'Novo' :
+                     selectedLead.status === 'contatado' ? 'Contatado' :
+                     selectedLead.status === 'cotacao_enviada' ? 'Cotação Enviada' :
+                     selectedLead.status === 'negociacao' ? 'Negociação' :
+                     selectedLead.status === 'fechado' ? 'Fechado' :
+                     selectedLead.status === 'perdido' ? 'Perdido' : selectedLead.status}
                   </span>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Origem</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.origem}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">🛫 Origem</label>
+                  <p className="admin-field-value">{selectedLead.origem}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Destino</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.destino}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">🛬 Destino</label>
+                  <p className="admin-field-value">{selectedLead.destino}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Data de Partida</label>
-                  <p className="mt-1 text-sm text-gray-900">{formatDate(selectedLead.dataPartida)}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">📅 Data de Partida</label>
+                  <p className="admin-field-value">{formatDate(selectedLead.dataPartida)}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Passageiros</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.numeroPassageiros}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">👥 Passageiros</label>
+                  <p className="admin-field-value">{selectedLead.numeroPassageiros}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Serviços</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.selectedServices.join(', ')}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">🎯 Serviços</label>
+                  <p className="admin-field-value">{selectedLead.selectedServices.join(', ')}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Orçamento</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedLead.orcamentoTotal || 'N/A'}</p>
+                <div className="admin-field-group">
+                  <label className="admin-label">💰 Orçamento</label>
+                  <p className="admin-field-value">{selectedLead.orcamentoTotal || 'N/A'}</p>
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Criado em</label>
-                  <p className="mt-1 text-sm text-gray-900">{formatDateTime(selectedLead.createdAt)}</p>
+                <div className="admin-field-group md:col-span-2">
+                  <label className="admin-label">🕒 Criado em</label>
+                  <p className="admin-field-value">{formatDateTime(selectedLead.createdAt)}</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="admin-modal-footer">
               <button
                 onClick={closeModal}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+                className="admin-btn admin-btn-secondary"
               >
                 Fechar
               </button>
