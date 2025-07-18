@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import dotenv from 'dotenv';
+
+// Força o carregamento das variáveis de ambiente
+dotenv.config({ path: '.env.local' });
 
 export async function POST(request: NextRequest) {
   try {
