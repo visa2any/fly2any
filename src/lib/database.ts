@@ -1,4 +1,5 @@
 import { sql } from '@vercel/postgres';
+import { DatabaseFallback } from './database-fallback';
 
 export interface ServiceData {
   id: string;
@@ -677,50 +678,99 @@ export class DatabaseService {
     page: number;
     totalPages: number;
   }> {
-    const offset = (page - 1) * limit;
-    
-    const result = await sql`
-      SELECT * FROM leads 
-      ORDER BY created_at DESC 
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-    
-    const countResult = await sql`SELECT COUNT(*) as total FROM leads`;
-    const total = parseInt(countResult.rows[0].total);
-    const totalPages = Math.ceil(total / limit);
-    
-    const leads = result.rows.map(row => ({
-      id: row.id,
-      customerId: row.customer_id,
-      nome: row.nome,
-      email: row.email,
-      whatsapp: row.whatsapp,
-      origem: row.origem,
-      destino: row.destino,
-      dataPartida: row.data_partida,
-      dataRetorno: row.data_retorno,
-      numeroPassageiros: row.numero_passageiros,
-      tipoViagem: row.tipo_viagem,
-      selectedServices: JSON.parse(row.selected_services || '[]'),
-      precisaHospedagem: row.precisa_hospedagem,
-      precisaTransporte: row.precisa_transporte,
-      orcamentoTotal: row.orcamento_total,
-      prioridadeOrcamento: row.prioridade_orcamento,
-      source: row.source,
-      status: row.status,
-      priority: row.priority,
-      assignedTo: row.assigned_to,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      fullData: JSON.parse(row.full_data || '{}')
-    }));
+    try {
+      const offset = (page - 1) * limit;
+      
+      const result = await sql`
+        SELECT * FROM leads 
+        ORDER BY created_at DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+      
+      const countResult = await sql`SELECT COUNT(*) as total FROM leads`;
+      const total = parseInt(countResult.rows[0].total);
+      const totalPages = Math.ceil(total / limit);
+      
+      const leads = result.rows.map(row => ({
+        id: row.id,
+        customerId: row.customer_id,
+        nome: row.nome,
+        email: row.email,
+        whatsapp: row.whatsapp,
+        origem: row.origem,
+        destino: row.destino,
+        dataPartida: row.data_partida,
+        dataRetorno: row.data_retorno,
+        numeroPassageiros: row.numero_passageiros,
+        tipoViagem: row.tipo_viagem,
+        selectedServices: JSON.parse(row.selected_services || '[]'),
+        precisaHospedagem: row.precisa_hospedagem,
+        precisaTransporte: row.precisa_transporte,
+        orcamentoTotal: row.orcamento_total,
+        prioridadeOrcamento: row.prioridade_orcamento,
+        source: row.source,
+        status: row.status,
+        priority: row.priority,
+        assignedTo: row.assigned_to,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        fullData: JSON.parse(row.full_data || '{}')
+      }));
 
-    return {
-      leads,
-      total,
-      page,
-      totalPages
-    };
+      return {
+        leads,
+        total,
+        page,
+        totalPages
+      };
+    } catch (error) {
+      console.warn('Database query failed, using fallback data:', error);
+      // Fallback para dados do arquivo
+      const fallbackLeads = await DatabaseFallback.getLeadsFromFile();
+      
+      // Converter formato do fallback para o formato esperado
+      const convertedLeads = fallbackLeads.map((lead: any) => ({
+        id: lead.id,
+        customerId: lead.customerId || null,
+        nome: lead.nome,
+        email: lead.email,
+        whatsapp: lead.whatsapp,
+        telefone: lead.telefone || '',
+        sobrenome: lead.sobrenome || '',
+        origem: lead.origem || '',
+        destino: lead.destino || '',
+        dataPartida: lead.dataPartida || '',
+        dataRetorno: lead.dataRetorno || '',
+        numeroPassageiros: lead.numeroPassageiros || 1,
+        tipoViagem: lead.tipoViagem || 'ida_volta',
+        selectedServices: Array.isArray(lead.selectedServices) ? lead.selectedServices : 
+                          lead.serviceType ? [lead.serviceType] : ['voos'],
+        precisaHospedagem: Boolean(lead.precisaHospedagem),
+        precisaTransporte: Boolean(lead.precisaTransporte),
+        orcamentoTotal: lead.orcamentoTotal || lead.orcamentoAproximado,
+        prioridadeOrcamento: lead.prioridadeOrcamento || 'custo_beneficio',
+        source: lead.source || 'website',
+        status: lead.status || 'novo',
+        priority: lead.priority || 'media',
+        assignedTo: lead.assignedTo,
+        createdAt: new Date(lead.createdAt),
+        updatedAt: new Date(lead.updatedAt || lead.createdAt),
+        fullData: lead.fullData || lead
+      }));
+      
+      // Aplicar paginação
+      const total = convertedLeads.length;
+      const totalPages = Math.ceil(total / limit);
+      const offset = (page - 1) * limit;
+      const paginatedLeads = convertedLeads.slice(offset, offset + limit);
+      
+      return {
+        leads: paginatedLeads,
+        total,
+        page,
+        totalPages
+      };
+    }
   }
 
   static async getLeadStats(): Promise<{
@@ -730,34 +780,74 @@ export class DatabaseService {
     thisMonth: number;
     byService: Record<string, number>;
   }> {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const thisWeek = new Date(today);
-    thisWeek.setDate(today.getDate() - today.getDay());
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    try {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisWeek = new Date(today);
+      thisWeek.setDate(today.getDate() - today.getDay());
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const totalResult = await sql`SELECT COUNT(*) as total FROM leads`;
-    const todayResult = await sql`SELECT COUNT(*) as today FROM leads WHERE created_at >= ${today.toISOString()}`;
-    const weekResult = await sql`SELECT COUNT(*) as week FROM leads WHERE created_at >= ${thisWeek.toISOString()}`;
-    const monthResult = await sql`SELECT COUNT(*) as month FROM leads WHERE created_at >= ${thisMonth.toISOString()}`;
+      const totalResult = await sql`SELECT COUNT(*) as total FROM leads`;
+      const todayResult = await sql`SELECT COUNT(*) as today FROM leads WHERE created_at >= ${today.toISOString()}`;
+      const weekResult = await sql`SELECT COUNT(*) as week FROM leads WHERE created_at >= ${thisWeek.toISOString()}`;
+      const monthResult = await sql`SELECT COUNT(*) as month FROM leads WHERE created_at >= ${thisMonth.toISOString()}`;
 
-    const servicesResult = await sql`SELECT selected_services FROM leads WHERE selected_services IS NOT NULL`;
-    const byService: Record<string, number> = {};
-    
-    servicesResult.rows.forEach(row => {
-      const services = JSON.parse(row.selected_services || '[]');
-      services.forEach((service: string) => {
-        byService[service] = (byService[service] || 0) + 1;
+      const servicesResult = await sql`SELECT selected_services FROM leads WHERE selected_services IS NOT NULL`;
+      const byService: Record<string, number> = {};
+      
+      servicesResult.rows.forEach(row => {
+        const services = JSON.parse(row.selected_services || '[]');
+        services.forEach((service: string) => {
+          byService[service] = (byService[service] || 0) + 1;
+        });
       });
-    });
 
-    return {
-      total: parseInt(totalResult.rows[0].total),
-      today: parseInt(todayResult.rows[0].today),
-      thisWeek: parseInt(weekResult.rows[0].week),
-      thisMonth: parseInt(monthResult.rows[0].month),
-      byService
-    };
+      return {
+        total: parseInt(totalResult.rows[0].total),
+        today: parseInt(todayResult.rows[0].today),
+        thisWeek: parseInt(weekResult.rows[0].week),
+        thisMonth: parseInt(monthResult.rows[0].month),
+        byService
+      };
+    } catch (error) {
+      console.warn('Database stats query failed, using fallback data:', error);
+      // Fallback para dados do arquivo
+      const fallbackLeads = await DatabaseFallback.getLeadsFromFile();
+      
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisWeek = new Date(today);
+      thisWeek.setDate(today.getDate() - today.getDay());
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const total = fallbackLeads.length;
+      const todayCount = fallbackLeads.filter((lead: any) => 
+        new Date(lead.createdAt) >= today
+      ).length;
+      const weekCount = fallbackLeads.filter((lead: any) => 
+        new Date(lead.createdAt) >= thisWeek
+      ).length;
+      const monthCount = fallbackLeads.filter((lead: any) => 
+        new Date(lead.createdAt) >= thisMonth
+      ).length;
+      
+      const byService: Record<string, number> = {};
+      fallbackLeads.forEach((lead: any) => {
+        const services = Array.isArray(lead.selectedServices) ? lead.selectedServices : 
+                        lead.serviceType ? [lead.serviceType] : ['voos'];
+        services.forEach((service: string) => {
+          byService[service] = (byService[service] || 0) + 1;
+        });
+      });
+      
+      return {
+        total,
+        today: todayCount,
+        thisWeek: weekCount,
+        thisMonth: monthCount,
+        byService
+      };
+    }
   }
 }
 
