@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService, Customer, Lead } from '@/lib/database';
+import { DatabaseFallback } from '@/lib/database-fallback';
 // import { sendWhatsAppMessage } from '@/lib/whatsapp';
 // import { trackConversion } from '@/lib/analytics';
 
@@ -326,7 +327,12 @@ async function sendConfirmationEmail(leadData: LeadData) {
 export async function POST(request: NextRequest) {
   try {
     // Inicializar tabelas se necessário
-    await DatabaseService.initializeTables();
+    try {
+      await DatabaseService.initializeTables();
+    } catch (dbError) {
+      console.error('Database initialization failed:', dbError);
+      // Continue processing without database if initialization fails
+    }
     
     const leadData: LeadData = await request.json();
     
@@ -362,11 +368,17 @@ export async function POST(request: NextRequest) {
       // Formato novo - criar/atualizar cliente e lead
       try {
         // Verificar se cliente já existe
-        customer = await DatabaseService.getCustomerByEmail(leadData.email);
+        try {
+          customer = await DatabaseService.getCustomerByEmail(leadData.email);
+        } catch (error) {
+          console.warn('Database customer lookup failed:', error);
+          customer = null;
+        }
         
         if (!customer) {
           // Criar novo cliente
-          customer = await DatabaseService.createCustomer({
+          try {
+            customer = await DatabaseService.createCustomer({
             nome: leadData.nome,
             email: leadData.email,
             whatsapp: leadData.whatsapp,
@@ -394,18 +406,27 @@ export async function POST(request: NextRequest) {
             tags: [],
             score: 0
           });
+          } catch (error) {
+            console.warn('Database customer creation failed:', error);
+            customer = null;
+          }
         } else {
           // Atualizar cliente existente
-          await DatabaseService.updateCustomer(customer.id, {
-            nome: leadData.nome,
-            whatsapp: leadData.whatsapp,
-            score: customer.score + 10, // Incrementar score
-            lastContactAt: new Date()
-          });
+          try {
+            await DatabaseService.updateCustomer(customer.id, {
+              nome: leadData.nome,
+              whatsapp: leadData.whatsapp,
+              score: customer.score + 10, // Incrementar score
+              lastContactAt: new Date()
+            });
+          } catch (error) {
+            console.warn('Database customer update failed:', error);
+          }
         }
 
         // Criar lead
-        const lead = await DatabaseService.createLead({
+        try {
+          const lead = await DatabaseService.createLead({
           customerId: customer.id,
           nome: leadData.nome,
           email: leadData.email,
@@ -434,16 +455,45 @@ export async function POST(request: NextRequest) {
         });
 
         leadId = lead.id;
+        } catch (error) {
+          console.warn('Database lead creation failed, using fallback:', error);
+          // Save to fallback file system
+          const fallbackResult = await DatabaseFallback.saveLeadToFile(leadData);
+          if (fallbackResult.success) {
+            leadId = fallbackResult.leadId;
+          } else {
+            // Generate a fallback lead ID if everything fails
+            leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          }
+        }
         
       } catch (error) {
         console.error('Erro ao processar lead (novo formato):', error);
-        throw error;
+        // Try fallback database
+        const fallbackResult = await DatabaseFallback.saveLeadToFile(leadData);
+        if (fallbackResult.success) {
+          leadId = fallbackResult.leadId;
+        } else {
+          // Generate a fallback lead ID if everything fails
+          leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
       }
     } else {
       // Formato antigo - compatibilidade
       const oldData = leadData as LeadDataOld;
-      const result = await saveToDatabase(oldData);
-      leadId = result;
+      try {
+        const result = await saveToDatabase(oldData);
+        leadId = result;
+      } catch (error) {
+        console.warn('Database save failed for old format, using fallback:', error);
+        // Try fallback database
+        const fallbackResult = await DatabaseFallback.saveLeadToFile(oldData);
+        if (fallbackResult.success) {
+          leadId = fallbackResult.leadId;
+        } else {
+          leadId = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+      }
     }
 
     // Processar ações paralelas

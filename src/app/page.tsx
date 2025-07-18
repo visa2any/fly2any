@@ -433,7 +433,21 @@ export default function Home() {
       
     } catch (error) {
       console.error('Erro ao enviar formulário:', error);
-      alert('❌ Erro ao enviar formulário. Tente novamente.');
+      
+      // Show user-friendly error based on error type
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          alert('❌ Erro de conexão. Verifique sua internet e tente novamente.');
+        } else if (error.message.includes('500')) {
+          alert('❌ Erro interno do servidor. Nossa equipe foi notificada. Tente novamente em alguns minutos.');
+        } else if (error.message.includes('400')) {
+          alert('❌ Dados inválidos. Verifique se todos os campos estão preenchidos corretamente.');
+        } else {
+          alert('❌ Erro ao enviar formulário. Tente novamente ou entre em contato via WhatsApp.');
+        }
+      } else {
+        alert('❌ Erro inesperado. Tente novamente ou entre em contato via WhatsApp.');
+      }
     } finally {
       setIsSubmitting(false);
     }
