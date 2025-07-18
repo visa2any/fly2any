@@ -16,9 +16,19 @@ export async function POST(request: NextRequest) {
       // Verificar se domínio está configurado
       // TODO: Remover quando mail.fly2any.com estiver verificado
 
-      // Import Resend inside the function (same as working simple-email)
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
+      // Usar Gmail OAuth2 ao invés do Resend
+      const nodemailer = await import('nodemailer');
+      
+      const transporter = nodemailer.default.createTransport({
+        service: 'gmail',
+        auth: {
+          type: 'OAuth2',
+          user: process.env.GMAIL_USER,
+          clientId: process.env.GMAIL_CLIENT_ID,
+          clientSecret: process.env.GMAIL_CLIENT_SECRET,
+          refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+        }
+      } as any);
       
       const templates = {
         promotional: {
@@ -32,8 +42,8 @@ export async function POST(request: NextRequest) {
               <div style="padding: 30px; background: #f8fafc;">
                 <h2 style="color: #1e40af;">🎯 Miami for only $1,299</h2>
                 <p>✅ <strong>Sistema de Email Marketing FUNCIONANDO!</strong></p>
-                <p>📧 Via Resend API</p>
-                <p>🚀 3.000 emails grátis/mês</p>
+                <p>📧 Via Gmail OAuth2</p>
+                <p>🚀 Sistema configurado com sucesso!</p>
                 <p>📅 ${new Date().toLocaleString('pt-BR')}</p>
                 
                 <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -100,24 +110,17 @@ export async function POST(request: NextRequest) {
 
       const template = templates[campaignType as keyof typeof templates] || templates.promotional;
       
-      const result = await resend.emails.send({
-        from: 'Fly2Any <onboarding@resend.dev>',
-        to: [email],
+      const result = await transporter.sendMail({
+        from: `"Fly2Any" <${process.env.GMAIL_USER}>`,
+        to: email,
         subject: template.subject,
         html: template.html
       });
 
-      if (result.error) {
-        return NextResponse.json({ 
-          success: false, 
-          error: result.error.message || 'Erro no Resend'
-        }, { status: 500 });
-      }
-
       return NextResponse.json({ 
         success: true, 
-        message: `Email teste enviado para ${email}!`,
-        messageId: result.data?.id
+        message: `Email teste enviado para ${email} via Gmail!`,
+        messageId: result.messageId
       });
     }
 
