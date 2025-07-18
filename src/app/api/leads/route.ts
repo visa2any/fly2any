@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService, Customer, Lead } from '@/lib/database';
 import { DatabaseFallback } from '@/lib/database-fallback';
+import { sendLeadNotification } from '@/lib/lead-notifications';
 // import { sendWhatsAppMessage } from '@/lib/whatsapp';
 // import { trackConversion } from '@/lib/analytics';
 
@@ -505,6 +506,23 @@ export async function POST(request: NextRequest) {
     // Enviar email de confirmação
     promises.push(sendConfirmationEmail(leadData));
     
+    // Enviar notificação para administradores
+    const notificationData = {
+      id: leadId,
+      nome: leadData.nome,
+      email: leadData.email,
+      whatsapp: leadData.whatsapp,
+      origem: leadData.origem || '',
+      destino: leadData.destino || '',
+      selectedServices: Array.isArray(leadData.selectedServices) ? 
+        leadData.selectedServices.map(s => typeof s === 'string' ? s : 'serviceType' in s ? s.serviceType : 'unknown') : [],
+      source: leadData.source || 'website',
+      createdAt: new Date().toISOString(),
+      orcamentoTotal: ('orcamentoTotal' in leadData) ? leadData.orcamentoTotal : 
+                     ('orcamentoAproximado' in leadData) ? leadData.orcamentoAproximado : undefined
+    };
+    promises.push(sendLeadNotification(notificationData));
+    
     // Enviar mensagem WhatsApp
     if (leadData.whatsapp) {
       // promises.push(sendWhatsAppMessage(leadData.whatsapp, `Olá ${leadData.nome}! Recebemos sua cotação e nossa equipe entrará em contato em breve. 🛫`));
@@ -519,9 +537,10 @@ export async function POST(request: NextRequest) {
     console.log('Resultados do processamento:', {
       database: 'success',
       n8n: results[0].status === 'fulfilled',
-      email: results[1].status === 'fulfilled',
-      whatsapp: results[2]?.status === 'fulfilled',
-      tracking: results[3]?.status === 'fulfilled'
+      confirmationEmail: results[1].status === 'fulfilled',
+      adminNotification: results[2].status === 'fulfilled',
+      whatsapp: results[3]?.status === 'fulfilled',
+      tracking: results[4]?.status === 'fulfilled'
     });
 
     // Preparar resposta
@@ -534,9 +553,10 @@ export async function POST(request: NextRequest) {
       processed: {
         database: true,
         n8n: results[0].status === 'fulfilled',
-        email: results[1].status === 'fulfilled',
-        whatsapp: results[2]?.status === 'fulfilled',
-        tracking: results[3]?.status === 'fulfilled'
+        confirmationEmail: results[1].status === 'fulfilled',
+        adminNotification: results[2].status === 'fulfilled',
+        whatsapp: results[3]?.status === 'fulfilled',
+        tracking: results[4]?.status === 'fulfilled'
       }
     };
 

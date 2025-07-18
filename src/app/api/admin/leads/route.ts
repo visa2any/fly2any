@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/database';
+import { DatabaseFallback } from '@/lib/database-fallback';
 
 // Função simples de autenticação (desenvolvimento local)
 function isAuthenticated(): boolean {
@@ -36,15 +37,94 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(leadsData);
       }
     } catch (dbError) {
-      console.error('Database error:', dbError);
-      // Fallback para dados mock se DB falhar
-      const mockData = {
-        leads: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
-      };
-      return NextResponse.json(mockData);
+      console.error('Database error, using fallback:', dbError);
+      
+      // Usar fallback para arquivo JSON
+      try {
+        const fallbackLeads = await DatabaseFallback.getLeadsFromFile();
+        
+        if (stats) {
+          // Calcular estatísticas dos leads do fallback
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const thisWeek = new Date(now.setDate(now.getDate() - 7));
+          const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          
+          const statsData = {
+            total: fallbackLeads.length,
+            today: fallbackLeads.filter((lead: any) => 
+              new Date(lead.createdAt) >= today
+            ).length,
+            thisWeek: fallbackLeads.filter((lead: any) => 
+              new Date(lead.createdAt) >= thisWeek
+            ).length,
+            thisMonth: fallbackLeads.filter((lead: any) => 
+              new Date(lead.createdAt) >= thisMonth
+            ).length,
+            byService: fallbackLeads.reduce((acc: any, lead: any) => {
+              const services = lead.selectedServices || [lead.serviceType || 'unknown'];
+              services.forEach((service: string) => {
+                acc[service] = (acc[service] || 0) + 1;
+              });
+              return acc;
+            }, {})
+          };
+          
+          return NextResponse.json(statsData);
+        } else {
+          // Transformar dados do fallback para o formato esperado
+          const transformedLeads = fallbackLeads.map((lead: any) => ({
+            id: lead.id,
+            nome: lead.nome || '',
+            email: lead.email || '',
+            whatsapp: lead.whatsapp || '',
+            telefone: lead.telefone || '',
+            origem: lead.origem || '',
+            destino: lead.destino || '',
+            dataPartida: lead.dataPartida || lead.dataIda || '',
+            dataRetorno: lead.dataRetorno || lead.dataVolta || '',
+            numeroPassageiros: lead.numeroPassageiros || lead.adultos || 1,
+            selectedServices: Array.isArray(lead.selectedServices) ? 
+              lead.selectedServices : 
+              (lead.serviceType ? [lead.serviceType] : ['unknown']),
+            status: lead.status || 'novo',
+            source: lead.source || 'website',
+            createdAt: lead.createdAt,
+            orcamentoTotal: lead.orcamentoTotal || lead.orcamentoAproximado,
+            fullData: lead
+          }));
+          
+          // Aplicar paginação
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          const paginatedLeads = transformedLeads.slice(startIndex, endIndex);
+          
+          const leadsData = {
+            leads: paginatedLeads,
+            total: transformedLeads.length,
+            page: page,
+            totalPages: Math.ceil(transformedLeads.length / limit)
+          };
+          
+          return NextResponse.json(leadsData);
+        }
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        // Dados vazios se tudo falhar
+        const emptyData = stats ? {
+          total: 0,
+          today: 0,
+          thisWeek: 0,
+          thisMonth: 0,
+          byService: {}
+        } : {
+          leads: [],
+          total: 0,
+          page: 1,
+          totalPages: 0
+        };
+        return NextResponse.json(emptyData);
+      }
     }
   } catch (error) {
     console.error('Erro ao buscar leads:', error);
