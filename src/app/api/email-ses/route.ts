@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
           await transporter.verify();
           usedConfig = smtpConfig.name;
           break;
-        } catch (error) {
+        } catch (error: any) {
           console.log(`❌ ${smtpConfig.name} falhou:`, error.message);
           continue;
         }
