@@ -427,7 +427,7 @@ export async function POST(request: NextRequest) {
         // Criar lead
         try {
           const lead = await DatabaseService.createLead({
-          customerId: customer.id,
+          customerId: customer?.id,
           nome: leadData.nome,
           email: leadData.email,
           whatsapp: leadData.whatsapp,
