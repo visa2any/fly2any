@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         try {
           if (!smtpConfig.config.auth.user) continue; // Pular se não tiver credenciais
           
-          transporter = nodemailer.default.createTransport(smtpConfig.config);
+          transporter = nodemailer.default.createTransport(smtpConfig.config as any);
           await transporter.verify();
           usedConfig = smtpConfig.name;
           break;
