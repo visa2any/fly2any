@@ -16,17 +16,14 @@ export async function POST(request: NextRequest) {
       // Verificar se domínio está configurado
       // TODO: Remover quando mail.fly2any.com estiver verificado
 
-      // Usar Gmail OAuth2 ao invés do Resend
+      // Usar Gmail App Password ao invés do Resend
       const nodemailer = await import('nodemailer');
       
       const transporter = nodemailer.default.createTransport({
         service: 'gmail',
         auth: {
-          type: 'OAuth2',
-          user: process.env.GMAIL_USER,
-          clientId: process.env.GMAIL_CLIENT_ID,
-          clientSecret: process.env.GMAIL_CLIENT_SECRET,
-          refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+          user: process.env.GMAIL_EMAIL,
+          pass: process.env.GMAIL_APP_PASSWORD,
         }
       } as any);
       
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
       const template = templates[campaignType as keyof typeof templates] || templates.promotional;
       
       const result = await transporter.sendMail({
-        from: `"Fly2Any" <${process.env.GMAIL_USER}>`,
+        from: `"Fly2Any" <${process.env.GMAIL_EMAIL}>`,
         to: email,
         subject: template.subject,
         html: template.html
