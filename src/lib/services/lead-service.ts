@@ -99,18 +99,26 @@ export class LeadService {
     // Validate service types - handle both string[] and object[] formats
     if (input.selectedServices) {
       const validServices = LEAD_VALIDATION_RULES.selectedServices.validValues;
-      const serviceTypes = input.selectedServices.map(service => {
-        // Handle both string and object formats
+      const serviceTypes: string[] = [];
+      
+      for (const service of input.selectedServices) {
+        let serviceType: string;
+        
         if (typeof service === 'string') {
-          return service;
-        } else if (typeof service === 'object' && service !== null && 'serviceType' in service) {
-          return (service as any).serviceType;
+          serviceType = service;
+        } else if (typeof service === 'object' && service !== null) {
+          // Try different property names
+          const serviceObj = service as any;
+          serviceType = serviceObj.serviceType || serviceObj.service || serviceObj.type || String(service);
+        } else {
+          serviceType = String(service);
         }
-        return service;
-      });
+        
+        serviceTypes.push(serviceType);
+      }
       
       const invalidServices = serviceTypes.filter(serviceType => 
-        typeof serviceType === 'string' && !validServices.includes(serviceType)
+        !validServices.includes(serviceType)
       );
       
       if (invalidServices.length > 0) {
@@ -161,8 +169,9 @@ export class LeadService {
       selectedServices: input.selectedServices ? input.selectedServices.map(service => {
         if (typeof service === 'string') {
           return service;
-        } else if (typeof service === 'object' && service !== null && 'serviceType' in service) {
-          return (service as any).serviceType;
+        } else if (typeof service === 'object' && service !== null) {
+          const serviceObj = service as any;
+          return serviceObj.serviceType || serviceObj.service || serviceObj.type || String(service);
         }
         return String(service);
       }) : [],
