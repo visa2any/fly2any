@@ -139,15 +139,24 @@ export class LeadService {
    * Extract data from the first service object in selectedServices
    */
   private static extractFirstServiceData(selectedServices: any[] | undefined, field: string): string | undefined {
+    console.log(`[DEBUG] extractFirstServiceData - field: ${field}`);
+    console.log(`[DEBUG] selectedServices:`, JSON.stringify(selectedServices, null, 2));
+    
     if (!selectedServices || !Array.isArray(selectedServices) || selectedServices.length === 0) {
+      console.log(`[DEBUG] No selectedServices found for field: ${field}`);
       return undefined;
     }
     
     const firstService = selectedServices[0];
+    console.log(`[DEBUG] firstService:`, JSON.stringify(firstService, null, 2));
+    
     if (typeof firstService === 'object' && firstService !== null) {
-      return firstService[field];
+      const value = firstService[field];
+      console.log(`[DEBUG] Extracted ${field} = ${value}`);
+      return value;
     }
     
+    console.log(`[DEBUG] firstService is not an object for field: ${field}`);
     return undefined;
   }
 
@@ -191,8 +200,20 @@ export class LeadService {
         }
         return String(service);
       }) : [],
-      origem: input.origem?.trim() || this.extractFirstServiceData(input.selectedServices, 'origem'),
-      destino: input.destino?.trim() || this.extractFirstServiceData(input.selectedServices, 'destino'),
+      origem: (() => {
+        const direct = input.origem?.trim();
+        const extracted = this.extractFirstServiceData(input.selectedServices, 'origem');
+        const result = direct || extracted;
+        console.log(`[DEBUG] origem - direct: ${direct}, extracted: ${extracted}, final: ${result}`);
+        return result;
+      })(),
+      destino: (() => {
+        const direct = input.destino?.trim();
+        const extracted = this.extractFirstServiceData(input.selectedServices, 'destino');
+        const result = direct || extracted;
+        console.log(`[DEBUG] destino - direct: ${direct}, extracted: ${extracted}, final: ${result}`);
+        return result;
+      })(),
       tipoViagem: normalizeTripType(input.tipoViagem) || this.extractFirstServiceData(input.selectedServices, 'tipoViagem'),
       
       // Dates (normalize both formats)
