@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/database';
 import { DatabaseFallback } from '@/lib/database-fallback';
+import { LeadService } from '@/lib/services/lead-service';
 
 // Função simples de autenticação (desenvolvimento local)
 function isAuthenticated(): boolean {
@@ -110,22 +111,36 @@ export async function GET(request: NextRequest) {
         }
       } catch (fallbackError) {
         console.error('Fallback error:', fallbackError);
-        // Em produção, leads são processados via webhook N8N
-        const emptyData = stats ? {
-          total: 0,
-          today: 0,
-          thisWeek: 0,
-          thisMonth: 0,
-          byService: {},
-          message: "Leads são processados via webhook N8N. Para visualizar leads, acesse o sistema N8N ou configure um banco de dados."
-        } : {
-          leads: [],
-          total: 0,
-          page: 1,
-          totalPages: 0,
-          message: "Leads são processados via webhook N8N. Para visualizar leads, acesse o sistema N8N ou configure um banco de dados."
-        };
-        return NextResponse.json(emptyData);
+        
+        // Try cache as final fallback
+        try {
+          if (stats) {
+            const cacheStats = LeadService.getStatsFromCache();
+            return NextResponse.json(cacheStats);
+          } else {
+            const cacheData = LeadService.getLeadsFromCache(page, limit);
+            return NextResponse.json(cacheData);
+          }
+        } catch (cacheError) {
+          console.error('Cache error:', cacheError);
+          
+          // Final fallback - empty data with message
+          const emptyData = stats ? {
+            total: 0,
+            today: 0,
+            thisWeek: 0,
+            thisMonth: 0,
+            byService: {},
+            message: "Leads são processados via webhook N8N. Cache vazio no momento."
+          } : {
+            leads: [],
+            total: 0,
+            page: 1,
+            totalPages: 0,
+            message: "Leads são processados via webhook N8N. Cache vazio no momento."
+          };
+          return NextResponse.json(emptyData);
+        }
       }
     }
   } catch (error) {

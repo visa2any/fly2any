@@ -7,6 +7,7 @@
 
 import { sql } from '@vercel/postgres';
 import { DatabaseFallback } from '@/lib/database-fallback';
+import { LeadCache } from '@/lib/lead-cache';
 import { 
   UnifiedLead, 
   CreateLeadInput, 
@@ -323,13 +324,30 @@ export class LeadService {
           console.warn('File fallback also failed:', fallbackError);
         }
         
-        // If both database and file fallback fail, still return success
-        // The lead data will be processed by async operations (N8N webhook)
-        console.warn('All storage methods failed, but lead will be processed via webhook');
+        // If both database and file fallback fail, use in-memory cache
+        console.warn('Database and file storage failed, using in-memory cache');
+        
+        // Add to cache for admin panel display
+        LeadCache.addLead({
+          id: unifiedLead.id,
+          nome: unifiedLead.nome,
+          email: unifiedLead.email,
+          whatsapp: unifiedLead.whatsapp,
+          origem: unifiedLead.origem || '',
+          destino: unifiedLead.destino || '',
+          selectedServices: unifiedLead.selectedServices,
+          status: unifiedLead.status,
+          source: unifiedLead.source,
+          createdAt: unifiedLead.createdAt,
+          orcamentoTotal: unifiedLead.orcamentoTotal,
+          observacoes: unifiedLead.observacoes,
+          fullData: unifiedLead.fullData
+        });
+        
         return {
           success: true,
           data: unifiedLead,
-          metadata: { storage: 'webhook-only', warning: 'Lead not persisted locally but will be processed' }
+          metadata: { storage: 'cache', warning: 'Lead stored in memory cache and processed via webhook' }
         };
       }
       
@@ -437,6 +455,20 @@ export class LeadService {
     }
   }
   
+  /**
+   * Get leads from cache (fallback method)
+   */
+  static getLeadsFromCache(page: number = 1, limit: number = 50) {
+    return LeadCache.getAllLeads(page, limit);
+  }
+  
+  /**
+   * Get lead statistics from cache
+   */
+  static getStatsFromCache() {
+    return LeadCache.getStats();
+  }
+
   /**
    * Get leads with filtering and pagination
    */
