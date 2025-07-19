@@ -105,6 +105,7 @@ export default function LeadsPage() {
       }
       
       const data: LeadsData & { _source?: string; _status?: string; _message?: string } = await response.json();
+      console.log('[ADMIN DEBUG] Received leads data:', JSON.stringify(data, null, 2));
       setLeadsData(data);
       setLeads(data.leads);
       setFilteredLeads(data.leads);
@@ -147,6 +148,14 @@ export default function LeadsPage() {
     fetchLeads();
     fetchLeadsStats();
   }, []);
+
+  // Debug logging to understand data structure
+  useEffect(() => {
+    if (leads.length > 0) {
+      console.log('[ADMIN DEBUG] First lead data:', JSON.stringify(leads[0], null, 2));
+      console.log('[ADMIN DEBUG] Lead keys:', Object.keys(leads[0]));
+    }
+  }, [leads]);
 
   // Filter leads
   useEffect(() => {
@@ -451,12 +460,12 @@ export default function LeadsPage() {
                       <div className="admin-user-cell">
                         <div className="admin-avatar">
                           <span className="admin-avatar-text">
-                            {(lead.nome || 'N/A').split(' ').map(n => n[0]).join('').substring(0, 2)}
+                            {(lead.nome && lead.nome.trim() !== '' ? lead.nome : 'N/A').split(' ').map(n => n[0]).join('').substring(0, 2)}
                           </span>
                         </div>
                         <div className="admin-user-info">
                           <div className="admin-user-name" style={{ color: '#1e293b', fontWeight: '500' }}>
-                            {lead.nome || 'N/A'}
+                            {lead.nome && lead.nome.trim() !== '' ? lead.nome : 'N/A'}
                           </div>
                           <div className="admin-user-meta" style={{ color: '#64748b', fontSize: '12px' }}>
                             ID: {lead.id}
@@ -473,7 +482,7 @@ export default function LeadsPage() {
                     <td className="admin-table-td">
                       <div className="admin-travel-info">
                         <div className="admin-travel-route" style={{ color: '#1e293b', fontWeight: '500' }}>
-                          {(lead.origem || 'N/A') + ' → ' + (lead.destino || 'N/A')}
+                          {(lead.origem && lead.origem.trim() !== '' ? lead.origem : 'N/A') + ' → ' + (lead.destino && lead.destino.trim() !== '' ? lead.destino : 'N/A')}
                         </div>
                         <div className="admin-travel-details" style={{ color: '#64748b', fontSize: '12px' }}>
                           {formatDate(lead.dataPartida)} • {lead.numeroPassageiros || 1} pax

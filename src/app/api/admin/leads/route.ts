@@ -133,14 +133,14 @@ export async function GET(request: NextRequest) {
           // Transformar dados do fallback para o formato esperado
           const transformedLeads = fallbackLeads.map((lead: any) => ({
             id: lead.id,
-            nome: lead.nome || '',
-            email: lead.email || '',
-            whatsapp: lead.whatsapp || '',
-            telefone: lead.telefone || '',
-            origem: lead.origem || '',
-            destino: lead.destino || '',
-            dataPartida: lead.dataPartida || lead.dataIda || '',
-            dataRetorno: lead.dataRetorno || lead.dataVolta || '',
+            nome: lead.nome || null,
+            email: lead.email || null,
+            whatsapp: lead.whatsapp || null,
+            telefone: lead.telefone || null,
+            origem: lead.origem || null,
+            destino: lead.destino || null,
+            dataPartida: lead.dataPartida || lead.dataIda || null,
+            dataRetorno: lead.dataRetorno || lead.dataVolta || null,
             numeroPassageiros: lead.numeroPassageiros || lead.adultos || 1,
             selectedServices: Array.isArray(lead.selectedServices) ? 
               lead.selectedServices : 
