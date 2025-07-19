@@ -34,11 +34,11 @@ interface ValidationResult {
 /**
  * Service operation result interface
  */
-interface ServiceResult<T = any> {
+interface ServiceResult<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -203,7 +203,7 @@ export class LeadService {
       serviceType: input.serviceType,
       
       // Raw data
-      fullData: input.fullData || input,
+      fullData: input.fullData || (input as unknown as Record<string, unknown>),
       
       // Metadata
       userAgent: input.userAgent,
@@ -382,8 +382,8 @@ export class LeadService {
       
       // Try primary database first
       try {
-        let whereConditions: string[] = [];
-        let queryParams: any[] = [];
+        const whereConditions: string[] = [];
+        const queryParams: any[] = [];
         let paramIndex = 1;
         
         // Build WHERE conditions

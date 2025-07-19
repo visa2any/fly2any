@@ -11,7 +11,7 @@ import { CreateLeadInput } from '@/lib/schemas/lead';
 import { sendLeadNotification } from '@/lib/lead-notifications';
 
 // Types for the API
-interface APIResponse<T = any> {
+interface APIResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -20,22 +20,22 @@ interface APIResponse<T = any> {
     requestId: string;
     timestamp: string;
     processingTime: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
 /**
  * Enhanced error handling with structured logging
  */
-function handleError(error: any, requestId: string, operation: string): NextResponse {
+function handleError(error: unknown, requestId: string, operation: string): NextResponse {
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-  const statusCode = error.name === 'ValidationError' ? 400 : 500;
+  const statusCode = (error instanceof Error && error.name === 'ValidationError') ? 400 : 500;
   
   // Log error for monitoring (in production, use proper logging service)
   console.error(`[${new Date().toISOString()}] API Error - ${operation}`, {
     requestId,
     error: errorMessage,
-    stack: error.stack,
+    stack: error instanceof Error ? error.stack : undefined,
     operation
   });
   
@@ -68,39 +68,49 @@ function getClientMetadata(request: NextRequest) {
 }
 
 /**
+ * Type guard to ensure lead data has required properties
+ */
+function isValidLeadData(data: Record<string, unknown>): data is Record<string, any> {
+  return typeof data === 'object' && data !== null;
+}
+
+/**
  * Process lead asynchronously (notifications, integrations, etc.)
  */
 async function processLeadAsync(leadData: any, requestId: string) {
-  const promises: Promise<any>[] = [];
+  const promises: Promise<unknown>[] = [];
   
   try {
+    // leadData is already typed as any
+    const lead = leadData;
+    
     // Send admin notification
     promises.push(
       sendLeadNotification({
-        id: leadData.id,
-        nome: leadData.nome,
-        email: leadData.email,
-        whatsapp: leadData.whatsapp,
-        telefone: leadData.telefone,
-        origem: leadData.origem || '',
-        destino: leadData.destino || '',
-        selectedServices: leadData.selectedServices || [],
-        source: leadData.source || 'website',
-        createdAt: leadData.createdAt || new Date().toISOString(),
-        orcamentoTotal: leadData.orcamentoTotal || leadData.orcamentoAproximado,
-        dataPartida: leadData.dataPartida || leadData.dataIda,
-        dataRetorno: leadData.dataRetorno || leadData.dataVolta,
-        tipoViagem: leadData.tipoViagem,
-        numeroPassageiros: leadData.numeroPassageiros || leadData.adultos || 1,
-        adultos: leadData.adultos,
-        criancas: leadData.criancas,
-        bebes: leadData.bebes,
-        classeViagem: leadData.classeViagem || leadData.classeVoo,
-        prioridadeOrcamento: leadData.prioridadeOrcamento,
-        precisaHospedagem: leadData.precisaHospedagem,
-        precisaTransporte: leadData.precisaTransporte,
-        observacoes: leadData.observacoes,
-        fullData: leadData.fullData || leadData
+        id: lead.id,
+        nome: lead.nome,
+        email: lead.email,
+        whatsapp: lead.whatsapp,
+        telefone: lead.telefone,
+        origem: lead.origem || '',
+        destino: lead.destino || '',
+        selectedServices: lead.selectedServices || [],
+        source: lead.source || 'website',
+        createdAt: lead.createdAt || new Date().toISOString(),
+        orcamentoTotal: lead.orcamentoTotal || lead.orcamentoAproximado,
+        dataPartida: lead.dataPartida || lead.dataIda,
+        dataRetorno: lead.dataRetorno || lead.dataVolta,
+        tipoViagem: lead.tipoViagem,
+        numeroPassageiros: lead.numeroPassageiros || lead.adultos || 1,
+        adultos: lead.adultos,
+        criancas: lead.criancas,
+        bebes: lead.bebes,
+        classeViagem: lead.classeViagem || lead.classeVoo,
+        prioridadeOrcamento: lead.prioridadeOrcamento,
+        precisaHospedagem: lead.precisaHospedagem,
+        precisaTransporte: lead.precisaTransporte,
+        observacoes: lead.observacoes,
+        fullData: lead.fullData || lead
       }).catch(error => {
         console.error(`[${requestId}] Email notification failed:`, error);
         return { success: false, error: error.message };
@@ -170,7 +180,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   
   try {
     // Parse request body
-    let requestBody: any;
+    let requestBody: Record<string, unknown>;
     try {
       requestBody = await request.json();
     } catch (parseError) {
@@ -192,8 +202,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const leadInput: CreateLeadInput = {
       ...requestBody,
       ...clientMetadata,
-      source: requestBody.source || 'website'
-    };
+      source: (requestBody.source as string) || 'website'
+    } as CreateLeadInput;
     
     // Log request for monitoring
     console.log(`[${requestId}] Lead creation request:`, {

@@ -111,7 +111,7 @@ export interface UnifiedLead {
   serviceType?: ServiceType; // For backward compatibility
   
   // Raw data storage
-  fullData?: any; // Complete original data for audit/debugging
+  fullData?: Record<string, unknown>; // Complete original data for audit/debugging
   
   // Metadata
   userAgent?: string;
@@ -175,7 +175,7 @@ export interface CreateLeadInput {
   necessidadeEspecial?: string;
   serviceType?: ServiceType;
   source?: string;
-  fullData?: any;
+  fullData?: Record<string, unknown>;
   userAgent?: string;
   pageUrl?: string;
   ipAddress?: string;
@@ -194,7 +194,7 @@ export interface UpdateLeadInput {
   assignedTo?: string;
   observacoes?: string;
   // Any other field from UnifiedLead can be updated
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
