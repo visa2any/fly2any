@@ -5,12 +5,28 @@ export interface LeadNotificationData {
   nome: string;
   email: string;
   whatsapp: string;
+  telefone?: string;
   origem: string;
   destino: string;
   selectedServices: string[];
   source: string;
   createdAt: string;
   orcamentoTotal?: string;
+  // Campos adicionais de viagem
+  dataPartida?: string;
+  dataRetorno?: string;
+  tipoViagem?: string;
+  numeroPassageiros?: number;
+  adultos?: number;
+  criancas?: number;
+  bebes?: number;
+  classeViagem?: string;
+  prioridadeOrcamento?: string;
+  precisaHospedagem?: boolean;
+  precisaTransporte?: boolean;
+  observacoes?: string;
+  // Dados completos para fallback
+  fullData?: any;
 }
 
 /**
@@ -87,6 +103,59 @@ export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData
                     <span class="label">Destino:</span> 
                     <span class="value">${leadData.destino || 'Não informado'}</span>
                 </div>
+                ${leadData.dataPartida ? `
+                <div class="field">
+                    <span class="label">Data de Partida:</span> 
+                    <span class="value">${new Date(leadData.dataPartida).toLocaleDateString('pt-BR')}</span>
+                </div>
+                ` : ''}
+                ${leadData.dataRetorno ? `
+                <div class="field">
+                    <span class="label">Data de Retorno:</span> 
+                    <span class="value">${new Date(leadData.dataRetorno).toLocaleDateString('pt-BR')}</span>
+                </div>
+                ` : ''}
+                ${leadData.tipoViagem ? `
+                <div class="field">
+                    <span class="label">Tipo de Viagem:</span> 
+                    <span class="value">${leadData.tipoViagem === 'ida_volta' ? 'Ida e Volta' : 
+                                      leadData.tipoViagem === 'ida-volta' ? 'Ida e Volta' :
+                                      leadData.tipoViagem === 'somente-ida' ? 'Somente Ida' :
+                                      leadData.tipoViagem === 'ida' ? 'Somente Ida' :
+                                      leadData.tipoViagem === 'multiplas-cidades' ? 'Múltiplas Cidades' :
+                                      leadData.tipoViagem === 'multiplas_cidades' ? 'Múltiplas Cidades' :
+                                      leadData.tipoViagem}</span>
+                </div>
+                ` : ''}
+                <div class="field">
+                    <span class="label">Passageiros:</span> 
+                    <span class="value">
+                        ${leadData.numeroPassageiros ? `${leadData.numeroPassageiros} passageiros` :
+                          (leadData.adultos || leadData.criancas || leadData.bebes) ? 
+                          `${leadData.adultos || 0} adultos${leadData.criancas ? `, ${leadData.criancas} crianças` : ''}${leadData.bebes ? `, ${leadData.bebes} bebês` : ''}` :
+                          'Não informado'}
+                    </span>
+                </div>
+                ${leadData.classeViagem ? `
+                <div class="field">
+                    <span class="label">Classe:</span> 
+                    <span class="value">${leadData.classeViagem === 'economica' ? 'Econômica' :
+                                      leadData.classeViagem === 'premium' ? 'Premium' :
+                                      leadData.classeViagem === 'executiva' ? 'Executiva' :
+                                      leadData.classeViagem === 'primeira' ? 'Primeira Classe' :
+                                      leadData.classeViagem}</span>
+                </div>
+                ` : ''}
+                ${leadData.prioridadeOrcamento ? `
+                <div class="field">
+                    <span class="label">Prioridade Orçamento:</span> 
+                    <span class="value">${leadData.prioridadeOrcamento === 'baixo_custo' ? 'Baixo Custo' :
+                                      leadData.prioridadeOrcamento === 'custo_beneficio' ? 'Custo-Benefício' :
+                                      leadData.prioridadeOrcamento === 'conforto' ? 'Conforto' :
+                                      leadData.prioridadeOrcamento === 'luxo' ? 'Luxo' :
+                                      leadData.prioridadeOrcamento}</span>
+                </div>
+                ` : ''}
                 ${leadData.orcamentoTotal ? `
                 <div class="field">
                     <span class="label">Orçamento:</span> 
@@ -94,6 +163,33 @@ export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData
                 </div>
                 ` : ''}
             </div>
+
+            ${(leadData.precisaHospedagem || leadData.precisaTransporte) ? `
+            <div class="lead-info">
+                <h3>🏨 Serviços Adicionais</h3>
+                ${leadData.precisaHospedagem ? `
+                <div class="field">
+                    <span class="label">Hospedagem:</span> 
+                    <span class="value">✅ Necessária</span>
+                </div>
+                ` : ''}
+                ${leadData.precisaTransporte ? `
+                <div class="field">
+                    <span class="label">Transporte:</span> 
+                    <span class="value">✅ Necessário</span>
+                </div>
+                ` : ''}
+            </div>
+            ` : ''}
+
+            ${leadData.observacoes ? `
+            <div class="lead-info">
+                <h3>📝 Observações</h3>
+                <div class="field">
+                    <span class="value">${leadData.observacoes}</span>
+                </div>
+            </div>
+            ` : ''}
 
             <div class="services">
                 <h3>🎯 Serviços Solicitados</h3>
@@ -142,16 +238,34 @@ export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData
 
 👤 Cliente: ${leadData.nome}
 📧 Email: ${leadData.email}
-📱 WhatsApp: ${leadData.whatsapp}
+📱 WhatsApp: ${leadData.whatsapp}${leadData.telefone ? `\n☎️ Telefone: ${leadData.telefone}` : ''}
 
 ✈️ Viagem:
 - Origem: ${leadData.origem || 'Não informado'}
-- Destino: ${leadData.destino || 'Não informado'}
+- Destino: ${leadData.destino || 'Não informado'}${leadData.dataPartida ? `\n- Data Partida: ${new Date(leadData.dataPartida).toLocaleDateString('pt-BR')}` : ''}${leadData.dataRetorno ? `\n- Data Retorno: ${new Date(leadData.dataRetorno).toLocaleDateString('pt-BR')}` : ''}${leadData.tipoViagem ? `\n- Tipo: ${leadData.tipoViagem === 'ida_volta' ? 'Ida e Volta' : 
+      leadData.tipoViagem === 'ida-volta' ? 'Ida e Volta' :
+      leadData.tipoViagem === 'somente-ida' ? 'Somente Ida' :
+      leadData.tipoViagem === 'ida' ? 'Somente Ida' :
+      leadData.tipoViagem === 'multiplas-cidades' ? 'Múltiplas Cidades' :
+      leadData.tipoViagem === 'multiplas_cidades' ? 'Múltiplas Cidades' :
+      leadData.tipoViagem}` : ''}
+- Passageiros: ${leadData.numeroPassageiros ? `${leadData.numeroPassageiros} passageiros` :
+    (leadData.adultos || leadData.criancas || leadData.bebes) ? 
+    `${leadData.adultos || 0} adultos${leadData.criancas ? `, ${leadData.criancas} crianças` : ''}${leadData.bebes ? `, ${leadData.bebes} bebês` : ''}` :
+    'Não informado'}${leadData.classeViagem ? `\n- Classe: ${leadData.classeViagem === 'economica' ? 'Econômica' :
+      leadData.classeViagem === 'premium' ? 'Premium' :
+      leadData.classeViagem === 'executiva' ? 'Executiva' :
+      leadData.classeViagem === 'primeira' ? 'Primeira Classe' :
+      leadData.classeViagem}` : ''}${leadData.prioridadeOrcamento ? `\n- Prioridade: ${leadData.prioridadeOrcamento === 'baixo_custo' ? 'Baixo Custo' :
+      leadData.prioridadeOrcamento === 'custo_beneficio' ? 'Custo-Benefício' :
+      leadData.prioridadeOrcamento === 'conforto' ? 'Conforto' :
+      leadData.prioridadeOrcamento === 'luxo' ? 'Luxo' :
+      leadData.prioridadeOrcamento}` : ''}
 ${leadData.orcamentoTotal ? `- Orçamento: ${leadData.orcamentoTotal}` : ''}
 
 🎯 Serviços: ${leadData.selectedServices.join(', ')}
 
-📊 Detalhes:
+${(leadData.precisaHospedagem || leadData.precisaTransporte) ? `🏨 Serviços Adicionais:${leadData.precisaHospedagem ? '\n- Hospedagem: Necessária' : ''}${leadData.precisaTransporte ? '\n- Transporte: Necessário' : ''}\n\n` : ''}${leadData.observacoes ? `📝 Observações: ${leadData.observacoes}\n\n` : ''}📊 Detalhes:
 - ID: ${leadData.id}
 - Fonte: ${leadData.source}
 - Data: ${new Date(leadData.createdAt).toLocaleString('pt-BR')}

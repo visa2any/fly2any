@@ -512,6 +512,7 @@ export async function POST(request: NextRequest) {
       nome: leadData.nome,
       email: leadData.email,
       whatsapp: leadData.whatsapp,
+      telefone: ('telefone' in leadData) ? leadData.telefone : undefined,
       origem: leadData.origem || '',
       destino: leadData.destino || '',
       selectedServices: Array.isArray(leadData.selectedServices) ? 
@@ -519,7 +520,25 @@ export async function POST(request: NextRequest) {
       source: leadData.source || 'website',
       createdAt: new Date().toISOString(),
       orcamentoTotal: ('orcamentoTotal' in leadData) ? leadData.orcamentoTotal : 
-                     ('orcamentoAproximado' in leadData) ? leadData.orcamentoAproximado : undefined
+                     ('orcamentoAproximado' in leadData) ? leadData.orcamentoAproximado : undefined,
+      // Campos adicionais de viagem
+      dataPartida: ('dataPartida' in leadData) ? leadData.dataPartida : 
+                   ('dataIda' in leadData) ? leadData.dataIda : undefined,
+      dataRetorno: ('dataRetorno' in leadData) ? leadData.dataRetorno : 
+                   ('dataVolta' in leadData) ? leadData.dataVolta : undefined,
+      tipoViagem: leadData.tipoViagem,
+      numeroPassageiros: ('numeroPassageiros' in leadData) ? leadData.numeroPassageiros :
+                        ('adultos' in leadData) ? leadData.adultos : undefined,
+      adultos: ('adultos' in leadData) ? leadData.adultos : undefined,
+      criancas: ('criancas' in leadData) ? leadData.criancas : undefined,
+      bebes: ('bebes' in leadData) ? leadData.bebes : undefined,
+      classeViagem: ('classeViagem' in leadData) ? leadData.classeViagem :
+                   ('classeVoo' in leadData) ? leadData.classeVoo : undefined,
+      prioridadeOrcamento: ('prioridadeOrcamento' in leadData) ? leadData.prioridadeOrcamento : undefined,
+      precisaHospedagem: leadData.precisaHospedagem,
+      precisaTransporte: leadData.precisaTransporte,
+      observacoes: ('observacoes' in leadData) ? leadData.observacoes : undefined,
+      fullData: leadData
     };
     promises.push(sendLeadNotification(notificationData));
     
