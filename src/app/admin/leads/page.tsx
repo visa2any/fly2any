@@ -405,14 +405,14 @@ export default function LeadsPage() {
                       <div className="admin-user-cell">
                         <div className="admin-avatar">
                           <span className="admin-avatar-text">
-                            {lead.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                            {(lead.nome || 'N/A').split(' ').map(n => n[0]).join('').substring(0, 2)}
                           </span>
                         </div>
                         <div className="admin-user-info">
-                          <div className="admin-user-name">
-                            {lead.nome}
+                          <div className="admin-user-name" style={{ color: '#1e293b', fontWeight: '500' }}>
+                            {lead.nome || 'N/A'}
                           </div>
-                          <div className="admin-user-meta">
+                          <div className="admin-user-meta" style={{ color: '#64748b', fontSize: '12px' }}>
                             ID: {lead.id}
                           </div>
                         </div>
@@ -420,16 +420,16 @@ export default function LeadsPage() {
                     </td>
                     <td className="admin-table-td">
                       <div className="admin-contact-info">
-                        <div className="admin-contact-primary">{lead.email || 'N/A'}</div>
-                        <div className="admin-contact-secondary">{lead.whatsapp || lead.telefone || 'N/A'}</div>
+                        <div className="admin-contact-primary" style={{ color: '#1e293b', fontWeight: '500' }}>{lead.email || 'N/A'}</div>
+                        <div className="admin-contact-secondary" style={{ color: '#64748b', fontSize: '12px' }}>{lead.whatsapp || lead.telefone || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="admin-table-td">
                       <div className="admin-travel-info">
-                        <div className="admin-travel-route">
+                        <div className="admin-travel-route" style={{ color: '#1e293b', fontWeight: '500' }}>
                           {(lead.origem || 'N/A') + ' → ' + (lead.destino || 'N/A')}
                         </div>
-                        <div className="admin-travel-details">
+                        <div className="admin-travel-details" style={{ color: '#64748b', fontSize: '12px' }}>
                           {formatDate(lead.dataPartida)} • {lead.numeroPassageiros || 1} pax
                         </div>
                       </div>
@@ -445,7 +445,7 @@ export default function LeadsPage() {
                       </span>
                     </td>
                     <td className="admin-table-td">
-                      <span className="admin-source-label">
+                      <span className="admin-source-label" style={{ color: '#1e293b', fontWeight: '500' }}>
                         {lead.source === 'website' ? 'Website' :
                          lead.source === 'whatsapp' ? 'WhatsApp' :
                          lead.source === 'instagram' ? 'Instagram' :
@@ -454,7 +454,7 @@ export default function LeadsPage() {
                       </span>
                     </td>
                     <td className="admin-table-td">
-                      <span className="admin-date-label">
+                      <span className="admin-date-label" style={{ color: '#64748b' }}>
                         {formatDateTime(lead.createdAt)}
                       </span>
                     </td>
