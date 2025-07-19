@@ -270,12 +270,32 @@ export default function Home() {
   };
 
   const updateCurrentService = (updates: Partial<ServiceFormData>) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedServices: prev.selectedServices.map((service, index) =>
+    setFormData(prev => {
+      const updatedServices = prev.selectedServices.map((service, index) =>
         index === prev.currentServiceIndex ? { ...service, ...updates } : service
-      )
-    }));
+      );
+      
+      // Também atualizar campos no nível principal se origem/destino forem alterados
+      const mainLevelUpdates: Partial<FormData> = {};
+      if (updates.origem !== undefined) {
+        mainLevelUpdates.origem = updates.origem;
+      }
+      if (updates.destino !== undefined) {
+        mainLevelUpdates.destino = updates.destino;
+      }
+      if (updates.dataIda !== undefined) {
+        mainLevelUpdates.dataIda = updates.dataIda;
+      }
+      if (updates.dataVolta !== undefined) {
+        mainLevelUpdates.dataVolta = updates.dataVolta;
+      }
+      
+      return {
+        ...prev,
+        ...mainLevelUpdates,
+        selectedServices: updatedServices
+      };
+    });
   };
 
   const addNewService = (serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro') => {

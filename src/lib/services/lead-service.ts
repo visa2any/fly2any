@@ -369,9 +369,12 @@ export class LeadService {
    */
   private static async saveToDatabase(lead: UnifiedLead): Promise<void> {
     // Check if database is configured
-    if (!process.env.POSTGRES_URL) {
+    if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
+      console.warn('No database URL found in environment variables');
       throw new Error('Database not configured');
     }
+    
+    console.log('Attempting to save lead to database...');
     
     await sql`
       INSERT INTO leads (
