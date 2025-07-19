@@ -10,8 +10,12 @@ interface CachedLead {
   nome: string;
   email: string;
   whatsapp: string;
+  telefone?: string;
   origem: string;
   destino: string;
+  dataPartida: string;
+  dataRetorno?: string;
+  numeroPassageiros: number;
   selectedServices: string[];
   status: string;
   source: string;

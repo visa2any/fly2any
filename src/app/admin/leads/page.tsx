@@ -420,17 +420,17 @@ export default function LeadsPage() {
                     </td>
                     <td className="admin-table-td">
                       <div className="admin-contact-info">
-                        <div className="admin-contact-primary">{lead.email}</div>
-                        <div className="admin-contact-secondary">{lead.whatsapp}</div>
+                        <div className="admin-contact-primary">{lead.email || 'N/A'}</div>
+                        <div className="admin-contact-secondary">{lead.whatsapp || lead.telefone || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="admin-table-td">
                       <div className="admin-travel-info">
                         <div className="admin-travel-route">
-                          {lead.origem} → {lead.destino}
+                          {(lead.origem || 'N/A') + ' → ' + (lead.destino || 'N/A')}
                         </div>
                         <div className="admin-travel-details">
-                          {formatDate(lead.dataPartida)} • {lead.numeroPassageiros} pax
+                          {formatDate(lead.dataPartida)} • {lead.numeroPassageiros || 1} pax
                         </div>
                       </div>
                     </td>
