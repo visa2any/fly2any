@@ -203,15 +203,15 @@ export class LeadService {
       origem: (() => {
         const direct = input.origem?.trim();
         const extracted = this.extractFirstServiceData(input.selectedServices, 'origem');
-        const result = direct || extracted;
-        console.log(`[DEBUG] origem - direct: ${direct}, extracted: ${extracted}, final: ${result}`);
+        const result = direct || extracted || '';
+        console.log(`[DEBUG] origem - direct: "${direct}", extracted: "${extracted}", final: "${result}"`);
         return result;
       })(),
       destino: (() => {
         const direct = input.destino?.trim();
         const extracted = this.extractFirstServiceData(input.selectedServices, 'destino');
-        const result = direct || extracted;
-        console.log(`[DEBUG] destino - direct: ${direct}, extracted: ${extracted}, final: ${result}`);
+        const result = direct || extracted || '';
+        console.log(`[DEBUG] destino - direct: "${direct}", extracted: "${extracted}", final: "${result}"`);
         return result;
       })(),
       tipoViagem: normalizeTripType(input.tipoViagem) || this.extractFirstServiceData(input.selectedServices, 'tipoViagem'),
