@@ -849,6 +849,153 @@ export class DatabaseService {
       };
     }
   }
+
+  // Get lead by ID
+  static async getLeadById(leadId: string): Promise<any | null> {
+    if (!this.initialized || !sql) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      const result = await sql`
+        SELECT * FROM leads WHERE id = ${leadId}
+      `;
+      
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Error fetching lead by ID:', error);
+      throw error;
+    }
+  }
+
+  // Update lead
+  static async updateLead(leadId: string, updateData: any): Promise<boolean> {
+    if (!this.initialized || !sql) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      // Build dynamic update query
+      const updateFields: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      // Define updateable fields
+      const allowedFields = [
+        'nome', 'email', 'whatsapp', 'telefone', 'origem', 'destino',
+        'dataPartida', 'dataRetorno', 'numeroPassageiros', 'status',
+        'priority', 'assignedTo', 'notes', 'orcamentoTotal', 'updatedAt'
+      ];
+
+      allowedFields.forEach(field => {
+        if (updateData[field] !== undefined) {
+          updateFields.push(`${field} = $${paramIndex}`);
+          values.push(updateData[field]);
+          paramIndex++;
+        }
+      });
+
+      if (updateFields.length === 0) {
+        throw new Error('No valid fields to update');
+      }
+
+      // Add leadId as the last parameter
+      values.push(leadId);
+      
+      const query = `
+        UPDATE leads 
+        SET ${updateFields.join(', ')}
+        WHERE id = $${paramIndex}
+      `;
+
+      const result = await sql.query(query, values);
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      throw error;
+    }
+  }
+
+  // Delete lead
+  static async deleteLead(leadId: string): Promise<boolean> {
+    if (!this.initialized || !sql) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      const result = await sql`
+        DELETE FROM leads WHERE id = ${leadId}
+      `;
+      
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting lead:', error);
+      throw error;
+    }
+  }
+
+  // Bulk update leads
+  static async bulkUpdateLeads(leadIds: string[], updateData: any): Promise<number> {
+    if (!this.initialized || !sql) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      // Build dynamic update query
+      const updateFields: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      const allowedFields = [
+        'status', 'priority', 'assignedTo', 'updatedAt'
+      ];
+
+      allowedFields.forEach(field => {
+        if (updateData[field] !== undefined) {
+          updateFields.push(`${field} = $${paramIndex}`);
+          values.push(updateData[field]);
+          paramIndex++;
+        }
+      });
+
+      if (updateFields.length === 0) {
+        throw new Error('No valid fields to update');
+      }
+
+      // Add leadIds as the last parameter
+      values.push(leadIds);
+      
+      const query = `
+        UPDATE leads 
+        SET ${updateFields.join(', ')}
+        WHERE id = ANY($${paramIndex})
+      `;
+
+      const result = await sql.query(query, values);
+      return result.rowCount;
+    } catch (error) {
+      console.error('Error bulk updating leads:', error);
+      throw error;
+    }
+  }
+
+  // Bulk delete leads
+  static async bulkDeleteLeads(leadIds: string[]): Promise<number> {
+    if (!this.initialized || !sql) {
+      throw new Error('Database not initialized');
+    }
+
+    try {
+      const result = await sql`
+        DELETE FROM leads WHERE id = ANY(${leadIds})
+      `;
+      
+      return result.rowCount;
+    } catch (error) {
+      console.error('Error bulk deleting leads:', error);
+      throw error;
+    }
+  }
 }
 
 // Utility functions for backward compatibility

@@ -24,6 +24,12 @@ const navigation = [
     badge: '47'
   },
   {
+    name: 'Leads Moderno',
+    href: '/admin/leads/modern',
+    icon: '✨',
+    badge: 'NOVO'
+  },
+  {
     name: 'Clientes',
     href: '/admin/customers',
     icon: '👥'
