@@ -346,7 +346,7 @@ export default function HomeMobile() {
               fontStyle: 'italic',
               marginBottom: '8px'
             }}>
-              "Excelente atendimento! Conseguiram um preço incrível para minha viagem ao Brasil."
+              &quot;Excelente atendimento! Conseguiram um preço incrível para minha viagem ao Brasil.&quot;
             </p>
             <p style={{ 
               fontSize: '14px',

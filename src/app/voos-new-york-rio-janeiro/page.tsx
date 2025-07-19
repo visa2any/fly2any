@@ -148,7 +148,7 @@ export default function VoosNewYorkRioJaneiro() {
                   🛫 Origem
                 </h3>
                 <p style={{ color: 'white', fontSize: '18px', fontWeight: '500', margin: 0 }}>
-                  John F. Kennedy Int'l Airport (JFK)
+                  John F. Kennedy Int&apos;l Airport (JFK)
                 </p>
                 <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px', margin: '4px 0 0 0' }}>
                   New York, NY - Estados Unidos
