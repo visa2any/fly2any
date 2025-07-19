@@ -110,18 +110,20 @@ export async function GET(request: NextRequest) {
         }
       } catch (fallbackError) {
         console.error('Fallback error:', fallbackError);
-        // Dados vazios se tudo falhar
+        // Em produção, leads são processados via webhook N8N
         const emptyData = stats ? {
           total: 0,
           today: 0,
           thisWeek: 0,
           thisMonth: 0,
-          byService: {}
+          byService: {},
+          message: "Leads são processados via webhook N8N. Para visualizar leads, acesse o sistema N8N ou configure um banco de dados."
         } : {
           leads: [],
           total: 0,
           page: 1,
-          totalPages: 0
+          totalPages: 0,
+          message: "Leads são processados via webhook N8N. Para visualizar leads, acesse o sistema N8N ou configure um banco de dados."
         };
         return NextResponse.json(emptyData);
       }

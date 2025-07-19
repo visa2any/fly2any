@@ -136,6 +136,22 @@ export class LeadService {
   }
   
   /**
+   * Extract data from the first service object in selectedServices
+   */
+  private static extractFirstServiceData(selectedServices: any[] | undefined, field: string): string | undefined {
+    if (!selectedServices || !Array.isArray(selectedServices) || selectedServices.length === 0) {
+      return undefined;
+    }
+    
+    const firstService = selectedServices[0];
+    if (typeof firstService === 'object' && firstService !== null) {
+      return firstService[field];
+    }
+    
+    return undefined;
+  }
+
+  /**
    * Transform input data to unified lead format
    */
   static transformToUnifiedLead(input: CreateLeadInput): UnifiedLead {
@@ -175,13 +191,13 @@ export class LeadService {
         }
         return String(service);
       }) : [],
-      origem: input.origem?.trim(),
-      destino: input.destino?.trim(),
-      tipoViagem: normalizeTripType(input.tipoViagem),
+      origem: input.origem?.trim() || this.extractFirstServiceData(input.selectedServices, 'origem'),
+      destino: input.destino?.trim() || this.extractFirstServiceData(input.selectedServices, 'destino'),
+      tipoViagem: normalizeTripType(input.tipoViagem) || this.extractFirstServiceData(input.selectedServices, 'tipoViagem'),
       
       // Dates (normalize both formats)
-      dataPartida: input.dataPartida || input.dataIda,
-      dataRetorno: input.dataRetorno || input.dataVolta,
+      dataPartida: input.dataPartida || input.dataIda || this.extractFirstServiceData(input.selectedServices, 'dataIda'),
+      dataRetorno: input.dataRetorno || input.dataVolta || this.extractFirstServiceData(input.selectedServices, 'dataVolta'),
       dataIda: input.dataIda,
       dataVolta: input.dataVolta,
       
