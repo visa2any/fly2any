@@ -84,6 +84,14 @@ async function processLeadAsync(leadData: any, requestId: string) {
     // leadData is already typed as any
     const lead = leadData;
     
+    // Log the lead data before sending notification
+    console.log('[NOTIFICATION DEBUG] Lead data being sent to email:');
+    console.log(`origem: "${lead.origem}"`);
+    console.log(`destino: "${lead.destino}"`);
+    console.log(`dataPartida: "${lead.dataPartida}"`);
+    console.log(`dataRetorno: "${lead.dataRetorno}"`);
+    console.log('Full lead object:', JSON.stringify(lead, null, 2));
+    
     // Send admin notification
     promises.push(
       sendLeadNotification({
