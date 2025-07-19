@@ -96,10 +96,22 @@ export class LeadService {
       });
     }
     
-    // Validate service types
+    // Validate service types - handle both string[] and object[] formats
     if (input.selectedServices) {
       const validServices = LEAD_VALIDATION_RULES.selectedServices.validValues;
-      const invalidServices = input.selectedServices.filter(service => !validServices.includes(service as any));
+      const serviceTypes = input.selectedServices.map(service => {
+        // Handle both string and object formats
+        if (typeof service === 'string') {
+          return service;
+        } else if (typeof service === 'object' && service !== null && 'serviceType' in service) {
+          return (service as any).serviceType;
+        }
+        return service;
+      });
+      
+      const invalidServices = serviceTypes.filter(serviceType => 
+        typeof serviceType === 'string' && !validServices.includes(serviceType)
+      );
       
       if (invalidServices.length > 0) {
         errors.push({
@@ -145,8 +157,15 @@ export class LeadService {
       estado: input.estado?.trim(),
       pais: input.pais?.trim() || 'Brasil',
       
-      // Travel information
-      selectedServices: input.selectedServices,
+      // Travel information - normalize selectedServices format
+      selectedServices: input.selectedServices ? input.selectedServices.map(service => {
+        if (typeof service === 'string') {
+          return service;
+        } else if (typeof service === 'object' && service !== null && 'serviceType' in service) {
+          return (service as any).serviceType;
+        }
+        return String(service);
+      }) : [],
       origem: input.origem?.trim(),
       destino: input.destino?.trim(),
       tipoViagem: normalizeTripType(input.tipoViagem),
