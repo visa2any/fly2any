@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/database';
 import { DatabaseFallback } from '@/lib/database-fallback';
 import { LeadService } from '@/lib/services/lead-service';
+import { DatabaseChecker } from '@/lib/database-checker';
 
 // Função simples de autenticação (desenvolvimento local)
 function isAuthenticated(): boolean {
@@ -24,24 +25,60 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const stats = searchParams.get('stats') === 'true';
 
-    // First try cache (fastest option)
+    // Check database status first
+    const dbStatus = await DatabaseChecker.checkConnection();
+    console.log('[ADMIN] Database status:', dbStatus);
+    
+    if (dbStatus.connected) {
+      // Use real database
+      console.log('[ADMIN] Using real database...');
+      try {
+        await DatabaseChecker.initializeTables();
+        
+        if (stats) {
+          const statsData = await DatabaseService.getLeadStats();
+          return NextResponse.json({
+            ...statsData,
+            _source: 'database',
+            _status: 'connected'
+          });
+        } else {
+          const leadsData = await DatabaseService.getAllLeads(page, limit);
+          return NextResponse.json({
+            ...leadsData,
+            _source: 'database',
+            _status: 'connected'
+          });
+        }
+      } catch (dbError) {
+        console.error('[ADMIN] Database operation failed:', dbError);
+      }
+    }
+    
+    // Fallback to cache if database not available
     try {
-      console.log('[ADMIN] Trying cache first...');
+      console.log('[ADMIN] Using cache fallback...');
       if (stats) {
         const cacheStats = LeadService.getStatsFromCache();
         console.log('[ADMIN] Cache stats:', JSON.stringify(cacheStats, null, 2));
-        if (cacheStats.total > 0) {
-          return NextResponse.json(cacheStats);
-        }
+        return NextResponse.json({
+          ...cacheStats,
+          _source: 'cache',
+          _status: dbStatus.configured ? 'database_error' : 'database_not_configured',
+          _message: dbStatus.instructions || 'Using temporary cache'
+        });
       } else {
         const cacheData = LeadService.getLeadsFromCache(page, limit);
         console.log('[ADMIN] Cache data:', JSON.stringify(cacheData, null, 2));
-        if (cacheData.total > 0) {
-          return NextResponse.json(cacheData);
-        }
+        return NextResponse.json({
+          ...cacheData,
+          _source: 'cache',
+          _status: dbStatus.configured ? 'database_error' : 'database_not_configured',
+          _message: dbStatus.instructions || 'Using temporary cache'
+        });
       }
     } catch (cacheError) {
-      console.warn('[ADMIN] Cache failed, trying database:', cacheError);
+      console.warn('[ADMIN] Cache also failed:', cacheError);
     }
 
     try {

@@ -87,6 +87,11 @@ export default function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [dbStatus, setDbStatus] = useState<{
+    source: string;
+    status: string;
+    message?: string;
+  } | null>(null);
 
   // Fetch leads data
   const fetchLeads = async (page: number = 1) => {
@@ -99,10 +104,19 @@ export default function LeadsPage() {
         throw new Error('Failed to fetch leads');
       }
       
-      const data: LeadsData = await response.json();
+      const data: LeadsData & { _source?: string; _status?: string; _message?: string } = await response.json();
       setLeadsData(data);
       setLeads(data.leads);
       setFilteredLeads(data.leads);
+      
+      // Capture database status
+      if (data._source) {
+        setDbStatus({
+          source: data._source,
+          status: data._status || 'unknown',
+          message: data._message
+        });
+      }
       
     } catch (err) {
       console.error('Error fetching leads:', err);
@@ -228,6 +242,38 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-4">
+      {/* Database Status Banner */}
+      {dbStatus && (
+        <div className={`p-4 rounded-lg border ${
+          dbStatus.source === 'database' 
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">
+              {dbStatus.source === 'database' ? '🗄️' : '⚠️'}
+            </span>
+            <div>
+              <div className="font-semibold">
+                {dbStatus.source === 'database' 
+                  ? '✅ Banco de Dados Conectado' 
+                  : '⚠️ Usando Cache Temporário'}
+              </div>
+              <div className="text-sm">
+                {dbStatus.source === 'database' 
+                  ? 'Dados persistentes - Status: ' + dbStatus.status
+                  : 'Configure um banco para persistência real'}
+              </div>
+              {dbStatus.status === 'database_not_configured' && (
+                <div className="mt-2 text-xs">
+                  Configure Vercel Postgres ou Railway no arquivo .env para dados persistentes
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="admin-card">
         <div className="admin-card-content">
