@@ -114,11 +114,14 @@ export async function GET(request: NextRequest) {
         
         // Try cache as final fallback
         try {
+          console.log('[ADMIN] Trying cache fallback...');
           if (stats) {
             const cacheStats = LeadService.getStatsFromCache();
+            console.log('[ADMIN] Cache stats:', JSON.stringify(cacheStats, null, 2));
             return NextResponse.json(cacheStats);
           } else {
             const cacheData = LeadService.getLeadsFromCache(page, limit);
+            console.log('[ADMIN] Cache data:', JSON.stringify(cacheData, null, 2));
             return NextResponse.json(cacheData);
           }
         } catch (cacheError) {
