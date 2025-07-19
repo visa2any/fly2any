@@ -401,7 +401,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formDataObj)
       });
 
       const result = await response.json();

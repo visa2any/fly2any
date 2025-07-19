@@ -24,8 +24,15 @@ interface LeadFormData {
   destino?: string;
   dataPartida?: string;
   dataRetorno?: string;
+  // Campos de compatibilidade com formato antigo
+  dataIda?: string;
+  dataVolta?: string;
   numeroPassageiros?: number;
+  adultos?: number;
+  criancas?: number;
+  bebes?: number;
   classeViagem?: 'economica' | 'premium' | 'executiva' | 'primeira';
+  classeVoo?: 'economica' | 'premium' | 'executiva' | 'primeira';
   
   // Serviços
   selectedServices: string[];
@@ -120,7 +127,7 @@ type LeadData = LeadFormData | LeadDataOld;
 
 // Detectar formato dos dados
 function isNewFormat(data: any): data is LeadFormData {
-  return data.dataPartida !== undefined || data.tipoViagem !== undefined;
+  return data.dataPartida !== undefined || data.dataIda !== undefined || data.tipoViagem !== undefined;
 }
 
 // Validação de dados
@@ -434,8 +441,8 @@ export async function POST(request: NextRequest) {
           whatsapp: leadData.whatsapp,
           origem: leadData.origem || '',
           destino: leadData.destino || '',
-          dataPartida: ('dataPartida' in leadData) ? leadData.dataPartida : '',
-          dataRetorno: leadData.dataRetorno,
+          dataPartida: leadData.dataPartida || leadData.dataIda || '',
+          dataRetorno: leadData.dataRetorno || leadData.dataVolta,
           numeroPassageiros: leadData.numeroPassageiros || 1,
           tipoViagem: leadData.tipoViagem || 'ida_volta',
           selectedServices: leadData.selectedServices,
@@ -458,8 +465,38 @@ export async function POST(request: NextRequest) {
         leadId = lead.id;
         } catch (error) {
           console.warn('Database lead creation failed, using fallback:', error);
-          // Save to fallback file system
-          const fallbackResult = await DatabaseFallback.saveLeadToFile(leadData);
+          // Save to fallback file system with complete data structure
+          const fallbackLeadData = {
+            id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            customerId: customer?.id,
+            nome: leadData.nome,
+            email: leadData.email,
+            whatsapp: leadData.whatsapp,
+            telefone: ('telefone' in leadData) ? leadData.telefone : '',
+            origem: leadData.origem || '',
+            destino: leadData.destino || '',
+            dataPartida: leadData.dataPartida || leadData.dataIda || '',
+            dataRetorno: leadData.dataRetorno || leadData.dataVolta,
+            numeroPassageiros: leadData.numeroPassageiros || leadData.adultos || 1,
+            adultos: leadData.adultos || 1,
+            criancas: leadData.criancas || 0,
+            bebes: leadData.bebes || 0,
+            tipoViagem: leadData.tipoViagem || 'ida_volta',
+            classeViagem: leadData.classeViagem || leadData.classeVoo || 'economica',
+            selectedServices: leadData.selectedServices,
+            precisaHospedagem: Boolean(leadData.precisaHospedagem ?? false),
+            precisaTransporte: Boolean(leadData.precisaTransporte ?? false),
+            orcamentoTotal: leadData.orcamentoTotal,
+            prioridadeOrcamento: leadData.prioridadeOrcamento || 'custo_beneficio',
+            source: leadData.source || 'website',
+            status: 'novo',
+            priority: 'media',
+            fullData: leadData,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          const fallbackResult = await DatabaseFallback.saveLeadToFile(fallbackLeadData);
           if (fallbackResult.success) {
             leadId = fallbackResult.leadId;
           } else {
@@ -470,8 +507,37 @@ export async function POST(request: NextRequest) {
         
       } catch (error) {
         console.error('Erro ao processar lead (novo formato):', error);
-        // Try fallback database
-        const fallbackResult = await DatabaseFallback.saveLeadToFile(leadData);
+        // Try fallback database with complete data structure
+        const fallbackLeadData = {
+          id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          nome: leadData.nome,
+          email: leadData.email,
+          whatsapp: leadData.whatsapp,
+          telefone: ('telefone' in leadData) ? leadData.telefone : '',
+          origem: leadData.origem || '',
+          destino: leadData.destino || '',
+          dataPartida: leadData.dataPartida || leadData.dataIda || '',
+          dataRetorno: leadData.dataRetorno || leadData.dataVolta,
+          numeroPassageiros: leadData.numeroPassageiros || leadData.adultos || 1,
+          adultos: leadData.adultos || 1,
+          criancas: leadData.criancas || 0,
+          bebes: leadData.bebes || 0,
+          tipoViagem: leadData.tipoViagem || 'ida_volta',
+          classeViagem: leadData.classeViagem || leadData.classeVoo || 'economica',
+          selectedServices: leadData.selectedServices,
+          precisaHospedagem: Boolean(leadData.precisaHospedagem ?? false),
+          precisaTransporte: Boolean(leadData.precisaTransporte ?? false),
+          orcamentoTotal: leadData.orcamentoTotal,
+          prioridadeOrcamento: leadData.prioridadeOrcamento || 'custo_beneficio',
+          source: leadData.source || 'website',
+          status: 'novo',
+          priority: 'media',
+          fullData: leadData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        const fallbackResult = await DatabaseFallback.saveLeadToFile(fallbackLeadData);
         if (fallbackResult.success) {
           leadId = fallbackResult.leadId;
         } else {
@@ -487,8 +553,40 @@ export async function POST(request: NextRequest) {
         leadId = result;
       } catch (error) {
         console.warn('Database save failed for old format, using fallback:', error);
-        // Try fallback database
-        const fallbackResult = await DatabaseFallback.saveLeadToFile(oldData);
+        // Try fallback database with complete data structure
+        const fallbackLeadData = {
+          id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          nome: oldData.nome,
+          email: oldData.email,
+          whatsapp: oldData.whatsapp,
+          telefone: oldData.telefone || '',
+          sobrenome: oldData.sobrenome || '',
+          origem: oldData.origem || '',
+          destino: oldData.destino || '',
+          dataPartida: oldData.dataIda || '',
+          dataRetorno: oldData.dataVolta || '',
+          numeroPassageiros: oldData.adultos || 1,
+          adultos: oldData.adultos || 1,
+          criancas: oldData.criancas || 0,
+          bebes: oldData.bebes || 0,
+          tipoViagem: oldData.tipoViagem || 'ida-volta',
+          classeViagem: oldData.classeVoo || 'economica',
+          selectedServices: Array.isArray(oldData.selectedServices) ? 
+            oldData.selectedServices.map(s => typeof s === 'string' ? s : s.serviceType) : 
+            [oldData.serviceType || 'voos'],
+          precisaHospedagem: Boolean(oldData.precisaHospedagem ?? false),
+          precisaTransporte: Boolean(oldData.precisaTransporte ?? false),
+          orcamentoTotal: oldData.orcamentoAproximado,
+          prioridadeOrcamento: oldData.prioridadeOrcamento || 'custo_beneficio',
+          source: oldData.source || 'website',
+          status: 'novo',
+          priority: 'media',
+          fullData: oldData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        const fallbackResult = await DatabaseFallback.saveLeadToFile(fallbackLeadData);
         if (fallbackResult.success) {
           leadId = fallbackResult.leadId;
         } else {
