@@ -118,7 +118,7 @@ export class LeadService {
       }
       
       const invalidServices = serviceTypes.filter(serviceType => 
-        !validServices.includes(serviceType)
+        !validServices.includes(serviceType as any)
       );
       
       if (invalidServices.length > 0) {
