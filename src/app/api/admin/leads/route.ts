@@ -24,8 +24,28 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const stats = searchParams.get('stats') === 'true';
 
+    // First try cache (fastest option)
     try {
-      // Inicializar tabelas se necessário
+      console.log('[ADMIN] Trying cache first...');
+      if (stats) {
+        const cacheStats = LeadService.getStatsFromCache();
+        console.log('[ADMIN] Cache stats:', JSON.stringify(cacheStats, null, 2));
+        if (cacheStats.total > 0) {
+          return NextResponse.json(cacheStats);
+        }
+      } else {
+        const cacheData = LeadService.getLeadsFromCache(page, limit);
+        console.log('[ADMIN] Cache data:', JSON.stringify(cacheData, null, 2));
+        if (cacheData.total > 0) {
+          return NextResponse.json(cacheData);
+        }
+      }
+    } catch (cacheError) {
+      console.warn('[ADMIN] Cache failed, trying database:', cacheError);
+    }
+
+    try {
+      // Try database as fallback
       await DatabaseService.initializeTables();
       
       if (stats) {

@@ -24,6 +24,30 @@ interface CachedLead {
 // In-memory cache (will reset on server restart)
 let leadCache: CachedLead[] = [];
 
+// Try to load from process.env for persistence across requests
+const CACHE_KEY = 'LEAD_CACHE_DATA';
+
+// Load cache from environment on module initialization
+try {
+  const envCache = process.env[CACHE_KEY];
+  if (envCache) {
+    leadCache = JSON.parse(envCache);
+    console.log(`[CACHE] Loaded ${leadCache.length} leads from environment`);
+  }
+} catch (error) {
+  console.warn('[CACHE] Failed to load cache from environment:', error);
+}
+
+// Save cache to environment (for cross-request persistence)
+function saveToEnv() {
+  try {
+    process.env[CACHE_KEY] = JSON.stringify(leadCache);
+    console.log(`[CACHE] Saved ${leadCache.length} leads to environment`);
+  } catch (error) {
+    console.warn('[CACHE] Failed to save cache to environment:', error);
+  }
+}
+
 export class LeadCache {
   
   /**
@@ -42,6 +66,9 @@ export class LeadCache {
     }
     
     console.log(`[CACHE] Added lead ${lead.id} to cache. Total: ${leadCache.length}`);
+    
+    // Save to environment for persistence
+    saveToEnv();
   }
   
   /**
