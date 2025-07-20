@@ -200,7 +200,7 @@ async function testSMTPConnection(email: string, password: string) {
   try {
     const nodemailer = await import('nodemailer');
     
-    const transporter = nodemailer.default.createTransporter({
+    const transporter = nodemailer.default.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false,
@@ -243,7 +243,7 @@ async function testEmailSending(email: string, password: string) {
   try {
     const nodemailer = await import('nodemailer');
     
-    const transporter = nodemailer.default.createTransporter({
+    const transporter = nodemailer.default.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false,
