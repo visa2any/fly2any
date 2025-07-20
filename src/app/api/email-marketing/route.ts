@@ -2,24 +2,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-// Carrega variáveis diretamente do arquivo
+// Carrega variáveis diretamente dos arquivos de ambiente
 function loadEnvVars() {
-  const envPath = path.join(process.cwd(), '.env.local');
-  try {
-    const envContent = fs.readFileSync(envPath, 'utf8');
-    const lines = envContent.split('\n');
-    
-    for (const line of lines) {
-      const [key, value] = line.split('=');
-      if (key && value && key.trim() === 'GMAIL_EMAIL') {
-        process.env.GMAIL_EMAIL = value.replace(/"/g, '');
+  // Lista de arquivos para tentar carregar (em ordem de prioridade)
+  const envFiles = ['.env.local', '.env', '.env.production.local'];
+  
+  for (const fileName of envFiles) {
+    const envPath = path.join(process.cwd(), fileName);
+    try {
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, 'utf8');
+        const lines = envContent.split('\n');
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine && !trimmedLine.startsWith('#')) {
+            const equalIndex = trimmedLine.indexOf('=');
+            if (equalIndex > 0) {
+              const key = trimmedLine.substring(0, equalIndex).trim();
+              const value = trimmedLine.substring(equalIndex + 1).trim().replace(/"/g, '');
+              
+              if (key === 'GMAIL_EMAIL' && !process.env.GMAIL_EMAIL) {
+                process.env.GMAIL_EMAIL = value;
+              }
+              if (key === 'GMAIL_APP_PASSWORD' && !process.env.GMAIL_APP_PASSWORD) {
+                process.env.GMAIL_APP_PASSWORD = value;
+              }
+            }
+          }
+        }
+        
+        // Se encontrou ambas as variáveis, pare de procurar
+        if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
+          console.log(`Credenciais Gmail carregadas de: ${fileName}`);
+          break;
+        }
       }
-      if (key && value && key.trim() === 'GMAIL_APP_PASSWORD') {
-        process.env.GMAIL_APP_PASSWORD = value.replace(/"/g, '');
-      }
+    } catch (error) {
+      console.error(`Erro ao carregar ${fileName}:`, error);
     }
-  } catch (error) {
-    console.error('Erro ao carregar .env.local:', error);
   }
 }
 
@@ -46,8 +67,11 @@ export async function POST(request: NextRequest) {
       const nodemailer = await import('nodemailer');
       
       // Debug: verificar valores das variáveis
-      console.log('GMAIL_EMAIL:', process.env.GMAIL_EMAIL);
-      console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '****' : 'undefined');
+      console.log('=== DEBUG CREDENCIAIS GMAIL ===');
+      console.log('GMAIL_EMAIL:', process.env.GMAIL_EMAIL || 'NÃO DEFINIDO');
+      console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? `****${process.env.GMAIL_APP_PASSWORD.slice(-4)}` : 'NÃO DEFINIDO');
+      console.log('Processo de carga de env executado');
+      console.log('==============================');
       
       // Verificar se as variáveis de ambiente estão carregadas
       if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
