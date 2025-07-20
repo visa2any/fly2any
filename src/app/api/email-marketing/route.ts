@@ -2,50 +2,56 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-// Carrega variáveis diretamente dos arquivos de ambiente
-function loadEnvVars() {
-  // Lista de arquivos para tentar carregar (em ordem de prioridade)
-  const envFiles = ['.env.local', '.env', '.env.production.local'];
+// Função robusta para carregar credenciais Gmail
+function getGmailCredentials() {
+  // Primeiro, tenta process.env
+  let email = process.env.GMAIL_EMAIL;
+  let password = process.env.GMAIL_APP_PASSWORD;
   
-  for (const fileName of envFiles) {
-    const envPath = path.join(process.cwd(), fileName);
-    try {
-      if (fs.existsSync(envPath)) {
-        const envContent = fs.readFileSync(envPath, 'utf8');
-        const lines = envContent.split('\n');
-        
-        for (const line of lines) {
-          const trimmedLine = line.trim();
-          if (trimmedLine && !trimmedLine.startsWith('#')) {
-            const equalIndex = trimmedLine.indexOf('=');
-            if (equalIndex > 0) {
-              const key = trimmedLine.substring(0, equalIndex).trim();
-              const value = trimmedLine.substring(equalIndex + 1).trim().replace(/"/g, '');
-              
-              if (key === 'GMAIL_EMAIL' && !process.env.GMAIL_EMAIL) {
-                process.env.GMAIL_EMAIL = value;
-              }
-              if (key === 'GMAIL_APP_PASSWORD' && !process.env.GMAIL_APP_PASSWORD) {
-                process.env.GMAIL_APP_PASSWORD = value;
+  // Se não encontrou, carrega diretamente dos arquivos
+  if (!email || !password) {
+    const envFiles = ['.env.local', '.env', '.env.production.local'];
+    
+    for (const fileName of envFiles) {
+      const envPath = path.join(process.cwd(), fileName);
+      try {
+        if (fs.existsSync(envPath)) {
+          const envContent = fs.readFileSync(envPath, 'utf8');
+          const lines = envContent.split('\n');
+          
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine && !trimmedLine.startsWith('#')) {
+              const equalIndex = trimmedLine.indexOf('=');
+              if (equalIndex > 0) {
+                const key = trimmedLine.substring(0, equalIndex).trim();
+                const value = trimmedLine.substring(equalIndex + 1).trim().replace(/["']/g, '');
+                
+                if (key === 'GMAIL_EMAIL' && !email) {
+                  email = value;
+                }
+                if (key === 'GMAIL_APP_PASSWORD' && !password) {
+                  password = value;
+                }
               }
             }
           }
+          
+          if (email && password) {
+            console.log(`✅ Credenciais Gmail carregadas de: ${fileName}`);
+            break;
+          }
         }
-        
-        // Se encontrou ambas as variáveis, pare de procurar
-        if (process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD) {
-          console.log(`Credenciais Gmail carregadas de: ${fileName}`);
-          break;
-        }
+      } catch (error) {
+        console.error(`❌ Erro ao carregar ${fileName}:`, error);
       }
-    } catch (error) {
-      console.error(`Erro ao carregar ${fileName}:`, error);
     }
+  } else {
+    console.log('✅ Credenciais Gmail carregadas de process.env');
   }
+  
+  return { email, password };
 }
-
-// Força o carregamento das variáveis
-loadEnvVars();
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,18 +72,20 @@ export async function POST(request: NextRequest) {
       // Usar Gmail App Password ao invés do Resend
       const nodemailer = await import('nodemailer');
       
+      // Obter credenciais usando função robusta
+      const credentials = getGmailCredentials();
+      
       // Debug: verificar valores das variáveis
       console.log('=== DEBUG CREDENCIAIS GMAIL ===');
-      console.log('GMAIL_EMAIL:', process.env.GMAIL_EMAIL || 'NÃO DEFINIDO');
-      console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? `****${process.env.GMAIL_APP_PASSWORD.slice(-4)}` : 'NÃO DEFINIDO');
-      console.log('Processo de carga de env executado');
+      console.log('GMAIL_EMAIL:', credentials.email || 'NÃO DEFINIDO');
+      console.log('GMAIL_APP_PASSWORD:', credentials.password ? `****${credentials.password.slice(-4)}` : 'NÃO DEFINIDO');
       console.log('==============================');
       
-      // Verificar se as variáveis de ambiente estão carregadas
-      if (!process.env.GMAIL_EMAIL || !process.env.GMAIL_APP_PASSWORD) {
+      // Verificar se as credenciais foram carregadas
+      if (!credentials.email || !credentials.password) {
         return NextResponse.json({ 
           success: false, 
-          error: `Credenciais Gmail não configuradas. GMAIL_EMAIL: ${process.env.GMAIL_EMAIL ? 'OK' : 'MISSING'}, GMAIL_APP_PASSWORD: ${process.env.GMAIL_APP_PASSWORD ? 'OK' : 'MISSING'}` 
+          error: `Credenciais Gmail não configuradas. GMAIL_EMAIL: ${credentials.email ? 'OK' : 'MISSING'}, GMAIL_APP_PASSWORD: ${credentials.password ? 'OK' : 'MISSING'}` 
         }, { status: 500 });
       }
       
@@ -86,8 +94,8 @@ export async function POST(request: NextRequest) {
         port: 587,
         secure: false,
         auth: {
-          user: process.env.GMAIL_EMAIL,
-          pass: process.env.GMAIL_APP_PASSWORD,
+          user: credentials.email,
+          pass: credentials.password,
         },
         tls: {
           rejectUnauthorized: false
@@ -175,7 +183,7 @@ export async function POST(request: NextRequest) {
       const template = templates[campaignType as keyof typeof templates] || templates.promotional;
       
       const result = await transporter.sendMail({
-        from: `"Fly2Any" <${process.env.GMAIL_EMAIL}>`,
+        from: `"Fly2Any" <${credentials.email}>`,
         to: email,
         subject: template.subject,
         html: template.html

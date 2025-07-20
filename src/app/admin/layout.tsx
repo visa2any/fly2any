@@ -68,6 +68,12 @@ const navigation = [
     icon: '📈'
   },
   {
+    name: 'Teste Gmail',
+    href: '/admin/test-gmail',
+    icon: '🧪',
+    badge: 'TEST'
+  },
+  {
     name: 'Configurações',
     href: '/admin/settings',
     icon: '⚙️'
