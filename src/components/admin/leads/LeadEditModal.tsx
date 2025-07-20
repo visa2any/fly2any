@@ -24,6 +24,7 @@ import {
   Star,
   Tag
 } from 'lucide-react';
+import { TagManager, LeadTag } from './TagManager';
 
 interface Lead {
   id: string;
@@ -43,9 +44,14 @@ interface Lead {
   priority?: 'baixa' | 'media' | 'alta' | 'urgente';
   assignedTo?: string;
   notes?: string;
-  tags?: string[];
   lastActivity?: string;
   score?: number;
+  tags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    category: string;
+  }>;
 }
 
 interface LeadEditModalProps {
@@ -54,6 +60,10 @@ interface LeadEditModalProps {
   onClose: () => void;
   onSave: (updatedLead: Lead) => void;
   isLoading?: boolean;
+  availableTags?: LeadTag[];
+  onCreateTag?: (tag: Omit<LeadTag, 'id' | 'count'>) => void;
+  onUpdateTag?: (tagId: string, tag: Partial<LeadTag>) => void;
+  onDeleteTag?: (tagId: string) => void;
 }
 
 const statusOptions = [
@@ -73,7 +83,17 @@ const priorityOptions = [
   { value: 'urgente', label: 'Urgente', color: 'text-red-500' }
 ];
 
-export function LeadEditModal({ lead, isOpen, onClose, onSave, isLoading = false }: LeadEditModalProps) {
+export function LeadEditModal({ 
+  lead, 
+  isOpen, 
+  onClose, 
+  onSave, 
+  isLoading = false,
+  availableTags = [],
+  onCreateTag = () => {},
+  onUpdateTag = () => {},
+  onDeleteTag = () => {}
+}: LeadEditModalProps) {
   const [formData, setFormData] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('details');
 
@@ -110,9 +130,10 @@ export function LeadEditModal({ lead, isOpen, onClose, onSave, isLoading = false
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="details">Detalhes</TabsTrigger>
             <TabsTrigger value="travel">Viagem</TabsTrigger>
+            <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="notes">Notas</TabsTrigger>
             <TabsTrigger value="activity">Atividade</TabsTrigger>
           </TabsList>
@@ -309,6 +330,33 @@ export function LeadEditModal({ lead, isOpen, onClose, onSave, isLoading = false
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tags" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Gestão de Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TagManager
+                  tags={availableTags}
+                  selectedTags={formData?.tags?.map(t => t.id) || []}
+                  onTagsChange={(tagIds) => {
+                    if (!formData) return;
+                    const selectedTagObjects = availableTags.filter(tag => 
+                      tagIds.includes(tag.id)
+                    );
+                    handleInputChange('tags', selectedTagObjects);
+                  }}
+                  onCreateTag={onCreateTag}
+                  onUpdateTag={onUpdateTag}
+                  onDeleteTag={onDeleteTag}
+                />
               </CardContent>
             </Card>
           </TabsContent>

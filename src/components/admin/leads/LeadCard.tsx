@@ -37,6 +37,12 @@ interface Lead {
   assignedTo?: string;
   lastActivity?: string;
   score?: number;
+  tags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    category: string;
+  }>;
 }
 
 interface LeadCardProps {
@@ -211,6 +217,27 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
             )}
           </div>
         </div>
+
+        {/* Tags */}
+        {lead.tags && lead.tags.length > 0 && (
+          <div className="mt-3">
+            <div className="flex flex-wrap gap-1">
+              {lead.tags.slice(0, 3).map((tag) => (
+                <Badge
+                  key={tag.id}
+                  className={`${tag.color} text-xs`}
+                >
+                  {tag.name}
+                </Badge>
+              ))}
+              {lead.tags.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{lead.tags.length - 3} mais
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Bottom Row */}
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">

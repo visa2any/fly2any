@@ -26,6 +26,14 @@ interface BulkActionsProps {
   onBulkExport: () => void;
   onBulkEmail: () => void;
   onBulkWhatsApp: () => void;
+  onBulkAddTags?: (tagIds: string[]) => void;
+  onBulkRemoveTags?: (tagIds: string[]) => void;
+  availableTags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    category: string;
+  }>;
 }
 
 const statusOptions = [
@@ -47,7 +55,10 @@ export function BulkActions({
   onBulkDelete,
   onBulkExport,
   onBulkEmail,
-  onBulkWhatsApp
+  onBulkWhatsApp,
+  onBulkAddTags = () => {},
+  onBulkRemoveTags = () => {},
+  availableTags = []
 }: BulkActionsProps) {
   if (selectedLeads.length === 0) {
     return null;
@@ -99,6 +110,43 @@ export function BulkActions({
                 <SelectItem value="unassigned">Não atribuído</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Tags Actions */}
+            {availableTags.length > 0 && (
+              <div className="flex gap-1">
+                <Select onValueChange={(tagId) => onBulkAddTags([tagId])}>
+                  <SelectTrigger className="w-40 h-8">
+                    <SelectValue placeholder="+ Adicionar tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTags.map((tag) => (
+                      <SelectItem key={tag.id} value={tag.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${tag.color.split(' ')[0]}`} />
+                          <span>{tag.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select onValueChange={(tagId) => onBulkRemoveTags([tagId])}>
+                  <SelectTrigger className="w-40 h-8">
+                    <SelectValue placeholder="- Remover tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTags.map((tag) => (
+                      <SelectItem key={tag.id} value={tag.id}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${tag.color.split(' ')[0]}`} />
+                          <span>{tag.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Communication Actions */}
             <div className="flex gap-1">

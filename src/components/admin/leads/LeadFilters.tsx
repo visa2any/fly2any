@@ -41,6 +41,8 @@ export interface FilterState {
   origem: string;
   destino: string;
   hasNotes: boolean | undefined;
+  tags: string[];
+  tagCategories: string[];
 }
 
 interface LeadFiltersProps {
@@ -50,6 +52,13 @@ interface LeadFiltersProps {
   onReset: () => void;
   totalLeads: number;
   filteredLeads: number;
+  availableTags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    category: string;
+    count?: number;
+  }>;
 }
 
 const statusOptions = [
@@ -83,7 +92,8 @@ export function LeadFilters({
   onExport, 
   onReset, 
   totalLeads, 
-  filteredLeads 
+  filteredLeads,
+  availableTags = []
 }: LeadFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -104,7 +114,7 @@ export function LeadFilters({
   };
 
   const clearFilter = (key: keyof FilterState) => {
-    if (key === 'status' || key === 'priority' || key === 'source') {
+    if (key === 'status' || key === 'priority' || key === 'source' || key === 'tags' || key === 'tagCategories') {
       updateFilter(key, []);
     } else if (key === 'dateRange') {
       updateFilter(key, { from: undefined, to: undefined });
@@ -127,6 +137,8 @@ export function LeadFilters({
     if (filters.origem) count++;
     if (filters.destino) count++;
     if (filters.hasNotes !== undefined) count++;
+    if (filters.tags.length > 0) count++;
+    if (filters.tagCategories.length > 0) count++;
     return count;
   };
 
@@ -302,6 +314,51 @@ export function LeadFilters({
                 value={filters.assignedTo}
                 onChange={(e) => updateFilter('assignedTo', e.target.value)}
               />
+            </div>
+
+            {/* Tags Filter */}
+            <div className="md:col-span-2">
+              <Label className="text-sm font-medium mb-2 block">Tags</Label>
+              {availableTags.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded">
+                    {availableTags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        className={`cursor-pointer transition-all ${tag.color} ${
+                          filters.tags.includes(tag.id) 
+                            ? 'ring-2 ring-blue-400' 
+                            : 'opacity-60 hover:opacity-100'
+                        }`}
+                        onClick={() => toggleArrayFilter('tags', tag.id)}
+                      >
+                        {tag.name}
+                        {tag.count && (
+                          <span className="ml-1 text-xs">({tag.count})</span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                  {filters.tags.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">
+                        {filters.tags.length} tag{filters.tags.length > 1 ? 's' : ''} selecionada{filters.tags.length > 1 ? 's' : ''}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateFilter('tags', [])}
+                        className="h-6 px-2 text-xs"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Limpar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 italic">Nenhuma tag disponível</p>
+              )}
             </div>
 
             {/* Has Notes */}

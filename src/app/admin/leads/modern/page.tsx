@@ -26,6 +26,7 @@ import { LeadCard } from '@/components/admin/leads/LeadCard';
 import { LeadEditModal } from '@/components/admin/leads/LeadEditModal';
 import { LeadFilters, FilterState } from '@/components/admin/leads/LeadFilters';
 import { BulkActions } from '@/components/admin/leads/BulkActions';
+import { LeadTag } from '@/components/admin/leads/TagManager';
 
 interface Lead {
   id: string;
@@ -45,9 +46,14 @@ interface Lead {
   priority?: 'baixa' | 'media' | 'alta' | 'urgente';
   assignedTo?: string;
   notes?: string;
-  tags?: string[];
   lastActivity?: string;
   score?: number;
+  tags?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    category: string;
+  }>;
 }
 
 interface LeadsStats {
@@ -78,6 +84,9 @@ export default function ModernLeadsPage() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   
+  // Tags state
+  const [availableTags, setAvailableTags] = useState<LeadTag[]>([]);
+
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -89,14 +98,50 @@ export default function ModernLeadsPage() {
     budgetRange: { min: undefined, max: undefined },
     origem: '',
     destino: '',
-    hasNotes: undefined
+    hasNotes: undefined,
+    tags: [],
+    tagCategories: []
   });
 
   // Fetch data
   useEffect(() => {
     fetchLeads();
     fetchStats();
+    loadMockTags();
   }, []);
+
+  // Load mock tags for demonstration
+  const loadMockTags = () => {
+    const mockTags: LeadTag[] = [
+      { id: '1', name: 'Cliente Premium', color: 'bg-purple-100 text-purple-800 border-purple-200', category: 'quality', description: 'Cliente com alto potencial', count: 12 },
+      { id: '2', name: 'Urgente', color: 'bg-red-100 text-red-800 border-red-200', category: 'urgency', description: 'Requer atenção imediata', count: 8 },
+      { id: '3', name: 'Facebook', color: 'bg-blue-100 text-blue-800 border-blue-200', category: 'source', description: 'Veio do Facebook', count: 25 },
+      { id: '4', name: 'Viagem Negócios', color: 'bg-green-100 text-green-800 border-green-200', category: 'service', description: 'Viagem corporativa', count: 15 },
+      { id: '5', name: 'Orçamento Alto', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', category: 'budget', description: 'Orçamento acima de R$ 10k', count: 6 },
+      { id: '6', name: 'Retornante', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', category: 'quality', description: 'Cliente já atendido antes', count: 18 }
+    ];
+    setAvailableTags(mockTags);
+  };
+
+  // Get random tags for a lead (for demonstration)
+  const getRandomTags = (leadId: string) => {
+    const tagPool = [
+      { id: '1', name: 'Cliente Premium', color: 'bg-purple-100 text-purple-800 border-purple-200', category: 'quality' },
+      { id: '2', name: 'Urgente', color: 'bg-red-100 text-red-800 border-red-200', category: 'urgency' },
+      { id: '3', name: 'Facebook', color: 'bg-blue-100 text-blue-800 border-blue-200', category: 'source' },
+      { id: '4', name: 'Viagem Negócios', color: 'bg-green-100 text-green-800 border-green-200', category: 'service' },
+      { id: '5', name: 'Orçamento Alto', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', category: 'budget' },
+      { id: '6', name: 'Retornante', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', category: 'quality' }
+    ];
+
+    // Use leadId as seed for consistent random tags
+    const seed = leadId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const random = seed % 4; // 0-3 tags per lead
+    const numTags = random === 0 ? 0 : random;
+    
+    const shuffled = [...tagPool].sort(() => (seed % 17) - 8.5);
+    return shuffled.slice(0, numTags);
+  };
 
   const fetchLeads = async () => {
     try {
@@ -105,7 +150,14 @@ export default function ModernLeadsPage() {
       if (!response.ok) throw new Error('Failed to fetch leads');
       
       const data = await response.json();
-      setLeads(data.leads || []);
+      
+      // Add mock tags to leads for demonstration
+      const leadsWithTags = (data.leads || []).map((lead: Lead) => ({
+        ...lead,
+        tags: getRandomTags(lead.id)
+      }));
+      
+      setLeads(leadsWithTags);
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast({
@@ -191,6 +243,13 @@ export default function ModernLeadsPage() {
       if (filters.hasNotes !== undefined) {
         const hasNotes = Boolean(lead.notes?.trim());
         if (filters.hasNotes !== hasNotes) return false;
+      }
+
+      // Tags filter
+      if (filters.tags.length > 0) {
+        const leadTagIds = lead.tags?.map(tag => tag.id) || [];
+        const hasSelectedTag = filters.tags.some(tagId => leadTagIds.includes(tagId));
+        if (!hasSelectedTag) return false;
       }
 
       return true;
@@ -330,11 +389,72 @@ export default function ModernLeadsPage() {
     });
   };
 
+  const handleBulkAddTags = (tagIds: string[]) => {
+    // TODO: Implement bulk add tags
+    toast({
+      title: 'Em desenvolvimento',
+      description: `Adicionando ${tagIds.length} tag(s) a ${selectedLeads.length} leads`
+    });
+  };
+
+  const handleBulkRemoveTags = (tagIds: string[]) => {
+    // TODO: Implement bulk remove tags
+    toast({
+      title: 'Em desenvolvimento',
+      description: `Removendo ${tagIds.length} tag(s) de ${selectedLeads.length} leads`
+    });
+  };
+
   const handleExport = () => {
     // TODO: Implement export
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de exportação em desenvolvimento'
+    });
+  };
+
+  // Tag management functions
+  const handleCreateTag = (tagData: Omit<LeadTag, 'id' | 'count'>) => {
+    const newTag: LeadTag = {
+      ...tagData,
+      id: Date.now().toString(),
+      count: 0
+    };
+    setAvailableTags([...availableTags, newTag]);
+    
+    toast({
+      title: 'Sucesso',
+      description: `Tag "${newTag.name}" criada com sucesso`
+    });
+  };
+
+  const handleUpdateTag = (tagId: string, updates: Partial<LeadTag>) => {
+    setAvailableTags(availableTags.map(tag => 
+      tag.id === tagId ? { ...tag, ...updates } : tag
+    ));
+    
+    toast({
+      title: 'Sucesso',
+      description: 'Tag atualizada com sucesso'
+    });
+  };
+
+  const handleDeleteTag = (tagId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta tag?')) return;
+    
+    setAvailableTags(availableTags.filter(tag => tag.id !== tagId));
+    
+    // Remove from filters if selected
+    if (filters.tags.includes(tagId)) {
+      setFilters({
+        ...filters,
+        tags: filters.tags.filter(id => id !== tagId)
+      });
+    }
+    
+    toast({
+      title: 'Sucesso',
+      description: 'Tag excluída com sucesso'
     });
   };
 
@@ -349,7 +469,9 @@ export default function ModernLeadsPage() {
       budgetRange: { min: undefined, max: undefined },
       origem: '',
       destino: '',
-      hasNotes: undefined
+      hasNotes: undefined,
+      tags: [],
+      tagCategories: []
     });
   };
 
@@ -443,6 +565,7 @@ export default function ModernLeadsPage() {
         onReset={resetFilters}
         totalLeads={leads.length}
         filteredLeads={filteredLeads.length}
+        availableTags={availableTags}
       />
 
       {/* Bulk Actions */}
@@ -456,6 +579,9 @@ export default function ModernLeadsPage() {
         onBulkExport={handleBulkExport}
         onBulkEmail={() => toast({ title: 'Em desenvolvimento', description: 'Email em lote em desenvolvimento' })}
         onBulkWhatsApp={() => toast({ title: 'Em desenvolvimento', description: 'WhatsApp em lote em desenvolvimento' })}
+        onBulkAddTags={handleBulkAddTags}
+        onBulkRemoveTags={handleBulkRemoveTags}
+        availableTags={availableTags}
       />
 
       {/* View Toggle and Select All */}
@@ -543,6 +669,10 @@ export default function ModernLeadsPage() {
           setEditingLead(null);
         }}
         onSave={handleSaveLead}
+        availableTags={availableTags}
+        onCreateTag={handleCreateTag}
+        onUpdateTag={handleUpdateTag}
+        onDeleteTag={handleDeleteTag}
       />
     </div>
   );
