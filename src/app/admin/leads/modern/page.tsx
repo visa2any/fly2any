@@ -599,51 +599,45 @@ export default function ModernLeadsPage() {
       />
 
       {/* View Toggle and Select All */}
-      <div className="admin-card">
-        <div className="admin-card-content">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="admin-checkbox"
-                />
-                <span className="text-sm text-admin-text-secondary">
-                  Selecionar todos ({filteredLeads.length})
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-admin-text-secondary mr-2">Visualização:</span>
-              <button
-                className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-                onClick={() => setViewMode('grid')}
-              >
-                <LayoutGrid className="h-4 w-4 mr-1" />
-                Cards
-              </button>
-              <button
-                className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-                onClick={() => setViewMode('table')}
-              >
-                <List className="h-4 w-4 mr-1" />
-                Tabela
-              </button>
-            </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="admin-checkbox"
+            />
+            <span className="text-sm text-admin-text-secondary">
+              Selecionar todos ({filteredLeads.length})
+            </span>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-admin-text-secondary mr-2">Visualização:</span>
+          <button
+            className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            onClick={() => setViewMode('grid')}
+          >
+            <LayoutGrid className="h-4 w-4 mr-1" />
+            Cards
+          </button>
+          <button
+            className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            onClick={() => setViewMode('table')}
+          >
+            <List className="h-4 w-4 mr-1" />
+            Tabela
+          </button>
         </div>
       </div>
 
       {/* Leads Display */}
       {loading ? (
-        <div className="admin-card">
-          <div className="admin-card-content text-center py-12">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-admin-text-secondary" />
-            <p className="text-admin-text-secondary">Carregando leads...</p>
-          </div>
+        <div className="flex justify-center items-center py-12">
+          <RefreshCw className="h-8 w-8 animate-spin text-admin-text-secondary mr-3" />
+          <span className="text-admin-text-secondary">Carregando leads...</span>
         </div>
       ) : (
         <div className="admin-card">
