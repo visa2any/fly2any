@@ -478,24 +478,24 @@ export default function ModernLeadsPage() {
         <div className="admin-card-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+              <h1 className="admin-card-title" style={{ marginBottom: '4px' }}>
                 Gestão de Leads - Versão Moderna
               </h1>
-              <p className="text-sm text-admin-text-secondary">
+              <p className="admin-card-description">
                 Interface avançada para gestão eficiente de leads
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button 
                 onClick={fetchLeads} 
                 disabled={loading}
                 className="admin-btn admin-btn-sm admin-btn-secondary"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} style={{ strokeWidth: 2 }} />
                 Atualizar
               </button>
               <button className="admin-btn admin-btn-sm admin-btn-primary">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
                 Novo Lead
               </button>
             </div>
@@ -512,9 +512,9 @@ export default function ModernLeadsPage() {
                 📊
               </div>
             </div>
-            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.total}</div>
-            <div className="text-sm text-admin-text-secondary">Total de Leads</div>
-            <div className="text-xs text-admin-text-muted mt-1">
+            <div className="admin-stats-value">{stats.total}</div>
+            <div className="admin-stats-label">Total de Leads</div>
+            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
               +{stats.today} hoje
             </div>
           </div>
@@ -527,9 +527,9 @@ export default function ModernLeadsPage() {
                 📈
               </div>
             </div>
-            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.thisWeek}</div>
-            <div className="text-sm text-admin-text-secondary">Esta Semana</div>
-            <div className="text-xs text-admin-text-muted mt-1">
+            <div className="admin-stats-value">{stats.thisWeek}</div>
+            <div className="admin-stats-label">Esta Semana</div>
+            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
               leads captados
             </div>
           </div>
@@ -542,9 +542,9 @@ export default function ModernLeadsPage() {
                 🎯
               </div>
             </div>
-            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.conversion}%</div>
-            <div className="text-sm text-admin-text-secondary">Taxa Conversão</div>
-            <div className="text-xs text-admin-text-muted mt-1">
+            <div className="admin-stats-value">{stats.conversion}%</div>
+            <div className="admin-stats-label">Taxa Conversão</div>
+            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
               leads para vendas
             </div>
           </div>
@@ -557,14 +557,14 @@ export default function ModernLeadsPage() {
                 💰
               </div>
             </div>
-            <div className="text-2xl font-bold text-admin-text-primary mb-1">
+            <div className="admin-stats-value">
               {new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
                 currency: 'BRL'
               }).format(stats.avgValue)}
             </div>
-            <div className="text-sm text-admin-text-secondary">Valor Médio</div>
-            <div className="text-xs text-admin-text-muted mt-1">
+            <div className="admin-stats-label">Valor Médio</div>
+            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
               por lead
             </div>
           </div>
@@ -599,45 +599,55 @@ export default function ModernLeadsPage() {
       />
 
       {/* View Toggle and Select All */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="admin-checkbox"
-            />
-            <span className="text-sm text-admin-text-secondary">
-              Selecionar todos ({filteredLeads.length})
-            </span>
-          </div>
-        </div>
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="admin-label" style={{ marginBottom: 0, color: 'var(--admin-text-secondary)' }}>
+                  Selecionar todos ({filteredLeads.length})
+                </span>
+              </div>
+            </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-admin-text-secondary mr-2">Visualização:</span>
-          <button
-            className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="h-4 w-4 mr-1" />
-            Cards
-          </button>
-          <button
-            className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            onClick={() => setViewMode('table')}
-          >
-            <List className="h-4 w-4 mr-1" />
-            Tabela
-          </button>
+            <div className="flex items-center gap-3">
+              <span className="admin-label" style={{ marginBottom: 0, color: 'var(--admin-text-muted)' }}>Visualização:</span>
+              <button
+                className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
+                Cards
+              </button>
+              <button
+                className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                onClick={() => setViewMode('table')}
+              >
+                <List className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
+                Tabela
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Leads Display */}
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <RefreshCw className="h-8 w-8 animate-spin text-admin-text-secondary mr-3" />
-          <span className="text-admin-text-secondary">Carregando leads...</span>
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex justify-center items-center py-16">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-6 h-6 animate-spin" style={{ color: 'var(--admin-text-muted)', strokeWidth: 2 }} />
+                <span style={{ color: 'var(--admin-text-secondary)', fontSize: 'var(--admin-font-size-sm)' }}>Carregando leads...</span>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="admin-card">
@@ -658,7 +668,7 @@ export default function ModernLeadsPage() {
                       type="checkbox"
                       checked={selectedLeads.includes(lead.id)}
                       onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
-                      className="admin-checkbox"
+                      className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 shadow-sm"
                     />
                   </div>
                   <LeadCard
