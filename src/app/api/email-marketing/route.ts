@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       
       const templates = {
         promotional: {
-          subject: '⚡ ÚLTIMAS 24H: Economize até 40% - Miami por $1.299',
+          subject: '⚡ ÚLTIMAS 24H: Pacote COMPLETO Miami por $1.299 - Passagem+Hotel+Carro',
           html: `
             <!DOCTYPE html>
             <html>
@@ -120,19 +120,19 @@ export async function POST(request: NextRequest) {
                     ⏰ RESTAM 24H
                   </div>
                   <h1 style="margin: 0; font-size: 24px; font-weight: 700;">✈️ FLY2ANY</h1>
-                  <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">+10 anos conectando brasileiros ao mundo</p>
+                  <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">21 anos conectando brasileiros ao mundo</p>
                 </div>
 
                 <!-- Oferta Principal -->
                 <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);">
                   <h2 style="color: #dc2626; font-size: 28px; margin: 0 0 10px 0; font-weight: 800;">
-                    🔥 ECONOMIA DE ATÉ 40%
+                    🔥 PACOTE COMPLETO: TUDO INCLUÍDO!
                   </h2>
                   <p style="font-size: 18px; color: #374151; margin: 0 0 20px 0; font-weight: 600;">
-                    Miami por apenas <span style="color: #dc2626; font-size: 24px;">$1.299</span>
+                    Miami COMPLETO por apenas <span style="color: #dc2626; font-size: 24px;">$1.299</span>
                   </p>
                   <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                    <s>Preço normal: $2.165</s> • <strong style="color: #059669;">Você economiza $866!</strong>
+                    ✈️ Passagem + 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro<br><s>Preço separado: $2.890</s> • <strong style="color: #059669;">Economia: $1.591!</strong>
                   </p>
                 </div>
 
@@ -144,13 +144,13 @@ export async function POST(request: NextRequest) {
                     <span style="margin-left: 10px; color: #6b7280; font-size: 12px;">cliente verificada</span>
                   </div>
                   <p style="color: #374151; font-style: italic; margin: 0; font-size: 14px;">
-                    "Incrível! Economizei mais de $800 na minha viagem para Miami. Atendimento impecável e resposta em 2 horas!"
+                    "Comprei o pacote completo da Fly2Any: passagem, hotel 4⭐, carro e passeios. Economizei $1.400 e não precisei me preocupar com NADA! Experiência incrível!"
                   </p>
                 </div>
 
                 <!-- Destinos em Destaque -->
                 <div style="padding: 30px;">
-                  <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🎯 OFERTAS EXCLUSIVAS</h3>
+                  <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🎯 PACOTES COMPLETOS - TUDO INCLUÍDO</h3>
                   <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                     
                     <div style="display: flex; border-bottom: 1px solid #e5e7eb; padding: 15px; align-items: center;">
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
                 <div style="padding: 30px; text-align: center; background: #fafafa;">
                   <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 4px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
                     <a href="https://fly2any.com" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
-                      🚀 GARANTIR OFERTA AGORA
+                      🚀 QUERO MEU PACOTE COMPLETO
                     </a>
                   </div>
                   <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
                     <strong>Fly2Any</strong> • Conectando brasileiros ao mundo há +10 anos
                   </p>
                   <p style="margin: 0; font-size: 12px; opacity: 0.8;">
-                    📱 WhatsApp: +1 (305) 555-0123 • 📧 contato@fly2any.com
+                    📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
                   </p>
                 </div>
               </div>
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
             </html>`
         },
         newsletter: {
-          subject: '🧳 Segredos dos experts: Como economizar $800+ em viagens',
+          subject: '🧳 21 ANOS de segredos: Como montar sua viagem COMPLETA economizando $1.500+',
           html: `
             <!DOCTYPE html>
             <html>
@@ -234,19 +234,19 @@ export async function POST(request: NextRequest) {
                 <div style="padding: 25px; background: #fafafa; border-bottom: 1px solid #e5e7eb;">
                   <p style="margin: 0; font-size: 16px; color: #374151; line-height: 1.6;">
                     Olá, <strong>Viajante</strong>! 👋<br>
-                    Esta semana revelamos os <strong>segredos dos especialistas</strong> que nossa equipe usa há +10 anos para encontrar as melhores ofertas.
+                    Esta semana revelamos os <strong>segredos dos especialistas</strong> que nossa equipe usa há 21 anos para montar viagens COMPLETAS com economia máxima.
                   </p>
                 </div>
 
                 <!-- Main Content -->
                 <div style="padding: 30px;">
                   <h2 style="color: #1e40af; font-size: 22px; margin: 0 0 20px 0; font-weight: 700;">
-                    💡 DICA #1: O Truque das "Janelas Secretas"
+                    💡 SEGREDO #1: Por que comprar SEPARADO é mais caro
                   </h2>
                   
                   <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
                     <p style="margin: 0 0 15px 0; color: #374151; line-height: 1.6;">
-                      <strong>🕐 Horários mágicos:</strong> Pesquise passagens entre <strong>14h-16h</strong> nas terças e quartas. Nossas análises de +50.000 buscas mostram economia média de <strong>32%</strong> nestes horários.
+                      <strong>🕐 Horários mágicos:</strong> Quando você compra passagem, hotel, carro e passeios SEPARADAMENTE, paga até 60% mais caro. Nossos pacotes COMPLETOS garantem o melhor preço por incluir TUDO em uma única negociação.
                     </p>
                     <p style="margin: 0; font-size: 14px; color: #6b7280;">
                       ✅ <em>Testado com clientes reais: Maria economizou $743 usando esta técnica na rota SP-Miami.</em>
@@ -257,10 +257,10 @@ export async function POST(request: NextRequest) {
                   <div style="background: #f8fafc; padding: 25px; border-radius: 12px; text-align: center; border: 2px dashed #cbd5e1;">
                     <h3 style="color: #374151; margin: 0 0 15px 0;">🎯 QUER RESULTADOS ASSIM?</h3>
                     <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                      Nossa equipe monitora +1.000 rotas diariamente. Receba alertas personalizados quando os preços dos seus destinos favoritos despencarem.
+                      Há 21 anos criamos pacotes COMPLETOS que incluem TUDO: passagens, hotéis, carros, passeios e seguro viagem. Você só se preocupa em aproveitar!
                     </p>
                     <a href="https://fly2any.com" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
-                      📱 ATIVAR ALERTAS GRÁTIS
+                      📱 QUERO PACOTE COMPLETO
                     </a>
                   </div>
                 </div>
@@ -279,7 +279,7 @@ export async function POST(request: NextRequest) {
             </html>`
         },
         reactivation: {
-          subject: '💔 Sua próxima aventura está esperando... + 25% OFF exclusivo',
+          subject: '💔 Sentimos sua falta... PACOTE COMPLETO com 30% OFF só para você!',
           html: `
             <!DOCTYPE html>
             <html>
@@ -303,10 +303,10 @@ export async function POST(request: NextRequest) {
                 <!-- Personal Message -->
                 <div style="padding: 30px; background: linear-gradient(180deg, #fef2f2 0%, #ffffff 100%); text-align: center;">
                   <h2 style="color: #be123c; font-size: 24px; margin: 0 0 20px 0; font-weight: 700; line-height: 1.3;">
-                    Já faz tempo que você não viaja conosco...
+                    Depois de 21 anos, sabemos quando um viajante especial como você está pronto para a próxima aventura...
                   </h2>
                   <p style="font-size: 16px; color: #374151; margin: 0 0 15px 0; line-height: 1.6;">
-                    Sabemos que a vida anda corrida, mas <strong>você merece uma pausa</strong>. Sua última viagem conosco foi incrível, e temos certeza de que a próxima será ainda melhor!
+                    Sabemos que a vida anda corrida, mas <strong>você merece muito mais do que uma pausa</strong>. Merece uma experiência COMPLETA, sem stress, onde só precisa se preocupar em aproveitar!
                   </p>
                 </div>
 
@@ -318,14 +318,14 @@ export async function POST(request: NextRequest) {
                         🎁 OFERTA ESPECIAL SÓ PARA VOCÊ
                       </h3>
                       <div style="color: #be123c; font-size: 32px; font-weight: 900; margin: 10px 0;">
-                        25% OFF
+                        30% OFF
                       </div>
                       <p style="color: #374151; font-size: 16px; margin: 0 0 15px 0; font-weight: 600;">
-                        Na sua próxima viagem dos sonhos
+                        No seu PACOTE COMPLETO dos sonhos
                       </p>
                       <div style="background: #fef3c7; padding: 12px; border-radius: 8px; border: 1px solid #fbbf24;">
                         <div style="font-weight: 700; color: #92400e; font-size: 18px;">
-                          Código: <span style="background: #92400e; color: white; padding: 5px 10px; border-radius: 4px;">SAUDADE25</span>
+                          Código: <span style="background: #92400e; color: white; padding: 5px 10px; border-radius: 4px;">VOLTEI30</span>
                         </div>
                         <div style="font-size: 12px; color: #92400e; margin-top: 5px;">
                           ⏰ Válido por 7 dias • Não perca esta chance!
@@ -339,11 +339,11 @@ export async function POST(request: NextRequest) {
                 <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fafafa 0%, #f3f4f6 100%);">
                   <div style="background: linear-gradient(135deg, #be123c 0%, #dc2626 100%); padding: 6px; border-radius: 16px; display: inline-block; margin-bottom: 15px;">
                     <a href="https://fly2any.com" style="background: linear-gradient(135deg, #be123c 0%, #dc2626 100%); color: white; padding: 20px 40px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(190, 18, 60, 0.4);">
-                      💖 QUERO VOLTAR A VIAJAR
+                      💖 QUERO MEU PACOTE COMPLETO
                     </a>
                   </div>
                   <div style="font-size: 14px; color: #be123c; margin-top: 10px; font-weight: 600;">
-                    ⏰ Oferta expira em 7 dias • Código SAUDADE25
+                    ⏰ Oferta expira em 7 dias • Código VOLTEI30
                   </div>
                 </div>
 
@@ -353,7 +353,7 @@ export async function POST(request: NextRequest) {
                     <strong>Fly2Any</strong> • Conectando brasileiros ao mundo há +10 anos
                   </p>
                   <p style="margin: 0; font-size: 12px; opacity: 0.8;">
-                    📱 WhatsApp: +1 (305) 555-0123 • 📧 contato@fly2any.com
+                    📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
                   </p>
                 </div>
               </div>

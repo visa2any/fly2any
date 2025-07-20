@@ -29,7 +29,7 @@ export default function EmailTemplatesPage() {
         name: 'Super Oferta - Alta Conversão',
         description: 'Template promocional com gatilhos de urgência e prova social',
         type: 'promotional',
-        subject: '⚡ ÚLTIMAS 24H: Economize até 40% - Miami por $1.299',
+        subject: '⚡ ÚLTIMAS 24H: Pacote COMPLETO Miami por $1.299 - Passagem+Hotel+Carro',
         html: `
           <!DOCTYPE html>
           <html>
@@ -45,19 +45,19 @@ export default function EmailTemplatesPage() {
                   ⏰ RESTAM 24H
                 </div>
                 <h1 style="margin: 0; font-size: 24px; font-weight: 700;">✈️ FLY2ANY</h1>
-                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">+10 anos conectando brasileiros ao mundo</p>
+                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">21 anos conectando brasileiros ao mundo</p>
               </div>
 
               <!-- Oferta Principal -->
               <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);">
                 <h2 style="color: #dc2626; font-size: 28px; margin: 0 0 10px 0; font-weight: 800;">
-                  🔥 ECONOMIA DE ATÉ 40%
+                  🔥 PACOTE COMPLETO: TUDO INCLUÍDO!
                 </h2>
                 <p style="font-size: 18px; color: #374151; margin: 0 0 20px 0; font-weight: 600;">
-                  Miami por apenas <span style="color: #dc2626; font-size: 24px;">$1.299</span>
+                  Miami COMPLETO por apenas <span style="color: #dc2626; font-size: 24px;">$1.299</span>
                 </p>
                 <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                  <s>Preço normal: $2.165</s> • <strong style="color: #059669;">Você economiza $866!</strong>
+                  ✈️ Passagem + 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro<br><s>Preço separado: $2.890</s> • <strong style="color: #059669;">Economia: $1.591!</strong>
                 </p>
               </div>
 
@@ -69,19 +69,19 @@ export default function EmailTemplatesPage() {
                   <span style="margin-left: 10px; color: #6b7280; font-size: 12px;">cliente verificada</span>
                 </div>
                 <p style="color: #374151; font-style: italic; margin: 0; font-size: 14px;">
-                  "Incrível! Economizei mais de $800 na minha viagem para Miami. Atendimento impecável e resposta em 2 horas!"
+                  "Comprei o pacote completo da Fly2Any: passagem, hotel 4⭐, carro e passeios. Economizei $1.400 e não precisei me preocupar com NADA! Experiência incrível!"
                 </p>
               </div>
 
               <!-- Destinos em Destaque -->
               <div style="padding: 30px;">
-                <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🎯 OFERTAS EXCLUSIVAS</h3>
+                <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🎯 PACOTES COMPLETOS - TUDO INCLUÍDO</h3>
                 <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                   
                   <div style="display: flex; border-bottom: 1px solid #e5e7eb; padding: 15px; align-items: center;">
                     <div style="flex: 1;">
-                      <div style="font-weight: 600; color: #374151;">🏖️ São Paulo → Miami</div>
-                      <div style="font-size: 12px; color: #6b7280;">Ida e volta • Taxas incluídas</div>
+                      <div style="font-weight: 600; color: #374151;">🏖️ MIAMI COMPLETO</div>
+                      <div style="font-size: 12px; color: #6b7280;">Passagem + Hotel 4⭐ + Carro + Seguro</div>
                     </div>
                     <div style="text-align: right;">
                       <div style="font-weight: 700; color: #dc2626; font-size: 18px;">$1.299</div>
@@ -91,8 +91,8 @@ export default function EmailTemplatesPage() {
 
                   <div style="display: flex; border-bottom: 1px solid #e5e7eb; padding: 15px; align-items: center;">
                     <div style="flex: 1;">
-                      <div style="font-weight: 600; color: #374151;">🗽 Rio → New York</div>
-                      <div style="font-size: 12px; color: #6b7280;">Ida e volta • Taxas incluídas</div>
+                      <div style="font-weight: 600; color: #374151;">🗽 NEW YORK COMPLETO</div>
+                      <div style="font-size: 12px; color: #6b7280;">Passagem + Hotel 4⭐ + Carro + Seguro</div>
                     </div>
                     <div style="text-align: right;">
                       <div style="font-weight: 700; color: #dc2626; font-size: 18px;">$1.599</div>
@@ -102,8 +102,8 @@ export default function EmailTemplatesPage() {
 
                   <div style="display: flex; padding: 15px; align-items: center;">
                     <div style="flex: 1;">
-                      <div style="font-weight: 600; color: #374151;">🎢 Salvador → Orlando</div>
-                      <div style="font-size: 12px; color: #6b7280;">Ida e volta • Taxas incluídas</div>
+                      <div style="font-weight: 600; color: #374151;">🎢 ORLANDO COMPLETO</div>
+                      <div style="font-size: 12px; color: #6b7280;">Passagem + Hotel 4⭐ + Carro + Seguro</div>
                     </div>
                     <div style="text-align: right;">
                       <div style="font-weight: 700; color: #dc2626; font-size: 18px;">$1.399</div>
@@ -115,23 +115,23 @@ export default function EmailTemplatesPage() {
 
               <!-- Garantias e Benefícios -->
               <div style="background: #f0f9ff; padding: 25px; margin: 0;">
-                <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🛡️ SUAS GARANTIAS</h3>
+                <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0;">🎯 POR QUE ESCOLHER NOSSOS PACOTES?</h3>
                 <div style="text-align: center;">
                   <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
-                    <div style="font-size: 24px;">⚡</div>
-                    <div style="font-size: 12px; font-weight: 600; color: #374151;">Resposta em 2h</div>
-                  </div>
-                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
-                    <div style="font-size: 24px;">💳</div>
-                    <div style="font-size: 12px; font-weight: 600; color: #374151;">12x sem juros</div>
-                  </div>
-                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
-                    <div style="font-size: 24px;">🔒</div>
-                    <div style="font-size: 12px; font-weight: 600; color: #374151;">Melhor preço</div>
-                  </div>
-                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
                     <div style="font-size: 24px;">🎯</div>
-                    <div style="font-size: 12px; font-weight: 600; color: #374151;">5.000+ clientes</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151;">TUDO EM 1 LUGAR</div>
+                  </div>
+                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
+                    <div style="font-size: 24px;">💰</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151;">ECONOMIA REAL</div>
+                  </div>
+                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
+                    <div style="font-size: 24px;">🏆</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151;">21 ANOS EXP.</div>
+                  </div>
+                  <div style="display: inline-block; margin: 0 15px 15px 0; text-align: center;">
+                    <div style="font-size: 24px;">⚡</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151;">SUPORTE 24/7</div>
                   </div>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function EmailTemplatesPage() {
               <div style="padding: 30px; text-align: center; background: #fafafa;">
                 <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 4px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
                   <a href="https://fly2any.com" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
-                    🚀 GARANTIR OFERTA AGORA
+                    🚀 QUERO MEU PACOTE COMPLETO
                   </a>
                 </div>
                 <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
@@ -154,10 +154,10 @@ export default function EmailTemplatesPage() {
               <!-- Footer -->
               <div style="background: #374151; color: white; padding: 20px; text-align: center;">
                 <p style="margin: 0 0 10px 0; font-size: 14px;">
-                  <strong>Fly2Any</strong> • Conectando brasileiros ao mundo há +10 anos
+                  <strong>Fly2Any</strong> • 21 anos conectando brasileiros ao mundo
                 </p>
                 <p style="margin: 0; font-size: 12px; opacity: 0.8;">
-                  📱 WhatsApp: +1 (305) 555-0123 • 📧 contato@fly2any.com
+                  📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
                 </p>
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function EmailTemplatesPage() {
         name: 'Newsletter Educativa Premium',
         description: 'Newsletter com value-driven content e soft selling',
         type: 'newsletter',
-        subject: '🧳 Segredos dos experts: Como economizar $800+ em viagens',
+        subject: '🧳 21 ANOS de segredos: Como montar sua viagem COMPLETA economizando $1.500+',
         html: `
           <!DOCTYPE html>
           <html>
@@ -189,43 +189,43 @@ export default function EmailTemplatesPage() {
               <div style="padding: 25px; background: #fafafa; border-bottom: 1px solid #e5e7eb;">
                 <p style="margin: 0; font-size: 16px; color: #374151; line-height: 1.6;">
                   Olá, <strong>Viajante</strong>! 👋<br>
-                  Esta semana revelamos os <strong>segredos dos especialistas</strong> que nossa equipe usa há +10 anos para encontrar as melhores ofertas.
+                  Esta semana revelamos os <strong>segredos dos especialistas</strong> que nossa equipe usa há 21 anos para montar viagens COMPLETAS com economia máxima.
                 </p>
               </div>
 
               <!-- Main Content -->
               <div style="padding: 30px;">
                 <h2 style="color: #1e40af; font-size: 22px; margin: 0 0 20px 0; font-weight: 700;">
-                  💡 DICA #1: O Truque das "Janelas Secretas"
+                  💡 SEGREDO #1: Por que comprar SEPARADO é mais caro
                 </h2>
                 
                 <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6; margin-bottom: 25px;">
                   <p style="margin: 0 0 15px 0; color: #374151; line-height: 1.6;">
-                    <strong>🕐 Horários mágicos:</strong> Pesquise passagens entre <strong>14h-16h</strong> nas terças e quartas. Nossas análises de +50.000 buscas mostram economia média de <strong>32%</strong> nestes horários.
+                    <strong>🕐 Horários mágicos:</strong> Quando você compra passagem, hotel, carro e passeios SEPARADAMENTE, paga até 60% mais caro. Nossos pacotes COMPLETOS garantem o melhor preço por incluir TUDO em uma única negociação.
                   </p>
                   <p style="margin: 0; font-size: 14px; color: #6b7280;">
-                    ✅ <em>Testado com clientes reais: Maria economizou $743 usando esta técnica na rota SP-Miami.</em>
+                    ✅ <em>Comprovado: Família Santos economizou $1.847 comprando o pacote COMPLETO ao invés de comprar separado.</em>
                   </p>
                 </div>
 
                 <h2 style="color: #1e40af; font-size: 22px; margin: 0 0 20px 0; font-weight: 700;">
-                  📊 ANÁLISE DA SEMANA: Tendências de Preços
+                  📊 ANÁLISE REAL: O que INCLUÍMOS nos pacotes
                 </h2>
                 
                 <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 25px;">
                   <div style="background: #10b981; color: white; padding: 15px; font-weight: 600;">
-                    📈 DESTINOS EM ALTA (preços ↓)
+                    🎯 TUDO INCLUÍDO NOS NOSSOS PACOTES
                   </div>
                   
                   <div style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                       <div>
-                        <div style="font-weight: 600; color: #374151;">🏖️ Miami</div>
-                        <div style="font-size: 12px; color: #6b7280;">Média dos últimos 30 dias</div>
+                        <div style="font-weight: 600; color: #374151;">✈️ PASSAGENS AÉREAS</div>
+                        <div style="font-size: 12px; color: #6b7280;">Incluso no pacote</div>
                       </div>
                       <div style="text-align: right;">
-                        <div style="color: #10b981; font-weight: 700;">↓ 28%</div>
-                        <div style="font-size: 12px; color: #374151;">Melhor época: Maio-Junho</div>
+                        <div style="color: #10b981; font-weight: 700;">✅ INCLUÍDO</div>
+                        <div style="font-size: 12px; color: #374151;">Voos nacionais e internacionais</div>
                       </div>
                     </div>
                   </div>
@@ -233,12 +233,12 @@ export default function EmailTemplatesPage() {
                   <div style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                       <div>
-                        <div style="font-weight: 600; color: #374151;">🗽 New York</div>
-                        <div style="font-size: 12px; color: #6b7280;">Média dos últimos 30 dias</div>
+                        <div style="font-weight: 600; color: #374151;">🏨 HOTÉIS 4 E 5 ESTRELAS</div>
+                        <div style="font-size: 12px; color: #6b7280;">Incluso no pacote</div>
                       </div>
                       <div style="text-align: right;">
-                        <div style="color: #10b981; font-weight: 700;">↓ 22%</div>
-                        <div style="font-size: 12px; color: #374151;">Melhor época: Abril-Maio</div>
+                        <div style="color: #10b981; font-weight: 700;">✅ INCLUÍDO</div>
+                        <div style="font-size: 12px; color: #374151;">Localização premium e café da manhã</div>
                       </div>
                     </div>
                   </div>
@@ -246,12 +246,12 @@ export default function EmailTemplatesPage() {
                   <div style="padding: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                       <div>
-                        <div style="font-weight: 600; color: #374151;">🌴 Califórnia</div>
-                        <div style="font-size: 12px; color: #6b7280;">Média dos últimos 30 dias</div>
+                        <div style="font-weight: 600; color: #374151;">🚗 ALUGUEL DE CARROS + GPS</div>
+                        <div style="font-size: 12px; color: #6b7280;">Incluso no pacote</div>
                       </div>
                       <div style="text-align: right;">
-                        <div style="color: #10b981; font-weight: 700;">↓ 35%</div>
-                        <div style="font-size: 12px; color: #374151;">Melhor época: Março-Abril</div>
+                        <div style="color: #10b981; font-weight: 700;">✅ INCLUÍDO</div>
+                        <div style="font-size: 12px; color: #374151;">Seguro total e GPS incluso</div>
                       </div>
                     </div>
                   </div>
@@ -265,11 +265,11 @@ export default function EmailTemplatesPage() {
                   <div style="display: flex; align-items: start; gap: 15px;">
                     <div style="flex: 1;">
                       <p style="margin: 0 0 10px 0; color: #374151; line-height: 1.6; font-size: 14px;">
-                        <strong>João Silva</strong> (empresário, São Paulo) planejava viajar para Orlando com a família (4 pessoas). Usando nossas dicas de timing + alertas personalizados, conseguiu:
+                        <strong>Família Oliveira</strong> (4 pessoas) queria Disney World COMPLETA. Ao invés de comprar separado, fecharam nosso PACOTE TOTAL e conseguiram:
                       </p>
                       <div style="background: white; padding: 12px; border-radius: 8px; margin-top: 10px;">
-                        <div style="color: #059669; font-weight: 700; font-size: 16px;">💰 Economia total: $3.124</div>
-                        <div style="font-size: 12px; color: #6b7280;">4 passagens SP-Orlando + 7 dias de hotel</div>
+                        <div style="color: #059669; font-weight: 700; font-size: 16px;">💰 PACOTE COMPLETO por $6.890</div>
+                        <div style="font-size: 12px; color: #6b7280;">Passagens + Hotel Disney + Carro + Ingressos + Seguro TUDO INCLUÍDO</div>
                       </div>
                     </div>
                   </div>
@@ -279,10 +279,10 @@ export default function EmailTemplatesPage() {
                 <div style="background: #f8fafc; padding: 25px; border-radius: 12px; text-align: center; border: 2px dashed #cbd5e1;">
                   <h3 style="color: #374151; margin: 0 0 15px 0;">🎯 QUER RESULTADOS ASSIM?</h3>
                   <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                    Nossa equipe monitora +1.000 rotas diariamente. Receba alertas personalizados quando os preços dos seus destinos favoritos despencarem.
+                    Há 21 anos criamos pacotes COMPLETOS que incluem TUDO: passagens, hotéis, carros, passeios e seguro viagem. Você só se preocupa em aproveitar!
                   </p>
                   <a href="https://fly2any.com" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
-                    📱 ATIVAR ALERTAS GRÁTIS
+                    📱 QUERO PACOTE COMPLETO
                   </a>
                 </div>
               </div>
@@ -310,10 +310,10 @@ export default function EmailTemplatesPage() {
                   <strong>Fly2Any Insider</strong> • Seus especialistas em viagens internacionais
                 </p>
                 <p style="margin: 0 0 15px 0; font-size: 12px; opacity: 0.8;">
-                  +10 anos de experiência • +5.000 clientes satisfeitos • Economia média de 35%
+                  21 anos de experiência • +15.000 clientes satisfeitos • Pacotes COMPLETOS
                 </p>
                 <div style="font-size: 12px; opacity: 0.7;">
-                  📱 WhatsApp: +1 (305) 555-0123 • 📧 insider@fly2any.com
+                  📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
                 </div>
               </div>
             </div>
@@ -325,7 +325,7 @@ export default function EmailTemplatesPage() {
         name: 'Reativação Emocional VIP',
         description: 'Template de reativação com apelo emocional e oferta irresistível',
         type: 'reactivation',
-        subject: '💔 Sua próxima aventura está esperando... + 25% OFF exclusivo',
+        subject: '💔 Sentimos sua falta... PACOTE COMPLETO com 30% OFF só para você!',
         html: `
           <!DOCTYPE html>
           <html>
@@ -349,10 +349,10 @@ export default function EmailTemplatesPage() {
               <!-- Personal Message -->
               <div style="padding: 30px; background: linear-gradient(180deg, #fef2f2 0%, #ffffff 100%); text-align: center;">
                 <h2 style="color: #be123c; font-size: 24px; margin: 0 0 20px 0; font-weight: 700; line-height: 1.3;">
-                  Já faz tempo que você não viaja conosco...
+                  Depois de 21 anos, sabemos quando um viajante especial como você está pronto para a próxima aventura...
                 </h2>
                 <p style="font-size: 16px; color: #374151; margin: 0 0 15px 0; line-height: 1.6;">
-                  Sabemos que a vida anda corrida, mas <strong>você merece uma pausa</strong>. Sua última viagem conosco foi incrível, e temos certeza de que a próxima será ainda melhor!
+                  Sabemos que a vida anda corrida, mas <strong>você merece muito mais do que uma pausa</strong>. Merece uma experiência COMPLETA, sem stress, onde só precisa se preocupar em aproveitar!
                 </p>
                 <div style="background: white; padding: 15px; border-radius: 8px; border: 2px solid #fecaca; margin: 20px 0;">
                   <p style="margin: 0; font-size: 14px; color: #7f1d1d; font-style: italic;">
@@ -369,17 +369,17 @@ export default function EmailTemplatesPage() {
                       🎁 OFERTA ESPECIAL SÓ PARA VOCÊ
                     </h3>
                     <div style="color: #be123c; font-size: 32px; font-weight: 900; margin: 10px 0;">
-                      25% OFF
+                      30% OFF
                     </div>
                     <p style="color: #374151; font-size: 16px; margin: 0 0 15px 0; font-weight: 600;">
-                      Na sua próxima viagem dos sonhos
+                      No seu PACOTE COMPLETO dos sonhos
                     </p>
                     <div style="background: #fef3c7; padding: 12px; border-radius: 8px; border: 1px solid #fbbf24;">
                       <div style="font-weight: 700; color: #92400e; font-size: 18px;">
-                        Código: <span style="background: #92400e; color: white; padding: 5px 10px; border-radius: 4px;">SAUDADE25</span>
+                        Código: <span style="background: #92400e; color: white; padding: 5px 10px; border-radius: 4px;">VOLTEI30</span>
                       </div>
                       <div style="font-size: 12px; color: #92400e; margin-top: 5px;">
-                        ⏰ Válido por 7 dias • Não perca esta chance!
+                        ⏰ Válido por 5 dias • Oferta EXCLUSIVA para quem já viajou conosco!
                       </div>
                     </div>
                   </div>
@@ -387,7 +387,7 @@ export default function EmailTemplatesPage() {
 
                 <!-- Destinations Showcase -->
                 <h3 style="text-align: center; color: #374151; margin: 0 0 20px 0; font-size: 20px;">
-                  🌎 DESTINOS QUE VÃO TE EMOCIONAR
+                  🌎 PACOTES COMPLETOS QUE VÃO TE SURPREENDER
                 </h3>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
@@ -397,9 +397,9 @@ export default function EmailTemplatesPage() {
                       <div style="font-weight: 600;">MIAMI</div>
                     </div>
                     <div style="padding: 15px; text-align: center;">
-                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">com 25% OFF</div>
-                      <div style="font-weight: 700; color: #be123c; font-size: 18px;">$974</div>
-                      <div style="font-size: 11px; color: #059669;">💰 Você economiza $325</div>
+                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">PACOTE COMPLETO com 30% OFF</div>
+                      <div style="font-weight: 700; color: #be123c; font-size: 18px;">$1.949</div>
+                      <div style="font-size: 11px; color: #059669;">💰 Passagem+Hotel+Carro+Seguro TUDO INCLUÍDO</div>
                     </div>
                   </div>
 
@@ -409,9 +409,9 @@ export default function EmailTemplatesPage() {
                       <div style="font-weight: 600;">NEW YORK</div>
                     </div>
                     <div style="padding: 15px; text-align: center;">
-                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">com 25% OFF</div>
-                      <div style="font-weight: 700; color: #be123c; font-size: 18px;">$1.199</div>
-                      <div style="font-size: 11px; color: #059669;">💰 Você economiza $400</div>
+                      <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">PACOTE COMPLETO com 30% OFF</div>
+                      <div style="font-weight: 700; color: #be123c; font-size: 18px;">$2.299</div>
+                      <div style="font-size: 11px; color: #059669;">💰 Passagem+Hotel+Carro+Passeios TUDO INCLUÍDO</div>
                     </div>
                   </div>
                 </div>
@@ -424,7 +424,7 @@ export default function EmailTemplatesPage() {
                 </h3>
                 <div style="color: #374151; line-height: 1.6; font-size: 14px;">
                   <div style="margin-bottom: 10px;">✅ <strong>Você merece relaxar</strong> depois de tanto trabalho</div>
-                  <div style="margin-bottom: 10px;">✅ <strong>Preços nunca estiveram tão baixos</strong> (25% OFF é histórico!)</div>
+                  <div style="margin-bottom: 10px;">✅ <strong>Nossos PACOTES COMPLETOS nunca tiveram tanto desconto</strong> (30% OFF é histórico!)</div>
                   <div style="margin-bottom: 10px;">✅ <strong>Criar memórias</strong> é o melhor investimento que existe</div>
                   <div style="margin-bottom: 10px;">✅ <strong>Sua família/amigos</strong> vão adorar esta surpresa</div>
                 </div>
@@ -450,7 +450,7 @@ export default function EmailTemplatesPage() {
                   </a>
                 </div>
                 <div style="font-size: 14px; color: #be123c; margin-top: 10px; font-weight: 600;">
-                  ⏰ Oferta expira em 7 dias • Código SAUDADE25
+                  ⏰ Oferta expira em 7 dias • Código VOLTEI30
                 </div>
                 <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
                   ✅ Sem taxa de conveniência • Cancelamento grátis em 24h • Parcelamento em 12x
@@ -467,10 +467,10 @@ export default function EmailTemplatesPage() {
               <!-- Footer -->
               <div style="background: #374151; color: white; padding: 20px; text-align: center;">
                 <p style="margin: 0 0 10px 0; font-size: 14px;">
-                  <strong>Fly2Any</strong> • Conectando brasileiros ao mundo há +10 anos
+                  <strong>Fly2Any</strong> • 21 anos conectando brasileiros ao mundo
                 </p>
                 <p style="margin: 0; font-size: 12px; opacity: 0.8;">
-                  📱 WhatsApp: +1 (305) 555-0123 • 📧 contato@fly2any.com
+                  📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
                 </p>
               </div>
             </div>
