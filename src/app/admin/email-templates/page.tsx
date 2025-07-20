@@ -19,6 +19,7 @@ export default function EmailTemplatesPage() {
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -525,6 +526,69 @@ export default function EmailTemplatesPage() {
 
   const editTemplate = (template: EmailTemplate) => {
     setEditingTemplate({...template});
+    setIsCreatingNew(false);
+    setShowEditor(true);
+  };
+
+  const createNewTemplate = () => {
+    const newTemplate: EmailTemplate = {
+      id: `custom_${Date.now()}`,
+      name: 'Novo Template Personalizado',
+      description: 'Template criado do zero para necessidades específicas',
+      type: 'promotional',
+      subject: '✨ Novo template - Personalize seu assunto aqui',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc;">
+          <div style="max-width: 600px; margin: 0 auto; background: white;">
+            
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 700;">✈️ FLY2ANY</h1>
+              <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">21 anos conectando brasileiros ao mundo</p>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <div style="padding: 40px; text-align: center;">
+              <h2 style="color: #1e40af; font-size: 28px; margin: 0 0 20px 0; font-weight: 700;">
+                🎯 Seu Título Aqui
+              </h2>
+              <p style="font-size: 16px; color: #374151; margin: 0 0 30px 0; line-height: 1.6;">
+                Escreva sua mensagem principal aqui. Use linguagem persuasiva e direta para capturar a atenção do leitor.
+              </p>
+              
+              <!-- CTA Principal -->
+              <div style="margin: 30px 0;">
+                <a href="https://fly2any.com" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 18px;">
+                  🚀 SEU CTA AQUI
+                </a>
+              </div>
+              
+              <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+                Adicione informações adicionais ou benefícios aqui
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background: #374151; color: white; padding: 20px; text-align: center;">
+              <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>Fly2Any</strong> • 21 anos conectando brasileiros ao mundo
+              </p>
+              <p style="margin: 0; font-size: 12px; opacity: 0.8;">
+                📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>`
+    };
+    
+    setEditingTemplate(newTemplate);
+    setIsCreatingNew(true);
     setShowEditor(true);
   };
 
@@ -533,10 +597,18 @@ export default function EmailTemplatesPage() {
     
     setSaving(true);
     try {
-      // Atualizar template no estado local
-      const updatedTemplates = templates.map(t => 
-        t.id === editingTemplate.id ? editingTemplate : t
-      );
+      let updatedTemplates;
+      
+      if (isCreatingNew) {
+        // Adicionar novo template
+        updatedTemplates = [...templates, editingTemplate];
+      } else {
+        // Atualizar template existente
+        updatedTemplates = templates.map(t => 
+          t.id === editingTemplate.id ? editingTemplate : t
+        );
+      }
+      
       setTemplates(updatedTemplates);
       
       // Salvar no localStorage
@@ -545,9 +617,11 @@ export default function EmailTemplatesPage() {
       if (saved) {
         setShowEditor(false);
         setEditingTemplate(null);
+        setIsCreatingNew(false);
         
-        // Feedback visual com mais detalhes
-        alert(`✅ Template "${editingTemplate.name}" salvo com sucesso!\n\n💾 Suas alterações foram salvas localmente e estarão disponíveis na próxima vez que acessar a página.`);
+        // Feedback visual diferenciado para criação vs edição
+        const action = isCreatingNew ? 'criado' : 'salvo';
+        alert(`✅ Template "${editingTemplate.name}" ${action} com sucesso!\n\n💾 ${isCreatingNew ? 'Novo template adicionado e salvo' : 'Suas alterações foram salvas'} localmente.`);
       } else {
         throw new Error('Falha ao salvar no localStorage');
       }
@@ -591,6 +665,23 @@ export default function EmailTemplatesPage() {
     link.download = `template-${editingTemplate.id}-${Date.now()}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const deleteTemplate = (templateId: string) => {
+    // Verificar se é um template padrão (não pode deletar)
+    const isSystemTemplate = ['promotional', 'newsletter', 'reactivation'].includes(templateId);
+    
+    if (isSystemTemplate) {
+      alert('⚠️ Não é possível deletar templates padrão do sistema.\n\nUse "Restaurar Padrão" se quiser reverter alterações.');
+      return;
+    }
+    
+    if (confirm('⚠️ Tem certeza que deseja deletar este template?\n\nEsta ação não pode ser desfeita.')) {
+      const updatedTemplates = templates.filter(t => t.id !== templateId);
+      setTemplates(updatedTemplates);
+      saveTemplatesLocally(updatedTemplates);
+      alert('✅ Template deletado com sucesso!');
+    }
   };
 
   const getTypeColor = (type: string) => {
@@ -637,7 +728,10 @@ export default function EmailTemplatesPage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <button className="admin-btn admin-btn-sm admin-btn-secondary">
+              <button 
+                onClick={createNewTemplate}
+                className="admin-btn admin-btn-sm admin-btn-secondary"
+              >
                 ➕ Novo Template
               </button>
             </div>
@@ -690,6 +784,16 @@ export default function EmailTemplatesPage() {
                 >
                   ✏️ Editar
                 </button>
+                {/* Botão de deletar apenas para templates personalizados */}
+                {!['promotional', 'newsletter', 'reactivation'].includes(template.id) && (
+                  <button 
+                    onClick={() => deleteTemplate(template.id)}
+                    className="admin-btn admin-btn-sm text-red-600 border-red-300 hover:bg-red-50"
+                    title="Deletar template personalizado"
+                  >
+                    🗑️
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -748,10 +852,19 @@ export default function EmailTemplatesPage() {
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-semibold">
-                ✏️ Editando: {editingTemplate.name}
+                {isCreatingNew ? '➕ Criando Novo Template' : `✏️ Editando: ${editingTemplate.name}`}
               </h3>
               <button 
-                onClick={() => setShowEditor(false)}
+                onClick={() => {
+                  if (isCreatingNew && confirm('⚠️ Descartar novo template?\n\nTodas as alterações serão perdidas.')) {
+                    setShowEditor(false);
+                    setEditingTemplate(null);
+                    setIsCreatingNew(false);
+                  } else if (!isCreatingNew) {
+                    setShowEditor(false);
+                    setEditingTemplate(null);
+                  }
+                }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 ✕
@@ -886,7 +999,16 @@ export default function EmailTemplatesPage() {
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => setShowEditor(false)}
+                  onClick={() => {
+                    if (isCreatingNew && confirm('⚠️ Descartar novo template?\n\nTodas as alterações serão perdidas.')) {
+                      setShowEditor(false);
+                      setEditingTemplate(null);
+                      setIsCreatingNew(false);
+                    } else if (!isCreatingNew) {
+                      setShowEditor(false);
+                      setEditingTemplate(null);
+                    }
+                  }}
                   className="admin-btn admin-btn-sm admin-btn-secondary"
                 >
                   Cancelar
@@ -896,7 +1018,7 @@ export default function EmailTemplatesPage() {
                   disabled={saving}
                   className="admin-btn admin-btn-sm admin-btn-primary"
                 >
-                  {saving ? '💾 Salvando...' : '💾 Salvar Template'}
+                  {saving ? '💾 Salvando...' : (isCreatingNew ? '➕ Criar Template' : '💾 Salvar Template')}
                 </button>
               </div>
             </div>
@@ -937,32 +1059,38 @@ export default function EmailTemplatesPage() {
               </div>
             </div>
 
-            {/* Como Editar */}
+            {/* Como Usar */}
             <div>
-              <h4 className="font-semibold text-gray-800 mb-3">✏️ Como Editar</h4>
+              <h4 className="font-semibold text-gray-800 mb-3">✏️ Como Usar</h4>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-3">
-                  <span className="text-blue-600">1️⃣</span>
+                  <span className="text-green-600">➕</span>
                   <div>
-                    Clique em <strong>"✏️ Editar"</strong> em qualquer template
+                    <strong>"➕ Novo Template"</strong> - Cria template personalizado do zero
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-green-600">2️⃣</span>
+                  <span className="text-blue-600">✏️</span>
                   <div>
-                    Edite texto, HTML ou configurações no painel esquerdo
+                    <strong>"✏️ Editar"</strong> - Edita templates existentes
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-purple-600">3️⃣</span>
+                  <span className="text-purple-600">👁️</span>
                   <div>
-                    Veja as alterações em <strong>tempo real</strong> no preview
+                    <strong>"👁️ Visualizar"</strong> - Preview sem editar
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="text-orange-600">4️⃣</span>
+                  <span className="text-red-600">🗑️</span>
                   <div>
-                    Clique <strong>"💾 Salvar"</strong> para persistir as mudanças
+                    <strong>"🗑️ Deletar"</strong> - Remove templates personalizados
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-orange-600">💾</span>
+                  <div>
+                    Mudanças são <strong>salvas automaticamente</strong> no navegador
                   </div>
                 </div>
               </div>
