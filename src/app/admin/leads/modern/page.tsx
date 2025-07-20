@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
+// Removed UI component imports - using admin CSS classes instead
 import { useToast } from '@/hooks/use-toast';
 import { 
   LayoutGrid, 
@@ -486,75 +482,87 @@ export default function ModernLeadsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchLeads} disabled={loading}>
+          <button 
+            onClick={fetchLeads} 
+            disabled={loading}
+            className="admin-btn admin-btn-sm admin-btn-secondary"
+          >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Atualizar
-          </Button>
-          <Button>
+          </button>
+          <button className="admin-btn admin-btn-sm admin-btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Novo Lead
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl">
+                👥
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.total}</div>
+            <div className="text-sm text-admin-text-secondary">Total de Leads</div>
+            <div className="text-xs text-admin-text-muted mt-1">
               +{stats.today} hoje
-            </p>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Esta Semana</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.thisWeek}</div>
-            <p className="text-xs text-muted-foreground">
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white flex items-center justify-center text-2xl">
+                📅
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.thisWeek}</div>
+            <div className="text-sm text-admin-text-secondary">Esta Semana</div>
+            <div className="text-xs text-admin-text-muted mt-1">
               leads captados
-            </p>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa Conversão</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.conversion}%</div>
-            <p className="text-xs text-muted-foreground">
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center text-2xl">
+                📈
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.conversion}%</div>
+            <div className="text-sm text-admin-text-secondary">Taxa Conversão</div>
+            <div className="text-xs text-admin-text-muted mt-1">
               leads para vendas
-            </p>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valor Médio</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+        <div className="admin-card">
+          <div className="admin-card-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white flex items-center justify-center text-2xl">
+                💰
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-admin-text-primary mb-1">
               {new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
                 currency: 'BRL'
               }).format(stats.avgValue)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm text-admin-text-secondary">Valor Médio</div>
+            <div className="text-xs text-admin-text-muted mt-1">
               por lead
-            </p>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
@@ -588,31 +596,31 @@ export default function ModernLeadsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center space-x-2">
-            <Checkbox
+            <input
+              type="checkbox"
               checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-              onCheckedChange={handleSelectAll}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="admin-checkbox"
             />
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-admin-text-secondary">
               Selecionar todos ({filteredLeads.length})
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'outline'}
-            size="sm"
+          <button
+            className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
             onClick={() => setViewMode('grid')}
           >
             <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'table' ? 'default' : 'outline'}
-            size="sm"
+          </button>
+          <button
+            className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
             onClick={() => setViewMode('table')}
           >
             <List className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -626,9 +634,11 @@ export default function ModernLeadsPage() {
           {filteredLeads.map((lead) => (
             <div key={lead.id} className="relative">
               <div className="absolute top-3 left-3 z-10">
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={selectedLeads.includes(lead.id)}
-                  onCheckedChange={(checked: boolean) => handleSelectLead(lead.id, checked)}
+                  onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
+                  className="admin-checkbox"
                 />
               </div>
               <LeadCard
@@ -645,18 +655,18 @@ export default function ModernLeadsPage() {
 
       {/* Empty State */}
       {!loading && filteredLeads.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="admin-empty-state">
+          <div className="admin-empty-icon">👥</div>
+          <h3 className="admin-empty-title">
             Nenhum lead encontrado
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="admin-empty-description">
             Tente ajustar os filtros ou adicionar novos leads
           </p>
-          <Button>
+          <button className="admin-btn admin-btn-primary">
             <Plus className="h-4 w-4 mr-2" />
             Adicionar Novo Lead
-          </Button>
+          </button>
         </div>
       )}
 
