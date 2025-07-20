@@ -22,10 +22,8 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   
-  // Experimental features for database
-  experimental: {
-    serverComponentsExternalPackages: ['@vercel/postgres'],
-  },
+  // Server external packages for database
+  serverExternalPackages: ['@vercel/postgres'],
   
   // Variáveis de ambiente disponíveis no cliente quando necessário
   env: {
