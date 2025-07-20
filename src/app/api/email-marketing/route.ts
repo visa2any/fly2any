@@ -4,9 +4,14 @@ import path from 'path';
 
 // Função robusta para carregar credenciais Gmail
 function getGmailCredentials() {
+  // TEMPORÁRIO: Credenciais hardcoded para teste em produção
+  // TODO: REMOVER após configurar no Vercel Environment Variables
+  const TEMP_GMAIL_EMAIL = "fly2any.travel@gmail.com";
+  const TEMP_GMAIL_PASSWORD = "ufol tqdy qbbv jkej";
+  
   // Primeiro, tenta process.env
-  let email = process.env.GMAIL_EMAIL;
-  let password = process.env.GMAIL_APP_PASSWORD;
+  let email = process.env.GMAIL_EMAIL || TEMP_GMAIL_EMAIL;
+  let password = process.env.GMAIL_APP_PASSWORD || TEMP_GMAIL_PASSWORD;
   
   // Se não encontrou, carrega diretamente dos arquivos
   if (!email || !password) {
@@ -47,7 +52,7 @@ function getGmailCredentials() {
       }
     }
   } else {
-    console.log('✅ Credenciais Gmail carregadas de process.env');
+    console.log('✅ Credenciais Gmail carregadas de process.env ou fallback temporário');
   }
   
   return { email, password };
