@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import NewsletterCapture from '@/components/NewsletterCapture';
 
 export const metadata: Metadata = {
   title: "Contato | Fale Conosco - Fly2Any",
@@ -311,6 +312,11 @@ export default function Contato() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Newsletter Capture Section */}
+          <div style={{ marginTop: '64px' }}>
+            <NewsletterCapture variant="vertical" showWhatsApp={true} />
           </div>
         </div>
       </div>

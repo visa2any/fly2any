@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarIcon, UsersIcon, ArrowRightIcon, FlightIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import NewsletterCapture from '@/components/NewsletterCapture';
 
 export const metadata: Metadata = {
   title: "Blog | Dicas de Viagem EUA-Brasil - Fly2Any",
@@ -546,56 +547,8 @@ export default function Blog() {
         borderTop: '1px solid #e5e7eb',
         padding: '80px 0'
       }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-          <h2 style={{
-            fontSize: '32px',
-            fontWeight: '800',
-            color: '#111827',
-            marginBottom: '16px',
-            fontFamily: 'Poppins, sans-serif'
-          }}>
-            📧 Newsletter Fly2Any
-          </h2>
-          <p style={{
-            fontSize: '18px',
-            color: '#6b7280',
-            marginBottom: '32px',
-            lineHeight: '1.6'
-          }}>
-            Receba dicas exclusivas e ofertas especiais para brasileiros nos EUA
-          </p>
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            maxWidth: '400px',
-            margin: '0 auto'
-          }}>
-            <input 
-              type="email" 
-              placeholder="seu@email.com"
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: '8px',
-                border: '1px solid #d1d5db',
-                fontSize: '16px',
-                outline: 'none'
-              }}
-            />
-            <button style={{
-              background: '#2563eb',
-              color: 'white',
-              fontWeight: '600',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '16px',
-              whiteSpace: 'nowrap'
-            }}>
-              Inscrever-se
-            </button>
-          </div>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+          <NewsletterCapture variant="horizontal" showWhatsApp={true} />
         </div>
       </div>
 

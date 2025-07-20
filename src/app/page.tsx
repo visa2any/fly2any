@@ -26,6 +26,8 @@ import PhoneInput from '@/components/PhoneInputSimple';
 import ChatAgent from '@/components/ChatAgent';
 import FloatingChat from '@/components/FloatingChat';
 import LeadCaptureSimple from '@/components/LeadCaptureSimple';
+import NewsletterCapture from '@/components/NewsletterCapture';
+import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 
 interface ServiceFormData {
@@ -2822,6 +2824,23 @@ export default function Home() {
         </section>
         </main>
 
+        {/* Newsletter Capture Section */}
+        <section style={{
+          position: 'relative',
+          zIndex: 10,
+          padding: '80px 0',
+          background: 'rgba(17, 24, 39, 0.7)',
+          backdropFilter: 'blur(20px)'
+        }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '0 24px'
+          }}>
+            <NewsletterCapture variant="horizontal" showWhatsApp={true} />
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section style={{
           position: 'relative',
@@ -3426,6 +3445,9 @@ export default function Home() {
           onClose={() => setShowLeadCapture(false)}
           context="popup"
         />
+
+        {/* Exit Intent Popup */}
+        <ExitIntentPopup enabled={true} delay={45} />
       </div>
     </>
   );
