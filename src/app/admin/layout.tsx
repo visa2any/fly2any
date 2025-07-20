@@ -52,6 +52,11 @@ const navigation = [
     badge: 'GRÁTIS'
   },
   {
+    name: 'Templates Email',
+    href: '/admin/email-templates',
+    icon: '📨'
+  },
+  {
     name: 'WhatsApp',
     href: '/admin/whatsapp',
     icon: '💬'
