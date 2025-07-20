@@ -11,6 +11,18 @@ interface EmailTemplate {
   type: 'promotional' | 'newsletter' | 'reactivation';
 }
 
+interface EditableFields {
+  headerTitle?: string;
+  headerSubtitle?: string;
+  mainTitle?: string;
+  mainContent?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  footerText?: string;
+  whatsappNumber?: string;
+  email?: string;
+}
+
 export default function EmailTemplatesPage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +32,8 @@ export default function EmailTemplatesPage() {
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [editableFields, setEditableFields] = useState<EditableFields>({});
+  const [showAdvancedEditor, setShowAdvancedEditor] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -524,8 +538,106 @@ export default function EmailTemplatesPage() {
     setShowPreview(true);
   };
 
+  // Extrair campos editáveis do HTML
+  const extractEditableFields = (html: string): EditableFields => {
+    const fields: EditableFields = {};
+    
+    // Extrair título do header
+    const headerTitleMatch = html.match(/<h1[^>]*>([^<]*)<\/h1>/);
+    if (headerTitleMatch) {
+      fields.headerTitle = headerTitleMatch[1].replace(/✈️\s*/, '');
+    }
+    
+    // Extrair subtítulo do header
+    const headerSubtitleMatch = html.match(/<h1[^>]*>.*?<\/h1>\s*<p[^>]*>([^<]*)<\/p>/);
+    if (headerSubtitleMatch) {
+      fields.headerSubtitle = headerSubtitleMatch[1];
+    }
+    
+    // Extrair título principal
+    const mainTitleMatch = html.match(/<h2[^>]*[^>]*>([^<]*)<\/h2>/);
+    if (mainTitleMatch) {
+      fields.mainTitle = mainTitleMatch[1].replace(/🔥\s*|🎯\s*|💡\s*/g, '');
+    }
+    
+    // Extrair texto do CTA
+    const ctaMatch = html.match(/<a[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/);
+    if (ctaMatch) {
+      fields.ctaUrl = ctaMatch[1];
+      fields.ctaText = ctaMatch[2].replace(/🚀\s*|📱\s*|💖\s*/g, '');
+    }
+    
+    // Extrair WhatsApp
+    const whatsappMatch = html.match(/WhatsApp:\s*([+\d\s\-()]+)/);
+    if (whatsappMatch) {
+      fields.whatsappNumber = whatsappMatch[1].trim();
+    }
+    
+    // Extrair email
+    const emailMatch = html.match(/📧\s*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    if (emailMatch) {
+      fields.email = emailMatch[1];
+    }
+    
+    return fields;
+  };
+
+  // Aplicar campos editáveis ao HTML
+  const applyEditableFields = (html: string, fields: EditableFields): string => {
+    let updatedHtml = html;
+    
+    if (fields.headerTitle) {
+      updatedHtml = updatedHtml.replace(
+        /<h1([^>]*)>([^<]*)<\/h1>/,
+        `<h1$1>✈️ ${fields.headerTitle}</h1>`
+      );
+    }
+    
+    if (fields.headerSubtitle) {
+      updatedHtml = updatedHtml.replace(
+        /(<h1[^>]*>.*?<\/h1>\s*<p[^>]*>)([^<]*)(<\/p>)/,
+        `$1${fields.headerSubtitle}$3`
+      );
+    }
+    
+    if (fields.mainTitle) {
+      updatedHtml = updatedHtml.replace(
+        /<h2([^>]*)>([^<]*)<\/h2>/,
+        `<h2$1>🎯 ${fields.mainTitle}</h2>`
+      );
+    }
+    
+    if (fields.ctaText && fields.ctaUrl) {
+      updatedHtml = updatedHtml.replace(
+        /<a([^>]*)href="[^"]*"([^>]*)>([^<]*)<\/a>/,
+        `<a$1href="${fields.ctaUrl}"$2>🚀 ${fields.ctaText}</a>`
+      );
+    }
+    
+    if (fields.whatsappNumber) {
+      updatedHtml = updatedHtml.replace(
+        /(WhatsApp:\s*)([+\d\s\-()]+)/g,
+        `$1${fields.whatsappNumber}`
+      );
+      updatedHtml = updatedHtml.replace(
+        /wa\.me\/[\d]+/g,
+        `wa.me/${fields.whatsappNumber.replace(/[^\d]/g, '')}`
+      );
+    }
+    
+    if (fields.email) {
+      updatedHtml = updatedHtml.replace(
+        /(📧\s*)([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+        `$1${fields.email}`
+      );
+    }
+    
+    return updatedHtml;
+  };
+
   const editTemplate = (template: EmailTemplate) => {
     setEditingTemplate({...template});
+    setEditableFields(extractEditableFields(template.html));
     setIsCreatingNew(false);
     setShowEditor(true);
   };
@@ -588,6 +700,7 @@ export default function EmailTemplatesPage() {
     };
     
     setEditingTemplate(newTemplate);
+    setEditableFields(extractEditableFields(newTemplate.html));
     setIsCreatingNew(true);
     setShowEditor(true);
   };
@@ -636,9 +749,37 @@ export default function EmailTemplatesPage() {
   const updateTemplateField = (field: keyof EmailTemplate, value: string) => {
     if (!editingTemplate) return;
     
+    if (field === 'html') {
+      // Atualizar HTML diretamente
+      setEditingTemplate({
+        ...editingTemplate,
+        [field]: value
+      });
+      // Reextrair campos editáveis
+      setEditableFields(extractEditableFields(value));
+    } else {
+      setEditingTemplate({
+        ...editingTemplate,
+        [field]: value
+      });
+    }
+  };
+
+  const updateEditableField = (field: keyof EditableFields, value: string) => {
+    if (!editingTemplate) return;
+    
+    const updatedFields = {
+      ...editableFields,
+      [field]: value
+    };
+    
+    setEditableFields(updatedFields);
+    
+    // Aplicar campos ao HTML e atualizar template
+    const updatedHtml = applyEditableFields(editingTemplate.html, updatedFields);
     setEditingTemplate({
       ...editingTemplate,
-      [field]: value
+      html: updatedHtml
     });
   };
 
@@ -937,22 +1078,173 @@ export default function EmailTemplatesPage() {
                     </select>
                   </div>
 
-                  {/* HTML Content */}
+                  {/* Modo de Edição */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🎨 Conteúdo HTML
+                      🎛️ Modo de Edição
                     </label>
-                    <textarea
-                      value={editingTemplate.html}
-                      onChange={(e) => updateTemplateField('html', e.target.value)}
-                      className="admin-input w-full font-mono text-sm"
-                      rows={20}
-                      placeholder="Cole seu HTML aqui..."
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      ⚠️ Use CSS inline para compatibilidade com clientes de email
-                    </p>
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedEditor(false)}
+                        className={`px-3 py-2 text-sm rounded-lg border ${!showAdvancedEditor 
+                          ? 'bg-blue-100 border-blue-300 text-blue-800' 
+                          : 'bg-gray-100 border-gray-300 text-gray-600'}`}
+                      >
+                        ✏️ Editor Visual
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedEditor(true)}
+                        className={`px-3 py-2 text-sm rounded-lg border ${showAdvancedEditor 
+                          ? 'bg-blue-100 border-blue-300 text-blue-800' 
+                          : 'bg-gray-100 border-gray-300 text-gray-600'}`}
+                      >
+                        🔧 HTML Avançado
+                      </button>
+                    </div>
                   </div>
+
+                  {!showAdvancedEditor ? (
+                    /* Editor Visual - Campos Específicos */
+                    <div className="space-y-4">
+                      
+                      {/* Header */}
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 className="font-semibold text-blue-800 mb-3">📍 Cabeçalho</h4>
+                        
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            🏢 Título da Empresa
+                          </label>
+                          <input
+                            type="text"
+                            value={editableFields.headerTitle || ''}
+                            onChange={(e) => updateEditableField('headerTitle', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="Ex: FLY2ANY"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            📝 Subtítulo
+                          </label>
+                          <input
+                            type="text"
+                            value={editableFields.headerSubtitle || ''}
+                            onChange={(e) => updateEditableField('headerSubtitle', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="Ex: 21 anos conectando brasileiros ao mundo"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Conteúdo Principal */}
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 className="font-semibold text-green-800 mb-3">🎯 Conteúdo Principal</h4>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            💥 Título Principal
+                          </label>
+                          <input
+                            type="text"
+                            value={editableFields.mainTitle || ''}
+                            onChange={(e) => updateEditableField('mainTitle', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="Ex: PACOTE COMPLETO: TUDO INCLUÍDO!"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            💡 Use palavras de impacto: EXCLUSIVO, URGENTE, LIMITADO
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Call to Action */}
+                      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <h4 className="font-semibold text-orange-800 mb-3">🚀 Call to Action (CTA)</h4>
+                        
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            🔗 URL de Destino
+                          </label>
+                          <input
+                            type="url"
+                            value={editableFields.ctaUrl || ''}
+                            onChange={(e) => updateEditableField('ctaUrl', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="https://fly2any.com"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            💬 Texto do Botão
+                          </label>
+                          <input
+                            type="text"
+                            value={editableFields.ctaText || ''}
+                            onChange={(e) => updateEditableField('ctaText', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="Ex: QUERO MEU PACOTE COMPLETO"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            💡 Use verbos de ação: QUERO, GARANTO, SOLICITO, COMPRO
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Contatos */}
+                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <h4 className="font-semibold text-purple-800 mb-3">📞 Informações de Contato</h4>
+                        
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            📱 WhatsApp
+                          </label>
+                          <input
+                            type="text"
+                            value={editableFields.whatsappNumber || ''}
+                            onChange={(e) => updateEditableField('whatsappNumber', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="+55 11 99999-9999"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            📧 Email
+                          </label>
+                          <input
+                            type="email"
+                            value={editableFields.email || ''}
+                            onChange={(e) => updateEditableField('email', e.target.value)}
+                            className="admin-input w-full"
+                            placeholder="info@fly2any.com"
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                  ) : (
+                    /* HTML Avançado */
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        🎨 Código HTML Completo
+                      </label>
+                      <textarea
+                        value={editingTemplate.html}
+                        onChange={(e) => updateTemplateField('html', e.target.value)}
+                        className="admin-input w-full font-mono text-sm"
+                        rows={25}
+                        placeholder="Cole seu HTML aqui..."
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        ⚠️ Use CSS inline para compatibilidade com clientes de email
+                      </p>
+                    </div>
+                  )}
 
                 </div>
               </div>
