@@ -16,10 +16,35 @@ export default function EmailTemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadTemplates();
   }, []);
+
+  // Carregar templates salvos do localStorage
+  const loadSavedTemplates = () => {
+    try {
+      const saved = localStorage.getItem('fly2any_email_templates');
+      return saved ? JSON.parse(saved) : null;
+    } catch (error) {
+      console.error('Erro ao carregar templates salvos:', error);
+      return null;
+    }
+  };
+
+  // Salvar templates no localStorage
+  const saveTemplatesLocally = (templatesData: EmailTemplate[]) => {
+    try {
+      localStorage.setItem('fly2any_email_templates', JSON.stringify(templatesData));
+      return true;
+    } catch (error) {
+      console.error('Erro ao salvar templates:', error);
+      return false;
+    }
+  };
 
   const loadTemplates = () => {
     // Templates de alta conversão baseados na análise do site
@@ -479,13 +504,93 @@ export default function EmailTemplatesPage() {
       }
     ];
     
-    setTemplates(systemTemplates);
+    // Tentar carregar templates salvos primeiro
+    const savedTemplates = loadSavedTemplates();
+    
+    if (savedTemplates && savedTemplates.length > 0) {
+      setTemplates(savedTemplates);
+    } else {
+      setTemplates(systemTemplates);
+      // Salvar templates padrão na primeira vez
+      saveTemplatesLocally(systemTemplates);
+    }
+    
     setLoading(false);
   };
 
   const previewEmail = (template: EmailTemplate) => {
     setPreviewTemplate(template);
     setShowPreview(true);
+  };
+
+  const editTemplate = (template: EmailTemplate) => {
+    setEditingTemplate({...template});
+    setShowEditor(true);
+  };
+
+  const saveTemplate = async () => {
+    if (!editingTemplate) return;
+    
+    setSaving(true);
+    try {
+      // Atualizar template no estado local
+      const updatedTemplates = templates.map(t => 
+        t.id === editingTemplate.id ? editingTemplate : t
+      );
+      setTemplates(updatedTemplates);
+      
+      // Salvar no localStorage
+      const saved = saveTemplatesLocally(updatedTemplates);
+      
+      if (saved) {
+        setShowEditor(false);
+        setEditingTemplate(null);
+        
+        // Feedback visual com mais detalhes
+        alert(`✅ Template "${editingTemplate.name}" salvo com sucesso!\n\n💾 Suas alterações foram salvas localmente e estarão disponíveis na próxima vez que acessar a página.`);
+      } else {
+        throw new Error('Falha ao salvar no localStorage');
+      }
+    } catch (error) {
+      alert('❌ Erro ao salvar template. Tente novamente.');
+      console.error('Erro ao salvar:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateTemplateField = (field: keyof EmailTemplate, value: string) => {
+    if (!editingTemplate) return;
+    
+    setEditingTemplate({
+      ...editingTemplate,
+      [field]: value
+    });
+  };
+
+  const resetToDefault = () => {
+    if (!editingTemplate) return;
+    
+    if (confirm('⚠️ Tem certeza que deseja restaurar este template para o padrão?\n\nTodas as suas alterações serão perdidas.')) {
+      // Recarregar template padrão do sistema
+      loadTemplates();
+      setShowEditor(false);
+      setEditingTemplate(null);
+      alert('✅ Template restaurado para o padrão!');
+    }
+  };
+
+  const exportTemplate = () => {
+    if (!editingTemplate) return;
+    
+    const dataStr = JSON.stringify(editingTemplate, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `template-${editingTemplate.id}-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const getTypeColor = (type: string) => {
@@ -579,7 +684,10 @@ export default function EmailTemplatesPage() {
                 >
                   👁️ Visualizar
                 </button>
-                <button className="admin-btn admin-btn-sm admin-btn-secondary">
+                <button 
+                  onClick={() => editTemplate(template)}
+                  className="admin-btn admin-btn-sm admin-btn-secondary"
+                >
                   ✏️ Editar
                 </button>
               </div>
@@ -634,31 +742,282 @@ export default function EmailTemplatesPage() {
         </div>
       )}
 
+      {/* Editor Modal */}
+      {showEditor && editingTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">
+                ✏️ Editando: {editingTemplate.name}
+              </h3>
+              <button 
+                onClick={() => setShowEditor(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex h-[calc(95vh-120px)]">
+              {/* Editor Panel */}
+              <div className="w-1/2 p-4 border-r overflow-auto">
+                <div className="space-y-4">
+                  
+                  {/* Nome do Template */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📝 Nome do Template
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTemplate.name}
+                      onChange={(e) => updateTemplateField('name', e.target.value)}
+                      className="admin-input w-full"
+                      placeholder="Ex: Super Oferta - Alta Conversão"
+                    />
+                  </div>
+
+                  {/* Descrição */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📄 Descrição
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTemplate.description}
+                      onChange={(e) => updateTemplateField('description', e.target.value)}
+                      className="admin-input w-full"
+                      placeholder="Ex: Template promocional com gatilhos de urgência"
+                    />
+                  </div>
+
+                  {/* Assunto */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📧 Assunto do Email
+                    </label>
+                    <input
+                      type="text"
+                      value={editingTemplate.subject}
+                      onChange={(e) => updateTemplateField('subject', e.target.value)}
+                      className="admin-input w-full"
+                      placeholder="Ex: ⚡ ÚLTIMAS 24H: Pacote COMPLETO..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Use emojis e gatilhos de urgência para maior abertura
+                    </p>
+                  </div>
+
+                  {/* Tipo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🏷️ Tipo de Template
+                    </label>
+                    <select
+                      value={editingTemplate.type}
+                      onChange={(e) => updateTemplateField('type', e.target.value)}
+                      className="admin-input w-full"
+                    >
+                      <option value="promotional">🎯 Promocional</option>
+                      <option value="newsletter">📰 Newsletter</option>
+                      <option value="reactivation">💔 Reativação</option>
+                    </select>
+                  </div>
+
+                  {/* HTML Content */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🎨 Conteúdo HTML
+                    </label>
+                    <textarea
+                      value={editingTemplate.html}
+                      onChange={(e) => updateTemplateField('html', e.target.value)}
+                      className="admin-input w-full font-mono text-sm"
+                      rows={20}
+                      placeholder="Cole seu HTML aqui..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      ⚠️ Use CSS inline para compatibilidade com clientes de email
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Preview Panel */}
+              <div className="w-1/2 flex flex-col">
+                <div className="p-4 bg-gray-50 border-b">
+                  <h4 className="font-semibold text-gray-700">📱 Preview em Tempo Real</h4>
+                  <div className="text-sm text-gray-600 mt-1">
+                    <strong>De:</strong> Fly2Any &lt;info@fly2any.com&gt;<br/>
+                    <strong>Assunto:</strong> {editingTemplate.subject}
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-auto bg-white">
+                  <iframe 
+                    srcDoc={editingTemplate.html}
+                    className="w-full h-full border-0"
+                    title="Email Preview"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t flex justify-between items-center">
+              <div className="flex gap-2">
+                <button 
+                  onClick={resetToDefault}
+                  className="admin-btn admin-btn-sm text-orange-600 border-orange-300 hover:bg-orange-50"
+                  title="Restaurar template padrão"
+                >
+                  🔄 Restaurar Padrão
+                </button>
+                <button 
+                  onClick={exportTemplate}
+                  className="admin-btn admin-btn-sm text-blue-600 border-blue-300 hover:bg-blue-50"
+                  title="Exportar template como JSON"
+                >
+                  📤 Exportar
+                </button>
+              </div>
+              <div className="text-sm text-gray-600 hidden md:block">
+                💡 <strong>Dica:</strong> Use emojis, urgência e prova social para maior conversão
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowEditor(false)}
+                  className="admin-btn admin-btn-sm admin-btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={saveTemplate}
+                  disabled={saving}
+                  className="admin-btn admin-btn-sm admin-btn-primary"
+                >
+                  {saving ? '💾 Salvando...' : '💾 Salvar Template'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
       <div className="admin-card">
         <div className="admin-card-content">
           <h3 className="admin-card-title" style={{ marginBottom: '12px' }}>
-            📖 Como Usar os Templates
+            📖 Como Usar o Editor de Templates
           </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-3">
-              <span className="text-green-600">🎯</span>
-              <div>
-                <strong>Promocional:</strong> Use para ofertas especiais, descontos e promoções de destinos
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Tipos de Templates */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">🎯 Tipos de Templates</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-green-600">🎯</span>
+                  <div>
+                    <strong>Promocional:</strong> Ofertas especiais, descontos e promoções de destinos
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-600">📰</span>
+                  <div>
+                    <strong>Newsletter:</strong> Envios regulares com dicas, novidades e conteúdo informativo
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-red-600">💔</span>
+                  <div>
+                    <strong>Reativação:</strong> Reconquistar clientes que não compram há muito tempo
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-blue-600">📰</span>
-              <div>
-                <strong>Newsletter:</strong> Para envios regulares com dicas, novidades e conteúdo informativo
+
+            {/* Como Editar */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">✏️ Como Editar</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-600">1️⃣</span>
+                  <div>
+                    Clique em <strong>"✏️ Editar"</strong> em qualquer template
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-green-600">2️⃣</span>
+                  <div>
+                    Edite texto, HTML ou configurações no painel esquerdo
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-600">3️⃣</span>
+                  <div>
+                    Veja as alterações em <strong>tempo real</strong> no preview
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-orange-600">4️⃣</span>
+                  <div>
+                    Clique <strong>"💾 Salvar"</strong> para persistir as mudanças
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-red-600">💔</span>
-              <div>
-                <strong>Reativação:</strong> Para reconquistar clientes que não compram há muito tempo
+
+            {/* Dicas de Marketing */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">🚀 Dicas de Marketing</h4>
+              <div className="space-y-2 text-sm">
+                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                  <div className="font-medium text-yellow-800">📧 Assuntos que Convertem:</div>
+                  <div className="text-yellow-700">Use emojis, urgência ("ÚLTIMAS 24H") e números específicos</div>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <div className="font-medium text-green-800">💰 Bundle Selling:</div>
+                  <div className="text-green-700">Sempre mencione "PACOTE COMPLETO" vs venda individual</div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <div className="font-medium text-blue-800">⏰ Urgência & Escassez:</div>
+                  <div className="text-blue-700">Timers, ofertas limitadas e CTAs que geram FOMO</div>
+                </div>
               </div>
             </div>
+
+            {/* Recursos Avançados */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3">🔧 Recursos Avançados</h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-orange-600">🔄</span>
+                  <div>
+                    <strong>Restaurar Padrão:</strong> Volta para o template original
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-blue-600">📤</span>
+                  <div>
+                    <strong>Exportar:</strong> Baixa template como arquivo JSON
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-green-600">💾</span>
+                  <div>
+                    <strong>Auto-Save:</strong> Mudanças salvas automaticamente no navegador
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-purple-600">📱</span>
+                  <div>
+                    <strong>Preview Responsivo:</strong> Visualização em tempo real
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
