@@ -472,28 +472,34 @@ export default function ModernLeadsPage() {
   };
 
   return (
-    <div className="container-custom py-6 space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Leads</h1>
-          <p className="text-gray-500 mt-1">
-            Gerencie todos os seus leads de forma eficiente
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={fetchLeads} 
-            disabled={loading}
-            className="admin-btn admin-btn-sm admin-btn-secondary"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar
-          </button>
-          <button className="admin-btn admin-btn-sm admin-btn-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Lead
-          </button>
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+                Gestão de Leads - Versão Moderna
+              </h1>
+              <p className="text-sm text-admin-text-secondary">
+                Interface avançada para gestão eficiente de leads
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={fetchLeads} 
+                disabled={loading}
+                className="admin-btn admin-btn-sm admin-btn-secondary"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Atualizar
+              </button>
+              <button className="admin-btn admin-btn-sm admin-btn-primary">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Lead
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -503,7 +509,7 @@ export default function ModernLeadsPage() {
           <div className="admin-card-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl">
-                👥
+                📊
               </div>
             </div>
             <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.total}</div>
@@ -518,7 +524,7 @@ export default function ModernLeadsPage() {
           <div className="admin-card-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white flex items-center justify-center text-2xl">
-                📅
+                📈
               </div>
             </div>
             <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.thisWeek}</div>
@@ -533,7 +539,7 @@ export default function ModernLeadsPage() {
           <div className="admin-card-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center text-2xl">
-                📈
+                🎯
               </div>
             </div>
             <div className="text-2xl font-bold text-admin-text-primary mb-1">{stats.conversion}%</div>
@@ -593,63 +599,85 @@ export default function ModernLeadsPage() {
       />
 
       {/* View Toggle and Select All */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="admin-checkbox"
-            />
-            <span className="text-sm text-admin-text-secondary">
-              Selecionar todos ({filteredLeads.length})
-            </span>
-          </div>
-        </div>
+      <div className="admin-card">
+        <div className="admin-card-content">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  className="admin-checkbox"
+                />
+                <span className="text-sm text-admin-text-secondary">
+                  Selecionar todos ({filteredLeads.length})
+                </span>
+              </div>
+            </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-          <button
-            className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-            onClick={() => setViewMode('table')}
-          >
-            <List className="h-4 w-4" />
-          </button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-admin-text-secondary mr-2">Visualização:</span>
+              <button
+                className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="h-4 w-4 mr-1" />
+                Cards
+              </button>
+              <button
+                className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                onClick={() => setViewMode('table')}
+              >
+                <List className="h-4 w-4 mr-1" />
+                Tabela
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Leads Display */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <RefreshCw className="h-6 w-6 animate-spin" />
+        <div className="admin-card">
+          <div className="admin-card-content text-center py-12">
+            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-admin-text-secondary" />
+            <p className="text-admin-text-secondary">Carregando leads...</p>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredLeads.map((lead) => (
-            <div key={lead.id} className="relative">
-              <div className="absolute top-3 left-3 z-10">
-                <input
-                  type="checkbox"
-                  checked={selectedLeads.includes(lead.id)}
-                  onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
-                  className="admin-checkbox"
-                />
-              </div>
-              <LeadCard
-                lead={lead}
-                onEdit={handleEditLead}
-                onDelete={handleDeleteLead}
-                onAssign={handleAssignLead}
-                onContact={handleContactLead}
-              />
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">
+              Leads ({filteredLeads.length})
+            </h2>
+            <p className="admin-card-description">
+              Visualização em cards dos leads
+            </p>
+          </div>
+          <div className="admin-card-content">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredLeads.map((lead) => (
+                <div key={lead.id} className="relative">
+                  <div className="absolute top-3 left-3 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedLeads.includes(lead.id)}
+                      onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
+                      className="admin-checkbox"
+                    />
+                  </div>
+                  <LeadCard
+                    lead={lead}
+                    onEdit={handleEditLead}
+                    onDelete={handleDeleteLead}
+                    onAssign={handleAssignLead}
+                    onContact={handleContactLead}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       )}
 
