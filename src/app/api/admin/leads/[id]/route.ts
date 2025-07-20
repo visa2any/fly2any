@@ -65,7 +65,7 @@ export async function PUT(
     // Try database first
     try {
       await DatabaseService.initializeTables();
-      const result = await DatabaseService.updateLead(leadId, updatedLead);
+      const result = await DatabaseService.updateLeadById(leadId, updatedLead);
       
       if (result) {
         return NextResponse.json({
@@ -121,7 +121,7 @@ export async function DELETE(
     // Try database first
     try {
       await DatabaseService.initializeTables();
-      const result = await DatabaseService.deleteLead(leadId);
+      const result = await DatabaseService.deleteLeadById(leadId);
       
       if (result) {
         return NextResponse.json({

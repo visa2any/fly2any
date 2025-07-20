@@ -128,4 +128,34 @@ export class DatabaseFallback {
       return [];
     }
   }
+
+  static async saveLeadsToFile(leads: any[]) {
+    try {
+      await ensureDataDir();
+      await writeJsonFile(LEADS_FILE, leads);
+      console.log(`📁 ${leads.length} leads saved to fallback file`);
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('Error saving leads to fallback file:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }
+
+  static async saveCustomersToFile(customers: any[]) {
+    try {
+      await ensureDataDir();
+      await writeJsonFile(CUSTOMERS_FILE, customers);
+      console.log(`📁 ${customers.length} customers saved to fallback file`);
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('Error saving customers to fallback file:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }
 }

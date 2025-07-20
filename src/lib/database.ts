@@ -850,30 +850,10 @@ export class DatabaseService {
     }
   }
 
-  // Get lead by ID
-  static async getLeadById(leadId: string): Promise<any | null> {
-    if (!this.initialized || !sql) {
-      throw new Error('Database not initialized');
-    }
+  // New CRUD methods for modern leads management
 
-    try {
-      const result = await sql`
-        SELECT * FROM leads WHERE id = ${leadId}
-      `;
-      
-      return result.rows[0] || null;
-    } catch (error) {
-      console.error('Error fetching lead by ID:', error);
-      throw error;
-    }
-  }
-
-  // Update lead
-  static async updateLead(leadId: string, updateData: any): Promise<boolean> {
-    if (!this.initialized || !sql) {
-      throw new Error('Database not initialized');
-    }
-
+  // Update existing lead by ID  
+  static async updateLeadById(leadId: string, updateData: any): Promise<boolean> {
     try {
       // Build dynamic update query
       const updateFields: string[] = [];
@@ -883,20 +863,21 @@ export class DatabaseService {
       // Define updateable fields
       const allowedFields = [
         'nome', 'email', 'whatsapp', 'telefone', 'origem', 'destino',
-        'dataPartida', 'dataRetorno', 'numeroPassageiros', 'status',
-        'priority', 'assignedTo', 'notes', 'orcamentoTotal', 'updatedAt'
+        'data_partida', 'data_retorno', 'numero_passageiros', 'status',
+        'priority', 'assigned_to', 'notes', 'orcamento_total', 'updated_at'
       ];
 
       allowedFields.forEach(field => {
-        if (updateData[field] !== undefined) {
+        const jsField = field.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+        if (updateData[jsField] !== undefined) {
           updateFields.push(`${field} = $${paramIndex}`);
-          values.push(updateData[field]);
+          values.push(updateData[jsField]);
           paramIndex++;
         }
       });
 
       if (updateFields.length === 0) {
-        throw new Error('No valid fields to update');
+        return false;
       }
 
       // Add leadId as the last parameter
@@ -909,25 +890,21 @@ export class DatabaseService {
       `;
 
       const result = await sql.query(query, values);
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error updating lead:', error);
       throw error;
     }
   }
 
-  // Delete lead
-  static async deleteLead(leadId: string): Promise<boolean> {
-    if (!this.initialized || !sql) {
-      throw new Error('Database not initialized');
-    }
-
+  // Delete lead by ID
+  static async deleteLeadById(leadId: string): Promise<boolean> {
     try {
       const result = await sql`
         DELETE FROM leads WHERE id = ${leadId}
       `;
       
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting lead:', error);
       throw error;
@@ -936,10 +913,6 @@ export class DatabaseService {
 
   // Bulk update leads
   static async bulkUpdateLeads(leadIds: string[], updateData: any): Promise<number> {
-    if (!this.initialized || !sql) {
-      throw new Error('Database not initialized');
-    }
-
     try {
       // Build dynamic update query
       const updateFields: string[] = [];
@@ -947,32 +920,34 @@ export class DatabaseService {
       let paramIndex = 1;
 
       const allowedFields = [
-        'status', 'priority', 'assignedTo', 'updatedAt'
+        'status', 'priority', 'assigned_to', 'updated_at'
       ];
 
       allowedFields.forEach(field => {
-        if (updateData[field] !== undefined) {
+        const jsField = field.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+        if (updateData[jsField] !== undefined) {
           updateFields.push(`${field} = $${paramIndex}`);
-          values.push(updateData[field]);
+          values.push(updateData[jsField]);
           paramIndex++;
         }
       });
 
       if (updateFields.length === 0) {
-        throw new Error('No valid fields to update');
+        return 0;
       }
 
-      // Add leadIds as the last parameter
-      values.push(leadIds);
+      // Use a proper IN clause instead of ANY
+      const placeholders = leadIds.map((_, i) => `$${paramIndex + i}`).join(',');
+      values.push(...leadIds);
       
       const query = `
         UPDATE leads 
         SET ${updateFields.join(', ')}
-        WHERE id = ANY($${paramIndex})
+        WHERE id IN (${placeholders})
       `;
 
       const result = await sql.query(query, values);
-      return result.rowCount;
+      return result.rowCount || 0;
     } catch (error) {
       console.error('Error bulk updating leads:', error);
       throw error;
@@ -981,16 +956,12 @@ export class DatabaseService {
 
   // Bulk delete leads
   static async bulkDeleteLeads(leadIds: string[]): Promise<number> {
-    if (!this.initialized || !sql) {
-      throw new Error('Database not initialized');
-    }
-
     try {
-      const result = await sql`
-        DELETE FROM leads WHERE id = ANY(${leadIds})
-      `;
+      const placeholders = leadIds.map((_, i) => `$${i + 1}`).join(',');
+      const query = `DELETE FROM leads WHERE id IN (${placeholders})`;
       
-      return result.rowCount;
+      const result = await sql.query(query, leadIds);
+      return result.rowCount || 0;
     } catch (error) {
       console.error('Error bulk deleting leads:', error);
       throw error;

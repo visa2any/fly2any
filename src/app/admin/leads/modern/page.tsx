@@ -502,7 +502,7 @@ export default function ModernLeadsPage() {
               <div className="absolute top-3 left-3 z-10">
                 <Checkbox
                   checked={selectedLeads.includes(lead.id)}
-                  onCheckedChange={(checked) => handleSelectLead(lead.id, checked as boolean)}
+                  onCheckedChange={(checked: boolean) => handleSelectLead(lead.id, checked)}
                 />
               </div>
               <LeadCard
