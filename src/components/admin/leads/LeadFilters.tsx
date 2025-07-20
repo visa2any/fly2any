@@ -104,7 +104,7 @@ export function LeadFilters({
     });
   };
 
-  const toggleArrayFilter = (key: 'status' | 'priority' | 'source', value: string) => {
+  const toggleArrayFilter = (key: 'status' | 'priority' | 'source' | 'tags', value: string) => {
     const currentArray = filters[key];
     const newArray = currentArray.includes(value)
       ? currentArray.filter(item => item !== value)
