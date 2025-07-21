@@ -354,8 +354,9 @@ class EmailImportService {
       console.log(`✅ Importação concluída com sucesso!`);
       console.log(`📊 ${result.inserted} contatos importados`);
       console.log(`🔄 ${result.duplicates} duplicatas ignoradas`);
-      if (result.errors > 0) {
-        console.log(`⚠️ ${result.errors} erros encontrados`);
+      if (result.errors.length > 0) {
+        console.log(`⚠️ ${result.errors.length} erros encontrados`);
+        result.errors.forEach(error => console.log(`   - ${error}`));
       }
       
       return;
