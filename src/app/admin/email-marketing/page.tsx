@@ -50,8 +50,9 @@ export default function EmailMarketingPage() {
       const response = await fetch('/api/email-marketing?action=contacts');
       const data = await response.json();
       
-      if (data.success && data.data) {
-        setContacts(data.data);
+      if (data.success && data.data && data.data.contacts && Array.isArray(data.data.contacts)) {
+        setContacts(data.data.contacts);
+        console.log(`✅ Carregados ${data.data.contacts.length} contatos`);
       } else {
         console.warn('Contacts API returned invalid data:', data);
         setContacts([]);
@@ -456,11 +457,11 @@ export default function EmailMarketingPage() {
       {showContacts && (
         <div className="admin-card">
           <div className="admin-card-header">
-            <h2 className="admin-card-title">👥 Contatos Importados ({contacts.length})</h2>
+            <h2 className="admin-card-title">👥 Contatos Importados ({Array.isArray(contacts) ? contacts.length : 0})</h2>
             <p className="admin-card-description">Primeiros 500 contatos disponíveis para email marketing</p>
           </div>
           <div className="admin-card-content">
-            {contacts.length === 0 ? (
+            {!Array.isArray(contacts) || contacts.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">📭</div>
                 <p className="text-gray-600 mb-4">Nenhum contato importado ainda</p>
@@ -484,7 +485,7 @@ export default function EmailMarketingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {contacts.slice(0, 500).map((contact, index) => (
+                    {Array.isArray(contacts) ? contacts.slice(0, 500).map((contact, index) => (
                       <tr key={contact.id || index} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
                         <td className="py-3 px-2 text-admin-text-secondary text-sm">{index + 1}</td>
                         <td className="py-3 px-2 font-medium text-admin-text-primary">{contact.nome}</td>
@@ -504,15 +505,15 @@ export default function EmailMarketingPage() {
                           </span>
                         </td>
                       </tr>
-                    ))}
+                    )) : null}
                   </tbody>
                 </table>
                 
-                {contacts.length > 500 && (
+                {Array.isArray(contacts) && contacts.length > 500 && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-yellow-700 text-sm">
                       🚨 Mostrando apenas os primeiros 500 contatos para email marketing. 
-                      Total importado: {contacts.length} contatos.
+                      Total importado: {Array.isArray(contacts) ? contacts.length : 0} contatos.
                     </p>
                   </div>
                 )}
