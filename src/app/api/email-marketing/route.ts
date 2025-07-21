@@ -695,6 +695,60 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      case 'delete_contact': {
+        const contactId = searchParams.get('id');
+        const email = searchParams.get('email');
+        
+        if (!contactId && !email) {
+          return NextResponse.json({
+            success: false,
+            error: 'ID ou email do contato é obrigatório'
+          }, { status: 400 });
+        }
+        
+        try {
+          let result;
+          if (contactId) {
+            result = await EmailContactsDB.deleteById(contactId);
+          } else {
+            result = await sql`DELETE FROM email_contacts WHERE email = ${email}`;
+            result = (result.rowCount ?? 0) > 0;
+          }
+          
+          if (result) {
+            return NextResponse.json({
+              success: true,
+              message: 'Contato removido com sucesso'
+            });
+          } else {
+            return NextResponse.json({
+              success: false,
+              error: 'Contato não encontrado'
+            }, { status: 404 });
+          }
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao remover contato: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
+      case 'clear_all_contacts': {
+        try {
+          const result = await sql`DELETE FROM email_contacts`;
+          return NextResponse.json({
+            success: true,
+            message: `Todos os ${result.rowCount || 0} contatos foram removidos`
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao limpar contatos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
       case 'load_imported_contacts': {
         try {
           // Usar dados realistas para carregar contatos
