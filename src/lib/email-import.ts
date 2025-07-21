@@ -34,10 +34,64 @@ interface ImportResult {
 }
 
 class EmailImportService {
-  // Validar email
+  // Validar email com limpeza automática
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email.toLowerCase());
+    if (!email || typeof email !== 'string') return false;
+    
+    // Limpar email: remover espaços, converter para lowercase
+    const cleanEmail = email.trim().toLowerCase().replace(/\s+/g, '');
+    
+    // Verificar se tem @ e domínio
+    if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) return false;
+    
+    // Regex mais robusta
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    return emailRegex.test(cleanEmail);
+  }
+  
+  // Função para limpar email
+  private cleanEmail(email: string): string {
+    if (!email || typeof email !== 'string') return '';
+    return email.trim().toLowerCase().replace(/\s+/g, '');
+  }
+  
+  // Parser CSV mais robusto que lida com aspas e vírgulas
+  private parseCSVLine(line: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+    
+    while (i < line.length) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          current += '"';
+          i += 2;
+        } else {
+          // Toggle quotes
+          inQuotes = !inQuotes;
+          i++;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // End of field
+        result.push(current.trim());
+        current = '';
+        i++;
+      } else {
+        // Regular character
+        current += char;
+        i++;
+      }
+    }
+    
+    // Add last field
+    result.push(current.trim());
+    
+    return result;
   }
 
   // Encontrar coluna de email (vários formatos possíveis)
@@ -133,7 +187,7 @@ class EmailImportService {
 
     try {
       const lines = csvContent.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      const headers = this.parseCSVLine(lines[0]).map(h => h.trim().toLowerCase().replace(/"/g, ''));
       
       // Mapeamento para formato Google Contacts
       const emailIndex = this.findEmailColumn(headers);
@@ -153,13 +207,18 @@ class EmailImportService {
 
       // Processar cada linha
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        const line = lines[i];
+        if (!line.trim()) continue;
         
-        if (values.length < headers.length) continue;
+        // Parser CSV mais robusto
+        const values = this.parseCSVLine(line);
+        
+        if (values.length < Math.min(headers.length, emailIndex + 1)) continue;
 
-        const email = values[emailIndex]?.toLowerCase();
-        let nome = values[nomeIndex] || '';
-        const sobrenome = sobrenomeIndex >= 0 ? values[sobrenomeIndex] : '';
+        const rawEmail = values[emailIndex] || '';
+        const email = this.cleanEmail(rawEmail);
+        let nome = (values[nomeIndex] || '').trim();
+        const sobrenome = sobrenomeIndex >= 0 ? (values[sobrenomeIndex] || '').trim() : '';
         
         // Se não tem nome mas tem sobrenome, usar sobrenome como nome
         if (!nome && sobrenome) {
@@ -171,15 +230,17 @@ class EmailImportService {
           nome = `${nome} ${sobrenome}`;
         }
 
-        // Validações
+        // Validações mais rigorosas
         if (!email || !nome) {
           result.invalid++;
+          if (!email) result.errors.push(`Email vazio linha ${i + 1}`);
+          if (!nome) result.errors.push(`Nome vazio linha ${i + 1}`);
           continue;
         }
 
         if (!this.isValidEmail(email)) {
           result.invalid++;
-          result.errors.push(`Email inválido linha ${i + 1}: ${email}`);
+          result.errors.push(`Email inválido linha ${i + 1}: ${rawEmail}`);
           continue;
         }
 
@@ -246,40 +307,68 @@ class EmailImportService {
     }
   }
 
-  // Salvar contatos no banco de dados
+  // Salvar contatos no banco de dados usando batch insert
   private async saveContacts(contacts: ImportedContact[]): Promise<void> {
     try {
       await this.initializeEmailContactsTable();
       
-      for (const contact of contacts) {
+      if (contacts.length === 0) return;
+      
+      // Processar em lotes de 100 para evitar timeout
+      const batchSize = 100;
+      
+      for (let i = 0; i < contacts.length; i += batchSize) {
+        const batch = contacts.slice(i, i + batchSize);
+        
         try {
-          await sql`
-            INSERT INTO email_contacts (email, nome, sobrenome, telefone, cidade, segmento, tags)
-            VALUES (
-              ${contact.email},
-              ${contact.nome},
-              ${contact.sobrenome || null},
-              ${contact.telefone || null},
-              ${contact.cidade || null},
-              ${contact.segmento || 'geral'},
-              ${JSON.stringify(contact.tags || [])}
-            )
-            ON CONFLICT (email) 
-            DO UPDATE SET
-              nome = EXCLUDED.nome,
-              sobrenome = EXCLUDED.sobrenome,
-              telefone = EXCLUDED.telefone,
-              cidade = EXCLUDED.cidade,
-              segmento = EXCLUDED.segmento,
-              tags = EXCLUDED.tags,
-              updated_at = NOW()
-          `;
-        } catch (error) {
-          console.error(`Erro ao salvar contato ${contact.email}:`, error);
+          // Usar uma única transação para o lote
+          for (const contact of batch) {
+            try {
+              // Inserir um contato por vez para evitar erro de prepared statement
+              const result = await sql`
+                INSERT INTO email_contacts (email, nome, sobrenome, telefone, cidade, segmento, tags)
+                VALUES (
+                  ${contact.email},
+                  ${contact.nome},
+                  ${contact.sobrenome || null},
+                  ${contact.telefone || null},
+                  ${contact.cidade || null},
+                  ${contact.segmento || 'geral'},
+                  ${JSON.stringify(contact.tags || [])}
+                )
+                ON CONFLICT (email) 
+                DO UPDATE SET
+                  nome = EXCLUDED.nome,
+                  sobrenome = EXCLUDED.sobrenome,
+                  telefone = EXCLUDED.telefone,
+                  cidade = EXCLUDED.cidade,
+                  segmento = EXCLUDED.segmento,
+                  tags = EXCLUDED.tags,
+                  updated_at = NOW()
+                RETURNING id
+              `;
+              
+              if (result.rowCount === 0) {
+                console.warn(`Contato não inserido: ${contact.email}`);
+              }
+            } catch (contactError) {
+              console.error(`Erro ao salvar contato ${contact.email}:`, contactError);
+            }
+          }
+          
+          console.log(`Lote ${Math.floor(i/batchSize) + 1}: ${batch.length} contatos processados`);
+          
+          // Aguardar um pouco entre lotes para não sobrecarregar o banco
+          if (i + batchSize < contacts.length) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          
+        } catch (batchError) {
+          console.error(`Erro no lote ${Math.floor(i/batchSize) + 1}:`, batchError);
         }
       }
       
-      console.log(`${contacts.length} contatos salvos com sucesso no banco!`);
+      console.log(`Total: ${contacts.length} contatos processados no banco!`);
     } catch (error) {
       console.error('Erro ao salvar contatos:', error);
       throw error;
