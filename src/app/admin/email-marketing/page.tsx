@@ -46,9 +46,30 @@ export default function EmailMarketingPage() {
     try {
       const response = await fetch('/api/email-marketing?action=stats');
       const data = await response.json();
-      setStats(data);
+      
+      if (data.success && data.data) {
+        setStats(data.data);
+      } else {
+        console.warn('Stats API returned invalid data:', data);
+        // Set default stats if API fails
+        setStats({
+          totalContacts: 0,
+          segmentStats: {},
+          campaignsSent: 0,
+          avgOpenRate: '0%',
+          avgClickRate: '0%'
+        });
+      }
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
+      // Set default stats on error
+      setStats({
+        totalContacts: 0,
+        segmentStats: {},
+        campaignsSent: 0,
+        avgOpenRate: '0%',
+        avgClickRate: '0%'
+      });
     }
   };
 
@@ -203,7 +224,11 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const formatNumber = (num: number) => num.toLocaleString('pt-BR');
+  const formatNumber = (num: number | undefined) => {
+    if (num === undefined || num === null || isNaN(num)) return '0';
+    return num.toLocaleString('pt-BR');
+  };
+  
   const calculateRate = (part: number, total: number) => 
     total > 0 ? ((part / total) * 100).toFixed(1) + '%' : '0%';
 
@@ -247,7 +272,7 @@ export default function EmailMarketingPage() {
                 📧
               </div>
             </div>
-            <div className="admin-stats-value">{formatNumber(stats.totalContacts)}</div>
+            <div className="admin-stats-value">{formatNumber(stats?.totalContacts)}</div>
             <div className="admin-stats-label">Total de Contatos</div>
           </div>
           
@@ -257,7 +282,7 @@ export default function EmailMarketingPage() {
                 📊
               </div>
             </div>
-            <div className="admin-stats-value">{stats.campaignsSent}</div>
+            <div className="admin-stats-value">{formatNumber(stats?.campaignsSent)}</div>
             <div className="admin-stats-label">Campanhas Enviadas</div>
           </div>
           
@@ -267,7 +292,7 @@ export default function EmailMarketingPage() {
                 👀
               </div>
             </div>
-            <div className="admin-stats-value">{stats.avgOpenRate}</div>
+            <div className="admin-stats-value">{stats?.avgOpenRate || '0%'}</div>
             <div className="admin-stats-label">Taxa de Abertura</div>
           </div>
           
@@ -277,7 +302,7 @@ export default function EmailMarketingPage() {
                 🎯
               </div>
             </div>
-            <div className="admin-stats-value">{stats.avgClickRate}</div>
+            <div className="admin-stats-value">{stats?.avgClickRate || '0%'}</div>
             <div className="admin-stats-label">Taxa de Clique</div>
           </div>
         </div>
