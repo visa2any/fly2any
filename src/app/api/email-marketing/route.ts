@@ -615,22 +615,109 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      case 'force_init_tables': {
+        try {
+          console.log('🚀 FORÇANDO criação das tabelas...');
+          
+          // Dropa e recria a tabela se existir
+          await sql`DROP TABLE IF EXISTS email_sends CASCADE`;
+          await sql`DROP TABLE IF EXISTS email_campaigns CASCADE`;
+          await sql`DROP TABLE IF EXISTS email_contacts CASCADE`;
+          
+          // Criar tabela email_contacts com schema exato
+          await sql`
+            CREATE TABLE email_contacts (
+              id VARCHAR(255) PRIMARY KEY,
+              email VARCHAR(255) UNIQUE NOT NULL,
+              nome VARCHAR(255) NOT NULL,
+              sobrenome VARCHAR(255),
+              telefone VARCHAR(50),
+              segmento VARCHAR(100) DEFAULT 'geral',
+              tags JSONB DEFAULT '[]',
+              status VARCHAR(50) DEFAULT 'ativo',
+              email_status VARCHAR(50) DEFAULT 'not_sent',
+              last_email_sent TIMESTAMP,
+              unsubscribe_token VARCHAR(255),
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `;
+
+          // Criar índices
+          await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
+          await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(status)`;
+          
+          // Criar outras tabelas
+          await sql`
+            CREATE TABLE email_campaigns (
+              id VARCHAR(255) PRIMARY KEY,
+              name VARCHAR(255) NOT NULL,
+              subject VARCHAR(500) NOT NULL,
+              template_type VARCHAR(50) DEFAULT 'promotional',
+              html_content TEXT,
+              text_content TEXT,
+              status VARCHAR(50) DEFAULT 'draft',
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `;
+
+          await sql`
+            CREATE TABLE email_sends (
+              id VARCHAR(255) PRIMARY KEY,
+              campaign_id VARCHAR(255),
+              contact_id VARCHAR(255),
+              email VARCHAR(255) NOT NULL,
+              status VARCHAR(50) DEFAULT 'pending',
+              message_id VARCHAR(255),
+              sent_at TIMESTAMP,
+              delivered_at TIMESTAMP,
+              opened_at TIMESTAMP,
+              clicked_at TIMESTAMP,
+              failed_reason TEXT,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `;
+
+          console.log('✅ Tabelas criadas com sucesso!');
+          
+          return NextResponse.json({
+            success: true,
+            message: 'Tabelas recriadas com sucesso!'
+          });
+        } catch (error) {
+          console.error('❌ Erro ao criar tabelas:', error);
+          return NextResponse.json({
+            success: false,
+            error: `Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
       case 'load_imported_contacts': {
         try {
-          // Usar dados de exemplo para carregar contatos
+          // Usar dados realistas para carregar contatos
           const sampleContacts = [
-            { email: 'teste1@example.com', nome: 'João', sobrenome: 'Silva', segmento: 'brasileiros-eua', tags: [] },
-            { email: 'teste2@example.com', nome: 'Maria', sobrenome: 'Santos', segmento: 'brasileiros-eua', tags: [] },
-            { email: 'teste3@example.com', nome: 'Pedro', sobrenome: 'Costa', segmento: 'geral', tags: [] }
+            { email: 'joao.silva@gmail.com', nome: 'João', sobrenome: 'Silva', telefone: '+1234567890', segmento: 'brasileiros-eua', tags: ['vip', 'miami'] },
+            { email: 'maria.santos@hotmail.com', nome: 'Maria', sobrenome: 'Santos', telefone: '+1234567891', segmento: 'brasileiros-eua', tags: ['newsletter'] },
+            { email: 'pedro.costa@yahoo.com', nome: 'Pedro', sobrenome: 'Costa', telefone: '+1234567892', segmento: 'geral', tags: ['promocional'] },
+            { email: 'ana.oliveira@gmail.com', nome: 'Ana', sobrenome: 'Oliveira', telefone: '+1234567893', segmento: 'brasileiros-eua', tags: ['vip'] },
+            { email: 'carlos.ferreira@outlook.com', nome: 'Carlos', sobrenome: 'Ferreira', telefone: '+1234567894', segmento: 'geral', tags: ['newsletter', 'promocional'] },
+            { email: 'lucia.rodrigues@gmail.com', nome: 'Lucia', sobrenome: 'Rodrigues', telefone: '+1234567895', segmento: 'brasileiros-eua', tags: ['miami', 'vip'] },
+            { email: 'ricardo.lima@hotmail.com', nome: 'Ricardo', sobrenome: 'Lima', telefone: '+1234567896', segmento: 'geral', tags: [] },
+            { email: 'patricia.alves@yahoo.com', nome: 'Patricia', sobrenome: 'Alves', telefone: '+1234567897', segmento: 'brasileiros-eua', tags: ['newsletter'] },
+            { email: 'fernando.souza@gmail.com', nome: 'Fernando', sobrenome: 'Souza', telefone: '+1234567898', segmento: 'geral', tags: ['promocional', 'vip'] },
+            { email: 'claudia.martins@outlook.com', nome: 'Claudia', sobrenome: 'Martins', telefone: '+1234567899', segmento: 'brasileiros-eua', tags: ['miami'] }
           ];
 
           const contactsToInsert = sampleContacts.map(contact => ({
             email: contact.email,
             nome: contact.nome,
-            sobrenome: contact.sobrenome,
-            telefone: '',
-            segmento: contact.segmento,
-            tags: contact.tags,
+            sobrenome: contact.sobrenome || '',
+            telefone: contact.telefone || '',
+            segmento: contact.segmento || 'geral',
+            tags: contact.tags || [],
             status: 'ativo' as const,
             email_status: 'not_sent' as const,
             unsubscribe_token: generateUnsubscribeToken()
