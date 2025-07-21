@@ -45,10 +45,12 @@ async function loadContactsFromFile(): Promise<void> {
       const data = await fs.readFile(contactsFilePath, 'utf8');
       const fileContacts = JSON.parse(data);
       
-      // Atualizar array em memória apenas se arquivo tem mais contatos
-      if (fileContacts.length > contacts.length) {
-        contacts = fileContacts; // Reassign directly to fix linting error
+      // Carregar contatos do arquivo se existirem
+      if (Array.isArray(fileContacts) && fileContacts.length > 0) {
+        contacts = fileContacts;
         console.log(`📁 Carregados ${contacts.length} contatos do arquivo`);
+      } else {
+        console.log('📁 Arquivo de contatos vazio ou inválido');
       }
     } catch (readError) {
       console.log('Arquivo de contatos não encontrado, criando array vazio');
