@@ -28,10 +28,36 @@ interface EmailBatch {
   failureCount: number;
 }
 
-// Base de dados em memória (substitua pela sua implementação real)
-const contacts: Contact[] = [];
+// Base de dados em memória (carrega do arquivo quando necessário)
+let contacts: Contact[] = [];
 const batches: EmailBatch[] = [];
 const campaigns: any[] = [];
+
+// Carregar contatos do arquivo JSON
+async function loadContactsFromFile(): Promise<void> {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    const contactsFilePath = path.join(process.cwd(), 'contacts-imported.json');
+    
+    try {
+      const data = await fs.readFile(contactsFilePath, 'utf8');
+      const fileContacts = JSON.parse(data);
+      
+      // Atualizar array em memória apenas se arquivo tem mais contatos
+      if (fileContacts.length > contacts.length) {
+        contacts.length = 0; // Limpar array
+        contacts.push(...fileContacts); // Adicionar do arquivo
+        console.log(`📁 Carregados ${contacts.length} contatos do arquivo`);
+      }
+    } catch (readError) {
+      console.log('Arquivo de contatos não encontrado, criando array vazio');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar contatos do arquivo:', error);
+  }
+}
 
 // Função robusta para carregar credenciais Gmail
 function getGmailCredentials() {
@@ -610,12 +636,16 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
 
-  switch (action) {
-    case 'stats':
-      return NextResponse.json({
-        success: true,
-        data: {
-          totalContacts: contacts.length,
+  try {
+    // Sempre carregar contatos do arquivo primeiro
+    await loadContactsFromFile();
+    
+    switch (action) {
+      case 'stats':
+        return NextResponse.json({
+          success: true,
+          data: {
+            totalContacts: contacts.length,
           segmentStats: {
             'brasileiros-eua': contacts.filter(c => c.segmento === 'brasileiros-eua').length,
             'familias': contacts.filter(c => c.segmento === 'familias').length,
@@ -689,6 +719,12 @@ export async function GET(request: NextRequest) {
         success: false, 
         error: 'Parâmetro action obrigatório' 
       }, { status: 400 });
+  } catch (error) {
+    console.error('Erro na API GET email-marketing:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Erro interno do servidor'
+    }, { status: 500 });
   }
 }
 
