@@ -246,7 +246,7 @@ const EMAIL_TEMPLATES_FALLBACK = {
               <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
                 Há 21 anos criamos pacotes COMPLETOS que incluem TUDO: passagens, hotéis, carros, passeios e seguro viagem. Você só se preocupa em aproveitar!
               </p>
-              <a href="https://fly2any.com" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
+              <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
                 📱 QUERO PACOTE COMPLETO
               </a>
             </div>
@@ -328,7 +328,7 @@ const EMAIL_TEMPLATES_FALLBACK = {
           <!-- Urgency CTA -->
           <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fafafa 0%, #f3f4f6 100%);">
             <div style="background: linear-gradient(135deg, #be123c 0%, #dc2626 100%); padding: 6px; border-radius: 16px; display: inline-block; margin-bottom: 15px;">
-              <a href="https://fly2any.com" style="background: linear-gradient(135deg, #be123c 0%, #dc2626 100%); color: white; padding: 20px 40px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(190, 18, 60, 0.4);">
+              <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #be123c 0%, #dc2626 100%); color: white; padding: 20px 40px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(190, 18, 60, 0.4);">
                 💖 QUERO MEU PACOTE COMPLETO
               </a>
             </div>
@@ -471,7 +471,7 @@ export async function POST(request: NextRequest) {
         // Personalizar template
         const personalizedHtml = template.html
           .replace(/{{nome}}/g, 'Teste')
-          .replace(/{{unsubscribe_url}}/g, 'https://fly2any.com/unsubscribe');
+          .replace(/{{unsubscribe_url}}/g, 'https://www.fly2any.com/unsubscribe');
         
         const result = await transporter.sendMail({
           from: `"Fly2Any" <${credentials.email}>`,
@@ -924,7 +924,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         const personalizedHtml = (campaign.html_content || '')
           .replace(/{{nome}}/g, contact.nome)
           .replace(/{{email}}/g, contact.email)
-          .replace(/{{unsubscribe_url}}/g, `https://fly2any.com/unsubscribe?token=${contact.unsubscribe_token}`);
+          .replace(/{{unsubscribe_url}}/g, `https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}`);
         
         // Enviar email
         const result = await transporter.sendMail({
