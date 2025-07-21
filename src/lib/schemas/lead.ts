@@ -11,7 +11,7 @@ export type TripType = 'ida' | 'ida_volta' | 'multiplas_cidades' | 'ida-volta' |
 export type FlightClass = 'economica' | 'premium' | 'executiva' | 'primeira';
 export type ContactPreference = 'whatsapp' | 'telefone' | 'email' | 'qualquer';
 export type TimePreference = 'manha' | 'tarde' | 'noite' | 'qualquer';
-export type ServiceType = 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
+export type ServiceType = 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro' | 'newsletter';
 export type LeadStatus = 'novo' | 'contatado' | 'cotacao_enviada' | 'negociacao' | 'fechado' | 'perdido' | 'em_analise' | 'cotado' | 'proposta_enviada' | 'follow_up';
 export type LeadPriority = 'baixa' | 'media' | 'alta' | 'urgente';
 export type BudgetPriority = 'baixo_custo' | 'custo_beneficio' | 'conforto' | 'luxo';
@@ -39,7 +39,9 @@ export interface UnifiedLead {
   // Personal Information (required)
   nome: string;
   email: string;
-  whatsapp: string;
+  
+  // Personal Information (commonly used)
+  whatsapp?: string;
   
   // Personal Information (optional)
   sobrenome?: string;
@@ -129,8 +131,10 @@ export interface CreateLeadInput {
   // Required fields
   nome: string;
   email: string;
-  whatsapp: string;
   selectedServices: ServiceType[];
+  
+  // Optional but common fields
+  whatsapp?: string;
   
   // Optional fields (all others from UnifiedLead except system fields)
   sobrenome?: string;
@@ -258,7 +262,7 @@ export const LEAD_VALIDATION_RULES = {
     maxLength: 255
   },
   whatsapp: {
-    required: true,
+    required: false,
     minLength: 10,
     maxLength: 20,
     pattern: /^\+?[1-9]\d{1,14}$/
@@ -272,7 +276,7 @@ export const LEAD_VALIDATION_RULES = {
   selectedServices: {
     required: true,
     minItems: 1,
-    validValues: ['voos', 'hoteis', 'carros', 'passeios', 'seguro']
+    validValues: ['voos', 'hoteis', 'carros', 'passeios', 'seguro', 'newsletter']
   },
   cpf: {
     required: false,

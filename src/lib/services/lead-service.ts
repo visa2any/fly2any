@@ -68,11 +68,19 @@ export class LeadService {
       });
     }
     
-    if (!input.whatsapp || input.whatsapp.length < LEAD_VALIDATION_RULES.whatsapp.minLength) {
-      errors.push({
-        field: 'whatsapp',
-        message: `WhatsApp é obrigatório e deve ter pelo menos ${LEAD_VALIDATION_RULES.whatsapp.minLength} dígitos`
-      });
+    // WhatsApp is optional, but if provided must be valid
+    if (input.whatsapp && input.whatsapp.trim()) {
+      if (input.whatsapp.length < LEAD_VALIDATION_RULES.whatsapp.minLength) {
+        errors.push({
+          field: 'whatsapp',
+          message: `WhatsApp deve ter pelo menos ${LEAD_VALIDATION_RULES.whatsapp.minLength} dígitos`
+        });
+      } else if (!LEAD_VALIDATION_RULES.whatsapp.pattern.test(input.whatsapp)) {
+        errors.push({
+          field: 'whatsapp',
+          message: 'WhatsApp deve ter um formato válido (+código país)'
+        });
+      }
     }
     
     if (!input.selectedServices || !Array.isArray(input.selectedServices) || input.selectedServices.length === 0) {
