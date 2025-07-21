@@ -78,13 +78,6 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
   }
 ];
 
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    templates: DEFAULT_TEMPLATES
-  });
-}
-
 // Variável global para armazenar templates salvos (em produção use banco de dados)
 let savedTemplates: EmailTemplate[] | null = null;
 
