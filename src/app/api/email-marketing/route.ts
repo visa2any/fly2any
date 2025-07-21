@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
           template = templates[templateType as keyof typeof templates];
         }
 
-        const campaign = {
+        const newCampaign = {
           id: `campaign_${Date.now()}`,
           name: name || 'Nova Campanha',
           subject: subject || template?.subject || 'Newsletter Fly2Any',
@@ -157,18 +157,18 @@ export async function POST(request: NextRequest) {
           stats: { sent: 0, opened: 0, clicked: 0, failed: 0 }
         };
 
-        campaigns.push(campaign);
+        campaigns.push(newCampaign);
         
         return NextResponse.json({
           success: true,
-          data: campaign
+          data: newCampaign
         });
 
       case 'send_to_first_500':
         const { campaignId, dryRun = false } = body;
         
-        const campaign = campaigns.find(c => c.id === campaignId);
-        if (!campaign) {
+        const targetCampaign = campaigns.find(c => c.id === campaignId);
+        if (!targetCampaign) {
           return NextResponse.json({
             success: false,
             error: 'Campanha não encontrada'
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Iniciar envio dos lotes de forma assíncrona
-        processBatches(newBatches, campaign);
+        processBatches(newBatches, targetCampaign);
         
         return NextResponse.json({
           success: true,
@@ -711,7 +711,7 @@ async function processBatches(batchesToProcess: EmailBatch[], campaign: any) {
       // Importar nodemailer dinamicamente
       const nodemailer = await import('nodemailer');
       
-      const transporter = nodemailer.default.createTransporter({
+      const transporter = nodemailer.default.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
