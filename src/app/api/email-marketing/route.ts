@@ -29,9 +29,9 @@ interface EmailBatch {
 }
 
 // Base de dados em memória (substitua pela sua implementação real)
-let contacts: Contact[] = [];
-let batches: EmailBatch[] = [];
-let campaigns: any[] = [];
+const contacts: Contact[] = [];
+const batches: EmailBatch[] = [];
+const campaigns: any[] = [];
 
 // Função robusta para carregar credenciais Gmail
 function getGmailCredentials() {
