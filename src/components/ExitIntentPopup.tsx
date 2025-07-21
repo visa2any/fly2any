@@ -4,6 +4,20 @@ import { useState, useEffect } from 'react';
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { MailIcon, PhoneIcon } from '@/components/Icons';
 
+// Países principais para o seletor
+const countries = [
+  { code: '+1', name: 'EUA/Canadá', flag: '🇺🇸' },
+  { code: '+55', name: 'Brasil', flag: '🇧🇷' },
+  { code: '+351', name: 'Portugal', flag: '🇵🇹' },
+  { code: '+44', name: 'Reino Unido', flag: '🇬🇧' },
+  { code: '+49', name: 'Alemanha', flag: '🇩🇪' },
+  { code: '+33', name: 'França', flag: '🇫🇷' },
+  { code: '+39', name: 'Itália', flag: '🇮🇹' },
+  { code: '+34', name: 'Espanha', flag: '🇪🇸' },
+  { code: '+52', name: 'México', flag: '🇲🇽' },
+  { code: '+54', name: 'Argentina', flag: '🇦🇷' }
+];
+
 interface ExitIntentPopupProps {
   enabled?: boolean;
   delay?: number; // delay in seconds before showing
@@ -13,6 +27,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hasShown, setHasShown] = useState(false);
@@ -75,7 +90,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
         },
         body: JSON.stringify({
           email,
-          whatsapp,
+          whatsapp: selectedCountry.code + ' ' + whatsapp,
           source: 'exit_intent_popup',
           serviceType: 'special_offer',
           timestamp: new Date().toISOString()
@@ -117,9 +132,9 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
         <div style={{
           background: '#ffffff',
           borderRadius: '16px',
-          maxWidth: '480px',
+          maxWidth: '360px',
           width: '100%',
-          padding: '48px 32px',
+          padding: '32px 24px',
           textAlign: 'center',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
@@ -175,7 +190,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     <div style={{
       position: 'fixed',
       inset: 0,
-      background: 'rgba(0, 0, 0, 0.6)',
+      background: 'rgba(0, 0, 0, 0.5)',
       backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
@@ -185,8 +200,8 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     }}>
       <div style={{
         background: '#ffffff',
-        borderRadius: '20px',
-        maxWidth: '600px',
+        borderRadius: '16px',
+        maxWidth: '360px',
         width: '100%',
         position: 'relative',
         overflow: 'hidden',
@@ -194,19 +209,19 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       }}>
         {/* Header with urgency */}
         <div style={{
-          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
           color: 'white',
-          padding: '24px',
+          padding: '20px',
           textAlign: 'center',
           position: 'relative'
         }}>
-          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️ ESPERE!</div>
+          <div style={{ fontSize: '20px', marginBottom: '4px' }}>🌟 Espere!</div>
           <div style={{
-            fontWeight: '700',
-            fontSize: '18px',
+            fontWeight: '600',
+            fontSize: '16px',
             fontFamily: 'Poppins, sans-serif'
           }}>
-            Não perca esta oportunidade única!
+            Receba ofertas exclusivas de viagem
           </div>
         </div>
 
@@ -214,13 +229,13 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
           onClick={handleClose}
           style={{
             position: 'absolute',
-            top: '16px',
-            right: '16px',
+            top: '12px',
+            right: '12px',
             color: 'white',
             background: 'rgba(255, 255, 255, 0.2)',
             borderRadius: '50%',
-            width: '40px',
-            height: '40px',
+            width: '32px',
+            height: '32px',
             border: 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -236,177 +251,139 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
           }}
         >
-          <XMarkIcon style={{ width: '24px', height: '24px' }} />
+          <XMarkIcon style={{ width: '18px', height: '18px' }} />
         </button>
         
-        <div style={{ padding: '32px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎁</div>
-            <div style={{
-              display: 'inline-block',
-              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-              color: '#1f2937',
-              padding: '8px 16px',
-              borderRadius: '50px',
-              fontSize: '14px',
-              fontWeight: '700',
-              marginBottom: '16px',
-              animation: 'pulse 2s infinite'
-            }}>
-              OFERTA EXCLUSIVA - APENAS HOJE
-            </div>
+        <div style={{ padding: '24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✈️</div>
             <h2 style={{
-              fontSize: '28px',
+              fontSize: '22px',
               fontWeight: '700',
               fontFamily: 'Poppins, sans-serif',
               color: '#111827',
-              marginBottom: '12px'
+              marginBottom: '8px'
             }}>
-              Antes de sair...
+              Não perca nossas ofertas!
             </h2>
             <p style={{
-              fontSize: '18px',
+              fontSize: '16px',
               color: '#6b7280',
-              marginBottom: '24px',
-              lineHeight: '1.6'
+              marginBottom: '20px',
+              lineHeight: '1.5'
             }}>
-              Que tal economizar <strong style={{ color: '#ef4444' }}>até R$ 2.500</strong> na sua próxima viagem?
+              Receba as melhores promoções de passagens e hotéis direto no seu email
             </p>
-
-            {/* Social proof */}
-            <div style={{
-              background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
-              borderRadius: '16px',
-              padding: '20px',
-              marginBottom: '24px',
-              border: '1px solid #bae6fd'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-around',
-                gap: '16px',
-                fontSize: '14px'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontWeight: '700',
-                    fontSize: '18px',
-                    color: '#3b82f6'
-                  }}>15.000+</div>
-                  <div style={{ color: '#6b7280' }}>Viajantes</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontWeight: '700',
-                    fontSize: '18px',
-                    color: '#10b981'
-                  }}>R$ 8.5M</div>
-                  <div style={{ color: '#6b7280' }}>Economizados</div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontWeight: '700',
-                    fontSize: '18px',
-                    color: '#a855f7'
-                  }}>4.9★</div>
-                  <div style={{ color: '#6b7280' }}>Avaliação</div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '8px'
-              }}>
-                📧 Seu melhor email:
-              </label>
-              <div style={{ position: 'relative' }}>
-                <MailIcon style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '20px',
-                  height: '20px',
-                  color: '#9ca3af'
-                }} />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Digite seu email aqui"
-                  style={{
-                    width: '100%',
-                    padding: '16px 16px 16px 48px',
-                    borderRadius: '12px',
-                    border: '2px solid #e5e7eb',
-                    background: '#ffffff',
-                    fontSize: '16px',
-                    color: '#111827',
-                    outline: 'none',
-                    transition: 'border-color 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#3b82f6';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
-                  }}
-                  required
-                />
-              </div>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ position: 'relative' }}>
+              <MailIcon style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '18px',
+                height: '18px',
+                color: '#9ca3af'
+              }} />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 40px',
+                  borderRadius: '10px',
+                  border: '1px solid #d1d5db',
+                  background: '#ffffff',
+                  fontSize: '15px',
+                  color: '#111827',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#3b82f6';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                required
+              />
             </div>
             
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '8px'
-              }}>
-                📱 WhatsApp (opcional - para ofertas VIP):
-              </label>
-              <div style={{ position: 'relative' }}>
-                <PhoneIcon style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '20px',
-                  height: '20px',
-                  color: '#9ca3af'
-                }} />
+            <div style={{ position: 'relative' }}>
+              <PhoneIcon style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '18px',
+                height: '18px',
+                color: '#9ca3af',
+                zIndex: 1
+              }} />
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <select
+                  value={selectedCountry.code}
+                  onChange={(e) => {
+                    const country = countries.find(c => c.code === e.target.value) || countries[0];
+                    setSelectedCountry(country);
+                  }}
+                  style={{
+                    padding: '14px 6px',
+                    borderRadius: '10px',
+                    border: '1px solid #d1d5db',
+                    background: '#ffffff',
+                    fontSize: '13px',
+                    color: '#111827',
+                    outline: 'none',
+                    minWidth: '75px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {countries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="tel"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+55 (11) 99999-9999"
+                  placeholder={selectedCountry.code === '+55' ? '11 99999-9999' : selectedCountry.code === '+1' ? '555-123-4567' : '123456789'}
                   style={{
-                    width: '100%',
-                    padding: '16px 16px 16px 48px',
-                    borderRadius: '12px',
-                    border: '2px solid #e5e7eb',
+                    flex: 1,
+                    padding: '14px 14px 14px 40px',
+                    borderRadius: '10px',
+                    border: '1px solid #d1d5db',
                     background: '#ffffff',
-                    fontSize: '16px',
+                    fontSize: '15px',
                     color: '#111827',
                     outline: 'none',
                     transition: 'border-color 0.2s ease'
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = '#10b981';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: '#6b7280',
+                marginTop: '4px',
+                paddingLeft: '40px'
+              }}>
+                Opcional • WhatsApp com código do país
               </div>
             </div>
             
@@ -415,14 +392,14 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
               disabled={isSubmitting || !email}
               style={{
                 width: '100%',
-                background: isSubmitting || !email ? '#9ca3af' : 'linear-gradient(135deg, #f59e0b, #ea580c)',
+                background: isSubmitting || !email ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                 color: 'white',
-                fontWeight: '700',
-                padding: '20px 24px',
-                borderRadius: '12px',
+                fontWeight: '600',
+                padding: '16px',
+                borderRadius: '10px',
                 border: 'none',
                 cursor: isSubmitting || !email ? 'not-allowed' : 'pointer',
-                fontSize: '18px',
+                fontSize: '16px',
                 transition: 'transform 0.2s ease',
                 fontFamily: 'Poppins, sans-serif'
               }}
@@ -443,82 +420,51 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                   gap: '8px'
                 }}>
                   <div style={{
-                    width: '20px',
-                    height: '20px',
+                    width: '16px',
+                    height: '16px',
                     border: '2px solid white',
                     borderTop: '2px solid transparent',
                     borderRadius: '50%',
                     animation: 'spin 1s linear infinite'
                   }} />
-                  <span>Processando...</span>
+                  <span>Enviando...</span>
                 </div>
               ) : (
-                '🚀 SIM! QUERO ECONOMIZAR R$ 2.500'
+                '🎯 Quero receber ofertas!'
               )}
             </button>
           </form>
 
-          {/* Benefits */}
-          <div style={{ marginTop: '32px' }}>
-            <h3 style={{
-              fontWeight: '600',
-              color: '#111827',
-              textAlign: 'center',
-              marginBottom: '16px',
-              fontSize: '16px'
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              fontSize: '13px',
+              color: '#6b7280',
+              marginBottom: '12px'
             }}>
-              O que você vai receber:
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
-                <span>Ofertas exclusivas de passagens com até 70% OFF</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <span>Sem spam</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
-                <span>Promoções relâmpago de hotéis (até 80% OFF)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <span>Cancele fácil</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
-                <span>Pacotes completos com desconto especial</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
-                <span>Alertas de error fare (passagens com preço de erro)</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
-                <span>Consultoria gratuita para sua viagem</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <span>100% seguro</span>
               </div>
             </div>
-          </div>
-
-          <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <p style={{
-              fontSize: '12px',
+              fontSize: '11px',
               color: '#9ca3af',
               lineHeight: '1.4'
             }}>
-              🔒 Seus dados estão seguros • 📧 Sem spam • ❌ Cancele quando quiser
+              🔒 Dados protegidos pela LGPD
             </p>
-          </div>
-
-          {/* Urgency timer */}
-          <div style={{
-            marginTop: '20px',
-            background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
-            padding: '16px',
-            textAlign: 'center'
-          }}>
-            <div style={{
-              color: '#dc2626',
-              fontWeight: '600',
-              fontSize: '14px'
-            }}>
-              ⏰ Esta oferta expira em algumas horas!
-            </div>
           </div>
         </div>
       </div>
