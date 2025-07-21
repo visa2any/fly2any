@@ -20,57 +20,72 @@ class EmailService {
 
   async sendEmail(emailData: EmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // Prioridade 1: Resend (se configurado)
-      if (this.resend) {
-        const { data, error } = await this.resend.emails.send({
-          from: 'Fly2Any <onboarding@resend.dev>',
-          to: [emailData.to],
-          subject: emailData.subject,
-          html: emailData.html,
-          text: emailData.text
-        });
-
-        if (error) {
-          console.error('Resend error:', error);
-          // Continuar para próxima opção
-        } else {
-          console.log('Email sent via Resend successfully');
-          return { success: true, messageId: data?.id };
-        }
-      }
-
-      // Prioridade 2: N8N webhook se configurado
-      if (process.env.N8N_WEBHOOK_EMAIL) {
-        const response = await fetch(process.env.N8N_WEBHOOK_EMAIL, {
+      // Prioridade 1: Gmail via API email-ses
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-ses`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            to: emailData.to,
+            action: 'send_test',
+            email: emailData.to,
             subject: emailData.subject,
             html: emailData.html,
-            text: emailData.text,
-            timestamp: new Date().toISOString()
+            text: emailData.text
           })
         });
 
         if (response.ok) {
-          console.log('Email sent via N8N webhook successfully');
-          return { success: true, messageId: `n8n_${Date.now()}` };
+          const result = await response.json();
+          if (result.success && result.messageId) {
+            console.log('📧 Email sent via Gmail successfully');
+            return { success: true, messageId: result.messageId };
+          }
+        }
+      } catch (gmailError) {
+        console.warn('Gmail sending failed:', gmailError);
+      }
+
+      // Prioridade 2: N8N webhook se configurado
+      if (process.env.N8N_WEBHOOK_EMAIL) {
+        try {
+          const response = await fetch(process.env.N8N_WEBHOOK_EMAIL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: emailData.to,
+              subject: emailData.subject,
+              html: emailData.html,
+              text: emailData.text,
+              timestamp: new Date().toISOString()
+            })
+          });
+
+          if (response.ok) {
+            console.log('📧 Email sent via N8N webhook successfully');
+            return { success: true, messageId: `n8n_${Date.now()}` };
+          }
+        } catch (n8nError) {
+          console.warn('N8N webhook failed:', n8nError);
         }
       }
 
-      // Fallback: simular envio de email
-      console.log('Email simulation (configure RESEND_API_KEY or N8N_WEBHOOK_EMAIL for real sending):', {
+      // Fallback: log para debug
+      console.log('⚠️ Email não pôde ser enviado - verificar configurações Gmail/N8N:', {
         to: emailData.to,
         subject: emailData.subject,
         timestamp: new Date().toISOString()
       });
       
-      return { success: true, messageId: `simulated_${Date.now()}` };
+      return { 
+        success: false, 
+        error: 'Nenhum provedor de email disponível (Gmail SMTP ou N8N webhook)' 
+      };
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('❌ Email sending error:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error' 
