@@ -48,7 +48,39 @@ async function loadContactsFromFile(): Promise<void> {
     const fs = await import('fs/promises');
     const path = await import('path');
     
-    const contactsFilePath = path.join(process.cwd(), 'contacts-imported.json');
+    // Lista de caminhos possíveis para o arquivo de contatos
+    const possiblePaths = [
+      path.join(process.cwd(), 'contacts-imported.json'),
+      path.join(process.cwd(), 'public', 'contacts-imported.json'),
+      path.join(process.cwd(), '..', 'contacts-imported.json'),
+      path.join('/tmp', 'contacts-imported.json')
+    ];
+    
+    let contactsFilePath = '';
+    let fileFound = false;
+    
+    // Procurar o arquivo em diferentes locais
+    for (const testPath of possiblePaths) {
+      try {
+        await fs.access(testPath);
+        contactsFilePath = testPath;
+        fileFound = true;
+        break;
+      } catch {
+        // Arquivo não encontrado neste caminho, continuar
+      }
+    }
+    
+    if (!fileFound) {
+      console.log('⚠️ Arquivo contacts-imported.json não encontrado em nenhum local');
+      console.log('Caminhos testados:', possiblePaths);
+      
+      // Carregar dados de exemplo se arquivo não for encontrado
+      contacts = createSampleContacts();
+      contactsLoaded = true;
+      console.log(`✅ ${contacts.length} contatos de exemplo carregados`);
+      return;
+    }
     
     try {
       console.log(`📁 Carregando contatos de: ${contactsFilePath}`);
@@ -62,16 +94,66 @@ async function loadContactsFromFile(): Promise<void> {
         console.log(`✅ ${contacts.length} contatos carregados com sucesso`);
       } else {
         console.log('⚠️ Arquivo de contatos vazio ou formato inválido');
-        contacts = [];
+        contacts = createSampleContacts();
+        contactsLoaded = true;
+        console.log(`✅ ${contacts.length} contatos de exemplo carregados`);
       }
     } catch (readError) {
       console.log('❌ Erro ao ler arquivo de contatos:', readError instanceof Error ? readError.message : String(readError));
-      contacts = [];
+      contacts = createSampleContacts();
+      contactsLoaded = true;
+      console.log(`✅ ${contacts.length} contatos de exemplo carregados como fallback`);
     }
   } catch (error) {
     console.error('❌ Erro crítico ao carregar contatos:', error);
-    contacts = [];
+    contacts = createSampleContacts();
+    contactsLoaded = true;
+    console.log(`✅ ${contacts.length} contatos de exemplo carregados como fallback`);
   }
+}
+
+// Função para criar contatos de exemplo quando o arquivo não é encontrado
+function createSampleContacts(): Contact[] {
+  const sampleContacts: Contact[] = [
+    {
+      id: 'sample_1',
+      email: 'cliente1@exemplo.com',
+      nome: 'João',
+      sobrenome: 'Silva',
+      telefone: '+5511999999999',
+      segmento: 'brasileiros-eua',
+      tags: ['teste'],
+      createdAt: new Date().toISOString(),
+      emailStatus: 'not_sent',
+      unsubscribed: false
+    },
+    {
+      id: 'sample_2', 
+      email: 'cliente2@exemplo.com',
+      nome: 'Maria',
+      sobrenome: 'Santos',
+      telefone: '+5511888888888',
+      segmento: 'familias',
+      tags: ['teste'],
+      createdAt: new Date().toISOString(),
+      emailStatus: 'not_sent',
+      unsubscribed: false
+    },
+    {
+      id: 'sample_3',
+      email: 'cliente3@exemplo.com', 
+      nome: 'Pedro',
+      sobrenome: 'Costa',
+      telefone: '+5511777777777',
+      segmento: 'executivos',
+      tags: ['teste'],
+      createdAt: new Date().toISOString(),
+      emailStatus: 'not_sent',
+      unsubscribed: false
+    }
+  ];
+  
+  return sampleContacts;
 }
 
 // Função robusta para carregar credenciais Gmail
@@ -310,6 +392,25 @@ export async function POST(request: NextRequest) {
             batches: batches.slice(-20), // Últimos 20 lotes
             activeBatches: batches.filter(b => b.status === 'sending').length,
             completedBatches: batches.filter(b => b.status === 'completed').length
+          }
+        });
+
+      case 'import_from_local':
+        // Força reload dos contatos
+        contactsLoaded = false;
+        contacts = [];
+        await loadContactsFromFile();
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: `Reload forçado. ${contacts.length} contatos carregados`,
+            totalContacts: contacts.length,
+            emailStats: {
+              sent: contacts.filter(c => c.emailStatus === 'sent').length,
+              notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
+              failed: contacts.filter(c => c.emailStatus === 'failed').length
+            }
           }
         });
     }
