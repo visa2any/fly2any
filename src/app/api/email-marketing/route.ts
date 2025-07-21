@@ -318,7 +318,7 @@ export async function POST(request: NextRequest) {
           telefone: contact.telefone || contact.phone || '',
           segmento: contact.segmento || 'geral',
           tags: Array.isArray(contact.tags) ? contact.tags : (contact.tags ? contact.tags.split(';') : []),
-          status: 'active' as const,
+          status: 'ativo' as const,
           email_status: 'not_sent' as const,
           unsubscribe_token: generateUnsubscribeToken()
         }));
@@ -612,6 +612,55 @@ export async function GET(request: NextRequest) {
           success: true,
           data: { stats }
         });
+      }
+
+      case 'load_imported_contacts': {
+        try {
+          // Executar o SQL de importação
+          const importFile = path.join(process.cwd(), 'final-import.sql');
+          
+          if (fs.existsSync(importFile)) {
+            const importSQL = fs.readFileSync(importFile, 'utf8');
+            
+            // Extrair apenas os INSERTs, pular CREATE TABLE e índices
+            const insertLines = importSQL
+              .split('\n')
+              .filter(line => line.trim().startsWith('INSERT INTO email_contacts'))
+              .slice(0, 500); // Limitar a 500 para evitar timeout
+            
+            let imported = 0;
+            for (const insertLine of insertLines) {
+              try {
+                // Executar diretamente o INSERT via raw SQL
+                const result = await sql.query(insertLine);
+                imported++;
+              } catch (error) {
+                // Ignorar duplicatas
+                if (!error?.message?.includes('duplicate key')) {
+                  console.error('Erro ao importar:', error);
+                }
+              }
+            }
+            
+            return NextResponse.json({
+              success: true,
+              data: { 
+                imported,
+                message: `${imported} contatos importados do arquivo SQL`
+              }
+            });
+          }
+          
+          return NextResponse.json({
+            success: false,
+            error: 'Arquivo de importação não encontrado'
+          }, { status: 404 });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro na importação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
       }
 
       default:

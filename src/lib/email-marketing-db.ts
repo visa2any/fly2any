@@ -68,11 +68,11 @@ export async function initEmailMarketingTables(): Promise<void> {
         sobrenome VARCHAR(255),
         telefone VARCHAR(50),
         segmento VARCHAR(100) DEFAULT 'geral',
-        tags TEXT[] DEFAULT '{}',
-        status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'unsubscribed', 'bounced')),
-        email_status VARCHAR(20) DEFAULT 'not_sent' CHECK (email_status IN ('not_sent', 'sent', 'opened', 'clicked', 'failed', 'bounced')),
+        tags JSONB DEFAULT '[]',
+        status VARCHAR(50) DEFAULT 'ativo',
+        email_status VARCHAR(50) DEFAULT 'not_sent',
         last_email_sent TIMESTAMP,
-        unsubscribe_token VARCHAR(255) UNIQUE NOT NULL,
+        unsubscribe_token VARCHAR(255) UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
