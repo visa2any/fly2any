@@ -45,9 +45,12 @@ export default function EmailMarketingPage() {
     fetchContacts();
   }, []);
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (forceReload = false) => {
     try {
-      const response = await fetch('/api/email-marketing?action=contacts');
+      const url = forceReload 
+        ? `/api/email-marketing?action=contacts&reload=${Date.now()}` 
+        : '/api/email-marketing?action=contacts';
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success && data.data && data.data.contacts && Array.isArray(data.data.contacts)) {
@@ -198,7 +201,7 @@ export default function EmailMarketingPage() {
       if (result.success) {
         setMessage(`✅ ${result.imported} emails importados com sucesso!`);
         fetchStats(); // Atualizar estatísticas
-        fetchContacts(); // Atualizar contatos
+        fetchContacts(true); // Atualizar contatos com reload forçado
       } else {
         setMessage(`❌ Erro na importação: ${result.error}`);
       }
@@ -294,13 +297,13 @@ export default function EmailMarketingPage() {
                 📧
               </div>
             </div>
-            <div className="admin-stats-value">{formatNumber(stats?.totalContacts)}</div>
+            <div className="admin-stats-value">{stats ? formatNumber(stats.totalContacts) : '0'}</div>
             <div className="admin-stats-label">Total de Contatos</div>
             <button 
               onClick={() => setShowContacts(!showContacts)}
               className="mt-2 text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
             >
-              {showContacts ? 'Ocultar' : 'Ver Contatos'}
+              {showContacts ? <>Ocultar</> : <>Ver Contatos</>}
             </button>
           </div>
           
@@ -310,7 +313,7 @@ export default function EmailMarketingPage() {
                 📊
               </div>
             </div>
-            <div className="admin-stats-value">{formatNumber(stats?.campaignsSent)}</div>
+            <div className="admin-stats-value">{stats ? formatNumber(stats.campaignsSent) : '0'}</div>
             <div className="admin-stats-label">Campanhas Enviadas</div>
           </div>
           
@@ -320,7 +323,7 @@ export default function EmailMarketingPage() {
                 👀
               </div>
             </div>
-            <div className="admin-stats-value">{stats?.avgOpenRate || '0%'}</div>
+            <div className="admin-stats-value">{stats ? (stats.avgOpenRate || '0%') : '0%'}</div>
             <div className="admin-stats-label">Taxa de Abertura</div>
           </div>
           
@@ -330,7 +333,7 @@ export default function EmailMarketingPage() {
                 🎯
               </div>
             </div>
-            <div className="admin-stats-value">{stats?.avgClickRate || '0%'}</div>
+            <div className="admin-stats-value">{stats ? (stats.avgClickRate || '0%') : '0%'}</div>
             <div className="admin-stats-label">Taxa de Clique</div>
           </div>
         </div>

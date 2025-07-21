@@ -33,8 +33,17 @@ let contacts: Contact[] = [];
 const batches: EmailBatch[] = [];
 const campaigns: any[] = [];
 
+// Flag para controlar se já carregamos os contatos
+let contactsLoaded = false;
+
 // Carregar contatos do arquivo JSON
 async function loadContactsFromFile(): Promise<void> {
+  // Evita recarregar se já carregou
+  if (contactsLoaded && contacts.length > 0) {
+    console.log(`📁 Contatos já carregados: ${contacts.length} em memória`);
+    return;
+  }
+
   try {
     const fs = await import('fs/promises');
     const path = await import('path');
@@ -42,21 +51,26 @@ async function loadContactsFromFile(): Promise<void> {
     const contactsFilePath = path.join(process.cwd(), 'contacts-imported.json');
     
     try {
+      console.log(`📁 Carregando contatos de: ${contactsFilePath}`);
       const data = await fs.readFile(contactsFilePath, 'utf8');
       const fileContacts = JSON.parse(data);
       
       // Carregar contatos do arquivo se existirem
       if (Array.isArray(fileContacts) && fileContacts.length > 0) {
         contacts = fileContacts;
-        console.log(`📁 Carregados ${contacts.length} contatos do arquivo`);
+        contactsLoaded = true;
+        console.log(`✅ ${contacts.length} contatos carregados com sucesso`);
       } else {
-        console.log('📁 Arquivo de contatos vazio ou inválido');
+        console.log('⚠️ Arquivo de contatos vazio ou formato inválido');
+        contacts = [];
       }
     } catch (readError) {
-      console.log('Arquivo de contatos não encontrado, criando array vazio');
+      console.log('❌ Erro ao ler arquivo de contatos:', readError.message);
+      contacts = [];
     }
   } catch (error) {
-    console.error('Erro ao carregar contatos do arquivo:', error);
+    console.error('❌ Erro crítico ao carregar contatos:', error);
+    contacts = [];
   }
 }
 
@@ -136,6 +150,7 @@ export async function POST(request: NextRequest) {
         }));
 
         contacts = [...contacts, ...newContacts];
+        contactsLoaded = true; // Marcar como carregado após importar
         
         return NextResponse.json({
           success: true,
@@ -636,8 +651,16 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
+  const reload = searchParams.get('reload');
 
   try {
+    // Se reload foi solicitado, resetar cache
+    if (reload) {
+      contactsLoaded = false;
+      contacts = [];
+      console.log('🔄 Cache de contatos resetado para reload');
+    }
+    
     // Sempre carregar contatos do arquivo primeiro
     await loadContactsFromFile();
     
