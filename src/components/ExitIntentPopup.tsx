@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { MailIcon, PhoneIcon } from '@/components/Icons';
 
 interface ExitIntentPopupProps {
   enabled?: boolean;
@@ -102,17 +103,68 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
 
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-md w-full p-8 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-green-600 mb-2">
-            Oferta Garantida!
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '16px'
+      }}>
+        <div style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          maxWidth: '480px',
+          width: '100%',
+          padding: '48px 32px',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 24px auto'
+          }}>
+            <CheckIcon style={{ width: '40px', height: '40px', color: 'white' }} />
+          </div>
+          <h2 style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            fontFamily: 'Poppins, sans-serif',
+            color: '#111827',
+            marginBottom: '16px'
+          }}>
+            🎉 Oferta Garantida!
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p style={{
+            fontSize: '18px',
+            color: '#6b7280',
+            marginBottom: '24px',
+            lineHeight: '1.6'
+          }}>
             Você receberá nossa oferta especial no seu email e WhatsApp em alguns minutos!
           </p>
-          <div className="text-sm text-gray-500">
-            Verifique sua caixa de entrada e salve nosso contato ❤️
+          <div style={{
+            padding: '16px',
+            background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+            borderRadius: '12px',
+            border: '1px solid #bae6fd'
+          }}>
+            <p style={{
+              fontSize: '14px',
+              color: '#0369a1',
+              fontWeight: '500'
+            }}>
+              ✉️ Verifique sua caixa de entrada e salve nosso contato ❤️
+            </p>
           </div>
         </div>
       </div>
@@ -120,89 +172,284 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-lg w-full relative overflow-hidden">
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0, 0, 0, 0.6)',
+      backdropFilter: 'blur(8px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      padding: '16px'
+    }}>
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '20px',
+        maxWidth: '600px',
+        width: '100%',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      }}>
         {/* Header with urgency */}
-        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 text-center">
-          <div className="text-2xl mb-1">⚠️ ESPERE!</div>
-          <div className="font-bold text-lg">Não perca esta oportunidade única!</div>
+        <div style={{
+          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+          color: 'white',
+          padding: '24px',
+          textAlign: 'center',
+          position: 'relative'
+        }}>
+          <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚠️ ESPERE!</div>
+          <div style={{
+            fontWeight: '700',
+            fontSize: '18px',
+            fontFamily: 'Poppins, sans-serif'
+          }}>
+            Não perca esta oportunidade única!
+          </div>
         </div>
 
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-white hover:text-gray-200 z-10"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            color: 'white',
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.2s ease',
+            zIndex: 10
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+          }}
         >
-          <XMarkIcon className="w-6 h-6" />
+          <XMarkIcon style={{ width: '24px', height: '24px' }} />
         </button>
         
-        <div className="p-6">
-          <div className="text-center mb-6">
-            <div className="text-5xl mb-3">🎁</div>
-            <div className="bg-yellow-400 text-black px-4 py-2 rounded-full inline-block text-sm font-bold mb-3 animate-pulse">
+        <div style={{ padding: '32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎁</div>
+            <div style={{
+              display: 'inline-block',
+              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+              color: '#1f2937',
+              padding: '8px 16px',
+              borderRadius: '50px',
+              fontSize: '14px',
+              fontWeight: '700',
+              marginBottom: '16px',
+              animation: 'pulse 2s infinite'
+            }}>
               OFERTA EXCLUSIVA - APENAS HOJE
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            <h2 style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              fontFamily: 'Poppins, sans-serif',
+              color: '#111827',
+              marginBottom: '12px'
+            }}>
               Antes de sair...
             </h2>
-            <p className="text-gray-600 mb-4">
-              Que tal economizar <strong className="text-red-500">até R$ 2.500</strong> na sua próxima viagem?
+            <p style={{
+              fontSize: '18px',
+              color: '#6b7280',
+              marginBottom: '24px',
+              lineHeight: '1.6'
+            }}>
+              Que tal economizar <strong style={{ color: '#ef4444' }}>até R$ 2.500</strong> na sua próxima viagem?
             </p>
 
             {/* Social proof */}
-            <div className="bg-blue-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-center space-x-4 text-sm">
-                <div className="text-center">
-                  <div className="font-bold text-blue-600">15.000+</div>
-                  <div className="text-gray-600">Viajantes</div>
+            <div style={{
+              background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '24px',
+              border: '1px solid #bae6fd'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                gap: '16px',
+                fontSize: '14px'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontWeight: '700',
+                    fontSize: '18px',
+                    color: '#3b82f6'
+                  }}>15.000+</div>
+                  <div style={{ color: '#6b7280' }}>Viajantes</div>
                 </div>
-                <div className="text-center">
-                  <div className="font-bold text-green-600">R$ 8.5M</div>
-                  <div className="text-gray-600">Economizados</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontWeight: '700',
+                    fontSize: '18px',
+                    color: '#10b981'
+                  }}>R$ 8.5M</div>
+                  <div style={{ color: '#6b7280' }}>Economizados</div>
                 </div>
-                <div className="text-center">
-                  <div className="font-bold text-purple-600">4.9★</div>
-                  <div className="text-gray-600">Avaliação</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontWeight: '700',
+                    fontSize: '18px',
+                    color: '#a855f7'
+                  }}>4.9★</div>
+                  <div style={{ color: '#6b7280' }}>Avaliação</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '8px'
+              }}>
                 📧 Seu melhor email:
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Digite seu email aqui"
-                className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500 text-lg"
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <MailIcon style={{
+                  position: 'absolute',
+                  left: '16px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '20px',
+                  height: '20px',
+                  color: '#9ca3af'
+                }} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Digite seu email aqui"
+                  style={{
+                    width: '100%',
+                    padding: '16px 16px 16px 48px',
+                    borderRadius: '12px',
+                    border: '2px solid #e5e7eb',
+                    background: '#ffffff',
+                    fontSize: '16px',
+                    color: '#111827',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#3b82f6';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                  }}
+                  required
+                />
+              </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '8px'
+              }}>
                 📱 WhatsApp (opcional - para ofertas VIP):
               </label>
-              <input
-                type="tel"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="+55 (11) 99999-9999"
-                className="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500"
-              />
+              <div style={{ position: 'relative' }}>
+                <PhoneIcon style={{
+                  position: 'absolute',
+                  left: '16px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '20px',
+                  height: '20px',
+                  color: '#9ca3af'
+                }} />
+                <input
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="+55 (11) 99999-9999"
+                  style={{
+                    width: '100%',
+                    padding: '16px 16px 16px 48px',
+                    borderRadius: '12px',
+                    border: '2px solid #e5e7eb',
+                    background: '#ffffff',
+                    fontSize: '16px',
+                    color: '#111827',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#10b981';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                  }}
+                />
+              </div>
             </div>
             
             <button
               type="submit"
               disabled={isSubmitting || !email}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none text-lg"
+              style={{
+                width: '100%',
+                background: isSubmitting || !email ? '#9ca3af' : 'linear-gradient(135deg, #f59e0b, #ea580c)',
+                color: 'white',
+                fontWeight: '700',
+                padding: '20px 24px',
+                borderRadius: '12px',
+                border: 'none',
+                cursor: isSubmitting || !email ? 'not-allowed' : 'pointer',
+                fontSize: '18px',
+                transition: 'transform 0.2s ease',
+                fontFamily: 'Poppins, sans-serif'
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting && email) {
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
               {isSubmitting ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid white',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
                   <span>Processando...</span>
                 </div>
               ) : (
@@ -212,43 +459,64 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
           </form>
 
           {/* Benefits */}
-          <div className="mt-6 space-y-2">
-            <h3 className="font-semibold text-gray-800 text-center mb-3">
+          <div style={{ marginTop: '32px' }}>
+            <h3 style={{
+              fontWeight: '600',
+              color: '#111827',
+              textAlign: 'center',
+              marginBottom: '16px',
+              fontSize: '16px'
+            }}>
               O que você vai receber:
             </h3>
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✅</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span>Ofertas exclusivas de passagens com até 70% OFF</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✅</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span>Promoções relâmpago de hotéis (até 80% OFF)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✅</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span>Pacotes completos com desconto especial</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✅</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span>Alertas de error fare (passagens com preço de erro)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-500">✅</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span>Consultoria gratuita para sua viagem</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500">
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
+            <p style={{
+              fontSize: '12px',
+              color: '#9ca3af',
+              lineHeight: '1.4'
+            }}>
               🔒 Seus dados estão seguros • 📧 Sem spam • ❌ Cancele quando quiser
             </p>
           </div>
 
           {/* Urgency timer */}
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-            <div className="text-red-600 font-semibold text-sm">
+          <div style={{
+            marginTop: '20px',
+            background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+            border: '1px solid #fecaca',
+            borderRadius: '12px',
+            padding: '16px',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              color: '#dc2626',
+              fontWeight: '600',
+              fontSize: '14px'
+            }}>
               ⏰ Esta oferta expira em algumas horas!
             </div>
           </div>
