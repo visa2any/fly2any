@@ -38,13 +38,31 @@ class EmailImportService {
   private isValidEmail(email: string): boolean {
     if (!email || typeof email !== 'string') return false;
     
-    // Limpar email: remover espaços, converter para lowercase
-    const cleanEmail = email.trim().toLowerCase().replace(/\s+/g, '');
+    // Limpar email primeiro
+    const cleanEmail = this.cleanEmail(email);
     
-    // Verificar se tem @ e domínio
-    if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) return false;
+    // Verificações básicas
+    if (cleanEmail.length < 5) return false;                    // Muito curto
+    if (!cleanEmail.includes('@')) return false;                // Sem @
+    if (!cleanEmail.includes('.')) return false;                // Sem domínio
+    if (cleanEmail.indexOf('@') === 0) return false;            // Começa com @
+    if (cleanEmail.indexOf('@') === cleanEmail.length - 1) return false; // Termina com @
+    if (cleanEmail.split('@').length !== 2) return false;       // Mais de um @
     
-    // Regex mais robusta
+    const [localPart, domainPart] = cleanEmail.split('@');
+    
+    // Validar parte local (antes do @)
+    if (localPart.length === 0 || localPart.length > 64) return false;
+    if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
+    if (localPart.includes('..')) return false;
+    
+    // Validar domínio
+    if (domainPart.length === 0 || domainPart.length > 253) return false;
+    if (domainPart.startsWith('.') || domainPart.endsWith('.')) return false;
+    if (domainPart.includes('..')) return false;
+    if (!domainPart.includes('.')) return false;
+    
+    // Regex final para validação completa
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return emailRegex.test(cleanEmail);
   }
@@ -52,7 +70,12 @@ class EmailImportService {
   // Função para limpar email
   private cleanEmail(email: string): string {
     if (!email || typeof email !== 'string') return '';
-    return email.trim().toLowerCase().replace(/\s+/g, '');
+    // Remove espaços, vírgulas no final, pontos no final, e outros caracteres inválidos
+    return email.trim().toLowerCase()
+      .replace(/\s+/g, '')           // Remove espaços
+      .replace(/,+$/, '')            // Remove vírgulas no final
+      .replace(/\.+$/, '')           // Remove pontos no final
+      .replace(/[^\w@.-]/g, '');     // Remove caracteres especiais (exceto @, ., -, _)
   }
   
   // Parser CSV mais robusto que lida com aspas e vírgulas
@@ -307,70 +330,69 @@ class EmailImportService {
     }
   }
 
-  // Salvar contatos no banco de dados usando batch insert
+  // Salvar contatos no banco de dados usando transações simples
   private async saveContacts(contacts: ImportedContact[]): Promise<void> {
     try {
       await this.initializeEmailContactsTable();
       
       if (contacts.length === 0) return;
       
-      // Processar em lotes de 100 para evitar timeout
-      const batchSize = 100;
+      console.log(`Iniciando salvamento de ${contacts.length} contatos...`);
       
-      for (let i = 0; i < contacts.length; i += batchSize) {
-        const batch = contacts.slice(i, i + batchSize);
-        
+      // Processar um contato por vez para evitar problemas de prepared statement
+      let saved = 0;
+      let errors = 0;
+      
+      for (const contact of contacts) {
         try {
-          // Usar uma única transação para o lote
-          for (const contact of batch) {
-            try {
-              // Inserir um contato por vez para evitar erro de prepared statement
-              const result = await sql`
-                INSERT INTO email_contacts (email, nome, sobrenome, telefone, cidade, segmento, tags)
-                VALUES (
-                  ${contact.email},
-                  ${contact.nome},
-                  ${contact.sobrenome || null},
-                  ${contact.telefone || null},
-                  ${contact.cidade || null},
-                  ${contact.segmento || 'geral'},
-                  ${JSON.stringify(contact.tags || [])}
-                )
-                ON CONFLICT (email) 
-                DO UPDATE SET
-                  nome = EXCLUDED.nome,
-                  sobrenome = EXCLUDED.sobrenome,
-                  telefone = EXCLUDED.telefone,
-                  cidade = EXCLUDED.cidade,
-                  segmento = EXCLUDED.segmento,
-                  tags = EXCLUDED.tags,
-                  updated_at = NOW()
-                RETURNING id
-              `;
-              
-              if (result.rowCount === 0) {
-                console.warn(`Contato não inserido: ${contact.email}`);
-              }
-            } catch (contactError) {
-              console.error(`Erro ao salvar contato ${contact.email}:`, contactError);
-            }
+          // Usar uma query simples sem prepared statement múltiplo
+          await sql`
+            INSERT INTO email_contacts (email, nome, sobrenome, telefone, cidade, segmento, tags, status, created_at, updated_at)
+            VALUES (
+              ${contact.email},
+              ${contact.nome},
+              ${contact.sobrenome || null},
+              ${contact.telefone || null},
+              ${contact.cidade || null},
+              ${contact.segmento || 'geral'},
+              ${JSON.stringify(contact.tags || [])},
+              'ativo',
+              NOW(),
+              NOW()
+            )
+            ON CONFLICT (email) 
+            DO UPDATE SET
+              nome = EXCLUDED.nome,
+              sobrenome = EXCLUDED.sobrenome,
+              telefone = EXCLUDED.telefone,
+              cidade = EXCLUDED.cidade,
+              segmento = EXCLUDED.segmento,
+              tags = EXCLUDED.tags,
+              updated_at = NOW()
+          `;
+          
+          saved++;
+          
+          // Log a cada 100 contatos salvos
+          if (saved % 100 === 0) {
+            console.log(`Progresso: ${saved}/${contacts.length} contatos salvos`);
           }
           
-          console.log(`Lote ${Math.floor(i/batchSize) + 1}: ${batch.length} contatos processados`);
+        } catch (contactError) {
+          errors++;
+          console.error(`Erro ao salvar contato ${contact.email}:`, contactError);
           
-          // Aguardar um pouco entre lotes para não sobrecarregar o banco
-          if (i + batchSize < contacts.length) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+          // Se há muitos erros, parar
+          if (errors > 10) {
+            console.error('Muitos erros consecutivos, parando importação');
+            throw new Error(`Muitos erros na importação: ${errors} falhas`);
           }
-          
-        } catch (batchError) {
-          console.error(`Erro no lote ${Math.floor(i/batchSize) + 1}:`, batchError);
         }
       }
       
-      console.log(`Total: ${contacts.length} contatos processados no banco!`);
+      console.log(`Importação concluída: ${saved} salvos, ${errors} erros`);
     } catch (error) {
-      console.error('Erro ao salvar contatos:', error);
+      console.error('Erro crítico ao salvar contatos:', error);
       throw error;
     }
   }
