@@ -206,18 +206,21 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
         </div>
 
         <!-- Footer -->
-        <div style="background: #374151; color: white; padding: 30px 20px; text-align: center; width: 100%;" class="mobile-padding">
-          <p style="margin: 0 0 15px 0; font-size: 18px; font-weight: bold;" class="mobile-font-small">
-            Fly2Any Travel • Há 21 anos conectando você ao Brasil e o mundo!
+        <div style="background: #374151; color: white; padding: 30px 20px; text-align: center; width: 100%; margin-top: 0;" class="mobile-padding">
+          <p style="margin: 0 0 15px 0; font-size: 18px; font-weight: bold; line-height: 1.4;" class="mobile-font-small">
+            <strong>Fly2Any Travel</strong> • Há 21 anos conectando você ao Brasil e o mundo!
           </p>
-          <p style="margin: 0 0 10px 0; font-size: 16px; opacity: 0.9;" class="mobile-font-small">
-            📱 <a href="https://wa.me/1151944717" style="color: #25d366; text-decoration: none; font-weight: 600;">WhatsApp: wa.me/1151944717</a>
-          </p>
-          <p style="margin: 0 0 15px 0; font-size: 16px; opacity: 0.9;" class="mobile-font-small">
-            📧 <a href="mailto:info@fly2any.com" style="color: #60a5fa; text-decoration: none;">info@fly2any.com</a>
-          </p>
-          <p style="margin: 20px 0 0 0; font-size: 12px; opacity: 0.7;">
-            <a href="{{unsubscribe_url}}" style="color: #9ca3af; text-decoration: underline;">Cancelar inscrição</a>
+          <div style="margin: 20px 0;">
+            <p style="margin: 0 0 12px 0; font-size: 16px; opacity: 0.95;" class="mobile-font-small">
+              📱 <a href="https://wa.me/1151944717" style="color: #25d366; text-decoration: none; font-weight: 600;">WhatsApp: wa.me/1151944717</a>
+            </p>
+            <p style="margin: 0; font-size: 16px; opacity: 0.95;" class="mobile-font-small">
+              📧 <a href="mailto:info@fly2any.com" style="color: #60a5fa; text-decoration: none; font-weight: 500;">info@fly2any.com</a>
+            </p>
+          </div>
+          <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 20px 0;">
+          <p style="margin: 15px 0 0 0; font-size: 12px; opacity: 0.8; line-height: 1.3;">
+            <a href="{{unsubscribe_url}}" style="color: #d1d5db; text-decoration: underline;">Cancelar inscrição</a>
           </p>
         </div>
       </body>
