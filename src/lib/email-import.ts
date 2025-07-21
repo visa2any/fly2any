@@ -498,7 +498,7 @@ class EmailImportService {
         tags: contact.tags || [],
         createdAt: new Date().toISOString(),
         emailStatus: 'not_sent',
-        lastEmailSent: null,
+        lastEmailSent: undefined,
         unsubscribed: false
       }));
       

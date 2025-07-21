@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
           tags: contact.tags || [],
           createdAt: contact.createdAt || new Date().toISOString(),
           emailStatus: contact.emailStatus || 'not_sent',
-          lastEmailSent: contact.lastEmailSent || null,
+          lastEmailSent: contact.lastEmailSent || undefined,
           unsubscribed: contact.unsubscribed || false
         }));
 
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
               tags: [],
               createdAt: new Date().toISOString(),
               emailStatus: "not_sent",
-              lastEmailSent: null,
+              lastEmailSent: undefined,
               unsubscribed: false
             },
             {
@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
               tags: [],
               createdAt: new Date().toISOString(),
               emailStatus: "not_sent",
-              lastEmailSent: null,
+              lastEmailSent: undefined,
               unsubscribed: false
             },
             {
@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
               tags: [],
               createdAt: new Date().toISOString(),
               emailStatus: "not_sent",
-              lastEmailSent: null,
+              lastEmailSent: undefined,
               unsubscribed: false
             }
           ];
