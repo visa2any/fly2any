@@ -76,7 +76,7 @@ function getGmailCredentials() {
 // Templates de email
 const EMAIL_TEMPLATES = {
   promotional: {
-    subject: '⚡ ÚLTIMAS 24H: Pacote COMPLETO Miami por $1.299 - Passagem+Hotel+Carro',
+    subject: '⚡ ÚLTIMAS 24H: Passagem New York Para Belo Horizonte $ 699',
     html: `
       <!DOCTYPE html>
       <html>
@@ -98,13 +98,13 @@ const EMAIL_TEMPLATES = {
           <!-- Oferta Principal -->
           <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);">
             <h2 style="color: #dc2626; font-size: 28px; margin: 0 0 10px 0; font-weight: 800;">
-              🔥 PACOTE COMPLETO: TUDO INCLUÍDO!
+              🔥 SUPER OFERTA: NEW YORK ➜ BELO HORIZONTE!
             </h2>
             <p style="font-size: 18px; color: #374151; margin: 0 0 20px 0; font-weight: 600;">
-              Miami COMPLETO por apenas <span style="color: #dc2626; font-size: 24px;">$1.299</span>
+              Passagem direta por apenas <span style="color: #dc2626; font-size: 24px;">$699</span>
             </p>
             <p style="color: #6b7280; font-size: 14px; margin: 0;">
-              ✈️ Passagem + 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro<br><s>Preço separado: $2.890</s> • <strong style="color: #059669;">Economia: $1.591!</strong>
+              ✈️ Voo direto + 🎯 Flexibilidade + 🛡️ Seguro incluído<br><s>Preço normal: $1.299</s> • <strong style="color: #059669;">Economia: $600!</strong>
             </p>
           </div>
 
@@ -112,7 +112,7 @@ const EMAIL_TEMPLATES = {
           <div style="padding: 30px; text-align: center; background: #fafafa;">
             <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 4px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
               <a href="https://fly2any.com" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
-                🚀 QUERO MEU PACOTE COMPLETO
+                🚀 QUERO ESSA PASSAGEM
               </a>
             </div>
             <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
