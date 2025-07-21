@@ -25,12 +25,16 @@ interface ExitIntentPopupProps {
 
 export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitIntentPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [hasShown, setHasShown] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     if (!enabled || hasShown) return;
@@ -77,34 +81,99 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     };
   }, [enabled, delay, hasShown]);
 
+  // Funções de validação
+  const validateEmail = (email: string): string | null => {
+    if (!email.trim()) return 'Email é obrigatório';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Formato de email inválido';
+    return null;
+  };
+
+  const validateName = (name: string): string | null => {
+    if (!name.trim()) return 'Nome é obrigatório';
+    if (name.trim().length < 2) return 'Nome deve ter pelo menos 2 caracteres';
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(name.trim())) return 'Nome deve conter apenas letras';
+    return null;
+  };
+
+  const validatePhone = (phone: string): string | null => {
+    if (!phone.trim()) return null; // Telefone é opcional
+    const cleanPhone = phone.replace(/[\s\-\(\)\.]/g, '');
+    if (!/^\d{8,15}$/.test(cleanPhone)) {
+      return 'Telefone deve ter entre 8 e 15 dígitos';
+    }
+    return null;
+  };
+
+  const validateForm = (): boolean => {
+    const errors: {[key: string]: string} = {};
+    
+    const nameError = validateName(nome);
+    const emailError = validateEmail(email);
+    const phoneError = validatePhone(whatsapp);
+    
+    if (nameError) errors.nome = nameError;
+    if (emailError) errors.email = emailError;
+    if (phoneError) errors.whatsapp = phoneError;
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    
+    // Reset estados
+    setIsError(false);
+    setErrorMessage('');
+    
+    // Validar formulário
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
+    
     try {
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Request-Id': crypto.randomUUID()
         },
         body: JSON.stringify({
-          email,
-          whatsapp: selectedCountry.code + ' ' + whatsapp,
+          nome: nome.trim(),
+          email: email.toLowerCase().trim(),
+          whatsapp: whatsapp.trim() ? `${selectedCountry.code} ${whatsapp.trim()}` : '',
           source: 'exit_intent_popup',
-          serviceType: 'special_offer',
+          serviceType: 'newsletter_signup',
+          selectedServices: ['newsletter'],
+          tipoViagem: 'ida_volta',
+          numeroPassageiros: 1,
+          prioridadeOrcamento: 'custo_beneficio',
+          pais: selectedCountry.name.includes('Brasil') ? 'Brasil' : 
+                selectedCountry.name.includes('EUA') ? 'Estados Unidos' : 
+                selectedCountry.name.includes('Portugal') ? 'Portugal' : 'Outro',
           timestamp: new Date().toISOString()
         })
       });
 
-      if (response.ok) {
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
         setIsSuccess(true);
+        // Fechar popup após 4 segundos
         setTimeout(() => {
           setIsVisible(false);
-        }, 3000);
+        }, 4000);
+      } else {
+        setIsError(true);
+        setErrorMessage(result.message || result.error || 'Erro ao enviar dados');
       }
     } catch (error) {
       console.error('Erro ao enviar lead:', error);
+      setIsError(true);
+      setErrorMessage('Erro de conexão. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -157,7 +226,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             color: '#111827',
             marginBottom: '16px'
           }}>
-            🎉 Oferta Garantida!
+            ✅ Enviado com Sucesso!
           </h2>
           <p style={{
             fontSize: '18px',
@@ -165,7 +234,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             marginBottom: '24px',
             lineHeight: '1.6'
           }}>
-            Você receberá nossa oferta especial no seu email e WhatsApp em alguns minutos!
+            Obrigado {nome}! Você receberá nossas ofertas especiais no email {email}{whatsapp && ` e WhatsApp`} em breve!
           </p>
           <div style={{
             padding: '16px',
@@ -276,7 +345,77 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             </p>
           </div>
 
+          {isError && (
+            <div style={{
+              background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ color: '#dc2626', fontSize: '16px' }}>⚠️</span>
+              <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>
+                {errorMessage}
+              </span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '16px',
+                color: '#9ca3af'
+              }}>👤</div>
+              <input
+                type="text"
+                value={nome}
+                onChange={(e) => {
+                  setNome(e.target.value);
+                  if (validationErrors.nome) {
+                    setValidationErrors(prev => ({ ...prev, nome: '' }));
+                  }
+                }}
+                placeholder="Seu nome completo"
+                style={{
+                  width: '100%',
+                  padding: '14px 14px 14px 40px',
+                  borderRadius: '10px',
+                  border: `1px solid ${validationErrors.nome ? '#ef4444' : '#d1d5db'}`,
+                  background: '#ffffff',
+                  fontSize: '15px',
+                  color: '#111827',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = validationErrors.nome ? '#ef4444' : '#3b82f6';
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${validationErrors.nome ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'}`;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = validationErrors.nome ? '#ef4444' : '#d1d5db';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                required
+              />
+              {validationErrors.nome && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#ef4444',
+                  marginTop: '4px',
+                  paddingLeft: '40px'
+                }}>
+                  {validationErrors.nome}
+                </div>
+              )}
+            </div>
+
             <div style={{ position: 'relative' }}>
               <MailIcon style={{
                 position: 'absolute',
@@ -290,13 +429,18 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (validationErrors.email) {
+                    setValidationErrors(prev => ({ ...prev, email: '' }));
+                  }
+                }}
                 placeholder="seu@email.com"
                 style={{
                   width: '100%',
                   padding: '14px 14px 14px 40px',
                   borderRadius: '10px',
-                  border: '1px solid #d1d5db',
+                  border: `1px solid ${validationErrors.email ? '#ef4444' : '#d1d5db'}`,
                   background: '#ffffff',
                   fontSize: '15px',
                   color: '#111827',
@@ -304,15 +448,25 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                   transition: 'border-color 0.2s ease'
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = '#3b82f6';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.borderColor = validationErrors.email ? '#ef4444' : '#3b82f6';
+                  e.currentTarget.style.boxShadow = `0 0 0 3px ${validationErrors.email ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'}`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = '#d1d5db';
+                  e.currentTarget.style.borderColor = validationErrors.email ? '#ef4444' : '#d1d5db';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
                 required
               />
+              {validationErrors.email && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#ef4444',
+                  marginTop: '4px',
+                  paddingLeft: '40px'
+                }}>
+                  {validationErrors.email}
+                </div>
+              )}
             </div>
             
             <div style={{ position: 'relative' }}>
@@ -354,13 +508,18 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                 <input
                   type="tel"
                   value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
+                  onChange={(e) => {
+                    setWhatsapp(e.target.value);
+                    if (validationErrors.whatsapp) {
+                      setValidationErrors(prev => ({ ...prev, whatsapp: '' }));
+                    }
+                  }}
                   placeholder={selectedCountry.code === '+55' ? '11 99999-9999' : selectedCountry.code === '+1' ? '555-123-4567' : '123456789'}
                   style={{
                     flex: 1,
                     padding: '14px 14px 14px 40px',
                     borderRadius: '10px',
-                    border: '1px solid #d1d5db',
+                    border: `1px solid ${validationErrors.whatsapp ? '#ef4444' : '#d1d5db'}`,
                     background: '#ffffff',
                     fontSize: '15px',
                     color: '#111827',
@@ -368,43 +527,43 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                     transition: 'border-color 0.2s ease'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#10b981';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+                    e.currentTarget.style.borderColor = validationErrors.whatsapp ? '#ef4444' : '#10b981';
+                    e.currentTarget.style.boxShadow = `0 0 0 3px ${validationErrors.whatsapp ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.borderColor = validationErrors.whatsapp ? '#ef4444' : '#d1d5db';
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
               </div>
               <div style={{
                 fontSize: '12px',
-                color: '#6b7280',
+                color: validationErrors.whatsapp ? '#ef4444' : '#6b7280',
                 marginTop: '4px',
                 paddingLeft: '40px'
               }}>
-                Opcional • WhatsApp com código do país
+                {validationErrors.whatsapp || 'Opcional • WhatsApp com código do país'}
               </div>
             </div>
             
             <button
               type="submit"
-              disabled={isSubmitting || !email}
+              disabled={isSubmitting || !nome.trim() || !email.trim()}
               style={{
                 width: '100%',
-                background: isSubmitting || !email ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                background: isSubmitting || !nome.trim() || !email.trim() ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                 color: 'white',
                 fontWeight: '600',
                 padding: '16px',
                 borderRadius: '10px',
                 border: 'none',
-                cursor: isSubmitting || !email ? 'not-allowed' : 'pointer',
+                cursor: isSubmitting || !nome.trim() || !email.trim() ? 'not-allowed' : 'pointer',
                 fontSize: '16px',
                 transition: 'transform 0.2s ease',
                 fontFamily: 'Poppins, sans-serif'
               }}
               onMouseEnter={(e) => {
-                if (!isSubmitting && email) {
+                if (!isSubmitting && nome.trim() && email.trim()) {
                   e.currentTarget.style.transform = 'scale(1.02)';
                 }
               }}
