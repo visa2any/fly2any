@@ -366,6 +366,7 @@ export class EmailSendsDB {
     opened_at?: Date;
     clicked_at?: Date;
     failed_reason?: string;
+    message_id?: string;
   }): Promise<void> {
     const updates = ['status = $1', 'updated_at = CURRENT_TIMESTAMP'];
     const values = [status];

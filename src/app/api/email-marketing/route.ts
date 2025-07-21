@@ -384,7 +384,7 @@ export async function POST(request: NextRequest) {
           }, { status: 500 });
         }
         
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
           host: 'smtp.gmail.com',
           port: 587,
           secure: false,
@@ -639,7 +639,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     return;
   }
 
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
