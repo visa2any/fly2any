@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { MailIcon, PhoneIcon } from '@/components/Icons';
 
@@ -20,6 +20,18 @@ export default function NewsletterCapture({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showForm, setShowForm] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +121,7 @@ export default function NewsletterCapture({
     }} className={className}>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: window?.innerWidth > 1024 ? '1fr 1fr' : '1fr',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
         gap: '32px',
         alignItems: 'center'
       }}>
