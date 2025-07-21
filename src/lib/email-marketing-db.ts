@@ -242,7 +242,7 @@ export class EmailContactsDB {
     await sql`
       UPDATE email_contacts 
       SET email_status = ${emailStatus}, 
-          last_email_sent = ${lastEmailSent || null},
+          last_email_sent = ${lastEmailSent?.toISOString() || null},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ${contactId}
     `;
@@ -271,7 +271,7 @@ export class EmailContactsDB {
 
   static async deleteById(id: string): Promise<boolean> {
     const result = await sql`DELETE FROM email_contacts WHERE id = ${id}`;
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   static async unsubscribe(token: string): Promise<boolean> {
@@ -280,7 +280,7 @@ export class EmailContactsDB {
       SET status = 'unsubscribed', updated_at = CURRENT_TIMESTAMP
       WHERE unsubscribe_token = ${token}
     `;
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
@@ -376,14 +376,14 @@ export class EmailSendsDB {
       Object.entries(additionalData).forEach(([key, value]) => {
         if (value !== undefined) {
           updates.push(`${key} = $${paramIndex}`);
-          values.push(value);
+          values.push(value instanceof Date ? value.toISOString() : value);
           paramIndex++;
         }
       });
     }
 
-    values.push(id);
     const query = `UPDATE email_sends SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
+    values.push(id);
     
     await sql.query(query, values);
   }
