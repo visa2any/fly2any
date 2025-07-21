@@ -19,7 +19,6 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   useEffect(() => {
     if (!enabled || hasShown) return;
 
-    let timeoutId: NodeJS.Timeout;
     let hasTriggered = false;
 
     // Show after delay
@@ -57,7 +56,6 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
 
     return () => {
       clearTimeout(delayTimeout);
-      clearTimeout(timeoutId);
       document.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('scroll', handleScroll);
     };
