@@ -149,7 +149,7 @@ export class EmailContactsDB {
         id, email, nome, sobrenome, telefone, segmento, tags, status, email_status, unsubscribe_token
       ) VALUES (
         ${id}, ${contact.email}, ${contact.nome}, ${contact.sobrenome || null}, 
-        ${contact.telefone || null}, ${contact.segmento || 'geral'}, ${contact.tags}, 
+        ${contact.telefone || null}, ${contact.segmento || 'geral'}, ${JSON.stringify(contact.tags || [])}, 
         ${contact.status}, ${contact.email_status}, ${contact.unsubscribe_token}
       ) RETURNING *;
     `;
