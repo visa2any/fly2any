@@ -1,5 +1,4 @@
 import { emailMarketingService } from './email-marketing';
-import { sql } from '@vercel/postgres';
 
 interface ImportedContact {
   email: string;
@@ -287,8 +286,8 @@ class EmailImportService {
         contacts.push(contact);
       }
 
-      // Salvar diretamente via API para evitar problemas de banco
-      await this.saveContactsViaAPI(contacts);
+      // Salvar via sistema de email marketing real
+      await this.saveContacts(contacts);
       
       result.success = true;
       result.imported = contacts.length;
@@ -301,119 +300,27 @@ class EmailImportService {
     }
   }
 
-  // Inicializar tabela de contatos de email
-  private async initializeEmailContactsTable(): Promise<void> {
-    try {
-      await sql`
-        CREATE TABLE IF NOT EXISTS email_contacts (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          email VARCHAR(255) UNIQUE NOT NULL,
-          nome VARCHAR(255) NOT NULL,
-          sobrenome VARCHAR(255),
-          telefone VARCHAR(50),
-          cidade VARCHAR(100),
-          segmento VARCHAR(100) NOT NULL DEFAULT 'geral',
-          tags JSONB DEFAULT '[]',
-          status VARCHAR(50) DEFAULT 'ativo',
-          unsubscribed_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email);
-        CREATE INDEX IF NOT EXISTS idx_email_contacts_segmento ON email_contacts(segmento);
-        CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(status);
-      `;
-    } catch (error) {
-      console.error('Erro ao criar tabela email_contacts:', error);
-      throw error;
-    }
-  }
 
-  // Salvar contatos usando fallback para memória quando banco falha
+  // Salvar contatos diretamente na API do email-marketing (método principal)
   private async saveContacts(contacts: ImportedContact[]): Promise<void> {
     try {
       if (contacts.length === 0) return;
       
-      console.log(`Tentando salvar ${contacts.length} contatos no banco...`);
+      console.log(`🚀 Salvando ${contacts.length} contatos via API email-marketing...`);
       
-      // Primeiro, tentar criar a tabela se não existir
-      try {
-        await this.initializeEmailContactsTable();
-        console.log('Tabela email_contacts inicializada');
-      } catch (initError) {
-        console.warn('Erro ao inicializar tabela:', initError);
-      }
-      
-      let saved = 0;
-      let errors = 0;
-      
-      // Tentar salvar usando estratégia mais simples
-      for (let i = 0; i < contacts.length; i++) {
-        const contact = contacts[i];
-        
-        try {
-          // Usar query mais simples possível
-          const result = await sql.query(
-            `INSERT INTO email_contacts (email, nome, sobrenome, telefone, cidade, segmento, tags, status, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 'ativo', NOW(), NOW())
-             ON CONFLICT (email) 
-             DO UPDATE SET
-               nome = EXCLUDED.nome,
-               sobrenome = EXCLUDED.sobrenome,
-               telefone = EXCLUDED.telefone,
-               cidade = EXCLUDED.cidade,
-               segmento = EXCLUDED.segmento,
-               tags = EXCLUDED.tags,
-               updated_at = NOW()`,
-            [
-              contact.email,
-              contact.nome,
-              contact.sobrenome || null,
-              contact.telefone || null,
-              contact.cidade || null,
-              contact.segmento || 'geral',
-              JSON.stringify(contact.tags || [])
-            ]
-          );
-          
-          saved++;
-          
-          // Log a cada 50 contatos
-          if (saved % 50 === 0) {
-            console.log(`Progresso: ${saved}/${contacts.length} contatos salvos`);
-          }
-          
-        } catch (contactError) {
-          errors++;
-          console.error(`Erro ao salvar contato ${contact.email}:`, contactError);
-          
-          // Se há muitos erros consecutivos, tentar fallback
-          if (errors > 5) {
-            console.warn('Muitos erros no banco, usando fallback para API email-marketing...');
-            return await this.saveContactsViaAPI(contacts.slice(i));
-          }
-        }
-        
-        // Pequena pausa para não sobrecarregar
-        if (i % 10 === 0) {
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
-      }
-      
-      console.log(`Importação no banco concluída: ${saved} salvos, ${errors} erros`);
+      // Usar diretamente a API email-marketing que já está implementada e funcionando
+      await this.saveContactsViaAPI(contacts);
       
     } catch (error) {
-      console.error('Erro crítico no banco, tentando fallback:', error);
-      // Fallback: salvar via API do email-marketing
-      return await this.saveContactsViaAPI(contacts);
+      console.error('❌ Erro crítico ao salvar contatos:', error);
+      throw error;
     }
   }
   
   // Salvar contatos via API do email-marketing (conecta com o sistema real)
   private async saveContactsViaAPI(contacts: ImportedContact[]): Promise<void> {
     try {
-      console.log(`Salvando ${contacts.length} contatos via API email-marketing...`);
+      console.log(`📡 Salvando ${contacts.length} contatos via API email-marketing...`);
       
       // Preparar dados no formato correto para a API
       const contactsData = contacts.map(contact => ({
@@ -425,189 +332,127 @@ class EmailImportService {
         tags: contact.tags || []
       }));
       
-      // Integração direta com o sistema email-marketing
-      // Importar e adicionar ao array em memória
-      const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+      // Usar import direto da API sem HTTP calls (mais eficiente e confiável)
+      const { EmailContactsDB, generateUnsubscribeToken } = await import('@/lib/email-marketing-db');
       
-      try {
-        const response = await fetch(`${baseUrl}/api/email-marketing`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'import_contacts',
-            contactsData: contactsData
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          if (result.success) {
-            console.log(`✅ Importação via API concluída: ${result.data.imported} contatos salvos`);
-            console.log(`📊 Total de contatos no sistema: ${result.data.totalContacts}`);
-            return;
-          } else {
-            console.error('Erro na API email-marketing:', result.error);
-          }
-        } else {
-          console.error('Resposta não OK da API:', response.status);
-        }
-        
-      } catch (fetchError) {
-        console.error('Erro ao chamar API:', fetchError);
-      }
-      
-      // Se chegou aqui, a API falhou, usar salvamento direto no arquivo  
-      await this.saveContactsDirectly(contactsData);
-      
-    } catch (error) {
-      console.error('Erro crítico na API:', error);
-      // Fallback final: salvar localmente
-      await this.saveContactsDirectly(contacts);
-    }
-  }
-  
-  // Método direto para salvar contatos no arquivo JSON
-  private async saveContactsDirectly(contacts: any[]): Promise<void> {
-    try {
-      console.log(`Salvamento direto de ${contacts.length} contatos...`);
-      
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      
-      const contactsFilePath = path.join(process.cwd(), 'contacts-imported.json');
-      
-      // Ler contatos existentes
-      let existingContacts = [];
-      try {
-        const data = await fs.readFile(contactsFilePath, 'utf8');
-        existingContacts = JSON.parse(data);
-      } catch (readError) {
-        console.log('Criando novo arquivo de contatos...');
-        existingContacts = [];
-      }
-      
-      // Preparar novos contatos com formato correto
-      const newContacts = contacts.map(contact => ({
-        id: `contact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Preparar contatos para inserção direta no banco
+      const contactsToInsert = contactsData.map((contact: any) => ({
         email: contact.email,
-        nome: contact.nome,
+        nome: contact.nome || 'Cliente',
         sobrenome: contact.sobrenome || '',
         telefone: contact.telefone || '',
         segmento: contact.segmento || 'geral',
-        tags: contact.tags || [],
-        createdAt: new Date().toISOString(),
-        emailStatus: 'not_sent',
-        lastEmailSent: undefined,
-        unsubscribed: false
+        tags: Array.isArray(contact.tags) ? contact.tags : [],
+        status: 'ativo' as const,
+        email_status: 'not_sent' as const,
+        unsubscribe_token: generateUnsubscribeToken()
       }));
       
-      // Evitar duplicatas
-      const existingEmails = new Set(existingContacts.map((c: any) => c.email));
-      const uniqueNewContacts = newContacts.filter(contact => !existingEmails.has(contact.email));
+      // Usar o método bulkCreate da API que já está implementado
+      const result = await EmailContactsDB.bulkCreate(contactsToInsert);
       
-      // Combinar contatos
-      const allContacts = [...existingContacts, ...uniqueNewContacts];
+      console.log(`✅ Importação concluída com sucesso!`);
+      console.log(`📊 ${result.inserted} contatos importados`);
+      console.log(`🔄 ${result.duplicates} duplicatas ignoradas`);
+      if (result.errors > 0) {
+        console.log(`⚠️ ${result.errors} erros encontrados`);
+      }
       
-      // Salvar no arquivo
-      await fs.writeFile(contactsFilePath, JSON.stringify(allContacts, null, 2));
-      
-      console.log(`✅ Salvamento direto concluído:`);
-      console.log(`📁 ${uniqueNewContacts.length} novos contatos adicionados`);
-      console.log(`📊 Total no arquivo: ${allContacts.length} contatos`);
-      console.log(`💾 Arquivo salvo em: ${contactsFilePath}`);
-      
-      // Também tentar atualizar o array em memória da API
-      await this.updateMemoryArray(allContacts);
+      return;
       
     } catch (error) {
-      console.error('Erro no salvamento direto:', error);
-      console.log(`📁 ${contacts.length} contatos validados (não salvos devido ao erro)`);
+      console.error('❌ Erro ao salvar via API:', error);
+      
+      // Fallback: tentar HTTP call
+      console.log('🔄 Tentando fallback via HTTP...');
+      await this.saveContactsViaHTTP(contacts);
     }
   }
   
-  // Atualizar array em memória da API email-marketing
-  private async updateMemoryArray(allContacts: any[]): Promise<void> {
+  // Fallback via HTTP call
+  private async saveContactsViaHTTP(contacts: ImportedContact[]): Promise<void> {
     try {
-      // Tentar atualizar via import direto
-      const emailMarketingPath = '/api/email-marketing/route';
-      console.log(`🔄 Tentando atualizar ${allContacts.length} contatos em memória...`);
-      console.log(`📧 Contatos prontos para email marketing!`);
+      const contactsData = contacts.map(contact => ({
+        email: contact.email,
+        nome: contact.nome,
+        sobrenome: contact.sobrenome,
+        telefone: contact.telefone,
+        segmento: contact.segmento || 'geral',
+        tags: contact.tags || []
+      }));
+      
+      const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+      
+      const response = await fetch(`${baseUrl}/api/email-marketing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'import_contacts',
+          contactsData: contactsData
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(`✅ Importação via HTTP concluída: ${result.data.imported} contatos`);
+        return;
+      } else {
+        throw new Error(result.error || 'Erro desconhecido');
+      }
+      
     } catch (error) {
-      console.log('Array em memória será atualizado no próximo acesso à API');
+      console.error('❌ Fallback HTTP também falhou:', error);
+      throw new Error(`Falha ao importar contatos: ${error}`);
     }
   }
 
-  // Obter estatísticas dos contatos
+  // Obter estatísticas dos contatos via API
   async getContactStats(): Promise<{
     total: number;
     segments: Record<string, number>;
   }> {
     try {
-      await this.initializeEmailContactsTable();
+      const { EmailContactsDB } = await import('@/lib/email-marketing-db');
+      const stats = await EmailContactsDB.getStats();
       
-      const totalResult = await sql`
-        SELECT COUNT(*) as total FROM email_contacts WHERE status = 'ativo'
-      `;
-      
-      const segmentResult = await sql`
-        SELECT segmento, COUNT(*) as count 
-        FROM email_contacts 
-        WHERE status = 'ativo'
-        GROUP BY segmento
-      `;
-      
-      const total = parseInt(totalResult.rows[0]?.total || '0');
-      const segments: Record<string, number> = {
-        'brasileiros-eua': 0,
-        'familias': 0,
-        'casais': 0,
-        'aventureiros': 0,
-        'executivos': 0,
-        'geral': 0
+      return {
+        total: stats.totalContacts,
+        segments: stats.bySegmento || {}
       };
-
-      segmentResult.rows.forEach((row: any) => {
-        segments[row.segmento] = parseInt(row.count);
-      });
-
-      return { total, segments };
     } catch (error) {
       console.error('Erro ao obter estatísticas:', error);
       return { total: 0, segments: {} };
     }
   }
 
-  // Obter contatos por segmento
+  // Obter contatos por segmento via API
   async getContactsBySegment(segment?: string): Promise<ImportedContact[]> {
     try {
-      await this.initializeEmailContactsTable();
+      const { EmailContactsDB } = await import('@/lib/email-marketing-db');
       
-      let result;
+      const filters: any = {
+        status: 'ativo'
+      };
+      
       if (segment) {
-        result = await sql`
-          SELECT email, nome, sobrenome, telefone, cidade, segmento, tags
-          FROM email_contacts 
-          WHERE segmento = ${segment} AND status = 'ativo'
-          ORDER BY created_at DESC
-        `;
-      } else {
-        result = await sql`
-          SELECT email, nome, sobrenome, telefone, cidade, segmento, tags
-          FROM email_contacts 
-          WHERE status = 'ativo'
-          ORDER BY created_at DESC
-        `;
+        filters.segmento = segment;
       }
       
-      return result.rows.map((row: any) => ({
-        email: row.email,
-        nome: row.nome,
-        sobrenome: row.sobrenome,
-        telefone: row.telefone,
-        cidade: row.cidade,
-        segmento: row.segmento,
-        tags: Array.isArray(row.tags) ? row.tags : []
+      const contacts = await EmailContactsDB.findAll(filters);
+      
+      return contacts.map((contact: any) => ({
+        email: contact.email,
+        nome: contact.nome,
+        sobrenome: contact.sobrenome,
+        telefone: contact.telefone,
+        cidade: undefined, // Não existe na estrutura atual
+        segmento: contact.segmento,
+        tags: Array.isArray(contact.tags) ? contact.tags : []
       }));
     } catch (error) {
       console.error('Erro ao obter contatos:', error);
@@ -615,14 +460,14 @@ class EmailImportService {
     }
   }
 
-  // Limpar todos os contatos (função para reset)
+  // Limpar todos os contatos via API (função para reset)
   async clearAllContacts(): Promise<void> {
     try {
-      await this.initializeEmailContactsTable();
+      const { sql } = await import('@vercel/postgres');
       await sql`DELETE FROM email_contacts`;
-      console.log('Todos os contatos foram removidos do banco');
+      console.log('✅ Todos os contatos foram removidos do banco');
     } catch (error) {
-      console.error('Erro ao limpar contatos:', error);
+      console.error('❌ Erro ao limpar contatos:', error);
       throw error;
     }
   }
