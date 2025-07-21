@@ -358,7 +358,7 @@ export async function sendLeadNotificationToN8N(leadData: LeadNotificationData) 
  */
 export async function sendCustomerConfirmationEmail(leadData: LeadNotificationData) {
   try {
-    const subject = `🎉 Obrigado pelo seu interesse, ${leadData.nome}! - Fly2Any`;
+    const subject = `✈️ Bem-vindo à Fly2Any, ${leadData.nome}! Suas ofertas de viagem chegaram`;
     
     const htmlContent = `
 <!DOCTYPE html>
@@ -369,7 +369,7 @@ export async function sendCustomerConfirmationEmail(leadData: LeadNotificationDa
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { 
-          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); 
+          background: linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%); 
           color: white; 
           padding: 30px; 
           border-radius: 12px 12px 0 0; 
@@ -388,30 +388,41 @@ export async function sendCustomerConfirmationEmail(leadData: LeadNotificationDa
           padding: 25px; 
           border-radius: 8px; 
           margin: 20px 0; 
-          border-left: 4px solid #3b82f6;
+          border-left: 4px solid #1e40af;
         }
-        .benefits { 
+        .offers { 
           background: #ecfdf5; 
           padding: 20px; 
           border-radius: 8px; 
           margin: 20px 0;
+          border: 2px solid #10b981;
         }
-        .benefit-item { 
+        .offer-item { 
           display: flex; 
           align-items: center; 
-          margin: 10px 0; 
+          margin: 12px 0; 
           font-size: 16px;
         }
-        .check { color: #10b981; font-weight: bold; margin-right: 10px; }
+        .check { color: #10b981; font-weight: bold; margin-right: 10px; font-size: 18px; }
         .cta-button { 
           display: inline-block; 
-          background: linear-gradient(135deg, #10b981, #059669); 
+          background: linear-gradient(135deg, #1e40af, #a21caf); 
           color: white; 
           padding: 15px 30px; 
           text-decoration: none; 
           border-radius: 8px; 
           font-weight: bold; 
           text-align: center;
+          margin: 15px 10px;
+        }
+        .whatsapp-btn {
+          background: #25d366;
+        }
+        .urgency { 
+          background: #fef3c7; 
+          padding: 20px; 
+          border-radius: 8px; 
+          border-left: 4px solid #f59e0b;
           margin: 20px 0;
         }
         .footer { 
@@ -422,73 +433,113 @@ export async function sendCustomerConfirmationEmail(leadData: LeadNotificationDa
           color: #666; 
           font-size: 14px; 
         }
-        .social { margin: 15px 0; }
-        .social a { margin: 0 10px; text-decoration: none; }
+        .contact-info {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          text-align: center;
+          margin: 20px 0;
+          border: 1px solid #e2e8f0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">✈️ Fly2Any</div>
-            <div class="subtitle">Sua próxima viagem dos sonhos</div>
+            <div class="subtitle">Conectando brasileiros ao mundo desde 2014</div>
         </div>
         
         <div class="content">
             <div class="welcome">
-                <h2 style="color: #1e40af; margin-top: 0;">Olá, ${leadData.nome}! 👋</h2>
+                <h2 style="color: #1e40af; margin-top: 0;">Olá, ${leadData.nome}! 🌟</h2>
                 <p style="font-size: 18px; margin-bottom: 15px;">
-                    <strong>Obrigado por se inscrever em nossa newsletter!</strong>
+                    <strong>Obrigado por escolher a Fly2Any!</strong>
                 </p>
                 <p>
-                    Recebemos seu interesse em nossas ofertas especiais de viagem. 
-                    Em breve você receberá as melhores promoções de passagens e hotéis 
-                    diretamente no seu email.
+                    Somos especialistas em viagens para brasileiros nos EUA e temos 
+                    <strong>mais de 10 anos de experiência</strong> criando experiências 
+                    inesquecíveis. Sua solicitação foi recebida e nossa equipe já está 
+                    preparando as melhores ofertas para você!
                 </p>
             </div>
 
-            <div class="benefits">
-                <h3 style="color: #059669; margin-top: 0;">🎯 O que você vai receber:</h3>
-                <div class="benefit-item">
-                    <span class="check">✅</span>
-                    <span><strong>Ofertas exclusivas</strong> de passagens aéreas</span>
+            <div class="urgency">
+                <h3 style="color: #d97706; margin-top: 0; text-align: center;">
+                    🔥 OFERTA LIMITADA - APENAS HOJE!
+                </h3>
+                <p style="text-align: center; font-size: 18px; margin: 0;">
+                    <strong>Economize até $2,500</strong> em passagens + hotel
+                </p>
+            </div>
+
+            <div class="offers">
+                <h3 style="color: #059669; margin-top: 0; text-align: center;">
+                    🎯 O que oferecemos exclusivamente:
+                </h3>
+                <div class="offer-item">
+                    <span class="check">✈️</span>
+                    <span><strong>Passagens aéreas</strong> com até 60% de desconto</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="check">✅</span>
-                    <span><strong>Promoções de hotéis</strong> com até 70% de desconto</span>
+                <div class="offer-item">
+                    <span class="check">🏨</span>
+                    <span><strong>Hotéis premium</strong> com tarifas especiais</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="check">✅</span>
-                    <span><strong>Dicas de viagem</strong> dos nossos especialistas</span>
+                <div class="offer-item">
+                    <span class="check">🚗</span>
+                    <span><strong>Aluguel de carros</strong> sem taxas ocultas</span>
                 </div>
-                <div class="benefit-item">
-                    <span class="check">✅</span>
-                    <span><strong>Notificações</strong> de tarifas promocionais</span>
+                <div class="offer-item">
+                    <span class="check">🎫</span>
+                    <span><strong>Ingressos Disney/Universal</strong> com desconto</span>
                 </div>
+                <div class="offer-item">
+                    <span class="check">🛡️</span>
+                    <span><strong>Seguro viagem</strong> completo incluso</span>
+                </div>
+                <div class="offer-item">
+                    <span class="check">📞</span>
+                    <span><strong>Suporte 24/7</strong> em português nos EUA</span>
+                </div>
+            </div>
+
+            <div class="contact-info">
+                <h3 style="color: #1e40af; margin-top: 0;">
+                    🚀 Nossa equipe entrará em contato em até 30 minutos!
+                </h3>
+                <p style="margin-bottom: 20px;">
+                    Precisa falar conosco agora? Clique abaixo:
+                </p>
+                <a href="https://wa.me/+15513646029" class="cta-button whatsapp-btn">
+                    📱 WhatsApp Direto EUA
+                </a>
+                <a href="tel:+15513646029" class="cta-button">
+                    📞 Ligar Agora: +1 (551) 364-6029
+                </a>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
                 <a href="https://www.fly2any.com" class="cta-button">
-                    🌎 Explorar Destinos
+                    🌎 Ver Mais Ofertas no Site
                 </a>
             </div>
 
-            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
-                <p style="margin: 0; color: #856404;">
-                    <strong>💡 Dica:</strong> Adicione nosso email à sua lista de contatos para não perder nenhuma oferta!
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <p style="margin: 0; color: #1e40af;">
+                    <strong>💡 Por que escolher a Fly2Any?</strong><br>
+                    • Empresa brasileira estabelecida nos EUA<br>
+                    • Mais de 50.000 clientes satisfeitos<br>
+                    • Preços exclusivos não encontrados em outros lugares
                 </p>
             </div>
         </div>
 
         <div class="footer">
-            <p><strong>Fly2Any - Sua Agência de Viagens</strong></p>
-            <div class="social">
-                <a href="https://www.fly2any.com" style="color: #3b82f6;">🌐 Website</a>
-                <a href="#" style="color: #25d366;">📱 WhatsApp</a>
-                <a href="#" style="color: #1da1f2;">📘 Instagram</a>
-            </div>
+            <p><strong>Fly2Any Travel Inc.</strong></p>
+            <p>📍 Miami, FL - Estados Unidos | 📧 contato@fly2any.com</p>
             <p style="font-size: 12px; color: #9ca3af;">
-                Você está recebendo este email porque se inscreveu em nossa newsletter.<br>
-                <a href="#" style="color: #6b7280;">Cancelar inscrição</a>
+                Você está recebendo este email porque solicitou informações em nosso site.<br>
+                © 2024 Fly2Any. Todos os direitos reservados.
             </p>
         </div>
     </div>
@@ -496,22 +547,37 @@ export async function sendCustomerConfirmationEmail(leadData: LeadNotificationDa
 </html>`;
 
     const textContent = `
-Olá, ${leadData.nome}!
+✈️ BEM-VINDO À FLY2ANY, ${leadData.nome.toUpperCase()}!
 
-Obrigado por se inscrever em nossa newsletter da Fly2Any!
+Obrigado por escolher a Fly2Any! Somos especialistas em viagens para brasileiros nos EUA com mais de 10 anos de experiência.
 
-Recebemos seu interesse em nossas ofertas especiais de viagem. 
-Em breve você receberá as melhores promoções de passagens e hotéis diretamente no seu email.
+🔥 OFERTA LIMITADA - APENAS HOJE!
+Economize até $2,500 em passagens + hotel
 
-O que você vai receber:
-✅ Ofertas exclusivas de passagens aéreas
-✅ Promoções de hotéis com até 70% de desconto  
-✅ Dicas de viagem dos nossos especialistas
-✅ Notificações de tarifas promocionais
+🎯 O que oferecemos exclusivamente:
+✈️ Passagens aéreas com até 60% de desconto
+🏨 Hotéis premium com tarifas especiais  
+🚗 Aluguel de carros sem taxas ocultas
+🎫 Ingressos Disney/Universal com desconto
+🛡️ Seguro viagem completo incluso
+📞 Suporte 24/7 em português nos EUA
 
-Explore nossos destinos: https://www.fly2any.com
+🚀 Nossa equipe entrará em contato em até 30 minutos!
 
-Fly2Any - Sua Agência de Viagens
+Precisa falar conosco agora?
+📱 WhatsApp: https://wa.me/+15513646029
+📞 Telefone: +1 (551) 364-6029
+
+💡 Por que escolher a Fly2Any?
+• Empresa brasileira estabelecida nos EUA
+• Mais de 50.000 clientes satisfeitos  
+• Preços exclusivos não encontrados em outros lugares
+
+🌎 Ver mais ofertas: https://www.fly2any.com
+
+Fly2Any Travel Inc.
+📍 Miami, FL - Estados Unidos
+📧 contato@fly2any.com
 `;
 
     const result = await sendEmail({
