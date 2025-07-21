@@ -2,6 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+// Interface para controle de contatos
+interface Contact {
+  id: string;
+  email: string;
+  nome: string;
+  sobrenome?: string;
+  telefone?: string;
+  segmento?: string;
+  tags?: string[];
+  createdAt: string;
+  emailStatus: 'not_sent' | 'sent' | 'failed' | 'bounced';
+  lastEmailSent?: string;
+  unsubscribed: boolean;
+}
+
+interface EmailBatch {
+  id: string;
+  campaignId: string;
+  contacts: Contact[];
+  status: 'pending' | 'sending' | 'completed' | 'failed';
+  sentAt?: string;
+  completedAt?: string;
+  successCount: number;
+  failureCount: number;
+}
+
+// Base de dados em memória (substitua pela sua implementação real)
+let contacts: Contact[] = [];
+let batches: EmailBatch[] = [];
+let campaigns: any[] = [];
+
 // Função robusta para carregar credenciais Gmail
 function getGmailCredentials() {
   // Primeiro, tenta process.env (configurado no Vercel)
@@ -57,6 +88,189 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, email, campaignType } = body;
+
+    // NOVAS FUNCIONALIDADES PARA CONTROLE DOS 500 CLIENTES
+    switch (action) {
+      case 'import_contacts':
+        const { contactsData } = body;
+        
+        // Importar contatos (CSV ou JSON)
+        const newContacts: Contact[] = contactsData.map((contact: any, index: number) => ({
+          id: `contact_${Date.now()}_${index}`,
+          email: contact.email,
+          nome: contact.nome || contact.name || 'Cliente',
+          sobrenome: contact.sobrenome || contact.lastName || '',
+          telefone: contact.telefone || contact.phone || '',
+          segmento: contact.segmento || 'brasileiros-eua',
+          tags: contact.tags || [],
+          createdAt: new Date().toISOString(),
+          emailStatus: 'not_sent',
+          unsubscribed: false
+        }));
+
+        contacts.push(...newContacts);
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            imported: newContacts.length,
+            totalContacts: contacts.length,
+            message: `${newContacts.length} contatos importados com sucesso!`
+          }
+        });
+
+      case 'create_campaign':
+        const { name, subject, htmlContent, textContent, templateType } = body;
+        
+        const templates = {
+          promotional: {
+            subject: '⚡ ÚLTIMAS 24H: Pacote COMPLETO Miami por $1.299 - Passagem+Hotel+Carro',
+            html: '',
+            text: 'Oferta Miami $1.299 - Pacote completo!'
+          },
+          newsletter: {
+            subject: '🧳 21 ANOS de segredos: Como montar sua viagem COMPLETA economizando $1.500+',
+            html: '',
+            text: 'Newsletter Fly2Any - Dicas de viagem'
+          },
+          reactivation: {
+            subject: '💔 Sentimos sua falta... PACOTE COMPLETO com 30% OFF só para você!',
+            html: '',
+            text: 'Oferta especial 30% OFF - Fly2Any'
+          }
+        };
+
+        let template;
+        if (templateType && templateType in templates) {
+          template = templates[templateType as keyof typeof templates];
+        }
+
+        const campaign = {
+          id: `campaign_${Date.now()}`,
+          name: name || 'Nova Campanha',
+          subject: subject || template?.subject || 'Newsletter Fly2Any',
+          htmlContent: htmlContent || template?.html || '',
+          textContent: textContent || template?.text || '',
+          templateType: templateType || 'promotional',
+          createdAt: new Date().toISOString(),
+          status: 'draft',
+          stats: { sent: 0, opened: 0, clicked: 0, failed: 0 }
+        };
+
+        campaigns.push(campaign);
+        
+        return NextResponse.json({
+          success: true,
+          data: campaign
+        });
+
+      case 'send_to_first_500':
+        const { campaignId, dryRun = false } = body;
+        
+        const campaign = campaigns.find(c => c.id === campaignId);
+        if (!campaign) {
+          return NextResponse.json({
+            success: false,
+            error: 'Campanha não encontrada'
+          }, { status: 404 });
+        }
+
+        // Selecionar os primeiros 500 contatos que ainda não receberam email
+        const availableContacts = contacts
+          .filter(c => c.emailStatus === 'not_sent' && !c.unsubscribed)
+          .slice(0, 500);
+
+        if (availableContacts.length === 0) {
+          return NextResponse.json({
+            success: false,
+            error: 'Não há contatos disponíveis para envio'
+          }, { status: 400 });
+        }
+
+        if (dryRun) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              message: 'Simulação - nenhum email foi enviado',
+              selectedContacts: availableContacts.length,
+              contacts: availableContacts.slice(0, 10), // Mostrar apenas os primeiros 10
+              totalAvailable: contacts.filter(c => c.emailStatus === 'not_sent' && !c.unsubscribed).length
+            }
+          });
+        }
+
+        // Dividir em lotes de 50 emails (limite seguro do Gmail por hora)
+        const batchSize = 50;
+        const newBatches: EmailBatch[] = [];
+        
+        for (let i = 0; i < availableContacts.length; i += batchSize) {
+          const batchContacts = availableContacts.slice(i, i + batchSize);
+          
+          const batch: EmailBatch = {
+            id: `batch_${Date.now()}_${i}`,
+            campaignId,
+            contacts: batchContacts,
+            status: 'pending',
+            successCount: 0,
+            failureCount: 0
+          };
+          
+          newBatches.push(batch);
+          batches.push(batch);
+        }
+
+        // Iniciar envio dos lotes de forma assíncrona
+        processBatches(newBatches, campaign);
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: `Iniciando envio para ${availableContacts.length} contatos`,
+            batches: newBatches.length,
+            batchSize,
+            selectedContacts: availableContacts.length,
+            estimatedTime: `${Math.ceil(newBatches.length * 1)} minutos` // 1 min por lote
+          }
+        });
+
+      case 'get_contacts':
+        const limit = parseInt(body.limit || '500');
+        const sent = body.sent; // 'true', 'false', or null for all
+        
+        let filteredContacts = contacts;
+        
+        if (sent === 'true') {
+          filteredContacts = contacts.filter(c => c.emailStatus === 'sent');
+        } else if (sent === 'false') {
+          filteredContacts = contacts.filter(c => c.emailStatus === 'not_sent');
+        }
+        
+        const limitedContacts = filteredContacts.slice(0, limit);
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            contacts: limitedContacts,
+            total: filteredContacts.length,
+            stats: {
+              sent: contacts.filter(c => c.emailStatus === 'sent').length,
+              notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
+              failed: contacts.filter(c => c.emailStatus === 'failed').length,
+              unsubscribed: contacts.filter(c => c.unsubscribed).length
+            }
+          }
+        });
+
+      case 'get_batches':
+        return NextResponse.json({
+          success: true,
+          data: {
+            batches: batches.slice(-20), // Últimos 20 lotes
+            activeBatches: batches.filter(b => b.status === 'sending').length,
+            completedBatches: batches.filter(b => b.status === 'completed').length
+          }
+        });
+    }
 
     if (action === 'send_test') {
       if (!email) {
@@ -399,26 +613,75 @@ export async function GET(request: NextRequest) {
   switch (action) {
     case 'stats':
       return NextResponse.json({
-        totalContacts: 5000,
-        segmentStats: {
-          'brasileiros-eua': 1500,
-          'familias': 1200,
-          'casais': 1000,
-          'aventureiros': 800,
-          'executivos': 500
-        },
-        campaignsSent: 0,
-        avgOpenRate: '0%',
-        avgClickRate: '0%'
+        success: true,
+        data: {
+          totalContacts: contacts.length,
+          segmentStats: {
+            'brasileiros-eua': contacts.filter(c => c.segmento === 'brasileiros-eua').length,
+            'familias': contacts.filter(c => c.segmento === 'familias').length,
+            'casais': contacts.filter(c => c.segmento === 'casais').length,
+            'aventureiros': contacts.filter(c => c.segmento === 'aventureiros').length,
+            'executivos': contacts.filter(c => c.segmento === 'executivos').length
+          },
+          emailStats: {
+            sent: contacts.filter(c => c.emailStatus === 'sent').length,
+            notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
+            failed: contacts.filter(c => c.emailStatus === 'failed').length,
+            unsubscribed: contacts.filter(c => c.unsubscribed).length
+          },
+          campaignsSent: campaigns.filter(c => c.status === 'sent').length,
+          activeBatches: batches.filter(b => b.status === 'sending').length,
+          avgOpenRate: '0%', // Implementar tracking
+          avgClickRate: '0%'  // Implementar tracking
+        }
       });
 
     case 'templates':
       return NextResponse.json({
-        templates: [
-          { id: 'promotional', name: 'Campanha Promocional', description: 'Ofertas especiais' },
-          { id: 'newsletter', name: 'Newsletter', description: 'Dicas e novidades' },
-          { id: 'reactivation', name: 'Reativação', description: 'Reconquistar clientes' }
-        ]
+        success: true,
+        data: {
+          templates: [
+            { id: 'promotional', name: 'Campanha Promocional', description: 'Ofertas especiais com urgência' },
+            { id: 'newsletter', name: 'Newsletter', description: 'Dicas e conteúdo de valor' },
+            { id: 'reactivation', name: 'Reativação', description: 'Reconquistar clientes inativos' }
+          ]
+        }
+      });
+
+    case 'campaigns':
+      return NextResponse.json({
+        success: true,
+        data: {
+          campaigns: campaigns.slice(-10) // Últimas 10 campanhas
+        }
+      });
+
+    case 'contacts':
+      const limit = parseInt(searchParams.get('limit') || '500');
+      const sent = searchParams.get('sent'); // 'true', 'false', or null for all
+      
+      let filteredContacts = contacts;
+      
+      if (sent === 'true') {
+        filteredContacts = contacts.filter(c => c.emailStatus === 'sent');
+      } else if (sent === 'false') {
+        filteredContacts = contacts.filter(c => c.emailStatus === 'not_sent');
+      }
+      
+      const limitedContacts = filteredContacts.slice(0, limit);
+      
+      return NextResponse.json({
+        success: true,
+        data: {
+          contacts: limitedContacts,
+          total: filteredContacts.length,
+          stats: {
+            sent: contacts.filter(c => c.emailStatus === 'sent').length,
+            notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
+            failed: contacts.filter(c => c.emailStatus === 'failed').length,
+            unsubscribed: contacts.filter(c => c.unsubscribed).length
+          }
+        }
       });
 
     default:
@@ -427,4 +690,128 @@ export async function GET(request: NextRequest) {
         error: 'Parâmetro action obrigatório' 
       }, { status: 400 });
   }
+}
+
+// Função para processar lotes de email de forma assíncrona
+async function processBatches(batchesToProcess: EmailBatch[], campaign: any) {
+  for (const batch of batchesToProcess) {
+    try {
+      batch.status = 'sending';
+      batch.sentAt = new Date().toISOString();
+      
+      console.log(`[EMAIL-MARKETING] Processando lote ${batch.id} com ${batch.contacts.length} contatos`);
+      
+      // Obter credenciais Gmail
+      const credentials = getGmailCredentials();
+      
+      if (!credentials.email || !credentials.password) {
+        throw new Error('Credenciais Gmail não configuradas');
+      }
+
+      // Importar nodemailer dinamicamente
+      const nodemailer = await import('nodemailer');
+      
+      const transporter = nodemailer.default.createTransporter({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: credentials.email,
+          pass: credentials.password,
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      });
+
+      // Obter template HTML correto baseado no tipo da campanha
+      const templateTypes = {
+        promotional: {
+          subject: '⚡ ÚLTIMAS 24H: Pacote COMPLETO Miami por $1.299 - Passagem+Hotel+Carro',
+          html: `<!-- Template promocional HTML aqui -->`
+        },
+        newsletter: {
+          subject: '🧳 21 ANOS de segredos: Como montar sua viagem COMPLETA economizando $1.500+',
+          html: `<!-- Template newsletter HTML aqui -->`
+        },
+        reactivation: {
+          subject: '💔 Sentimos sua falta... PACOTE COMPLETO com 30% OFF só para você!',
+          html: `<!-- Template reativação HTML aqui -->`
+        }
+      };
+
+      const template = templateTypes[campaign.templateType as keyof typeof templateTypes] || templateTypes.promotional;
+      
+      // Enviar emails do lote
+      for (const contact of batch.contacts) {
+        try {
+          const personalizedSubject = campaign.subject || template.subject;
+          const personalizedHtml = (campaign.htmlContent || template.html)
+            .replace(/{{nome}}/g, contact.nome)
+            .replace(/{{email}}/g, contact.email);
+
+          await transporter.sendMail({
+            from: `"Fly2Any" <${credentials.email}>`,
+            to: contact.email,
+            subject: personalizedSubject,
+            html: personalizedHtml
+          });
+          
+          // Marcar como enviado
+          const contactIndex = contacts.findIndex(c => c.id === contact.id);
+          if (contactIndex !== -1) {
+            contacts[contactIndex].emailStatus = 'sent';
+            contacts[contactIndex].lastEmailSent = new Date().toISOString();
+          }
+          
+          batch.successCount++;
+          console.log(`[EMAIL-MARKETING] ✅ Email enviado para ${contact.email}`);
+          
+          // Aguardar 1 segundo entre emails para respeitar rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+        } catch (emailError) {
+          console.error(`[EMAIL-MARKETING] ❌ Erro ao enviar para ${contact.email}:`, emailError);
+          
+          const contactIndex = contacts.findIndex(c => c.id === contact.id);
+          if (contactIndex !== -1) {
+            contacts[contactIndex].emailStatus = 'failed';
+          }
+          
+          batch.failureCount++;
+        }
+      }
+      
+      batch.status = 'completed';
+      batch.completedAt = new Date().toISOString();
+      
+      // Atualizar stats da campanha
+      campaign.stats.sent += batch.successCount;
+      campaign.stats.failed += batch.failureCount;
+      
+      console.log(`[EMAIL-MARKETING] Lote ${batch.id} concluído: ${batch.successCount} sucessos, ${batch.failureCount} falhas`);
+      
+      // Aguardar 30 segundos entre lotes para respeitar rate limits do Gmail
+      if (batchesToProcess.indexOf(batch) < batchesToProcess.length - 1) {
+        console.log(`[EMAIL-MARKETING] Aguardando 30s antes do próximo lote...`);
+        await new Promise(resolve => setTimeout(resolve, 30000));
+      }
+      
+    } catch (error) {
+      console.error(`[EMAIL-MARKETING] Erro no lote ${batch.id}:`, error);
+      batch.status = 'failed';
+      batch.completedAt = new Date().toISOString();
+      
+      // Marcar contatos como falha
+      batch.contacts.forEach(contact => {
+        const contactIndex = contacts.findIndex(c => c.id === contact.id);
+        if (contactIndex !== -1) {
+          contacts[contactIndex].emailStatus = 'failed';
+        }
+      });
+    }
+  }
+  
+  console.log(`[EMAIL-MARKETING] Processamento completo. Campanha ${campaign.id} finalizada.`);
+  campaign.status = 'sent';
 }
