@@ -294,7 +294,8 @@ export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
   hoteis: 'Hotéis',
   carros: 'Aluguel de Carros',
   passeios: 'Passeios e Tours',
-  seguro: 'Seguro Viagem'
+  seguro: 'Seguro Viagem',
+  newsletter: 'Newsletter'
 } as const;
 
 /**
