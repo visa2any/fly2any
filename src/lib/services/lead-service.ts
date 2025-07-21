@@ -68,7 +68,7 @@ export class LeadService {
       });
     }
     
-    // WhatsApp is optional, but if provided must be valid
+    // WhatsApp can be empty string, but if provided must be valid
     if (input.whatsapp && input.whatsapp.trim()) {
       if (input.whatsapp.length < LEAD_VALIDATION_RULES.whatsapp.minLength) {
         errors.push({

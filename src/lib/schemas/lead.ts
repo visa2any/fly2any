@@ -39,9 +39,7 @@ export interface UnifiedLead {
   // Personal Information (required)
   nome: string;
   email: string;
-  
-  // Personal Information (commonly used)
-  whatsapp?: string;
+  whatsapp: string;
   
   // Personal Information (optional)
   sobrenome?: string;
@@ -131,10 +129,8 @@ export interface CreateLeadInput {
   // Required fields
   nome: string;
   email: string;
+  whatsapp: string;
   selectedServices: ServiceType[];
-  
-  // Optional but common fields
-  whatsapp?: string;
   
   // Optional fields (all others from UnifiedLead except system fields)
   sobrenome?: string;
