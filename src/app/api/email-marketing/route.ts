@@ -47,8 +47,7 @@ async function loadContactsFromFile(): Promise<void> {
       
       // Atualizar array em memória apenas se arquivo tem mais contatos
       if (fileContacts.length > contacts.length) {
-        contacts.length = 0; // Limpar array
-        contacts.push(...fileContacts); // Adicionar do arquivo
+        contacts = fileContacts; // Reassign directly to fix linting error
         console.log(`📁 Carregados ${contacts.length} contatos do arquivo`);
       }
     } catch (readError) {
@@ -134,7 +133,7 @@ export async function POST(request: NextRequest) {
           unsubscribed: false
         }));
 
-        contacts.push(...newContacts);
+        contacts = [...contacts, ...newContacts];
         
         return NextResponse.json({
           success: true,
