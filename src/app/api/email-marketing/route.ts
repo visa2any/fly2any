@@ -65,7 +65,7 @@ async function loadContactsFromFile(): Promise<void> {
         contacts = [];
       }
     } catch (readError) {
-      console.log('❌ Erro ao ler arquivo de contatos:', readError.message);
+      console.log('❌ Erro ao ler arquivo de contatos:', readError instanceof Error ? readError.message : String(readError));
       contacts = [];
     }
   } catch (error) {
