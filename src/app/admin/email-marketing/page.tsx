@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { analytics } from '@/lib/analytics-client';
 
 interface Campaign {
   id: string;
@@ -27,12 +28,26 @@ export default function EmailMarketingPage() {
   const [message, setMessage] = useState('');
   const [selectedSegment, setSelectedSegment] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importResult, setImportResult] = useState<any>(null);
+  const [importResult, setImportResult] = useState<{
+    success: boolean;
+    imported?: number;
+    duplicates?: number;
+    invalid?: number;
+    errors?: string[];
+    error?: string;
+    message?: string;
+  } | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [testCampaignType, setTestCampaignType] = useState('promotional');
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Array<{
+    id?: string;
+    nome: string;
+    email: string;
+    segmento?: string;
+    emailStatus?: string;
+  }>>([]);
   const [showContacts, setShowContacts] = useState(false);
   const [campaigns] = useState<Campaign[]>([
     { id: '1', name: 'Promoção Miami', type: 'Promocional', sent: 1500, opens: 345, clicks: 52, date: '2024-01-15', status: 'Enviada' },
@@ -41,6 +56,8 @@ export default function EmailMarketingPage() {
   ]);
 
   useEffect(() => {
+    analytics.init();
+    analytics.page('Email Marketing', { section: 'admin' });
     fetchStats();
     fetchContacts();
   }, []);
@@ -303,7 +320,7 @@ export default function EmailMarketingPage() {
               onClick={() => setShowContacts(!showContacts)}
               className="mt-2 text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
             >
-              {showContacts ? <>Ocultar</> : <>Ver Contatos</>}
+{showContacts ? 'Ocultar' : 'Ver Contatos'}
             </button>
           </div>
           
@@ -508,7 +525,13 @@ export default function EmailMarketingPage() {
                           </span>
                         </td>
                       </tr>
-                    )) : null}
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="py-4 text-center text-admin-text-secondary">
+                          Nenhum contato encontrado
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
                 
