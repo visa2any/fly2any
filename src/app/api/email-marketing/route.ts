@@ -666,59 +666,60 @@ export async function GET(request: NextRequest) {
         }
       });
 
-    case 'templates':
-      return NextResponse.json({
-        success: true,
-        data: {
-          templates: [
-            { id: 'promotional', name: 'Campanha Promocional', description: 'Ofertas especiais com urgência' },
-            { id: 'newsletter', name: 'Newsletter', description: 'Dicas e conteúdo de valor' },
-            { id: 'reactivation', name: 'Reativação', description: 'Reconquistar clientes inativos' }
-          ]
-        }
-      });
-
-    case 'campaigns':
-      return NextResponse.json({
-        success: true,
-        data: {
-          campaigns: campaigns.slice(-10) // Últimas 10 campanhas
-        }
-      });
-
-    case 'contacts':
-      const limit = parseInt(searchParams.get('limit') || '500');
-      const sent = searchParams.get('sent'); // 'true', 'false', or null for all
-      
-      let filteredContacts = contacts;
-      
-      if (sent === 'true') {
-        filteredContacts = contacts.filter(c => c.emailStatus === 'sent');
-      } else if (sent === 'false') {
-        filteredContacts = contacts.filter(c => c.emailStatus === 'not_sent');
-      }
-      
-      const limitedContacts = filteredContacts.slice(0, limit);
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          contacts: limitedContacts,
-          total: filteredContacts.length,
-          stats: {
-            sent: contacts.filter(c => c.emailStatus === 'sent').length,
-            notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
-            failed: contacts.filter(c => c.emailStatus === 'failed').length,
-            unsubscribed: contacts.filter(c => c.unsubscribed).length
+      case 'templates':
+        return NextResponse.json({
+          success: true,
+          data: {
+            templates: [
+              { id: 'promotional', name: 'Campanha Promocional', description: 'Ofertas especiais com urgência' },
+              { id: 'newsletter', name: 'Newsletter', description: 'Dicas e conteúdo de valor' },
+              { id: 'reactivation', name: 'Reativação', description: 'Reconquistar clientes inativos' }
+            ]
           }
-        }
-      });
+        });
 
-    default:
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Parâmetro action obrigatório' 
-      }, { status: 400 });
+      case 'campaigns':
+        return NextResponse.json({
+          success: true,
+          data: {
+            campaigns: campaigns.slice(-10) // Últimas 10 campanhas
+          }
+        });
+
+      case 'contacts':
+        const limit = parseInt(searchParams.get('limit') || '500');
+        const sent = searchParams.get('sent'); // 'true', 'false', or null for all
+        
+        let filteredContacts = contacts;
+        
+        if (sent === 'true') {
+          filteredContacts = contacts.filter(c => c.emailStatus === 'sent');
+        } else if (sent === 'false') {
+          filteredContacts = contacts.filter(c => c.emailStatus === 'not_sent');
+        }
+        
+        const limitedContacts = filteredContacts.slice(0, limit);
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            contacts: limitedContacts,
+            total: filteredContacts.length,
+            stats: {
+              sent: contacts.filter(c => c.emailStatus === 'sent').length,
+              notSent: contacts.filter(c => c.emailStatus === 'not_sent').length,
+              failed: contacts.filter(c => c.emailStatus === 'failed').length,
+              unsubscribed: contacts.filter(c => c.unsubscribed).length
+            }
+          }
+        });
+
+      default:
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Parâmetro action obrigatório' 
+        }, { status: 400 });
+    }
   } catch (error) {
     console.error('Erro na API GET email-marketing:', error);
     return NextResponse.json({
