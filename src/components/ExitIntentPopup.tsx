@@ -144,7 +144,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
         body: JSON.stringify({
           nome: nome.trim(),
           email: email.toLowerCase().trim(),
-          whatsapp: whatsapp.trim() ? `${selectedCountry.code} ${whatsapp.trim()}` : '',
+          whatsapp: whatsapp.trim() ? `${selectedCountry.code}${whatsapp.trim().replace(/[\s\-\(\)]/g, '')}` : '',
           source: 'exit_intent_popup',
           serviceType: 'newsletter_signup',
           selectedServices: ['newsletter'],
