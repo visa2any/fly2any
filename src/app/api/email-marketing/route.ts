@@ -102,7 +102,7 @@ async function loadSavedTemplates() {
 // Templates de fallback (caso não encontre os salvos)
 const EMAIL_TEMPLATES_FALLBACK = {
   promotional: {
-    subject: '⚡ ÚLTIMAS 24H: Passagem New York Para Belo Horizonte $ 699',
+    subject: '🎯 SuperOFERTA!! Passagens Aéreas a partir de $699 - Fly2Any Travel',
     html: `
       <!DOCTYPE html>
       <html>
@@ -112,49 +112,67 @@ const EMAIL_TEMPLATES_FALLBACK = {
       <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc;">
         <div style="max-width: 600px; margin: 0 auto; background: white;">
           
-          <!-- Header com Urgência -->
-          <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 20px; text-align: center; position: relative;">
-            <div style="position: absolute; top: 10px; right: 20px; background: #fbbf24; color: #000; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">
-              ⏰ RESTAM 24H
-            </div>
-            <h1 style="margin: 0; font-size: 24px; font-weight: 700;">✈️ FLY2ANY</h1>
-            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">21 anos conectando brasileiros ao mundo</p>
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 25px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: 700;">✈️ Fly2Any Travel</h1>
+            <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">Há 21 anos conectando você ao Brasil e o mundo!</p>
           </div>
 
           <!-- Oferta Principal -->
           <div style="padding: 30px; text-align: center; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);">
-            <h2 style="color: #dc2626; font-size: 28px; margin: 0 0 10px 0; font-weight: 800;">
-              🔥 SUPER OFERTA: NEW YORK ➜ BELO HORIZONTE!
+            <h2 style="color: #dc2626; font-size: 32px; margin: 0 0 20px 0; font-weight: 800;">
+              🎯 SuperOFERTA!! Passagens Aéreas
             </h2>
-            <p style="font-size: 18px; color: #374151; margin: 0 0 20px 0; font-weight: 600;">
-              Passagem direta por apenas <span style="color: #dc2626; font-size: 24px;">$699</span>
-            </p>
-            <p style="color: #6b7280; font-size: 14px; margin: 0;">
-              ✈️ Voo direto + 🎯 Flexibilidade + 🛡️ Seguro incluído<br><s>Preço normal: $1.299</s> • <strong style="color: #059669;">Economia: $600!</strong>
+            
+            <!-- Lista de Destinos -->
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 20px 0;">
+              <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+                ✈️ Miami para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+                ✈️ New York para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+                ✈️ Newark para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px;">
+                ✈️ Boston para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+              </div>
+              <div style="font-size: 18px; font-weight: 600;">
+                ✈️ Orlando para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+              </div>
+            </div>
+
+            <p style="color: #6b7280; font-size: 16px; margin: 20px 0;">
+              Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem<br>
+              <s>Preço Normal: $990</s> • <strong style="color: #059669;">Economia: $300!</strong>
             </p>
           </div>
 
           <!-- CTA Principal -->
           <div style="padding: 30px; text-align: center; background: #fafafa;">
             <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 4px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
-              <a href="https://fly2any.com" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 18px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
-                🚀 QUERO ESSA PASSAGEM
+              <a href="https://fly2any.com" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 20px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 20px; display: inline-block; text-transform: uppercase; letter-spacing: 1px;">
+                🚀 QUERO RESERVAR AGORA
               </a>
             </div>
-            <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+            <div style="font-size: 14px; color: #6b7280; margin-top: 15px;">
               ⏰ Oferta válida até <strong>amanhã às 23:59</strong>
+            </div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 10px;">
+              ✅ Sem taxa de conveniência • Cancelamento grátis em 24h
             </div>
           </div>
 
           <!-- Footer -->
-          <div style="background: #374151; color: white; padding: 20px; text-align: center;">
-            <p style="margin: 0 0 10px 0; font-size: 14px;">
-              <strong>Fly2Any</strong> • Conectando brasileiros ao mundo há 21 anos
+          <div style="background: #374151; color: white; padding: 25px; text-align: center;">
+            <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">
+              Fly2Any Travel • Há 21 anos conectando você ao Brasil e o mundo!
             </p>
-            <p style="margin: 0; font-size: 12px; opacity: 0.8;">
-              📱 <a href="https://wa.me/5511999999999" style="color: #25d366; text-decoration: none;">WhatsApp: +55 11 99999-9999</a> • 📧 info@fly2any.com
+            <p style="margin: 0; font-size: 14px; opacity: 0.9;">
+              📱 <a href="https://wa.me/1151944717" style="color: #25d366; text-decoration: none;">WhatsApp: wa.me/1151944717</a> • 📧 info@fly2any.com
             </p>
-            <p style="margin: 10px 0 0 0; font-size: 11px; opacity: 0.6;">
+            <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.7;">
               <a href="{{unsubscribe_url}}" style="color: #9ca3af; text-decoration: underline;">Cancelar inscrição</a>
             </p>
           </div>
