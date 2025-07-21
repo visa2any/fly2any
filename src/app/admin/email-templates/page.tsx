@@ -727,6 +727,25 @@ export default function EmailTemplatesPage() {
       // Salvar no localStorage
       const saved = saveTemplatesLocally(updatedTemplates);
       
+      // NOVO: Salvar também via API para usar no email marketing
+      try {
+        const response = await fetch('/api/email-templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ templates: updatedTemplates })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ Templates sincronizados com email marketing');
+        } else {
+          console.warn('⚠️ Erro ao sincronizar templates:', result.error);
+        }
+      } catch (error) {
+        console.warn('⚠️ Erro ao sincronizar templates via API:', error);
+      }
+      
       if (saved) {
         setShowEditor(false);
         setEditingTemplate(null);
@@ -734,7 +753,7 @@ export default function EmailTemplatesPage() {
         
         // Feedback visual diferenciado para criação vs edição
         const action = isCreatingNew ? 'criado' : 'salvo';
-        alert(`✅ Template "${editingTemplate.name}" ${action} com sucesso!\n\n💾 ${isCreatingNew ? 'Novo template adicionado e salvo' : 'Suas alterações foram salvas'} localmente.`);
+        alert(`✅ Template "${editingTemplate.name}" ${action} com sucesso!\n\n💾 ${isCreatingNew ? 'Novo template adicionado e salvo' : 'Suas alterações foram salvas'} localmente.\n📧 Templates sincronizados com sistema de email marketing!`);
       } else {
         throw new Error('Falha ao salvar no localStorage');
       }

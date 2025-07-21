@@ -73,8 +73,34 @@ function getGmailCredentials() {
   return { email, password };
 }
 
-// Templates de email
-const EMAIL_TEMPLATES = {
+// Função para carregar templates salvos pelo usuário
+async function loadSavedTemplates() {
+  try {
+    // Primeiro tentar carregar templates salvos por você
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/email-templates`);
+    const data = await response.json();
+    
+    if (data.success && data.templates) {
+      const templatesMap: any = {};
+      data.templates.forEach((template: any) => {
+        templatesMap[template.type || template.id] = {
+          subject: template.subject,
+          html: template.html
+        };
+      });
+      return templatesMap;
+    }
+  } catch (error) {
+    console.log('📝 Usando templates padrão (salvos não encontrados)');
+  }
+  
+  // Fallback para templates padrão
+  return EMAIL_TEMPLATES_FALLBACK;
+}
+
+// Templates de fallback (caso não encontre os salvos)
+const EMAIL_TEMPLATES_FALLBACK = {
   promotional: {
     subject: '⚡ ÚLTIMAS 24H: Passagem New York Para Belo Horizonte $ 699',
     html: `
@@ -341,6 +367,8 @@ export async function POST(request: NextRequest) {
       case 'create_campaign': {
         const { name, subject, templateType, htmlContent, textContent } = body;
         
+        // Carregar templates salvos dinamicamente
+        const EMAIL_TEMPLATES = await loadSavedTemplates();
         const template = EMAIL_TEMPLATES[templateType as keyof typeof EMAIL_TEMPLATES] || EMAIL_TEMPLATES.promotional;
         
         const campaign = await EmailCampaignsDB.create({
@@ -398,6 +426,8 @@ export async function POST(request: NextRequest) {
           }
         });
         
+        // Carregar templates salvos dinamicamente
+        const EMAIL_TEMPLATES = await loadSavedTemplates();
         const template = EMAIL_TEMPLATES[campaignType as keyof typeof EMAIL_TEMPLATES] || EMAIL_TEMPLATES.promotional;
         
         // Personalizar template
@@ -487,10 +517,11 @@ export async function POST(request: NextRequest) {
       case 'send_newsletter': 
       case 'send_reactivation': {
         const { segment } = body;
-        const templateType = action.replace('send_', '') as keyof typeof EMAIL_TEMPLATES;
+        const templateType = action.replace('send_', '');
         
-        // Criar campanha automática
-        const template = EMAIL_TEMPLATES[templateType];
+        // Carregar templates salvos dinamicamente
+        const EMAIL_TEMPLATES = await loadSavedTemplates();
+        const template = EMAIL_TEMPLATES[templateType as keyof typeof EMAIL_TEMPLATES];
         const campaign = await EmailCampaignsDB.create({
           name: `${templateType.charAt(0).toUpperCase() + templateType.slice(1)} - ${new Date().toLocaleDateString('pt-BR')}`,
           subject: template.subject,
