@@ -368,24 +368,18 @@ export class EmailSendsDB {
     failed_reason?: string;
     message_id?: string;
   }): Promise<void> {
-    const updates = ['status = $1', 'updated_at = CURRENT_TIMESTAMP'];
-    const values = [status];
-    let paramIndex = 2;
-
-    if (additionalData) {
-      Object.entries(additionalData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          updates.push(`${key} = $${paramIndex}`);
-          values.push(value instanceof Date ? value.toISOString() : value);
-          paramIndex++;
-        }
-      });
-    }
-
-    const query = `UPDATE email_sends SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
-    values.push(id);
-    
-    await sql.query(query, values);
+    await sql`
+      UPDATE email_sends 
+      SET status = ${status}, 
+          sent_at = ${additionalData?.sent_at?.toISOString() || null},
+          delivered_at = ${additionalData?.delivered_at?.toISOString() || null},
+          opened_at = ${additionalData?.opened_at?.toISOString() || null},
+          clicked_at = ${additionalData?.clicked_at?.toISOString() || null},
+          failed_reason = ${additionalData?.failed_reason || null},
+          message_id = ${additionalData?.message_id || null},
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
   }
 
   static async findByCampaign(campaignId: string): Promise<EmailSend[]> {
