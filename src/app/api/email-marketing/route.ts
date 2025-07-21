@@ -164,6 +164,72 @@ const EMAIL_TEMPLATES_FALLBACK = {
             </p>
           </div>
 
+          <!-- Depoimento -->
+          <div style="background: #f8f9fa; padding: 30px 20px; border-left: 6px solid #fbbf24;" class="mobile-padding">
+            <div style="text-align: center; margin-bottom: 18px; font-size: 18px;" class="mobile-font-small">
+              ⭐⭐⭐⭐⭐ <strong>Maria Silva</strong> cliente verificada
+            </div>
+            <p style="font-style: italic; color: #374151; margin: 0; text-align: center; font-size: 16px; line-height: 1.5;" class="mobile-font-small">
+              "Comprei o pacote completo da Fly2Any Travel: passagem, hotel 4⭐, carro e passeios. Economizei $1.400 e não precisei me preocupar com NADA! Experiência incrível!"
+            </p>
+          </div>
+
+          <!-- Pacotes Completos -->
+          <div style="padding: 40px 20px; background: #fafafa;" class="mobile-padding">
+            <h3 style="color: #dc2626; font-size: 28px; text-align: center; margin: 0 0 30px 0; font-weight: 800;" class="mobile-font-medium">
+              🎯 PACOTES COMPLETOS - TUDO INCLUÍDO
+            </h3>
+            
+            <div style="display: grid; gap: 20px;" class="mobile-grid">
+              <!-- Miami -->
+              <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;" class="mobile-grid-item">
+                <div style="font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 10px;" class="mobile-font-medium">🏖️ MIAMI COMPLETO</div>
+                <div style="font-size: 16px; color: #6b7280; margin: 15px 0; line-height: 1.4;" class="mobile-font-small">Passagem + Hotel 4⭐ + Carro + Seguro + Passeio</div>
+                <div style="font-size: 20px; font-weight: bold; margin: 10px 0;">Consulte</div>
+                <div style="color: #059669; font-weight: bold; font-size: 16px;">💰 Economia Garantida</div>
+              </div>
+              
+              <!-- New York -->
+              <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;" class="mobile-grid-item">
+                <div style="font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 10px;" class="mobile-font-medium">🗽 NEW YORK COMPLETO</div>
+                <div style="font-size: 16px; color: #6b7280; margin: 15px 0; line-height: 1.4;" class="mobile-font-small">Passagem + Hotel 4⭐ + Carro + Seguro + Passeio</div>
+                <div style="font-size: 20px; font-weight: bold; margin: 10px 0;">Consulte</div>
+                <div style="color: #059669; font-weight: bold; font-size: 16px;">💰 Economia Garantida</div>
+              </div>
+              
+              <!-- Orlando -->
+              <div style="background: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;" class="mobile-grid-item">
+                <div style="font-size: 24px; font-weight: bold; color: #dc2626; margin-bottom: 10px;" class="mobile-font-medium">🎢 ORLANDO COMPLETO</div>
+                <div style="font-size: 16px; color: #6b7280; margin: 15px 0; line-height: 1.4;" class="mobile-font-small">Passagem + Hotel 4⭐ + Carro + Seguro + Passeio</div>
+                <div style="font-size: 20px; font-weight: bold; margin: 10px 0;">Consulte</div>
+                <div style="color: #059669; font-weight: bold; font-size: 16px;">💰 Economia Garantida!</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Por que escolher -->
+          <div style="padding: 40px 20px; background: white; text-align: center;" class="mobile-padding">
+            <h3 style="color: #dc2626; font-size: 24px; margin: 0 0 30px 0; font-weight: 700;" class="mobile-font-medium">🎯 POR QUE ESCOLHER NOSSOS PACOTES?</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin: 30px 0;" class="mobile-grid">
+              <div class="mobile-grid-item">
+                <div style="font-size: 40px; margin-bottom: 10px;">🎯</div>
+                <div style="font-weight: bold; font-size: 16px;" class="mobile-font-small">TUDO EM 1 LUGAR</div>
+              </div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 40px; margin-bottom: 10px;">💰</div>
+                <div style="font-weight: bold; font-size: 16px;" class="mobile-font-small">ECONOMIA REAL</div>
+              </div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 40px; margin-bottom: 10px;">🏆</div>
+                <div style="font-weight: bold; font-size: 16px;" class="mobile-font-small">21 ANOS EXP.</div>
+              </div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 40px; margin-bottom: 10px;">⚡</div>
+                <div style="font-weight: bold; font-size: 16px;" class="mobile-font-small">SUPORTE 24/7</div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </a>
         
