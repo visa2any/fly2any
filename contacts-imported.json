@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "contact_test_1",
+    "email": "teste1@gmail.com", 
+    "nome": "João Silva",
+    "sobrenome": "",
+    "telefone": "",
+    "segmento": "geral",
+    "tags": [],
+    "createdAt": "2024-07-21T00:00:00.000Z",
+    "emailStatus": "not_sent",
+    "lastEmailSent": null,
+    "unsubscribed": false
+  },
+  {
+    "id": "contact_test_2", 
+    "email": "teste2@gmail.com",
+    "nome": "Maria Santos",
+    "sobrenome": "",
+    "telefone": "",
+    "segmento": "familias",
+    "tags": [],
+    "createdAt": "2024-07-21T00:00:00.000Z", 
+    "emailStatus": "not_sent",
+    "lastEmailSent": null,
+    "unsubscribed": false
+  }
+]

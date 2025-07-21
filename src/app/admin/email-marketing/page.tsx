@@ -32,6 +32,8 @@ export default function EmailMarketingPage() {
   const [showTestModal, setShowTestModal] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [testCampaignType, setTestCampaignType] = useState('promotional');
+  const [contacts, setContacts] = useState<any[]>([]);
+  const [showContacts, setShowContacts] = useState(false);
   const [campaigns] = useState<Campaign[]>([
     { id: '1', name: 'Promoção Miami', type: 'Promocional', sent: 1500, opens: 345, clicks: 52, date: '2024-01-15', status: 'Enviada' },
     { id: '2', name: 'Newsletter Semanal', type: 'Newsletter', sent: 5000, opens: 1150, clicks: 184, date: '2024-01-10', status: 'Enviada' },
@@ -40,7 +42,25 @@ export default function EmailMarketingPage() {
 
   useEffect(() => {
     fetchStats();
+    fetchContacts();
   }, []);
+
+  const fetchContacts = async () => {
+    try {
+      const response = await fetch('/api/email-marketing?action=contacts');
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setContacts(data.data);
+      } else {
+        console.warn('Contacts API returned invalid data:', data);
+        setContacts([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar contatos:', error);
+      setContacts([]);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -177,6 +197,7 @@ export default function EmailMarketingPage() {
       if (result.success) {
         setMessage(`✅ ${result.imported} emails importados com sucesso!`);
         fetchStats(); // Atualizar estatísticas
+        fetchContacts(); // Atualizar contatos
       } else {
         setMessage(`❌ Erro na importação: ${result.error}`);
       }
@@ -274,6 +295,12 @@ export default function EmailMarketingPage() {
             </div>
             <div className="admin-stats-value">{formatNumber(stats?.totalContacts)}</div>
             <div className="admin-stats-label">Total de Contatos</div>
+            <button 
+              onClick={() => setShowContacts(!showContacts)}
+              className="mt-2 text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+            >
+              {showContacts ? 'Ocultar' : 'Ver Contatos'}
+            </button>
           </div>
           
           <div className="admin-stats-card">
@@ -424,6 +451,76 @@ export default function EmailMarketingPage() {
           </div>
         </div>
       </div>
+
+      {/* Contacts List */}
+      {showContacts && (
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h2 className="admin-card-title">👥 Contatos Importados ({contacts.length})</h2>
+            <p className="admin-card-description">Primeiros 500 contatos disponíveis para email marketing</p>
+          </div>
+          <div className="admin-card-content">
+            {contacts.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📭</div>
+                <p className="text-gray-600 mb-4">Nenhum contato importado ainda</p>
+                <button 
+                  onClick={() => setShowImportModal(true)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  📤 Importar Agora
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-admin-border-color">
+                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">#</th>
+                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Nome</th>
+                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Email</th>
+                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Segmento</th>
+                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contacts.slice(0, 500).map((contact, index) => (
+                      <tr key={contact.id || index} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
+                        <td className="py-3 px-2 text-admin-text-secondary text-sm">{index + 1}</td>
+                        <td className="py-3 px-2 font-medium text-admin-text-primary">{contact.nome}</td>
+                        <td className="py-3 px-2 text-admin-text-secondary text-sm">{contact.email}</td>
+                        <td className="py-3 px-2">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                            {contact.segmento || 'geral'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            contact.emailStatus === 'sent' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {contact.emailStatus === 'sent' ? 'Enviado' : 'Não enviado'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {contacts.length > 500 && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-700 text-sm">
+                      🚨 Mostrando apenas os primeiros 500 contatos para email marketing. 
+                      Total importado: {contacts.length} contatos.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Campaign History */}
       <div className="admin-card">
