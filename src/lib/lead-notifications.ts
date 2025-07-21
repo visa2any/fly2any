@@ -353,17 +353,202 @@ export async function sendLeadNotificationToN8N(leadData: LeadNotificationData) 
 /**
  * Função principal que tenta enviar por múltiplos canais
  */
+/**
+ * Envia email de confirmação para o cliente
+ */
+export async function sendCustomerConfirmationEmail(leadData: LeadNotificationData) {
+  try {
+    const subject = `🎉 Obrigado pelo seu interesse, ${leadData.nome}! - Fly2Any`;
+    
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { 
+          background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); 
+          color: white; 
+          padding: 30px; 
+          border-radius: 12px 12px 0 0; 
+          text-align: center;
+        }
+        .logo { font-size: 32px; font-weight: bold; margin-bottom: 10px; }
+        .subtitle { font-size: 18px; opacity: 0.9; }
+        .content { 
+          background: #f8fafc; 
+          padding: 30px; 
+          border-radius: 0 0 12px 12px; 
+          border: 1px solid #e2e8f0;
+        }
+        .welcome { 
+          background: white; 
+          padding: 25px; 
+          border-radius: 8px; 
+          margin: 20px 0; 
+          border-left: 4px solid #3b82f6;
+        }
+        .benefits { 
+          background: #ecfdf5; 
+          padding: 20px; 
+          border-radius: 8px; 
+          margin: 20px 0;
+        }
+        .benefit-item { 
+          display: flex; 
+          align-items: center; 
+          margin: 10px 0; 
+          font-size: 16px;
+        }
+        .check { color: #10b981; font-weight: bold; margin-right: 10px; }
+        .cta-button { 
+          display: inline-block; 
+          background: linear-gradient(135deg, #10b981, #059669); 
+          color: white; 
+          padding: 15px 30px; 
+          text-decoration: none; 
+          border-radius: 8px; 
+          font-weight: bold; 
+          text-align: center;
+          margin: 20px 0;
+        }
+        .footer { 
+          text-align: center; 
+          margin-top: 30px; 
+          padding-top: 20px; 
+          border-top: 1px solid #e2e8f0; 
+          color: #666; 
+          font-size: 14px; 
+        }
+        .social { margin: 15px 0; }
+        .social a { margin: 0 10px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">✈️ Fly2Any</div>
+            <div class="subtitle">Sua próxima viagem dos sonhos</div>
+        </div>
+        
+        <div class="content">
+            <div class="welcome">
+                <h2 style="color: #1e40af; margin-top: 0;">Olá, ${leadData.nome}! 👋</h2>
+                <p style="font-size: 18px; margin-bottom: 15px;">
+                    <strong>Obrigado por se inscrever em nossa newsletter!</strong>
+                </p>
+                <p>
+                    Recebemos seu interesse em nossas ofertas especiais de viagem. 
+                    Em breve você receberá as melhores promoções de passagens e hotéis 
+                    diretamente no seu email.
+                </p>
+            </div>
+
+            <div class="benefits">
+                <h3 style="color: #059669; margin-top: 0;">🎯 O que você vai receber:</h3>
+                <div class="benefit-item">
+                    <span class="check">✅</span>
+                    <span><strong>Ofertas exclusivas</strong> de passagens aéreas</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="check">✅</span>
+                    <span><strong>Promoções de hotéis</strong> com até 70% de desconto</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="check">✅</span>
+                    <span><strong>Dicas de viagem</strong> dos nossos especialistas</span>
+                </div>
+                <div class="benefit-item">
+                    <span class="check">✅</span>
+                    <span><strong>Notificações</strong> de tarifas promocionais</span>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="https://www.fly2any.com" class="cta-button">
+                    🌎 Explorar Destinos
+                </a>
+            </div>
+
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <p style="margin: 0; color: #856404;">
+                    <strong>💡 Dica:</strong> Adicione nosso email à sua lista de contatos para não perder nenhuma oferta!
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Fly2Any - Sua Agência de Viagens</strong></p>
+            <div class="social">
+                <a href="https://www.fly2any.com" style="color: #3b82f6;">🌐 Website</a>
+                <a href="#" style="color: #25d366;">📱 WhatsApp</a>
+                <a href="#" style="color: #1da1f2;">📘 Instagram</a>
+            </div>
+            <p style="font-size: 12px; color: #9ca3af;">
+                Você está recebendo este email porque se inscreveu em nossa newsletter.<br>
+                <a href="#" style="color: #6b7280;">Cancelar inscrição</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    const textContent = `
+Olá, ${leadData.nome}!
+
+Obrigado por se inscrever em nossa newsletter da Fly2Any!
+
+Recebemos seu interesse em nossas ofertas especiais de viagem. 
+Em breve você receberá as melhores promoções de passagens e hotéis diretamente no seu email.
+
+O que você vai receber:
+✅ Ofertas exclusivas de passagens aéreas
+✅ Promoções de hotéis com até 70% de desconto  
+✅ Dicas de viagem dos nossos especialistas
+✅ Notificações de tarifas promocionais
+
+Explore nossos destinos: https://www.fly2any.com
+
+Fly2Any - Sua Agência de Viagens
+`;
+
+    const result = await sendEmail({
+      to: leadData.email,
+      subject,
+      html: htmlContent,
+      text: textContent
+    });
+
+    console.log(`📧 Email de confirmação para cliente: ${result.success ? 'Enviado' : 'Falhou'}`);
+
+    return result;
+
+  } catch (error) {
+    console.error('Erro ao enviar email de confirmação para cliente:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
+  }
+}
+
 export async function sendLeadNotification(leadData: LeadNotificationData) {
   try {
-    // Tentar enviar via email direto
-    const emailResult = await sendLeadNotificationToAdmin(leadData);
+    // Enviar email de confirmação para o cliente
+    const customerEmailResult = await sendCustomerConfirmationEmail(leadData);
+    
+    // Enviar notificação para admin
+    const adminEmailResult = await sendLeadNotificationToAdmin(leadData);
     
     // Tentar enviar via N8N webhook como backup
     const webhookResult = await sendLeadNotificationToN8N(leadData);
 
     return {
-      success: emailResult.success || webhookResult.success,
-      email: emailResult,
+      success: customerEmailResult.success || adminEmailResult.success || webhookResult.success,
+      customerEmail: customerEmailResult,
+      adminEmail: adminEmailResult,
       webhook: webhookResult
     };
 
