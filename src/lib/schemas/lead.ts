@@ -260,8 +260,8 @@ export const LEAD_VALIDATION_RULES = {
   whatsapp: {
     required: false,
     minLength: 10,
-    maxLength: 20,
-    pattern: /^\+?[1-9]\d{1,14}$/
+    maxLength: 25,
+    pattern: /^\+?[1-9][\d\s\-\(\)]{8,20}$/
   },
   telefone: {
     required: false,
