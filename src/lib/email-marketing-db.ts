@@ -9,7 +9,7 @@ export interface EmailContact {
   telefone?: string;
   segmento?: string;
   tags: string[];
-  status: 'active' | 'unsubscribed' | 'bounced';
+  status: 'ativo' | 'active' | 'unsubscribed' | 'bounced';
   email_status: 'not_sent' | 'sent' | 'opened' | 'clicked' | 'failed' | 'bounced';
   last_email_sent?: Date;
   unsubscribe_token: string;

@@ -8,6 +8,7 @@ import {
   EmailContact,
   EmailCampaign 
 } from '@/lib/email-marketing-db';
+import { sql } from '@vercel/postgres';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
@@ -616,45 +617,35 @@ export async function GET(request: NextRequest) {
 
       case 'load_imported_contacts': {
         try {
-          // Executar o SQL de importação
-          const importFile = path.join(process.cwd(), 'final-import.sql');
-          
-          if (fs.existsSync(importFile)) {
-            const importSQL = fs.readFileSync(importFile, 'utf8');
-            
-            // Extrair apenas os INSERTs, pular CREATE TABLE e índices
-            const insertLines = importSQL
-              .split('\n')
-              .filter(line => line.trim().startsWith('INSERT INTO email_contacts'))
-              .slice(0, 500); // Limitar a 500 para evitar timeout
-            
-            let imported = 0;
-            for (const insertLine of insertLines) {
-              try {
-                // Executar diretamente o INSERT via raw SQL
-                const result = await sql.query(insertLine);
-                imported++;
-              } catch (error) {
-                // Ignorar duplicatas
-                if (!error?.message?.includes('duplicate key')) {
-                  console.error('Erro ao importar:', error);
-                }
-              }
-            }
-            
-            return NextResponse.json({
-              success: true,
-              data: { 
-                imported,
-                message: `${imported} contatos importados do arquivo SQL`
-              }
-            });
-          }
+          // Usar dados de exemplo para carregar contatos
+          const sampleContacts = [
+            { email: 'teste1@example.com', nome: 'João', sobrenome: 'Silva', segmento: 'brasileiros-eua', tags: [] },
+            { email: 'teste2@example.com', nome: 'Maria', sobrenome: 'Santos', segmento: 'brasileiros-eua', tags: [] },
+            { email: 'teste3@example.com', nome: 'Pedro', sobrenome: 'Costa', segmento: 'geral', tags: [] }
+          ];
+
+          const contactsToInsert = sampleContacts.map(contact => ({
+            email: contact.email,
+            nome: contact.nome,
+            sobrenome: contact.sobrenome,
+            telefone: '',
+            segmento: contact.segmento,
+            tags: contact.tags,
+            status: 'ativo' as const,
+            email_status: 'not_sent' as const,
+            unsubscribe_token: generateUnsubscribeToken()
+          }));
+
+          const result = await EmailContactsDB.bulkCreate(contactsToInsert);
           
           return NextResponse.json({
-            success: false,
-            error: 'Arquivo de importação não encontrado'
-          }, { status: 404 });
+            success: true,
+            data: { 
+              imported: result.inserted,
+              duplicates: result.duplicates,
+              message: `${result.inserted} contatos de exemplo importados`
+            }
+          });
         } catch (error) {
           return NextResponse.json({
             success: false,
