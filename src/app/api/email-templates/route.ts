@@ -48,7 +48,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
           <div style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 20px; text-align: center;">
             <!-- Logo -->
             <div style="margin-bottom: 15px;">
-              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
+              <img src="https://www.fly2any.com/fly2any-logo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
             </div>
             
             <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 900;" class="mobile-font-large">
@@ -282,7 +282,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
           <div style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 20px; text-align: center;">
             <!-- Logo -->
             <div style="margin-bottom: 15px;">
-              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
+              <img src="https://www.fly2any.com/fly2any-logo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
             </div>
             
             <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 900;" class="mobile-font-large">
