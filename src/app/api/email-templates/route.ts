@@ -41,6 +41,7 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
             .mobile-grid { display: block !important; }
             .mobile-grid-item { margin-bottom: 15px !important; }
             .mobile-hide { display: none !important; }
+            .mobile-logo { max-width: 150px !important; height: auto !important; }
           }
         </style>
       </head>
@@ -52,6 +53,12 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
             <div style="background: rgba(0,0,0,0.3); margin: -20px -20px 15px -20px; padding: 10px; font-size: 14px; font-weight: 700;" class="mobile-font-small">
               ⏰ ÚLTIMAS 24 HORAS • Promoção termina hoje!
             </div>
+            
+            <!-- Logo Fly2Any -->
+            <div style="margin-bottom: 15px;">
+              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 200px; height: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));" class="mobile-logo" />
+            </div>
+            
             <h1 style="margin: 0; font-size: 28px; font-weight: 900;" class="mobile-font-large">
               ⚡ SUPER OFERTA
             </h1>
