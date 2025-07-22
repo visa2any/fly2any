@@ -12,9 +12,9 @@ interface EmailTemplate {
 // Templates padrão (fallback se não houver salvos)
 const DEFAULT_TEMPLATES: EmailTemplate[] = [
   {
-    id: 'promotional',
-    name: 'Super Oferta - Alta Conversão',
-    description: 'Template promocional com gatilhos de urgência e prova social',
+    id: 'promotional-v3',
+    name: 'Super Oferta Premium - Ultra Compacto',
+    description: 'Template promocional compacto com logo e layout horizontal otimizado',
     type: 'promotional',
     subject: '🎯 SuperOFERTA!! Passagens Aéreas a partir de $699 - Fly2Any Travel',
     html: `
@@ -319,6 +319,9 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
 // Variável global para armazenar templates salvos (em produção use banco de dados)
 let savedTemplates: EmailTemplate[] | null = null;
 
+// Forçar limpeza do cache
+const CACHE_VERSION = 'v3-' + Date.now();
+
 export async function POST(request: NextRequest) {
   try {
     const { templates } = await request.json();
@@ -346,20 +349,21 @@ export async function POST(request: NextRequest) {
 // Endpoint para buscar templates salvos
 export async function GET() {
   try {
-    // Se há templates salvos, retornar eles
-    if (savedTemplates && savedTemplates.length > 0) {
-      console.log('✅ Retornando templates salvos:', savedTemplates.map(t => ({ id: t.id, subject: t.subject })));
-      return NextResponse.json({
-        success: true,
-        templates: savedTemplates
-      });
-    }
+    // Forçar sempre retornar templates padrão atualizados (versão premium compacta)
+    console.log('🚀 Retornando templates premium compactos - Versão:', CACHE_VERSION);
     
-    // Senão, retornar templates padrão
-    console.log('📝 Retornando templates padrão');
+    // Adicionar timestamp para evitar cache
+    const templatesWithTimestamp = DEFAULT_TEMPLATES.map(template => ({
+      ...template,
+      id: template.id + '-' + Date.now(),
+      cacheVersion: CACHE_VERSION
+    }));
+    
     return NextResponse.json({
       success: true,
-      templates: DEFAULT_TEMPLATES
+      templates: templatesWithTimestamp,
+      version: CACHE_VERSION,
+      timestamp: new Date().toISOString()
     });
     
   } catch (error) {
