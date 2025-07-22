@@ -319,8 +319,8 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
 // Variável global para armazenar templates salvos (em produção use banco de dados)
 let savedTemplates: EmailTemplate[] | null = null;
 
-// Forçar limpeza do cache
-const CACHE_VERSION = 'v3-' + Date.now();
+// Forçar limpeza do cache - SEMPRE PREMIUM COMPACTO
+const CACHE_VERSION = 'PREMIUM-ULTRA-COMPACTO-v4-' + Date.now();
 
 export async function POST(request: NextRequest) {
   try {
@@ -346,25 +346,37 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Endpoint para buscar templates salvos
+// Endpoint para buscar templates salvos - SEMPRE PREMIUM COMPACTO
 export async function GET() {
   try {
-    // Forçar sempre retornar templates padrão atualizados (versão premium compacta)
-    console.log('🚀 Retornando templates premium compactos - Versão:', CACHE_VERSION);
+    // SEMPRE retornar templates PREMIUM COMPACTOS mais recentes
+    console.log('🚀 FORÇANDO templates PREMIUM ULTRA COMPACTOS - Versão:', CACHE_VERSION);
     
-    // Adicionar timestamp para evitar cache
+    // Forçar cache bust completo
+    const timestamp = Date.now();
     const templatesWithTimestamp = DEFAULT_TEMPLATES.map(template => ({
       ...template,
-      id: template.id + '-' + Date.now(),
-      cacheVersion: CACHE_VERSION
+      id: template.id + '-PREMIUM-' + timestamp,
+      cacheVersion: CACHE_VERSION,
+      forceUpdate: true,
+      isPremiumCompact: true
     }));
+    
+    // Headers para evitar cache
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
     
     return NextResponse.json({
       success: true,
       templates: templatesWithTimestamp,
       version: CACHE_VERSION,
-      timestamp: new Date().toISOString()
-    });
+      timestamp: new Date().toISOString(),
+      message: '✅ Templates PREMIUM COMPACTOS carregados!',
+      forceUpdate: true
+    }, { headers });
     
   } catch (error) {
     console.error('❌ Erro ao buscar templates:', error);
