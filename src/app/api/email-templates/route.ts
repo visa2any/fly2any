@@ -52,6 +52,8 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
             .mobile-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
             .mobile-three-col { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 4px !important; }
             .mobile-ultra-compact { padding: 4px 6px !important; margin: 2px 0 !important; }
+            .logo-responsive { max-width: 180px !important; height: auto !important; }
+            .logo-mobile { max-width: 140px !important; height: auto !important; }
           }
         </style>
       </head>
@@ -60,20 +62,23 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
         <a href="https://www.fly2any.com" style="text-decoration: none; color: inherit; display: block;">
           <div style="width: 100%; background: white; cursor: pointer;">
           
-          <!-- Header Ultra Compacto -->
+          <!-- Header Ultra Compacto com Logo -->
           <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 12px 15px; text-align: center; position: relative;" class="mobile-compact">
             <!-- Urgência integrada -->
             <div style="background: rgba(0,0,0,0.4); margin: -12px -15px 8px -15px; padding: 6px; font-size: 13px; font-weight: 800;" class="mobile-font-small">
               ⏰ ÚLTIMAS 23 VAGAS • Expira 18h47min • 🔥 HISTÓRICO!
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;" class="mobile-stack">
-              <div>
-                <h1 style="margin: 0; font-size: 24px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.3);" class="mobile-font-large">✈️ Fly2Any Travel</h1>
-                <p style="margin: 2px 0 0 0; font-size: 14px; opacity: 0.95; font-weight: 600;" class="mobile-font-small">🏆 21 anos • 50K+ clientes</p>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <!-- Logo Fly2Any -->
+                <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 200px; height: 45px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" class="logo-responsive logo-mobile" />
+                <div style="text-align: left;">
+                  <p style="margin: 0; font-size: 14px; opacity: 0.95; font-weight: 600; line-height: 1.2;" class="mobile-font-small">🏆 21 anos conectando você ao mundo<br>50K+ clientes satisfeitos</p>
+                </div>
               </div>
-              <div style="text-align: right; font-size: 18px; font-weight: 900;" class="mobile-font-medium">
-                <div style="color: #fbbf24;">$699</div>
-                <div style="font-size: 11px; opacity: 0.8;">A partir de</div>
+              <div style="text-align: right; font-size: 18px; font-weight: 900; background: rgba(251,191,36,0.2); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.5);" class="mobile-font-medium">
+                <div style="color: #fbbf24; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">$699</div>
+                <div style="font-size: 11px; opacity: 0.8; color: rgba(255,255,255,0.9);">A partir de</div>
               </div>
             </div>
           </div>
@@ -267,18 +272,18 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
           </div>
         </div>
 
-        <!-- Footer Ultra Compacto -->
-        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f1f5f9; padding: 12px 15px; text-align: center; width: 100%; margin-top: 0;" class="mobile-compact">
+        <!-- Footer Ultra Compacto com Logo -->
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f1f5f9; padding: 12px 15px; text-align: center; width: 100%; margin-top: 0; position: relative;" class="mobile-compact">
           <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(135deg, #dc2626, #fbbf24, #10b981);"></div>
           
           <!-- Logo + Contatos em linha -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" class="mobile-stack">
-            <!-- Logo compacto -->
-            <div>
-              <p style="margin: 0; font-size: 16px; font-weight: 900; color: #ffffff;" class="mobile-font-small">
-                <span style="background: linear-gradient(135deg, #dc2626, #f59e0b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">✈️ Fly2Any</span>
-              </p>
-              <div style="font-size: 9px; color: #64748b; font-weight: 600;">21 anos • 50K+ clientes • IATA</div>
+            <!-- Logo compacto no footer -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 120px; height: 28px; object-fit: contain; opacity: 0.9;" class="logo-responsive" />
+              <div style="text-align: left;">
+                <div style="font-size: 9px; color: #64748b; font-weight: 600; line-height: 1.2;">21 anos • 50K+ clientes • IATA</div>
+              </div>
             </div>
             
             <!-- Contatos horizontais -->
