@@ -222,13 +222,13 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
             </div>
             
             <div style="margin: 15px 0;">
-              <a href="https://wa.me/1151944717" style="color: #25d366; text-decoration: none; margin: 0 10px;">
-                📱 WhatsApp: wa.me/1151944717
+              <a href="https://wa.me/551151944717" style="background: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 25px; font-weight: 700; display: inline-block; margin: 5px;">
+                📱 WhatsApp
               </a>
             </div>
             <div>
-              <a href="mailto:info@fly2any.com" style="color: #60a5fa; text-decoration: none;">
-                📧 info@fly2any.com
+              <a href="mailto:info@fly2any.com" style="background: #60a5fa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 25px; font-weight: 700; display: inline-block; margin: 5px;">
+                📧 Email
               </a>
             </div>
             
