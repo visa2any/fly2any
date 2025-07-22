@@ -12,7 +12,7 @@ interface EmailTemplate {
 // Templates padrão (fallback se não houver salvos)
 const DEFAULT_TEMPLATES: EmailTemplate[] = [
   {
-    id: 'promotional-v3',
+    id: 'promotional-v4',
     name: 'Super Oferta - Alta Conversão',
     description: 'Template promocional com gatilhos de urgência e prova social',
     type: 'promotional',
@@ -24,159 +24,211 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           * { box-sizing: border-box; }
-          body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.4; }
+          body { margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; }
           .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
           .pulse { animation: pulse 2s infinite; }
-          .shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
-          @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+          @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
           
           @media only screen and (max-width: 600px) {
-            .mobile-stack { display: block !important; }
-            .mobile-text-center { text-align: center !important; }
             .mobile-padding { padding: 15px !important; }
-            .mobile-font-large { font-size: 24px !important; }
-            .mobile-font-medium { font-size: 18px !important; }
+            .mobile-font-large { font-size: 22px !important; }
+            .mobile-font-medium { font-size: 16px !important; }
             .mobile-font-small { font-size: 14px !important; }
-            .mobile-button { padding: 15px 25px !important; font-size: 16px !important; width: 100% !important; }
+            .mobile-button { padding: 15px 20px !important; font-size: 16px !important; width: 100% !important; }
             .mobile-grid { display: block !important; }
-            .mobile-grid-item { margin-bottom: 15px !important; }
-            .mobile-hide { display: none !important; }
-            .mobile-logo { max-width: 150px !important; height: auto !important; }
+            .mobile-grid-item { margin-bottom: 12px !important; }
+            .mobile-logo { max-width: 150px !important; }
           }
         </style>
       </head>
       <body>
         <div class="container">
           
-          <!-- Header com Urgência -->
+          <!-- Header -->
           <div style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 20px; text-align: center;">
-            <div style="background: rgba(0,0,0,0.3); margin: -20px -20px 15px -20px; padding: 10px; font-size: 14px; font-weight: 700;" class="mobile-font-small">
-              ⏰ ÚLTIMAS 24 HORAS • Promoção termina hoje!
-            </div>
-            
-            <!-- Logo Fly2Any -->
+            <!-- Logo -->
             <div style="margin-bottom: 15px;">
-              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 200px; height: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));" class="mobile-logo" />
+              <img src="/mnt/c/Users/Power/Downloads/Fly2AnyLogo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
             </div>
             
-            <h1 style="margin: 0; font-size: 28px; font-weight: 900;" class="mobile-font-large">
-              ⚡ SUPER OFERTA
+            <h1 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 900;" class="mobile-font-large">
+              ✈️ Fly2Any Travel
             </h1>
-            <p style="margin: 5px 0 0 0; font-size: 16px; opacity: 0.9;" class="mobile-font-medium">
-              Passagens para New York → Belo Horizonte
+            <p style="margin: 0; font-size: 14px; opacity: 0.9;" class="mobile-font-small">
+              Há 21 anos conectando você ao Brasil e o mundo!
             </p>
           </div>
 
           <!-- Oferta Principal -->
-          <div style="padding: 25px; text-align: center; background: linear-gradient(180deg, #fef3c7, #ffffff);" class="mobile-padding">
+          <div style="padding: 20px; background: #f8fafc;" class="mobile-padding">
+            <h2 style="color: #dc2626; font-size: 26px; font-weight: 900; text-align: center; margin: 0 0 20px 0;" class="mobile-font-large">
+              🎯 SuperOFERTA!! Passagens Aéreas
+            </h2>
             
-            <!-- Preço Destaque -->
-            <div style="background: white; padding: 20px; border-radius: 15px; margin: 20px 0; border: 3px solid #fbbf24;" class="shadow">
-              <div style="color: #dc2626; font-size: 48px; font-weight: 900; margin: 0;" class="mobile-font-large">
-                $699
-              </div>
-              <div style="color: #6b7280; font-size: 16px; text-decoration: line-through;">
-                Era $1.200
-              </div>
-              <div style="color: #374151; font-size: 14px; margin-top: 10px; font-weight: 600;">
-                Ida e volta • Taxas incluídas
+            <!-- Lista de Destinos -->
+            <div style="background: white; padding: 20px; border-radius: 12px; margin: 15px 0; border: 2px solid #dc2626;">
+              <div style="display: grid; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="font-weight: 600; color: #374151;">✈️ Miami para Belo Horizonte</span>
+                  <span style="font-weight: 900; color: #dc2626; font-size: 18px;">$ 699</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="font-weight: 600; color: #374151;">✈️ New York para Belo Horizonte</span>
+                  <span style="font-weight: 900; color: #dc2626; font-size: 18px;">$ 699</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="font-weight: 600; color: #374151;">✈️ Newark para Belo Horizonte</span>
+                  <span style="font-weight: 900; color: #dc2626; font-size: 18px;">$ 699</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+                  <span style="font-weight: 600; color: #374151;">✈️ Boston para Belo Horizonte</span>
+                  <span style="font-weight: 900; color: #dc2626; font-size: 18px;">$ 699</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                  <span style="font-weight: 600; color: #374151;">✈️ Orlando para Belo Horizonte</span>
+                  <span style="font-weight: 900; color: #dc2626; font-size: 18px;">$ 699</span>
+                </div>
               </div>
             </div>
 
-            <!-- CTA Principal -->
-            <a href="https://www.fly2any.com" 
-               style="background: linear-gradient(135deg, #dc2626, #ef4444); 
-                      color: white; 
-                      padding: 20px 40px; 
-                      text-decoration: none; 
-                      border-radius: 25px; 
-                      font-weight: 900; 
-                      font-size: 18px; 
-                      display: inline-block; 
-                      margin: 15px 0;
-                      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);" 
-               class="mobile-button pulse">
-              🚀 GARANTIR PASSAGEM
-            </a>
-
-            <!-- Benefícios -->
-            <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981; margin: 20px 0;">
-              <strong style="color: #065f46;">✅ Incluso no preço:</strong><br>
-              • Bagagem de mão e despachada<br>
-              • Seguro viagem<br>
-              • Suporte 24/7
+            <!-- Serviços Extras -->
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981; margin: 15px 0;">
+              <p style="margin: 0 0 8px 0; font-weight: 700; color: #065f46;">
+                Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem
+              </p>
+              <p style="margin: 0; font-size: 14px; color: #374151;">
+                Preço Normal: $ 990 • <span style="color: #dc2626; font-weight: 700;">Economia: $ 300!</span>
+              </p>
             </div>
           </div>
 
-          <!-- Prova Social -->
+          <!-- Depoimento -->
+          <div style="padding: 20px; background: white;" class="mobile-padding">
+            <div style="background: #fef3c7; padding: 20px; border-radius: 12px; border-left: 4px solid #fbbf24;">
+              <div style="margin-bottom: 10px;">
+                <span style="color: #fbbf24;">⭐⭐⭐⭐⭐</span>
+                <strong style="color: #dc2626; margin-left: 8px;">Maria Silva</strong>
+                <span style="color: #6b7280; font-size: 12px;">cliente verificada</span>
+              </div>
+              <p style="font-style: italic; color: #374151; margin: 0; font-size: 14px; line-height: 1.6;">
+                "Comprei o pacote completo da Fly2Any Travel: passagem, hotel 4⭐, carro e passeios. Economizei $1.400 e não precisei me preocupar com NADA! Experiência incrível!"
+              </p>
+            </div>
+          </div>
+
+          <!-- Pacotes Completos -->
           <div style="padding: 20px; background: #f8fafc;" class="mobile-padding">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" class="mobile-grid">
-              
-              <!-- Estatísticas -->
-              <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;" class="shadow mobile-grid-item">
-                <div style="color: #dc2626; font-size: 32px; font-weight: 900;" class="mobile-font-large">21</div>
-                <div style="color: #6b7280; font-size: 14px; font-weight: 600;">Anos de experiência</div>
+            <h3 style="color: #dc2626; font-size: 20px; font-weight: 900; text-align: center; margin: 0 0 20px 0;" class="mobile-font-medium">
+              🎯 PACOTES COMPLETOS - TUDO INCLUÍDO
+            </h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;" class="mobile-grid">
+              <!-- Miami -->
+              <div style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #fbbf24;" class="mobile-grid-item">
+                <div style="font-size: 18px; margin-bottom: 8px;">🏖️</div>
+                <h4 style="color: #dc2626; font-size: 16px; font-weight: 900; margin: 0 0 8px 0;" class="mobile-font-small">MIAMI COMPLETO</h4>
+                <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0; line-height: 1.4;">
+                  Passagem + Hotel 4⭐ + Carro + Seguro + Passeio
+                </p>
+                <div style="color: #dc2626; font-weight: 700; margin: 5px 0;">Consulte</div>
+                <div style="background: #10b981; color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700;">
+                  💰 Economia Garantida
+                </div>
               </div>
 
-              <!-- Depoimento -->
-              <div style="background: white; padding: 20px; border-radius: 10px;" class="shadow mobile-grid-item">
-                <div style="color: #fbbf24; margin-bottom: 8px;">⭐⭐⭐⭐⭐</div>
-                <p style="font-style: italic; color: #374151; margin: 0; font-size: 14px;">
-                  "Economizei muito! Atendimento excelente."
+              <!-- New York -->
+              <div style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #fbbf24;" class="mobile-grid-item">
+                <div style="font-size: 18px; margin-bottom: 8px;">🗽</div>
+                <h4 style="color: #dc2626; font-size: 16px; font-weight: 900; margin: 0 0 8px 0;" class="mobile-font-small">NEW YORK COMPLETO</h4>
+                <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0; line-height: 1.4;">
+                  Passagem + Hotel 4⭐ + Carro + Seguro + Passeio
                 </p>
-                <div style="color: #6b7280; font-size: 12px; margin-top: 5px; font-weight: 600;">
-                  - Maria S., São Paulo
+                <div style="color: #dc2626; font-weight: 700; margin: 5px 0;">Consulte</div>
+                <div style="background: #10b981; color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700;">
+                  💰 Economia Garantida
+                </div>
+              </div>
+
+              <!-- Orlando -->
+              <div style="background: white; padding: 15px; border-radius: 10px; text-align: center; border: 2px solid #fbbf24;" class="mobile-grid-item">
+                <div style="font-size: 18px; margin-bottom: 8px;">🎢</div>
+                <h4 style="color: #dc2626; font-size: 16px; font-weight: 900; margin: 0 0 8px 0;" class="mobile-font-small">ORLANDO COMPLETO</h4>
+                <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0; line-height: 1.4;">
+                  Passagem + Hotel 4⭐ + Carro + Seguro + Passeio
+                </p>
+                <div style="color: #dc2626; font-weight: 700; margin: 5px 0;">Consulte</div>
+                <div style="background: #10b981; color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700;">
+                  💰 Economia Garantida!
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Urgência Final -->
-          <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 25px; text-align: center;" class="mobile-padding">
-            <h3 style="margin: 0 0 15px 0; font-size: 20px; font-weight: 900;" class="mobile-font-medium">
-              ⚡ Últimas 15 vagas disponíveis!
+          <!-- Por que escolher -->
+          <div style="padding: 20px; background: white;" class="mobile-padding">
+            <h3 style="color: #dc2626; font-size: 18px; font-weight: 900; text-align: center; margin: 0 0 15px 0;" class="mobile-font-medium">
+              🎯 POR QUE ESCOLHER NOSSOS PACOTES?
             </h3>
             
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0;">
-              <div style="color: #fbbf24; font-size: 24px; font-weight: 900; font-family: monospace;" class="mobile-font-medium">
-                23:47:12
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; text-align: center;" class="mobile-grid">
+              <div class="mobile-grid-item">
+                <div style="font-size: 24px; margin-bottom: 5px;">🎯</div>
+                <div style="font-size: 12px; font-weight: 700; color: #374151;">TUDO EM 1 LUGAR</div>
               </div>
-              <div style="font-size: 12px; opacity: 0.8;">Tempo restante (H:M:S)</div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 24px; margin-bottom: 5px;">💰</div>
+                <div style="font-size: 12px; font-weight: 700; color: #374151;">ECONOMIA REAL</div>
+              </div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 24px; margin-bottom: 5px;">🏆</div>
+                <div style="font-size: 12px; font-weight: 700; color: #374151;">21 ANOS EXP.</div>
+              </div>
+              <div class="mobile-grid-item">
+                <div style="font-size: 24px; margin-bottom: 5px;">⚡</div>
+                <div style="font-size: 12px; font-weight: 700; color: #374151;">SUPORTE 24/7</div>
+              </div>
             </div>
+          </div>
 
-            <!-- CTA Final -->
+          <!-- CTA Principal -->
+          <div style="padding: 25px; text-align: center; background: linear-gradient(135deg, #dc2626, #b91c1c); color: white;" class="mobile-padding">
             <a href="https://www.fly2any.com" 
                style="background: linear-gradient(135deg, #fbbf24, #f59e0b); 
                       color: #1e293b; 
-                      padding: 18px 35px; 
+                      padding: 20px 40px; 
                       text-decoration: none; 
-                      border-radius: 20px; 
+                      border-radius: 25px; 
                       font-weight: 900; 
-                      font-size: 16px; 
+                      font-size: 18px; 
                       display: inline-block;
                       box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);" 
                class="mobile-button pulse">
-              🔥 GARANTIR AGORA
+              🚀 QUERO RESERVAR AGORA
             </a>
-
-            <div style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
-              ✅ Sem taxas extras • 🛡️ Cancelamento 24h • ⚡ Suporte 24/7
+            
+            <div style="margin-top: 15px; font-size: 12px;">
+              ⏰ Oferta válida até amanhã às 23:59
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; opacity: 0.9;">
+              ✅ Sem taxa de conveniência • Cancelamento grátis em 24h
             </div>
           </div>
 
           <!-- Footer -->
           <div style="background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 12px;" class="mobile-padding">
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 15px;">
               <strong style="color: white;">Fly2Any Travel</strong><br>
-              21 anos conectando você ao mundo
+              Há 21 anos conectando você ao Brasil e o mundo!
             </div>
             
             <div style="margin: 15px 0;">
               <a href="https://wa.me/1151944717" style="color: #25d366; text-decoration: none; margin: 0 10px;">
-                📱 WhatsApp
+                📱 WhatsApp: wa.me/1151944717
               </a>
-              <a href="mailto:info@fly2any.com" style="color: #60a5fa; text-decoration: none; margin: 0 10px;">
-                📧 Email
+            </div>
+            <div>
+              <a href="mailto:info@fly2any.com" style="color: #60a5fa; text-decoration: none;">
+                📧 info@fly2any.com
               </a>
             </div>
             
