@@ -81,10 +81,10 @@ async function loadSavedTemplates() {
   return EMAIL_TEMPLATES_FALLBACK;
 }
 
-// Templates de fallback PREMIUM COMPACTOS (versão mais recente)
+// Templates PREMIUM OTIMIZADOS com estratégias avançadas de marketing
 const EMAIL_TEMPLATES_FALLBACK = {
   promotional: {
-    subject: '🎯 SuperOFERTA!! Passagens Aéreas a partir de $699 - Fly2Any Travel',
+    subject: '⏰ ÚLTIMAS 18 VAGAS! $699 Miami→BH • 16h23min RESTANTES • 30% OFF - Fly2Any',
     html: `
       <!DOCTYPE html>
       <html>
@@ -96,32 +96,42 @@ const EMAIL_TEMPLATES_FALLBACK = {
           .shadow-premium { box-shadow: 0 10px 40px rgba(220, 38, 38, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1); }
           .pulse { animation: pulse 2s infinite; }
           .floating { animation: float 3s ease-in-out infinite; }
-          .zigzag { background-image: zigzag-pattern; }
           .limited-badge { position: relative; overflow: hidden; }
           .limited-badge::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shine 2s infinite; }
           .urgency-timer { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 800; display: inline-block; position: relative; }
           .scarcity-bar { height: 8px; background: #fee2e2; border-radius: 4px; overflow: hidden; }
-          .scarcity-fill { height: 100%; background: linear-gradient(135deg, #dc2626, #ef4444); width: 23%; border-radius: 4px; }
+          .scarcity-fill { height: 100%; background: linear-gradient(135deg, #dc2626, #ef4444); width: 18%; border-radius: 4px; }
           @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
           @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
           @keyframes shine { 0% { left: -100%; } 100% { left: 100%; } }
           @media only screen and (max-width: 600px) {
-            .mobile-padding { padding: 8px !important; }
-            .mobile-compact { padding: 6px 8px !important; }
+            .mobile-padding { padding: 10px !important; }
+            .mobile-compact { padding: 8px !important; }
             .mobile-font-large { font-size: 20px !important; line-height: 1.1 !important; }
             .mobile-font-medium { font-size: 16px !important; line-height: 1.2 !important; }
             .mobile-font-small { font-size: 13px !important; line-height: 1.3 !important; }
             .mobile-grid { display: block !important; }
-            .mobile-grid-item { margin-bottom: 6px !important; }
-            .mobile-button { padding: 10px 16px !important; font-size: 14px !important; }
+            .mobile-grid-item { margin-bottom: 8px !important; }
+            .mobile-button { padding: 12px 18px !important; font-size: 14px !important; }
             .mobile-destinations { font-size: 13px !important; }
             .mobile-price { font-size: 16px !important; }
-            .mobile-stack { display: flex !important; flex-direction: column !important; gap: 4px !important; }
-            .mobile-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
-            .mobile-three-col { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 4px !important; }
-            .mobile-ultra-compact { padding: 4px 6px !important; margin: 2px 0 !important; }
+            .mobile-stack { display: flex !important; flex-direction: column !important; gap: 6px !important; }
+            .mobile-two-col { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+            .mobile-three-col { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+            .mobile-ultra-compact { padding: 6px 8px !important; margin: 3px 0 !important; }
             .logo-responsive { max-width: 180px !important; height: auto !important; }
             .logo-mobile { max-width: 140px !important; height: auto !important; }
+          }
+          @media only screen and (max-width: 480px) {
+            .mobile-padding { padding: 8px !important; }
+            .mobile-compact { padding: 6px !important; }
+            .mobile-font-large { font-size: 18px !important; }
+            .mobile-font-medium { font-size: 14px !important; }
+            .mobile-font-small { font-size: 12px !important; }
+            .mobile-button { padding: 10px 15px !important; font-size: 13px !important; }
+            .mobile-destinations { font-size: 12px !important; }
+            .mobile-price { font-size: 15px !important; }
+            .mobile-ultra-compact { padding: 4px 6px !important; margin: 2px 0 !important; }
           }
         </style>
       </head>
@@ -130,105 +140,106 @@ const EMAIL_TEMPLATES_FALLBACK = {
         <a href="https://www.fly2any.com" style="text-decoration: none; color: inherit; display: block;">
           <div style="width: 100%; background: white; cursor: pointer;">
           
-          <!-- Header Ultra Compacto -->
-          <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 12px 15px; text-align: center; position: relative;" class="mobile-compact">
-            <!-- Urgência integrada -->
-            <div style="background: rgba(0,0,0,0.4); margin: -12px -15px 8px -15px; padding: 6px; font-size: 13px; font-weight: 800;" class="mobile-font-small">
-              ⏰ ÚLTIMAS 23 VAGAS • Expira 18h47min • 🔥 HISTÓRICO!
+          <!-- Header Ultra Compacto com Urgência -->
+          <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; padding: 15px; text-align: center; position: relative;" class="mobile-compact">
+            <!-- Banner de Urgência TOP -->
+            <div style="background: rgba(0,0,0,0.6); margin: -15px -15px 10px -15px; padding: 8px; font-size: 14px; font-weight: 900;" class="mobile-font-small">
+              ⏰ ÚLTIMAS 18 VAGAS • Expira 16h23min • 🔥 30% OFF HISTÓRICO!
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center;" class="mobile-stack">
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
                 <!-- Logo Fly2Any -->
-                <div style="color: white; font-size: 24px; font-weight: 900;">✈️ FLY2ANY</div>
+                <div style="color: white; font-size: 26px; font-weight: 900;">✈️ FLY2ANY</div>
                 <div style="text-align: left;">
-                  <p style="margin: 0; font-size: 14px; opacity: 0.95; font-weight: 600; line-height: 1.2;" class="mobile-font-small">🏆 21 anos conectando você ao mundo<br>50K+ clientes satisfeitos</p>
+                  <p style="margin: 0; font-size: 15px; opacity: 0.95; font-weight: 600; line-height: 1.2;" class="mobile-font-small">🏆 21 anos conectando você ao mundo<br>50K+ clientes satisfeitos</p>
                 </div>
               </div>
-              <div style="text-align: right; font-size: 18px; font-weight: 900; background: rgba(251,191,36,0.2); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.5);" class="mobile-font-medium">
+              <div style="text-align: right; font-size: 20px; font-weight: 900; background: rgba(251,191,36,0.2); padding: 10px 15px; border-radius: 15px; border: 2px solid rgba(251,191,36,0.6);" class="mobile-font-medium">
                 <div style="color: #fbbf24; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">$699</div>
-                <div style="font-size: 11px; opacity: 0.8; color: rgba(255,255,255,0.9);">A partir de</div>
+                <div style="font-size: 12px; opacity: 0.8; color: rgba(255,255,255,0.9);">A partir de</div>
               </div>
             </div>
           </div>
 
-          <!-- Oferta Principal Horizontal -->
-          <div style="padding: 10px 12px; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);" class="mobile-compact">
-            <!-- Header + Escassez em linha -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" class="mobile-stack">
+          <!-- Oferta Principal com Escassez -->
+          <div style="padding: 15px; background: linear-gradient(180deg, #fef3c7 0%, #ffffff 100%);" class="mobile-compact">
+            <!-- Header + Badge de Escassez -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="mobile-stack">
               <div>
-                <h2 style="color: #dc2626; font-size: 22px; margin: 0; font-weight: 900;" class="mobile-font-medium">🎯 SuperOFERTA</h2>
-                <div style="font-size: 11px; color: #dc2626; font-weight: 700;">⚡ 23/100 vagas restantes</div>
+                <h2 style="color: #dc2626; font-size: 24px; margin: 0; font-weight: 900;" class="mobile-font-medium">🎯 SuperOFERTA</h2>
+                <div style="font-size: 12px; color: #dc2626; font-weight: 700;">⚡ 18/100 vagas restantes</div>
               </div>
-              <div class="limited-badge" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 4px 8px; border-radius: 15px; font-size: 10px; font-weight: 900;">
+              <div class="limited-badge" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 900;">
                 🔥 LIMITADO
               </div>
             </div>
             
-            <!-- Barra de progresso compacta -->
-            <div class="scarcity-bar" style="margin: 6px 0;">
+            <!-- Barra de Escassez -->
+            <div class="scarcity-bar" style="margin: 8px 0;">
               <div class="scarcity-fill"></div>
             </div>
             
-            <!-- Destinos em Grid Horizontal Compacto -->
-            <div style="background: white; padding: 10px; border-radius: 12px; margin: 8px 0; border: 2px solid #fbbf24;" class="shadow-premium">
-              <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 4px; border-radius: 6px; margin: -10px -10px 8px -10px; text-align: center; font-weight: 900; font-size: 12px;">
-                💰 PREÇOS HISTÓRICOS
+            <!-- Grid de Destinos Premium -->
+            <div style="background: white; padding: 15px; border-radius: 15px; margin: 10px 0; border: 2px solid #fbbf24;" class="shadow-premium">
+              <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 6px; border-radius: 8px; margin: -15px -15px 12px -15px; text-align: center; font-weight: 900; font-size: 13px;">
+                💰 PREÇOS HISTÓRICOS - NUNCA VISTO!
               </div>
               
-              <!-- Grid 3 destinos em linha -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;" class="mobile-grid">
-                <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                  <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Miami</div>
-                  <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                  <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $990</div>
+              <!-- Grid 3 destinos -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;" class="mobile-grid">
+                <div style="text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 8px;" class="mobile-grid-item mobile-ultra-compact">
+                  <div style="font-size: 14px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Miami</div>
+                  <div style="color: #dc2626; font-size: 20px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                  <div style="font-size: 10px; color: #6b7280; text-decoration: line-through;">era $990</div>
                 </div>
                 
-                <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                  <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ NY</div>
-                  <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                  <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $950</div>
+                <div style="text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 8px;" class="mobile-grid-item mobile-ultra-compact">
+                  <div style="font-size: 14px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ NY</div>
+                  <div style="color: #dc2626; font-size: 20px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                  <div style="font-size: 10px; color: #6b7280; text-decoration: line-through;">era $950</div>
                 </div>
                 
-                <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                  <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Orlando</div>
-                  <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                  <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $980</div>
+                <div style="text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 8px;" class="mobile-grid-item mobile-ultra-compact">
+                  <div style="font-size: 14px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Orlando</div>
+                  <div style="color: #dc2626; font-size: 20px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                  <div style="font-size: 10px; color: #6b7280; text-decoration: line-through;">era $980</div>
                 </div>
               </div>
               
-              <div style="text-align: center; font-size: 10px; color: #6b7280; margin-top: 6px; font-weight: 600;">
+              <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 8px; font-weight: 600;">
                 Ida e volta • Taxas incluídas • Todos para Belo Horizonte
               </div>
             </div>
             
-            <!-- CTA + Bônus em linha -->
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px 0;" class="mobile-stack">
-              <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: 900; font-size: 16px; flex: 1; text-align: center;" class="mobile-button pulse">
+            <!-- CTA + Timer -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 12px 0;" class="mobile-stack">
+              <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 900; font-size: 18px; flex: 1; text-align: center;" class="mobile-button pulse">
                 🚀 GARANTIR AGORA
               </a>
             </div>
             
-            <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); padding: 6px 8px; border-radius: 8px; border-left: 3px solid #10b981; font-size: 12px; margin: 6px 0;" class="mobile-font-small">
-              🎁 <strong>BÔNUS:</strong> Hotel 4⭐ + Carro + Passeios + Seguro + Transfer • <span style="color: #dc2626; font-weight: 800;">Economize $500 extra!</span>
+            <!-- Bônus Premium -->
+            <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); padding: 10px 12px; border-radius: 10px; border-left: 4px solid #10b981; font-size: 13px; margin: 10px 0;" class="mobile-font-small">
+              🎁 <strong>BÔNUS INCLUÍDO:</strong> Hotel 4⭐ + Carro + Passeios + Seguro + Transfer • <span style="color: #dc2626; font-weight: 800;">Economize $500 extra!</span>
             </div>
           </div>
 
-          <!-- Prova Social Ultra Compacta -->
-          <div style="padding: 8px 12px; background: linear-gradient(135deg, #f8fafc, #e2e8f0);" class="mobile-compact">
-            <!-- Estatísticas + Depoimentos em linha -->
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; align-items: center;" class="mobile-grid">
+          <!-- Prova Social Compacta -->
+          <div style="padding: 12px 15px; background: linear-gradient(135deg, #f8fafc, #e2e8f0);" class="mobile-compact">
+            <!-- Estatísticas + Depoimento -->
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px; align-items: center;" class="mobile-grid">
               <!-- Stats compactas -->
-              <div style="background: white; padding: 8px; border-radius: 8px; text-align: center;" class="shadow-premium mobile-grid-item">
-                <div style="font-size: 16px; font-weight: 900; color: #dc2626; margin-bottom: 2px;" class="mobile-font-medium">50K+</div>
-                <div style="font-size: 9px; color: #6b7280; font-weight: 700; line-height: 1.2;">Clientes • 21 anos • 98% satisfação</div>
+              <div style="background: white; padding: 10px; border-radius: 10px; text-align: center;" class="shadow-premium mobile-grid-item">
+                <div style="font-size: 18px; font-weight: 900; color: #dc2626; margin-bottom: 3px;" class="mobile-font-medium">50K+</div>
+                <div style="font-size: 10px; color: #6b7280; font-weight: 700; line-height: 1.2;">Clientes • 21 anos • 98% satisfação</div>
               </div>
               
               <!-- Depoimento condensado -->
-              <div style="background: white; padding: 8px; border-radius: 8px; border-left: 3px solid #fbbf24;" class="shadow-premium mobile-grid-item">
-                <div style="font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 2px;" class="mobile-font-small">
+              <div style="background: white; padding: 10px; border-radius: 10px; border-left: 4px solid #fbbf24;" class="shadow-premium mobile-grid-item">
+                <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 3px;" class="mobile-font-small">
                   ⭐⭐⭐⭐⭐ Maria S. • São Paulo ✓
                 </div>
-                <p style="font-style: italic; color: #374151; margin: 0; font-size: 11px; line-height: 1.2; font-weight: 500;" class="mobile-font-small">
+                <p style="font-style: italic; color: #374151; margin: 0; font-size: 12px; line-height: 1.3; font-weight: 500;" class="mobile-font-small">
                   "Economizei $1.400! Atendimento perfeito. 21 anos de experiência fazem diferença!"
                 </p>
               </div>
@@ -239,35 +250,35 @@ const EMAIL_TEMPLATES_FALLBACK = {
         </a>
         
         <!-- Footer Ultra Compacto -->
-        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f1f5f9; padding: 12px 15px; text-align: center; width: 100%; margin-top: 0; position: relative;" class="mobile-compact">
-          <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(135deg, #dc2626, #fbbf24, #10b981);"></div>
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f1f5f9; padding: 15px; text-align: center; width: 100%; margin-top: 0; position: relative;" class="mobile-compact">
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(135deg, #dc2626, #fbbf24, #10b981);"></div>
           
           <!-- Contatos + CTA Final -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;" class="mobile-stack">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="color: white; font-size: 16px; font-weight: 900;">✈️ FLY2ANY</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" class="mobile-stack">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="color: white; font-size: 18px; font-weight: 900;">✈️ FLY2ANY</div>
               <div style="text-align: left;">
-                <div style="font-size: 9px; color: #64748b; font-weight: 600; line-height: 1.2;">21 anos • 50K+ clientes • IATA</div>
+                <div style="font-size: 10px; color: #64748b; font-weight: 600; line-height: 1.2;">21 anos • 50K+ clientes • IATA</div>
               </div>
             </div>
             
-            <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 8px 16px; text-decoration: none; border-radius: 15px; font-weight: 900; font-size: 12px;" class="mobile-button">
+            <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 10px 20px; text-decoration: none; border-radius: 18px; font-weight: 900; font-size: 13px;" class="mobile-button">
               🚀 GARANTIR AGORA
             </a>
           </div>
           
           <!-- Contatos horizontais -->
-          <div style="display: flex; gap: 6px; justify-content: center;" class="mobile-stack">
-            <a href="https://wa.me/1151944717" style="background: rgba(37, 211, 102, 0.2); color: #25d366; padding: 6px 8px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 11px;" class="mobile-font-small">
+          <div style="display: flex; gap: 8px; justify-content: center;" class="mobile-stack">
+            <a href="https://wa.me/1151944717" style="background: rgba(37, 211, 102, 0.2); color: #25d366; padding: 8px 12px; border-radius: 15px; text-decoration: none; font-weight: 800; font-size: 12px;" class="mobile-font-small">
               📱 WhatsApp
             </a>
-            <a href="mailto:info@fly2any.com" style="background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 6px 8px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 11px;" class="mobile-font-small">
+            <a href="mailto:info@fly2any.com" style="background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 8px 12px; border-radius: 15px; text-decoration: none; font-weight: 800; font-size: 12px;" class="mobile-font-small">
               📧 Email
             </a>
           </div>
           
           <!-- Unsubscribe link -->
-          <div style="font-size: 8px; color: #64748b; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">
+          <div style="font-size: 9px; color: #64748b; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
             <a href="{{unsubscribe_url}}" style="color: #94a3b8; text-decoration: none;">⚙️ Cancelar inscrição</a>
           </div>
         </div>
