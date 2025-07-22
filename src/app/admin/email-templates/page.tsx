@@ -61,8 +61,25 @@ export default function EmailTemplatesPage() {
     }
   };
 
-  const loadTemplates = () => {
-    // Templates PREMIUM COMPACTOS - Versão mais recente e otimizada
+  const loadTemplates = async () => {
+    try {
+      // Carregar templates da API primeiro
+      const response = await fetch('/api/email-templates');
+      const data = await response.json();
+      
+      if (data.success && data.templates && data.templates.length > 0) {
+        console.log('✅ Templates carregados da API:', data.templates.length);
+        setTemplates(data.templates);
+        // Salvar no localStorage como backup
+        saveTemplatesLocally(data.templates);
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.warn('⚠️ Erro ao carregar da API, usando templates padrão:', error);
+    }
+    
+    // Fallback: Templates PREMIUM COMPACTOS - Versão mais recente e otimizada
     const systemTemplates: EmailTemplate[] = [
       {
         id: 'promotional',

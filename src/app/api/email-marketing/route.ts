@@ -73,11 +73,33 @@ function getGmailCredentials() {
   return { email, password };
 }
 
-// Função para carregar templates PREMIUM (sempre usar versão mais recente)
+// Função para carregar templates da API
 async function loadSavedTemplates() {
-  console.log('🚀 FORÇANDO templates PREMIUM COMPACTOS - v' + Date.now());
+  try {
+    // Buscar templates da API de templates
+    const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/email-templates`);
+    const data = await response.json();
+    
+    if (data.success && data.templates && data.templates.length > 0) {
+      console.log('✅ Templates carregados da API para email marketing:', data.templates.length);
+      
+      // Converter para formato esperado pelo email marketing
+      const templatesFormatted: any = {};
+      
+      data.templates.forEach((template: any) => {
+        templatesFormatted[template.type] = {
+          subject: template.subject,
+          html: template.html
+        };
+      });
+      
+      return templatesFormatted;
+    }
+  } catch (error) {
+    console.warn('⚠️ Erro ao carregar templates da API, usando fallback:', error);
+  }
   
-  // SEMPRE retornar templates premium compactos
+  // Fallback para templates padrão
   return EMAIL_TEMPLATES_FALLBACK;
 }
 
