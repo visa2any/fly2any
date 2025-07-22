@@ -279,13 +279,13 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
         <div class="container">
           
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #ffffff, #f8fafc); color: #374151; padding: 20px; text-align: center; border-bottom: 3px solid #dc2626;">
+          <div style="background: linear-gradient(135deg, #1e293b, #374151); color: white; padding: 20px; text-align: center; border-bottom: 3px solid #dc2626;">
             <!-- Logo -->
             <div style="margin-bottom: 10px;">
               <img src="https://www.fly2any.com/fly2any-logo.png" alt="Fly2Any Travel" style="max-width: 180px; height: auto;" class="mobile-logo" />
             </div>
             
-            <p style="margin: 0; font-size: 14px; color: #6b7280;" class="mobile-font-small">
+            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.9);" class="mobile-font-small">
               Há 21 anos conectando você ao Brasil e o mundo!
             </p>
           </div>
