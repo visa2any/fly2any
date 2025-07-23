@@ -222,12 +222,32 @@ class EmailService {
 
                 <div class="offers">
                     <h3 style="color: #059669; margin-top: 0; text-align: center;">
-                        🎯 O que oferecemos exclusivamente:
+                        🔥 Ofertas Especiais Brasil ↔ EUA:
                     </h3>
-                    <div class="offer-item">
-                        <span class="check">✈️</span>
-                        <span><strong>Passagens aéreas</strong> com até 60% de desconto</span>
+                    <div style="background: white; padding: 20px; border-radius: 12px; margin: 15px 0; border: 2px solid #dc2626;">
+                        <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px; text-align: center; color: #dc2626;">
+                            ✈️ Miami para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                            ✈️ New York para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                            ✈️ Newark para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                            ✈️ Boston para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                            ✈️ Orlando para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+                        </div>
+                        
+                        <div style="background: #fef2f2; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 14px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; font-weight: bold; color: #059669;">
+                                💰 <strong>Preço Normal:</strong> $ 990 • <strong style="color: #dc2626;">Economia: $ 300!</strong>
+                            </p>
+                            <p style="margin: 0 0 8px 0; color: #374151;">
+                                🔄 <strong>Ida e Volta</strong> 1 stop<br>
+                                🧳 <strong>Inclui:</strong> 1 mala despachada de 50lb + 1 de mão de 10 lbs<br>
+                                ✅ <strong>Cancelamento grátis</strong> até 24 hrs após a compra
+                            </p>
+                        </div>
                     </div>
+                    
+                    <h3 style="color: #059669; margin-top: 20px; text-align: center;">
+                        🎯 O que mais oferecemos:
+                    </h3>
                     <div class="offer-item">
                         <span class="check">🏨</span>
                         <span><strong>Hotéis premium</strong> com tarifas especiais</span>
@@ -301,8 +321,19 @@ Obrigado por escolher a Fly2Any! Somos especialistas em viagens para brasileiros
 🔥 OFERTA LIMITADA - APENAS HOJE!
 Economize até $2,500 em passagens + hotel
 
-🎯 O que oferecemos exclusivamente:
-✈️ Passagens aéreas com até 60% de desconto
+🔥 Ofertas Especiais Brasil ↔ EUA:
+✈️ Miami para Belo Horizonte $699
+✈️ New York para Belo Horizonte $699
+✈️ Newark para Belo Horizonte $699
+✈️ Boston para Belo Horizonte $699
+✈️ Orlando para Belo Horizonte $699
+
+💰 Preço Normal: $ 990 • Economia: $ 300!
+🔄 Ida e Volta 1 stop
+🧳 Inclui: 1 mala despachada de 50lb + 1 de mão de 10 lbs
+✅ Cancelamento grátis até 24 hrs após a compra
+
+🎯 O que mais oferecemos:
 🏨 Hotéis premium com tarifas especiais  
 🚗 Aluguel de carros sem taxas ocultas
 🎫 Ingressos Disney/Universal com desconto
