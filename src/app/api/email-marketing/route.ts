@@ -782,9 +782,9 @@ export async function POST(request: NextRequest) {
           }, { status: 404 });
         }
 
-        // Buscar contatos disponíveis
+        // Buscar contatos disponíveis (usar 'ativo' em português)
         const filters: any = {
-          status: 'active',
+          status: 'ativo',
           email_status: 'not_sent',
           limit: parseInt(limit)
         };
