@@ -833,6 +833,64 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // Retry envio de campanha que ficou pendente
+      case 'retry_campaign': {
+        const { campaignId } = body;
+        
+        if (!campaignId) {
+          return NextResponse.json({
+            success: false,
+            error: 'campaignId é obrigatório'
+          }, { status: 400 });
+        }
+
+        const campaign = await EmailCampaignsDB.findById(campaignId);
+        if (!campaign) {
+          return NextResponse.json({
+            success: false,
+            error: 'Campanha não encontrada'
+          }, { status: 404 });
+        }
+
+        // Buscar envios pendentes
+        const pendingSends = await EmailSendsDB.findByCampaign(campaignId);
+        const pendingOnly = pendingSends.filter(send => send.status === 'pending');
+        
+        if (pendingOnly.length === 0) {
+          return NextResponse.json({
+            success: false,
+            error: 'Não há envios pendentes para esta campanha'
+          }, { status: 400 });
+        }
+
+        // Buscar contatos para os envios pendentes
+        const contactIds = pendingOnly.map(send => send.contact_id);
+        const contacts: EmailContact[] = [];
+        
+        for (const contactId of contactIds) {
+          const contact = await EmailContactsDB.findById(contactId);
+          if (contact) {
+            contacts.push(contact);
+          }
+        }
+
+        // Reiniciar processo de envio assíncrono
+        await EmailCampaignsDB.updateStatus(campaignId, 'sending');
+        
+        processCampaignSends(campaign, contacts, pendingOnly).catch(error => {
+          console.error('Erro no reprocessamento assíncrono:', error);
+        });
+        
+        return NextResponse.json({
+          success: true,
+          data: {
+            message: `Reprocessando ${pendingOnly.length} envios pendentes`,
+            campaignId,
+            totalPending: pendingOnly.length
+          }
+        });
+      }
+
       // Ações rápidas (compatibilidade com interface atual)
       case 'send_promotional':
       case 'send_newsletter': 
