@@ -91,13 +91,20 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
               </div>
             </div>
 
-            <!-- Serviços Extras -->
+            <!-- Informações Detalhadas dos Benefícios -->
             <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981; margin: 15px 0;">
-              <p style="margin: 0 0 8px 0; font-weight: 700; color: #065f46;">
-                Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem
+              <p style="margin: 0 0 12px 0; font-weight: 700; color: #065f46; font-size: 16px;">
+                💰 <strong>Preço Normal:</strong> $ 990 • <strong style="color: #dc2626;">Economia: $ 300!</strong>
               </p>
-              <p style="margin: 0; font-size: 14px; color: #374151;">
-                Preço Normal: $ 990 • <span style="color: #dc2626; font-weight: 700;">Economia: $ 300!</span>
+              <div style="background: white; padding: 12px; border-radius: 8px; margin: 8px 0;">
+                <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">
+                  🔄 <strong>Ida e Volta</strong> 1 stop<br>
+                  🧳 <strong>Inclui:</strong> 1 mala despachada de 50lb + 1 de mão de 10 lbs<br>
+                  ✅ <strong>Cancelamento grátis</strong> até 24 hrs após a compra
+                </p>
+              </div>
+              <p style="margin: 8px 0 0 0; font-weight: 700; color: #065f46; font-size: 14px;">
+                Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem
               </p>
             </div>
           </div>
@@ -320,13 +327,20 @@ const DEFAULT_TEMPLATES: EmailTemplate[] = [
               </div>
             </div>
 
-            <!-- Serviços Extras -->
+            <!-- Informações Detalhadas dos Benefícios -->
             <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981; margin: 15px 0;">
-              <p style="margin: 0 0 8px 0; font-weight: 700; color: #065f46;">
-                Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem
+              <p style="margin: 0 0 12px 0; font-weight: 700; color: #065f46; font-size: 16px;">
+                💰 <strong>Preço Normal:</strong> $ 990 • <strong style="color: #dc2626;">Economia: $ 300!</strong>
               </p>
-              <p style="margin: 0; font-size: 14px; color: #374151;">
-                Preço Normal: $ 990 • <span style="color: #dc2626; font-weight: 700;">Economia: $ 300!</span>
+              <div style="background: white; padding: 12px; border-radius: 8px; margin: 8px 0;">
+                <p style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">
+                  🔄 <strong>Ida e Volta</strong> 1 stop<br>
+                  🧳 <strong>Inclui:</strong> 1 mala despachada de 50lb + 1 de mão de 10 lbs<br>
+                  ✅ <strong>Cancelamento grátis</strong> até 24 hrs após a compra
+                </p>
+              </div>
+              <p style="margin: 8px 0 0 0; font-weight: 700; color: #065f46; font-size: 14px;">
+                Também temos 🏨 Hotel + 🚗 Carro + 🎯 Passeios + 🛡️ Seguro Viagem
               </p>
             </div>
           </div>
