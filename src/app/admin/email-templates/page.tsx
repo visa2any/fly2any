@@ -187,23 +187,29 @@ export default function EmailTemplatesPage() {
                   
                   <!-- Grid 3 destinos em linha -->
                   <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;" class="mobile-grid">
-                    <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                      <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Miami</div>
-                      <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                      <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $990</div>
-                    </div>
+                    <a href="https://www.fly2any.com?destino=miami&utm_source=email&utm_campaign=super_oferta" style="text-decoration: none; color: inherit; display: block;">
+                      <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px; cursor: pointer; transition: transform 0.2s;" class="mobile-grid-item mobile-ultra-compact" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Miami</div>
+                        <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                        <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $990</div>
+                      </div>
+                    </a>
                     
-                    <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                      <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ NY</div>
-                      <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                      <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $950</div>
-                    </div>
+                    <a href="https://www.fly2any.com?destino=new-york&utm_source=email&utm_campaign=super_oferta" style="text-decoration: none; color: inherit; display: block;">
+                      <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px; cursor: pointer; transition: transform 0.2s;" class="mobile-grid-item mobile-ultra-compact" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ NY</div>
+                        <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                        <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $950</div>
+                      </div>
+                    </a>
                     
-                    <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px;" class="mobile-grid-item mobile-ultra-compact">
-                      <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Orlando</div>
-                      <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
-                      <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $980</div>
-                    </div>
+                    <a href="https://www.fly2any.com?destino=orlando&utm_source=email&utm_campaign=super_oferta" style="text-decoration: none; color: inherit; display: block;">
+                      <div style="text-align: center; padding: 6px; background: linear-gradient(135deg, #fef3c7, #fff7ed); border-radius: 6px; cursor: pointer; transition: transform 0.2s;" class="mobile-grid-item mobile-ultra-compact" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="font-size: 13px; font-weight: 800; color: #374151;" class="mobile-destinations">✈️ Orlando</div>
+                        <div style="color: #dc2626; font-size: 18px; font-weight: 900;" class="mobile-price gradient-text">$699</div>
+                        <div style="font-size: 9px; color: #6b7280; text-decoration: line-through;">era $980</div>
+                      </div>
+                    </a>
                   </div>
                   
                   <div style="text-align: center; font-size: 10px; color: #6b7280; margin-top: 6px; font-weight: 600;">
@@ -213,7 +219,7 @@ export default function EmailTemplatesPage() {
                 
                 <!-- CTA + Bônus em linha -->
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 8px 0;" class="mobile-stack">
-                  <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: 900; font-size: 16px; flex: 1; text-align: center;" class="mobile-button pulse">
+                  <a href="https://www.fly2any.com?utm_source=email&utm_campaign=super_oferta&utm_medium=email_template" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 12px 24px; text-decoration: none; border-radius: 20px; font-weight: 900; font-size: 16px; flex: 1; text-align: center;" class="mobile-button pulse">
                     🚀 GARANTIR AGORA
                   </a>
                 </div>
@@ -261,7 +267,7 @@ export default function EmailTemplatesPage() {
                   </div>
                 </div>
                 
-                <a href="https://www.fly2any.com" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 8px 16px; text-decoration: none; border-radius: 15px; font-weight: 900; font-size: 12px;" class="mobile-button">
+                <a href="https://www.fly2any.com?utm_source=email&utm_campaign=super_oferta&utm_medium=email_vip" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 8px 16px; text-decoration: none; border-radius: 15px; font-weight: 900; font-size: 12px;" class="mobile-button">
                   🚀 GARANTIR AGORA
                 </a>
               </div>
