@@ -412,13 +412,29 @@ export default function EmailMarketingPage() {
                 value={selectedSegment}
                 onChange={(e) => setSelectedSegment(e.target.value)}
               >
-                <option value="">Todos os contatos</option>
-                <option value="brasileiros-eua">Brasileiros nos EUA (1.500)</option>
-                <option value="familias">Famílias (1.200)</option>
-                <option value="casais">Casais/Lua de mel (1.000)</option>
-                <option value="aventureiros">Aventureiros (800)</option>
-                <option value="executivos">Executivos (500)</option>
+                <option value="">Todos os contatos ({stats?.totalContacts || 0})</option>
+                {stats?.segmentStats && Object.entries(stats.segmentStats).map(([segment, count]) => (
+                  <option key={segment} value={segment}>
+                    {segment.charAt(0).toUpperCase() + segment.slice(1)} ({count})
+                  </option>
+                ))}
               </select>
+            </div>
+          </div>
+          
+          {/* Gmail Rate Limiting Alert */}
+          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start space-x-3">
+              <div className="text-yellow-600 text-lg">⚠️</div>
+              <div>
+                <h4 className="font-semibold text-yellow-800 mb-2">Limites do Gmail (SMTP)</h4>
+                <div className="text-sm text-yellow-700 space-y-1">
+                  <p>• <strong>Máximo por dia:</strong> 500 emails via SMTP</p>
+                  <p>• <strong>Rate limiting:</strong> 5 emails por lote, 1 minuto entre lotes</p>
+                  <p>• <strong>Seleção:</strong> Os {selectedSegment ? 'primeiros 500 do segmento' : 'primeiros 500 contatos'} (ordenados por data de cadastro)</p>
+                  <p>• <strong>Tempo estimado:</strong> ~{Math.ceil(Math.min(stats?.totalContacts || 0, 500) / 5)} minutos para {Math.min(stats?.totalContacts || 0, 500)} emails</p>
+                </div>
+              </div>
             </div>
           </div>
           

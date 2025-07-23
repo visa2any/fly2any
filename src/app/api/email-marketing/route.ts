@@ -1187,9 +1187,15 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
 
   let successCount = 0;
   let failureCount = 0;
-  const batchSize = 10; // Processar 10 emails por vez
+  // Rate limiting otimizado para Gmail:
+  // - Gmail permite 500 emails/dia via SMTP
+  // - Recomendado: máximo 50 emails/hora (1 por minuto + burst)
+  // - Lotes pequenos com pausa adequada previnem bloqueios
+  const batchSize = 5; // Processar 5 emails por vez (mais seguro)
+  const batchDelayMs = 60000; // 1 minuto entre lotes (seguro para Gmail)
 
   console.log(`🚀 Iniciando envio da campanha ${campaign.name} para ${contacts.length} contatos`);
+  console.log(`⚙️ Rate limiting: ${batchSize} emails por lote, ${batchDelayMs/1000}s entre lotes`);
 
   // Processar em lotes
   for (let i = 0; i < contacts.length; i += batchSize) {
@@ -1256,10 +1262,11 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
       }
     });
     
-    // Aguardar entre lotes (rate limiting)
+    // Aguardar entre lotes (rate limiting otimizado)
     if (i + batchSize < contacts.length) {
-      console.log('⏸️ Aguardando 30 segundos antes do próximo lote...');
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      const nextBatch = Math.floor(i/batchSize) + 2;
+      console.log(`⏸️ Aguardando ${batchDelayMs/1000} segundos antes do lote ${nextBatch}...`);
+      await new Promise(resolve => setTimeout(resolve, batchDelayMs));
     }
   }
 
