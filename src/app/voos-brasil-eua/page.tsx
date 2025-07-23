@@ -155,7 +155,7 @@ export default function VoosBrasilEUA() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Logo size="lg" variant="logo-only" headingLevel="div" />
+          <Logo size="md" variant="logo-only" headingLevel="div" />
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
               color: 'rgba(255, 255, 255, 0.9)',

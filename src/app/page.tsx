@@ -542,7 +542,7 @@ export default function Home() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <Logo size="lg" variant="logo-only" />
+            <Logo size="md" variant="logo-only" />
             {!isMobile && (
               <nav style={{ display: 'flex', gap: '24px' }}>
                 <Link href="/" style={{

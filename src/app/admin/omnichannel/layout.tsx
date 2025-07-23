@@ -160,8 +160,8 @@ export default function OmnichannelLayout({
                   <Image
                     src="/fly2any-logo.png"
                     alt="Fly2Any"
-                    width={40}
-                    height={16}
+                    width={80}
+                    height={32}
                     className="object-contain"
                   />
                 </div>

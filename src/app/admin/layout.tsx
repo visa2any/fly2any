@@ -116,8 +116,8 @@ export default function AdminLayout({
             <Image
               src="/fly2any-logo.png"
               alt="Fly2Any"
-              width={32}
-              height={13}
+              width={64}
+              height={26}
               className="object-contain"
             />
           </div>

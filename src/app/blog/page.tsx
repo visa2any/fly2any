@@ -123,7 +123,7 @@ export default function Blog() {
           justifyContent: 'space-between'
         }}>
           <Link href="/" style={{ textDecoration: 'none' }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="md" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
           </Link>
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
@@ -575,7 +575,7 @@ export default function Blog() {
           }}>
             <div>
               <Link href="/" style={{ textDecoration: 'none' }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="md" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
               </Link>
               <p style={{
                 color: 'rgba(219, 234, 254, 0.8)',

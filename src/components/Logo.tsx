@@ -16,10 +16,10 @@ export default function Logo({
   className = ''
 }: LogoProps) {
   const sizes = {
-    sm: { logo: 32, text: 16, tagline: 8 },
-    md: { logo: 48, text: 24, tagline: 10 },
-    lg: { logo: 64, text: 32, tagline: 12 },
-    xl: { logo: 96, text: 48, tagline: 16 }
+    sm: { logo: 64, text: 32, tagline: 16 },
+    md: { logo: 96, text: 48, tagline: 20 },
+    lg: { logo: 128, text: 64, tagline: 24 },
+    xl: { logo: 192, text: 96, tagline: 32 }
   };
   
   const currentSize = sizes[size];
