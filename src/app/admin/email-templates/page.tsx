@@ -975,9 +975,11 @@ export default function EmailTemplatesPage() {
         }
         
         requestBody = {
-          action: 'send_test',
+          action: 'send_test_custom',
           email: campaignSettings.testEmail,
-          campaignType: selectedTemplateForUse.type
+          subject: selectedTemplateForUse.subject,
+          htmlContent: selectedTemplateForUse.html,
+          templateName: selectedTemplateForUse.name
         };
       } else {
         // Primeiro criar a campanha

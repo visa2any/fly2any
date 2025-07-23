@@ -73,11 +73,30 @@ function getGmailCredentials() {
   return { email, password };
 }
 
-// Função para carregar templates da API
+// Função para carregar templates da API (corrigida para produção)
 async function loadSavedTemplates() {
   try {
-    // Buscar templates da API de templates
-    const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/email-templates`);
+    // Construir URL correta para produção e desenvolvimento
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : 'https://fly2any.com'; // URL de produção
+    
+    console.log('🔄 Carregando templates de:', baseUrl);
+    
+    const response = await fetch(`${baseUrl}/api/email-templates`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Adicionar timeout para evitar travamento
+      signal: AbortSignal.timeout(5000)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     if (data.success && data.templates && data.templates.length > 0) {
@@ -93,6 +112,7 @@ async function loadSavedTemplates() {
         };
       });
       
+      console.log('📧 Templates formatados:', Object.keys(templatesFormatted));
       return templatesFormatted;
     }
   } catch (error) {
@@ -100,6 +120,7 @@ async function loadSavedTemplates() {
   }
   
   // Fallback para templates padrão
+  console.log('📋 Usando templates fallback');
   return EMAIL_TEMPLATES_FALLBACK;
 }
 
@@ -610,7 +631,61 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Enviar email de teste
+      // Enviar email de teste personalizado (direto do template selecionado)
+      case 'send_test_custom': {
+        const { email, subject, htmlContent, templateName } = body;
+        
+        if (!email || !subject || !htmlContent) {
+          return NextResponse.json({
+            success: false,
+            error: 'Email, subject e htmlContent são obrigatórios'
+          }, { status: 400 });
+        }
+
+        const credentials = getGmailCredentials();
+        
+        if (!credentials.email || !credentials.password) {
+          return NextResponse.json({
+            success: false,
+            error: 'Credenciais Gmail não configuradas'
+          }, { status: 500 });
+        }
+        
+        const transporter = nodemailer.createTransporter({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: credentials.email,
+            pass: credentials.password,
+          },
+          tls: {
+            rejectUnauthorized: false
+          }
+        });
+        
+        // Personalizar template usando o HTML exato selecionado
+        const personalizedHtml = htmlContent
+          .replace(/{{nome}}/g, 'Teste')
+          .replace(/{{unsubscribe_url}}/g, 'https://www.fly2any.com/unsubscribe');
+        
+        const result = await transporter.sendMail({
+          from: `"Fly2Any" <${credentials.email}>`,
+          to: email,
+          subject: `[TESTE] ${subject}`,
+          html: personalizedHtml
+        });
+
+        console.log(`✅ Email teste enviado usando template: ${templateName}`);
+
+        return NextResponse.json({
+          success: true,
+          message: `Email teste "${templateName}" enviado para ${email}`,
+          messageId: result.messageId
+        });
+      }
+
+      // Enviar email de teste (método antigo - mantido para compatibilidade)
       case 'send_test': {
         const { email, campaignType = 'promotional' } = body;
         
