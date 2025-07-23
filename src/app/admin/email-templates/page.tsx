@@ -34,6 +34,14 @@ export default function EmailTemplatesPage() {
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [editableFields, setEditableFields] = useState<EditableFields>({});
   const [showAdvancedEditor, setShowAdvancedEditor] = useState(false);
+  const [showUseTemplateModal, setShowUseTemplateModal] = useState(false);
+  const [selectedTemplateForUse, setSelectedTemplateForUse] = useState<EmailTemplate | null>(null);
+  const [campaignSettings, setCampaignSettings] = useState({
+    segment: '',
+    testEmail: '',
+    sendType: 'test' as 'test' | 'campaign'
+  });
+  const [sendingCampaign, setSendingCampaign] = useState(false);
 
   useEffect(() => {
     loadTemplates();
@@ -934,6 +942,117 @@ export default function EmailTemplatesPage() {
     }
   };
 
+  const useTemplate = (template: EmailTemplate | null) => {
+    console.log('🚀 useTemplate chamado com:', template?.name);
+    
+    if (!template) {
+      console.error('❌ Template é null');
+      return;
+    }
+    
+    console.log('✅ Configurando template para uso...');
+    setSelectedTemplateForUse(template);
+    setShowPreview(false);
+    setShowUseTemplateModal(true);
+    setCampaignSettings({
+      segment: '',
+      testEmail: '',
+      sendType: 'test'
+    });
+    
+    console.log('✅ Modal deve aparecer agora');
+    
+    // Debug temporário
+    alert(`Template "${template.name}" selecionado! Modal deve aparecer.`);
+    
+    // Forçar um timeout para garantir que o estado foi atualizado
+    setTimeout(() => {
+      console.log('🔍 Estados após timeout:', {
+        showUseTemplateModal,
+        selectedTemplateForUse: selectedTemplateForUse?.name
+      });
+    }, 100);
+  };
+
+  const sendCampaignWithTemplate = async () => {
+    if (!selectedTemplateForUse) return;
+    
+    setSendingCampaign(true);
+    
+    try {
+      const endpoint = '/api/email-marketing';
+      const action = campaignSettings.sendType === 'test' ? 'send_test' : 'send_campaign';
+      
+      let requestBody;
+      
+      if (campaignSettings.sendType === 'test') {
+        if (!campaignSettings.testEmail) {
+          throw new Error('Email para teste é obrigatório');
+        }
+        
+        requestBody = {
+          action: 'send_test',
+          email: campaignSettings.testEmail,
+          campaignType: selectedTemplateForUse.type
+        };
+      } else {
+        // Primeiro criar a campanha
+        const createResponse = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_campaign',
+            name: `${selectedTemplateForUse.name} - ${new Date().toLocaleDateString('pt-BR')}`,
+            subject: selectedTemplateForUse.subject,
+            templateType: selectedTemplateForUse.type,
+            htmlContent: selectedTemplateForUse.html,
+            textContent: ''
+          })
+        });
+        
+        const createResult = await createResponse.json();
+        
+        if (!createResult.success) {
+          throw new Error(createResult.error || 'Erro ao criar campanha');
+        }
+        
+        // Agora enviar a campanha
+        requestBody = {
+          action: 'send_campaign',
+          campaignId: createResult.data.id,
+          segment: campaignSettings.segment || undefined,
+          limit: 500
+        };
+      }
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        const message = campaignSettings.sendType === 'test' 
+          ? `✅ Email teste enviado para ${campaignSettings.testEmail}!`
+          : `✅ Campanha "${selectedTemplateForUse.name}" enviada com sucesso!`;
+        
+        alert(message);
+        setShowUseTemplateModal(false);
+        setSelectedTemplateForUse(null);
+      } else {
+        throw new Error(result.error || 'Erro ao enviar');
+      }
+      
+    } catch (error) {
+      console.error('Erro ao enviar campanha:', error);
+      alert(`❌ Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    } finally {
+      setSendingCampaign(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -1003,29 +1122,45 @@ export default function EmailTemplatesPage() {
                 </p>
               </div>
               
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => previewEmail(template)}
-                  className="admin-btn admin-btn-sm admin-btn-primary flex-1"
-                >
-                  👁️ Visualizar
-                </button>
-                <button 
-                  onClick={() => editTemplate(template)}
-                  className="admin-btn admin-btn-sm admin-btn-secondary"
-                >
-                  ✏️ Editar
-                </button>
-                {/* Botão de deletar apenas para templates personalizados */}
-                {!['promotional', 'newsletter', 'reactivation'].includes(template.id) && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
                   <button 
-                    onClick={() => deleteTemplate(template.id)}
-                    className="admin-btn admin-btn-sm text-red-600 border-red-300 hover:bg-red-50"
-                    title="Deletar template personalizado"
+                    onClick={() => previewEmail(template)}
+                    className="admin-btn admin-btn-sm admin-btn-primary flex-1"
                   >
-                    🗑️
+                    👁️ Visualizar
                   </button>
-                )}
+                  <button 
+                    onClick={() => editTemplate(template)}
+                    className="admin-btn admin-btn-sm admin-btn-secondary"
+                  >
+                    ✏️ Editar
+                  </button>
+                  {/* Botão de deletar apenas para templates personalizados */}
+                  {!['promotional', 'newsletter', 'reactivation'].includes(template.id) && (
+                    <button 
+                      onClick={() => deleteTemplate(template.id)}
+                      className="admin-btn admin-btn-sm text-red-600 border-red-300 hover:bg-red-50"
+                      title="Deletar template personalizado"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+                <button 
+                  onClick={() => {
+                    console.log('🔥 Botão clicado!', template.name);
+                    useTemplate(template);
+                  }}
+                  className="admin-btn admin-btn-sm w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:scale-105 transition-transform"
+                  style={{ position: 'relative', overflow: 'visible' }}
+                >
+                  📤 Usar Template
+                  {/* Indicador visual de que o botão está ativo */}
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
+                    ●
+                  </span>
+                </button>
               </div>
             </div>
           </div>
@@ -1070,7 +1205,10 @@ export default function EmailTemplatesPage() {
               >
                 Fechar
               </button>
-              <button className="admin-btn admin-btn-sm admin-btn-primary">
+              <button 
+                onClick={() => useTemplate(previewTemplate)}
+                className="admin-btn admin-btn-sm admin-btn-primary"
+              >
                 📤 Usar Template
               </button>
             </div>
@@ -1404,6 +1542,169 @@ export default function EmailTemplatesPage() {
                   {saving ? '💾 Salvando...' : (isCreatingNew ? '➕ Criar Template' : '💾 Salvar Template')}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Usar Template */}
+      {showUseTemplateModal && selectedTemplateForUse && (
+        console.log('🎯 RENDERIZANDO MODAL:', showUseTemplateModal, selectedTemplateForUse?.name) ||
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">
+                📤 Usar Template: {selectedTemplateForUse.name}
+              </h3>
+              <button 
+                onClick={() => {
+                  setShowUseTemplateModal(false);
+                  setSelectedTemplateForUse(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">📧 Template Selecionado</h4>
+                  <div className="text-sm space-y-1">
+                    <div><strong>Nome:</strong> {selectedTemplateForUse.name}</div>
+                    <div><strong>Tipo:</strong> {selectedTemplateForUse.type}</div>
+                    <div><strong>Assunto:</strong> {selectedTemplateForUse.subject}</div>
+                  </div>
+                </div>
+                
+                {/* Tipo de Envio */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🎯 Tipo de Envio
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCampaignSettings({...campaignSettings, sendType: 'test'})}
+                      className={`p-3 rounded-lg border text-center ${
+                        campaignSettings.sendType === 'test'
+                          ? 'bg-green-100 border-green-300 text-green-800'
+                          : 'bg-gray-50 border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      <div className="text-lg mb-1">🧪</div>
+                      <div className="font-semibold">Email Teste</div>
+                      <div className="text-xs">Enviar para um email específico</div>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setCampaignSettings({...campaignSettings, sendType: 'campaign'})}
+                      className={`p-3 rounded-lg border text-center ${
+                        campaignSettings.sendType === 'campaign'
+                          ? 'bg-blue-100 border-blue-300 text-blue-800'
+                          : 'bg-gray-50 border-gray-300 text-gray-600'
+                      }`}
+                    >
+                      <div className="text-lg mb-1">🚀</div>
+                      <div className="font-semibold">Campanha Real</div>
+                      <div className="text-xs">Enviar para lista de contatos</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email Teste */}
+                {campaignSettings.sendType === 'test' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📧 Email para Teste
+                    </label>
+                    <input
+                      type="email"
+                      value={campaignSettings.testEmail}
+                      onChange={(e) => setCampaignSettings({...campaignSettings, testEmail: e.target.value})}
+                      className="admin-input w-full"
+                      placeholder="seu@email.com"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      O email teste será enviado apenas para este endereço
+                    </p>
+                  </div>
+                )}
+
+                {/* Segmento */}
+                {campaignSettings.sendType === 'campaign' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      👥 Segmento de Contatos (Opcional)
+                    </label>
+                    <select
+                      value={campaignSettings.segment}
+                      onChange={(e) => setCampaignSettings({...campaignSettings, segment: e.target.value})}
+                      className="admin-input w-full"
+                    >
+                      <option value="">Todos os contatos</option>
+                      <option value="brasileiros-eua">Brasileiros nos EUA</option>
+                      <option value="familias">Famílias</option>
+                      <option value="casais">Casais/Lua de mel</option>
+                      <option value="aventureiros">Aventureiros</option>
+                      <option value="executivos">Executivos</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Deixe em branco para enviar para todos os contatos disponíveis
+                    </p>
+                  </div>
+                )}
+
+                {/* Aviso importante */}
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-yellow-600 text-lg">⚠️</span>
+                    <div className="text-sm text-yellow-800">
+                      <div className="font-semibold mb-1">Importante:</div>
+                      {campaignSettings.sendType === 'test' ? (
+                        <div>O email teste será enviado imediatamente usando o template exato que você visualizou.</div>
+                      ) : (
+                        <div>
+                          A campanha será enviada para todos os contatos do segmento selecionado. 
+                          Esta ação não pode ser desfeita. Recomendamos fazer um teste primeiro.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowUseTemplateModal(false);
+                  setSelectedTemplateForUse(null);
+                }}
+                className="admin-btn admin-btn-sm admin-btn-secondary"
+                disabled={sendingCampaign}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={sendCampaignWithTemplate}
+                disabled={sendingCampaign || (campaignSettings.sendType === 'test' && !campaignSettings.testEmail)}
+                className="admin-btn admin-btn-sm admin-btn-primary"
+              >
+                {sendingCampaign ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    {campaignSettings.sendType === 'test' ? '🧪 Enviar Teste' : '🚀 Enviar Campanha'}
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
