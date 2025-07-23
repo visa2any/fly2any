@@ -974,6 +974,14 @@ export default function EmailTemplatesPage() {
           throw new Error('Email para teste é obrigatório');
         }
         
+        // Log dos dados sendo enviados para debug
+        console.log('🔍 Dados do template sendo enviados para teste:', {
+          name: selectedTemplateForUse.name,
+          subject: selectedTemplateForUse.subject,
+          email: campaignSettings.testEmail,
+          htmlContentLength: selectedTemplateForUse.html?.length || 0
+        });
+        
         requestBody = {
           action: 'send_test_custom',
           email: campaignSettings.testEmail,
@@ -982,6 +990,14 @@ export default function EmailTemplatesPage() {
           templateName: selectedTemplateForUse.name
         };
       } else {
+        // Log dos dados sendo enviados para debug
+        console.log('🔍 Dados do template sendo enviados para campanha:', {
+          name: selectedTemplateForUse.name,
+          subject: selectedTemplateForUse.subject,
+          templateType: selectedTemplateForUse.type,
+          htmlContentLength: selectedTemplateForUse.html?.length || 0
+        });
+
         // Primeiro criar a campanha
         const createResponse = await fetch(endpoint, {
           method: 'POST',

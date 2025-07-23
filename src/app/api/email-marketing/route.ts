@@ -81,7 +81,7 @@ async function loadSavedTemplates() {
       ? `https://${process.env.VERCEL_URL}` 
       : process.env.NODE_ENV === 'development' 
       ? 'http://localhost:3000'
-      : 'https://fly2any.com'; // URL de produção
+      : 'https://www.fly2any.com'; // URL de produção CORRETA
     
     console.log('🔄 Carregando templates de:', baseUrl);
     
@@ -94,6 +94,7 @@ async function loadSavedTemplates() {
     });
     
     if (!response.ok) {
+      console.warn(`❌ Falha HTTP ${response.status}: ${response.statusText}`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
@@ -114,13 +115,16 @@ async function loadSavedTemplates() {
       
       console.log('📧 Templates formatados:', Object.keys(templatesFormatted));
       return templatesFormatted;
+    } else {
+      console.warn('⚠️ Resposta inválida da API de templates:', data);
+      throw new Error('Resposta inválida da API de templates');
     }
   } catch (error) {
     console.warn('⚠️ Erro ao carregar templates da API, usando fallback:', error);
   }
   
   // Fallback para templates padrão
-  console.log('📋 Usando templates fallback');
+  console.log('📋 Usando templates fallback - ISSO NÃO DEVERIA ACONTECER se dados corretos foram enviados');
   return EMAIL_TEMPLATES_FALLBACK;
 }
 
@@ -605,15 +609,32 @@ export async function POST(request: NextRequest) {
       case 'create_campaign': {
         const { name, subject, templateType, htmlContent, textContent } = body;
         
-        // Carregar templates salvos dinamicamente
-        const EMAIL_TEMPLATES = await loadSavedTemplates();
-        const template = EMAIL_TEMPLATES[templateType as keyof typeof EMAIL_TEMPLATES] || EMAIL_TEMPLATES.promotional;
+        // Log dos dados recebidos para debug
+        console.log('🔍 Recebido create_campaign:', {
+          name,
+          subject,
+          templateType,
+          htmlContentLength: htmlContent?.length || 0,
+          textContentLength: textContent?.length || 0
+        });
+        
+        // PRIORIZAR dados enviados pelo frontend - garantir que o template visualizado seja o mesmo enviado
+        let finalSubject = subject;
+        let finalHtmlContent = htmlContent;
+        
+        // Só usar fallback se os dados não foram enviados
+        if (!finalSubject || !finalHtmlContent) {
+          const EMAIL_TEMPLATES = await loadSavedTemplates();
+          const template = EMAIL_TEMPLATES[templateType as keyof typeof EMAIL_TEMPLATES] || EMAIL_TEMPLATES.promotional;
+          finalSubject = finalSubject || template.subject;
+          finalHtmlContent = finalHtmlContent || template.html;
+        }
         
         const campaign = await EmailCampaignsDB.create({
           name: name || 'Nova Campanha',
-          subject: subject || template.subject,
+          subject: finalSubject,
           template_type: templateType || 'promotional',
-          html_content: htmlContent || template.html,
+          html_content: finalHtmlContent,
           text_content: textContent || '',
           status: 'draft',
           total_recipients: 0,
@@ -634,6 +655,14 @@ export async function POST(request: NextRequest) {
       // Enviar email de teste personalizado (direto do template selecionado)
       case 'send_test_custom': {
         const { email, subject, htmlContent, templateName } = body;
+        
+        // Log dos dados recebidos para debug
+        console.log('📧 Recebido teste personalizado:', {
+          templateName,
+          subject,
+          email,
+          htmlContentLength: htmlContent?.length || 0
+        });
         
         if (!email || !subject || !htmlContent) {
           return NextResponse.json({
