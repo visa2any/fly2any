@@ -968,6 +968,42 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      case 'add_metrics_columns': {
+        try {
+          console.log('🚀 Adicionando colunas de métricas à tabela email_campaigns...');
+          
+          // Adicionar colunas de métricas se não existirem
+          try {
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_recipients INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_sent INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_delivered INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_opened INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_clicked INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_bounced INTEGER DEFAULT 0`;
+            await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS total_unsubscribed INTEGER DEFAULT 0`;
+            
+            console.log('✅ Colunas de métricas adicionadas com sucesso!');
+            
+            return NextResponse.json({
+              success: true,
+              message: 'Colunas de métricas adicionadas com sucesso!'
+            });
+          } catch (error) {
+            console.error('❌ Erro ao adicionar colunas:', error);
+            return NextResponse.json({
+              success: false,
+              error: `Erro ao adicionar colunas: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+            }, { status: 500 });
+          }
+        } catch (error) {
+          console.error('❌ Erro geral:', error);
+          return NextResponse.json({
+            success: false,
+            error: `Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
       case 'force_init_tables': {
         try {
           console.log('🚀 FORÇANDO criação das tabelas...');
@@ -1000,7 +1036,7 @@ export async function GET(request: NextRequest) {
           await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
           await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(status)`;
           
-          // Criar outras tabelas
+          // Criar outras tabelas COM as colunas de métricas
           await sql`
             CREATE TABLE email_campaigns (
               id VARCHAR(255) PRIMARY KEY,
@@ -1010,6 +1046,13 @@ export async function GET(request: NextRequest) {
               html_content TEXT,
               text_content TEXT,
               status VARCHAR(50) DEFAULT 'draft',
+              total_recipients INTEGER DEFAULT 0,
+              total_sent INTEGER DEFAULT 0,
+              total_delivered INTEGER DEFAULT 0,
+              total_opened INTEGER DEFAULT 0,
+              total_clicked INTEGER DEFAULT 0,
+              total_bounced INTEGER DEFAULT 0,
+              total_unsubscribed INTEGER DEFAULT 0,
               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
