@@ -49,18 +49,42 @@ export default function EmailMarketingPage() {
     emailStatus?: string;
   }>>([]);
   const [showContacts, setShowContacts] = useState(false);
-  const [campaigns] = useState<Campaign[]>([
-    { id: '1', name: 'Promoção Miami', type: 'Promocional', sent: 1500, opens: 345, clicks: 52, date: '2024-01-15', status: 'Enviada' },
-    { id: '2', name: 'Newsletter Semanal', type: 'Newsletter', sent: 5000, opens: 1150, clicks: 184, date: '2024-01-10', status: 'Enviada' },
-    { id: '3', name: 'Reativação Q1', type: 'Reativação', sent: 800, opens: 96, clicks: 12, date: '2024-01-05', status: 'Enviada' }
-  ]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
     analytics.init();
     analytics.page('Email Marketing', { section: 'admin' });
     fetchStats();
     fetchContacts();
+    fetchCampaigns();
   }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      const response = await fetch('/api/email-marketing?action=campaigns');
+      const data = await response.json();
+      
+      if (data.success && data.data.campaigns) {
+        // Converter dados da API para o formato da interface
+        const formattedCampaigns = data.data.campaigns.map((campaign: any) => ({
+          id: campaign.id,
+          name: campaign.name,
+          type: campaign.template_type,
+          sent: campaign.total_sent || 0,
+          opens: campaign.total_opened || 0,
+          clicks: campaign.total_clicked || 0,
+          date: campaign.created_at,
+          status: campaign.status === 'completed' ? 'Enviada' : 
+                 campaign.status === 'sending' ? 'Enviando' :
+                 campaign.status === 'draft' ? 'Rascunho' : campaign.status
+        }));
+        setCampaigns(formattedCampaigns);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar campanhas:', error);
+      setMessage('Erro ao carregar campanhas');
+    }
+  };
 
   const fetchContacts = async (forceReload = false) => {
     try {
@@ -131,8 +155,15 @@ export default function EmailMarketingPage() {
       const data = await response.json();
       
       if (data.success) {
-        setMessage(`✅ ${data.message}`);
+        setMessage(`✅ ${data.data?.message || data.message}`);
         fetchStats(); // Atualizar estatísticas
+        fetchCampaigns(); // Atualizar lista de campanhas
+        
+        // Mostrar detalhes da campanha enviada
+        if (data.data) {
+          const { campaignId, totalRecipients, status } = data.data;
+          setMessage(`✅ Campanha iniciada! ID: ${campaignId} | ${totalRecipients} destinatários | Status: ${status}`);
+        }
       } else {
         setMessage(`❌ Erro: ${data.error}`);
       }
@@ -552,7 +583,15 @@ export default function EmailMarketingPage() {
       {/* Campaign History */}
       <div className="admin-card">
         <div className="admin-card-header">
-          <h2 className="admin-card-title">📈 Histórico de Campanhas</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="admin-card-title">📈 Histórico de Campanhas</h2>
+            <button
+              onClick={fetchCampaigns}
+              className="px-4 py-2 bg-admin-primary text-white rounded-lg hover:bg-admin-primary-hover transition-colors text-sm"
+            >
+              🔄 Atualizar
+            </button>
+          </div>
         </div>
         <div className="admin-card-content">
           <div className="overflow-x-auto">
@@ -569,7 +608,15 @@ export default function EmailMarketingPage() {
                 </tr>
               </thead>
               <tbody>
-                {campaigns.map((campaign) => (
+                {campaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-admin-text-secondary">
+                      📭 Nenhuma campanha encontrada.<br/>
+                      <span className="text-sm">Envie sua primeira campanha usando os botões acima!</span>
+                    </td>
+                  </tr>
+                ) : (
+                  campaigns.map((campaign) => (
                   <tr key={campaign.id} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
                     <td className="py-3 px-2 font-medium text-admin-text-primary">{campaign.name}</td>
                     <td className="py-3 px-2 text-admin-text-secondary">{campaign.type}</td>
@@ -595,7 +642,8 @@ export default function EmailMarketingPage() {
                       </span>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
