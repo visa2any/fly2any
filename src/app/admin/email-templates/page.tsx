@@ -942,7 +942,7 @@ export default function EmailTemplatesPage() {
     }
   };
 
-  const useTemplate = (template: EmailTemplate | null) => {
+  const handleUseTemplate = (template: EmailTemplate | null) => {
     console.log('🚀 useTemplate chamado com:', template?.name);
     
     if (!template) {
@@ -1150,7 +1150,7 @@ export default function EmailTemplatesPage() {
                 <button 
                   onClick={() => {
                     console.log('🔥 Botão clicado!', template.name);
-                    useTemplate(template);
+                    handleUseTemplate(template);
                   }}
                   className="admin-btn admin-btn-sm w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:scale-105 transition-transform"
                   style={{ position: 'relative', overflow: 'visible' }}
@@ -1206,7 +1206,7 @@ export default function EmailTemplatesPage() {
                 Fechar
               </button>
               <button 
-                onClick={() => useTemplate(previewTemplate)}
+                onClick={() => handleUseTemplate(previewTemplate)}
                 className="admin-btn admin-btn-sm admin-btn-primary"
               >
                 📤 Usar Template
