@@ -943,14 +943,11 @@ export default function EmailTemplatesPage() {
   };
 
   const handleUseTemplate = (template: EmailTemplate | null) => {
-    console.log('🚀 useTemplate chamado com:', template?.name);
-    
     if (!template) {
       console.error('❌ Template é null');
       return;
     }
     
-    console.log('✅ Configurando template para uso...');
     setSelectedTemplateForUse(template);
     setShowPreview(false);
     setShowUseTemplateModal(true);
@@ -959,19 +956,6 @@ export default function EmailTemplatesPage() {
       testEmail: '',
       sendType: 'test'
     });
-    
-    console.log('✅ Modal deve aparecer agora');
-    
-    // Debug temporário
-    alert(`Template "${template.name}" selecionado! Modal deve aparecer.`);
-    
-    // Forçar um timeout para garantir que o estado foi atualizado
-    setTimeout(() => {
-      console.log('🔍 Estados após timeout:', {
-        showUseTemplateModal,
-        selectedTemplateForUse: selectedTemplateForUse?.name
-      });
-    }, 100);
   };
 
   const sendCampaignWithTemplate = async () => {
@@ -1148,18 +1132,10 @@ export default function EmailTemplatesPage() {
                   )}
                 </div>
                 <button 
-                  onClick={() => {
-                    console.log('🔥 Botão clicado!', template.name);
-                    handleUseTemplate(template);
-                  }}
+                  onClick={() => handleUseTemplate(template)}
                   className="admin-btn admin-btn-sm w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:scale-105 transition-transform"
-                  style={{ position: 'relative', overflow: 'visible' }}
                 >
                   📤 Usar Template
-                  {/* Indicador visual de que o botão está ativo */}
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center">
-                    ●
-                  </span>
                 </button>
               </div>
             </div>
@@ -1549,7 +1525,6 @@ export default function EmailTemplatesPage() {
 
       {/* Modal Usar Template */}
       {showUseTemplateModal && selectedTemplateForUse && (
-        console.log('🎯 RENDERIZANDO MODAL:', showUseTemplateModal, selectedTemplateForUse?.name) ||
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
