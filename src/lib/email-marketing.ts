@@ -258,12 +258,23 @@ class EmailMarketingService {
             <p>Temos uma oferta EXCLUSIVA para brasileiros nos EUA!</p>
             
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>📅 Datas Disponíveis:</h3>
-              <ul>
-                <li>✅ March 2024: $1,299</li>
-                <li>✅ April 2024: $1,399</li>
-                <li>✅ May 2024: $1,499</li>
-              </ul>
+              <h3>🔥 Ofertas Especiais Brasil ↔ EUA:</h3>
+              <div style="background: #ecfdf5; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #10b981;">
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+                  ✈️ Miami para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                  ✈️ New York para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                  ✈️ Newark para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                  ✈️ Boston para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span><br>
+                  ✈️ Orlando para Belo Horizonte <span style="color: #dc2626; font-size: 24px;">$699</span>
+                </div>
+                
+                <div style="background: #fef2f2; padding: 12px; border-radius: 6px; margin-top: 15px; font-size: 14px;">
+                  💰 <strong>Preço Normal:</strong> $990 • <strong style="color: #059669;">Economia: $300!</strong><br>
+                  🔄 <strong>Ida e Volta</strong> 1 stop<br>
+                  🧳 <strong>Inclui:</strong> 1 mala despachada de 50lb + 1 de mão de 10 lbs<br>
+                  ✅ <strong>Cancelamento grátis</strong> até 24 hrs após a compra
+                </div>
+              </div>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
