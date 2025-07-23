@@ -666,32 +666,34 @@ export default function EmailMarketingPage() {
         </div>
       </div>
 
-      {/* Setup Instructions */}
+      {/* Current System Status */}
       <div className="admin-card">
         <div className="admin-card-header">
-          <h2 className="admin-card-title">⚙️ Configuração Gratuita</h2>
+          <h2 className="admin-card-title">✅ Sistema Configurado</h2>
         </div>
         <div className="admin-card-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-3">🔧 Configuração N8N</h3>
-              <div className="bg-gray-50 p-4 rounded-lg text-sm">
-                <p className="mb-2">1. Instalar N8N (gratuito):</p>
-                <code className="block bg-gray-800 text-green-400 p-2 rounded mb-2">
-                  npx n8n
-                </code>
-                <p className="mb-2">2. Criar workflow Gmail API</p>
-                <p>3. Configurar webhook para receber campanhas</p>
+              <h3 className="font-semibold mb-3">📧 Gmail SMTP Ativo</h3>
+              <div className="bg-green-50 p-4 rounded-lg text-sm border border-green-200">
+                <div className="flex items-center mb-2">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="font-semibold">Sistema funcionando</span>
+                </div>
+                <p className="mb-2 text-green-700">• Gmail SMTP configurado</p>
+                <p className="mb-2 text-green-700">• Rate limiting otimizado</p>
+                <p className="mb-2 text-green-700">• Templates profissionais</p>
+                <p className="text-green-700">• Tracking de campanhas ativo</p>
               </div>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-3">📧 Alternativas Gratuitas</h3>
+              <h3 className="font-semibold mb-3">🚀 Próximos Passos</h3>
               <ul className="space-y-2 text-sm">
-                <li>✅ <strong>Gmail API:</strong> 500 emails/dia por conta</li>
-                <li>✅ <strong>Amazon SES:</strong> 62k emails/mês grátis</li>
-                <li>✅ <strong>Mailchimp:</strong> 2k contatos grátis</li>
-                <li>✅ <strong>Brevo:</strong> 300 emails/dia grátis</li>
+                <li>✅ <strong>Importar contatos:</strong> Use o botão "Importar CSV"</li>
+                <li>✅ <strong>Testar envio:</strong> Use o botão "Teste de Email"</li>
+                <li>✅ <strong>Enviar campanha:</strong> Escolha segmento e envie</li>
+                <li>✅ <strong>Monitorar:</strong> Acompanhe no "Histórico de Campanhas"</li>
               </ul>
             </div>
           </div>
