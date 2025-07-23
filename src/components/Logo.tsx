@@ -1,110 +1,81 @@
+import Image from 'next/image';
+
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showText?: boolean;
-  variant?: 'default' | 'white';
+  variant?: 'default' | 'white' | 'compact';
   headingLevel?: 'h1' | 'div';
+  className?: string;
 }
 
-export default function Logo({ size = 'md', showText = true, variant = 'default', headingLevel = 'h1' }: LogoProps) {
+export default function Logo({ 
+  size = 'md', 
+  showText = true, 
+  variant = 'default', 
+  headingLevel = 'h1',
+  className = ''
+}: LogoProps) {
   const sizes = {
-    sm: { container: 36, text: 20, tagline: 9 },
-    md: { container: 48, text: 32, tagline: 11 },
-    lg: { container: 64, text: 42, tagline: 13 }
+    sm: { logo: 32, text: 16, tagline: 8 },
+    md: { logo: 48, text: 24, tagline: 10 },
+    lg: { logo: 64, text: 32, tagline: 12 },
+    xl: { logo: 96, text: 48, tagline: 16 }
   };
   
   const currentSize = sizes[size];
   const isWhite = variant === 'white';
+  const isCompact = variant === 'compact';
   const HeadingTag = headingLevel === 'h1' ? 'h1' : 'div';
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: showText ? '14px' : '0'
-    }}>
-      {/* SUPER CLEAR Airplane Icon */}
-      <div style={{
-        width: `${currentSize.container}px`,
-        height: `${currentSize.container}px`,
-        background: isWhite 
-          ? 'white' 
-          : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-        borderRadius: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        boxShadow: isWhite 
-          ? '0 4px 20px rgba(0,0,0,0.1)' 
-          : '0 4px 20px rgba(30, 64, 175, 0.3)',
-        border: isWhite ? '1px solid #e5e7eb' : 'none'
-      }}>
-        {/* CRYSTAL CLEAR AIRPLANE - Everyone will recognize this */}
-        <svg 
-          width={currentSize.container * 0.75} 
-          height={currentSize.container * 0.75} 
-          viewBox="0 0 24 24" 
-          fill="none"
-        >
-          {/* Main airplane body - SUPER OBVIOUS */}
-          <path 
-            d="M12 2L14 8L22 10L22 12L14 10L12 18L16 20V22L12 21L8 22V20L12 18L10 10L2 12L2 10L10 8L12 2Z" 
-            fill={isWhite ? '#1e40af' : 'white'}
-            stroke={isWhite ? '#3b82f6' : 'rgba(255,255,255,0.3)'}
-            strokeWidth="0.5"
-          />
-          
-          {/* Wings - extra clear definition */}
-          <path 
-            d="M2 10L10 8L12 12L2 12V10Z" 
-            fill={isWhite ? '#60a5fa' : 'rgba(255,255,255,0.9)'}
-          />
-          <path 
-            d="M14 8L22 10V12L12 12L14 8Z" 
-            fill={isWhite ? '#60a5fa' : 'rgba(255,255,255,0.9)'}
-          />
-          
-          {/* Tail fins for extra clarity */}
-          <path 
-            d="M8 20L12 18L12 21L8 22V20Z" 
-            fill={isWhite ? '#1e40af' : 'white'}
-          />
-          <path 
-            d="M16 20V22L12 21L12 18L16 20Z" 
-            fill={isWhite ? '#1e40af' : 'white'}
-          />
-        </svg>
+    <div className={`flex items-center ${showText ? 'gap-3' : 'gap-0'} ${className}`}>
+      {/* Fly2Any Official Logo */}
+      <div 
+        className={`relative ${isCompact ? '' : 'drop-shadow-lg'}`}
+        style={{
+          width: `${currentSize.logo}px`,
+          height: `${currentSize.logo * 0.4}px`, // Ajuste da proporção do logo
+        }}
+      >
+        <Image
+          src="/fly2any-logo.png"
+          alt="Fly2Any - Sua ponte para o Brasil"
+          fill
+          className="object-contain"
+          priority
+          style={{
+            filter: isWhite ? 'none' : 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))'
+          }}
+        />
       </div>
 
-      {/* Clean Typography */}
-      {showText && (
+      {/* Typography - Only for showText */}
+      {showText && !isCompact && (
         <div>
-          <HeadingTag style={{
-            fontSize: `${currentSize.text}px`,
-            fontWeight: '700',
-            fontFamily: 'Poppins, sans-serif',
-            margin: 0,
-            lineHeight: 0.85,
-            letterSpacing: '-0.025em',
-            color: isWhite ? '#1f2937' : 'white',
-            textShadow: isWhite ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
-          }}>
-            <span style={{ color: isWhite ? '#1e40af' : '#60a5fa' }}>Fly</span>
-            <span style={{ 
-              color: isWhite ? '#f59e0b' : '#fbbf24',
-              fontWeight: '800'
-            }}>2</span>
-            <span style={{ color: isWhite ? '#1f2937' : 'white' }}>Any</span>
+          <HeadingTag 
+            className={`font-bold font-sans m-0 leading-tight tracking-tight ${
+              isWhite 
+                ? 'text-gray-800' 
+                : 'text-white drop-shadow-md'
+            }`}
+            style={{
+              fontSize: `${currentSize.text}px`,
+            }}
+          >
+            <span className={isWhite ? 'text-blue-700' : 'text-blue-300'}>Fly</span>
+            <span className={isWhite ? 'text-amber-500' : 'text-amber-300'}>2</span>
+            <span className={isWhite ? 'text-gray-800' : 'text-white'}>Any</span>
           </HeadingTag>
-          <p style={{
-            color: isWhite ? '#6b7280' : 'rgba(219, 234, 254, 0.9)',
-            fontSize: `${currentSize.tagline}px`,
-            margin: '1px 0 0 0',
-            fontWeight: '500',
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            fontFamily: 'Inter, sans-serif'
-          }}>
+          <p 
+            className={`font-medium uppercase tracking-wider font-sans m-0 mt-0.5 ${
+              isWhite 
+                ? 'text-gray-500' 
+                : 'text-blue-100'
+            }`}
+            style={{
+              fontSize: `${currentSize.tagline}px`,
+            }}
+          >
             Sua ponte para o Brasil
           </p>
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 export default function OmnichannelLayout({
   children,
@@ -155,7 +156,15 @@ export default function OmnichannelLayout({
           <div className="omni-header">
             <div className="omni-header-content">
               <div className="omni-logo-area">
-                <div className="omni-logo">🌐</div>
+                <div className="omni-logo">
+                  <Image
+                    src="/fly2any-logo.png"
+                    alt="Fly2Any"
+                    width={40}
+                    height={16}
+                    className="object-contain"
+                  />
+                </div>
                 <div>
                   <h1 className="omni-title">Central Omnichannel Premium</h1>
                   <p className="omni-subtitle">

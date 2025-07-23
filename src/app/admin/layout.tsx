@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 const navigation = [
@@ -111,7 +112,15 @@ export default function AdminLayout({
       >
         {/* Logo/Header */}
         <div className="admin-sidebar-header">
-          <div className="admin-logo">F</div>
+          <div className="admin-logo">
+            <Image
+              src="/fly2any-logo.png"
+              alt="Fly2Any"
+              width={32}
+              height={13}
+              className="object-contain"
+            />
+          </div>
           <div className="admin-logo-text">Fly2Any</div>
         </div>
 
