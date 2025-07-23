@@ -33,7 +33,7 @@ export default function Contato() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Logo size="md" showText={true} />
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="md" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
               color: 'rgba(255, 255, 255, 0.9)',
@@ -336,7 +336,7 @@ export default function Contato() {
           }}>
             <div style={{ gridColumn: 'span 2' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <Logo size="md" showText={true} />
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="md" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
               </div>
               <p style={{
                 color: 'rgba(219, 234, 254, 1)',

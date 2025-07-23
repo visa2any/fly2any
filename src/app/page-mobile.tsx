@@ -56,7 +56,7 @@ export default function HomeMobile() {
             marginBottom: '16px',
             paddingTop: '8px'
           }}>
-            <Logo size="md" showText={true} variant="white" />
+            <Logo size="lg" variant="logo-only" />
           </div>
           <h1 style={{ 
             fontSize: '24px',

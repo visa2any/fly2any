@@ -22,7 +22,7 @@ export default function Sobre() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Logo size="sm" showText={true} />
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "16px", color: "white" }}>Fly2Any</span></div>
           <nav style={{ display: 'none' }} className="hidden-mobile">{/* Hidden on mobile */}
             <Link href="/" style={{
               color: 'rgba(255, 255, 255, 0.9)',

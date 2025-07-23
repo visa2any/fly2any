@@ -33,7 +33,7 @@ export default function VoosNewYorkRioJaneiro() {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Logo size="md" showText={true} headingLevel="div" />
+          <Logo size="lg" variant="logo-only" headingLevel="div" />
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
               color: 'rgba(255, 255, 255, 0.9)',

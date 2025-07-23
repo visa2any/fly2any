@@ -147,7 +147,7 @@ export default function FAQ() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <Logo size="md" showText={true} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="md" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
             <nav style={{ display: 'flex', gap: '24px' }}>
               <Link href="/" style={{
                 color: 'rgba(255, 255, 255, 0.9)',

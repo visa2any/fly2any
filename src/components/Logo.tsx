@@ -3,7 +3,7 @@ import Image from 'next/image';
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showText?: boolean;
-  variant?: 'default' | 'white' | 'compact';
+  variant?: 'default' | 'white' | 'compact' | 'logo-only';
   headingLevel?: 'h1' | 'div';
   className?: string;
 }
@@ -25,10 +25,14 @@ export default function Logo({
   const currentSize = sizes[size];
   const isWhite = variant === 'white';
   const isCompact = variant === 'compact';
+  const isLogoOnly = variant === 'logo-only';
   const HeadingTag = headingLevel === 'h1' ? 'h1' : 'div';
 
+  // Se for logo-only, force showText = false
+  const shouldShowText = isLogoOnly ? false : showText;
+
   return (
-    <div className={`flex items-center ${showText ? 'gap-3' : 'gap-0'} ${className}`}>
+    <div className={`flex items-center ${shouldShowText ? 'gap-3' : 'gap-0'} ${className}`}>
       {/* Fly2Any Official Logo */}
       <div 
         className={`relative ${isCompact ? '' : 'drop-shadow-lg'}`}
@@ -49,8 +53,8 @@ export default function Logo({
         />
       </div>
 
-      {/* Typography - Only for showText */}
-      {showText && !isCompact && (
+      {/* Typography - Only for shouldShowText */}
+      {shouldShowText && !isCompact && (
         <div>
           <HeadingTag 
             className={`font-bold font-sans m-0 leading-tight tracking-tight ${
