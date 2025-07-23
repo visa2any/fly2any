@@ -900,6 +900,7 @@ export async function GET(request: NextRequest) {
       case 'stats': {
         const stats = await EmailContactsDB.getStats();
         const campaigns = await EmailCampaignsDB.findAll();
+        const metrics = await EmailCampaignsDB.getMetrics();
         
         return NextResponse.json({
           success: true,
@@ -907,9 +908,9 @@ export async function GET(request: NextRequest) {
             totalContacts: stats.totalContacts,
             segmentStats: stats.bySegmento,
             emailStats: stats.byEmailStatus,
-            campaignsSent: campaigns.filter(c => c.status === 'completed').length,
-            avgOpenRate: '0%', // TODO: Implementar cálculo real
-            avgClickRate: '0%'  // TODO: Implementar cálculo real
+            campaignsSent: campaigns.filter(c => c.status === 'completed' || c.status === 'sent').length,
+            avgOpenRate: metrics.openRate.toFixed(1) + '%',
+            avgClickRate: metrics.clickRate.toFixed(1) + '%'
           }
         });
       }
@@ -1101,48 +1102,127 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      case 'load_imported_contacts': {
+      case 'track_open': {
+        const campaignId = searchParams.get('campaign_id');
+        const contactId = searchParams.get('contact_id');
+        
+        if (!campaignId) {
+          return NextResponse.json({
+            success: false,
+            error: 'campaign_id é obrigatório'
+          }, { status: 400 });
+        }
+
         try {
-          // Usar dados realistas para carregar contatos
-          const sampleContacts = [
-            { email: 'joao.silva@gmail.com', nome: 'João', sobrenome: 'Silva', telefone: '+1234567890', segmento: 'brasileiros-eua', tags: ['vip', 'miami'] },
-            { email: 'maria.santos@hotmail.com', nome: 'Maria', sobrenome: 'Santos', telefone: '+1234567891', segmento: 'brasileiros-eua', tags: ['newsletter'] },
-            { email: 'pedro.costa@yahoo.com', nome: 'Pedro', sobrenome: 'Costa', telefone: '+1234567892', segmento: 'geral', tags: ['promocional'] },
-            { email: 'ana.oliveira@gmail.com', nome: 'Ana', sobrenome: 'Oliveira', telefone: '+1234567893', segmento: 'brasileiros-eua', tags: ['vip'] },
-            { email: 'carlos.ferreira@outlook.com', nome: 'Carlos', sobrenome: 'Ferreira', telefone: '+1234567894', segmento: 'geral', tags: ['newsletter', 'promocional'] },
-            { email: 'lucia.rodrigues@gmail.com', nome: 'Lucia', sobrenome: 'Rodrigues', telefone: '+1234567895', segmento: 'brasileiros-eua', tags: ['miami', 'vip'] },
-            { email: 'ricardo.lima@hotmail.com', nome: 'Ricardo', sobrenome: 'Lima', telefone: '+1234567896', segmento: 'geral', tags: [] },
-            { email: 'patricia.alves@yahoo.com', nome: 'Patricia', sobrenome: 'Alves', telefone: '+1234567897', segmento: 'brasileiros-eua', tags: ['newsletter'] },
-            { email: 'fernando.souza@gmail.com', nome: 'Fernando', sobrenome: 'Souza', telefone: '+1234567898', segmento: 'geral', tags: ['promocional', 'vip'] },
-            { email: 'claudia.martins@outlook.com', nome: 'Claudia', sobrenome: 'Martins', telefone: '+1234567899', segmento: 'brasileiros-eua', tags: ['miami'] }
-          ];
-
-          const contactsToInsert = sampleContacts.map(contact => ({
-            email: contact.email,
-            nome: contact.nome,
-            sobrenome: contact.sobrenome || '',
-            telefone: contact.telefone || '',
-            segmento: contact.segmento || 'geral',
-            tags: contact.tags || [],
-            status: 'ativo' as const,
-            email_status: 'not_sent' as const,
-            unsubscribe_token: generateUnsubscribeToken()
-          }));
-
-          const result = await EmailContactsDB.bulkCreate(contactsToInsert);
+          // Incrementar contador de abertura na campanha
+          await EmailCampaignsDB.incrementOpened(campaignId);
           
+          // Se temos contact_id, atualizar status do envio específico
+          if (contactId) {
+            await EmailContactsDB.updateEmailStatus(contactId, 'opened');
+            
+            // Encontrar o send específico e atualizar
+            const sends = await EmailSendsDB.findByCampaign(campaignId);
+            const send = sends.find(s => s.contact_id === contactId);
+            if (send) {
+              await EmailSendsDB.updateStatus(send.id, 'opened', { opened_at: new Date() });
+            }
+          }
+          
+          // Retornar pixel transparente (1x1 GIF)
+          const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+          return new NextResponse(pixel, {
+            headers: {
+              'Content-Type': 'image/gif',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+              'Content-Length': pixel.length.toString()
+            }
+          });
+        } catch (error) {
+          console.error('Erro no tracking de abertura:', error);
+          // Mesmo em caso de erro, retornar pixel para não quebrar a renderização do email
+          const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+          return new NextResponse(pixel, {
+            headers: {
+              'Content-Type': 'image/gif',
+              'Cache-Control': 'no-store, no-cache, must-revalidate'
+            }
+          });
+        }
+      }
+
+      case 'track_click': {
+        const campaignId = searchParams.get('campaign_id');
+        const contactId = searchParams.get('contact_id');
+        const url = searchParams.get('url');
+        
+        if (!campaignId || !url) {
+          return NextResponse.json({
+            success: false,
+            error: 'campaign_id e url são obrigatórios'
+          }, { status: 400 });
+        }
+
+        try {
+          // Incrementar contador de clique na campanha
+          await EmailCampaignsDB.incrementClicked(campaignId);
+          
+          // Se temos contact_id, atualizar status do envio específico
+          if (contactId) {
+            await EmailContactsDB.updateEmailStatus(contactId, 'clicked');
+            
+            // Encontrar o send específico e atualizar
+            const sends = await EmailSendsDB.findByCampaign(campaignId);
+            const send = sends.find(s => s.contact_id === contactId);
+            if (send) {
+              await EmailSendsDB.updateStatus(send.id, 'clicked', { clicked_at: new Date() });
+            }
+          }
+          
+          // Redirecionar para URL original
+          return NextResponse.redirect(decodeURIComponent(url));
+        } catch (error) {
+          console.error('Erro no tracking de clique:', error);
+          // Em caso de erro, redirecionar para URL mesmo assim
+          return NextResponse.redirect(decodeURIComponent(url));
+        }
+      }
+
+      case 'debug_stats': {
+        try {
+          const [contacts, campaigns, campaignStats] = await Promise.all([
+            EmailContactsDB.getStats(),
+            EmailCampaignsDB.findAll(),
+            EmailCampaignsDB.getMetrics()
+          ]);
+
+          // Buscar envios por campanha
+          const campaignDetails = await Promise.all(
+            campaigns.map(async (campaign) => {
+              const sends = await EmailSendsDB.findByCampaign(campaign.id);
+              const sendStats = await EmailSendsDB.getCampaignStats(campaign.id);
+              return {
+                ...campaign,
+                sends: sends.length,
+                sendStats
+              };
+            })
+          );
+
           return NextResponse.json({
             success: true,
-            data: { 
-              imported: result.inserted,
-              duplicates: result.duplicates,
-              message: `${result.inserted} contatos de exemplo importados`
+            debug: {
+              contacts,
+              campaigns: campaignDetails,
+              campaignStats,
+              totalCampaigns: campaigns.length,
+              completedCampaigns: campaigns.filter(c => c.status === 'completed' || c.status === 'sent').length
             }
           });
         } catch (error) {
           return NextResponse.json({
             success: false,
-            error: `Erro na importação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+            error: `Erro no debug: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
           }, { status: 500 });
         }
       }
@@ -1209,11 +1289,15 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
       try {
         const emailSend = batchSends[index];
         
-        // Personalizar HTML
-        const personalizedHtml = (campaign.html_content || '')
+        // Personalizar HTML com tracking
+        let personalizedHtml = (campaign.html_content || '')
           .replace(/{{nome}}/g, contact.nome)
           .replace(/{{email}}/g, contact.email)
           .replace(/{{unsubscribe_url}}/g, `https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}`);
+        
+        // Adicionar pixel de tracking de abertura (antes do </body>)
+        const trackingPixel = `<img src="https://www.fly2any.com/api/email-marketing?action=track_open&campaign_id=${campaign.id}&contact_id=${contact.id}" width="1" height="1" style="display:none;" alt="">`;
+        personalizedHtml = personalizedHtml.replace('</body>', `${trackingPixel}</body>`);
         
         // Enviar email
         const result = await transporter.sendMail({

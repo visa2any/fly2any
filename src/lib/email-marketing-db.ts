@@ -341,6 +341,55 @@ export class EmailCampaignsDB {
     const query = `UPDATE email_campaigns SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
     await sql.query(query, values);
   }
+
+  static async incrementOpened(id: string): Promise<void> {
+    await sql`
+      UPDATE email_campaigns 
+      SET total_opened = total_opened + 1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
+  }
+
+  static async incrementClicked(id: string): Promise<void> {
+    await sql`
+      UPDATE email_campaigns 
+      SET total_clicked = total_clicked + 1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
+  }
+
+  static async getMetrics(): Promise<{
+    totalSent: number;
+    totalOpened: number;
+    totalClicked: number;
+    openRate: number;
+    clickRate: number;
+  }> {
+    const result = await sql`
+      SELECT 
+        COALESCE(SUM(total_sent), 0) as total_sent,
+        COALESCE(SUM(total_opened), 0) as total_opened,
+        COALESCE(SUM(total_clicked), 0) as total_clicked
+      FROM email_campaigns 
+      WHERE status IN ('completed', 'sent')
+    `;
+    
+    const row = result.rows[0];
+    const totalSent = parseInt(row.total_sent) || 0;
+    const totalOpened = parseInt(row.total_opened) || 0;
+    const totalClicked = parseInt(row.total_clicked) || 0;
+    
+    const openRate = totalSent > 0 ? (totalOpened / totalSent) * 100 : 0;
+    const clickRate = totalSent > 0 ? (totalClicked / totalSent) * 100 : 0;
+    
+    return {
+      totalSent,
+      totalOpened,
+      totalClicked,
+      openRate,
+      clickRate
+    };
+  }
 }
 
 // CRUD Functions para Email Sends
