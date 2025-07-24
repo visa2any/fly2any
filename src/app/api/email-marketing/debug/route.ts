@@ -1,196 +1,252 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { EmailCampaignsDB, EmailSendsDB, EmailContactsDB } from '@/lib/email-marketing-db';
 
+// 🔧 API de DEBUG e CORREÇÃO para campanhas travadas
 export async function GET(request: NextRequest) {
-  const debug = {
-    timestamp: new Date().toISOString(),
-    tests: [] as any[]
-  };
-
   try {
-    // TEST 1: Verificar conexão com banco
-    debug.tests.push({ test: '1-connection', status: 'testing...' });
-    try {
-      const connTest = await sql`SELECT NOW() as current_time`;
-      debug.tests[debug.tests.length - 1] = {
-        test: '1-connection', 
-        status: 'SUCCESS', 
-        result: connTest.rows[0]
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '1-connection', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
 
-    // TEST 2: Verificar se tabela email_contacts existe
-    debug.tests.push({ test: '2-table-exists', status: 'testing...' });
-    try {
-      const tableCheck = await sql`
-        SELECT table_name, column_name, data_type, is_nullable, column_default
-        FROM information_schema.columns 
-        WHERE table_name = 'email_contacts'
-        ORDER BY ordinal_position
-      `;
-      debug.tests[debug.tests.length - 1] = {
-        test: '2-table-exists', 
-        status: tableCheck.rows.length > 0 ? 'SUCCESS' : 'FAILED',
-        columns: tableCheck.rows.length,
-        schema: tableCheck.rows
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '2-table-exists', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+    switch (action) {
+      // 🕵️ Encontrar campanhas travadas
+      case 'stuck_campaigns': {
+        const campaigns = await EmailCampaignsDB.findAll();
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        
+        const stuckCampaigns = campaigns.filter(campaign => 
+          campaign.status === 'sending' && 
+          campaign.updated_at < tenMinutesAgo
+        );
 
-    // TEST 3: Contar registros na tabela
-    debug.tests.push({ test: '3-count-records', status: 'testing...' });
-    try {
-      const count = await sql`SELECT COUNT(*) as total FROM email_contacts`;
-      debug.tests[debug.tests.length - 1] = {
-        test: '3-count-records', 
-        status: 'SUCCESS', 
-        total: parseInt(count.rows[0].total)
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '3-count-records', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+        const stuckDetails = await Promise.all(
+          stuckCampaigns.map(async (campaign) => {
+            const sends = await EmailSendsDB.findByCampaign(campaign.id);
+            const pendingSends = sends.filter(s => s.status === 'pending');
+            const sentSends = sends.filter(s => s.status === 'sent');
+            const failedSends = sends.filter(s => s.status === 'failed');
 
-    // TEST 4: Listar primeiros 5 registros
-    debug.tests.push({ test: '4-sample-data', status: 'testing...' });
-    try {
-      const sample = await sql`SELECT * FROM email_contacts LIMIT 5`;
-      debug.tests[debug.tests.length - 1] = {
-        test: '4-sample-data', 
-        status: 'SUCCESS', 
-        count: sample.rows.length,
-        data: sample.rows
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '4-sample-data', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+            return {
+              campaign,
+              totalSends: sends.length,
+              pending: pendingSends.length,
+              sent: sentSends.length,
+              failed: failedSends.length,
+              stuckTime: Math.round((Date.now() - campaign.updated_at.getTime()) / 60000)
+            };
+          })
+        );
 
-    // TEST 5: Tentar inserir um registro de teste
-    debug.tests.push({ test: '5-test-insert', status: 'testing...' });
-    try {
-      const testEmail = `debug-test-${Date.now()}@example.com`;
-      const testId = `debug_${Date.now()}`;
-      const testToken = `token_${Math.random().toString(36).substr(2, 16)}`;
-      
-      const insertResult = await sql`
-        INSERT INTO email_contacts (
-          id, email, nome, sobrenome, telefone, segmento, tags, 
-          status, email_status, unsubscribe_token
-        ) VALUES (
-          ${testId}, ${testEmail}, 'Debug Test', 'User', '+1234567890', 
-          'debug', '[]', 'ativo', 'not_sent', ${testToken}
-        ) RETURNING *
-      `;
-      
-      debug.tests[debug.tests.length - 1] = {
-        test: '5-test-insert', 
-        status: 'SUCCESS', 
-        inserted: insertResult.rows[0]
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '5-test-insert', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+        return NextResponse.json({
+          success: true,
+          data: {
+            stuckCampaigns: stuckDetails,
+            totalStuck: stuckDetails.length
+          }
+        });
+      }
 
-    // TEST 6: Verificar se o registro foi inserido
-    debug.tests.push({ test: '6-verify-insert', status: 'testing...' });
-    try {
-      const verify = await sql`
-        SELECT * FROM email_contacts 
-        WHERE email LIKE 'debug-test-%@example.com' 
-        ORDER BY created_at DESC 
-        LIMIT 1
-      `;
-      
-      debug.tests[debug.tests.length - 1] = {
-        test: '6-verify-insert', 
-        status: verify.rows.length > 0 ? 'SUCCESS' : 'FAILED', 
-        found: verify.rows.length,
-        data: verify.rows[0] || null
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '6-verify-insert', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+      // 🔄 Resetar campanha específica
+      case 'reset_stuck': {
+        const campaignId = searchParams.get('campaign_id');
+        
+        if (!campaignId) {
+          return NextResponse.json({
+            success: false,
+            error: 'campaign_id é obrigatório'
+          }, { status: 400 });
+        }
 
-    // TEST 7: Verificar todas as tabelas existentes
-    debug.tests.push({ test: '7-all-tables', status: 'testing...' });
-    try {
-      const tables = await sql`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_type = 'BASE TABLE'
-        ORDER BY table_name
-      `;
-      
-      debug.tests[debug.tests.length - 1] = {
-        test: '7-all-tables', 
-        status: 'SUCCESS', 
-        tables: tables.rows.map(row => row.table_name)
-      };
-    } catch (error) {
-      debug.tests[debug.tests.length - 1] = {
-        test: '7-all-tables', 
-        status: 'FAILED', 
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+        const campaign = await EmailCampaignsDB.findById(campaignId);
+        if (!campaign) {
+          return NextResponse.json({
+            success: false,
+            error: 'Campanha não encontrada'
+          }, { status: 404 });
+        }
 
-    return NextResponse.json({
-      success: true,
-      debug
-    });
+        const sends = await EmailSendsDB.findByCampaign(campaignId);
+        const pendingSends = sends.filter(s => s.status === 'pending');
+        const sentSends = sends.filter(s => s.status === 'sent');
+
+        // Se todos foram enviados, marcar como completa
+        if (pendingSends.length === 0 && sentSends.length > 0) {
+          await EmailCampaignsDB.updateStatus(campaignId, 'completed');
+          await EmailCampaignsDB.updateStats(campaignId, {
+            total_recipients: sends.length,
+            total_sent: sentSends.length
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: `✅ Campanha "${campaign.name}" marcada como completa`,
+            details: {
+              totalSends: sends.length,
+              sent: sentSends.length,
+              pending: pendingSends.length
+            }
+          });
+        }
+
+        // Se há pendentes, resetar para draft
+        if (pendingSends.length > 0) {
+          await EmailCampaignsDB.updateStatus(campaignId, 'draft');
+          
+          return NextResponse.json({
+            success: true,
+            message: `🔄 Campanha "${campaign.name}" resetada para draft`,
+            details: {
+              totalSends: sends.length,
+              sent: sentSends.length,
+              pending: pendingSends.length
+            }
+          });
+        }
+
+        return NextResponse.json({
+          success: false,
+          error: '⚠️ Campanha não precisa ser resetada'
+        });
+      }
+
+      // ⚡ Forçar conclusão
+      case 'force_complete': {
+        const campaignId = searchParams.get('campaign_id');
+        
+        if (!campaignId) {
+          return NextResponse.json({
+            success: false,
+            error: 'campaign_id é obrigatório'
+          }, { status: 400 });
+        }
+
+        const campaign = await EmailCampaignsDB.findById(campaignId);
+        if (!campaign) {
+          return NextResponse.json({
+            success: false,
+            error: 'Campanha não encontrada'
+          }, { status: 404 });
+        }
+
+        const sends = await EmailSendsDB.findByCampaign(campaignId);
+        const sentSends = sends.filter(s => s.status === 'sent');
+
+        await EmailCampaignsDB.updateStatus(campaignId, 'completed');
+        await EmailCampaignsDB.updateStats(campaignId, {
+          total_recipients: sends.length,
+          total_sent: sentSends.length
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: `⚡ Campanha "${campaign.name}" forçada como completa`,
+          details: {
+            totalSends: sends.length,
+            sent: sentSends.length
+          }
+        });
+      }
+
+      // 🩺 Health check completo
+      case 'health_check': {
+        const envVars = {
+          hasGmailEmail: !!process.env.GMAIL_EMAIL,
+          hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD
+        };
+
+        const campaigns = await EmailCampaignsDB.findAll();
+        const lastCampaign = campaigns[0];
+        const stats = await EmailContactsDB.getStats();
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            environment: envVars,
+            database: {
+              totalCampaigns: campaigns.length,
+              lastCampaign: lastCampaign ? {
+                id: lastCampaign.id,
+                name: lastCampaign.name,
+                status: lastCampaign.status,
+                created_at: lastCampaign.created_at
+              } : null
+            },
+            contacts: stats
+          }
+        });
+      }
+
+      default:
+        return NextResponse.json({
+          success: false,
+          error: 'Ação não encontrada. Use: stuck_campaigns, reset_stuck, force_complete, health_check'
+        }, { status: 400 });
+    }
 
   } catch (error) {
+    console.error('Erro na API de debug:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      debug
+      error: error instanceof Error ? error.message : 'Erro interno'
     }, { status: 500 });
   }
 }
 
-// POST para limpar dados de debug
+// 🛠️ POST para ações de correção
 export async function POST(request: NextRequest) {
   try {
-    const result = await sql`
-      DELETE FROM email_contacts 
-      WHERE email LIKE 'debug-test-%@example.com'
-    `;
-    
-    return NextResponse.json({
-      success: true,
-      message: `Removidos ${result.rowCount || 0} registros de debug`
-    });
+    const body = await request.json();
+    const { action } = body;
+
+    switch (action) {
+      // 🔄 Resetar TODAS as campanhas travadas
+      case 'reset_all_stuck': {
+        const campaigns = await EmailCampaignsDB.findAll();
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        
+        const stuckCampaigns = campaigns.filter(campaign => 
+          campaign.status === 'sending' && 
+          campaign.updated_at < tenMinutesAgo
+        );
+
+        const resetResults = await Promise.all(
+          stuckCampaigns.map(async (campaign) => {
+            const sends = await EmailSendsDB.findByCampaign(campaign.id);
+            const pendingSends = sends.filter(s => s.status === 'pending');
+            const sentSends = sends.filter(s => s.status === 'sent');
+
+            if (pendingSends.length === 0 && sentSends.length > 0) {
+              await EmailCampaignsDB.updateStatus(campaign.id, 'completed');
+              await EmailCampaignsDB.updateStats(campaign.id, {
+                total_recipients: sends.length,
+                total_sent: sentSends.length
+              });
+              return { id: campaign.id, name: campaign.name, action: 'completed', sent: sentSends.length };
+            } else {
+              await EmailCampaignsDB.updateStatus(campaign.id, 'draft');
+              return { id: campaign.id, name: campaign.name, action: 'reset_to_draft', pending: pendingSends.length };
+            }
+          })
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: `✅ ${stuckCampaigns.length} campanhas travadas foram corrigidas automaticamente`,
+          details: resetResults
+        });
+      }
+
+      default:
+        return NextResponse.json({
+          success: false,
+          error: 'Ação não encontrada'
+        }, { status: 400 });
+    }
+
   } catch (error) {
+    console.error('Erro na API de correção:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Erro interno'
     }, { status: 500 });
   }
 }
