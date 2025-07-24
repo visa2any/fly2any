@@ -131,8 +131,13 @@ function AdminLayoutContent({
     );
   }
 
+  // Don't render admin layout for login page or if not authenticated
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+  
   // Don't render admin layout if not authenticated
-  if (!session && pathname !== '/admin/login') {
+  if (!session) {
     return null;
   }
 

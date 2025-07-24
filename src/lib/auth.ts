@@ -14,6 +14,17 @@ const ADMIN_CREDENTIALS = {
   password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
 };
 
+// Force localhost in development
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    // Force override in development
+    process.env.NEXTAUTH_URL = 'http://localhost:3000';
+    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+    return 'http://localhost:3000';
+  }
+  return process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+};
+
 // Hash the admin password if it's plain text
 const hashPassword = (password: string): string => {
   return bcrypt.hashSync(password, 12);
@@ -129,22 +140,39 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      console.log('🔄 [AUTH] Redirect callback:', { url, baseUrl });
+      const actualBaseUrl = getBaseUrl();
       
-      // Force localhost in development
+      console.log('🔄 [AUTH] Redirect callback:', { 
+        url, 
+        baseUrl, 
+        actualBaseUrl,
+        NODE_ENV: process.env.NODE_ENV 
+      });
+      
+      // Always use our defined base URL in development
       if (process.env.NODE_ENV === 'development') {
-        const devBaseUrl = 'http://localhost:3000';
-        
         // Allows relative callback URLs
         if (url.startsWith('/')) {
-          const redirectUrl = `${devBaseUrl}${url}`;
-          console.log('✅ [AUTH] Redirecting to:', redirectUrl);
+          const redirectUrl = `${actualBaseUrl}${url}`;
+          console.log('✅ [AUTH] Dev redirecting to:', redirectUrl);
           return redirectUrl;
         }
         
+        // Extract path from production URLs
+        if (url.includes('fly2any.com')) {
+          try {
+            const urlObj = new URL(url);
+            const pathRedirect = `${actualBaseUrl}${urlObj.pathname}${urlObj.search}`;
+            console.log('✅ [AUTH] Extracted path redirect to:', pathRedirect);
+            return pathRedirect;
+          } catch (e) {
+            console.error('❌ [AUTH] URL parsing error:', e);
+          }
+        }
+        
         // Default to admin dashboard
-        const defaultUrl = `${devBaseUrl}/admin`;
-        console.log('✅ [AUTH] Default redirect to:', defaultUrl);
+        const defaultUrl = `${actualBaseUrl}/admin`;
+        console.log('✅ [AUTH] Default dev redirect to:', defaultUrl);
         return defaultUrl;
       }
       

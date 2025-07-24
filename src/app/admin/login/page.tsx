@@ -82,9 +82,27 @@ export default function AdminLoginPage() {
         console.error('❌ Erro de autenticação:', result.error);
         setError('Credenciais inválidas. Verifique email e senha.');
       } else if (result?.ok) {
-        console.log('✅ Login bem-sucedido, redirecionando para:', callbackUrl);
-        // Success - redirect will be handled by NextAuth
-        router.replace(callbackUrl);
+        // Force localhost redirect in development
+        let redirectUrl = callbackUrl;
+        
+        if (process.env.NODE_ENV === 'development') {
+          // Extract path from any URL and force localhost
+          if (redirectUrl.includes('fly2any.com')) {
+            const urlObj = new URL(redirectUrl);
+            redirectUrl = urlObj.pathname + urlObj.search;
+          }
+          
+          // Ensure it starts with /
+          if (!redirectUrl.startsWith('/')) {
+            redirectUrl = '/admin';
+          }
+        }
+        
+        console.log('✅ Login bem-sucedido, redirecionando para:', redirectUrl);
+        console.log('🔄 Original callbackUrl:', callbackUrl);
+        
+        // Force redirect to localhost path
+        router.replace(redirectUrl);
       } else {
         console.error('❌ Resultado inesperado:', result);
         setError('Erro inesperado. Tente novamente.');
