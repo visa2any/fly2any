@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import { FlightIcon, PhoneIcon } from './Icons';
@@ -11,17 +11,6 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const navigationItems = [
     { href: '/', label: 'Início', icon: 'home' },
@@ -42,8 +31,6 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
-
-  if (!isMobile) return null;
 
   return (
     <>

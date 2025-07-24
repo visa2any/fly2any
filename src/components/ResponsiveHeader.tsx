@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Logo from './Logo';
@@ -13,27 +12,18 @@ interface ResponsiveHeaderProps {
 }
 
 export default function ResponsiveHeader({ style, className }: ResponsiveHeaderProps) {
-  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Mobile version
-  if (isMobile) {
-    return <MobileHeader currentPath={pathname} />;
-  }
-
-  // Desktop version
   return (
-    <header style={{
+    <>
+      {/* Mobile Header - Hidden on desktop via CSS */}
+      <div className="mobile-header-container">
+        <MobileHeader currentPath={pathname} />
+      </div>
+
+      {/* Desktop Header - Hidden on mobile via CSS */}
+      <div className="desktop-header-container">
+        <header style={{
       position: 'relative',
       zIndex: 10,
       background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
@@ -160,5 +150,28 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
         </nav>
       </div>
     </header>
+      </div>
+
+      {/* CSS for responsive behavior */}
+      <style jsx>{`
+        .mobile-header-container {
+          display: none;
+        }
+        
+        .desktop-header-container {
+          display: block;
+        }
+        
+        @media (max-width: 767px) {
+          .mobile-header-container {
+            display: block;
+          }
+          
+          .desktop-header-container {
+            display: none;
+          }
+        }
+      `}</style>
+    </>
   );
 }
