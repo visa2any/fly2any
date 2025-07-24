@@ -230,7 +230,7 @@ export async function middleware(request: NextRequest) {
           tokenExp: token?.exp,
           tokenRole: token?.role,
           currentTime: Math.floor(Date.now() / 1000),
-          isExpired: token?.exp ? token.exp < Math.floor(Date.now() / 1000) : 'no-exp'
+          isExpired: token?.exp ? (token.exp as number) < Math.floor(Date.now() / 1000) : 'no-exp'
         });
       }
       
