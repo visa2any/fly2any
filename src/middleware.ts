@@ -208,34 +208,56 @@ export async function middleware(request: NextRequest) {
     response.headers.set(key, value);
   });
   
-  // Check authentication for admin pages (but not login page)
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+  // Check authentication for admin pages (but not login page or API auth routes)
+  if (pathname.startsWith('/admin') && 
+      pathname !== '/admin/login' && 
+      !pathname.startsWith('/api/auth/')) {
+    
     try {
       const token = await getToken({ 
         req: request,
-        secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024'
+        secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024',
+        cookieName: process.env.NODE_ENV === 'production' 
+          ? '__Secure-next-auth.session-token'
+          : 'next-auth.session-token'
       });
       
-      console.log('🔒 [MIDDLEWARE] Checking auth for:', pathname, {
-        hasToken: !!token,
-        tokenRole: token?.role,
-        isAdmin: token?.role === 'admin'
-      });
+      // More detailed debugging in production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🔒 [PROD-MIDDLEWARE] Auth check:', {
+          pathname,
+          hasToken: !!token,
+          tokenExp: token?.exp,
+          tokenRole: token?.role,
+          currentTime: Math.floor(Date.now() / 1000),
+          isExpired: token?.exp ? token.exp < Math.floor(Date.now() / 1000) : 'no-exp'
+        });
+      }
       
       if (!token || token.role !== 'admin') {
-        console.log('❌ [MIDDLEWARE] Auth failed, redirecting to login');
-        // Redirect to login page with callback URL
+        if (process.env.NODE_ENV === 'production') {
+          console.log('❌ [PROD-MIDDLEWARE] Auth failed - redirecting to login');
+        }
+        
+        // Prevent redirect loops
         const loginUrl = new URL('/admin/login', request.url);
-        loginUrl.searchParams.set('callbackUrl', pathname);
+        if (pathname !== '/admin') {  // Only set callback if not root admin
+          loginUrl.searchParams.set('callbackUrl', pathname);
+        }
         return NextResponse.redirect(loginUrl);
       }
       
-      console.log('✅ [MIDDLEWARE] Auth successful, allowing access');
+      if (process.env.NODE_ENV === 'production') {
+        console.log('✅ [PROD-MIDDLEWARE] Auth successful');
+      }
+      
     } catch (error) {
       console.error('❌ [MIDDLEWARE] Auth error:', error);
-      const loginUrl = new URL('/admin/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
+      // Only redirect on auth errors, not token parsing errors
+      if (error.message?.includes('JSON') === false) {
+        const loginUrl = new URL('/admin/login', request.url);
+        return NextResponse.redirect(loginUrl);
+      }
     }
   }
   

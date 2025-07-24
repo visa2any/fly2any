@@ -82,40 +82,19 @@ export default function AdminLoginPage() {
         console.error('❌ Erro de autenticação:', result.error);
         setError('Credenciais inválidas. Verifique email e senha.');
       } else if (result?.ok) {
-        // Force localhost redirect in development
-        let redirectUrl = callbackUrl;
+        console.log('✅ Login bem-sucedido!');
+        console.log('🔄 NextAuth URL de retorno:', result.url);
         
-        if (process.env.NODE_ENV === 'development') {
-          // Extract path from any URL and force localhost
-          if (redirectUrl.includes('fly2any.com')) {
-            const urlObj = new URL(redirectUrl);
-            redirectUrl = urlObj.pathname + urlObj.search;
-          }
-          
-          // Ensure it starts with /
-          if (!redirectUrl.startsWith('/')) {
-            redirectUrl = '/admin';
-          }
-        }
-        
-        console.log('✅ Login bem-sucedido, redirecionando para:', redirectUrl);
-        console.log('🔄 Original callbackUrl:', callbackUrl);
-        
-        // Force redirect using window.location for immediate redirect
-        console.log('🔄 Forçando redirecionamento via window.location...');
-        
-        // Give time for session to be established
+        // Let NextAuth handle the redirect naturally
+        // Just give it a moment to process the session
         setTimeout(() => {
-          console.log('🚀 Executando redirecionamento para:', redirectUrl);
-          window.location.href = redirectUrl;
-        }, 500);
-        
-        // Also try router.replace as backup
-        try {
-          router.replace(redirectUrl);
-        } catch (e) {
-          console.error('❌ Erro no router.replace:', e);
-        }
+          // Check if we're still on login page
+          if (window.location.pathname === '/admin/login') {
+            console.log('🔄 Ainda na página de login, forçando redirecionamento...');
+            const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
+            window.location.href = targetUrl;
+          }
+        }, 1000);
       } else {
         console.error('❌ Resultado inesperado:', result);
         setError('Erro inesperado. Tente novamente.');

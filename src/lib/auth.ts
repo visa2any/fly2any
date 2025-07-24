@@ -14,15 +14,16 @@ const ADMIN_CREDENTIALS = {
   password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
 };
 
-// Force localhost in development
+// Get correct base URL for environment
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === 'development') {
-    // Force override in development
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
     process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
     return 'http://localhost:3000';
   }
-  return process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+  
+  // Production URLs
+  return process.env.NEXTAUTH_URL || 'https://www.fly2any.com';
 };
 
 // Hash the admin password if it's plain text
@@ -142,48 +143,58 @@ export const authOptions: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       const actualBaseUrl = getBaseUrl();
       
-      console.log('🔄 [AUTH] Redirect callback:', { 
-        url, 
-        baseUrl, 
-        actualBaseUrl,
-        NODE_ENV: process.env.NODE_ENV 
-      });
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🔄 [PROD-AUTH] Redirect callback:', { 
+          url, 
+          baseUrl, 
+          actualBaseUrl 
+        });
+      }
       
-      // Always use our defined base URL in development
+      // Development logic
       if (process.env.NODE_ENV === 'development') {
-        // Allows relative callback URLs
         if (url.startsWith('/')) {
-          const redirectUrl = `${actualBaseUrl}${url}`;
-          console.log('✅ [AUTH] Dev redirecting to:', redirectUrl);
-          return redirectUrl;
+          return `${actualBaseUrl}${url}`;
         }
-        
-        // Extract path from production URLs
         if (url.includes('fly2any.com')) {
           try {
             const urlObj = new URL(url);
-            const pathRedirect = `${actualBaseUrl}${urlObj.pathname}${urlObj.search}`;
-            console.log('✅ [AUTH] Extracted path redirect to:', pathRedirect);
-            return pathRedirect;
+            return `${actualBaseUrl}${urlObj.pathname}${urlObj.search}`;
           } catch (e) {
             console.error('❌ [AUTH] URL parsing error:', e);
           }
         }
-        
-        // Default to admin dashboard
-        const defaultUrl = `${actualBaseUrl}/admin`;
-        console.log('✅ [AUTH] Default dev redirect to:', defaultUrl);
-        return defaultUrl;
+        return `${actualBaseUrl}/admin`;
       }
       
-      // Production logic
-      // Allows relative callback URLs
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      
-      // Allows callback URLs on the same origin
-      if (new URL(url).origin === baseUrl) return url;
-      
-      return `${baseUrl}/admin`;
+      // Production logic - be more strict
+      try {
+        // Relative URLs are safe
+        if (url.startsWith('/')) {
+          const redirectUrl = `${actualBaseUrl}${url}`;
+          console.log('✅ [PROD-AUTH] Relative redirect:', redirectUrl);
+          return redirectUrl;
+        }
+        
+        // Parse full URLs and validate
+        const urlObj = new URL(url);
+        const baseUrlObj = new URL(actualBaseUrl);
+        
+        // Same origin check
+        if (urlObj.origin === baseUrlObj.origin) {
+          console.log('✅ [PROD-AUTH] Same origin redirect:', url);
+          return url;
+        }
+        
+        // Default fallback
+        const fallbackUrl = `${actualBaseUrl}/admin`;
+        console.log('✅ [PROD-AUTH] Fallback redirect:', fallbackUrl);
+        return fallbackUrl;
+        
+      } catch (error) {
+        console.error('❌ [PROD-AUTH] Redirect error:', error);
+        return `${actualBaseUrl}/admin`;
+      }
     }
   },
 
@@ -196,7 +207,32 @@ export const authOptions: NextAuthOptions = {
   
   cookies: {
     sessionToken: {
-      name: `fly2any.session-token`,
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.fly2any.com' : undefined
+      }
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-next-auth.callback-url' 
+        : 'next-auth.callback-url',
+      options: {
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.fly2any.com' : undefined
+      }
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Host-next-auth.csrf-token' 
+        : 'next-auth.csrf-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
