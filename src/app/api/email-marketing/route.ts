@@ -1290,123 +1290,10 @@ export async function GET(request: NextRequest) {
       }
 
       case 'auto_restart': {
-        try {
-          console.log('🚀 Iniciando auto-restart de campanhas pausadas...');
-          
-          // 1. Buscar campanhas pausadas
-          const allCampaigns = await EmailCampaignsDB.findAll();
-          const pausedCampaigns = allCampaigns.filter(c => c.status === 'paused');
-          
-          console.log(`📊 Encontradas ${pausedCampaigns.length} campanhas pausadas`);
-          
-          if (pausedCampaigns.length === 0) {
-            return NextResponse.json({
-              success: true,
-              data: {
-                message: 'Nenhuma campanha pausada encontrada',
-                restarted: 0,
-                failed: 0
-              }
-            });
-          }
-          
-          let restarted = 0;
-          let failed = 0;
-          const results = [];
-          
-          // 2. Para cada campanha pausada, verificar se há envios pendentes
-          for (const campaign of pausedCampaigns) {
-            try {
-              console.log(`🔍 Verificando campanha: ${campaign.name} (${campaign.id})`);
-              
-              // Buscar envios pendentes desta campanha
-              const sends = await EmailSendsDB.findByCampaign(campaign.id);
-              const pendingSends = sends.filter(send => send.status === 'pending');
-              
-              console.log(`📧 Campanha ${campaign.name}: ${pendingSends.length} envios pendentes`);
-              
-              if (pendingSends.length === 0) {
-                console.log(`⚠️ Campanha ${campaign.name} não tem envios pendentes, pulando...`);
-                continue;
-              }
-              
-              // 3. Buscar contatos para os envios pendentes
-              const contactIds = pendingSends.map(send => send.contact_id);
-              const contacts: EmailContact[] = [];
-              
-              for (const contactId of contactIds) {
-                const contact = await EmailContactsDB.findById(contactId);
-                if (contact) {
-                  contacts.push(contact);
-                }
-              }
-              
-              console.log(`👥 Encontrados ${contacts.length} contatos para reprocessar`);
-              
-              if (contacts.length === 0) {
-                console.log(`⚠️ Nenhum contato encontrado para campanha ${campaign.name}`);
-                continue;
-              }
-              
-              // 4. Reiniciar processo de envio assíncrono
-              console.log(`🔄 Reiniciando campanha: ${campaign.name}`);
-              await EmailCampaignsDB.updateStatus(campaign.id, 'sending');
-              
-              // Processar de forma assíncrona (não aguardar conclusão)
-              processCampaignSends(campaign, contacts, pendingSends).catch(error => {
-                console.error(`❌ Erro no reprocessamento da campanha ${campaign.name}:`, error);
-                // Em caso de erro, marcar como pausada novamente
-                EmailCampaignsDB.updateStatus(campaign.id, 'paused').catch(e => 
-                  console.error('Erro ao atualizar status para paused:', e)
-                );
-              });
-              
-              restarted++;
-              results.push({
-                campaignId: campaign.id,
-                campaignName: campaign.name,
-                pendingEmails: contacts.length,
-                status: 'restarted'
-              });
-              
-              console.log(`✅ Campanha ${campaign.name} reiniciada com sucesso`);
-              
-            } catch (error) {
-              console.error(`❌ Erro ao processar campanha ${campaign.name}:`, error);
-              failed++;
-              results.push({
-                campaignId: campaign.id,
-                campaignName: campaign.name,
-                status: 'failed',
-                error: error instanceof Error ? error.message : 'Erro desconhecido'
-              });
-            }
-          }
-          
-          const summary = {
-            totalPausedCampaigns: pausedCampaigns.length,
-            restarted,
-            failed,
-            details: results
-          };
-          
-          console.log('📊 Resumo do auto-restart:', summary);
-          
-          return NextResponse.json({
-            success: true,
-            data: {
-              message: `Auto-restart concluído: ${restarted} campanhas reiniciadas, ${failed} falharam`,
-              ...summary
-            }
-          });
-          
-        } catch (error) {
-          console.error('❌ Erro no auto-restart:', error);
-          return NextResponse.json({
-            success: false,
-            error: `Erro no auto-restart: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
-          }, { status: 500 });
-        }
+        const result = await executeAutoRestart();
+        return NextResponse.json(result.success ? result : result, { 
+          status: result.success ? 200 : 500 
+        });
       }
 
       case 'debug_stats': {
@@ -1461,6 +1348,129 @@ export async function GET(request: NextRequest) {
       success: false,
       error: error instanceof Error ? error.message : 'Erro interno'
     }, { status: 500 });
+  }
+}
+
+// 🔄 Função exportável para auto-restart de campanhas (pode ser usada por CRON)
+export async function executeAutoRestart() {
+  try {
+    await ensureTablesExist();
+    
+    console.log('🚀 Iniciando auto-restart de campanhas pausadas...');
+    
+    // 1. Buscar campanhas pausadas
+    const allCampaigns = await EmailCampaignsDB.findAll();
+    const pausedCampaigns = allCampaigns.filter(c => c.status === 'paused');
+    
+    console.log(`📊 Encontradas ${pausedCampaigns.length} campanhas pausadas`);
+    
+    if (pausedCampaigns.length === 0) {
+      return {
+        success: true,
+        data: {
+          message: 'Nenhuma campanha pausada encontrada',
+          restarted: 0,
+          failed: 0
+        }
+      };
+    }
+    
+    let restarted = 0;
+    let failed = 0;
+    const results = [];
+    
+    // 2. Para cada campanha pausada, verificar se há envios pendentes
+    for (const campaign of pausedCampaigns) {
+      try {
+        console.log(`🔍 Verificando campanha: ${campaign.name} (${campaign.id})`);
+        
+        // Buscar envios pendentes desta campanha
+        const sends = await EmailSendsDB.findByCampaign(campaign.id);
+        const pendingSends = sends.filter(send => send.status === 'pending');
+        
+        console.log(`📧 Campanha ${campaign.name}: ${pendingSends.length} envios pendentes`);
+        
+        if (pendingSends.length === 0) {
+          console.log(`⚠️ Campanha ${campaign.name} não tem envios pendentes, pulando...`);
+          continue;
+        }
+        
+        // 3. Buscar contatos para os envios pendentes
+        const contactIds = pendingSends.map(send => send.contact_id);
+        const contacts: EmailContact[] = [];
+        
+        for (const contactId of contactIds) {
+          const contact = await EmailContactsDB.findById(contactId);
+          if (contact) {
+            contacts.push(contact);
+          }
+        }
+        
+        console.log(`👥 Encontrados ${contacts.length} contatos para reprocessar`);
+        
+        if (contacts.length === 0) {
+          console.log(`⚠️ Nenhum contato encontrado para campanha ${campaign.name}`);
+          continue;
+        }
+        
+        // 4. Reiniciar processo de envio assíncrono
+        console.log(`🔄 Reiniciando campanha: ${campaign.name}`);
+        await EmailCampaignsDB.updateStatus(campaign.id, 'sending');
+        
+        // Processar de forma assíncrona (não aguardar conclusão)
+        processCampaignSends(campaign, contacts, pendingSends).catch(error => {
+          console.error(`❌ Erro no reprocessamento da campanha ${campaign.name}:`, error);
+          // Em caso de erro, marcar como pausada novamente
+          EmailCampaignsDB.updateStatus(campaign.id, 'paused').catch(e => 
+            console.error('Erro ao atualizar status para paused:', e)
+          );
+        });
+        
+        restarted++;
+        results.push({
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+          pendingEmails: contacts.length,
+          status: 'restarted'
+        });
+        
+        console.log(`✅ Campanha ${campaign.name} reiniciada com sucesso`);
+        
+      } catch (error) {
+        console.error(`❌ Erro ao processar campanha ${campaign.name}:`, error);
+        failed++;
+        results.push({
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
+      }
+    }
+    
+    const summary = {
+      totalPausedCampaigns: pausedCampaigns.length,
+      restarted,
+      failed,
+      details: results
+    };
+    
+    console.log('📊 Resumo do auto-restart:', summary);
+    
+    return {
+      success: true,
+      data: {
+        message: `Auto-restart concluído: ${restarted} campanhas reiniciadas, ${failed} falharam`,
+        ...summary
+      }
+    };
+    
+  } catch (error) {
+    console.error('❌ Erro no auto-restart:', error);
+    return {
+      success: false,
+      error: `Erro no auto-restart: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+    };
   }
 }
 

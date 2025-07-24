@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { executeAutoRestart } from '../../email-marketing/route';
 
 // 🔄 CRON JOB para reinício automático de campanhas
 // Este endpoint pode ser chamado por serviços externos como:
@@ -12,33 +13,17 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔄 CRON: Executando verificação automática de campanhas...');
     
-    // Fazer chamada para a API de auto-restart
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000'
-      : 'https://www.fly2any.com';
-    
-    const response = await fetch(`${baseUrl}/api/email-marketing?action=auto_restart`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Fly2Any-Cron-AutoRestart/1.0'
-      },
-      // Timeout para evitar travamento do CRON
-      signal: AbortSignal.timeout(45000)
-    });
-
-    const result = await response.json();
+    // Chamar diretamente a função de auto-restart (sem HTTP fetch)
+    const result = await executeAutoRestart();
     
     if (result.success) {
-      console.log('✅ CRON: Auto-restart executado com sucesso', result.details);
+      console.log('✅ CRON: Auto-restart executado com sucesso', result.data);
       
       return NextResponse.json({
         success: true,
         message: '✅ Verificação automática de campanhas executada via CRON',
         timestamp: new Date().toISOString(),
-        details: result.data || result,
+        details: result.data,
         summary: result.data?.message || 'Processo concluído',
         nextRun: 'Em 5-10 minutos (recomendado)'
       });
