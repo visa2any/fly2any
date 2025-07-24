@@ -1296,6 +1296,78 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      case 'delete_campaign': {
+        const campaignId = searchParams.get('id');
+        if (!campaignId) {
+          return NextResponse.json({
+            success: false,
+            error: 'ID da campanha é obrigatório'
+          }, { status: 400 });
+        }
+
+        try {
+          const deleted = await EmailCampaignsDB.deleteById(campaignId);
+          if (deleted) {
+            return NextResponse.json({
+              success: true,
+              message: 'Campanha excluída com sucesso'
+            });
+          } else {
+            return NextResponse.json({
+              success: false,
+              error: 'Campanha não encontrada'
+            }, { status: 404 });
+          }
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao excluir campanha: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
+      case 'delete_all_campaigns': {
+        try {
+          const result = await sql`DELETE FROM email_campaigns`;
+          await sql`DELETE FROM email_sends`; // Limpar envios também
+          
+          return NextResponse.json({
+            success: true,
+            message: `${result.rowCount || 0} campanhas excluídas com sucesso`
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao excluir campanhas: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
+      case 'update_campaign_status': {
+        const campaignId = searchParams.get('id');
+        const newStatus = searchParams.get('status');
+        
+        if (!campaignId || !newStatus) {
+          return NextResponse.json({
+            success: false,
+            error: 'ID da campanha e status são obrigatórios'
+          }, { status: 400 });
+        }
+
+        try {
+          await EmailCampaignsDB.updateStatus(campaignId, newStatus as any);
+          return NextResponse.json({
+            success: true,
+            message: `Status da campanha atualizado para: ${newStatus}`
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao atualizar status: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
       case 'debug_stats': {
         try {
           const [contacts, campaigns, campaignStats] = await Promise.all([

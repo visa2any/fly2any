@@ -199,6 +199,83 @@ export default function EmailMarketingPage() {
     }
   };
 
+  const deleteCampaign = async (campaignId: string, campaignName: string) => {
+    if (!confirm(`Tem certeza que deseja excluir a campanha "${campaignName}"?`)) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage('🗑️ Excluindo campanha...');
+    
+    try {
+      const response = await fetch(`/api/email-marketing?action=delete_campaign&id=${campaignId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessage(`✅ Campanha "${campaignName}" excluída com sucesso!`);
+        fetchCampaigns(); // Atualizar lista
+        fetchStats(); // Atualizar estatísticas
+      } else {
+        setMessage(`❌ Erro: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('❌ Erro ao excluir campanha');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAllCampaigns = async () => {
+    if (!confirm('⚠️ ATENÇÃO: Isso irá excluir TODAS as campanhas e seus dados. Tem certeza?')) {
+      return;
+    }
+    
+    if (!confirm('Última confirmação: Excluir TODAS as campanhas permanentemente?')) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage('🗑️ Excluindo todas as campanhas...');
+    
+    try {
+      const response = await fetch('/api/email-marketing?action=delete_all_campaigns');
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessage(`✅ ${data.message}`);
+        setCampaigns([]); // Limpar lista local
+        fetchStats(); // Atualizar estatísticas
+      } else {
+        setMessage(`❌ Erro: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('❌ Erro ao excluir campanhas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCampaignStatus = async (campaignId: string, newStatus: string, campaignName: string) => {
+    setLoading(true);
+    setMessage(`🔄 Alterando status da campanha "${campaignName}"...`);
+    
+    try {
+      const response = await fetch(`/api/email-marketing?action=update_campaign_status&id=${campaignId}&status=${newStatus}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessage(`✅ ${data.message}`);
+        fetchCampaigns(); // Atualizar lista
+      } else {
+        setMessage(`❌ Erro: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('❌ Erro ao atualizar status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendTestEmail = async () => {
     if (!testEmail) {
       setMessage('❌ Digite um email para teste');
@@ -636,13 +713,24 @@ export default function EmailMarketingPage() {
       <div className="admin-card">
         <div className="admin-card-header">
           <div className="flex justify-between items-center">
-            <h2 className="admin-card-title">📈 Histórico de Campanhas</h2>
-            <button
-              onClick={fetchCampaigns}
-              className="px-4 py-2 bg-admin-primary text-white rounded-lg hover:bg-admin-primary-hover transition-colors text-sm"
-            >
-              🔄 Atualizar
-            </button>
+            <h2 className="admin-card-title">📈 Histórico de Campanhas ({campaigns.length})</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={fetchCampaigns}
+                className="px-4 py-2 bg-admin-primary text-white rounded-lg hover:bg-admin-primary-hover transition-colors text-sm"
+              >
+                🔄 Atualizar
+              </button>
+              {campaigns.length > 0 && (
+                <button
+                  onClick={deleteAllCampaigns}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm disabled:opacity-50"
+                >
+                  🗑️ Excluir Todas
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <div className="admin-card-content">
@@ -657,12 +745,13 @@ export default function EmailMarketingPage() {
                   <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Cliques</th>
                   <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Data</th>
                   <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
+                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {campaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-admin-text-secondary">
+                    <td colSpan={8} className="py-8 text-center text-admin-text-secondary">
                       📭 Nenhuma campanha encontrada.<br/>
                       <span className="text-sm">Envie sua primeira campanha usando os botões acima!</span>
                     </td>
@@ -689,9 +778,49 @@ export default function EmailMarketingPage() {
                       {new Date(campaign.date).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="py-3 px-2">
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        campaign.status === 'completed' || campaign.status === 'sent' 
+                          ? 'bg-green-100 text-green-700'
+                          : campaign.status === 'sending'
+                          ? 'bg-blue-100 text-blue-700'
+                          : campaign.status === 'paused'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
                         {campaign.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <div className="flex gap-1">
+                        {campaign.status === 'paused' && (
+                          <button
+                            onClick={() => updateCampaignStatus(campaign.id, 'sending', campaign.name)}
+                            disabled={loading}
+                            className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50"
+                            title="Retomar campanha"
+                          >
+                            ▶️
+                          </button>
+                        )}
+                        {(campaign.status === 'sending' || campaign.status === 'draft') && (
+                          <button
+                            onClick={() => updateCampaignStatus(campaign.id, 'paused', campaign.name)}
+                            disabled={loading}
+                            className="px-2 py-1 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700 disabled:opacity-50"
+                            title="Pausar campanha"
+                          >
+                            ⏸️
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteCampaign(campaign.id, campaign.name)}
+                          disabled={loading}
+                          className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50"
+                          title="Excluir campanha"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   ))
