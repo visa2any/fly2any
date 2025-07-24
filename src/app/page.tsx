@@ -20,6 +20,8 @@ import {
   LocationIcon
 } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import ResponsiveHeader from '@/components/ResponsiveHeader';
+import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
@@ -526,147 +528,32 @@ export default function Home() {
 
   return (
     <>
-      <div style={containerStyle}>
+      <GlobalMobileStyles />
+      <div style={containerStyle} className="mobile-overflow-hidden">
         {/* Floating Background Elements */}
         <div style={floatingElement1Style}></div>
         <div style={floatingElement2Style}></div>
         <div style={floatingElement3Style}></div>
 
-        {/* Header */}
-        <header style={headerStyle}>
-          <div style={{
-            maxWidth: '1400px',
-            margin: '0 auto',
-            padding: '16px 32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <Logo size="md" variant="logo-only" />
-            {!isMobile && (
-              <nav style={{ display: 'flex', gap: '24px' }}>
-                <Link href="/" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                  Home
-                </Link>
-                <Link href="/voos-brasil-eua" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <FlightIcon style={{ width: '14px', height: '14px' }} />
-                  Voos
-                </Link>
-                <Link href="/como-funciona" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Como Funciona
-                </Link>
-                <Link href="/blog" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                  </svg>
-                  Blog
-                </Link>
-                <Link href="/faq" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  FAQ
-                </Link>
-                <Link href="/sobre" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Sobre
-                </Link>
-                <Link href="/contato" style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  textDecoration: 'none',
-                  fontWeight: '500',
-                  transition: 'color 0.3s',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <PhoneIcon style={{ width: '14px', height: '14px' }} />
-                  Contato
-                </Link>
-              </nav>
-            )}
-          </div>
-        </header>
+        {/* Responsive Header */}
+        <ResponsiveHeader style={headerStyle} />
 
         {/* Main Content */}
         <main>
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: '60px 0 80px 0'
-        }}>
+          padding: isMobile ? '40px 0 60px 0' : '60px 0 80px 0'
+        }} className="mobile-section">
           <div style={{
             maxWidth: '1400px',
             margin: '0 auto',
-            padding: '0 32px',
+            padding: isMobile ? '0 16px' : '0 32px',
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: '64px',
+            gap: isMobile ? '40px' : '64px',
             alignItems: 'center'
-          }}>
+          }} className="mobile-container mobile-grid-single">
             {/* Left Side - Content */}
             <div style={{
               color: 'white',
@@ -692,14 +579,15 @@ export default function Home() {
                 }}>🌎 Conectando você ao mundo há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '36px' : '64px',
+                fontSize: isMobile ? '32px' : '64px',
                 fontWeight: '700',
                 fontFamily: 'Poppins, sans-serif',
                 lineHeight: '1.2',
                 margin: '0 0 24px 0',
                 letterSpacing: '-0.01em',
-                maxWidth: '100%'
-              }}>
+                maxWidth: '100%',
+                textAlign: isMobile ? 'center' : 'left'
+              }} className="mobile-title">
                 <span style={{
                   background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ea580c)',
                   WebkitBackgroundClip: 'text',
@@ -711,13 +599,14 @@ export default function Home() {
                 </span>, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: '22px',
+                fontSize: isMobile ? '18px' : '22px',
                 color: 'rgba(219, 234, 254, 0.95)',
                 lineHeight: '1.7',
-                maxWidth: '520px',
-                marginBottom: '40px',
-                fontWeight: '400'
-              }}>
+                maxWidth: isMobile ? '100%' : '520px',
+                marginBottom: isMobile ? '32px' : '40px',
+                fontWeight: '400',
+                textAlign: isMobile ? 'center' : 'left'
+              }} className="mobile-subtitle">
                 Conectamos brasileiros, americanos e outras nacionalidades ao Brasil e ao mundo 
                 com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
@@ -776,10 +665,12 @@ export default function Home() {
               {/* Quick Action Buttons */}
               <div style={{
                 display: 'flex',
-                gap: '16px',
-                marginBottom: '40px',
-                flexWrap: 'wrap'
-              }}>
+                gap: isMobile ? '12px' : '16px',
+                marginBottom: isMobile ? '32px' : '40px',
+                flexWrap: 'wrap',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'center' : 'flex-start'
+              }} className="mobile-button-group">
 
                 <button
                   type="button"
@@ -792,12 +683,13 @@ export default function Home() {
                   style={{
                     background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                     color: 'white',
-                    padding: '16px 32px',
+                    padding: isMobile ? '16px 24px' : '16px 32px',
                     borderRadius: '12px',
                     border: 'none',
                     fontSize: '16px',
                     fontWeight: '600',
                     cursor: 'pointer',
+                    width: isMobile ? '100%' : 'auto',
                     boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)',
                     transition: 'all 0.3s ease',
                     display: 'flex',
