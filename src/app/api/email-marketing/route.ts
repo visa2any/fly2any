@@ -1344,14 +1344,36 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Função para processar envios da campanha de forma assíncrona
+// Função para processar envios da campanha de forma assíncrona COM AUTO-RESTART
 async function processCampaignSends(campaign: EmailCampaign, contacts: EmailContact[], emailSends: any[]) {
   const credentials = getGmailCredentials();
   
   if (!credentials.email || !credentials.password) {
     console.error('❌ Credenciais Gmail não configuradas');
+    // Marcar campanha como failed para reprocessamento posterior
+    await EmailCampaignsDB.updateStatus(campaign.id, 'failed');
     return;
   }
+
+  // 🚨 SISTEMA DE HEARTBEAT para auto-recovery
+  const heartbeatInterval = setInterval(async () => {
+    try {
+      // Atualizar timestamp da campanha a cada 2 minutos para indicar que está ativa
+      await EmailCampaignsDB.updateTimestamp(campaign.id);
+      console.log(`💓 Heartbeat: Campanha ${campaign.name} ainda ativa`);
+    } catch (error) {
+      console.error('❌ Erro no heartbeat:', error);
+    }
+  }, 120000); // 2 minutos
+
+  // Função para limpar heartbeat
+  const cleanup = () => {
+    clearInterval(heartbeatInterval);
+  };
+
+  // Auto-cleanup em caso de erro
+  process.on('uncaughtException', cleanup);
+  process.on('unhandledRejection', cleanup);
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -1464,4 +1486,14 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   await EmailCampaignsDB.updateStatus(campaign.id, 'completed');
 
   console.log(`✅ Campanha ${campaign.name} finalizada: ${successCount} sucessos, ${failureCount} falhas`);
+  
+  // 🧹 Limpar heartbeat
+  cleanup();
+}
+
+// 🔧 Função auxiliar para adicionar updateTimestamp no EmailCampaignsDB se não existir
+// (Para ser adicionada no arquivo email-marketing-db.ts)
+async function ensureUpdateTimestampExists() {
+  // Esta função será implementada no arquivo de database
+  console.log('⚠️ Lembrete: Implementar updateTimestamp no EmailCampaignsDB');
 }

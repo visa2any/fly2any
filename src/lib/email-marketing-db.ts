@@ -320,6 +320,15 @@ export class EmailCampaignsDB {
     `;
   }
 
+  // 💓 FUNÇÃO PARA HEARTBEAT - Atualizar timestamp para indicar atividade
+  static async updateTimestamp(id: string): Promise<void> {
+    await sql`
+      UPDATE email_campaigns 
+      SET updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
+  }
+
   static async updateStats(id: string, stats: Partial<Pick<EmailCampaign, 'total_recipients' | 'total_sent' | 'total_delivered' | 'total_opened' | 'total_clicked' | 'total_bounced'>>): Promise<void> {
     const updates: string[] = [];
     const values: any[] = [];
