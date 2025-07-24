@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     // Fazer chamada para a API de auto-restart
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
+      : process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
       : 'https://www.fly2any.com';
     
     const response = await fetch(`${baseUrl}/api/email-marketing?action=auto_restart`, {
