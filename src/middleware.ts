@@ -254,7 +254,7 @@ export async function middleware(request: NextRequest) {
     } catch (error) {
       console.error('❌ [MIDDLEWARE] Auth error:', error);
       // Only redirect on auth errors, not token parsing errors
-      if (error.message?.includes('JSON') === false) {
+      if (error instanceof Error && !error.message?.includes('JSON')) {
         const loginUrl = new URL('/admin/login', request.url);
         return NextResponse.redirect(loginUrl);
       }
