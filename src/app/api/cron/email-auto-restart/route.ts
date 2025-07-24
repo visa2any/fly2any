@@ -69,50 +69,34 @@ export async function POST(request: NextRequest) {
 /*
   CONFIGURAÇÃO DE CRON JOBS EXTERNOS:
 
-  1. 🔗 URL para agendar: https://www.fly2any.com/api/cron/email-auto-restart
-  2. 📅 Frequência recomendada: A cada 5 minutos
-  3. 🔧 Método HTTP: GET ou POST
-  4. 📊 Monitoramento: Verificar logs para status de sucesso
+  1. URL para agendar: https://www.fly2any.com/api/cron/email-auto-restart
+  2. Frequência recomendada: A cada 5 minutos
+  3. Método HTTP: GET ou POST
+  4. Monitoramento: Verificar logs para status de sucesso
 
   EXEMPLOS DE CONFIGURAÇÃO:
 
-  📌 GitHub Actions (.github/workflows/email-auto-restart.yml):
-  ```yaml
-  name: Email Auto-Restart
-  on:
-    schedule:
-      - cron: '*/5 * * * *'  # A cada 5 minutos
-  jobs:
-    restart:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Trigger Email Auto-Restart
-          run: curl -X GET https://www.fly2any.com/api/cron/email-auto-restart
-  ```
+  GitHub Actions (.github/workflows/email-auto-restart.yml):
+  - Criar workflow com schedule: cron '* /5 * * * *' (sem espaço após *)
+  - Job: curl -X GET https://www.fly2any.com/api/cron/email-auto-restart
 
-  📌 cron-job.org:
+  cron-job.org:
   - URL: https://www.fly2any.com/api/cron/email-auto-restart
-  - Intervalo: */5 * * * * (a cada 5 minutos)
+  - Intervalo: * /5 * * * * (a cada 5 minutos, sem espaço após *)
   - Método: GET
 
-  📌 Vercel Cron (vercel.json):
-  ```json
-  {
-    "crons": [{
-      "path": "/api/cron/email-auto-restart",
-      "schedule": "*/5 * * * *"
-    }]
-  }
-  ```
+  Vercel Cron (vercel.json):
+  - Adicionar crons array com path e schedule
+  - Path: "/api/cron/email-auto-restart"
+  - Schedule: "* /5 * * * *" (sem espaço após *)
 
-  📌 Comando curl local para teste:
+  Comando curl local para teste:
   curl -X GET https://www.fly2any.com/api/cron/email-auto-restart
 
-  🎯 BENEFÍCIOS DO SISTEMA:
-  - ✅ Campanhas nunca ficam travadas por mais de 5 minutos
-  - 🔄 Reinício automático sem intervenção manual
-  - 📊 Logs detalhados para monitoramento
-  - 🚀 Melhoria na taxa de entrega de emails
-  - 💪 Sistema robusto e confiável
-
+  BENEFÍCIOS DO SISTEMA:
+  - Campanhas nunca ficam travadas por mais de 5 minutos
+  - Reinício automático sem intervenção manual
+  - Logs detalhados para monitoramento
+  - Melhoria na taxa de entrega de emails
+  - Sistema robusto e confiável
 */
