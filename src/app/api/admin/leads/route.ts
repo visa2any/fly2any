@@ -3,21 +3,14 @@ import { DatabaseService } from '@/lib/database';
 import { DatabaseFallback } from '@/lib/database-fallback';
 import { LeadService } from '@/lib/services/lead-service';
 import { DatabaseChecker } from '@/lib/database-checker';
-
-// Função simples de autenticação (desenvolvimento local)
-function isAuthenticated(): boolean {
-  // Em desenvolvimento, permite acesso local
-  return true;
-}
+import { verifyAdminAuth, createUnauthorizedResponse } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     // Verificar autenticação
-    if (!isAuthenticated()) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const auth = await verifyAdminAuth(request);
+    if (!auth.isAuthenticated) {
+      return createUnauthorizedResponse(auth.error);
     }
 
     const { searchParams } = new URL(request.url);
@@ -215,11 +208,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticação
-    if (!isAuthenticated()) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const auth = await verifyAdminAuth(request);
+    if (!auth.isAuthenticated) {
+      return createUnauthorizedResponse(auth.error);
     }
 
     const { action } = await request.json();

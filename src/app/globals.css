@@ -558,6 +558,41 @@ body {
   transform: translateX(0);
 }
 
+/* Logout Button */
+.admin-logout-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: var(--admin-accent-danger);
+  color: var(--admin-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--admin-transition);
+  font-size: 14px;
+  margin-left: auto;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.admin-logout-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: scale(1.05);
+  box-shadow: var(--admin-shadow-md);
+}
+
+.admin-logout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-sidebar.expanded .admin-logout-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .admin-user-name {
   font-weight: 500;
   font-size: var(--admin-font-size-sm);

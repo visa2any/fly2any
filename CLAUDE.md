@@ -11,6 +11,10 @@
 - **Sequential Thinking** → Planejamento estruturado
 - **Serena** → Análise semântica de código e edição avançada 🆕
 
+### Dicas de Uso de MCPs:
+- use os mcps para ajudar na tarefa
+- use mcp to help with tasks
+
 ## 🚀 Automação Inteligente
 
 ### Detecção Automática por Contexto:

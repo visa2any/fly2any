@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 // Rate limiting storage (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -112,7 +113,7 @@ function checkRateLimit(clientIp: string, pathname: string): { allowed: boolean;
   };
 }
 
-function validateAPIRequest(request: NextRequest): { isValid: boolean; error?: string } {
+async function validateAPIRequest(request: NextRequest): Promise<{ isValid: boolean; error?: string }> {
   const pathname = request.nextUrl.pathname;
   
   // Validate Content-Type for POST/PUT requests
@@ -129,16 +130,25 @@ function validateAPIRequest(request: NextRequest): { isValid: boolean; error?: s
     }
   }
   
-  // Validate required headers for admin routes
+  // Validate authentication for admin API routes
   if (pathname.startsWith('/api/admin')) {
-    // In production, implement proper authentication
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    const isLocalhost = request.headers.get('host')?.includes('localhost') || 
-                       request.headers.get('host')?.includes('127.0.0.1');
-    
-    if (!isDevelopment && !isLocalhost) {
-      // Add authentication logic here for production
-      // Example: check for valid JWT token or API key
+    try {
+      const token = await getToken({ 
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024'
+      });
+      
+      if (!token || token.role !== 'admin') {
+        return {
+          isValid: false,
+          error: 'Acesso não autorizado'
+        };
+      }
+    } catch (error) {
+      return {
+        isValid: false,
+        error: 'Erro de autenticação'
+      };
     }
   }
   
@@ -178,7 +188,7 @@ function createValidationErrorResponse(error: string): NextResponse {
   );
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Skip middleware for static files and Next.js internals
@@ -198,6 +208,28 @@ export function middleware(request: NextRequest) {
     response.headers.set(key, value);
   });
   
+  // Check authentication for admin pages (but not login page)
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    try {
+      const token = await getToken({ 
+        req: request,
+        secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024'
+      });
+      
+      if (!token || token.role !== 'admin') {
+        // Redirect to login page with callback URL
+        const loginUrl = new URL('/admin/login', request.url);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+    } catch (error) {
+      console.error('Middleware auth error:', error);
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+  
   // Only apply rate limiting and validation to API routes
   if (pathname.startsWith('/api/')) {
     const clientIp = getClientIP(request);
@@ -214,7 +246,7 @@ export function middleware(request: NextRequest) {
     response.headers.set('X-RateLimit-Reset', new Date(rateLimit.resetTime).toISOString());
     
     // Request validation
-    const validation = validateAPIRequest(request);
+    const validation = await validateAPIRequest(request);
     
     if (!validation.isValid && validation.error) {
       return createValidationErrorResponse(validation.error);

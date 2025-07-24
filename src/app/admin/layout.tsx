@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import SessionWrapper from '@/components/SessionWrapper';
 
 const navigation = [
   {
@@ -86,14 +88,53 @@ const navigation = [
   }
 ];
 
-export default function AdminLayout({
+function AdminLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    
+    if (!session && pathname !== '/admin/login') {
+      router.push('/admin/login');
+    }
+  }, [session, status, pathname, router]);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await signOut({
+        callbackUrl: '/admin/login',
+        redirect: true
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Show loading while checking session
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render admin layout if not authenticated
+  if (!session && pathname !== '/admin/login') {
+    return null;
+  }
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) {
@@ -144,11 +185,28 @@ export default function AdminLayout({
         {/* User Menu */}
         <div className="admin-sidebar-footer">
           <div className="admin-user-menu">
-            <div className="admin-user-avatar">A</div>
+            <div className="admin-user-avatar">
+              {session?.user?.name?.[0]?.toUpperCase() || 'A'}
+            </div>
             <div className="admin-user-info">
-              <div className="admin-user-name">Admin</div>
+              <div className="admin-user-name">
+                {session?.user?.name || 'Admin'}
+              </div>
               <div className="admin-user-role">Administrador</div>
             </div>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="admin-logout-btn"
+              title="Sair"
+            >
+              {isLoggingOut ? (
+                <span className="animate-spin">⏳</span>
+              ) : (
+                '🚪'
+              )}
+            </button>
           </div>
         </div>
 
@@ -193,8 +251,21 @@ export default function AdminLayout({
               <span className="relative z-10">🔔</span>
               <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             </button>
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border-0 font-semibold">
-              ✨ Novo Lead
+            <button 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border-0 font-semibold disabled:opacity-50"
+            >
+              {isLoggingOut ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Saindo...
+                </>
+              ) : (
+                <>
+                  🚪 Sair
+                </>
+              )}
             </button>
           </div>
         </header>
@@ -213,5 +284,17 @@ export default function AdminLayout({
         />
       )}
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SessionWrapper>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </SessionWrapper>
   );
 }
