@@ -174,6 +174,31 @@ export default function EmailMarketingPage() {
     }
   };
 
+  const restartPausedCampaigns = async () => {
+    setLoading(true);
+    setMessage('🔄 Verificando campanhas pausadas...');
+    
+    try {
+      const response = await fetch('/api/email-marketing?action=auto_restart');
+      const data = await response.json();
+      
+      if (data.success) {
+        if (data.data.restarted > 0) {
+          setMessage(`✅ ${data.data.restarted} campanhas reiniciadas com sucesso!`);
+        } else {
+          setMessage('✅ Nenhuma campanha pausada encontrada');
+        }
+        fetchStats(); // Atualizar estatísticas
+      } else {
+        setMessage(`❌ Erro: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('❌ Erro ao reiniciar campanhas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendTestEmail = async () => {
     if (!testEmail) {
       setMessage('❌ Digite um email para teste');
@@ -438,7 +463,7 @@ export default function EmailMarketingPage() {
             </div>
           </div>
           
-          <div className="mb-4">
+          <div className="mb-4 flex gap-4">
             <button 
               onClick={() => setShowTestModal(true)}
               disabled={loading}
@@ -447,6 +472,17 @@ export default function EmailMarketingPage() {
               <div className="flex items-center justify-center gap-2">
                 <span className="text-xl">🧪</span>
                 <span className="font-semibold">Enviar Email Teste</span>
+              </div>
+            </button>
+
+            <button 
+              onClick={restartPausedCampaigns}
+              disabled={loading}
+              className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xl">🔄</span>
+                <span className="font-semibold">Reiniciar Pausadas</span>
               </div>
             </button>
           </div>
