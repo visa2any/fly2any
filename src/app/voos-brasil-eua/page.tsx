@@ -626,7 +626,8 @@ export default function VoosBrasilEUA() {
                       maxHeight: '60px',
                       maxWidth: '140px',
                       objectFit: 'contain'
-                     className="mobile-container"}}
+                    }}
+                    className="mobile-container"
                   />
                 </div>
                 <h3 style={{

@@ -293,7 +293,8 @@ export default function VoosNewYorkRioJaneiro() {
                   fontSize: '16px',
                   transition: 'all 0.3s',
                   boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                 className="mobile-section"}}
+                }}
+                className="mobile-section"
               >
                 Cotar Voos NYC-RJ
               </Link>
@@ -310,7 +311,8 @@ export default function VoosNewYorkRioJaneiro() {
                   fontSize: '16px',
                   border: '2px solid rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s'
-                 className="mobile-section"}}
+                }}
+                className="mobile-section"
               >
                 Falar com Especialista
               </Link>
