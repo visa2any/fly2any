@@ -1350,8 +1350,8 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   
   if (!credentials.email || !credentials.password) {
     console.error('❌ Credenciais Gmail não configuradas');
-    // Marcar campanha como failed para reprocessamento posterior
-    await EmailCampaignsDB.updateStatus(campaign.id, 'failed');
+    // Marcar campanha como paused para reprocessamento posterior
+    await EmailCampaignsDB.updateStatus(campaign.id, 'paused');
     return;
   }
 
