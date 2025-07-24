@@ -367,6 +367,11 @@ export class EmailCampaignsDB {
     `;
   }
 
+  static async deleteById(id: string): Promise<boolean> {
+    const result = await sql`DELETE FROM email_campaigns WHERE id = ${id}`;
+    return (result.rowCount ?? 0) > 0;
+  }
+
   static async getMetrics(): Promise<{
     totalSent: number;
     totalOpened: number;
