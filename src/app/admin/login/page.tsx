@@ -101,8 +101,21 @@ export default function AdminLoginPage() {
         console.log('✅ Login bem-sucedido, redirecionando para:', redirectUrl);
         console.log('🔄 Original callbackUrl:', callbackUrl);
         
-        // Force redirect to localhost path
-        router.replace(redirectUrl);
+        // Force redirect using window.location for immediate redirect
+        console.log('🔄 Forçando redirecionamento via window.location...');
+        
+        // Give time for session to be established
+        setTimeout(() => {
+          console.log('🚀 Executando redirecionamento para:', redirectUrl);
+          window.location.href = redirectUrl;
+        }, 500);
+        
+        // Also try router.replace as backup
+        try {
+          router.replace(redirectUrl);
+        } catch (e) {
+          console.error('❌ Erro no router.replace:', e);
+        }
       } else {
         console.error('❌ Resultado inesperado:', result);
         setError('Erro inesperado. Tente novamente.');

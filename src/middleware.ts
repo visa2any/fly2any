@@ -216,14 +216,23 @@ export async function middleware(request: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024'
       });
       
+      console.log('🔒 [MIDDLEWARE] Checking auth for:', pathname, {
+        hasToken: !!token,
+        tokenRole: token?.role,
+        isAdmin: token?.role === 'admin'
+      });
+      
       if (!token || token.role !== 'admin') {
+        console.log('❌ [MIDDLEWARE] Auth failed, redirecting to login');
         // Redirect to login page with callback URL
         const loginUrl = new URL('/admin/login', request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(loginUrl);
       }
+      
+      console.log('✅ [MIDDLEWARE] Auth successful, allowing access');
     } catch (error) {
-      console.error('Middleware auth error:', error);
+      console.error('❌ [MIDDLEWARE] Auth error:', error);
       const loginUrl = new URL('/admin/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
