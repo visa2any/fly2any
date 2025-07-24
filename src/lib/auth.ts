@@ -129,6 +129,26 @@ export const authOptions: NextAuthOptions = {
     },
 
     async redirect({ url, baseUrl }) {
+      console.log('🔄 [AUTH] Redirect callback:', { url, baseUrl });
+      
+      // Force localhost in development
+      if (process.env.NODE_ENV === 'development') {
+        const devBaseUrl = 'http://localhost:3000';
+        
+        // Allows relative callback URLs
+        if (url.startsWith('/')) {
+          const redirectUrl = `${devBaseUrl}${url}`;
+          console.log('✅ [AUTH] Redirecting to:', redirectUrl);
+          return redirectUrl;
+        }
+        
+        // Default to admin dashboard
+        const defaultUrl = `${devBaseUrl}/admin`;
+        console.log('✅ [AUTH] Default redirect to:', defaultUrl);
+        return defaultUrl;
+      }
+      
+      // Production logic
       // Allows relative callback URLs
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       
