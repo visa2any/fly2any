@@ -80,7 +80,7 @@ export function createUnauthorizedResponse(message: string = 'Acesso não autori
 /**
  * Middleware helper para proteger API routes
  */
-export async function requireAuth(request: NextRequest, handler: Function) {
+export async function requireAuth(request: NextRequest, handler: (req: NextRequest) => Promise<NextResponse>) {
   const auth = await verifyAdminAuth(request);
   
   if (!auth.isAuthenticated) {
