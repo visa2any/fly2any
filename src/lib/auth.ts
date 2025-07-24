@@ -41,12 +41,26 @@ export const authOptions: NextAuthOptions = {
         }
       },
       async authorize(credentials): Promise<any> {
+        console.log('🔐 [AUTH] Iniciando autorização:', {
+          email: credentials?.email,
+          hasPassword: !!credentials?.password,
+          timestamp: new Date().toISOString()
+        });
+
         if (!credentials?.email || !credentials?.password) {
+          console.error('❌ [AUTH] Credenciais incompletas');
           throw new Error('Email e senha são obrigatórios');
         }
 
+        console.log('🔍 [AUTH] Comparando credenciais:', {
+          providedEmail: credentials.email,
+          expectedEmail: ADMIN_CREDENTIALS.email,
+          emailMatch: credentials.email === ADMIN_CREDENTIALS.email
+        });
+
         // Check if credentials match admin account
         if (credentials.email !== ADMIN_CREDENTIALS.email) {
+          console.error('❌ [AUTH] Email inválido:', credentials.email);
           throw new Error('Credenciais inválidas');
         }
 
@@ -55,9 +69,18 @@ export const authOptions: NextAuthOptions = {
         const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password ||
                                verifyPassword(credentials.password, ADMIN_CREDENTIALS.password);
 
+        console.log('🔍 [AUTH] Validação de senha:', {
+          plainTextMatch: credentials.password === ADMIN_CREDENTIALS.password,
+          isValidPassword,
+          expectedPassword: ADMIN_CREDENTIALS.password.slice(0, 3) + '***'
+        });
+
         if (!isValidPassword) {
+          console.error('❌ [AUTH] Senha inválida');
           throw new Error('Credenciais inválidas');
         }
+
+        console.log('✅ [AUTH] Autorização bem-sucedida');
 
         // Return user object
         return {

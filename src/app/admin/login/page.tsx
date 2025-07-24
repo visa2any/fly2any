@@ -57,6 +57,13 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setError(null);
 
+    console.log('🔐 Form submetido - Tentativa de login:', {
+      email: formData.email,
+      password: '***' + formData.password.slice(-3),
+      timestamp: new Date().toISOString(),
+      formValid: formData.email && formData.password
+    });
+
     try {
       const result = await signIn('credentials', {
         email: formData.email,
@@ -64,16 +71,26 @@ export default function AdminLoginPage() {
         redirect: false,
       });
 
+      console.log('🔍 Resultado do signIn:', {
+        ok: result?.ok,
+        error: result?.error,
+        status: result?.status,
+        url: result?.url
+      });
+
       if (result?.error) {
+        console.error('❌ Erro de autenticação:', result.error);
         setError('Credenciais inválidas. Verifique email e senha.');
       } else if (result?.ok) {
+        console.log('✅ Login bem-sucedido, redirecionando para:', callbackUrl);
         // Success - redirect will be handled by NextAuth
         router.replace(callbackUrl);
       } else {
+        console.error('❌ Resultado inesperado:', result);
         setError('Erro inesperado. Tente novamente.');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Erro no processo de login:', error);
       setError('Erro de conexão. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -116,7 +133,7 @@ export default function AdminLoginPage() {
 
           {/* Login Form Card */}
           <div className="admin-card admin-login-form-card">
-            <form className="admin-login-form" onSubmit={handleSubmit}>
+            <form className="admin-login-form" onSubmit={handleSubmit} noValidate>
               {/* Error Message */}
               {error && (
                 <div className="admin-login-error">
@@ -183,6 +200,14 @@ export default function AdminLoginPage() {
                   type="submit"
                   disabled={isLoading || !formData.email || !formData.password}
                   className="admin-btn admin-btn-primary admin-login-button"
+                  onClick={(e) => {
+                    console.log('🖱️ Botão clicado:', {
+                      disabled: isLoading || !formData.email || !formData.password,
+                      isLoading,
+                      hasEmail: !!formData.email,
+                      hasPassword: !!formData.password
+                    });
+                  }}
                 >
                   {isLoading ? (
                     <>
