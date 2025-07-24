@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import ResponsiveHeader from '@/components/ResponsiveHeader';
+import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import NewsletterCapture from '@/components/NewsletterCapture';
 
 export const metadata: Metadata = {
@@ -17,131 +19,13 @@ export const metadata: Metadata = {
 
 export default function Contato() {
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-      <header style={{
-        position: 'relative',
-        zIndex: 10,
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
-          <nav style={{ display: 'flex', gap: '24px' }}>
-            <Link href="/" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Home
-            </Link>
-            <Link href="/voos-brasil-eua" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <FlightIcon style={{ width: '14px', height: '14px' }} />
-              Voos
-            </Link>
-            <Link href="/como-funciona" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Como Funciona
-            </Link>
-            <Link href="/blog" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-              Blog
-            </Link>
-            <Link href="/faq" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              FAQ
-            </Link>
-            <Link href="/sobre" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Sobre
-            </Link>
-            <Link href="/contato" style={{
-              color: 'white',
-              textDecoration: 'none',
-              fontWeight: '600',
-              transition: 'color 0.3s',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}>
-              <PhoneIcon style={{ width: '14px', height: '14px' }} />
-              Contato
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <>
+      <GlobalMobileStyles />
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
+      <ResponsiveHeader />
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 48px' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px 48px'  className="mobile-container"}}>
+        <div style={{ maxWidth: '896px', margin: '0 auto'  className="mobile-container"}}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h2 style={{ fontSize: '36px', fontWeight: '700', color: 'white', marginBottom: '16px', fontFamily: 'Poppins, sans-serif' }}>
               Entre em Contato
@@ -159,7 +43,7 @@ export default function Contato() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{ color: 'rgb(5, 150, 105)', background: 'rgb(187, 247, 208)', padding: '8px', borderRadius: '50%' }}>
+                  <div style={{ color: 'rgb(5, 150, 105)', background: 'rgb(187, 247, 208)', padding: '8px', borderRadius: '50%'  className="mobile-section"}}>
                     <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -172,7 +56,7 @@ export default function Contato() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                  <div style={{ color: 'rgb(124, 58, 237)', background: 'rgb(243, 232, 255)', padding: '8px', borderRadius: '50%' }}>
+                  <div style={{ color: 'rgb(124, 58, 237)', background: 'rgb(243, 232, 255)', padding: '8px', borderRadius: '50%'  className="mobile-section"}}>
                     <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -186,7 +70,7 @@ export default function Contato() {
 
               </div>
 
-              <div style={{ marginTop: '32px', padding: '24px', background: 'rgb(239, 246, 255)', borderRadius: '8px' }}>
+              <div style={{ marginTop: '32px', padding: '24px', background: 'rgb(239, 246, 255)', borderRadius: '8px'  className="mobile-section"}}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ color: 'rgb(37, 99, 235)' }}>
                     <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +89,7 @@ export default function Contato() {
             </div>
 
             <div>
-              <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'  className="mobile-section"}}>
                 <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '24px', fontFamily: 'Poppins, sans-serif' }}>
                   Solicite um Orçamento
                 </h3>
@@ -213,7 +97,7 @@ export default function Contato() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <Link 
                     href="/cotacao/voos" 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(37, 99, 235)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(37, 99, 235)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none'  className="mobile-section"}}
                   >
                     <FlightIcon style={{ width: '12px', height: '12px' }} />
                     Cotar Voos
@@ -221,7 +105,7 @@ export default function Contato() {
                   
                   <Link 
                     href="/cotacao/hoteis" 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(5, 150, 105)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(5, 150, 105)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none'  className="mobile-section"}}
                   >
                     <HotelIcon style={{ width: '12px', height: '12px' }} />
                     Cotar Hotéis
@@ -229,7 +113,7 @@ export default function Contato() {
                   
                   <Link 
                     href="/cotacao/carros" 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(234, 88, 12)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(234, 88, 12)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none'  className="mobile-section"}}
                   >
                     <CarIcon style={{ width: '12px', height: '12px' }} />
                     Cotar Carros
@@ -237,7 +121,7 @@ export default function Contato() {
                   
                   <Link 
                     href="/cotacao/passeios" 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(124, 58, 237)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(124, 58, 237)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none'  className="mobile-section"}}
                   >
                     <TourIcon style={{ width: '12px', height: '12px' }} />
                     Cotar Passeios
@@ -245,14 +129,14 @@ export default function Contato() {
                   
                   <Link 
                     href="/cotacao/seguro" 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(13, 148, 136)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgb(13, 148, 136)', color: 'white', fontWeight: '700', padding: '16px 24px', borderRadius: '8px', transition: 'background-color 0.3s', textAlign: 'center', textDecoration: 'none'  className="mobile-section"}}
                   >
                     <InsuranceIcon style={{ width: '12px', height: '12px' }} />
                     Cotar Seguro
                   </Link>
                 </div>
 
-                <div style={{ marginTop: '32px', padding: '16px', background: 'rgb(254, 249, 195)', border: '1px solid rgb(253, 230, 138)', borderRadius: '8px' }}>
+                <div style={{ marginTop: '32px', padding: '16px', background: 'rgb(254, 249, 195)', border: '1px solid rgb(253, 230, 138)', borderRadius: '8px'  className="mobile-section"}}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <div style={{ color: 'rgb(202, 138, 4)' }}>
                       <svg style={{ width: '12px', height: '12px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +154,7 @@ export default function Contato() {
             </div>
           </div>
 
-          <div style={{ marginTop: '48px', background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)' }}>
+          <div style={{ marginTop: '48px', background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'  className="mobile-section"}}>
             <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '24px', textAlign: 'center', fontFamily: 'Poppins, sans-serif' }}>
               Perguntas Frequentes
             </h3>
@@ -326,8 +210,8 @@ export default function Contato() {
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '80px 0'
-      }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+       className="mobile-section"}}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px'  className="mobile-container"}}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -343,7 +227,7 @@ export default function Contato() {
                 marginBottom: '24px',
                 maxWidth: '400px',
                 lineHeight: '1.6'
-              }}>
+               className="mobile-container"}}>
                 Especialistas em viagens Brasil-EUA há mais de 10 anos. 
                 Conectamos brasileiros nos EUA ao Brasil com atendimento personalizado e preços exclusivos.
               </p>
@@ -469,7 +353,7 @@ export default function Contato() {
                   borderRadius: '8px',
                   padding: '12px 16px',
                   textAlign: 'center'
-                }}>
+                 className="mobile-section"}}>
                   <span style={{ color: '#4ade80', fontSize: '14px', fontWeight: '600' }}>🔒 SSL Certificado</span>
                 </div>
                 <div style={{
@@ -478,7 +362,7 @@ export default function Contato() {
                   borderRadius: '8px',
                   padding: '12px 16px',
                   textAlign: 'center'
-                }}>
+                 className="mobile-section"}}>
                   <span style={{ color: '#60a5fa', fontSize: '14px', fontWeight: '600' }}>⭐ 4.9/5 Estrelas</span>
                 </div>
               </div>
@@ -517,5 +401,6 @@ export default function Contato() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
