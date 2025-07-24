@@ -158,7 +158,7 @@ export default function VoosBrasilEUA() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           <Logo size="md" variant="logo-only" headingLevel="div" />
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
@@ -287,7 +287,7 @@ export default function VoosBrasilEUA() {
             borderRadius: '50px',
             padding: '12px 24px',
             marginBottom: '32px'
-           className="mobile-section"}}>
+          }} className="mobile-section">
             <span style={{ fontSize: '24px' }}>🔥</span>
             <span style={{
               color: 'rgba(254, 240, 138, 0.95)',
@@ -300,7 +300,7 @@ export default function VoosBrasilEUA() {
               borderRadius: '20px',
               fontSize: '14px',
               fontWeight: 'bold'
-             className="mobile-section"}}>ATÉ 40% OFF</span>
+            }} className="mobile-section">ATÉ 40% OFF</span>
           </div>
 
           <h1 style={{
@@ -327,7 +327,7 @@ export default function VoosBrasilEUA() {
             maxWidth: '896px',
             margin: '0 auto 48px auto',
             lineHeight: '1.5'
-           className="mobile-container"}}>
+          }} className="mobile-container">
             Encontre as <strong>melhores passagens aéreas</strong> dos EUA para o Brasil e qualquer lugar do mundo com até <strong>40% de desconto</strong>. 
             Voos diretos e com conexão. Atendimento especializado em português para brasileiros nos EUA.
           </p>
@@ -393,7 +393,7 @@ export default function VoosBrasilEUA() {
               borderRadius: '50px',
               padding: '8px 24px',
               marginBottom: '24px'
-             className="mobile-section"}}>
+            }} className="mobile-section">
               <span style={{
                 color: 'rgba(191, 219, 254, 0.9)',
                 fontWeight: '600'
@@ -413,7 +413,7 @@ export default function VoosBrasilEUA() {
               color: 'rgba(191, 219, 254, 0.9)',
               maxWidth: '768px',
               margin: '0 auto'
-             className="mobile-container"}}>
+            }} className="mobile-container">
               Conectamos brasileiros nos EUA ao Brasil, Europa, Ásia e destinos worldwide com as melhores tarifas
             </p>
           </div>
@@ -424,7 +424,7 @@ export default function VoosBrasilEUA() {
             gap: '32px',
             maxWidth: '1400px',
             margin: '0 auto'
-           className="mobile-container"}}>
+          }} className="mobile-container">
             {routes.map((route, index) => (
               <div key={index} style={cardStyle}>
                 {/* Header */}
@@ -442,7 +442,7 @@ export default function VoosBrasilEUA() {
                     background: route.direct ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)',
                     color: route.direct ? '#86efac' : '#fbbf24',
                     border: route.direct ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     {route.direct ? '🎯 Voo Direto' : '🔄 Com Conexão'}
                   </span>
                   <div style={{ textAlign: 'right' }}>
@@ -536,7 +536,7 @@ export default function VoosBrasilEUA() {
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '16px'
-                 className="mobile-section"}}>
+                }} className="mobile-section">
                   Ver Disponibilidade →
                 </button>
               </div>
@@ -564,7 +564,7 @@ export default function VoosBrasilEUA() {
               borderRadius: '50px',
               padding: '8px 24px',
               marginBottom: '24px'
-             className="mobile-section"}}>
+            }} className="mobile-section">
               <span style={{
                 color: '#d8b4fe',
                 fontWeight: '600',
@@ -591,7 +591,7 @@ export default function VoosBrasilEUA() {
               color: 'rgba(191, 219, 254, 0.9)',
               maxWidth: '768px',
               margin: '0 auto'
-             className="mobile-container"}}>Trabalhamos com as <strong>melhores companhias aéreas</strong> para garantir sua segurança e conforto</p>
+            }} className="mobile-container">Trabalhamos com as <strong>melhores companhias aéreas</strong> para garantir sua segurança e conforto</p>
           </div>
 
           <div style={{
@@ -600,7 +600,7 @@ export default function VoosBrasilEUA() {
             gap: '32px',
             maxWidth: '1600px',
             margin: '0 auto'
-           className="mobile-container"}}>
+          }} className="mobile-container">
             {airlines.map((airline, index) => (
               <div key={index} style={{
                 ...cardStyle,
@@ -615,7 +615,7 @@ export default function VoosBrasilEUA() {
                   background: 'rgba(255, 255, 255, 0.95)',
                   borderRadius: '12px',
                   padding: '12px'
-                 className="mobile-section"}}>
+                }} className="mobile-section">
                   <OptimizedImage 
                     src={airline.logo} 
                     alt={`${airline.name} logo`}
@@ -677,7 +677,7 @@ export default function VoosBrasilEUA() {
             borderRadius: '50px',
             padding: '8px 24px',
             marginBottom: '32px'
-           className="mobile-section"}}>
+          }} className="mobile-section">
             <span style={{
               color: '#fbbf24',
               fontWeight: '600',
@@ -724,7 +724,7 @@ export default function VoosBrasilEUA() {
               ...buttonPrimary,
               fontSize: '20px',
               padding: '24px 48px'
-             className="mobile-section"}}>
+            }} className="mobile-section">
               ✈️ <span>Solicitar Cotação</span>
             </Link>
             
@@ -732,7 +732,7 @@ export default function VoosBrasilEUA() {
               ...buttonWhatsApp,
               fontSize: '20px',
               padding: '24px 48px'
-             className="mobile-section"}}>
+            }} className="mobile-section">
               📞 <span>WhatsApp Agora</span>
             </a>
           </div>
@@ -743,7 +743,7 @@ export default function VoosBrasilEUA() {
             gap: '24px',
             maxWidth: '600px',
             margin: '0 auto'
-           className="mobile-container"}}>
+          }} className="mobile-container">
             {[
               { icon: '💳', text: 'Sem taxa de consultoria' },
               { icon: '🏆', text: 'Melhor preço garantido' },
@@ -758,7 +758,7 @@ export default function VoosBrasilEUA() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px'
-               className="mobile-section"}}>
+              }} className="mobile-section">
                 <span style={{ fontSize: '24px' }}>{item.icon}</span>
                 <span style={{
                   color: 'white',
@@ -779,12 +779,12 @@ export default function VoosBrasilEUA() {
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '80px 0 40px 0',
         color: 'white'
-       className="mobile-section"}}>
+      }} className="mobile-section">
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
           padding: '0 24px'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           {/* Main Footer Content */}
           <div style={{
             display: 'grid',
@@ -1011,7 +1011,7 @@ export default function VoosBrasilEUA() {
                     color: '#10b981',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     🔒 SSL Certificado
                   </div>
                   <div style={{
@@ -1023,7 +1023,7 @@ export default function VoosBrasilEUA() {
                     color: '#3b82f6',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     ⭐ 4.9/5 Estrelas
                   </div>
                 </div>

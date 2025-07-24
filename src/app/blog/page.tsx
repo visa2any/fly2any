@@ -109,20 +109,20 @@ export default function Blog() {
     <>
       <GlobalMobileStyles />
       <div style={{ 
-      minHeight: '100vh'
-    }}>
-      <ResponsiveHeader />
+        minHeight: '100vh'
+      }}>
+        <ResponsiveHeader />
 
       {/* Hero Section */}
       <section style={{ 
         padding: '80px 0',
         background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 50%, #713f12 100%)'
-       className="mobile-section"}}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center'  className="mobile-container"}}>
+      }} className="mobile-section">
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }} className="mobile-container">
           <h1 style={{ fontSize: '48px', fontWeight: '700', color: 'white', marginBottom: '24px', fontFamily: 'Poppins, sans-serif' }}>
             Blog <span style={{ background: 'linear-gradient(135deg, #facc15, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Fly2Any</span>
           </h1>
-          <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)', maxWidth: '768px', margin: '0 auto 32px auto'  className="mobile-container"}}>
+          <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)', maxWidth: '768px', margin: '0 auto 32px auto' }} className="mobile-container">
             Guias e dicas exclusivas para brasileiros nos EUA viajarem para o Brasil
           </p>
           <div style={{
@@ -146,7 +146,7 @@ export default function Blog() {
                   textDecoration: 'none',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   transition: 'all 0.3s ease'
-                 className="mobile-section"}}
+              }} className="mobile-section"
               >
                 {cat.name}
               </Link>
@@ -155,7 +155,7 @@ export default function Blog() {
         </div>
       </section>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px'  className="mobile-container"}}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '60px 24px' }} className="mobile-container">
         
         {/* Featured Post - Magazine Style */}
         <div style={{ marginBottom: '80px' }}>
@@ -181,7 +181,7 @@ export default function Blog() {
                 backgroundPosition: 'center'
               }}></div>
               
-              <div style={{ padding: '40px'  className="mobile-section"}}>
+              <div style={{ padding: '40px' }} className="mobile-section">
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -197,7 +197,7 @@ export default function Blog() {
                     fontWeight: '600',
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     {featuredPost.category}
                   </span>
                   <div style={{
@@ -255,7 +255,7 @@ export default function Blog() {
                         borderRadius: '20px',
                         fontSize: '12px',
                         fontWeight: '500'
-                       className="mobile-section"}}>
+                      }} className="mobile-section">
                         #{tag}
                       </span>
                     ))}
@@ -275,7 +275,7 @@ export default function Blog() {
                       padding: '12px 24px',
                       borderRadius: '8px',
                       transition: 'all 0.3s ease'
-                     className="mobile-section"}}
+                    }} className="mobile-section"
                   >
                     Ler artigo
                     <ArrowRightIcon style={{ width: '16px', height: '16px' }} />
@@ -316,7 +316,7 @@ export default function Blog() {
                   backgroundPosition: 'center'
                 }}></div>
                 
-                <div style={{ padding: '24px'  className="mobile-section"}}>
+                <div style={{ padding: '24px' }} className="mobile-section">
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -332,7 +332,7 @@ export default function Blog() {
                       fontWeight: '600',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
-                     className="mobile-section"}}>
+                    }} className="mobile-section">
                       {post.category}
                     </span>
                     <div style={{
@@ -394,7 +394,7 @@ export default function Blog() {
                           borderRadius: '12px',
                           fontSize: '11px',
                           fontWeight: '500'
-                         className="mobile-section"}}>
+                        }} className="mobile-section">
                           #{tag}
                         </span>
                       ))}
@@ -428,8 +428,8 @@ export default function Blog() {
         background: '#f9fafb',
         borderTop: '1px solid #e5e7eb',
         padding: '80px 0'
-       className="mobile-section"}}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px'  className="mobile-container"}}>
+      }} className="mobile-section">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }} className="mobile-container">
           <NewsletterCapture variant="horizontal" showWhatsApp={true} />
         </div>
       </div>
@@ -443,12 +443,12 @@ export default function Blog() {
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '80px 0 40px 0',
         color: 'white'
-       className="mobile-section"}}>
+      }} className="mobile-section">
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
           padding: '0 24px'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -553,7 +553,7 @@ export default function Blog() {
                     color: '#10b981',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     🔒 SSL Certificado
                   </div>
                   <div style={{
@@ -565,7 +565,7 @@ export default function Blog() {
                     color: '#3b82f6',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     ⭐ 4.9/5 Estrelas
                   </div>
                 </div>
@@ -628,7 +628,7 @@ export default function Blog() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
     </>
   );
 }

@@ -58,13 +58,22 @@
       "description": "Planejamento e arquitetura"
     },
     "full_development": {
-      "mcps": ["github", "filesystem", "fetch", "sequential", "context7", "puppeteer"],
+      "mcps": ["github", "filesystem", "fetch", "sequential", "context7", "puppeteer", "serena"],
       "triggers": [
         "implement feature", "build app", "create system", "full stack",
         "end to end", "complete project", "deploy"
       ],
       "auto_activate": true,
       "description": "Desenvolvimento completo"
+    },
+    "semantic_code_analysis": {
+      "mcps": ["serena", "filesystem", "sequential"],
+      "triggers": [
+        "semantic analysis", "code structure", "symbol search", "refactor code",
+        "find definition", "code navigation", "symbol editing"
+      ],
+      "auto_activate": true,
+      "description": "Análise semântica de código com Serena"
     }
   },
   "smart_suggestions": {
@@ -78,6 +87,7 @@
     "web": "Ativa Puppeteer + Fetch MCPs",
     "docs": "Ativa Context7 + FileSystem + GitHub MCPs",
     "plan": "Ativa Sequential + FileSystem + GitHub MCPs",
+    "serena": "Ativa Serena + FileSystem + Sequential MCPs",
     "all": "Ativa todos os MCPs disponíveis"
   }
 }

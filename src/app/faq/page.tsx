@@ -136,25 +136,25 @@ export default function FAQ() {
         <ResponsiveHeader />
 
         {/* Hero Section */}
-        <section style={{ padding: '80px 0'  className="mobile-section"}}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center'  className="mobile-container"}}>
+        <section style={{ padding: '80px 0' }} className="mobile-section">
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }} className="mobile-container">
             <h1 style={{ fontSize: '48px', fontWeight: '700', color: 'white', marginBottom: '24px', fontFamily: 'Poppins, sans-serif' }}>
               Perguntas <span style={{ background: 'linear-gradient(135deg, #facc15, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Frequentes</span>
             </h1>
-            <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)', maxWidth: '768px', margin: '0 auto 32px auto'  className="mobile-container"}}>
+            <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)', maxWidth: '768px', margin: '0 auto 32px auto' }} className="mobile-container">
               Tire todas suas dúvidas sobre viagens Brasil-EUA. 
               Se não encontrar sua resposta, entre em contato conosco!
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
               <Link 
                 href="/contato" 
-                style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'  className="mobile-section"}}
+                style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} className="mobile-section"
               >
                 💬 Falar Conosco
               </Link>
               <Link 
                 href="/" 
-                style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'  className="mobile-section"}}
+                style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} className="mobile-section"
               >
                 🚀 Solicitar Cotação
               </Link>
@@ -163,9 +163,9 @@ export default function FAQ() {
         </section>
 
         {/* FAQ Content */}
-        <section style={{ padding: '64px 0'  className="mobile-section"}}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px'  className="mobile-container"}}>
-            <div style={{ maxWidth: '896px', margin: '0 auto'  className="mobile-container"}}>
+        <section style={{ padding: '64px 0' }} className="mobile-section">
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }} className="mobile-container">
+            <div style={{ maxWidth: '896px', margin: '0 auto' }} className="mobile-container">
               {faqData.map((category, categoryIndex) => (
                 <div key={categoryIndex} style={{ marginBottom: '48px' }}>
                   <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '24px', fontFamily: 'Poppins, sans-serif', borderBottom: '1px solid rgba(255, 255, 255, 0.2)', paddingBottom: '12px' }}>
@@ -173,7 +173,7 @@ export default function FAQ() {
                   </h2>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {category.questions.map((item, index) => (
-                      <div key={index} style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'  className="mobile-section"}}>
+                      <div key={index} style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', transition: 'all 0.3s ease', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)' }} className="mobile-section">
                         <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '12px', fontFamily: 'Poppins, sans-serif' }}>
                           {item.question}
                         </h3>
@@ -190,9 +190,9 @@ export default function FAQ() {
         </section>
 
         {/* CTA Section */}
-        <section style={{ padding: '64px 0', borderTop: '1px solid rgba(255, 255, 255, 0.1)'  className="mobile-section"}}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center'  className="mobile-container"}}>
-            <div style={{ maxWidth: '768px', margin: '0 auto'  className="mobile-container"}}>
+        <section style={{ padding: '64px 0', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} className="mobile-section">
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }} className="mobile-container">
+            <div style={{ maxWidth: '768px', margin: '0 auto' }} className="mobile-container">
               <h2 style={{ fontSize: '30px', fontWeight: '700', color: 'white', marginBottom: '16px', fontFamily: 'Poppins, sans-serif' }}>
                 Não encontrou sua resposta?
               </h2>
@@ -202,7 +202,7 @@ export default function FAQ() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
                 <a 
                   href="https://wa.me/15551234567" 
-                  style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'  className="mobile-section"}}
+                  style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} className="mobile-section"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -210,7 +210,7 @@ export default function FAQ() {
                 </a>
                 <a 
                   href="mailto:contato@fly2any.com" 
-                  style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'  className="mobile-section"}}
+                  style={{ background: 'linear-gradient(135deg, #eab308, #f59e0b)', color: '#1f2937', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', transition: 'all 0.3s ease', border: 'none', cursor: 'pointer', boxShadow: '0 10px 25px rgba(234, 179, 8, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} className="mobile-section"
                 >
                   ✉️ Email
                 </a>
@@ -227,12 +227,12 @@ export default function FAQ() {
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '80px 0 40px 0',
           color: 'white'
-         className="mobile-section"}}>
+        }} className="mobile-section">
           <div style={{
             maxWidth: '1280px',
             margin: '0 auto',
             padding: '0 24px'
-           className="mobile-container"}}>
+          }} className="mobile-container">
             {/* Main Footer Content */}
             <div style={{
               display: 'grid',
@@ -459,7 +459,7 @@ export default function FAQ() {
                       color: '#10b981',
                       textAlign: 'center',
                       fontWeight: '600'
-                     className="mobile-section"}}>
+                    }} className="mobile-section">
                       🔒 SSL Certificado
                     </div>
                     <div style={{
@@ -471,7 +471,7 @@ export default function FAQ() {
                       color: '#3b82f6',
                       textAlign: 'center',
                       fontWeight: '600'
-                     className="mobile-section"}}>
+                    }} className="mobile-section">
                       ⭐ 4.9/5 Estrelas
                     </div>
                   </div>
@@ -522,7 +522,6 @@ export default function FAQ() {
           </div>
         </footer>
       </div>
-    </>
     </>
   );
 }

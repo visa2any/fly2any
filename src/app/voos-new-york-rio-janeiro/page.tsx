@@ -36,7 +36,7 @@ export default function VoosNewYorkRioJaneiro() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           <Logo size="md" variant="logo-only" headingLevel="div" />
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link href="/" style={{
@@ -68,7 +68,7 @@ export default function VoosNewYorkRioJaneiro() {
             </Link>
           </nav>
         </div>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px'  className="mobile-container"}}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }} className="mobile-container">
           <Breadcrumbs 
             items={[
               { label: 'Início', href: '/' },
@@ -79,8 +79,8 @@ export default function VoosNewYorkRioJaneiro() {
         </div>
       </header>
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px'  className="mobile-container"}}>
-        <div style={{ maxWidth: '896px', margin: '0 auto'  className="mobile-container"}}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px' }} className="mobile-container">
+        <div style={{ maxWidth: '896px', margin: '0 auto' }} className="mobile-container">
           
           {/* Hero Section */}
           <div style={{ textAlign: 'center', marginBottom: '64px' }}>
@@ -94,7 +94,7 @@ export default function VoosNewYorkRioJaneiro() {
               padding: '12px 24px',
               borderRadius: '50px',
               border: '1px solid rgba(255, 255, 255, 0.2)'
-             className="mobile-section"}}>
+            }} className="mobile-section">
               <FlightIcon style={{ width: '24px', height: '24px', color: '#facc15' }} />
               <h1 style={{ 
                 fontSize: '42px', 
@@ -125,7 +125,7 @@ export default function VoosNewYorkRioJaneiro() {
             padding: '32px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             marginBottom: '48px'
-           className="mobile-section"}}>
+          }} className="mobile-section">
             <h2 style={{ 
               fontSize: '28px', 
               fontWeight: '600', 
@@ -147,7 +147,7 @@ export default function VoosNewYorkRioJaneiro() {
                 padding: '20px',
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
-               className="mobile-section"}}>
+              }} className="mobile-section">
                 <h3 style={{ color: '#facc15', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
                   🛫 Origem
                 </h3>
@@ -164,7 +164,7 @@ export default function VoosNewYorkRioJaneiro() {
                 padding: '20px',
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
-               className="mobile-section"}}>
+              }} className="mobile-section">
                 <h3 style={{ color: '#facc15', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
                   🛬 Destino
                 </h3>
@@ -181,7 +181,7 @@ export default function VoosNewYorkRioJaneiro() {
                 padding: '20px',
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
-               className="mobile-section"}}>
+              }} className="mobile-section">
                 <h3 style={{ color: '#facc15', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
                   ⏱️ Duração
                 </h3>
@@ -198,7 +198,7 @@ export default function VoosNewYorkRioJaneiro() {
                 padding: '20px',
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
-               className="mobile-section"}}>
+              }} className="mobile-section">
                 <h3 style={{ color: '#facc15', fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
                   🌎 Distância
                 </h3>
@@ -220,7 +220,7 @@ export default function VoosNewYorkRioJaneiro() {
             padding: '32px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             marginBottom: '48px'
-           className="mobile-section"}}>
+          }} className="mobile-section">
             <h2 style={{ 
               fontSize: '28px', 
               fontWeight: '600', 
@@ -243,7 +243,7 @@ export default function VoosNewYorkRioJaneiro() {
                   borderRadius: '8px',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   textAlign: 'center'
-                 className="mobile-section"}}>
+                }} className="mobile-section">
                   <p style={{ color: 'white', fontSize: '14px', fontWeight: '500', margin: 0 }}>
                     {airline}
                   </p>
@@ -260,7 +260,7 @@ export default function VoosNewYorkRioJaneiro() {
             padding: '32px',
             border: '1px solid rgba(250, 204, 21, 0.3)',
             textAlign: 'center'
-           className="mobile-section"}}>
+          }} className="mobile-section">
             <h2 style={{ 
               fontSize: '28px', 
               fontWeight: '600', 

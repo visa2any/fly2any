@@ -9,6 +9,7 @@
 - **FileSystem** → Manipulação segura de arquivos
 - **Fetch/HTTP** → Testes de API e requisições
 - **Sequential Thinking** → Planejamento estruturado
+- **Serena** → Análise semântica de código e edição avançada 🆕
 
 ## 🚀 Automação Inteligente
 
@@ -74,6 +75,16 @@
 - "definir estrutura"
 ```
 
+#### 🧠 **Semantic Code Analysis**
+**Palavras-chave:** `semantic analysis`, `code structure`, `symbol search`, `refactor code`
+**MCPs ativados:** Serena + FileSystem + Sequential
+```bash
+# Exemplos de uso:
+- "analisar estrutura do código"
+- "encontrar definição da função"
+- "refatorar componente semanticamente"
+```
+
 #### 🚀 **Full Development**
 **Palavras-chave:** `implement`, `build app`, `full stack`, `deploy`
 **MCPs ativados:** TODOS os MCPs
@@ -91,6 +102,7 @@
 - `@web` → Ativa Puppeteer + Fetch
 - `@docs` → Ativa Context7 + FileSystem + GitHub
 - `@plan` → Ativa Sequential + FileSystem + GitHub
+- `@serena` → Ativa Serena + FileSystem + Sequential  
 - `@all` → Ativa TODOS os MCPs
 
 ## 🔄 Como Funciona

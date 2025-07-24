@@ -25,7 +25,7 @@ export default function Sobre() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "16px", color: "white" }}>Fly2Any</span></div>
           <nav style={{ display: 'none' }} className="hidden-mobile">{/* Hidden on mobile */}
             <Link href="/" style={{
@@ -124,7 +124,7 @@ export default function Sobre() {
             </Link>
           </nav>
         </div>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px'  className="mobile-container"}}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }} className="mobile-container">
           <Breadcrumbs 
             items={[
               { label: 'Início', href: '/' },
@@ -135,7 +135,7 @@ export default function Sobre() {
       </header>
 
       <div className="container-mobile spacing-mobile">
-        <div style={{ maxWidth: '800px', margin: '0 auto'  className="mobile-container"}}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }} className="mobile-container">
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 className="text-mobile-3xl" style={{ 
               fontWeight: '700', 
@@ -181,7 +181,7 @@ export default function Sobre() {
             </div>
           </div>
 
-          <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)', marginBottom: '48px'  className="mobile-section"}}>
+          <div style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.25)', borderRadius: '24px', padding: '32px', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)', marginBottom: '48px' }} className="mobile-section">
             <h3 style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '24px', textAlign: 'center', fontFamily: 'Poppins, sans-serif' }}>
               Por que escolher a Fly2Any?
             </h3>
@@ -228,7 +228,7 @@ export default function Sobre() {
             </div>
           </div>
 
-          <div style={{ background: 'linear-gradient(135deg, #2563eb, #8b5cf6)', color: 'white', borderRadius: '12px', padding: '32px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'  className="mobile-section"}}>
+          <div style={{ background: 'linear-gradient(135deg, #2563eb, #8b5cf6)', color: 'white', borderRadius: '12px', padding: '32px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }} className="mobile-section">
             <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px', fontFamily: 'Poppins, sans-serif' }}>
               Nossos Números
             </h3>
@@ -261,7 +261,7 @@ export default function Sobre() {
             </p>
             <Link 
               href="/" 
-              style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', border: 'none', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'  className="mobile-section"}}
+              style={{ background: 'linear-gradient(135deg, #2563eb, #c026d3)', color: 'white', padding: '16px 32px', borderRadius: '12px', fontWeight: '600', border: 'none', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} className="mobile-section"
             >
               ✈️ Solicitar Cotação
             </Link>
@@ -277,12 +277,12 @@ export default function Sobre() {
         borderTop: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '80px 0 40px 0',
         color: 'white'
-       className="mobile-section"}}>
+      }} className="mobile-section">
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
           padding: '0 24px'
-         className="mobile-container"}}>
+        }} className="mobile-container">
           {/* Main Footer Content */}
           <div style={{
             display: 'grid',
@@ -505,7 +505,7 @@ export default function Sobre() {
                     color: '#10b981',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     🔒 SSL Certificado
                   </div>
                   <div style={{
@@ -517,7 +517,7 @@ export default function Sobre() {
                     color: '#3b82f6',
                     textAlign: 'center',
                     fontWeight: '600'
-                   className="mobile-section"}}>
+                  }} className="mobile-section">
                     ⭐ 4.9/5 Estrelas
                   </div>
                 </div>
