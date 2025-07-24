@@ -1,0 +1,59 @@
+name: 🔄 Email Campaign Auto-Restart
+
+on:
+  schedule:
+    # Executa a cada 5 minutos para verificar campanhas travadas
+    - cron: '*/5 * * * *'
+  
+  # Permite execução manual também
+  workflow_dispatch:
+
+jobs:
+  auto-restart-campaigns:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 Trigger Email Auto-Restart
+      run: |
+        echo "🔄 Executando verificação automática de campanhas de email..."
+        
+        response=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+          -X GET "https://www.fly2any.com/api/cron/email-auto-restart" \
+          -H "User-Agent: GitHub-Actions-Cron/1.0")
+        
+        body=$(echo $response | sed -E 's/HTTPSTATUS:[0-9]{3}$//')
+        code=$(echo $response | tr -d '\n' | sed -E 's/.*HTTPSTATUS:([0-9]{3})$/\1/')
+        
+        echo "📊 Status HTTP: $code"
+        echo "📋 Resposta: $body"
+        
+        if [ $code -eq 200 ]; then
+          echo "✅ Auto-restart executado com sucesso!"
+        else
+          echo "❌ Erro no auto-restart (HTTP $code)"
+          exit 1
+        fi
+    
+    - name: 📈 Log Success
+      if: success()
+      run: echo "✅ Verificação automática de campanhas concluída com sucesso às $(date)"
+    
+    - name: 📢 Log Failure
+      if: failure()
+      run: echo "❌ Falha na verificação automática de campanhas às $(date)"
+
+# 📋 CONFIGURAÇÃO AUTOMÁTICA:
+# Este workflow será executado automaticamente a cada 5 minutos
+# garantindo que campanhas travadas sejam reiniciadas rapidamente.
+#
+# 🎯 BENEFÍCIOS:
+# - ✅ Monitoramento contínuo 24/7
+# - 🔄 Reinício automático de campanhas travadas
+# - 📊 Logs detalhados no GitHub Actions
+# - 🚀 Zero intervenção manual necessária
+# - 💪 Sistema robusto e confiável
+#
+# 🔧 PARA ATIVAR:
+# 1. Commit este arquivo para o repositório
+# 2. GitHub Actions ativará automaticamente
+# 3. Verificar logs em: Repositório > Actions > Email Campaign Auto-Restart

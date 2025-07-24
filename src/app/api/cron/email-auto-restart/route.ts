@@ -17,12 +17,14 @@ export async function GET(request: NextRequest) {
       ? `https://${process.env.VERCEL_URL}` 
       : 'https://www.fly2any.com';
     
-    const response = await fetch(`${baseUrl}/api/email-marketing/auto-restart`, {
-      method: 'POST',
+    const response = await fetch(`${baseUrl}/api/email-marketing?action=auto_restart`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Fly2Any-Cron-AutoRestart/1.0'
-      }
+      },
+      // Timeout para evitar travamento do CRON
+      signal: AbortSignal.timeout(45000)
     });
 
     const result = await response.json();
@@ -34,8 +36,9 @@ export async function GET(request: NextRequest) {
         success: true,
         message: '✅ Verificação automática de campanhas executada via CRON',
         timestamp: new Date().toISOString(),
-        details: result.details,
-        nextRun: 'Em 5 minutos (recomendado)'
+        details: result.data || result,
+        summary: result.data?.message || 'Processo concluído',
+        nextRun: 'Em 5-10 minutos (recomendado)'
       });
     } else {
       console.error('❌ CRON: Erro no auto-restart:', result.error);
