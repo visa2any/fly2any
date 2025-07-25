@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeAutoRestart } from '../../email-marketing/route';
+import { executeAutoRestart } from '@/lib/email-auto-restart';
 
 // 🔄 CRON JOB para reinício automático de campanhas
 // Este endpoint pode ser chamado por serviços externos como:

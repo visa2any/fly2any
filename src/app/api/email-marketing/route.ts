@@ -1299,6 +1299,7 @@ export async function GET(request: NextRequest) {
       }
 
       case 'auto_restart': {
+        const { executeAutoRestart } = await import('@/lib/email-auto-restart');
         const result = await executeAutoRestart();
         return NextResponse.json(result.success ? result : result, { 
           status: result.success ? 200 : 500 
@@ -1467,8 +1468,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 🔄 Função exportável para auto-restart de campanhas (pode ser usada por CRON)
-export async function executeAutoRestart() {
+// 🔄 Função local para auto-restart de campanhas (movida para lib)
+async function executeAutoRestart() {
   try {
     await ensureTablesExist();
     
