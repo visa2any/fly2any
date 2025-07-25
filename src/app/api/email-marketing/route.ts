@@ -792,27 +792,40 @@ export async function POST(request: NextRequest) {
           }, { status: 404 });
         }
 
-        // Buscar contatos disponíveis (usar 'ativo' em português)
-        // 🚨 CORREÇÃO CRÍTICA: Permitir envio para contatos que já receberam emails
-        // Filtrar apenas contatos que falharam permanentemente ou cancelaram inscrição
-        const filters: any = {
+        // 🚨 CORREÇÃO CRÍTICA: Buscar apenas contatos que NÃO receberam esta campanha
+        const baseFilters: any = {
           status: 'ativo',
-          // ✅ CORREÇÃO: Incluir contatos 'not_sent', 'sent', 'opened', 'clicked'
-          // ❌ EXCLUIR apenas: 'failed', 'bounced', 'unsubscribed'
           email_status: ['not_sent', 'sent', 'opened', 'clicked'],
-          limit: parseInt(limit)
+          limit: parseInt(limit) * 2 // Aumentar limite para compensar filtros
         };
 
         if (segment && segment !== '') {
-          filters.segmento = segment;
+          baseFilters.segmento = segment;
         }
 
-        const contacts = await EmailContactsDB.findAll(filters);
+        const allContacts = await EmailContactsDB.findAll(baseFilters);
+        
+        // Buscar contatos que JÁ receberam esta campanha
+        const existingSends = await sql`
+          SELECT DISTINCT contact_id 
+          FROM email_sends 
+          WHERE campaign_id = ${campaignId}
+            AND status IN ('sent', 'delivered', 'opened', 'clicked')
+        `;
+        
+        const alreadySentContactIds = new Set(existingSends.rows.map(row => row.contact_id));
+        
+        // Filtrar apenas contatos que NÃO receberam esta campanha
+        const contacts = allContacts
+          .filter(contact => !alreadySentContactIds.has(contact.id))
+          .slice(0, parseInt(limit)); // Aplicar limite final
+        
+        console.log(`📊 Filtro anti-duplicação: ${allContacts.length} total → ${contacts.length} novos para campanha ${campaignId}`);
         
         if (contacts.length === 0) {
           return NextResponse.json({
             success: false,
-            error: 'Nenhum contato disponível para envio'
+            error: 'Nenhum contato novo disponível para esta campanha. Todos já receberam este email.'
           }, { status: 400 });
         }
 
