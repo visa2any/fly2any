@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FlightIcon, PhoneIcon, ChatIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
+import Footer from '@/components/Footer';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import Breadcrumbs from '@/components/Breadcrumbs';
 
@@ -292,42 +293,14 @@ export default function Sobre() {
           }}>
             {/* Logo and Description */}
             <div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '24px'
-              }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  background: 'linear-gradient(135deg, #2563eb, #c026d3)',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{
-                    color: 'white',
-                    fontSize: '24px',
-                    fontWeight: '800',
-                    fontFamily: 'Poppins, sans-serif'
-                  }}>F</span>
-                </div>
-                <div>
-                  <h3 style={{
-                    color: 'white',
-                    fontSize: '24px',
-                    fontWeight: '800',
-                    margin: 0,
-                    fontFamily: 'Poppins, sans-serif'
-                  }}>Fly2Any</h3>
-                  <p style={{
-                    color: 'rgba(219, 234, 254, 0.7)',
-                    fontSize: '14px',
-                    margin: 0
-                  }}>Conectando você ao Brasil</p>
-                </div>
+              <div style={{ marginBottom: '24px' }}>
+                <Logo 
+                  size="md" 
+                  showText={true} 
+                  variant="white" 
+                  headingLevel="div"
+                  className=""
+                />
               </div>
               <p style={{
                 color: 'rgba(219, 234, 254, 0.8)',

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Termos de Uso | Fly2Any",
@@ -187,12 +188,7 @@ export default function TermosUso() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-black/30 backdrop-blur-sm border-t border-white/10 py-8">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-blue-300">&copy; 2024 Fly2Any. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
