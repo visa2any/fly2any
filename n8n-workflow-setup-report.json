@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-07-25T21:11:51.326Z",
+  "n8nStatus": {
+    "online": true,
+    "healthy": true
+  },
+  "workflowResults": [
+    {
+      "name": "WhatsApp Automation",
+      "path": "/webhook/whatsapp",
+      "active": false,
+      "status": 404
+    },
+    {
+      "name": "Email Marketing",
+      "path": "/webhook/email-marketing-final",
+      "active": false,
+      "status": 404
+    },
+    {
+      "name": "Lead Processing",
+      "path": "/webhook/lead",
+      "active": false,
+      "status": 404
+    }
+  ],
+  "needsImport": true,
+  "success": false
+}
