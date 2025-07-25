@@ -43,7 +43,8 @@ export async function executeAutoRestart() {
         console.log(`🔍 Verificando campanha: ${campaign.id} - ${campaign.name}`);
         
         // Verificar se há envios pendentes para esta campanha
-        const pendingSends = await EmailSendsDB.findByCampaignAndStatus(campaign.id, 'pending');
+        const allSends = await EmailSendsDB.findByCampaign(campaign.id);
+        const pendingSends = allSends.filter(send => send.status === 'pending');
         
         console.log(`📨 Campanha ${campaign.id}: ${pendingSends.length} envios pendentes`);
         
