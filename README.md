@@ -1,4 +1,5 @@
 # 🛫 Fly2Any - Plataforma de Viagens Brasil-EUA
+<!-- Force deploy: WhatsApp QR fixes -->
 
 > **Especialistas em passagens aéreas para brasileiros nos EUA**  
 > Voos, hotéis, carros, passeios e seguro viagem para o Brasil
