@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/mobile-utils.css";
+@import "../styles/admin-components.css";
 
 /* Custom utility classes not available in Tailwind */
 @layer utilities {
