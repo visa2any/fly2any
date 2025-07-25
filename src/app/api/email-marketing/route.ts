@@ -793,9 +793,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Buscar contatos disponíveis (usar 'ativo' em português)
+        // 🚨 CORREÇÃO CRÍTICA: Permitir envio para contatos que já receberam emails
+        // Filtrar apenas contatos que falharam permanentemente ou cancelaram inscrição
         const filters: any = {
           status: 'ativo',
-          email_status: 'not_sent',
+          // ✅ CORREÇÃO: Incluir contatos 'not_sent', 'sent', 'opened', 'clicked'
+          // ❌ EXCLUIR apenas: 'failed', 'bounced', 'unsubscribed'
+          email_status: ['not_sent', 'sent', 'opened', 'clicked'],
           limit: parseInt(limit)
         };
 
@@ -939,6 +943,46 @@ export async function POST(request: NextRequest) {
             limit: 500
           })
         }));
+      }
+
+      // 🔄 NOVA FUNCIONALIDADE: Resetar status de contatos para permitir reenvio
+      case 'reset_contacts_status': {
+        const { segment, resetType = 'all' } = body;
+        
+        try {
+          let query = `UPDATE email_contacts SET email_status = 'not_sent', updated_at = CURRENT_TIMESTAMP WHERE status = 'ativo'`;
+          const params: any[] = [];
+          
+          // Resetar apenas contatos que não falharam permanentemente
+          if (resetType === 'sent_only') {
+            query += ` AND email_status IN ('sent', 'opened', 'clicked')`;
+          } else if (resetType === 'all') {
+            query += ` AND email_status NOT IN ('failed', 'bounced', 'unsubscribed')`;
+          }
+          
+          // Filtrar por segmento se especificado
+          if (segment && segment !== '') {
+            query += ` AND segmento = $${params.length + 1}`;
+            params.push(segment);
+          }
+          
+          const result = await sql.query(query, params);
+          
+          return NextResponse.json({
+            success: true,
+            message: `Status resetado para ${result.rowCount} contatos`,
+            data: {
+              resetCount: result.rowCount,
+              resetType,
+              segment: segment || 'todos'
+            }
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro ao resetar status: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
       }
 
       default:

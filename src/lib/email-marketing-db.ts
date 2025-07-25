@@ -213,9 +213,16 @@ export class EmailContactsDB {
     }
 
     if (filters?.email_status) {
-      query += ` AND email_status = $${paramIndex}`;
-      params.push(filters.email_status);
-      paramIndex++;
+      // 🚨 CORREÇÃO: Suportar array de valores para email_status
+      if (Array.isArray(filters.email_status)) {
+        const placeholders = filters.email_status.map(() => `$${paramIndex++}`).join(', ');
+        query += ` AND email_status IN (${placeholders})`;
+        params.push(...filters.email_status);
+      } else {
+        query += ` AND email_status = $${paramIndex}`;
+        params.push(filters.email_status);
+        paramIndex++;
+      }
     }
 
     if (filters?.segmento) {
