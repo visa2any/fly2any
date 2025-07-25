@@ -138,31 +138,38 @@ export class WhatsAppBaileysService {
       return new Promise((resolve) => {
         let resolved = false;
         
-        // Timeout after 15 seconds to give more time for QR generation
+        console.log('🔍 Starting WhatsApp connection process...');
+        console.log('🔍 Auth path exists:', fs.existsSync(authPath));
+        console.log('🔍 Current connection state:', this.isConnected ? 'Connected' : 'Disconnected');
+        
+        // Timeout after 25 seconds to give more time for QR generation
         const timeout = setTimeout(() => {
           if (!resolved) {
             resolved = true;
-            console.log('⏰ Initialization timeout - returning current status');
-            console.log(`📊 Status: connected=${this.isConnected}, qrCode=${this.qrCode ? 'available' : 'not available'}`);
+            console.log('⏰ Initialization timeout after 25 seconds');
+            console.log(`📊 Final status: connected=${this.isConnected}, qrCode=${this.qrCode ? 'available' : 'not available'}`);
             resolve({
-              success: true,
+              success: this.qrCode ? true : false,
+              error: this.qrCode ? undefined : 'QR code generation timeout - try again',
               qrCode: this.qrCode || undefined,
               isReady: this.isConnected
             });
           }
-        }, 15000);
+        }, 25000);
 
         // Handle connection updates
         this.sock!.ev.on('connection.update', async (update) => {
           const { connection, lastDisconnect, qr } = update;
           
           if (qr) {
-            console.log('📱 QR Code received, converting to base64...');
+            console.log('📱 QR Code received! Processing...');
+            console.log('📱 QR Code text length:', qr.length);
             try {
               this.qrCode = await this.convertQRToBase64(qr);
               QRCode.generate(qr, { small: true });
+              console.log('✅ QR Code converted successfully!');
+              console.log('📱 Base64 QR Code length:', this.qrCode?.length || 0);
               console.log('📱 Scan the QR code above with WhatsApp to connect');
-              console.log('📱 QR Code length:', this.qrCode?.length || 0);
               
               // Resolve with QR code
               if (!resolved) {
