@@ -1,0 +1,237 @@
+{
+  "name": "Fly2Any Email Marketing SMTP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-marketing-final",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Email Marketing Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar dados da campanha Fly2Any\\nconst data = $input.first().json;\\n\\nconsole.log('📧 Nova campanha recebida:', {\\n  campaignId: data.campaignId,\\n  campaignName: data.campaignName,\\n  subject: data.subject,\\n  contactsCount: data.contacts?.length || 0\\n});\\n\\n// Validar dados obrigatórios\\nif (!data.campaignId || !data.subject || !data.contacts || !Array.isArray(data.contacts)) {\\n  throw new Error('Dados incompletos: campaignId, subject e contacts são obrigatórios');\\n}\\n\\nif (data.contacts.length === 0) {\\n  throw new Error('Lista de contatos vazia');\\n}\\n\\n// Processar em lotes de 10 emails com rate limiting\\nconst batchSize = 10;\\nconst contacts = data.contacts;\\nconst totalContacts = contacts.length;\\nconst batches = [];\\n\\nfor (let i = 0; i < totalContacts; i += batchSize) {\\n  const batchContacts = contacts.slice(i, i + batchSize);\\n  \\n  // Criar um item para cada contato individualmente (melhor para SMTP)\\n  batchContacts.forEach((contact, index) => {\\n    batches.push({\\n      contact: contact,\\n      batchNumber: Math.floor(i / batchSize) + 1,\\n      contactIndex: index + 1,\\n      totalBatches: Math.ceil(totalContacts / batchSize),\\n      totalContacts: totalContacts,\\n      campaignData: {\\n        campaignId: data.campaignId,\\n        campaignName: data.campaignName || 'Campanha Fly2Any',\\n        subject: data.subject,\\n        htmlContent: data.htmlContent || '<p>Email da Fly2Any para {{nome}}</p>',\\n        textContent: data.textContent || 'Email da Fly2Any para {{nome}}',\\n        timestamp: new Date().toISOString()\\n      }\\n    });\\n  });\\n}\\n\\nconsole.log(`✅ Processados ${totalContacts} contatos em ${Math.ceil(totalContacts / batchSize)} lotes`);\\n\\nreturn batches.map(item => ({ json: item }));"
+      },
+      "id": "process-node",
+      "name": "Process Campaign Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $credentials.smtp.user }}",
+        "toEmail": "={{ $json.contact.email }}",
+        "subject": "={{ $json.campaignData.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.campaignData.htmlContent.replace(/{{nome}}/g, $json.contact.nome || 'Cliente').replace(/{{email}}/g, $json.contact.email).replace(/{{campaignId}}/g, $json.campaignData.campaignId) }}",
+        "text": "={{ $json.campaignData.textContent.replace(/{{nome}}/g, $json.contact.nome || 'Cliente').replace(/{{email}}/g, $json.contact.email) }}",
+        "options": {}
+      },
+      "id": "smtp-node",
+      "name": "Send Email SMTP",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [720, 300],
+      "credentials": {
+        "smtp": {
+          "id": "gmail-smtp-credentials",
+          "name": "Gmail SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "rate-limit-condition",
+              "leftValue": "={{ $json.contactIndex }}",
+              "rightValue": "10",
+              "operator": {
+                "type": "number",
+                "operation": "modulo",
+                "rightType": "number"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "rate-limit-check",
+      "name": "Check Rate Limit",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "amount": 20
+      },
+      "id": "wait-node",
+      "name": "Wait 20s (Rate Limiting)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log de sucesso para cada email enviado\\nconst data = $json;\\n\\nconsole.log(`✅ Email enviado: ${data.contact.email} (${data.contactIndex}/${data.totalContacts})`);\\nconsole.log(`📧 Campanha: ${data.campaignData.campaignName}`);\\nconsole.log(`📊 Lote: ${data.batchNumber}/${data.totalBatches}`);\\n\\n// Preparar dados para resposta\\nreturn [{\\n  json: {\\n    success: true,\\n    emailSent: true,\\n    contact: data.contact.email,\\n    campaignId: data.campaignData.campaignId,\\n    batchNumber: data.batchNumber,\\n    totalBatches: data.totalBatches,\\n    contactIndex: data.contactIndex,\\n    totalContacts: data.totalContacts,\\n    timestamp: new Date().toISOString()\\n  }\\n}];"
+      },
+      "id": "log-success-node",
+      "name": "Log Email Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "final-email-condition",
+              "leftValue": "={{ $json.contactIndex }}",
+              "rightValue": "={{ $json.totalContacts }}",
+              "operator": {
+                "type": "number",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "final-check",
+      "name": "Is Final Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ \\n  {\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Campanha de email marketing processada com sucesso\\\",\\n    \\\"campaignId\\\": $json.campaignId,\\n    \\\"totalEmails\\\": $json.totalContacts,\\n    \\\"totalBatches\\\": $json.totalBatches,\\n    \\\"completedAt\\\": $json.timestamp\\n  }\\n}}",
+        "options": {}
+      },
+      "id": "final-response",
+      "name": "Final Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1680, 300]
+    }
+  ],
+  "connections": {
+    "Email Marketing Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Campaign Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Campaign Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email SMTP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email SMTP": {
+      "main": [
+        [
+          {
+            "node": "Check Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Wait 20s (Rate Limiting)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Email Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s (Rate Limiting)": {
+      "main": [
+        [
+          {
+            "node": "Log Email Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Email Success": {
+      "main": [
+        [
+          {
+            "node": "Is Final Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Final Email?": {
+      "main": [
+        [
+          {
+            "node": "Final Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCreatedBy": "Claude Code - Fly2Any",
+    "description": "Workflow completo de email marketing com SMTP Gmail e rate limiting inteligente"
+  }
+}

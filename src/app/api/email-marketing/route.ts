@@ -6,8 +6,10 @@ import {
   EmailSendsDB,
   generateUnsubscribeToken,
   EmailContact,
-  EmailCampaign 
+  EmailCampaign,
+  processEmailRetries
 } from '@/lib/email-marketing-db';
+import { emailMarketingLogger, EmailEvent, LogLevel } from '@/lib/email-marketing-logger';
 import { sql } from '@vercel/postgres';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
@@ -75,6 +77,7 @@ function getGmailCredentials() {
 
 // Função para carregar templates da API (corrigida para produção)
 async function loadSavedTemplates() {
+  const startTime = Date.now();
   try {
     // Construir URL correta para produção e desenvolvimento
     const baseUrl = process.env.VERCEL_URL 
@@ -83,6 +86,11 @@ async function loadSavedTemplates() {
       ? 'http://localhost:3000'
       : 'https://www.fly2any.com'; // URL de produção CORRETA
     
+    emailMarketingLogger.debug(
+      EmailEvent.TEMPLATE_LOADED,
+      'Loading email templates from API',
+      { metadata: { baseUrl } }
+    );
     console.log('🔄 Carregando templates de:', baseUrl);
     
     const response = await fetch(`${baseUrl}/api/email-templates`, {
@@ -1368,6 +1376,29 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      case 'retry_failed': {
+        try {
+          console.log('🔄 Iniciando retry manual de emails falhados...');
+          const result = await processEmailRetries();
+          
+          return NextResponse.json({
+            success: result.success,
+            data: {
+              message: `Retry processado: ${result.retried} emails recolocados na fila`,
+              processed: result.processed,
+              retried: result.retried,
+              failed: result.failed,
+              details: result.details
+            }
+          });
+        } catch (error) {
+          return NextResponse.json({
+            success: false,
+            error: `Erro no retry: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          }, { status: 500 });
+        }
+      }
+
       case 'debug_stats': {
         try {
           const [contacts, campaigns, campaignStats] = await Promise.all([
@@ -1389,6 +1420,9 @@ export async function GET(request: NextRequest) {
             })
           );
 
+          // Buscar estatísticas de retry
+          const failedForRetry = await EmailSendsDB.findFailedForRetry();
+
           return NextResponse.json({
             success: true,
             debug: {
@@ -1396,7 +1430,16 @@ export async function GET(request: NextRequest) {
               campaigns: campaignDetails,
               campaignStats,
               totalCampaigns: campaigns.length,
-              completedCampaigns: campaigns.filter(c => c.status === 'completed' || c.status === 'sent').length
+              completedCampaigns: campaigns.filter(c => c.status === 'completed' || c.status === 'sent').length,
+              retryStats: {
+                eligibleForRetry: failedForRetry.length,
+                details: failedForRetry.map(send => ({
+                  email: send.email,
+                  retryCount: send.retry_count,
+                  retryAfter: send.retry_after,
+                  failedReason: send.failed_reason
+                }))
+              }
             }
           });
         } catch (error) {
@@ -1410,7 +1453,7 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json({
           success: false,
-          error: `Ação não encontrada: ${action}. Ações disponíveis: stats, contacts, campaigns, campaign_stats, auto_restart, debug_stats, etc.`
+          error: `Ação não encontrada: ${action}. Ações disponíveis: stats, contacts, campaigns, campaign_stats, auto_restart, retry_failed, debug_stats, etc.`
         }, { status: 400 });
     }
     
@@ -1546,24 +1589,87 @@ export async function executeAutoRestart() {
   }
 }
 
+// 🔄 Executar auto-retry antes de iniciar nova campanha
+async function executeAutoRetry(): Promise<void> {
+  try {
+    console.log('🔄 AUTO-RETRY PRÉ-CAMPANHA:');
+    const result = await processEmailRetries();
+    
+    console.log(`✅ AUTO-RETRY CONCLUÍDO:`, {
+      processados: result.processed,
+      recolocados: result.retried,
+      falhas: result.failed,
+      timestamp: new Date().toISOString()
+    });
+    
+    if (result.details.length > 0) {
+      console.log('📋 Detalhes do auto-retry:', result.details.slice(0, 5)); // Primeiros 5
+    }
+  } catch (error) {
+    console.error('❌ ERRO AUTO-RETRY:', error);
+  }
+}
+
 // Função para processar envios da campanha de forma assíncrona COM AUTO-RESTART
 async function processCampaignSends(campaign: EmailCampaign, contacts: EmailContact[], emailSends: any[]) {
+  const campaignStartTime = Date.now();
+  
+  emailMarketingLogger.info(
+    EmailEvent.CAMPAIGN_STARTED,
+    'Campaign processing started',
+    {
+      campaignId: campaign.id,
+      metadata: {
+        campaignName: campaign.name,
+        contactCount: contacts.length,
+        status: campaign.status
+      }
+    }
+  );
+  
   const credentials = getGmailCredentials();
   
   if (!credentials.email || !credentials.password) {
+    emailMarketingLogger.critical(
+      EmailEvent.CREDENTIALS_LOADED,
+      'Gmail credentials not configured - campaign paused',
+      { campaignId: campaign.id }
+    );
     console.error('❌ Credenciais Gmail não configuradas');
     // Marcar campanha como paused para reprocessamento posterior
     await EmailCampaignsDB.updateStatus(campaign.id, 'paused');
     return;
   }
+  
+  emailMarketingLogger.info(
+    EmailEvent.CREDENTIALS_LOADED,
+    'Gmail credentials loaded successfully',
+    { campaignId: campaign.id, metadata: { email: credentials.email } }
+  );
 
   // 🚨 SISTEMA DE HEARTBEAT para auto-recovery
   const heartbeatInterval = setInterval(async () => {
     try {
       // Atualizar timestamp da campanha a cada 2 minutos para indicar que está ativa
       await EmailCampaignsDB.updateTimestamp(campaign.id);
+      
+      emailMarketingLogger.logHeartbeat(
+        campaign.id,
+        'active',
+        {
+          uptime: Date.now() - campaignStartTime,
+          memoryUsage: process.memoryUsage().heapUsed,
+          contactsProcessed: contacts.length
+        }
+      );
+      
       console.log(`💓 Heartbeat: Campanha ${campaign.name} ainda ativa`);
     } catch (error) {
+      emailMarketingLogger.error(
+        EmailEvent.HEARTBEAT,
+        'Heartbeat failed',
+        { campaignId: campaign.id, error: error as Error }
+      );
       console.error('❌ Erro no heartbeat:', error);
     }
   }, 120000); // 2 minutos
@@ -1592,22 +1698,55 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
 
   let successCount = 0;
   let failureCount = 0;
-  // Rate limiting otimizado para Gmail:
-  // - Gmail permite 500 emails/dia via SMTP
-  // - Recomendado: máximo 50 emails/hora (1 por minuto + burst)
-  // - Lotes pequenos com pausa adequada previnem bloqueios
-  const batchSize = 5; // Processar 5 emails por vez (mais seguro)
-  const batchDelayMs = 60000; // 1 minuto entre lotes (seguro para Gmail)
+  // Rate limiting otimizado para Gmail (3x mais rápido):
+  // - Gmail permite 500 emails/dia via SMTP 
+  // - Otimizado: até 3 emails por minuto = 180 emails/hora
+  // - Lotes maiores com pausa menor para máxima eficiência
+  const batchSize = 15; // Processar 15 emails por vez (mais otimizado)
+  const batchDelayMs = 15000; // 15 segundos entre lotes (4x mais rápido)
 
+  // 🔄 Executar auto-retry antes de iniciar
+  await executeAutoRetry();
+  
+  emailMarketingLogger.info(
+    EmailEvent.CAMPAIGN_STARTED,
+    'Campaign email sending initiated',
+    {
+      campaignId: campaign.id,
+      metadata: {
+        totalContacts: contacts.length,
+        batchSize,
+        batchDelay: batchDelayMs,
+        rateLimit: `${batchSize} emails per ${batchDelayMs/1000}s`
+      }
+    }
+  );
+  
   console.log(`🚀 Iniciando envio da campanha ${campaign.name} para ${contacts.length} contatos`);
   console.log(`⚙️ Rate limiting: ${batchSize} emails por lote, ${batchDelayMs/1000}s entre lotes`);
 
   // Processar em lotes
   for (let i = 0; i < contacts.length; i += batchSize) {
+    const batchStartTime = Date.now();
     const batch = contacts.slice(i, i + batchSize);
     const batchSends = emailSends.slice(i, i + batchSize);
+    const batchIndex = Math.floor(i/batchSize) + 1;
     
-    console.log(`📧 Processando lote ${Math.floor(i/batchSize) + 1} - ${batch.length} emails`);
+    emailMarketingLogger.info(
+      EmailEvent.BATCH_STARTED,
+      `Batch ${batchIndex} processing started`,
+      {
+        campaignId: campaign.id,
+        metadata: {
+          batchIndex,
+          batchSize: batch.length,
+          totalBatches: Math.ceil(contacts.length / batchSize),
+          progress: `${Math.round(((i + batch.length) / contacts.length) * 100)}%`
+        }
+      }
+    );
+    
+    console.log(`📧 Processando lote ${batchIndex} - ${batch.length} emails`);
     
     // Processar lote em paralelo
     const batchPromises = batch.map(async (contact, index) => {
@@ -1641,20 +1780,82 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         // Atualizar status do contato
         await EmailContactsDB.updateEmailStatus(contact.id, 'sent', new Date());
         
-        console.log(`✅ Email enviado: ${contact.email}`);
+        // 📈 LOG DETALHADO DE SUCESSO
+        emailMarketingLogger.logEmailSuccess(
+          campaign.id,
+          contact.id,
+          contact.email,
+          {
+            messageId: result.messageId,
+            processingTime: Date.now() - batchStartTime,
+            retryCount: emailSend.retry_count || 0
+          }
+        );
+        
+        console.log(`✅ SUCESSO EMAIL - ${contact.email}:`, {
+          campanha: campaign.name,
+          tentativa: (emailSend.retry_count || 0) + 1,
+          messageId: result.messageId?.substring(0, 20) + '...',
+          timestamp: new Date().toISOString()
+        });
+        
         return { success: true, email: contact.email };
         
       } catch (error) {
         const emailSend = batchSends[index];
         
-        // Atualizar como falha
-        await EmailSendsDB.updateStatus(emailSend.id, 'failed', {
-          failed_reason: error instanceof Error ? error.message : 'Erro desconhecido'
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        
+        // Verificar se erro é elegível para retry
+        const isRetryable = EmailSendsDB.isRetryableError(errorMessage);
+        
+        // 📈 LOG DETALHADO DE FALHA
+        emailMarketingLogger.logEmailFailure(
+          campaign.id,
+          contact.id,
+          contact.email,
+          error as Error,
+          {
+            retryCount: emailSend.retry_count,
+            willRetry: isRetryable && emailSend.retry_count < 4
+          }
+        );
+        
+        console.log(`🚨 FALHA EMAIL - ${contact.email}:`, {
+          campanha: campaign.name,
+          tentativa: emailSend.retry_count + 1,
+          erro: errorMessage,
+          eligivelRetry: isRetryable,
+          maxTentativas: 4
         });
         
-        await EmailContactsDB.updateEmailStatus(contact.id, 'failed');
+        if (isRetryable && emailSend.retry_count < 4) {
+          // Agendar retry com delay exponencial
+          const retryDelays = [1, 5, 15, 60]; // minutos
+          const delayMinutes = retryDelays[Math.min(emailSend.retry_count, retryDelays.length - 1)];
+          
+          await EmailSendsDB.scheduleRetry(emailSend.id, emailSend.retry_count, errorMessage);
+          
+          console.log(`🔄 RETRY AGENDADO - ${contact.email}:`, {
+            tentativa: emailSend.retry_count + 1,
+            proximoRetry: `${delayMinutes} minutos`,
+            motivo: errorMessage.substring(0, 100)
+          });
+        } else {
+          // Marcar como falha definitiva
+          await EmailSendsDB.updateStatus(emailSend.id, 'failed', {
+            failed_reason: errorMessage
+          });
+          
+          await EmailContactsDB.updateEmailStatus(contact.id, 'failed');
+          
+          console.error(`❌ FALHA DEFINITIVA - ${contact.email}:`, {
+            tentativas: emailSend.retry_count + 1,
+            motivoFinal: errorMessage,
+            acao: isRetryable ? 'Max tentativas atingido' : 'Erro não retriable'
+          });
+        }
         
-        console.error(`❌ Erro ao enviar para ${contact.email}:`, error);
         return { success: false, email: contact.email, error };
       }
     });
@@ -1662,18 +1863,51 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     // Aguardar conclusão do lote
     const results = await Promise.all(batchPromises);
     
-    // Contar sucessos e falhas
+    // Contar sucessos e falhas com log de lote
+    let batchSuccesses = 0;
+    let batchFailures = 0;
+    
     results.forEach(result => {
       if (result.success) {
         successCount++;
+        batchSuccesses++;
       } else {
         failureCount++;
+        batchFailures++;
       }
+    });
+    
+    // 📈 LOG DE LOTE
+    const batchProcessingTime = Date.now() - batchStartTime;
+    
+    emailMarketingLogger.logBatchProcessing(
+      campaign.id,
+      batchIndex,
+      batch.length,
+      {
+        successes: batchSuccesses,
+        failures: batchFailures,
+        processingTime: batchProcessingTime
+      }
+    );
+    
+    console.log(`📦 LOTE ${batchIndex} FINALIZADO:`, {
+      sucessos: batchSuccesses,
+      falhas: batchFailures,
+      total: batch.length,
+      taxaSucesso: `${((batchSuccesses/batch.length)*100).toFixed(1)}%`
     });
     
     // Aguardar entre lotes (rate limiting otimizado)
     if (i + batchSize < contacts.length) {
       const nextBatch = Math.floor(i/batchSize) + 2;
+      
+      emailMarketingLogger.logRateLimited(
+        campaign.id,
+        batchDelayMs,
+        `Rate limiting delay between batch ${batchIndex} and ${nextBatch}`
+      );
+      
       console.log(`⏸️ Aguardando ${batchDelayMs/1000} segundos antes do lote ${nextBatch}...`);
       await new Promise(resolve => setTimeout(resolve, batchDelayMs));
     }
@@ -1687,10 +1921,55 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   
   await EmailCampaignsDB.updateStatus(campaign.id, 'completed');
 
-  console.log(`✅ Campanha ${campaign.name} finalizada: ${successCount} sucessos, ${failureCount} falhas`);
+  // 📈 LOG FINAL DETALHADO DA CAMPANHA
+  const totalEmails = contacts.length;
+  const successRate = totalEmails > 0 ? ((successCount / totalEmails) * 100) : 0;
+  const campaignDuration = Date.now() - campaignStartTime;
+  
+  emailMarketingLogger.logCampaignMetrics(
+    campaign.id,
+    {
+      totalEmails,
+      successCount,
+      failureCount,
+      successRate,
+      duration: campaignDuration,
+      averageResponseTime: Math.round(campaignDuration / totalEmails)
+    }
+  );
+  
+  emailMarketingLogger.info(
+    EmailEvent.CAMPAIGN_COMPLETED,
+    'Campaign processing completed successfully',
+    {
+      campaignId: campaign.id,
+      metadata: {
+        campaignName: campaign.name,
+        finalStatus: 'completed',
+        totalProcessed: totalEmails,
+        successRate: `${successRate.toFixed(1)}%`
+      },
+      duration: campaignDuration
+    }
+  );
+  
+  console.log(`✅ CAMPANHA FINALIZADA - ${campaign.name}:`, {
+    totalEmails,
+    sucessos: successCount,
+    falhas: failureCount,
+    taxaSucesso: `${successRate.toFixed(1)}%`,
+    duracaoAproximada: `${Math.ceil((totalEmails / batchSize) * (batchDelayMs / 1000 / 60))} minutos`,
+    timestamp: new Date().toISOString()
+  });
   
   // 🧹 Limpar heartbeat
   cleanup();
+  
+  emailMarketingLogger.info(
+    EmailEvent.CAMPAIGN_COMPLETED,
+    'Campaign cleanup completed',
+    { campaignId: campaign.id, duration: Date.now() - campaignStartTime }
+  );
 }
 
 // 🔧 Função auxiliar para adicionar updateTimestamp no EmailCampaignsDB se não existir

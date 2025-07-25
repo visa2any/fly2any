@@ -104,15 +104,15 @@ class EmailMarketingService {
 
     console.log(`Enviando campanha "${campaign.name}" para ${targetContacts.length} contatos`);
 
-    // Dividir em lotes de 100 emails (para não sobrecarregar)
-    const batchSize = 100;
+    // Dividir em lotes de 50 emails (otimizado para Gmail SMTP)
+    const batchSize = 50;
     for (let i = 0; i < targetContacts.length; i += batchSize) {
       const batch = targetContacts.slice(i, i + batchSize);
       
       await this.sendBatchViaWebhook(campaign, batch);
       
-      // Aguardar 5 segundos entre lotes para evitar rate limits
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Aguardar 1 segundo entre lotes para otimizar velocidade (Gmail permite até 500/dia)
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     campaign.status = 'sent';

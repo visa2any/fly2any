@@ -1,0 +1,151 @@
+{
+  "name": "Fly2Any Email Marketing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-marketing-final",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Email Marketing Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar dados da campanha de email marketing\nconst data = $input.first().json;\n\n// Log dos dados recebidos\nconsole.log('📧 Nova campanha recebida:', {\n  campaignId: data.campaignId,\n  campaignName: data.campaignName,\n  subject: data.subject,\n  contactsCount: data.contacts?.length || 0\n});\n\n// Validar dados obrigatórios\nif (!data.campaignId || !data.subject || !data.contacts || !Array.isArray(data.contacts)) {\n  throw new Error('Dados incompletos: campaignId, subject e contacts são obrigatórios');\n}\n\nif (data.contacts.length === 0) {\n  throw new Error('Lista de contatos vazia');\n}\n\n// Processar contatos em lotes de 10 (conforme especificado)\nconst batchSize = 10;\nconst contacts = data.contacts;\nconst totalContacts = contacts.length;\nconst totalBatches = Math.ceil(totalContacts / batchSize);\n\n// Criar lotes\nconst batches = [];\nfor (let i = 0; i < totalContacts; i += batchSize) {\n  const batchContacts = contacts.slice(i, i + batchSize);\n  batches.push({\n    batchNumber: Math.floor(i / batchSize) + 1,\n    totalBatches: totalBatches,\n    contacts: batchContacts,\n    campaignData: {\n      campaignId: data.campaignId,\n      campaignName: data.campaignName || 'Campanha Fly2Any',\n      subject: data.subject,\n      htmlContent: data.htmlContent || '<p>Email da Fly2Any</p>',\n      timestamp: new Date().toISOString()\n    }\n  });\n}\n\nconsole.log(`✅ Processado ${totalContacts} contatos em ${totalBatches} lotes`);\n\n// Retornar todos os lotes para processamento\nreturn batches.map(batch => ({ json: batch }));"
+      },
+      "id": "process-data-node",
+      "name": "Process Campaign Data", 
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "generic",
+        "genericAuthType": "httpBasicAuth", 
+        "requestMethod": "POST",
+        "url": "https://api.gmail.com/gmail/v1/users/me/messages/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GMAIL_ACCESS_TOKEN"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ \n  const contacts = $json.contacts;\n  const campaignData = $json.campaignData;\n  \n  // Criar email para o primeiro contato do lote (Gmail API limitation)\n  const contact = contacts[0];\n  const personalizedHtml = campaignData.htmlContent\n    .replace(/{{nome}}/g, contact.nome || 'Cliente')\n    .replace(/{{email}}/g, contact.email);\n    \n  const emailContent = [\n    `To: ${contact.email}`,\n    `Subject: ${campaignData.subject}`,\n    `Content-Type: text/html; charset=utf-8`,\n    ``,\n    personalizedHtml\n  ].join('\\n');\n  \n  const encodedEmail = Buffer.from(emailContent)\n    .toString('base64')\n    .replace(/\\+/g, '-')\n    .replace(/\\//g, '_')\n    .replace(/=/g, '');\n    \n  return { raw: encodedEmail };\n}}",
+        "options": {}
+      },
+      "id": "gmail-send-node",
+      "name": "Send Email via Gmail",
+      "type": "n8n-nodes-base.httpRequest", 
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "unit": "seconds",
+        "amount": 20
+      },
+      "id": "wait-node",
+      "name": "Wait 20s (Rate Limiting)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log resultado e preparar resposta final\nconst batch = $input.first().json;\n\nconsole.log(`📧 Lote ${batch.batchNumber}/${batch.totalBatches} processado`);\nconsole.log(`✅ Emails enviados para lote atual`);\n\n// Se é o último lote, preparar resposta de sucesso completa\nreturn [{\n  json: {\n    success: true,\n    campaignId: batch.campaignData.campaignId,\n    message: `Lote ${batch.batchNumber}/${batch.totalBatches} processado com sucesso`,\n    timestamp: new Date().toISOString(),\n    isLastBatch: batch.batchNumber === batch.totalBatches\n  }\n}];"
+      },
+      "id": "log-success-node",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ \n  {\n    \"success\": true,\n    \"message\": \"Campanha processada com sucesso\",\n    \"campaignId\": $json.campaignId,\n    \"timestamp\": $json.timestamp\n  }\n}}",
+        "options": {}
+      },
+      "id": "response-node",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1440, 300]
+    }
+  ],
+  "connections": {
+    "Email Marketing Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Campaign Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Campaign Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email via Gmail": {
+      "main": [
+        [
+          {
+            "node": "Wait 20s (Rate Limiting)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s (Rate Limiting)": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

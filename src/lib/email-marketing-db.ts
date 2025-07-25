@@ -50,6 +50,8 @@ export interface EmailSend {
   clicked_at?: Date;
   failed_reason?: string;
   message_id?: string;
+  retry_count: number;
+  retry_after?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -116,10 +118,21 @@ export async function initEmailMarketingTables(): Promise<void> {
         clicked_at TIMESTAMP,
         failed_reason TEXT,
         message_id VARCHAR(255),
+        retry_count INTEGER DEFAULT 0,
+        retry_after TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    // Adicionar colunas de retry se não existirem (migração)
+    try {
+      await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0`;
+      await sql`ALTER TABLE email_sends ADD COLUMN IF NOT EXISTS retry_after TIMESTAMP`;
+      console.log('✅ Colunas de retry adicionadas à tabela email_sends');
+    } catch (error) {
+      console.log('ℹ️ Colunas de retry já existem na tabela email_sends');
+    }
 
     // 4. Índices para performance
     await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email);`;
@@ -414,9 +427,10 @@ export class EmailSendsDB {
     
     const result = await sql`
       INSERT INTO email_sends (
-        id, campaign_id, contact_id, email, status, message_id
+        id, campaign_id, contact_id, email, status, message_id, retry_count, retry_after
       ) VALUES (
-        ${id}, ${send.campaign_id}, ${send.contact_id}, ${send.email}, ${send.status}, ${send.message_id || null}
+        ${id}, ${send.campaign_id}, ${send.contact_id}, ${send.email}, ${send.status}, 
+        ${send.message_id || null}, ${send.retry_count || 0}, ${send.retry_after?.toISOString() || null}
       ) RETURNING *;
     `;
     
@@ -430,6 +444,8 @@ export class EmailSendsDB {
     clicked_at?: Date;
     failed_reason?: string;
     message_id?: string;
+    retry_count?: number;
+    retry_after?: Date;
   }): Promise<void> {
     await sql`
       UPDATE email_sends 
@@ -440,6 +456,8 @@ export class EmailSendsDB {
           clicked_at = ${additionalData?.clicked_at?.toISOString() || null},
           failed_reason = ${additionalData?.failed_reason || null},
           message_id = ${additionalData?.message_id || null},
+          retry_count = ${additionalData?.retry_count ?? null},
+          retry_after = ${additionalData?.retry_after?.toISOString() || null},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
     `;
@@ -460,9 +478,157 @@ export class EmailSendsDB {
     
     return Object.fromEntries(result.rows.map(row => [row.status, parseInt(row.count)]));
   }
+
+  // 🔄 Buscar emails falhados elegíveis para retry
+  static async findFailedForRetry(): Promise<EmailSend[]> {
+    const result = await sql`
+      SELECT * FROM email_sends 
+      WHERE status = 'failed' 
+        AND retry_count < 4 
+        AND (retry_after IS NULL OR retry_after <= CURRENT_TIMESTAMP)
+      ORDER BY created_at ASC
+      LIMIT 100
+    `;
+    return result.rows as EmailSend[];
+  }
+
+  // 🔄 Marcar email para retry com delay exponencial
+  static async scheduleRetry(id: string, retryCount: number, failedReason: string): Promise<void> {
+    // Intervalos exponenciais: 1min, 5min, 15min, 1h
+    const retryDelays = [1, 5, 15, 60]; // minutos
+    const delayMinutes = retryDelays[Math.min(retryCount, retryDelays.length - 1)];
+    const retryAfter = new Date(Date.now() + delayMinutes * 60 * 1000);
+    
+    await sql`
+      UPDATE email_sends 
+      SET retry_count = ${retryCount + 1},
+          retry_after = ${retryAfter.toISOString()},
+          failed_reason = ${failedReason},
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
+    
+    console.log(`📅 Email ${id} agendado para retry #${retryCount + 1} em ${delayMinutes} minutos`);
+  }
+
+  // 🔍 Verificar se erro é elegível para retry
+  static isRetryableError(errorMessage: string): boolean {
+    const retryableErrors = [
+      'timeout',
+      'rate limit',
+      'network error',
+      'temporary failure',
+      'connection',
+      'smtp',
+      'server error',
+      '5.7.1', // Rate limiting comum
+      'too many requests'
+    ];
+    
+    const errorLower = errorMessage.toLowerCase();
+    return retryableErrors.some(pattern => errorLower.includes(pattern));
+  }
 }
 
 // Utility function para gerar token de unsubscribe
 export function generateUnsubscribeToken(): string {
   return `unsub_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
+}
+
+// 🔄 Função principal para processar retries automáticos
+export async function processEmailRetries(): Promise<{
+  success: boolean;
+  processed: number;
+  retried: number;
+  failed: number;
+  details: any[];
+}> {
+  try {
+    console.log('🔄 Iniciando processamento de retries automáticos...');
+    
+    // Buscar emails elegíveis para retry
+    const failedEmails = await EmailSendsDB.findFailedForRetry();
+    console.log(`📧 Encontrados ${failedEmails.length} emails para retry`);
+    
+    if (failedEmails.length === 0) {
+      return {
+        success: true,
+        processed: 0,
+        retried: 0,
+        failed: 0,
+        details: []
+      };
+    }
+    
+    let retriedCount = 0;
+    let failedCount = 0;
+    const details = [];
+    
+    // Processar cada email
+    for (const emailSend of failedEmails) {
+      try {
+        // Verificar se erro é elegível para retry
+        const isRetryable = EmailSendsDB.isRetryableError(emailSend.failed_reason || '');
+        
+        if (!isRetryable) {
+          console.log(`❌ Email ${emailSend.email} não é elegível para retry: ${emailSend.failed_reason}`);
+          failedCount++;
+          details.push({
+            email: emailSend.email,
+            status: 'not_retryable',
+            reason: emailSend.failed_reason
+          });
+          continue;
+        }
+        
+        // Resetar status para pending e agendar
+        await EmailSendsDB.updateStatus(emailSend.id, 'pending', {
+          retry_count: emailSend.retry_count + 1,
+          retry_after: undefined // Remove o delay, vai processar agora
+        });
+        
+        console.log(`✅ Email ${emailSend.email} recolocado na fila (tentativa #${emailSend.retry_count + 1})`);
+        retriedCount++;
+        
+        details.push({
+          email: emailSend.email,
+          status: 'retried',
+          attempt: emailSend.retry_count + 1,
+          originalReason: emailSend.failed_reason
+        });
+        
+      } catch (error) {
+        console.error(`❌ Erro ao processar retry para ${emailSend.email}:`, error);
+        failedCount++;
+        
+        details.push({
+          email: emailSend.email,
+          status: 'retry_failed',
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
+      }
+    }
+    
+    console.log(`✅ Processamento de retries concluído: ${retriedCount} recolocados, ${failedCount} falharam`);
+    
+    return {
+      success: true,
+      processed: failedEmails.length,
+      retried: retriedCount,
+      failed: failedCount,
+      details
+    };
+    
+  } catch (error) {
+    console.error('❌ Erro no processamento de retries:', error);
+    return {
+      success: false,
+      processed: 0,
+      retried: 0,
+      failed: 0,
+      details: [{
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      }]
+    };
+  }
 }
