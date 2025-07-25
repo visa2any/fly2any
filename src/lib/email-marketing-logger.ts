@@ -375,6 +375,27 @@ export class EmailMarketingLogger {
   }
 
   /**
+   * Log campaign start
+   */
+  logCampaignStart(campaignId: string, metadata: Record<string, any> = {}): void {
+    this.info(EmailEvent.CAMPAIGN_STARTED, `Campaign ${campaignId} started`, { campaignId, metadata });
+  }
+
+  /**
+   * Log email error
+   */
+  logEmailError(campaignId: string, event: string, email: string, message: string): void {
+    this.error(EmailEvent.EMAIL_FAILED, `Error in ${event}: ${message}`, { campaignId, email });
+  }
+
+  /**
+   * Log campaign analysis
+   */
+  logCampaignAnalysis(campaignId: string, data: Record<string, any>): void {
+    this.info(EmailEvent.CAMPAIGN_COMPLETED, `Analysis generated for campaign ${campaignId}`, { campaignId, metadata: data });
+  }
+
+  /**
    * Log email failure
    */
   logEmailFailure(campaignId: string, contactId: string, email: string, error: Error, options: {

@@ -10,6 +10,7 @@ import {
   processEmailRetries
 } from '@/lib/email-marketing-db';
 import { emailMarketingLogger, EmailEvent, LogLevel } from '@/lib/email-marketing-logger';
+import { EmailTrackingSystem, initEmailTracking } from '@/lib/email-tracking';
 import { sql } from '@vercel/postgres';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
@@ -21,8 +22,9 @@ async function ensureTablesExist() {
   if (!tablesInitialized) {
     try {
       await initEmailMarketingTables();
+      await initEmailTracking();
       tablesInitialized = true;
-      console.log('✅ Tabelas de email marketing inicializadas');
+      console.log('✅ Tabelas de email marketing e tracking inicializadas');
     } catch (error) {
       console.error('❌ Erro ao inicializar tabelas:', error);
       throw error;
@@ -1708,6 +1710,22 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     }
   });
 
+  // 🔍 Verificar conectividade antes de iniciar envios
+  try {
+    await transporter.verify();
+    emailMarketingLogger.logCampaignStart(campaign.id, {
+      message: 'SMTP transporter verificado com sucesso',
+      credentials: credentials.email
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    emailMarketingLogger.logEmailError(campaign.id, 'transporter_verification', '', errorMessage);
+    return NextResponse.json({
+      success: false,
+      error: 'Falha na verificação SMTP: ' + errorMessage
+    }, { status: 500 });
+  }
+
   let successCount = 0;
   let failureCount = 0;
   // Rate limiting otimizado para Gmail (3x mais rápido):
@@ -1765,32 +1783,60 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
       try {
         const emailSend = batchSends[index];
         
-        // Personalizar HTML com tracking
+        // Personalizar HTML com dados do contato
         let personalizedHtml = (campaign.html_content || '')
           .replace(/{{nome}}/g, contact.nome)
           .replace(/{{email}}/g, contact.email)
           .replace(/{{unsubscribe_url}}/g, `https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}`);
         
-        // Adicionar pixel de tracking de abertura (antes do </body>)
-        const trackingPixel = `<img src="https://www.fly2any.com/api/email-marketing?action=track_open&campaign_id=${campaign.id}&contact_id=${contact.id}" width="1" height="1" style="display:none;" alt="">`;
-        personalizedHtml = personalizedHtml.replace('</body>', `${trackingPixel}</body>`);
+        // Injetar tracking completo (pixels + links rastreáveis)
+        personalizedHtml = EmailTrackingSystem.injectTrackingIntoEmail(
+          personalizedHtml, 
+          emailSend.id, 
+          campaign.id
+        );
         
-        // Enviar email
+        // Enviar email com envelope e headers customizados para melhor tracking
         const result = await transporter.sendMail({
           from: `"Fly2Any" <${credentials.email}>`,
           to: contact.email,
           subject: campaign.subject,
-          html: personalizedHtml
+          html: personalizedHtml,
+          // Envelope customizado para bounce tracking
+          envelope: {
+            from: `bounce+${emailSend.id}@fly2any.com`,
+            to: contact.email
+          },
+          // Headers adicionais para melhor tracking
+          headers: {
+            'X-Campaign-ID': campaign.id,
+            'X-Send-ID': emailSend.id,
+            'X-Contact-Email': contact.email,
+            'List-Unsubscribe': `<https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+          }
         });
         
         // Atualizar status do envio
         await EmailSendsDB.updateStatus(emailSend.id, 'sent', {
           sent_at: new Date(),
-          message_id: result.messageId
+          message_id: result?.messageId || 'unknown'
         });
         
         // Atualizar status do contato
         await EmailContactsDB.updateEmailStatus(contact.id, 'sent', new Date());
+        
+        // 🎯 Registrar evento de envio no tracking
+        await EmailTrackingSystem.trackEvent({
+          send_id: emailSend.id,
+          campaign_id: campaign.id,
+          contact_email: contact.email,
+          event_type: 'sent',
+          event_data: {
+            message_id: result?.messageId || 'unknown',
+            timestamp: new Date().toISOString()
+          }
+        });
         
         // 📈 LOG DETALHADO DE SUCESSO
         emailMarketingLogger.logEmailSuccess(
@@ -1798,7 +1844,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
           contact.id,
           contact.email,
           {
-            messageId: result.messageId,
+            messageId: result?.messageId || 'unknown',
             processingTime: Date.now() - batchStartTime,
             retryCount: emailSend.retry_count || 0
           }
@@ -1807,7 +1853,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         console.log(`✅ SUCESSO EMAIL - ${contact.email}:`, {
           campanha: campaign.name,
           tentativa: (emailSend.retry_count || 0) + 1,
-          messageId: result.messageId?.substring(0, 20) + '...',
+          messageId: (result?.messageId || 'unknown').substring(0, 20) + '...',
           timestamp: new Date().toISOString()
         });
         
