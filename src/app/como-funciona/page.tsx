@@ -144,7 +144,7 @@ export default function ComoFunciona() {
             alignItems: 'center',
             justifyContent: 'space-between'
         }} className="mobile-container">
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+            <Logo size="md" variant="logo-only" />
             <nav style={{ display: 'flex', gap: '24px' }}>
               <Link href="/" style={{
                 color: 'rgba(255, 255, 255, 0.9)',

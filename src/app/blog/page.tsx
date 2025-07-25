@@ -457,7 +457,7 @@ export default function Blog() {
           }}>
             <div>
               <Link href="/" style={{ textDecoration: 'none' }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+                <Logo size="md" variant="logo-only" />
               </Link>
               <p style={{
                 color: 'rgba(219, 234, 254, 0.8)',

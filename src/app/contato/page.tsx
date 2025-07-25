@@ -220,7 +220,7 @@ export default function Contato() {
           }}>
             <div style={{ gridColumn: 'span 2' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+                <Logo size="md" variant="logo-only" />
               </div>
               <p style={{
                 color: 'rgba(219, 234, 254, 1)',

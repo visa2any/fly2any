@@ -316,7 +316,7 @@ export default function Home() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><Logo size="sm" variant="logo-only" /><span style={{ fontWeight: 700, fontSize: "18px", color: "white" }}>Fly2Any</span></div>
+            <Logo size="md" variant="logo-only" />
           </div>
         </header>
 
