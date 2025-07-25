@@ -100,7 +100,6 @@ function parseDSNText(dsnText: string): any {
   const lines = dsnText.split('\n');
   const parsed: any = {};
 
-  let currentSection = '';
   for (const line of lines) {
     if (line.startsWith('Action:')) {
       parsed.action = line.replace('Action:', '').trim();
