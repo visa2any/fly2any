@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
         const hours = parseInt(searchParams.get('hours') || '1');
         
         const stats = await emailMarketingLogger.getLogStatistics(hours);
-        let alerts = [];
+        let alerts: any[] = [];
 
         if (level === 'critical') {
           alerts = stats.criticalIssues;
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
         const campaignId = searchParams.get('campaignId');
         
         if (format === 'csv') {
-          const csvData = await exportLogsAsCSV(hours, campaignId);
+          const csvData = await exportLogsAsCSV(hours, campaignId || undefined);
           return new NextResponse(csvData, {
             headers: {
               'Content-Type': 'text/csv',

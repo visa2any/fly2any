@@ -819,7 +819,8 @@ export async function POST(request: NextRequest) {
             campaign_id: campaignId,
             contact_id: contact.id,
             email: contact.email,
-            status: 'pending'
+            status: 'pending',
+            retry_count: 0
           })
         );
         
@@ -1466,8 +1467,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 🔄 Função exportável para auto-restart de campanhas (pode ser usada por CRON)
-export async function executeAutoRestart() {
+// 🔄 Função para auto-restart de campanhas (pode ser usada por CRON)
+async function executeAutoRestart() {
   try {
     await ensureTablesExist();
     

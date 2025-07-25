@@ -82,7 +82,7 @@ const DEFAULT_CONFIG: LoggerConfig = {
 
 export class EmailMarketingLogger {
   private config: LoggerConfig;
-  private currentLogFile: string;
+  private currentLogFile: string = '';
   private fileHandle: fs.WriteStream | null = null;
 
   constructor(config: Partial<LoggerConfig> = {}) {

@@ -313,7 +313,7 @@ export class EmailMarketingAlertSystem {
    * Check credentials failure
    */
   private checkCredentialsFailure(stats: any, rule: AlertRule): any {
-    const credentialErrors = stats.errors.filter(error => 
+    const credentialErrors = stats.errors.filter((error: any) => 
       error.event === EmailEvent.CREDENTIALS_LOADED && 
       error.level >= LogLevel.ERROR
     );
