@@ -997,14 +997,24 @@ export async function GET(request: NextRequest) {
           offset
         });
         
+        // Buscar o total REAL com os mesmos filtros (sem limit/offset)
+        const totalContacts = await EmailContactsDB.findAll({
+          status,
+          email_status: emailStatus,
+          segmento
+          // Sem limit/offset para contar todos
+        });
+        
         const stats = await EmailContactsDB.getStats();
         
         return NextResponse.json({
           success: true,
           data: {
             contacts,
-            total: stats.totalContacts,
-            stats: stats.byEmailStatus
+            total: totalContacts.length, // Total REAL com filtros aplicados
+            totalGeneral: stats.totalContacts, // Total geral sem filtros
+            stats: stats.byEmailStatus,
+            filters: { status, emailStatus, segmento } // Para debug
           }
         });
       }

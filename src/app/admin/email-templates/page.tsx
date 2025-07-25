@@ -51,37 +51,45 @@ export default function EmailTemplatesPage() {
 
   const loadContactsCount = async () => {
     try {
-      const response = await fetch('/api/email-marketing?action=contacts');
-      const data = await response.json();
+      console.log('🔍 Carregando contagens reais de contatos...');
       
-      if (data.success && data.data?.stats) {
-        // Total de contatos ativos
-        const totalActive = await fetch('/api/email-marketing?action=contacts&status=ativo');
-        const totalData = await totalActive.json();
-        
-        const counts: Record<string, number> = {
-          '': totalData.data?.contacts?.length || 0, // Todos os contatos
-        };
+      // Total de contatos ativos - usar campo 'total' da resposta
+      const totalResponse = await fetch('/api/email-marketing?action=contacts&status=ativo&limit=1');
+      const totalData = await totalResponse.json();
+      
+      console.log('📊 Resposta da API para contatos totais:', totalData);
+      
+      const counts: Record<string, number> = {
+        '': totalData.data?.total || 0, // Usar o campo 'total' real
+      };
 
-        // Buscar contatos por segmento
-        const segments = ['brasileiros-eua', 'familias', 'casais', 'aventureiros', 'executivos'];
-        
-        for (const segment of segments) {
-          try {
-            const segmentResponse = await fetch(`/api/email-marketing?action=contacts&segmento=${segment}&status=ativo`);
-            const segmentData = await segmentResponse.json();
-            counts[segment] = segmentData.data?.contacts?.length || 0;
-          } catch (error) {
-            console.warn(`Erro ao carregar contatos do segmento ${segment}:`, error);
-            counts[segment] = 0;
-          }
+      // Buscar contatos por segmento - também usar campo 'total'
+      const segments = ['brasileiros-eua', 'familias', 'casais', 'aventureiros', 'executivos'];
+      
+      for (const segment of segments) {
+        try {
+          const segmentResponse = await fetch(`/api/email-marketing?action=contacts&segmento=${segment}&status=ativo&limit=1`);
+          const segmentData = await segmentResponse.json();
+          console.log(`📊 Segmento ${segment}:`, segmentData);
+          counts[segment] = segmentData.data?.total || 0; // Usar o campo 'total' real
+        } catch (error) {
+          console.warn(`Erro ao carregar contatos do segmento ${segment}:`, error);
+          counts[segment] = 0;
         }
-        
-        setContactsCount(counts);
-        console.log('📊 Contatos carregados por segmento:', counts);
       }
+      
+      setContactsCount(counts);
+      console.log('📊 Contagens REAIS carregadas por segmento:', counts);
+      
+      // Verificar se os números fazem sentido
+      if (counts[''] === 0) {
+        console.warn('⚠️ AVISO: Nenhum contato ativo encontrado! Verifique se há contatos no banco.');
+      } else {
+        console.log(`✅ Total de contatos ativos encontrados: ${counts['']}`);
+      }
+      
     } catch (error) {
-      console.error('Erro ao carregar contagem de contatos:', error);
+      console.error('❌ Erro ao carregar contagem de contatos:', error);
     }
   };
 
