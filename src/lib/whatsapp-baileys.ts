@@ -126,13 +126,18 @@ export class WhatsAppBaileysService {
       const { state, saveCreds } = await createAuthState(authPath);
       
       // Create socket
+      console.log('🔧 Creating WhatsApp socket...');
       this.sock = makeWASocket({
         auth: state,
         logger: this.logger,
         printQRInTerminal: false, // We'll handle QR code display ourselves
         browser: ["Fly2Any", "Chrome", "1.0.0"],
-        generateHighQualityLinkPreview: true
+        generateHighQualityLinkPreview: true,
+        connectTimeoutMs: 60000, // 60 seconds timeout
+        defaultQueryTimeoutMs: 60000,
+        keepAliveIntervalMs: 30000
       });
+      console.log('✅ WhatsApp socket created successfully');
 
       // Promise to wait for QR code or connection
       return new Promise((resolve) => {
@@ -157,8 +162,26 @@ export class WhatsAppBaileysService {
           }
         }, 25000);
 
+        // Handle socket errors
+        this.sock!.ev.on('creds.update', saveCreds);
+        
+        // Force connection start
+        console.log('🚀 Forcing connection start...');
+        setTimeout(() => {
+          if (this.sock && !this.isConnected) {
+            console.log('⚡ Attempting to trigger connection...');
+            // Try to trigger connection by accessing socket state
+            try {
+              this.sock.ws?.connect?.();
+            } catch (e) {
+              console.log('⚠️ Connection trigger attempt failed (normal):', e);
+            }
+          }
+        }, 1000);
+        
         // Handle connection updates
         this.sock!.ev.on('connection.update', async (update) => {
+          console.log('📡 Connection update received:', JSON.stringify(update, null, 2));
           const { connection, lastDisconnect, qr } = update;
           
           if (qr) {
