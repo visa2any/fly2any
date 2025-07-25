@@ -469,7 +469,7 @@ export class WhatsAppLeadExtractor {
    */
   public static isValidLead(data: ExtractedLeadData): boolean {
     // Critérios mínimos para um lead válido
-    const hasLocation = data.origem || data.destino;
+    const hasLocation = !!(data.origem || data.destino);
     const hasTravelIntent = data.intent.includes('travel');
     const hasMinimalInfo = data.confidence >= 30;
     
