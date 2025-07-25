@@ -42,10 +42,48 @@ export default function EmailTemplatesPage() {
     sendType: 'test' as 'test' | 'campaign'
   });
   const [sendingCampaign, setSendingCampaign] = useState(false);
+  const [contactsCount, setContactsCount] = useState<Record<string, number>>({});
 
   useEffect(() => {
     loadTemplates();
+    loadContactsCount();
   }, []);
+
+  const loadContactsCount = async () => {
+    try {
+      const response = await fetch('/api/email-marketing?action=contacts');
+      const data = await response.json();
+      
+      if (data.success && data.data?.stats) {
+        // Total de contatos ativos
+        const totalActive = await fetch('/api/email-marketing?action=contacts&status=ativo');
+        const totalData = await totalActive.json();
+        
+        const counts: Record<string, number> = {
+          '': totalData.data?.contacts?.length || 0, // Todos os contatos
+        };
+
+        // Buscar contatos por segmento
+        const segments = ['brasileiros-eua', 'familias', 'casais', 'aventureiros', 'executivos'];
+        
+        for (const segment of segments) {
+          try {
+            const segmentResponse = await fetch(`/api/email-marketing?action=contacts&segmento=${segment}&status=ativo`);
+            const segmentData = await segmentResponse.json();
+            counts[segment] = segmentData.data?.contacts?.length || 0;
+          } catch (error) {
+            console.warn(`Erro ao carregar contatos do segmento ${segment}:`, error);
+            counts[segment] = 0;
+          }
+        }
+        
+        setContactsCount(counts);
+        console.log('📊 Contatos carregados por segmento:', counts);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar contagem de contatos:', error);
+    }
+  };
 
   // Carregar templates salvos do localStorage
   const loadSavedTemplates = () => {
@@ -995,7 +1033,9 @@ export default function EmailTemplatesPage() {
           name: selectedTemplateForUse.name,
           subject: selectedTemplateForUse.subject,
           templateType: selectedTemplateForUse.type,
-          htmlContentLength: selectedTemplateForUse.html?.length || 0
+          htmlContentLength: selectedTemplateForUse.html?.length || 0,
+          segment: campaignSettings.segment,
+          expectedContacts: campaignSettings.segment ? contactsCount[campaignSettings.segment] : contactsCount['']
         });
 
         // Primeiro criar a campanha
@@ -1013,10 +1053,14 @@ export default function EmailTemplatesPage() {
         });
         
         const createResult = await createResponse.json();
+        console.log('📝 Resultado da criação da campanha:', createResult);
         
         if (!createResult.success) {
+          console.error('❌ Erro ao criar campanha:', createResult);
           throw new Error(createResult.error || 'Erro ao criar campanha');
         }
+        
+        console.log('✅ Campanha criada com ID:', createResult.data?.id);
         
         // Agora enviar a campanha
         requestBody = {
@@ -1025,6 +1069,8 @@ export default function EmailTemplatesPage() {
           segment: campaignSettings.segment || undefined,
           limit: 500
         };
+        
+        console.log('📤 Enviando campanha com dados:', requestBody);
       }
       
       const response = await fetch(endpoint, {
@@ -1034,16 +1080,23 @@ export default function EmailTemplatesPage() {
       });
       
       const result = await response.json();
+      console.log('📬 Resultado do envio:', result);
       
       if (result.success) {
         const message = campaignSettings.sendType === 'test' 
           ? `✅ Email teste enviado para ${campaignSettings.testEmail}!`
-          : `✅ Campanha "${selectedTemplateForUse.name}" enviada com sucesso!`;
+          : `✅ Campanha "${selectedTemplateForUse.name}" enviada com sucesso!
+          
+📊 Detalhes:
+• Contatos processados: ${result.data?.totalContacts || 'N/A'}
+• Emails enviados: ${result.data?.sentCount || 'N/A'}
+• Status: ${result.data?.message || 'Processado'}`;
         
         alert(message);
         setShowUseTemplateModal(false);
         setSelectedTemplateForUse(null);
       } else {
+        console.error('❌ Erro no envio:', result);
         throw new Error(result.error || 'Erro ao enviar');
       }
       
@@ -1638,16 +1691,47 @@ export default function EmailTemplatesPage() {
                       onChange={(e) => setCampaignSettings({...campaignSettings, segment: e.target.value})}
                       className="admin-input w-full"
                     >
-                      <option value="">Todos os contatos</option>
-                      <option value="brasileiros-eua">Brasileiros nos EUA</option>
-                      <option value="familias">Famílias</option>
-                      <option value="casais">Casais/Lua de mel</option>
-                      <option value="aventureiros">Aventureiros</option>
-                      <option value="executivos">Executivos</option>
+                      <option value="">
+                        Todos os contatos {contactsCount[''] ? `(${contactsCount[''].toLocaleString()} contatos)` : ''}
+                      </option>
+                      <option value="brasileiros-eua">
+                        Brasileiros nos EUA {contactsCount['brasileiros-eua'] ? `(${contactsCount['brasileiros-eua'].toLocaleString()} contatos)` : ''}
+                      </option>
+                      <option value="familias">
+                        Famílias {contactsCount['familias'] ? `(${contactsCount['familias'].toLocaleString()} contatos)` : ''}
+                      </option>
+                      <option value="casais">
+                        Casais/Lua de mel {contactsCount['casais'] ? `(${contactsCount['casais'].toLocaleString()} contatos)` : ''}
+                      </option>
+                      <option value="aventureiros">
+                        Aventureiros {contactsCount['aventureiros'] ? `(${contactsCount['aventureiros'].toLocaleString()} contatos)` : ''}
+                      </option>
+                      <option value="executivos">
+                        Executivos {contactsCount['executivos'] ? `(${contactsCount['executivos'].toLocaleString()} contatos)` : ''}
+                      </option>
                     </select>
                     <p className="text-xs text-gray-500 mt-1">
                       Deixe em branco para enviar para todos os contatos disponíveis
                     </p>
+                    {campaignSettings.segment && contactsCount[campaignSettings.segment] && (
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                        <span className="font-medium text-blue-800">
+                          📊 Será enviado para {contactsCount[campaignSettings.segment].toLocaleString()} contatos
+                        </span>
+                        {contactsCount[campaignSettings.segment] === 0 && (
+                          <div className="text-red-600 mt-1">
+                            ⚠️ Nenhum contato encontrado neste segmento
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {!campaignSettings.segment && contactsCount[''] && (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                        <span className="font-medium text-green-800">
+                          📊 Será enviado para todos os {contactsCount[''].toLocaleString()} contatos ativos
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
