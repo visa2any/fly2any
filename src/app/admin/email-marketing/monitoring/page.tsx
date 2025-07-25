@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
   Activity, 
   AlertTriangle, 
@@ -265,22 +264,26 @@ export default function EmailMarketingMonitoringPage() {
 
         {/* System Health Overview */}
         {alertStats && (
-          <Alert className={`border-l-4 ${
+          <div className={`p-4 border-l-4 rounded-lg ${
             alertStats.systemHealth.status === 'healthy' ? 'border-l-green-500 bg-green-50' :
             alertStats.systemHealth.status === 'warning' ? 'border-l-yellow-500 bg-yellow-50' :
             'border-l-red-500 bg-red-50'
           }`}>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="flex items-center justify-between">
-              System Health: {alertStats.systemHealth.status.toUpperCase()}
-              <Badge className={getStatusColor(alertStats.systemHealth.status)}>
-                Score: {alertStats.systemHealth.score}/100
-              </Badge>
-            </AlertTitle>
-            <AlertDescription>
+            <div className="flex items-center mb-2">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <div className="flex items-center justify-between w-full">
+                <h3 className="font-semibold">
+                  System Health: {alertStats.systemHealth.status.toUpperCase()}
+                </h3>
+                <Badge className={getStatusColor(alertStats.systemHealth.status)}>
+                  Score: {alertStats.systemHealth.score}/100
+                </Badge>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700">
               {alertStats.systemHealth.summary}
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
         )}
 
         {/* Key Metrics */}
