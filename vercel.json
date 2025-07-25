@@ -1,7 +1,25 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/whatsapp-followup",
+      "schedule": "*/15 * * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/cron/whatsapp-followup/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/whatsapp/follow-up/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/email-marketing/route.ts": {
+      "maxDuration": 300
+    }
+  },
   "env": {
     "N8N_WEBHOOK_EMAIL_MARKETING": "https://n8n-production-81b6.up.railway.app/webhook/email-marketing-final",
-    "N8N_WEBHOOK_WHATSAPP": "https://n8n-production-81b6.up.railway.app/webhook/whatsapp"
+    "N8N_WEBHOOK_WHATSAPP": "https://n8n-production-81b6.up.railway.app/webhook/whatsapp",
+    "CRON_SECRET": "@cron-secret"
   },
   "build": {
     "env": {

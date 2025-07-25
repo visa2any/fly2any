@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { whatsappService } from '@/lib/whatsapp';
 import { WhatsAppOmnichannel } from '@/lib/omnichannel-api';
+import { WhatsAppLeadExtractor } from '@/lib/whatsapp-lead-extractor';
+import { scheduleLeadFollowUp } from '@/lib/whatsapp-follow-up';
 import { sql } from '@vercel/postgres';
 
 // Webhook to receive incoming WhatsApp messages
@@ -82,6 +84,9 @@ async function handleIncomingMessage(message: any, contacts?: any[]) {
       console.error('❌ Omnichannel processing failed:', omnichannelError);
       // Continue with fallback processing
     }
+
+    // 🆕 INTELIGÊNCIA: Extrair dados de lead da conversa
+    await processLeadExtraction(from, text, contactName);
 
     // Create support ticket if this is a new conversation (fallback)
     const isNewConversation = await checkIfNewConversation(from);
@@ -229,6 +234,142 @@ Tenha uma ótima ${hour < 12 ? 'madrugada' : hour < 18 ? 'tarde' : 'noite'}! �
 
   } catch (error) {
     console.error('Error processing auto-response:', error);
+  }
+}
+
+/**
+ * 🧠 NOVA FUNCIONALIDADE: Processa extração inteligente de leads
+ */
+async function processLeadExtraction(phone: string, currentMessage: string, contactName?: string) {
+  try {
+    console.log(`🧠 Processando extração de lead para ${phone}...`);
+
+    // Buscar histórico de mensagens recentes desta conversa
+    const messagesResult = await sql`
+      SELECT content, created_at
+      FROM whatsapp_messages 
+      WHERE phone = ${phone}
+      AND direction = 'inbound'
+      AND created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+      ORDER BY created_at DESC
+      LIMIT 10
+    `;
+
+    // Incluir mensagem atual
+    const allMessages = [currentMessage, ...messagesResult.rows.map(row => row.content)];
+    
+    // Extrair dados de lead usando IA
+    const extractedData = WhatsAppLeadExtractor.extractLeadData(phone, allMessages, contactName);
+    
+    console.log(`📊 Dados extraídos (confiança: ${extractedData.confidence}%):`, {
+      origem: extractedData.origem,
+      destino: extractedData.destino,
+      intent: extractedData.intent,
+      passengers: extractedData.numeroPassageiros
+    });
+
+    // Se temos dados suficientes, criar lead
+    if (WhatsAppLeadExtractor.isValidLead(extractedData)) {
+      const leadResult = await createLeadFromWhatsApp(extractedData);
+      
+      // 🤖 NOVO: Agendar follow-ups inteligentes
+      if (leadResult) {
+        await scheduleLeadFollowUp(extractedData, extractedData.confidence);
+      }
+      
+      // Enviar notificação de novo lead para N8N
+      await notifyN8N({
+        event: 'whatsapp_lead_created',
+        data: {
+          phone,
+          leadData: extractedData,
+          confidence: extractedData.confidence,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      console.log(`✅ Lead criado com sucesso para ${phone} (confiança: ${extractedData.confidence}%)`);
+    } else {
+      console.log(`ℹ️ Dados insuficientes para criar lead (confiança: ${extractedData.confidence}%)`);
+      
+      // 🤖 NOVO: Agendar follow-up para dados incompletos
+      if (extractedData.intent.includes('travel') && extractedData.confidence < 50) {
+        await scheduleLeadFollowUp(extractedData, extractedData.confidence);
+      }
+      
+      // Se a intenção é de viagem mas faltam dados, solicitar mais informações
+      if (extractedData.intent.includes('travel') && extractedData.confidence < 50) {
+        await requestMoreInfo(phone, extractedData);
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ Erro na extração de lead:', error);
+  }
+}
+
+/**
+ * 📝 Cria lead na API a partir dos dados extraídos do WhatsApp
+ */
+async function createLeadFromWhatsApp(extractedData: any) {
+  try {
+    const leadData = WhatsAppLeadExtractor.toLeadFormat(extractedData);
+    
+    // Chamar API de leads
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/leads`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Source': 'whatsapp-auto-extraction'
+      },
+      body: JSON.stringify(leadData)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Lead API failed: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log(`✅ Lead criado via API:`, { leadId: result.data?.leadId });
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Erro ao criar lead via API:', error);
+    throw error;
+  }
+}
+
+/**
+ * ❓ Solicita mais informações quando dados são insuficientes
+ */
+async function requestMoreInfo(phone: string, extractedData: any) {
+  try {
+    let message = '🧳 Vi que você tem interesse em viajar! ';
+    
+    // Personalizar pedido baseado no que já temos
+    const missing = [];
+    if (!extractedData.origem) missing.push('origem');
+    if (!extractedData.destino) missing.push('destino');
+    if (!extractedData.dataPartida) missing.push('data de partida');
+    if (!extractedData.numeroPassageiros) missing.push('número de passageiros');
+    
+    if (missing.length > 0) {
+      message += `Para uma cotação personalizada, preciso saber:\n\n`;
+      
+      if (missing.includes('origem')) message += '📍 Cidade de origem\n';
+      if (missing.includes('destino')) message += '🎯 Cidade de destino\n';
+      if (missing.includes('data de partida')) message += '📅 Data da viagem\n';
+      if (missing.includes('número de passageiros')) message += '👥 Quantos passageiros\n';
+      
+      message += '\nPode me passar essas informações? 😊';
+    } else {
+      message += 'Vou preparar uma cotação personalizada para você!';
+    }
+    
+    await whatsappService.sendMessage(phone, message);
+    
+  } catch (error) {
+    console.error('❌ Erro ao solicitar mais informações:', error);
   }
 }
 

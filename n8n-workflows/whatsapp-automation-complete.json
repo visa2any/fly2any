@@ -15,12 +15,48 @@
     },
     {
       "parameters": {
-        "jsCode": "// Process incoming WhatsApp message\nconst body = $json.body;\nlet messageData = {};\n\n// Handle different webhook formats\nif (body.event === 'whatsapp_message_received') {\n  messageData = {\n    from: body.data.from,\n    message: body.data.text,\n    contactName: body.data.contactName || '',\n    timestamp: body.data.timestamp,\n    messageId: body.data.messageId,\n    isNewConversation: body.data.isNewConversation\n  };\n} else {\n  // Direct message format\n  messageData = {\n    from: body.from || body.phone,\n    message: body.message || body.text,\n    contactName: body.contactName || body.name || '',\n    timestamp: body.timestamp || new Date().toISOString(),\n    messageId: body.messageId || `msg_${Date.now()}`,\n    isNewConversation: body.isNewConversation || false\n  };\n}\n\n// Detect intent\nconst message = messageData.message.toLowerCase();\nlet intent = 'general';\nlet priority = 'normal';\n\nif (message.includes('urgente') || message.includes('emergência') || message.includes('problema')) {\n  intent = 'urgent';\n  priority = 'high';\n} else if (message.includes('voo') || message.includes('passagem') || message.includes('viagem')) {\n  intent = 'flight_inquiry';\n} else if (message.includes('hotel') || message.includes('hospedagem')) {\n  intent = 'hotel_inquiry';\n} else if (message.includes('carro') || message.includes('aluguel')) {\n  intent = 'car_rental';\n} else if (message.includes('preço') || message.includes('cotação') || message.includes('valor')) {\n  intent = 'pricing';\n} else if (message.includes('oi') || message.includes('olá') || message.includes('bom dia')) {\n  intent = 'greeting';\n}\n\n// Check business hours (EST)\nconst now = new Date();\nconst estTime = new Date(now.toLocaleString(\"en-US\", {timeZone: \"America/New_York\"}));\nconst hour = estTime.getHours();\nconst day = estTime.getDay();\nconst isBusinessHours = (day >= 1 && day <= 5 && hour >= 9 && hour < 18) || (day === 6 && hour >= 9 && hour < 14);\n\nreturn {\n  ...messageData,\n  intent,\n  priority,\n  isBusinessHours,\n  shouldNotifyHuman: intent === 'urgent' || (isBusinessHours && messageData.isNewConversation),\n  autoResponse: !isBusinessHours || intent === 'greeting'\n};"
+        "jsCode": "// 🧠 ENHANCED: Process incoming WhatsApp message with lead detection\nconst body = $json.body;\nlet messageData = {};\nlet eventType = 'message';\n\n// Handle different webhook formats\nif (body.event === 'whatsapp_message_received') {\n  eventType = 'message';\n  messageData = {\n    from: body.data.from,\n    message: body.data.text,\n    contactName: body.data.contactName || '',\n    timestamp: body.data.timestamp,\n    messageId: body.data.messageId,\n    isNewConversation: body.data.isNewConversation\n  };\n} else if (body.event === 'whatsapp_lead_created') {\n  // 🆕 NEW: Handle lead creation events\n  eventType = 'lead_created';\n  messageData = {\n    from: body.data.phone,\n    leadData: body.data.leadData,\n    confidence: body.data.confidence,\n    timestamp: body.data.timestamp,\n    messageId: `lead_${Date.now()}`\n  };\n} else {\n  // Direct message format\n  eventType = 'message';\n  messageData = {\n    from: body.from || body.phone,\n    message: body.message || body.text,\n    contactName: body.contactName || body.name || '',\n    timestamp: body.timestamp || new Date().toISOString(),\n    messageId: body.messageId || `msg_${Date.now()}`,\n    isNewConversation: body.isNewConversation || false\n  };\n}\n\n// For lead events, return different processing\nif (eventType === 'lead_created') {\n  return {\n    eventType: 'lead_created',\n    from: messageData.from,\n    leadData: messageData.leadData,\n    confidence: messageData.confidence,\n    priority: messageData.confidence >= 70 ? 'high' : 'normal',\n    shouldNotifyHuman: true,\n    shouldCreateCampaign: messageData.confidence >= 60,\n    autoResponse: false\n  };\n}\n\n// Original message processing\nconst message = messageData.message.toLowerCase();\nlet intent = 'general';\nlet priority = 'normal';\n\n// Enhanced intent detection\nif (message.includes('urgente') || message.includes('emergência') || message.includes('problema')) {\n  intent = 'urgent';\n  priority = 'high';\n} else if (message.includes('voo') || message.includes('passagem') || message.includes('viagem')) {\n  intent = 'flight_inquiry';\n  priority = 'high';\n} else if (message.includes('hotel') || message.includes('hospedagem')) {\n  intent = 'hotel_inquiry';\n} else if (message.includes('carro') || message.includes('aluguel')) {\n  intent = 'car_rental';\n} else if (message.includes('preço') || message.includes('cotação') || message.includes('valor')) {\n  intent = 'pricing';\n  priority = 'high';\n} else if (message.includes('oi') || message.includes('olá') || message.includes('bom dia')) {\n  intent = 'greeting';\n} else if (message.includes('obrigad') || message.includes('valeu') || message.includes('tchau')) {\n  intent = 'thanks';\n}\n\n// Check business hours (EST)\nconst now = new Date();\nconst estTime = new Date(now.toLocaleString(\"en-US\", {timeZone: \"America/New_York\"}));\nconst hour = estTime.getHours();\nconst day = estTime.getDay();\nconst isBusinessHours = (day >= 1 && day <= 5 && hour >= 9 && hour < 18) || (day === 6 && hour >= 9 && hour < 14);\n\nreturn {\n  eventType: 'message',\n  ...messageData,\n  intent,\n  priority,\n  isBusinessHours,\n  shouldNotifyHuman: intent === 'urgent' || (isBusinessHours && messageData.isNewConversation) || ['flight_inquiry', 'pricing'].includes(intent),\n  autoResponse: !isBusinessHours || ['greeting', 'thanks'].includes(intent)\n};"
       },
       "name": "Process Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-lead-event",
+              "leftValue": "={{ $json.eventType }}",
+              "rightValue": "lead_created",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "name": "Is Lead Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🎯 Process lead creation event\nconst leadData = $json.leadData;\nconst confidence = $json.confidence;\nconst phone = $json.from;\n\n// Generate lead summary\nconst summary = {\n  phone,\n  confidence,\n  origem: leadData.origem || 'Não informado',\n  destino: leadData.destino || 'Não informado',\n  dataPartida: leadData.dataPartida || 'Não informado',\n  passageiros: leadData.numeroPassageiros || 1,\n  intent: leadData.intent,\n  extractedServices: leadData.selectedServices || ['voos']\n};\n\n// Generate notification message\nconst message = `🆕 NOVO LEAD WHATSAPP (${confidence}% confiança)\n\n📱 Telefone: ${phone}\n📍 Rota: ${summary.origem} → ${summary.destino}\n📅 Data: ${summary.dataPartida}\n👥 Passageiros: ${summary.passageiros}\n🎯 Intenção: ${summary.intent}\n\n🔗 Ver no admin: ${process.env.NEXT_PUBLIC_APP_URL}/admin/leads`;\n\nreturn {\n  summary,\n  notificationMessage: message,\n  shouldCreateCampaign: confidence >= 60,\n  priority: confidence >= 70 ? 'high' : 'normal'\n};"
+      },
+      "name": "Process Lead Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 180]
     },
     {
       "parameters": {
@@ -47,7 +83,7 @@
       "name": "Need Auto Response?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [700, 300]
+      "position": [920, 420]
     },
     {
       "parameters": {
@@ -206,7 +242,36 @@
       "main": [
         [
           {
+            "node": "Is Lead Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Lead Event?": {
+      "main": [
+        [
+          {
+            "node": "Process Lead Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Need Auto Response?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Lead Event": {
+      "main": [
+        [
+          {
+            "node": "Email Notification via Resend",
             "type": "main",
             "index": 0
           }
