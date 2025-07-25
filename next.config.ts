@@ -29,6 +29,23 @@ const nextConfig: NextConfig = {
   env: {
     DATABASE_CONNECTION_AVAILABLE: process.env.POSTGRES_URL ? 'true' : 'false',
   },
+
+  // Redirecionamentos para resolver problema de SSL
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'fly2any.com',
+          },
+        ],
+        destination: 'https://www.fly2any.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
