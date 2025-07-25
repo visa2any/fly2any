@@ -1467,8 +1467,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// 🔄 Função para auto-restart de campanhas (pode ser usada por CRON)
-async function executeAutoRestart() {
+// 🔄 Função exportável para auto-restart de campanhas (pode ser usada por CRON)
+export async function executeAutoRestart() {
   try {
     await ensureTablesExist();
     
