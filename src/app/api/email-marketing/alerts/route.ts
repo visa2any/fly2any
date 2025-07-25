@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
               .filter(alert => alert.level === 'critical' || alert.level === 'error')
               .slice(0, 5),
             alertTrends: stats.byLevel,
-            systemHealth: this.getSystemHealthStatus(activeAlerts)
+            systemHealth: getSystemHealthStatus(activeAlerts)
           }
         });
       }
