@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-25T21:11:51.326Z",
+  "timestamp": "2025-07-25T21:41:27.249Z",
   "n8nStatus": {
     "online": true,
     "healthy": true
@@ -8,14 +8,14 @@
     {
       "name": "WhatsApp Automation",
       "path": "/webhook/whatsapp",
-      "active": false,
-      "status": 404
+      "active": true,
+      "status": 200
     },
     {
       "name": "Email Marketing",
       "path": "/webhook/email-marketing-final",
-      "active": false,
-      "status": 404
+      "active": true,
+      "status": 200
     },
     {
       "name": "Lead Processing",

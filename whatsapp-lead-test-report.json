@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-07-25T21:41:43.507Z",
+  "testConfig": {
+    "baseUrl": "http://localhost:3000",
+    "testPhone": "+5511987654321",
+    "testContactName": "João Silva"
+  },
+  "results": [
+    {
+      "success": false,
+      "scenario": "Consulta Completa de Viagem"
+    },
+    {
+      "success": false,
+      "scenario": "Consulta Parcial - Origem e Destino"
+    },
+    {
+      "success": false,
+      "scenario": "Consulta com Interesse Geral"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 0,
+    "passRate": 0,
+    "averageAccuracy": 0
+  }
+}

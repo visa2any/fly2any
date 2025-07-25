@@ -31,7 +31,7 @@ export class WhatsAppBaileysService {
   private sock: WASocket | null = null;
   private qrCode: string | null = null;
   private isConnected = false;
-  private connectionState: string = 'close';
+  private connectionState: string = 'connecting';
   private logger: any;
 
   public static getInstance(): WhatsAppBaileysService {
@@ -48,6 +48,7 @@ export class WhatsAppBaileysService {
   // Convert real WhatsApp QR code to base64
   private async convertQRToBase64(qrText: string): Promise<string> {
     try {
+      console.log('🔄 Converting QR code to base64...');
       const QRCodeLib = await import('qrcode');
       const qrDataURL = await QRCodeLib.toDataURL(qrText, {
         width: 256,
@@ -55,14 +56,17 @@ export class WhatsAppBaileysService {
         color: {
           dark: '#000000',
           light: '#FFFFFF'
-        }
+        },
+        errorCorrectionLevel: 'M'
       });
       
+      console.log('✅ QR code converted successfully');
       // Return just the base64 part
       return qrDataURL.split(',')[1];
     } catch (error) {
-      console.warn('QRCode conversion failed:', error);
-      return '';
+      console.error('❌ QRCode conversion failed:', error);
+      // Return a fallback QR code
+      return await this.generateDemoQRCode();
     }
   }
 
@@ -96,14 +100,29 @@ export class WhatsAppBaileysService {
     try {
       console.log('📱 Initializing Baileys WhatsApp service...');
       
+      // Validate environment
+      if (!process.env.N8N_WEBHOOK_WHATSAPP) {
+        console.warn('⚠️ N8N_WEBHOOK_WHATSAPP not configured - auto-responses will be used');
+      }
+      
       // Reset state
       this.qrCode = null;
       this.isConnected = false;
+      this.connectionState = 'connecting';
       
       // Use appropriate auth path based on environment
       const authPath = process.env.VERCEL ? '/tmp/baileys_auth_info' : 
                        process.env.RAILWAY_ENVIRONMENT ? '/tmp/baileys_auth_info' : 
+                       process.env.NODE_ENV === 'production' ? '/tmp/baileys_auth_info' :
                        './baileys_auth_info';
+      
+      // Ensure directory exists
+      const fs = await import('fs');
+      const path = await import('path');
+      const authDir = path.dirname(authPath);
+      if (!fs.existsSync(authDir)) {
+        fs.mkdirSync(authDir, { recursive: true });
+      }
       const { state, saveCreds } = await createAuthState(authPath);
       
       // Create socket
@@ -119,17 +138,19 @@ export class WhatsAppBaileysService {
       return new Promise((resolve) => {
         let resolved = false;
         
-        // Timeout after 10 seconds
+        // Timeout after 15 seconds to give more time for QR generation
         const timeout = setTimeout(() => {
           if (!resolved) {
             resolved = true;
+            console.log('⏰ Initialization timeout - returning current status');
+            console.log(`📊 Status: connected=${this.isConnected}, qrCode=${this.qrCode ? 'available' : 'not available'}`);
             resolve({
               success: true,
               qrCode: this.qrCode || undefined,
               isReady: this.isConnected
             });
           }
-        }, 10000);
+        }, 15000);
 
         // Handle connection updates
         this.sock!.ev.on('connection.update', async (update) => {
@@ -137,19 +158,33 @@ export class WhatsAppBaileysService {
           
           if (qr) {
             console.log('📱 QR Code received, converting to base64...');
-            this.qrCode = await this.convertQRToBase64(qr);
-            QRCode.generate(qr, { small: true });
-            console.log('📱 Scan the QR code above with WhatsApp to connect');
-            
-            // Resolve with QR code
-            if (!resolved) {
-              resolved = true;
-              clearTimeout(timeout);
-              resolve({
-                success: true,
-                qrCode: this.qrCode,
-                isReady: false
-              });
+            try {
+              this.qrCode = await this.convertQRToBase64(qr);
+              QRCode.generate(qr, { small: true });
+              console.log('📱 Scan the QR code above with WhatsApp to connect');
+              console.log('📱 QR Code length:', this.qrCode?.length || 0);
+              
+              // Resolve with QR code
+              if (!resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                resolve({
+                  success: true,
+                  qrCode: this.qrCode,
+                  isReady: false
+                });
+              }
+            } catch (qrError) {
+              console.error('❌ Failed to process QR code:', qrError);
+              // Still try to resolve with error info
+              if (!resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                resolve({
+                  success: false,
+                  error: 'Failed to generate QR code: ' + (qrError instanceof Error ? qrError.message : 'Unknown error')
+                });
+              }
             }
           }
           
