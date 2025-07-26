@@ -9,6 +9,7 @@ interface RailwayWhatsAppResponse {
   status?: string;
   error?: string;
   isConnected?: boolean;
+  isReady?: boolean;
 }
 
 interface WhatsAppStatus {
@@ -60,7 +61,8 @@ export class WhatsAppRailwayService {
         success: true,
         qrCode: data.qrCode,
         status: data.status,
-        isConnected: data.isConnected || false
+        isConnected: data.isConnected || false,
+        isReady: data.isReady || false
       };
 
     } catch (error) {
