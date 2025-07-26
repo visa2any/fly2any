@@ -3,7 +3,7 @@
  * Simplified version with memory-based session storage
  */
 
-import { makeWASocket, DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { makeWASocket, DisconnectReason } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import P from 'pino';
 
@@ -51,7 +51,10 @@ export class WhatsAppVercelService {
 
       // Use temporary directory for auth (will be cleaned up after serverless function ends)
       const authPath = '/tmp/whatsapp-auth';
-      const { state, saveCreds } = await useMultiFileAuthState(authPath);
+      
+      // Import the auth state function dynamically to avoid hook issues
+      const { useMultiFileAuthState: createAuthState } = await import('@whiskeysockets/baileys');
+      const { state, saveCreds } = await createAuthState(authPath);
 
       // Create socket with optimized settings for serverless
       this.sock = makeWASocket({
