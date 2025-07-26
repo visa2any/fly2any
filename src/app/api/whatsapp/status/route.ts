@@ -16,23 +16,23 @@ export async function GET(request: NextRequest) {
       activeMode: 'baileys' // FORÇA MODO DE PRODUÇÃO
     };
 
-    // Check Railway Baileys status
+    // Check Vercel-optimized Baileys status
     try {
-      const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
-      const railwayService = WhatsAppRailwayService.getInstance();
-      const railwayStatus = await railwayService.getStatus();
+      const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
+      const vercelService = WhatsAppVercelService.getInstance();
+      const vercelStatus = vercelService.getStatus();
       
       status.baileys = {
         available: true,
-        connected: railwayStatus.connected,
-        connectionState: railwayStatus.connectionState,
-        qrCode: railwayStatus.qrCode as string | null
+        connected: vercelStatus.isConnected,
+        connectionState: vercelStatus.connectionState,
+        qrCode: vercelStatus.qrCode as string | null
       };
 
-      // Use Railway Baileys em produção
+      // Use Vercel-optimized Baileys
       status.activeMode = 'baileys';
     } catch (error) {
-      console.error('❌ Railway Baileys error:', error);
+      console.error('❌ Vercel Baileys error:', error);
       status.baileys = {
         available: false,
         connected: false,

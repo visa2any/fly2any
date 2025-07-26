@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Inicializando WhatsApp via Railway...');
+    console.log('🚀 Inicializando WhatsApp otimizado para Vercel...');
     
-    // Use Railway WhatsApp service instead of local Baileys
-    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
+    // Use Vercel-optimized Baileys service
+    const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
     
-    // Initialize WhatsApp on Railway
-    const whatsapp = WhatsAppRailwayService.getInstance();
+    // Initialize WhatsApp with Vercel optimizations
+    const whatsapp = WhatsAppVercelService.getInstance();
     const result = await whatsapp.initialize();
     
     if (result.success) {
@@ -36,15 +36,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
-    const whatsapp = WhatsAppRailwayService.getInstance();
-    const status = await whatsapp.getStatus();
+    const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
+    const whatsapp = WhatsAppVercelService.getInstance();
+    const status = whatsapp.getStatus();
     
     return NextResponse.json({
       success: true,
-      status: status.connected ? 'connected' : 'disconnected',
+      status: status.isConnected ? 'connected' : 'disconnected',
       qrCode: status.qrCode,
-      isConnected: status.connected
+      isConnected: status.isConnected
     });
     
   } catch (error) {
