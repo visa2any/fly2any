@@ -4,11 +4,11 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Inicializando WhatsApp otimizado para Vercel...');
     
-    // Use Vercel-optimized Baileys service
-    const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
+    // Use simple test service to verify QR code generation works
+    const { WhatsAppSimpleTestService } = await import('../../../../lib/whatsapp-simple-test');
     
-    // Initialize WhatsApp with Vercel optimizations
-    const whatsapp = WhatsAppVercelService.getInstance();
+    // Initialize test service
+    const whatsapp = WhatsAppSimpleTestService.getInstance();
     const result = await whatsapp.initialize();
     
     if (result.success) {
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
-    const whatsapp = WhatsAppVercelService.getInstance();
+    const { WhatsAppSimpleTestService } = await import('../../../../lib/whatsapp-simple-test');
+    const whatsapp = WhatsAppSimpleTestService.getInstance();
     const status = whatsapp.getStatus();
     
     return NextResponse.json({
