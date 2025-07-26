@@ -110,96 +110,44 @@ export async function POST(request: NextRequest) {
         }, { status: 500 });
       }
 
-      const templates = {
-        promotional: {
-          subject: '✈️ [SES TEST] Exclusive Offer: Miami from $1,299!',
+      // Se email personalizado foi enviado, use ele. Senão use template padrão apenas para testes manuais.
+      let mailOptions;
+      
+      if (body.subject && body.html) {
+        // Email personalizado (usado pelos leads reais)
+        mailOptions = {
+          from: '"Fly2Any" <contato@fly2any.com>',
+          to: email,
+          subject: body.subject,
+          html: body.html,
+          text: body.text
+        };
+      } else {
+        // Template de teste apenas para testes manuais
+        const testTemplate = {
+          subject: '✅ Teste Gmail SMTP - Fly2Any',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #1e40af, #a21caf); color: white; padding: 30px; text-align: center;">
-                <h1>✈️ Fly2Any - Amazon SES TESTE</h1>
-                <h2>62.000 Emails GRÁTIS/mês!</h2>
+              <div style="background: #25d366; color: white; padding: 30px; text-align: center;">
+                <h1>✅ Gmail SMTP Funcionando!</h1>
+                <h2>Sistema de Email Ativo</h2>
               </div>
               <div style="padding: 30px; background: #f8fafc;">
-                <h2 style="color: #1e40af;">🎯 Miami for only $1,299</h2>
-                <p>✅ <strong>Amazon SES funcionando!</strong></p>
-                <p>📧 Via AWS SES (mais barato)</p>
-                <p>🚀 62.000 emails grátis/mês</p>
-                <p>💰 Depois: $0.10 por 1.000 emails</p>
+                <h2 style="color: #25d366;">✅ Teste de Funcionamento</h2>
+                <p><strong>Gmail SMTP conectado com sucesso!</strong></p>
                 <p>📅 ${new Date().toLocaleString('pt-BR')}</p>
-                
-                <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3>📊 Comparação de Custos:</h3>
-                  <ul>
-                    <li>🔥 <strong>Amazon SES:</strong> $0.10/1000 emails</li>
-                    <li>💸 Resend: $20/mês para 50k emails</li>
-                    <li>💸 Mailchimp: $350/mês para 50k emails</li>
-                    <li>💸 SendGrid: $89.95/mês para 50k emails</li>
-                  </ul>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://fly2any.com" 
-                     style="background: #25d366; color: white; padding: 15px 30px; 
-                            text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    🚀 ACESSAR SITE
-                  </a>
-                </div>
+                <p>🚀 Sistema pronto para envio de leads</p>
               </div>
             </div>`
-        },
-        newsletter: {
-          subject: '📰 [SES TEST] Newsletter Fly2Any',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
-                <h1>✈️ Newsletter Fly2Any - Amazon SES</h1>
-              </div>
-              <div style="padding: 20px;">
-                <h2>📰 Newsletter via Amazon SES!</h2>
-                <p>✅ Sistema mais barato ativo</p>
-                <p>💰 62.000 emails grátis/mês</p>
-                <p>📅 ${new Date().toLocaleString('pt-BR')}</p>
-                
-                <h3>🎯 Dica da Semana</h3>
-                <p>Como economizar até 40% em passagens:</p>
-                <ul>
-                  <li>✅ Reserve com 3 meses de antecedência</li>
-                  <li>✅ Viaje em dias de semana</li>
-                  <li>✅ Use nosso sistema de alertas</li>
-                </ul>
-              </div>
-            </div>`
-        },
-        reactivation: {
-          subject: '💔 [SES TEST] Sentimos sua falta!',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: #dc2626; color: white; padding: 30px; text-align: center;">
-                <h1>💔 Sentimos sua falta! - Amazon SES</h1>
-              </div>
-              <div style="padding: 30px;">
-                <h2>✅ Amazon SES Reativação Funcionando!</h2>
-                <p>💰 Custo mais baixo do mercado</p>
-                <p>📅 ${new Date().toLocaleString('pt-BR')}</p>
-                
-                <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h3>🎁 Oferta Especial de Volta:</h3>
-                  <p><strong>15% OFF</strong> na sua próxima viagem!</p>
-                  <p>Código: <strong>SES15</strong></p>
-                </div>
-              </div>
-            </div>`
-        }
-      };
-
-      const template = templates[campaignType as keyof typeof templates] || templates.promotional;
-      
-      const mailOptions = {
-        from: '"Fly2Any" <contato@fly2any.com>',
-        to: email,
-        subject: template.subject,
-        html: template.html
-      };
+        };
+        
+        mailOptions = {
+          from: '"Fly2Any" <contato@fly2any.com>',
+          to: email,
+          subject: testTemplate.subject,
+          html: testTemplate.html
+        };
+      }
 
       const result = await transporter.sendMail(mailOptions);
 
