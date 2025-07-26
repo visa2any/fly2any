@@ -20,15 +20,14 @@ class EmailService {
 
   async sendEmail(emailData: EmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // Prioridade 1: Gmail via API email-ses
+      // Prioridade 1: Gmail via API email-gmail (novo endpoint limpo)
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-ses`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-gmail`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            action: 'send_test',
             email: emailData.to,
             subject: emailData.subject,
             html: emailData.html,
