@@ -4,11 +4,11 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Inicializando WhatsApp otimizado para Vercel...');
     
-    // Use simple test service to verify QR code generation works
-    const { WhatsAppSimpleTestService } = await import('../../../../lib/whatsapp-simple-test');
+    // Use Railway WhatsApp service 
+    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
     
-    // Initialize test service
-    const whatsapp = WhatsAppSimpleTestService.getInstance();
+    // Initialize Railway service
+    const whatsapp = WhatsAppRailwayService.getInstance();
     const result = await whatsapp.initialize();
     
     if (result.success) {
@@ -36,15 +36,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { WhatsAppSimpleTestService } = await import('../../../../lib/whatsapp-simple-test');
-    const whatsapp = WhatsAppSimpleTestService.getInstance();
-    const status = whatsapp.getStatus();
+    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
+    const whatsapp = WhatsAppRailwayService.getInstance();
+    const status = await whatsapp.getStatus();
     
     return NextResponse.json({
       success: true,
-      status: status.isConnected ? 'connected' : 'disconnected',
+      status: status.connected ? 'connected' : 'disconnected', 
       qrCode: status.qrCode,
-      isConnected: status.isConnected
+      isConnected: status.connected
     });
     
   } catch (error) {
