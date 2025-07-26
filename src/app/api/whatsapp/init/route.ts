@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'WhatsApp inicializado com sucesso via Railway',
         qrCode: result.qrCode,
-        isReady: result.isConnected || false
+        isReady: result.isReady || false
       });
     } else {
       return NextResponse.json({

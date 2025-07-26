@@ -114,7 +114,7 @@ export class WhatsAppVercelService {
               
               resolve({
                 success: true,
-                qrCode: globalQRCode,
+                qrCode: globalQRCode || undefined,
                 isReady: false
               });
               
@@ -141,7 +141,7 @@ export class WhatsAppVercelService {
             
             resolve({
               success: true,
-              qrCode: globalQRCode,
+              qrCode: globalQRCode || undefined,
               isReady: true
             });
           }

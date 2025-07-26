@@ -46,7 +46,7 @@ export class WhatsAppRailwayService {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 seconds timeout
+        // Note: timeout not supported in standard fetch, would need AbortController
       });
 
       if (!response.ok) {
@@ -84,7 +84,7 @@ export class WhatsAppRailwayService {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 10000, // 10 seconds timeout
+        // Note: timeout not supported in standard fetch
       });
 
       if (!response.ok) {
@@ -126,7 +126,7 @@ export class WhatsAppRailwayService {
           phone,
           message
         }),
-        timeout: 15000, // 15 seconds timeout
+        // Note: timeout not supported in standard fetch
       });
 
       if (!response.ok) {
@@ -156,7 +156,7 @@ export class WhatsAppRailwayService {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
+        // Note: timeout not supported in standard fetch
       });
 
       const data = await response.json();
