@@ -16,24 +16,29 @@ export async function GET(request: NextRequest) {
       activeMode: 'baileys' // FORÇA MODO DE PRODUÇÃO
     };
 
-    // Check Baileys status
+    // Check Railway Baileys status
     try {
-      const { WhatsAppBaileysService } = await import('@/lib/whatsapp-baileys');
-      const baileysWhatsAppService = WhatsAppBaileysService.getInstance();
-      const baileysStatus = baileysWhatsAppService.getConnectionStatus();
+      const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
+      const railwayService = WhatsAppRailwayService.getInstance();
+      const railwayStatus = await railwayService.getStatus();
       
       status.baileys = {
         available: true,
-        connected: baileysStatus.isConnected,
-        connectionState: String(baileysStatus.connectionState),
-        qrCode: baileysStatus.qrCode as string | null
+        connected: railwayStatus.connected,
+        connectionState: railwayStatus.connectionState,
+        qrCode: railwayStatus.qrCode as string | null
       };
 
-      // SEMPRE USAR BAILEYS EM PRODUÇÃO
+      // Use Railway Baileys em produção
       status.activeMode = 'baileys';
     } catch (error) {
-      console.error('❌ Baileys OBRIGATÓRIO para produção:', error);
-      // Mesmo com erro, força modo baileys
+      console.error('❌ Railway Baileys error:', error);
+      status.baileys = {
+        available: false,
+        connected: false,
+        connectionState: 'error',
+        qrCode: null
+      };
       status.activeMode = 'baileys';
     }
 
