@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    const transporter = nodemailer.default.createTransporter(smtpConfig as any);
+    const transporter = nodemailer.default.createTransport(smtpConfig as any);
     await transporter.verify();
 
     const mailOptions = {
