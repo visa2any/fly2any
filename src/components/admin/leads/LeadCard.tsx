@@ -221,17 +221,18 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
           <div className="mt-3">
             <div className="flex flex-wrap gap-1">
               {lead.tags.slice(0, 3).map((tag) => (
-                <Badge
+                <span
                   key={tag.id}
-                  className={`${tag.color} text-xs`}
+                  className="admin-badge"
+                  style={{ backgroundColor: tag.color }}
                 >
                   {tag.name}
-                </Badge>
+                </span>
               ))}
               {lead.tags.length > 3 && (
-                <Badge variant="outline" className="text-xs">
+                <span className="admin-badge admin-badge-outline">
                   +{lead.tags.length - 3} mais
-                </Badge>
+                </span>
               )}
             </div>
           </div>
