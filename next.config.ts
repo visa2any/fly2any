@@ -44,6 +44,17 @@ const nextConfig: NextConfig = {
         destination: 'https://www.fly2any.com/:path*',
         permanent: true,
       },
+      // Redirect /pt to homepage (Portuguese is the default)
+      {
+        source: '/pt',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/pt/:path*',
+        destination: '/:path*',
+        permanent: true,
+      },
     ];
   },
 };
