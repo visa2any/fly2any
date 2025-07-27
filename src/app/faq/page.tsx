@@ -7,19 +7,57 @@ import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: "FAQ - Perguntas Frequentes | Fly2Any",
-  description: "Tire suas dúvidas sobre voos Brasil-EUA, documentação, bagagem, preços e muito mais. Respostas completas para suas perguntas sobre viagem.",
-  keywords: "faq voos brasil eua, dúvidas viagem, documentos viagem, bagagem internacional, preços passagens",
+  title: "FAQ - Brazil Travel Questions | Fly2Any Travel Specialists",
+  description: "Get answers about flights to Brazil, visa requirements, best times to visit, and travel tips. Complete guide for Americans, Latinos, and Brazilians traveling to Brazil.",
+  keywords: "faq brazil travel, flights to brazil questions, brazil visa requirements, travel to brazil guide, brazil travel specialists",
   openGraph: {
-    title: "FAQ - Perguntas Frequentes | Fly2Any",
-    description: "Tire suas dúvidas sobre voos Brasil-EUA, documentação, bagagem, preços e muito mais.",
+    title: "FAQ - Brazil Travel Questions | Fly2Any Travel Specialists",
+    description: "Get answers about flights to Brazil, visa requirements, best times to visit, and travel tips.",
     url: "https://fly2any.com/faq",
+  },
+  alternates: {
+    canonical: "https://fly2any.com/faq",
+    languages: {
+      'en-US': 'https://fly2any.com/en/faq',
+      'pt-BR': 'https://fly2any.com/pt/faq',
+      'es-419': 'https://fly2any.com/es/faq',
+      'x-default': 'https://fly2any.com/faq',
+    },
   },
 };
 
 const faqData = [
   {
-    category: "Voos e Reservas",
+    category: "For International Travelers (EN/ES)",
+    questions: [
+      {
+        question: "Do Americans need a visa to visit Brazil?",
+        answer: "Yes, American citizens need a visa to visit Brazil for tourism or business. You can apply for an e-visa online through the Brazilian government website. Our team can help guide you through the process."
+      },
+      {
+        question: "¿Los mexicanos necesitan visa para Brasil?",
+        answer: "No, los ciudadanos mexicanos pueden ingresar a Brasil sin visa por turismo hasta 90 días. Solo necesitan pasaporte válido con al menos 6 meses de vigencia."
+      },
+      {
+        question: "What's the best time to visit Brazil?",
+        answer: "Brazil is great year-round! For beach destinations like Rio and Salvador: Dec-Mar (summer). For Amazon: Apr-Oct (dry season). For southern cities like São Paulo: Mar-May and Sep-Nov (mild weather). We help you choose based on your preferences."
+      },
+      {
+        question: "¿Cuál es la mejor época para viajar a Brasil?",
+        answer: "Brasil es increíble todo el año. Para playas (Río, Salvador): Dic-Mar (verano). Para Amazonia: Abr-Oct (estación seca). Para ciudades del sur: Mar-May y Sep-Nov (clima templado). Te ayudamos a elegir según tus preferencias."
+      },
+      {
+        question: "Why choose Fly2Any over other travel agencies?",
+        answer: "We specialize exclusively in Brazil travel for 10+ years. Our team speaks English, Spanish, and Portuguese. We offer personalized service, insider knowledge, competitive prices, and 24/7 support during your trip."
+      },
+      {
+        question: "¿Por qué elegir Fly2Any sobre otras agencias?",
+        answer: "Nos especializamos exclusivamente en viajes a Brasil por más de 10 años. Nuestro equipo habla español, inglés y portugués. Ofrecemos servicio personalizado, conocimiento local, precios competitivos y soporte 24/7."
+      }
+    ]
+  },
+  {
+    category: "Flights & Bookings / Voos e Reservas",
     questions: [
       {
         question: "Como funciona o processo de cotação?",
@@ -112,21 +150,54 @@ const faqData = [
 export default function FAQ() {
   return (
     <>
-      {/* Schema.org para FAQ */}
+      {/* Schema.org para FAQ Multi-idioma */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
+            "name": "Brazil Travel FAQ - Fly2Any Travel Specialists",
+            "description": "Frequently asked questions about traveling to Brazil for Americans, Latinos, and Brazilians",
+            "url": "https://fly2any.com/faq",
+            "inLanguage": ["en", "es", "pt"],
+            "about": {
+              "@type": "TravelAgency",
+              "name": "Fly2Any",
+              "description": "Brazil travel specialists",
+              "serviceArea": {
+                "@type": "Country",
+                "name": "Brazil"
+              }
+            },
+            "audience": [
+              {
+                "@type": "Audience",
+                "audienceType": "American travelers to Brazil"
+              },
+              {
+                "@type": "Audience", 
+                "audienceType": "Latin American travelers to Brazil"
+              },
+              {
+                "@type": "Audience",
+                "audienceType": "Brazilian travelers"
+              }
+            ],
             "mainEntity": faqData.flatMap(category => 
               category.questions.map(q => ({
                 "@type": "Question",
                 "name": q.question,
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": q.answer
-                }
+                  "text": q.answer,
+                  "author": {
+                    "@type": "Organization",
+                    "name": "Fly2Any Brazil Travel Specialists"
+                  }
+                },
+                "dateCreated": "2025-07-27",
+                "dateModified": "2025-07-27"
               }))
             )
           }),
@@ -140,11 +211,11 @@ export default function FAQ() {
         <section style={{ padding: '80px 0' }} className="mobile-section">
           <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px', textAlign: 'center' }} className="mobile-container">
             <h1 style={{ fontSize: '48px', fontWeight: '700', color: 'white', marginBottom: '24px', fontFamily: 'Poppins, sans-serif' }}>
-              Perguntas <span style={{ background: 'linear-gradient(135deg, #facc15, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Frequentes</span>
+              Brazil Travel <span style={{ background: 'linear-gradient(135deg, #facc15, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>FAQ</span>
             </h1>
             <p style={{ fontSize: '20px', color: 'rgb(219, 234, 254)', maxWidth: '768px', margin: '0 auto 32px auto' }} className="mobile-container">
-              Tire todas suas dúvidas sobre viagens Brasil-EUA. 
-              Se não encontrar sua resposta, entre em contato conosco!
+              Get answers about traveling to Brazil. Questions in English, Spanish, and Portuguese. 
+              Can't find your answer? Contact our Brazil travel specialists!
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
               <Link 

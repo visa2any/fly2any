@@ -1,8 +1,11 @@
 User-agent: *
 Allow: /
 
-# Sitemaps
+# Sitemaps - Multi-language
 Sitemap: https://fly2any.com/sitemap.xml
+Sitemap: https://fly2any.com/sitemap-en.xml
+Sitemap: https://fly2any.com/sitemap-pt.xml
+Sitemap: https://fly2any.com/sitemap-es.xml
 
 # Priority crawling for search engines
 User-agent: Googlebot
@@ -17,7 +20,11 @@ User-agent: DuckDuckBot
 Allow: /
 Crawl-delay: 1
 
-# AI Crawlers (for ChatGPT, Bard, etc.)
+# AI Crawlers 2025 - Optimized for AI Indexing
+User-agent: OpenAI-SearchBot
+Allow: /
+Crawl-delay: 1
+
 User-agent: GPTBot
 Allow: /
 Crawl-delay: 2
@@ -34,6 +41,29 @@ Allow: /
 User-agent: Claude-Web
 Allow: /
 
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Applebot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+# AI Training Data Crawlers
+User-agent: Google-Extended
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
 # Block admin and private areas
 Disallow: /admin/
 Disallow: /api/
@@ -42,13 +72,38 @@ Disallow: /data/
 Disallow: /scripts/
 Disallow: /test-*
 
-# Allow important service pages
+# Allow important service pages - Multi-language
 Allow: /voos-brasil-eua
 Allow: /voos-miami-sao-paulo
 Allow: /voos-new-york-rio-janeiro
 Allow: /hoteis-brasil
 Allow: /aluguel-carros-brasil
 Allow: /seguro-viagem-brasil
+
+# English pages
+Allow: /en/
+Allow: /en/flights-to-brazil
+Allow: /en/flights-miami-sao-paulo
+Allow: /en/brazil-travel-guide
+Allow: /en/brazil-hotels
+Allow: /en/car-rental-brazil
+Allow: /en/travel-insurance-brazil
+
+# Spanish pages
+Allow: /es/
+Allow: /es/vuelos-brasil
+Allow: /es/vuelos-miami-sao-paulo
+Allow: /es/guia-viaje-brasil
+Allow: /es/hoteles-brasil
+Allow: /es/alquiler-autos-brasil
+Allow: /es/seguro-viaje-brasil
+
+# Portuguese pages
+Allow: /pt/
+Allow: /pt/voos-brasil
+Allow: /pt/hoteis-brasil
+
+# Universal pages
 Allow: /blog/
 Allow: /cotacao/
 Allow: /faq

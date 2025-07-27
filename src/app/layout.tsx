@@ -24,43 +24,49 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fly2any.com'),
-  title: "Fly2Any - Voos Brasil-EUA | Passagens Aéreas para Brasileiros",
-  description: "Especialistas em passagens aéreas para brasileiros nos EUA. Voos, hotéis, carros, passeios e seguro viagem para o Brasil. Cotação gratuita em 2 horas!",
-  keywords: "voos brasil eua, passagens aereas brasileiros, viagem brasil estados unidos, voos baratos brasil, fly2any, passagens promocionais, hotéis brasil, aluguel carro brasil, seguro viagem brasil",
+  title: "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+  description: "Expert travel agency specializing in trips to Brazil. Flights, hotels, cars, tours and travel insurance. Free quote in 2 hours! Serving Americans, Latinos, and Brazilians.",
+  keywords: "flights to brazil, brazil travel, brazil vacation, travel to brazil, brazil travel specialists, voos brasil, viajes brasil, passagens aereas",
   authors: [{ name: "Fly2Any" }],
   creator: "Fly2Any",
   publisher: "Fly2Any",
   robots: "index, follow",
   openGraph: {
     type: "website",
-    locale: "pt_BR",
+    locale: "en_US",
     url: "https://fly2any.com",
-    siteName: "Fly2Any",
-    title: "Fly2Any - Voos Brasil-EUA | Passagens Aéreas para Brasileiros",
-    description: "Especialistas em passagens aéreas para brasileiros nos EUA. Voos, hotéis, carros, passeios e seguro viagem para o Brasil.",
+    siteName: "Fly2Any - Brazil Travel Specialists",
+    title: "Fly2Any - Brazil Travel Specialists | Expert Trips to Brazil",
+    description: "Specialized travel agency for trips to Brazil. Expert service for Americans, Latinos, and Brazilians traveling to Brazil.",
     images: [
       {
         url: "/og-image.webp",
         width: 1200,
         height: 630,
-        alt: "Fly2Any - Voos Brasil-EUA",
+        alt: "Fly2Any - Brazil Travel Specialists",
       },
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Fly2Any - Voos Brasil-EUA",
+        alt: "Fly2Any - Brazil Travel Specialists",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fly2Any - Voos Brasil-EUA | Passagens Aéreas para Brasileiros",
-    description: "Especialistas em passagens aéreas para brasileiros nos EUA. Cotação gratuita em 2 horas!",
+    title: "Fly2Any - Brazil Travel Specialists | Expert Trips to Brazil",
+    description: "Specialized travel agency for trips to Brazil. Free quote in 2 hours!",
     images: ["/og-image.webp"],
   },
   alternates: {
     canonical: "https://fly2any.com",
+    languages: {
+      'en-US': 'https://fly2any.com/en',
+      'pt-BR': 'https://fly2any.com/pt',
+      'es-419': 'https://fly2any.com/es',
+      'x-default': 'https://fly2any.com',
+    },
   },
   other: {
     "google-site-verification": "googlee27e970cfffea3f0",
@@ -73,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -231,9 +237,13 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": ["TravelAgency", "LocalBusiness", "Organization"],
-              "name": "Fly2Any",
-              "alternateName": "Fly2Any Travel Agency",
-              "description": "Especialistas em passagens aéreas para brasileiros nos EUA há mais de 10 anos. Voos, hotéis, carros, seguro viagem e passeios.",
+              "name": "Fly2Any - Brazil Travel Specialists",
+              "alternateName": ["Fly2Any", "Brazil Travel Experts", "Especialistas Brasil"],
+              "description": {
+                "en": "Expert travel agency specializing in trips to Brazil for over 10 years. Flights, hotels, cars, travel insurance and tours.",
+                "pt": "Especialistas em viagens para o Brasil há mais de 10 anos. Voos, hotéis, carros, seguro viagem e passeios.",
+                "es": "Agencia de viajes especialista en Brasil por más de 10 años. Vuelos, hoteles, autos, seguro de viaje y tours."
+              },
               "url": "https://fly2any.com",
               "logo": {
                 "@type": "ImageObject",
@@ -261,8 +271,21 @@ export default function RootLayout({
                   "@type": "ContactPoint",
                   "contactType": "customer service",
                   "availableLanguage": ["Portuguese", "English", "Spanish"],
-                  "hoursAvailable": "Mo-Fr 09:00-18:00",
-                  "areaServed": ["US", "BR"]
+                  "hoursAvailable": "Mo-Su 08:00-22:00",
+                  "areaServed": ["US", "BR", "MX", "AR", "CO", "PE", "CL"],
+                  "description": {
+                    "en": "24/7 customer support in English, Portuguese and Spanish",
+                    "pt": "Atendimento 24/7 em português, inglês e espanhol", 
+                    "es": "Atención al cliente 24/7 en español, portugués e inglés"
+                  }
+                },
+                {
+                  "@type": "ContactPoint",
+                  "contactType": "sales",
+                  "availableLanguage": ["Portuguese", "English", "Spanish"],
+                  "hoursAvailable": "Mo-Su 08:00-22:00",
+                  "areaServed": ["US", "BR", "LATAM"],
+                  "description": "Brazil travel specialists and booking experts"
                 }
               ],
               "serviceArea": {
@@ -287,13 +310,17 @@ export default function RootLayout({
                 }
               ],
               "serviceType": [
-                "Passagens Aéreas",
-                "Reservas de Hotel",
-                "Aluguel de Carros",
-                "Seguro Viagem",
-                "Passeios Turísticos",
-                "Assistência de Viagem"
+                {
+                  "en": ["Flight Bookings", "Hotel Reservations", "Car Rentals", "Travel Insurance", "Tour Packages", "Travel Assistance"],
+                  "pt": ["Passagens Aéreas", "Reservas de Hotel", "Aluguel de Carros", "Seguro Viagem", "Passeios Turísticos", "Assistência de Viagem"],
+                  "es": ["Reservas de Vuelos", "Reservas de Hoteles", "Alquiler de Autos", "Seguro de Viaje", "Paquetes Turísticos", "Asistencia de Viaje"]
+                }
               ],
+              "specialty": {
+                "en": "Brazil destination expertise and cultural knowledge",
+                "pt": "Especialização em destinos Brasil e conhecimento cultural", 
+                "es": "Especialización en destinos de Brasil y conocimiento cultural"
+              },
               "hasOfferCatalog": {
                 "@type": "OfferCatalog",
                 "name": "Serviços de Viagem Fly2Any",
