@@ -501,7 +501,7 @@ export default function SpanishHomePage() {
                   }}
                   className="mobile-full-width"
                 >
-                  <FlightIcon style={{ width: '18px', height: '18px' }} />
+                  <FlightIcon style={{ width: '20px', height: '20px' }} />
                   Cotización Gratis en 2 Horas
                 </button>
 
@@ -533,7 +533,7 @@ export default function SpanishHomePage() {
                   }}
                   className="mobile-full-width"
                 >
-                  <ChatIcon style={{ width: '18px', height: '18px' }} />
+                  <ChatIcon style={{ width: '20px', height: '20px' }} />
                   WhatsApp
                 </Link>
 
@@ -565,7 +565,7 @@ export default function SpanishHomePage() {
                   }}
                   className="mobile-full-width"
                 >
-                  <MailIcon style={{ width: '18px', height: '18px' }} />
+                  <MailIcon style={{ width: '20px', height: '20px' }} />
                   Enviar Email
                 </Link>
               </div>
@@ -621,13 +621,15 @@ export default function SpanishHomePage() {
               transitionDelay: '0.2s'
             }}>
               <div style={{
-                background: 'rgba(255, 255, 255, 0.95)',
+                background: 'rgba(255, 255, 255, 0.98)',
                 backdropFilter: 'blur(20px)',
-                borderRadius: '20px',
-                padding: isMobile ? '32px 24px' : '40px 32px',
-                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+                borderRadius: isMobile ? '24px' : '32px',
+                padding: isMobile ? '28px' : '40px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
-                position: 'relative'
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                maxHeight: isMobile ? '80vh' : 'auto',
+                overflowY: isMobile ? 'auto' : 'visible',
+                position: 'relative' as const
               }} className="mobile-full-width">
                 {/* Success Message */}
                 {showSuccess && (
@@ -691,24 +693,43 @@ export default function SpanishHomePage() {
                   </div>
                 )}
 
-                {/* Form Header */}
-                <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                  <h2 style={{
-                    fontSize: '28px',
-                    fontWeight: '700',
-                    color: '#1f2937',
-                    marginBottom: '8px',
-                    fontFamily: 'Poppins, sans-serif'
-                  }}>
-                    Obtén tu Cotización Gratis
-                  </h2>
-                  <p style={{
-                    color: '#6b7280',
-                    fontSize: '16px'
-                  }}>
-                    Respuesta personalizada en 2 horas
-                  </p>
+                {/* Form Header with Badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left: '40px',
+                  background: 'linear-gradient(135deg, #059669, #10b981)',
+                  color: 'white',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  ✨ GRATIS
                 </div>
+                
+                <h3 style={{
+                  fontSize: '26px',
+                  fontWeight: '800',
+                  color: '#111827',
+                  fontFamily: 'Poppins, sans-serif',
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.02em',
+                  lineHeight: '1.2'
+                }}>
+                  Tu cotización en 2 horas, mejor precio garantizado!
+                </h3>
+                <p style={{
+                  color: '#6b7280',
+                  margin: '0 0 24px 0',
+                  fontSize: '16px',
+                  lineHeight: '1.5'
+                }}>
+                  Completa los datos y recibe las <strong>mejores ofertas del mercado</strong> con precios inmejorables
+                </p>
 
                 <form onSubmit={handleSubmit}>
                   {/* Step 1: Service Selection */}
