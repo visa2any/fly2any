@@ -424,7 +424,7 @@ export default function EnglishHomePage() {
                     <CheckIcon style={{ width: '16px', height: '16px', color: '#22c55e' }} />
                   </div>
                   <span style={{ color: 'rgba(219, 234, 254, 0.9)', fontSize: '14px', fontWeight: '500' }}>
-                    +10 years experience
+                    Best Price Guarantee
                   </span>
                 </div>
                 
