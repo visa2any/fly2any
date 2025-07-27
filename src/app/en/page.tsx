@@ -236,7 +236,7 @@ export default function EnglishHomePage() {
 
       if (response.ok) {
         setShowSuccess(true);
-        trackQuoteRequest(formData.selectedServices.map(s => s.serviceType).join(','));
+        trackQuoteRequest({ services: formData.selectedServices.map(s => s.serviceType).join(',') });
         
         // Reset form
         setFormData({
