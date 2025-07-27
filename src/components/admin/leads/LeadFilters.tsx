@@ -221,7 +221,7 @@ export function LeadFilters({
                     />
                     <label htmlFor={`priority-${option.value}`} className="admin-label-inline">
                       {option.label}
-                    </Label>
+                    </label>
                   </div>
                 ))}
               </div>
@@ -229,7 +229,7 @@ export function LeadFilters({
 
             {/* Source Filter */}
             <div>
-              <label className="admin-label">Fonte</Label>
+              <label className="admin-label">Fonte</label>
               <div className="space-y-2">
                 {sourceOptions.map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
@@ -240,7 +240,7 @@ export function LeadFilters({
                     />
                     <label htmlFor={`source-${option.value}`} className="admin-label-inline">
                       {option.label}
-                    </Label>
+                    </label>
                   </div>
                 ))}
               </div>
@@ -248,7 +248,7 @@ export function LeadFilters({
 
             {/* Date Range */}
             <div>
-              <label className="admin-label">Período</Label>
+              <label className="admin-label">Período</label>
               <DatePickerWithRange
                 date={filters.dateRange}
                 onDateChange={(range) => updateFilter('dateRange', range)}
@@ -321,20 +321,21 @@ export function LeadFilters({
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded">
                     {availableTags.map((tag) => (
-                      <Badge
+                      <span
                         key={tag.id}
-                        className={`cursor-pointer transition-all ${tag.color} ${
+                        className={`admin-badge cursor-pointer transition-all ${
                           filters.tags.includes(tag.id) 
-                            ? 'ring-2 ring-blue-400' 
-                            : 'opacity-60 hover:opacity-100'
+                            ? 'admin-badge-primary' 
+                            : 'admin-badge-outline'
                         }`}
+                        style={{ backgroundColor: filters.tags.includes(tag.id) ? tag.color : undefined }}
                         onClick={() => toggleArrayFilter('tags', tag.id)}
                       >
                         {tag.name}
                         {tag.count && (
                           <span className="ml-1 text-xs">({tag.count})</span>
                         )}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                   {filters.tags.length > 0 && (
@@ -342,15 +343,13 @@ export function LeadFilters({
                       <span className="text-xs text-gray-500">
                         {filters.tags.length} tag{filters.tags.length > 1 ? 's' : ''} selecionada{filters.tags.length > 1 ? 's' : ''}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
+                        className="admin-btn admin-btn-ghost admin-btn-sm"
                         onClick={() => updateFilter('tags', [])}
-                        className="h-6 px-2 text-xs"
                       >
-                        <X className="h-3 w-3 mr-1" />
+                        <X className="h-3 w-3" />
                         Limpar
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -361,22 +360,18 @@ export function LeadFilters({
 
             {/* Has Notes */}
             <div>
-              <label className="admin-label">Notas</Label>
-              <Select
+              <label className="admin-label">Notas</label>
+              <select
+                className="admin-select"
                 value={filters.hasNotes === undefined ? '' : filters.hasNotes.toString()}
-                onValueChange={(value) => 
-                  updateFilter('hasNotes', value === '' ? undefined : value === 'true')
+                onChange={(e) => 
+                  updateFilter('hasNotes', e.target.value === '' ? undefined : e.target.value === 'true')
                 }
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Com/sem notas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="true">Com notas</SelectItem>
-                  <SelectItem value="false">Sem notas</SelectItem>
-                </SelectContent>
-              </Select>
+                <option value="">Todos</option>
+                <option value="true">Com notas</option>
+                <option value="false">Sem notas</option>
+              </select>
             </div>
           </div>
         )}
