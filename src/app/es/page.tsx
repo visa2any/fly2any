@@ -973,8 +973,7 @@ export default function SpanishHomePage() {
                                 cities={cities}
                                 placeholder="Ciudad de origen"
                                 label=""
-                                iconColor="#3b82f6"
-                              />
+                                    />
                             </div>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
@@ -987,8 +986,7 @@ export default function SpanishHomePage() {
                                 cities={cities}
                                 placeholder="Ciudad de destino"
                                 label=""
-                                iconColor="#3b82f6"
-                              />
+                                    />
                             </div>
                           </div>
                         </>
@@ -1008,8 +1006,7 @@ export default function SpanishHomePage() {
                               cities={cities}
                               placeholder="Ciudad de destino"
                               label=""
-                              iconColor="#3b82f6"
-                            />
+                                />
                           </div>
                         </>
                       )}
@@ -1030,8 +1027,7 @@ export default function SpanishHomePage() {
                               checkin: value 
                             })}
                             placeholder="Seleccionar fecha"
-                            iconColor="#3b82f6"
-                          />
+                            />
                         </div>
                         <div style={{ flex: 1 }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
@@ -1047,8 +1043,7 @@ export default function SpanishHomePage() {
                               checkout: value 
                             })}
                             placeholder="Seleccionar fecha"
-                            iconColor="#3b82f6"
-                          />
+                            />
                         </div>
                       </div>
 
@@ -1298,7 +1293,6 @@ export default function SpanishHomePage() {
                           value={formData.telefono}
                           onChange={(value) => setFormData(prev => ({ ...prev, telefono: value }))}
                           placeholder="+54 11 1234-5678"
-                          iconColor="#3b82f6"
                         />
                       </div>
 
@@ -1783,7 +1777,7 @@ export default function SpanishHomePage() {
         {/* Interactive Components */}
         <FloatingChat />
         <ChatAgent />
-        <LeadCaptureSimple />
+        <LeadCaptureSimple isOpen={false} onClose={() => {}} />
         <NewsletterCapture />
         <ExitIntentPopup />
 

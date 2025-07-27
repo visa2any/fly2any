@@ -973,8 +973,7 @@ export default function EnglishHomePage() {
                                 cities={cities}
                                 placeholder="Origin city"
                                 label=""
-                                iconColor="#3b82f6"
-                              />
+                                    />
                             </div>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
@@ -987,8 +986,7 @@ export default function EnglishHomePage() {
                                 cities={cities}
                                 placeholder="Destination city"
                                 label=""
-                                iconColor="#3b82f6"
-                              />
+                                    />
                             </div>
                           </div>
                         </>
@@ -1008,8 +1006,7 @@ export default function EnglishHomePage() {
                               cities={cities}
                               placeholder="Destination city"
                               label=""
-                              iconColor="#3b82f6"
-                            />
+                                />
                           </div>
                         </>
                       )}
@@ -1030,8 +1027,7 @@ export default function EnglishHomePage() {
                               checkin: value 
                             })}
                             placeholder="Select date"
-                            iconColor="#3b82f6"
-                          />
+                            />
                         </div>
                         <div style={{ flex: 1 }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
@@ -1047,8 +1043,7 @@ export default function EnglishHomePage() {
                               checkout: value 
                             })}
                             placeholder="Select date"
-                            iconColor="#3b82f6"
-                          />
+                            />
                         </div>
                       </div>
 
@@ -1298,7 +1293,6 @@ export default function EnglishHomePage() {
                           value={formData.phone}
                           onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
                           placeholder="+1 (555) 123-4567"
-                          iconColor="#3b82f6"
                         />
                       </div>
 
@@ -1776,7 +1770,7 @@ export default function EnglishHomePage() {
         {/* Interactive Components */}
         <FloatingChat />
         <ChatAgent />
-        <LeadCaptureSimple />
+        <LeadCaptureSimple isOpen={false} onClose={() => {}} />
         <NewsletterCapture />
         <ExitIntentPopup />
 
