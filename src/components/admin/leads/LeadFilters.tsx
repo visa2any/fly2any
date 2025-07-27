@@ -1,12 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+// Using admin CSS classes instead of UI components
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -143,53 +138,53 @@ export function LeadFilters({
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
+    <div className="admin-card">
+      <div className="admin-card-header">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros
-            {getActiveFiltersCount() > 0 && (
-              <Badge variant="secondary">
-                {getActiveFiltersCount()} ativo{getActiveFiltersCount() > 1 ? 's' : ''}
-              </Badge>
-            )}
-          </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
+            <h3 className="admin-card-title flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              🔍 Filtros
+            </h3>
+            {getActiveFiltersCount() > 0 && (
+              <span className="admin-badge admin-badge-secondary">
+                {getActiveFiltersCount()} ativo{getActiveFiltersCount() > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="admin-text-muted text-sm">
               {filteredLeads} de {totalLeads} leads
             </span>
-            <Button variant="outline" size="sm" onClick={onExport}>
-              <Download className="h-4 w-4 mr-2" />
+            <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={onExport}>
+              <Download className="h-4 w-4" />
               Exportar
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
-              <Filter className="h-4 w-4 mr-2" />
+            </button>
+            <button className="admin-btn admin-btn-outline admin-btn-sm" onClick={() => setIsExpanded(!isExpanded)}>
+              <Filter className="h-4 w-4" />
               {isExpanded ? 'Ocultar' : 'Expandir'}
-            </Button>
+            </button>
           </div>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-4">
+      <div className="admin-card-content">
         {/* Search Bar - Always Visible */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
+          <input
+            className="admin-input pl-10"
             placeholder="Buscar por nome, email, telefone..."
             value={filters.search}
             onChange={(e) => updateFilter('search', e.target.value)}
-            className="pl-10"
           />
           {filters.search && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            <button
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 admin-btn admin-btn-ghost admin-btn-sm"
               onClick={() => clearFilter('search')}
             >
               <X className="h-3 w-3" />
-            </Button>
+            </button>
           )}
         </div>
 
@@ -197,18 +192,16 @@ export function LeadFilters({
         <div className="flex flex-wrap gap-2">
           {/* Status Pills */}
           {statusOptions.map((option) => (
-            <Button
+            <button
               key={option.value}
-              variant={filters.status.includes(option.value) ? "default" : "outline"}
-              size="sm"
+              className={`admin-btn admin-btn-sm ${filters.status.includes(option.value) ? 'admin-btn-primary' : 'admin-btn-outline'}`}
               onClick={() => toggleArrayFilter('status', option.value)}
-              className="h-8"
             >
               {option.label}
               {filters.status.includes(option.value) && (
                 <X className="h-3 w-3 ml-1" />
               )}
-            </Button>
+            </button>
           ))}
         </div>
 
@@ -217,7 +210,7 @@ export function LeadFilters({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t">
             {/* Priority Filter */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Prioridade</Label>
+              <label className="admin-label">Prioridade</label>
               <div className="space-y-2">
                 {priorityOptions.map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
@@ -226,7 +219,7 @@ export function LeadFilters({
                       checked={filters.priority.includes(option.value)}
                       onCheckedChange={() => toggleArrayFilter('priority', option.value)}
                     />
-                    <Label htmlFor={`priority-${option.value}`} className="text-sm">
+                    <label htmlFor={`priority-${option.value}`} className="admin-label-inline">
                       {option.label}
                     </Label>
                   </div>
@@ -236,7 +229,7 @@ export function LeadFilters({
 
             {/* Source Filter */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Fonte</Label>
+              <label className="admin-label">Fonte</Label>
               <div className="space-y-2">
                 {sourceOptions.map((option) => (
                   <div key={option.value} className="flex items-center space-x-2">
@@ -245,7 +238,7 @@ export function LeadFilters({
                       checked={filters.source.includes(option.value)}
                       onCheckedChange={() => toggleArrayFilter('source', option.value)}
                     />
-                    <Label htmlFor={`source-${option.value}`} className="text-sm">
+                    <label htmlFor={`source-${option.value}`} className="admin-label-inline">
                       {option.label}
                     </Label>
                   </div>
@@ -255,7 +248,7 @@ export function LeadFilters({
 
             {/* Date Range */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Período</Label>
+              <label className="admin-label">Período</Label>
               <DatePickerWithRange
                 date={filters.dateRange}
                 onDateChange={(range) => updateFilter('dateRange', range)}
@@ -264,9 +257,10 @@ export function LeadFilters({
 
             {/* Budget Range */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Orçamento (R$)</Label>
+              <label className="admin-label">Orçamento (R$)</label>
               <div className="flex gap-2">
-                <Input
+                <input
+                  className="admin-input"
                   type="number"
                   placeholder="Mín"
                   value={filters.budgetRange.min || ''}
@@ -275,7 +269,8 @@ export function LeadFilters({
                     min: parseFloat(e.target.value) || undefined
                   })}
                 />
-                <Input
+                <input
+                  className="admin-input"
                   type="number"
                   placeholder="Máx"
                   value={filters.budgetRange.max || ''}
@@ -289,8 +284,9 @@ export function LeadFilters({
 
             {/* Travel Destinations */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Origem</Label>
-              <Input
+              <label className="admin-label">Origem</label>
+              <input
+                className="admin-input"
                 placeholder="Cidade de origem"
                 value={filters.origem}
                 onChange={(e) => updateFilter('origem', e.target.value)}
@@ -298,8 +294,9 @@ export function LeadFilters({
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-2 block">Destino</Label>
-              <Input
+              <label className="admin-label">Destino</label>
+              <input
+                className="admin-input"
                 placeholder="Cidade de destino"
                 value={filters.destino}
                 onChange={(e) => updateFilter('destino', e.target.value)}
@@ -308,8 +305,9 @@ export function LeadFilters({
 
             {/* Assigned To */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Atribuído para</Label>
-              <Input
+              <label className="admin-label">Atribuído para</label>
+              <input
+                className="admin-input"
                 placeholder="Nome do responsável"
                 value={filters.assignedTo}
                 onChange={(e) => updateFilter('assignedTo', e.target.value)}
@@ -318,7 +316,7 @@ export function LeadFilters({
 
             {/* Tags Filter */}
             <div className="md:col-span-2">
-              <Label className="text-sm font-medium mb-2 block">Tags</Label>
+              <label className="admin-label">Tags</label>
               {availableTags.length > 0 ? (
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded">
@@ -363,7 +361,7 @@ export function LeadFilters({
 
             {/* Has Notes */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Notas</Label>
+              <label className="admin-label">Notas</Label>
               <Select
                 value={filters.hasNotes === undefined ? '' : filters.hasNotes.toString()}
                 onValueChange={(value) => 
@@ -386,13 +384,13 @@ export function LeadFilters({
         {/* Actions */}
         {getActiveFiltersCount() > 0 && (
           <div className="flex justify-between items-center pt-4 border-t">
-            <Button variant="outline" onClick={onReset}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <button className="admin-btn admin-btn-outline" onClick={onReset}>
+              <RefreshCw className="h-4 w-4" />
               Limpar Filtros
-            </Button>
+            </button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
