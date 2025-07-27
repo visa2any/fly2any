@@ -472,90 +472,63 @@ export default function ModernLeadsPage() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="admin-card-title" style={{ marginBottom: '4px' }}>
-                Gestão de Leads - Versão Moderna
-              </h1>
-              <p className="admin-card-description">
-                Interface avançada para gestão eficiente de leads
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button 
-                onClick={fetchLeads} 
-                disabled={loading}
-                className="admin-btn admin-btn-sm admin-btn-secondary"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} style={{ strokeWidth: 2 }} />
-                Atualizar
-              </button>
-              <button className="admin-btn admin-btn-sm admin-btn-primary">
-                <Plus className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
-                Novo Lead
-              </button>
-            </div>
+    <div className="admin-page">
+      <div className="admin-container">
+        {/* Header */}
+        <div className="admin-header-section">
+          <div>
+            <h1 className="admin-page-title">👥 Gestão de Leads - Versão Moderna</h1>
+            <p className="admin-page-subtitle">Interface avançada para gestão eficiente de leads</p>
+          </div>
+          <div className="admin-header-actions">
+            <button 
+              onClick={fetchLeads} 
+              disabled={loading}
+              className="admin-btn admin-btn-outline admin-btn-sm"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Atualizar
+            </button>
+            <button className="admin-btn admin-btn-primary admin-btn-sm">
+              <Plus className="w-4 h-4" />
+              Novo Lead
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="admin-card">
-          <div className="admin-card-content">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl">
-                📊
-              </div>
+        {/* Stats Cards */}
+        <div className="admin-grid admin-grid-4">
+          <div className="admin-stats-card">
+            <div className="admin-stats-header">
+              <span className="admin-stats-title">Total de Leads</span>
+              <Users className="admin-stats-icon" />
             </div>
             <div className="admin-stats-value">{stats.total}</div>
-            <div className="admin-stats-label">Total de Leads</div>
-            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-              +{stats.today} hoje
-            </div>
+            <div className="admin-stats-label">+{stats.today} hoje</div>
           </div>
-        </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white flex items-center justify-center text-2xl">
-                📈
-              </div>
+          <div className="admin-stats-card">
+            <div className="admin-stats-header">
+              <span className="admin-stats-title">Esta Semana</span>
+              <TrendingUp className="admin-stats-icon" />
             </div>
             <div className="admin-stats-value">{stats.thisWeek}</div>
-            <div className="admin-stats-label">Esta Semana</div>
-            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-              leads captados
-            </div>
+            <div className="admin-stats-label">leads captados</div>
           </div>
-        </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center text-2xl">
-                🎯
-              </div>
+          <div className="admin-stats-card">
+            <div className="admin-stats-header">
+              <span className="admin-stats-title">Taxa Conversão</span>
+              <Calendar className="admin-stats-icon" />
             </div>
             <div className="admin-stats-value">{stats.conversion}%</div>
-            <div className="admin-stats-label">Taxa Conversão</div>
-            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-              leads para vendas
-            </div>
+            <div className="admin-stats-label">leads para vendas</div>
           </div>
-        </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white flex items-center justify-center text-2xl">
-                💰
-              </div>
+          <div className="admin-stats-card">
+            <div className="admin-stats-header">
+              <span className="admin-stats-title">Valor Médio</span>
+              <DollarSign className="admin-stats-icon" />
             </div>
             <div className="admin-stats-value">
               {new Intl.NumberFormat('pt-BR', {
@@ -563,13 +536,9 @@ export default function ModernLeadsPage() {
                 currency: 'BRL'
               }).format(stats.avgValue)}
             </div>
-            <div className="admin-stats-label">Valor Médio</div>
-            <div style={{ fontSize: 'var(--admin-font-size-xs)', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
-              por lead
-            </div>
+            <div className="admin-stats-label">por lead</div>
           </div>
         </div>
-      </div>
 
       {/* Filters */}
       <LeadFilters
@@ -638,27 +607,19 @@ export default function ModernLeadsPage() {
       </div>
 
       {/* Leads Display */}
-      {loading ? (
-        <div className="admin-card">
-          <div className="admin-card-content">
-            <div className="flex justify-center items-center py-16">
-              <div className="flex items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin" style={{ color: 'var(--admin-text-muted)', strokeWidth: 2 }} />
-                <span style={{ color: 'var(--admin-text-secondary)', fontSize: 'var(--admin-font-size-sm)' }}>Carregando leads...</span>
+        {loading ? (
+          <div className="admin-loading">
+            <div className="admin-spinner"></div>
+            <span>Carregando leads...</span>
+          </div>
+      ) : (
+          <div className="admin-card">
+            <div className="admin-card-header">
+              <div>
+                <h3 className="admin-card-title">Leads ({filteredLeads.length})</h3>
+                <p className="admin-card-description">Visualização em cards dos leads</p>
               </div>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">
-              Leads ({filteredLeads.length})
-            </h2>
-            <p className="admin-card-description">
-              Visualização em cards dos leads
-            </p>
-          </div>
           <div className="admin-card-content">
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredLeads.map((lead) => (
@@ -716,6 +677,7 @@ export default function ModernLeadsPage() {
         onUpdateTag={handleUpdateTag}
         onDeleteTag={handleDeleteTag}
       />
+      </div>
     </div>
   );
 }

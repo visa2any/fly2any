@@ -1464,37 +1464,37 @@ export default function EnglishHomePage() {
                   city: 'Rio de Janeiro',
                   description: 'Iconic beaches, Christ the Redeemer, vibrant nightlife',
                   image: '🏖️',
-                  price: 'from $299'
+                  price: 'from $599'
                 },
                 {
                   city: 'São Paulo',
                   description: 'Business hub, amazing food scene, cultural attractions',
                   image: '🏙️',
-                  price: 'from $349'
+                  price: 'from $649'
                 },
                 {
                   city: 'Salvador',
                   description: 'Historic center, Afro-Brazilian culture, beautiful beaches',
                   image: '🏛️',
-                  price: 'from $279'
+                  price: 'from $599'
                 },
                 {
                   city: 'Brasília',
                   description: 'Modern architecture, UNESCO World Heritage site',
                   image: '🏢',
-                  price: 'from $329'
+                  price: 'from $629'
                 },
                 {
                   city: 'Recife',
                   description: 'Tropical paradise, coral reefs, colonial architecture',
                   image: '🌴',
-                  price: 'from $259'
+                  price: 'from $599'
                 },
                 {
                   city: 'Fortaleza',
                   description: 'Stunning beaches, sand dunes, seafood cuisine',
                   image: '⛱️',
-                  price: 'from $269'
+                  price: 'from $599'
                 }
               ].map((destination, index) => (
                 <div
