@@ -76,6 +76,7 @@ export default function ModernLeadsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [activeTab, setActiveTab] = useState('leads');
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -567,6 +568,33 @@ export default function ModernLeadsPage() {
         availableTags={availableTags}
       />
 
+        {/* Tabs System */}
+        <div className="admin-tabs">
+          <div className="admin-tabs-list">
+            <button 
+              className={`admin-tab-trigger ${activeTab === 'leads' ? 'active' : ''}`}
+              onClick={() => setActiveTab('leads')}
+            >
+              👥 Leads
+            </button>
+            <button 
+              className={`admin-tab-trigger ${activeTab === 'analytics' ? 'active' : ''}`}
+              onClick={() => setActiveTab('analytics')}
+            >
+              📊 Analytics
+            </button>
+            <button 
+              className={`admin-tab-trigger ${activeTab === 'tags' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tags')}
+            >
+              🏷️ Tags
+            </button>
+          </div>
+          
+          <div className="admin-tab-content">
+            {activeTab === 'leads' && (
+              <>
+
       {/* View Toggle and Select All */}
       <div className="admin-card">
         <div className="admin-card-content">
@@ -577,16 +605,16 @@ export default function ModernLeadsPage() {
                   type="checkbox"
                   checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
                   onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  className="admin-checkbox"
                 />
-                <span className="admin-label" style={{ marginBottom: 0, color: 'var(--admin-text-secondary)' }}>
+                <span className="admin-label-inline admin-text-secondary">
                   Selecionar todos ({filteredLeads.length})
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="admin-label" style={{ marginBottom: 0, color: 'var(--admin-text-muted)' }}>Visualização:</span>
+              <span className="admin-label-inline admin-text-muted">Visualização:</span>
               <button
                 className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
                 onClick={() => setViewMode('grid')}
@@ -621,15 +649,15 @@ export default function ModernLeadsPage() {
               </div>
             </div>
           <div className="admin-card-content">
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="admin-grid admin-grid-3">
               {filteredLeads.map((lead) => (
                 <div key={lead.id} className="relative">
-                  <div className="absolute top-3 left-3 z-10">
+                  <div className="admin-checkbox-container">
                     <input
                       type="checkbox"
                       checked={selectedLeads.includes(lead.id)}
                       onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 shadow-sm"
+                      className="admin-checkbox"
                     />
                   </div>
                   <LeadCard
@@ -662,6 +690,79 @@ export default function ModernLeadsPage() {
           </button>
         </div>
       )}
+
+              </>
+            )}
+
+            {activeTab === 'analytics' && (
+              <div className="admin-card">
+                <div className="admin-card-header">
+                  <div>
+                    <h3 className="admin-card-title">📊 Analytics de Leads</h3>
+                    <p className="admin-card-description">Métricas e insights de performance</p>
+                  </div>
+                </div>
+                <div className="admin-card-content">
+                  <div className="admin-grid admin-grid-2">
+                    <div className="admin-stats-card">
+                      <div className="admin-stats-header">
+                        <span className="admin-stats-title">Taxa de Conversão</span>
+                        <TrendingUp className="admin-stats-icon" />
+                      </div>
+                      <div className="admin-stats-value">{stats.conversion}%</div>
+                      <div className="admin-stats-label">último mês</div>
+                    </div>
+                    <div className="admin-stats-card">
+                      <div className="admin-stats-header">
+                        <span className="admin-stats-title">Tempo Médio</span>
+                        <Calendar className="admin-stats-icon" />
+                      </div>
+                      <div className="admin-stats-value">2.5 dias</div>
+                      <div className="admin-stats-label">para conversão</div>
+                    </div>
+                  </div>
+                  <div className="admin-badge admin-badge-info">
+                    🚧 Analytics avançados em desenvolvimento
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'tags' && (
+              <div className="admin-card">
+                <div className="admin-card-header">
+                  <div>
+                    <h3 className="admin-card-title">🏷️ Gestão de Tags</h3>
+                    <p className="admin-card-description">Organize e categorize seus leads</p>
+                  </div>
+                </div>
+                <div className="admin-card-content">
+                  <div className="admin-grid admin-grid-4">
+                    {availableTags.map((tag) => (
+                      <div key={tag.id} className="admin-stats-card">
+                        <div className="admin-stats-header">
+                          <span className="admin-stats-title" style={{ color: tag.color }}>{tag.name}</span>
+                          <MoreVertical className="admin-stats-icon" />
+                        </div>
+                        <div className="admin-stats-value">
+                          {leads.filter(lead => lead.tags?.some(t => t.id === tag.id)).length}
+                        </div>
+                        <div className="admin-stats-label">leads marcados</div>
+                      </div>
+                    ))}
+                  </div>
+                  {availableTags.length === 0 && (
+                    <div className="admin-empty-state">
+                      <div className="admin-empty-icon">🏷️</div>
+                      <h3 className="admin-empty-title">Nenhuma tag criada</h3>
+                      <p className="admin-empty-description">Crie tags para organizar seus leads</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
       {/* Edit Modal */}
       <LeadEditModal

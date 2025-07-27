@@ -1,9 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+// Using admin CSS classes instead of UI components
 import { Avatar, AvatarFallback, AvatarInitials } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
@@ -110,8 +108,8 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-400">
-      <CardHeader className="pb-3">
+    <div className="admin-card admin-card-hover">
+      <div className="admin-card-header">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
@@ -141,15 +139,15 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
           </div>
           
           <div className="flex items-center gap-2">
-            <Badge className={statusColors[lead.status as keyof typeof statusColors] || statusColors.novo}>
+            <span className={`admin-badge admin-status-${lead.status.toLowerCase()}`}>
               {lead.status.replace('_', ' ').toUpperCase()}
-            </Badge>
+            </span>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <button className="admin-btn admin-btn-ghost admin-btn-sm">
                   <MoreHorizontal className="h-4 w-4" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => onEdit(lead)}>
@@ -179,9 +177,9 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
             </DropdownMenu>
           </div>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="pt-0">
+      <div className="admin-card-content">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Contact Info */}
           <div className="space-y-2">
@@ -256,27 +254,23 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              variant="outline"
+            <button 
               onClick={() => onContact(lead.id, 'email')}
-              className="h-8"
+              className="admin-btn admin-btn-outline admin-btn-sm"
             >
-              <Mail className="h-3 w-3 mr-1" />
+              <Mail className="h-3 w-3" />
               Email
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
+            </button>
+            <button 
               onClick={() => onContact(lead.id, 'whatsapp')}
-              className="h-8"
+              className="admin-btn admin-btn-outline admin-btn-sm"
             >
-              <MessageSquare className="h-3 w-3 mr-1" />
+              <MessageSquare className="h-3 w-3" />
               WhatsApp
-            </Button>
+            </button>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
