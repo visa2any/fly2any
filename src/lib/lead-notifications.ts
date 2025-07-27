@@ -35,7 +35,7 @@ export interface LeadNotificationData {
 export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData) {
   try {
     const adminEmails = [
-      'contato@fly2any.com',
+      'info@fly2any.com',
       'fly2any.travel@gmail.com'
     ];
 
@@ -46,26 +46,224 @@ export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .lead-info { background: white; padding: 15px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #667eea; }
-        .field { margin: 8px 0; }
-        .label { font-weight: bold; color: #555; }
-        .value { color: #333; }
-        .services { background: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; }
-        .urgent { background: #fff3cd; border-left-color: #ffc107; }
-        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        /* Reset e Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background-color: #f5f5f5;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Container Principal */
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* Header */
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 24px 20px; 
+            text-align: center;
+        }
+        .header h2 { 
+            font-size: 24px; 
+            margin-bottom: 8px; 
+            font-weight: 700;
+        }
+        .header p { 
+            font-size: 16px; 
+            opacity: 0.9; 
+            margin: 0;
+        }
+        
+        /* Content */
+        .content { 
+            padding: 20px; 
+            background: white;
+        }
+        
+        /* Cards de Informação */
+        .lead-info { 
+            background: #f8fafc; 
+            padding: 16px; 
+            border-radius: 8px; 
+            margin: 16px 0; 
+            border-left: 4px solid #667eea;
+            border: 1px solid #e2e8f0;
+        }
+        .lead-info h3 { 
+            font-size: 18px; 
+            margin-bottom: 12px; 
+            color: #1a202c;
+            font-weight: 600;
+        }
+        
+        /* Campos */
+        .field { 
+            margin: 12px 0; 
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .label { 
+            font-weight: 600; 
+            color: #4a5568; 
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .value { 
+            color: #1a202c; 
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Serviços */
+        .services { 
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); 
+            padding: 16px; 
+            border-radius: 8px; 
+            margin: 16px 0;
+            border: 1px solid #bbdefb;
+        }
+        .services h3 {
+            color: #1565c0;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .services ul {
+            list-style: none;
+            padding: 0;
+        }
+        .services li {
+            background: white;
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            border-left: 3px solid #2196f3;
+            font-weight: 500;
+        }
+        
+        /* Estado Urgente */
+        .urgent { 
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); 
+            border-left-color: #ff9800;
+            border-color: #ffcc02;
+        }
+        .urgent h3 { color: #e65100; }
+        
+        /* Botões */
         .btn { 
             display: inline-block; 
-            background: #667eea; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; 
-            padding: 12px 24px; 
+            padding: 14px 28px; 
             text-decoration: none; 
-            border-radius: 6px; 
-            margin: 10px 0;
+            border-radius: 8px; 
+            margin: 16px 0;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Footer */
+        .footer { 
+            text-align: center; 
+            margin-top: 24px; 
+            padding: 20px;
+            color: #666; 
+            font-size: 13px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* Mobile First - Media Queries */
+        @media screen and (max-width: 480px) {
+            .container { 
+                margin: 0; 
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .header { 
+                padding: 20px 16px; 
+                border-radius: 0;
+            }
+            .header h2 { 
+                font-size: 20px; 
+            }
+            .header p { 
+                font-size: 14px; 
+            }
+            
+            .content { 
+                padding: 16px; 
+            }
+            
+            .lead-info { 
+                padding: 14px; 
+                margin: 12px 0;
+                border-radius: 6px;
+            }
+            .lead-info h3 { 
+                font-size: 16px; 
+            }
+            
+            .field { 
+                margin: 10px 0; 
+            }
+            .label { 
+                font-size: 12px; 
+            }
+            .value { 
+                font-size: 15px;
+                padding: 10px;
+            }
+            
+            .services { 
+                padding: 14px; 
+            }
+            .services h3 {
+                font-size: 16px;
+            }
+            .services li {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .btn { 
+                padding: 16px 24px; 
+                font-size: 16px;
+                width: 100%;
+                text-align: center;
+                display: block;
+            }
+            
+            .footer { 
+                padding: 16px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Suporte a Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            .value {
+                background: #f8fafc;
+                color: #1a202c;
+            }
         }
     </style>
 </head>

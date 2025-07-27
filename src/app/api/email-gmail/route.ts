@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     await transporter.verify();
 
     const mailOptions = {
-      from: '"Fly2Any" <contato@fly2any.com>',
+      from: '"Fly2Any" <info@fly2any.com>',
       to: email,
       subject: subject,
       html: html,
