@@ -287,8 +287,8 @@ export default function TermosUso() {
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
       
