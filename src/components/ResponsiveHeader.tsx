@@ -231,7 +231,7 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 9998
+                  zIndex: 99998
                 }}
                 onClick={() => setIsLanguageDropdownOpen(false)}
               />
@@ -247,7 +247,7 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
                 overflow: 'hidden',
                 minWidth: '160px',
-                zIndex: 9999,
+                zIndex: 99999,
                 backdropFilter: 'blur(10px)'
               }}>
                 {languages.map((language) => (
