@@ -28,7 +28,11 @@ export default function TermosUso() {
         
         {/* Main Content */}
         <main style={{ paddingBottom: '80px' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '0 24px'
+          }}>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
               
               {/* Card principal */}
@@ -283,6 +287,7 @@ export default function TermosUso() {
                   }}>
                     <strong>Última atualização:</strong> 28 de julho de 2025
                   </p>
+                </div>
                 </div>
               </div>
             </div>
