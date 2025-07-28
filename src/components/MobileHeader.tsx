@@ -26,30 +26,10 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
 
   // Mapear URLs equivalentes entre idiomas
   const getLanguageUrl = (targetLang: string) => {
-    const currentLang = getCurrentLanguage();
-    
-    if (currentLang === 'pt' && pathname === '/') {
-      if (targetLang === 'en') return '/en';
-      if (targetLang === 'es') return '/es';
-      return '/';
-    }
-    
-    if (currentLang === 'en' && pathname === '/en') {
-      if (targetLang === 'pt') return '/';
-      if (targetLang === 'es') return '/es';
-      return '/en';
-    }
-    
-    if (currentLang === 'es' && pathname === '/es') {
-      if (targetLang === 'pt') return '/';
-      if (targetLang === 'en') return '/en';
-      return '/es';
-    }
-    
-    // Para outras páginas, manter na homepage do idioma selecionado
+    // Simplificado: sempre direcionar para a homepage do idioma escolhido
     if (targetLang === 'en') return '/en';
     if (targetLang === 'es') return '/es';
-    return '/';
+    return '/'; // português (default)
   };
 
   const languages = [

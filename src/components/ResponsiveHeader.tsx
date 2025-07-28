@@ -27,33 +27,10 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
 
   // Mapear URLs equivalentes entre idiomas
   const getLanguageUrl = (targetLang: string) => {
-    const currentLang = getCurrentLanguage();
-    
-    if (currentLang === 'pt' && pathname === '/') {
-      // Homepage português
-      if (targetLang === 'en') return '/en';
-      if (targetLang === 'es') return '/es';
-      return '/';
-    }
-    
-    if (currentLang === 'en' && pathname === '/en') {
-      // Homepage inglês
-      if (targetLang === 'pt') return '/';
-      if (targetLang === 'es') return '/es';
-      return '/en';
-    }
-    
-    if (currentLang === 'es' && pathname === '/es') {
-      // Homepage espanhol
-      if (targetLang === 'pt') return '/';
-      if (targetLang === 'en') return '/en';
-      return '/es';
-    }
-    
-    // Para outras páginas, manter na homepage do idioma selecionado
+    // Simplificado: sempre direcionar para a homepage do idioma escolhido
     if (targetLang === 'en') return '/en';
     if (targetLang === 'es') return '/es';
-    return '/';
+    return '/'; // português (default)
   };
 
   const languages = [
@@ -277,7 +254,10 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
                   <Link
                     key={language.code}
                     href={getLanguageUrl(language.code)}
-                    onClick={() => setIsLanguageDropdownOpen(false)}
+                    onClick={() => {
+                      console.log(`Navegando para: ${getLanguageUrl(language.code)}`);
+                      setIsLanguageDropdownOpen(false);
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
