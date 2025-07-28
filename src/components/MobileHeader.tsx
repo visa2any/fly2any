@@ -86,6 +86,14 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+              onBlur={(e) => {
+                // Fechar dropdown após um pequeno delay para permitir cliques nos links
+                setTimeout(() => {
+                  if (!e.currentTarget.contains(document.activeElement)) {
+                    setIsLanguageDropdownOpen(false);
+                  }
+                }, 150);
+              }}
               style={{
                 background: 'rgba(255, 255, 255, 0.15)',
                 border: '1px solid rgba(255, 255, 255, 0.25)',
@@ -112,32 +120,19 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
 
             {/* Mobile Language Dropdown */}
             {isLanguageDropdownOpen && (
-              <>
-                <div 
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 999998
-                  }}
-                  onClick={() => setIsLanguageDropdownOpen(false)}
-                />
-                
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: '4px',
-                  background: 'white',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  borderRadius: '6px',
-                  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
-                  overflow: 'hidden',
-                  minWidth: '140px',
-                  zIndex: 999999
-                }}>
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '4px',
+                background: 'white',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '6px',
+                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
+                overflow: 'hidden',
+                minWidth: '140px',
+                zIndex: 999999
+              }}>
                   {languages.map((language) => (
                     <Link
                       key={language.code}
@@ -164,7 +159,6 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
                     </Link>
                   ))}
                 </div>
-              </>
             )}
           </div>
 

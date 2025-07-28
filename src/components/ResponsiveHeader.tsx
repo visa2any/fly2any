@@ -175,6 +175,14 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
         <div style={{ position: 'relative', marginLeft: '24px' }}>
           <button
             onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+            onBlur={(e) => {
+              // Fechar dropdown após um pequeno delay para permitir cliques nos links
+              setTimeout(() => {
+                if (!e.currentTarget.contains(document.activeElement)) {
+                  setIsLanguageDropdownOpen(false);
+                }
+              }, 150);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -222,34 +230,20 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
 
           {/* Dropdown */}
           {isLanguageDropdownOpen && (
-            <>
-              {/* Backdrop to close dropdown */}
-              <div 
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 999998
-                }}
-                onClick={() => setIsLanguageDropdownOpen(false)}
-              />
-              
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '8px',
-                background: 'white',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                borderRadius: '8px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                overflow: 'hidden',
-                minWidth: '160px',
-                zIndex: 999999,
-                backdropFilter: 'blur(10px)'
-              }}>
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: '8px',
+              background: 'white',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '8px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+              overflow: 'hidden',
+              minWidth: '160px',
+              zIndex: 999999,
+              backdropFilter: 'blur(10px)'
+            }}>
                 {languages.map((language) => (
                   <Link
                     key={language.code}
@@ -297,7 +291,6 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
                   </Link>
                 ))}
               </div>
-            </>
           )}
         </div>
       </div>
