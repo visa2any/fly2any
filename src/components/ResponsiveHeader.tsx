@@ -2,7 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Logo from './Logo';
 import MobileHeader from './MobileHeader';
 import { FlightIcon, PhoneIcon } from './Icons';
@@ -15,6 +16,8 @@ interface ResponsiveHeaderProps {
 export default function ResponsiveHeader({ style, className }: ResponsiveHeaderProps) {
   const pathname = usePathname();
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Detectar idioma atual baseado na URL
   const getCurrentLanguage = () => {
@@ -38,6 +41,17 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
     { code: 'en', name: 'English', flag: '🇺🇸' },
     { code: 'es', name: 'Español', flag: '🇪🇸' }
   ];
+
+  // Calcular posição do dropdown
+  useEffect(() => {
+    if (isLanguageDropdownOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, [isLanguageDropdownOpen]);
 
   return (
     <>
@@ -174,15 +188,8 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
         {/* Language Selector */}
         <div style={{ position: 'relative', marginLeft: '24px' }}>
           <button
+            ref={buttonRef}
             onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-            onBlur={(e) => {
-              // Fechar dropdown após um pequeno delay para permitir cliques nos links
-              setTimeout(() => {
-                if (!e.currentTarget.contains(document.activeElement)) {
-                  setIsLanguageDropdownOpen(false);
-                }
-              }, 150);
-            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -228,54 +235,73 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
             </svg>
           </button>
 
-          {/* Dropdown */}
-          {isLanguageDropdownOpen && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              right: 0,
-              marginTop: '8px',
-              background: 'white',
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              borderRadius: '8px',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-              overflow: 'hidden',
-              minWidth: '160px',
-              zIndex: 999999,
-              backdropFilter: 'blur(10px)'
-            }}>
-                {languages.map((language) => (
-                  <a
-                    key={language.code}
-                    href={getLanguageUrl(language.code)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const url = getLanguageUrl(language.code);
-                      console.log(`Clicou em ${language.name}, navegando para: ${url}`);
-                      setIsLanguageDropdownOpen(false);
-                      window.location.href = url;
-                    }}
-                    style={{
-                      display: 'block',
-                      padding: '12px 16px',
-                      color: '#374151',
-                      textDecoration: 'none',
-                      fontSize: '14px',
-                      borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <span style={{ fontSize: '18px', marginRight: '8px' }}>{language.flag}</span>
-                    <span>{language.name}</span>
-                  </a>
-                ))}
-              </div>
-          )}
         </div>
       </div>
     </header>
       </div>
+
+      {/* Portal dropdown */}
+      {isLanguageDropdownOpen && typeof window !== 'undefined' && createPortal(
+        <>
+          {/* Backdrop */}
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999998,
+              background: 'transparent'
+            }}
+            onClick={() => setIsLanguageDropdownOpen(false)}
+          />
+          
+          {/* Dropdown */}
+          <div style={{
+            position: 'fixed',
+            top: dropdownPosition.top,
+            right: dropdownPosition.right,
+            background: 'white',
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            overflow: 'hidden',
+            minWidth: '160px',
+            zIndex: 999999,
+            backdropFilter: 'blur(10px)'
+          }}>
+            {languages.map((language) => (
+              <button
+                key={language.code}
+                onClick={() => {
+                  const url = getLanguageUrl(language.code);
+                  console.log(`🚀 PORTAL: Clicou em ${language.name}, navegando para: ${url}`);
+                  setIsLanguageDropdownOpen(false);
+                  window.location.href = url;
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '12px 16px',
+                  color: '#374151',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                  cursor: 'pointer',
+                  background: 'transparent',
+                  border: 'none',
+                  textAlign: 'left'
+                }}
+              >
+                <span style={{ fontSize: '18px', marginRight: '8px' }}>{language.flag}</span>
+                <span>{language.name}</span>
+              </button>
+            ))}
+          </div>
+        </>,
+        document.body
+      )}
 
       {/* CSS for responsive behavior */}
       <style jsx>{`
