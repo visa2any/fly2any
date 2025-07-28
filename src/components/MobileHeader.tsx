@@ -134,29 +134,31 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
                 zIndex: 999999
               }}>
                   {languages.map((language) => (
-                    <Link
+                    <a
                       key={language.code}
                       href={getLanguageUrl(language.code)}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const url = getLanguageUrl(language.code);
+                        console.log(`Mobile: Clicou em ${language.name}, navegando para: ${url}`);
                         setIsLanguageDropdownOpen(false);
                         closeMenu();
+                        window.location.href = url;
                       }}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
+                        display: 'block',
                         padding: '10px 12px',
-                        color: currentLang === language.code ? '#1e40af' : '#374151',
+                        color: '#374151',
                         textDecoration: 'none',
                         fontSize: '13px',
-                        fontWeight: currentLang === language.code ? '600' : '500',
-                        background: currentLang === language.code ? '#f0f9ff' : 'transparent',
-                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                        cursor: 'pointer'
                       }}
                     >
-                      <span style={{ fontSize: '16px' }}>{language.flag}</span>
+                      <span style={{ fontSize: '16px', marginRight: '8px' }}>{language.flag}</span>
                       <span>{language.name}</span>
-                    </Link>
+                    </a>
                   ))}
                 </div>
             )}

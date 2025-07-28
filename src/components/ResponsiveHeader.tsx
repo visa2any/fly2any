@@ -245,50 +245,30 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
               backdropFilter: 'blur(10px)'
             }}>
                 {languages.map((language) => (
-                  <Link
+                  <a
                     key={language.code}
                     href={getLanguageUrl(language.code)}
-                    onClick={() => {
-                      console.log(`Navegando para: ${getLanguageUrl(language.code)}`);
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const url = getLanguageUrl(language.code);
+                      console.log(`Clicou em ${language.name}, navegando para: ${url}`);
                       setIsLanguageDropdownOpen(false);
+                      window.location.href = url;
                     }}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
+                      display: 'block',
                       padding: '12px 16px',
-                      color: currentLang === language.code ? '#1e40af' : '#374151',
+                      color: '#374151',
                       textDecoration: 'none',
                       fontSize: '14px',
-                      fontWeight: currentLang === language.code ? '600' : '500',
-                      background: currentLang === language.code ? '#f0f9ff' : 'transparent',
                       borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentLang !== language.code) {
-                        e.currentTarget.style.background = '#f9fafb';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (currentLang !== language.code) {
-                        e.currentTarget.style.background = 'transparent';
-                      }
+                      cursor: 'pointer'
                     }}
                   >
-                    <span style={{ fontSize: '18px' }}>{language.flag}</span>
+                    <span style={{ fontSize: '18px', marginRight: '8px' }}>{language.flag}</span>
                     <span>{language.name}</span>
-                    {currentLang === language.code && (
-                      <svg 
-                        style={{ width: '16px', height: '16px', marginLeft: 'auto', color: '#1e40af' }} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </Link>
+                  </a>
                 ))}
               </div>
           )}
