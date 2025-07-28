@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -15,41 +15,37 @@ export const metadata: Metadata = {
 
 export default function TermosUso() {
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      {/* Header */}
-      <header className="bg-glass border-b border-white/20">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-xl font-poppins">F</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white font-poppins">Fly2Any</h1>
-                <p className="text-blue-100 text-sm">Especialistas Brasil-EUA</p>
-              </div>
-            </Link>
-            <nav className="hidden md:flex gap-8">
-              <Link href="/" className="text-white/90 hover:text-white transition-colors">Home</Link>
-              <Link href="/como-funciona" className="text-white/90 hover:text-white transition-colors">Como Funciona</Link>
-              <Link href="/faq" className="text-white/90 hover:text-white transition-colors">FAQ</Link>
-              <Link href="/contato" className="text-white/90 hover:text-white transition-colors">Contato</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+    <div style={{ minHeight: '100vh' }}>
+      {/* Header Responsivo */}
+      <ResponsiveHeader />
 
-      {/* Main Content */}
-      <main className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="card-premium">
-              <h1 className="text-4xl font-bold text-white mb-8 font-poppins">Termos de Uso</h1>
+      {/* Background com gradiente */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)',
+        minHeight: 'calc(100vh - 70px)',
+        paddingTop: '80px'
+      }}>
+        
+        {/* Main Content */}
+        <main style={{ paddingBottom: '80px' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
               
-              <div className="space-y-6 text-blue-100">
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">1. Aceitação dos Termos</h2>
-                  <p className="mb-4">
+              {/* Card principal */}
+              <div className="termos-card">
+                <h1 className="termos-title">
+                  Termos de Uso
+                </h1>
+                
+                <div style={{ color: 'rgba(255, 255, 255, 0.9)', lineHeight: '1.7' }}>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>1. Aceitação dos Termos</h2>
+                  <p style={{ marginBottom: '16px' }}>
                     Ao utilizar os serviços da Fly2Any, você concorda com estes termos de uso. 
                     Se não concordar com qualquer parte destes termos, não utilize nossos serviços.
                   </p>
@@ -59,127 +55,233 @@ export default function TermosUso() {
                   </p>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">2. Descrição dos Serviços</h2>
-                  <p className="mb-4">A Fly2Any oferece serviços de:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Consultoria e intermediação para passagens aéreas</li>
-                    <li>Reservas de hotéis e acomodações</li>
-                    <li>Aluguel de veículos</li>
-                    <li>Seguro viagem e assistência</li>
-                    <li>Pacotes de passeios e tours</li>
-                    <li>Suporte e atendimento ao cliente</li>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>2. Descrição dos Serviços</h2>
+                  <p style={{ marginBottom: '16px' }}>A Fly2Any oferece serviços de:</p>
+                  <ul style={{
+                    listStyleType: 'disc',
+                    marginLeft: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <li style={{ marginBottom: '8px' }}>Consultoria e intermediação para passagens aéreas</li>
+                    <li style={{ marginBottom: '8px' }}>Reservas de hotéis e acomodações</li>
+                    <li style={{ marginBottom: '8px' }}>Aluguel de veículos</li>
+                    <li style={{ marginBottom: '8px' }}>Seguro viagem e assistência</li>
+                    <li style={{ marginBottom: '8px' }}>Pacotes de passeios e tours</li>
+                    <li style={{ marginBottom: '8px' }}>Suporte e atendimento ao cliente</li>
                   </ul>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">3. Responsabilidades do Cliente</h2>
-                  <p className="mb-4">Ao utilizar nossos serviços, você se compromete a:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Fornecer informações precisas e atualizadas</li>
-                    <li>Verificar documentação necessária para viagem</li>
-                    <li>Cumprir prazos de pagamento acordados</li>
-                    <li>Seguir políticas das companhias aéreas e hotéis</li>
-                    <li>Comunicar alterações ou cancelamentos em tempo hábil</li>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>3. Responsabilidades do Cliente</h2>
+                  <p style={{ marginBottom: '16px' }}>Ao utilizar nossos serviços, você se compromete a:</p>
+                  <ul style={{
+                    listStyleType: 'disc',
+                    marginLeft: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <li style={{ marginBottom: '8px' }}>Fornecer informações precisas e atualizadas</li>
+                    <li style={{ marginBottom: '8px' }}>Verificar documentação necessária para viagem</li>
+                    <li style={{ marginBottom: '8px' }}>Cumprir prazos de pagamento acordados</li>
+                    <li style={{ marginBottom: '8px' }}>Seguir políticas das companhias aéreas e hotéis</li>
+                    <li style={{ marginBottom: '8px' }}>Comunicar alterações ou cancelamentos em tempo hábil</li>
                   </ul>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibent text-white mb-4 font-poppins">4. Políticas de Pagamento</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">4.1 Formas de Pagamento</h3>
-                      <p>Aceitamos pagamentos via cartão de crédito, débito, transferência bancária e PIX.</p>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">4.2 Prazos</h3>
-                      <p>Pagamentos devem ser realizados conforme cronograma acordado na cotação.</p>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">4.3 Reembolsos</h3>
-                      <p>Reembolsos seguem políticas específicas de cada fornecedor (companhias aéreas, hotéis, etc.).</p>
-                    </div>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>4. Políticas de Pagamento</h2>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>4.1 Formas de Pagamento</h3>
+                    <p style={{ marginBottom: '12px' }}>Aceitamos pagamentos via cartão de crédito, débito, transferência bancária e PIX.</p>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>4.2 Prazos</h3>
+                    <p style={{ marginBottom: '12px' }}>Pagamentos devem ser realizados conforme cronograma acordado na cotação.</p>
+                  </div>
+                  <div>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>4.3 Reembolsos</h3>
+                    <p>Reembolsos seguem políticas específicas de cada fornecedor (companhias aéreas, hotéis, etc.).</p>
                   </div>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">5. Cancelamentos e Alterações</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">5.1 Cancelamentos pelo Cliente</h3>
-                      <p>Cancelamentos estão sujeitos às políticas dos fornecedores e podem incorrer em taxas.</p>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">5.2 Alterações de Reserva</h3>
-                      <p>Alterações dependem de disponibilidade e podem resultar em diferenças tarifárias.</p>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-300 mb-2">5.3 Cancelamentos pela Fly2Any</h3>
-                      <p>Reservamos o direito de cancelar serviços em casos excepcionais, com reembolso integral.</p>
-                    </div>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>5. Cancelamentos e Alterações</h2>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>5.1 Cancelamentos pelo Cliente</h3>
+                    <p style={{ marginBottom: '12px' }}>Cancelamentos estão sujeitos às políticas dos fornecedores e podem incorrer em taxas.</p>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>5.2 Alterações de Reserva</h3>
+                    <p style={{ marginBottom: '12px' }}>Alterações dependem de disponibilidade e podem resultar em diferenças tarifárias.</p>
+                  </div>
+                  <div>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#fbbf24',
+                      marginBottom: '8px'
+                    }}>5.3 Cancelamentos pela Fly2Any</h3>
+                    <p>Reservamos o direito de cancelar serviços em casos excepcionais, com reembolso integral.</p>
                   </div>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">6. Limitação de Responsabilidade</h2>
-                  <p className="mb-4">A Fly2Any atua como intermediária e não é responsável por:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Alterações ou cancelamentos pelos fornecedores</li>
-                    <li>Atrasos, perdas de conexão ou problemas operacionais</li>
-                    <li>Questões de visto, documentação ou imigração</li>
-                    <li>Condições climáticas ou casos fortuitos</li>
-                    <li>Bagagens perdidas ou danificadas</li>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>6. Limitação de Responsabilidade</h2>
+                  <p style={{ marginBottom: '16px' }}>A Fly2Any atua como intermediária e não é responsável por:</p>
+                  <ul style={{
+                    listStyleType: 'disc',
+                    marginLeft: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <li style={{ marginBottom: '8px' }}>Alterações ou cancelamentos pelos fornecedores</li>
+                    <li style={{ marginBottom: '8px' }}>Atrasos, perdas de conexão ou problemas operacionais</li>
+                    <li style={{ marginBottom: '8px' }}>Questões de visto, documentação ou imigração</li>
+                    <li style={{ marginBottom: '8px' }}>Condições climáticas ou casos fortuitos</li>
+                    <li style={{ marginBottom: '8px' }}>Bagagens perdidas ou danificadas</li>
                   </ul>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">7. Propriedade Intelectual</h2>
-                  <p className="mb-4">
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>7. Propriedade Intelectual</h2>
+                  <p>
                     Todo conteúdo do site, incluindo textos, imagens, logos e design, é propriedade da Fly2Any 
                     ou licenciado por terceiros. É proibida a reprodução sem autorização prévia.
                   </p>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">8. Suporte ao Cliente</h2>
-                  <p className="mb-4">Oferecemos suporte através de:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Formulário de contato: /contato</li>
-                    <li>WhatsApp: https://wa.me/551151944717</li>
-                    <li>Horário: Segunda a sexta, 9h às 18h (EST)</li>
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>8. Suporte ao Cliente</h2>
+                  <p style={{ marginBottom: '16px' }}>Oferecemos suporte através de:</p>
+                  <ul style={{
+                    listStyleType: 'disc',
+                    marginLeft: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <li style={{ marginBottom: '8px' }}>Formulário de contato: /contato</li>
+                    <li style={{ marginBottom: '8px' }}>WhatsApp: https://wa.me/551151944717</li>
+                    <li style={{ marginBottom: '8px' }}>Horário: Segunda a sexta, 9h às 18h (EST)</li>
                   </ul>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">9. Modificações dos Termos</h2>
-                  <p className="mb-4">
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>9. Modificações dos Termos</h2>
+                  <p>
                     Estes termos podem ser alterados a qualquer momento. Alterações significativas 
                     serão comunicadas com antecedência de 30 dias.
                   </p>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">10. Lei Aplicável</h2>
-                  <p className="mb-4">
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>10. Lei Aplicável</h2>
+                  <p>
                     Estes termos são regidos pelas leis brasileiras e americanas, conforme aplicável. 
                     Disputas serão resolvidas preferencialmente por mediação ou arbitragem.
                   </p>
                 </section>
 
-                <section>
-                  <h2 className="text-2xl font-semibold text-white mb-4 font-poppins">11. Contato</h2>
-                  <p className="mb-4">
+                <section style={{ marginBottom: '32px' }}>
+                  <h2 style={{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>11. Contato</h2>
+                  <p style={{ marginBottom: '16px' }}>
                     Para questões sobre estes termos, entre em contato:
                   </p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Formulário de contato: /contato</li>
-                    <li>CNPJ: [Número do CNPJ]</li>
+                  <ul style={{
+                    listStyleType: 'disc',
+                    marginLeft: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <li style={{ marginBottom: '8px' }}>Formulário de contato: /contato</li>
+                    <li style={{ marginBottom: '8px' }}>CNPJ: [Número do CNPJ]</li>
                   </ul>
                 </section>
 
-                <div className="mt-8 p-4 bg-blue-600/20 rounded-lg">
-                  <p className="text-sm text-blue-200">
-                    <strong>Última atualização:</strong> 8 de julho de 2024
+                <div style={{
+                  marginTop: '32px',
+                  padding: '16px',
+                  background: 'rgba(59, 130, 246, 0.2)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(59, 130, 246, 0.3)'
+                }}>
+                  <p style={{
+                    fontSize: '14px',
+                    color: 'rgba(191, 219, 254, 0.9)',
+                    margin: 0
+                  }}>
+                    <strong>Última atualização:</strong> 28 de julho de 2025
                   </p>
                 </div>
               </div>
@@ -189,6 +291,42 @@ export default function TermosUso() {
       </main>
 
       <Footer />
+      
+      {/* Estilos responsivos */}
+      <style jsx>{`
+        .termos-card {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 24px;
+          padding: 48px;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .termos-title {
+          font-size: 48px;
+          font-weight: bold;
+          color: white;
+          margin-bottom: 32px;
+          text-align: center;
+          background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        @media (max-width: 768px) {
+          .termos-card {
+            padding: 24px;
+            border-radius: 16px;
+          }
+          
+          .termos-title {
+            font-size: 32px;
+            margin-bottom: 24px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
