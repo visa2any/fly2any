@@ -120,7 +120,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    zIndex: 99998
+                    zIndex: 999998
                   }}
                   onClick={() => setIsLanguageDropdownOpen(false)}
                 />
@@ -136,7 +136,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
                   boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
                   overflow: 'hidden',
                   minWidth: '140px',
-                  zIndex: 99999
+                  zIndex: 999999
                 }}>
                   {languages.map((language) => (
                     <Link
