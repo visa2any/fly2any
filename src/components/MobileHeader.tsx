@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import { FlightIcon, PhoneIcon } from './Icons';
 
@@ -11,6 +12,51 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Detectar idioma atual baseado na URL
+  const getCurrentLanguage = () => {
+    if (pathname.startsWith('/en')) return 'en';
+    if (pathname.startsWith('/es')) return 'es';
+    return 'pt';
+  };
+
+  const currentLang = getCurrentLanguage();
+
+  // Mapear URLs equivalentes entre idiomas
+  const getLanguageUrl = (targetLang: string) => {
+    const currentLang = getCurrentLanguage();
+    
+    if (currentLang === 'pt' && pathname === '/') {
+      if (targetLang === 'en') return '/en';
+      if (targetLang === 'es') return '/es';
+      return '/';
+    }
+    
+    if (currentLang === 'en' && pathname === '/en') {
+      if (targetLang === 'pt') return '/';
+      if (targetLang === 'es') return '/es';
+      return '/en';
+    }
+    
+    if (currentLang === 'es' && pathname === '/es') {
+      if (targetLang === 'pt') return '/';
+      if (targetLang === 'en') return '/en';
+      return '/es';
+    }
+    
+    // Para outras páginas, manter na homepage do idioma selecionado
+    if (targetLang === 'en') return '/en';
+    if (targetLang === 'es') return '/es';
+    return '/';
+  };
+
+  const languages = [
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' }
+  ];
 
   const navigationItems = [
     { href: '/', label: 'Início', icon: 'home' },
@@ -54,7 +100,95 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
           <Logo size="sm" variant="logo-only" />
         </Link>
 
-        {/* Hamburger Menu Button */}
+        {/* Right Side - Language Selector + Menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Language Selector Mobile */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '6px',
+                padding: '6px 8px',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                minWidth: '50px',
+                justifyContent: 'center'
+              }}
+            >
+              <span style={{ fontSize: '14px' }}>
+                {languages.find(lang => lang.code === currentLang)?.flag}
+              </span>
+              <span style={{ fontSize: '11px' }}>
+                {languages.find(lang => lang.code === currentLang)?.code.toUpperCase()}
+              </span>
+            </button>
+
+            {/* Mobile Language Dropdown */}
+            {isLanguageDropdownOpen && (
+              <>
+                <div 
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 9998
+                  }}
+                  onClick={() => setIsLanguageDropdownOpen(false)}
+                />
+                
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  background: 'white',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: '6px',
+                  boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)',
+                  overflow: 'hidden',
+                  minWidth: '140px',
+                  zIndex: 9999
+                }}>
+                  {languages.map((language) => (
+                    <Link
+                      key={language.code}
+                      href={getLanguageUrl(language.code)}
+                      onClick={() => {
+                        setIsLanguageDropdownOpen(false);
+                        closeMenu();
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        color: currentLang === language.code ? '#1e40af' : '#374151',
+                        textDecoration: 'none',
+                        fontSize: '13px',
+                        fontWeight: currentLang === language.code ? '600' : '500',
+                        background: currentLang === language.code ? '#f0f9ff' : 'transparent',
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <span style={{ fontSize: '16px' }}>{language.flag}</span>
+                      <span>{language.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Hamburger Menu Button */}
         <button
           onClick={toggleMenu}
           style={{
@@ -96,6 +230,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
             transition: 'all 0.3s ease'
           }} />
         </button>
+        </div>
       </header>
 
       {/* Mobile Menu Overlay */}

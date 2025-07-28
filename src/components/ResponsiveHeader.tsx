@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useState } from 'react';
 import Logo from './Logo';
 import MobileHeader from './MobileHeader';
 import { FlightIcon, PhoneIcon } from './Icons';
@@ -13,6 +14,53 @@ interface ResponsiveHeaderProps {
 
 export default function ResponsiveHeader({ style, className }: ResponsiveHeaderProps) {
   const pathname = usePathname();
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+
+  // Detectar idioma atual baseado na URL
+  const getCurrentLanguage = () => {
+    if (pathname.startsWith('/en')) return 'en';
+    if (pathname.startsWith('/es')) return 'es';
+    return 'pt';
+  };
+
+  const currentLang = getCurrentLanguage();
+
+  // Mapear URLs equivalentes entre idiomas
+  const getLanguageUrl = (targetLang: string) => {
+    const currentLang = getCurrentLanguage();
+    
+    if (currentLang === 'pt' && pathname === '/') {
+      // Homepage português
+      if (targetLang === 'en') return '/en';
+      if (targetLang === 'es') return '/es';
+      return '/';
+    }
+    
+    if (currentLang === 'en' && pathname === '/en') {
+      // Homepage inglês
+      if (targetLang === 'pt') return '/';
+      if (targetLang === 'es') return '/es';
+      return '/en';
+    }
+    
+    if (currentLang === 'es' && pathname === '/es') {
+      // Homepage espanhol
+      if (targetLang === 'pt') return '/';
+      if (targetLang === 'en') return '/en';
+      return '/es';
+    }
+    
+    // Para outras páginas, manter na homepage do idioma selecionado
+    if (targetLang === 'en') return '/en';
+    if (targetLang === 'es') return '/es';
+    return '/';
+  };
+
+  const languages = [
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' }
+  ];
 
   return (
     <>
@@ -145,6 +193,133 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
             Contato
           </Link>
         </nav>
+
+        {/* Language Selector */}
+        <div style={{ position: 'relative', marginLeft: '24px' }}>
+          <button
+            onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              backdropFilter: 'blur(10px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>
+              {languages.find(lang => lang.code === currentLang)?.flag}
+            </span>
+            <span>
+              {languages.find(lang => lang.code === currentLang)?.code.toUpperCase()}
+            </span>
+            <svg 
+              style={{ 
+                width: '12px', 
+                height: '12px', 
+                transform: isLanguageDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.3s ease'
+              }} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {/* Dropdown */}
+          {isLanguageDropdownOpen && (
+            <>
+              {/* Backdrop to close dropdown */}
+              <div 
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 9998
+                }}
+                onClick={() => setIsLanguageDropdownOpen(false)}
+              />
+              
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '8px',
+                background: 'white',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+                overflow: 'hidden',
+                minWidth: '160px',
+                zIndex: 9999,
+                backdropFilter: 'blur(10px)'
+              }}>
+                {languages.map((language) => (
+                  <Link
+                    key={language.code}
+                    href={getLanguageUrl(language.code)}
+                    onClick={() => setIsLanguageDropdownOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px 16px',
+                      color: currentLang === language.code ? '#1e40af' : '#374151',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: currentLang === language.code ? '600' : '500',
+                      background: currentLang === language.code ? '#f0f9ff' : 'transparent',
+                      borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (currentLang !== language.code) {
+                        e.currentTarget.style.background = '#f9fafb';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (currentLang !== language.code) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '18px' }}>{language.flag}</span>
+                    <span>{language.name}</span>
+                    {currentLang === language.code && (
+                      <svg 
+                        style={{ width: '16px', height: '16px', marginLeft: 'auto', color: '#1e40af' }} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
       </div>
