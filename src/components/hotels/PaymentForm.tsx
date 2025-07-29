@@ -80,7 +80,7 @@ export default function PaymentForm({
 
       // @ts-expect-error - LiteAPI SDK global
       if (window.liteAPIPayment) {
-        // @ts-expect-error
+        // @ts-expect-error - LiteAPI SDK method call on global window object
         window.liteAPIPayment.init(liteAPIConfig);
       }
     }
