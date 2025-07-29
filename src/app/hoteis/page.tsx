@@ -22,7 +22,7 @@ import { BenefitsSection } from '@/components/ui/benefits-section';
 import { HeroSection } from '@/components/ui/hero-section';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { ReviewsIntegration } from '@/components/ui/reviews-integration';
-import { Filter, Search, List, Grid, Map, CheckCircle, Wifi, Zap, Award } from 'lucide-react';
+import { Filter, Search, List, Grid, Map, CheckCircle, Wifi, Zap, Award, X } from 'lucide-react';
 import type { 
   HotelSearchParams, 
   HotelSearchResponse, 

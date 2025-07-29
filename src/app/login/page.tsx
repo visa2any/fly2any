@@ -197,6 +197,8 @@ function LoginContent() {
           </p>
         </div>
       </div>
+    </div>
+  </div>
   );
 }
 

@@ -295,6 +295,8 @@ function RegisterContent() {
           </ul>
         </div>
       </div>
+    </div>
+  </div>
   );
 }
 
