@@ -18,14 +18,16 @@ const detailsParamsSchema = z.object({
 });
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const resolvedParams = await params;
+  const hotelId = resolvedParams.id;
+  
   try {
-    const hotelId = params.id;
     
     if (!hotelId || hotelId.length < 3) {
       return NextResponse.json(
@@ -156,7 +158,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
     
   } catch (error: any) {
-    console.error(`Erro ao buscar detalhes do hotel ${params.id}:`, error);
+    console.error(`Erro ao buscar detalhes do hotel ${resolvedParams.id}:`, error);
     
     // Tratamento específico de erros
     if (error.message?.includes('HTTP 404')) {

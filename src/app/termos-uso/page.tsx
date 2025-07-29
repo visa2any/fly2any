@@ -1,17 +1,7 @@
-import type { Metadata } from "next";
+'use client';
+
 import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
-
-export const metadata: Metadata = {
-  title: "Termos de Uso | Fly2Any",
-  description: "Conheça os termos e condições de uso dos serviços da Fly2Any.",
-  robots: "index, follow",
-  openGraph: {
-    title: "Termos de Uso | Fly2Any",
-    description: "Conheça os termos e condições de uso dos serviços da Fly2Any.",
-    url: "https://fly2any.com/termos-uso",
-  },
-};
 
 export default function TermosUso() {
   return (

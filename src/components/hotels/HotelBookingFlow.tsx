@@ -760,7 +760,7 @@ export default function HotelBookingFlow({
                   </div>
 
                   {/* Payment Form */}
-                  {bookingState.prebooking && (
+                  {bookingState.prebooking && bookingState.prebooking.totalPrice && (
                     <PaymentForm
                       prebookingData={{
                         secretKey: bookingState.prebooking.secretKey,

@@ -5,7 +5,7 @@
  * Integrates search, results, details, and booking flow
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Metadata } from 'next';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
@@ -59,7 +59,7 @@ const initialState: PageState = {
   showComparison: false
 };
 
-export default function HoteisPage() {
+function HoteisContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, setState] = useState<PageState>(initialState);
@@ -1423,5 +1423,20 @@ export default function HoteisPage() {
         )}
       </div>
     </>
+  );
+}
+
+export default function HoteisPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-hotel-main flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando hotéis...</p>
+        </div>
+      </div>
+    }>
+      <HoteisContent />
+    </Suspense>
   );
 }

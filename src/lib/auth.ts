@@ -291,8 +291,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  // Additional configuration to prevent fetch errors
-  trustHost: true,
+  // Use NEXTAUTH_URL from environment for host configuration
+  // trustHost is not a valid NextAuth v4 option
   
   logger: {
     error: (code, metadata) => {

@@ -222,11 +222,12 @@ function generateCacheKey(hotelId: string, params: any): string {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   const startTime = Date.now();
   const requestId = crypto.randomUUID();
-  const hotelId = params.id;
+  const resolvedParams = await params;
+  const hotelId = resolvedParams.id;
 
   try {
     // Validate hotel ID

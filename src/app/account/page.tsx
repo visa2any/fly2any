@@ -445,7 +445,7 @@ export default function AccountPage() {
                         <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex items-center justify-between">
                             <span className="text-gray-700">Alterar senha</span>
-                            <span className="text-gray-400">></span>
+                            <span className="text-gray-400">{'>'}</span>
                           </div>
                         </button>
                         <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -463,13 +463,13 @@ export default function AccountPage() {
                         <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                           <div className="flex items-center justify-between">
                             <span className="text-gray-700">Baixar meus dados</span>
-                            <span className="text-gray-400">></span>
+                            <span className="text-gray-400">{'>'}</span>
                           </div>
                         </button>
                         <button className="w-full text-left p-3 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
                           <div className="flex items-center justify-between">
                             <span>Excluir conta</span>
-                            <span className="text-red-400">></span>
+                            <span className="text-red-400">{'>'}</span>
                           </div>
                         </button>
                       </div>
