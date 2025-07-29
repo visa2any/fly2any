@@ -300,28 +300,28 @@ export default function UnifiedEmailMarketingPage() {
       <div className="admin-container">
         
         {/* Header */}
-        <div className="admin-header-section">
+        <div className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6-section">
           <div>
             <h1 className="admin-page-title">📧 Email Marketing Unificado</h1>
             <p className="admin-page-subtitle">Dashboard completo com métricas em tempo real</p>
           </div>
-          <div className="admin-header-actions">
+          <div className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6-actions">
             <button
-              className={`admin-btn admin-btn-outline admin-btn-sm ${autoRefresh ? 'admin-btn-success' : ''}`}
+              className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm ${autoRefresh ? 'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-success' : ''}`}
               onClick={() => setAutoRefresh(!autoRefresh)}
             >
               <Activity className="w-4 h-4" />
               Auto Refresh {autoRefresh ? 'ON' : 'OFF'}
             </button>
             <button 
-              className="admin-btn admin-btn-outline admin-btn-sm" 
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm" 
               onClick={refreshData} 
               disabled={refreshing}
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'admin-spinner' : ''}`} />
               Atualizar
             </button>
-            <button className="admin-btn admin-btn-primary admin-btn-sm">
+            <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm">
               <Plus className="w-4 h-4" />
               Nova Campanha
             </button>
@@ -330,54 +330,54 @@ export default function UnifiedEmailMarketingPage() {
 
         {/* Estatísticas Gerais */}
         <div className="admin-grid admin-grid-4">
-          <div className="admin-stats-card">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="admin-stats-header">
               <span className="admin-stats-title">Total Contatos</span>
               <Users className="admin-stats-icon" />
             </div>
-            <div className="admin-stats-value">{contactStats?.total.toLocaleString() || '0'}</div>
-            <div className="admin-stats-label">
+            <div className="text-3xl font-bold text-slate-900 mb-2">{contactStats?.total.toLocaleString() || '0'}</div>
+            <div className="text-sm font-medium text-slate-600">
               {contactStats?.byStatus?.ativo || 0} ativos
             </div>
           </div>
 
-          <div className="admin-stats-card">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="admin-stats-header">
               <span className="admin-stats-title">Campanhas Ativas</span>
               <Send className="admin-stats-icon" />
             </div>
-            <div className="admin-stats-value">
+            <div className="text-3xl font-bold text-slate-900 mb-2">
               {campaigns.filter(c => c.status === 'sending').length}
             </div>
-            <div className="admin-stats-label">
+            <div className="text-sm font-medium text-slate-600">
               {campaigns.length} total
             </div>
           </div>
 
           {realTimeMetrics && (
             <>
-              <div className="admin-stats-card">
+              <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                 <div className="admin-stats-header">
                   <span className="admin-stats-title">Taxa de Abertura</span>
                   <Eye className="admin-stats-icon" />
                 </div>
-                <div className={`admin-stats-value ${getPerformanceColor(realTimeMetrics.openRate, 'open')}`}>
+                <div className={`text-3xl font-bold text-slate-900 mb-2 ${getPerformanceColor(realTimeMetrics.openRate, 'open')}`}>
                   {realTimeMetrics.openRate.toFixed(1)}%
                 </div>
-                <div className="admin-stats-label">
+                <div className="text-sm font-medium text-slate-600">
                   {realTimeMetrics.opened} aberturas
                 </div>
               </div>
 
-              <div className="admin-stats-card">
+              <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                 <div className="admin-stats-header">
                   <span className="admin-stats-title">Taxa de Clique</span>
                   <MousePointer className="admin-stats-icon" />
                 </div>
-                <div className={`admin-stats-value ${getPerformanceColor(realTimeMetrics.clickRate, 'click')}`}>
+                <div className={`text-3xl font-bold text-slate-900 mb-2 ${getPerformanceColor(realTimeMetrics.clickRate, 'click')}`}>
                   {realTimeMetrics.clickRate.toFixed(1)}%
                 </div>
-                <div className="admin-stats-label">
+                <div className="text-sm font-medium text-slate-600">
                   {realTimeMetrics.clicked} cliques
                 </div>
               </div>
@@ -432,14 +432,14 @@ export default function UnifiedEmailMarketingPage() {
               <div className="admin-grid admin-grid-3">
                 
                 {/* Lista de Campanhas */}
-                <div className="admin-card" style={{ gridColumn: 'span 2' }}>
-                  <div className="admin-card-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200" style={{ gridColumn: 'span 2' }}>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                     <div>
-                      <h3 className="admin-card-title">Campanhas Recentes</h3>
-                      <p className="admin-card-description">Últimas campanhas de email marketing</p>
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Campanhas Recentes</h3>
+                      <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Últimas campanhas de email marketing</p>
                     </div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div className="admin-gap-4 admin-overflow-y-auto" style={{ maxHeight: '400px' }}>
                       {campaigns.map((campaign) => (
                         <div 
@@ -457,7 +457,7 @@ export default function UnifiedEmailMarketingPage() {
                         >
                           <div className="admin-flex admin-flex-between admin-mb-2">
                             <h4 className="admin-font-semibold admin-text-sm">{campaign.name}</h4>
-                            <span className={`admin-badge admin-status-${campaign.status}`}>
+                            <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full admin-status-${campaign.status}`}>
                               {campaign.status}
                             </span>
                           </div>
@@ -479,24 +479,24 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Detalhes da Campanha Selecionada */}
                 {selectedCampaign && (
-                  <div className="admin-card">
-                    <div className="admin-card-header">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                       <div>
-                        <h3 className="admin-card-title">{selectedCampaign.name}</h3>
-                        <p className="admin-card-description">Detalhes da campanha selecionada</p>
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">{selectedCampaign.name}</h3>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Detalhes da campanha selecionada</p>
                       </div>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-gap-4">
                         <div className="admin-field-group">
-                          <label className="admin-label">Status</label>
-                          <span className={`admin-badge admin-status-${selectedCampaign.status}`}>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full admin-status-${selectedCampaign.status}`}>
                             {selectedCampaign.status}
                           </span>
                         </div>
                         
                         <div className="admin-field-group">
-                          <label className="admin-label">Assunto</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">Assunto</label>
                           <p className="admin-text-sm admin-text-gray-600">{selectedCampaign.subject}</p>
                         </div>
                         
@@ -513,7 +513,7 @@ export default function UnifiedEmailMarketingPage() {
                         
                         {selectedCampaign.status === 'sending' && (
                           <div className="admin-flex admin-gap-2">
-                            <button className="admin-btn admin-btn-outline admin-btn-sm admin-w-full">
+                            <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm admin-w-full">
                               <Pause className="w-4 h-4" />
                               Pausar
                             </button>
@@ -522,7 +522,7 @@ export default function UnifiedEmailMarketingPage() {
                         
                         {selectedCampaign.status === 'paused' && (
                           <div className="admin-flex admin-gap-2">
-                            <button className="admin-btn admin-btn-primary admin-btn-sm admin-w-full">
+                            <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm admin-w-full">
                               <Play className="w-4 h-4" />
                               Retomar
                             </button>
@@ -543,20 +543,20 @@ export default function UnifiedEmailMarketingPage() {
                 <div className="admin-grid admin-grid-2">
                   
                   {/* Métricas em Tempo Real */}
-                  <div className="admin-card">
-                    <div className="admin-card-header">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                       <div>
-                        <h3 className="admin-card-title admin-flex admin-flex-between">
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title admin-flex admin-flex-between">
                           📊 Métricas em Tempo Real
-                          <span className="admin-badge admin-badge-neutral">
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-neutral">
                             <Clock className="w-3 h-3" />
                             Atualizado há {Math.floor((Date.now() - new Date(realTimeMetrics.lastUpdate).getTime()) / 1000)}s
                           </span>
                         </h3>
-                        <p className="admin-card-description">Campanha: {selectedCampaign.name}</p>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Campanha: {selectedCampaign.name}</p>
                       </div>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-grid admin-grid-2 admin-gap-4">
                         <div className="admin-text-center admin-p-4 admin-bg-gray-50 admin-rounded-lg">
                           <div className="admin-text-2xl admin-font-bold" style={{color: '#3b82f6'}}>{realTimeMetrics.totalSent}</div>
@@ -600,14 +600,14 @@ export default function UnifiedEmailMarketingPage() {
                   </div>
 
                   {/* Status da Performance */}
-                  <div className="admin-card">
-                    <div className="admin-card-header">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                       <div>
-                        <h3 className="admin-card-title">🎯 Status da Performance</h3>
-                        <p className="admin-card-description">Análise automática da campanha</p>
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🎯 Status da Performance</h3>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Análise automática da campanha</p>
                       </div>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
                         <div className={`admin-p-4 admin-rounded-lg ${
                           realTimeMetrics.summary.status === 'excellent' ? 'admin-alert-success' :
@@ -651,8 +651,8 @@ export default function UnifiedEmailMarketingPage() {
                   </div>
                 </div>
               ) : (
-                <div className="admin-card">
-                  <div className="admin-card-content admin-text-center" style={{padding: '48px 24px'}}>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content admin-text-center" style={{padding: '48px 24px'}}>
                     <BarChart3 className="w-12 h-12 admin-text-gray-500" style={{margin: '0 auto 16px'}} />
                     <h3 className="admin-text-lg admin-font-semibold admin-text-gray-600 admin-mb-2">Selecione uma Campanha</h3>
                     <p className="admin-text-gray-500">Escolha uma campanha na aba "Campanhas" para ver métricas em tempo real</p>
@@ -669,16 +669,16 @@ export default function UnifiedEmailMarketingPage() {
                 <div className="admin-grid admin-grid-1">
                   
                   {/* Header da seção */}
-                  <div className="admin-card">
-                    <div className="admin-card-header">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                       <div className="admin-flex admin-flex-between">
                         <div>
-                          <h3 className="admin-card-title">🏥 Análise de Saúde da Campanha</h3>
-                          <p className="admin-card-description">Campanha: {selectedCampaign.name}</p>
+                          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🏥 Análise de Saúde da Campanha</h3>
+                          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Campanha: {selectedCampaign.name}</p>
                         </div>
-                        <span className={`admin-badge ${
-                          campaignHealth.status === 'healthy' ? 'admin-badge-success' : 
-                          campaignHealth.status === 'warning' ? 'admin-badge-warning' : 'admin-badge-danger'
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
+                          campaignHealth.status === 'healthy' ? 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-success' : 
+                          campaignHealth.status === 'warning' ? 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-warning' : 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-danger'
                         }`}>
                           {campaignHealth.status === 'healthy' ? '🟢 Saudável' :
                            campaignHealth.status === 'warning' ? '🟡 Atenção' : '🔴 Crítico'}
@@ -689,16 +689,16 @@ export default function UnifiedEmailMarketingPage() {
 
                   <div className="admin-grid admin-grid-2">
                     {/* Score de Saúde */}
-                    <div className="admin-card">
-                      <div className="admin-card-header">
-                        <h3 className="admin-card-title">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">
                           {campaignHealth.status === 'healthy' ? <Heart className="w-5 h-5 admin-text-green-500" /> :
                            campaignHealth.status === 'warning' ? <AlertTriangle className="w-5 h-5 admin-text-yellow-500" /> :
                            <AlertCircle className="w-5 h-5 admin-text-red-500" />}
                           Score de Saúde
                         </h3>
                       </div>
-                      <div className="admin-card-content">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                         <div className="admin-text-center admin-mb-6">
                           <div className={`admin-text-6xl admin-font-bold admin-mb-2 ${
                             campaignHealth.score >= 75 ? 'admin-text-green-600' :
@@ -731,14 +731,14 @@ export default function UnifiedEmailMarketingPage() {
                     </div>
 
                     {/* Tendências */}
-                    <div className="admin-card">
-                      <div className="admin-card-header">
-                        <h3 className="admin-card-title">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">
                           <TrendingUp className="w-5 h-5" />
                           Tendências vs Campanha Anterior
                         </h3>
                       </div>
-                      <div className="admin-card-content">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                         <div className="admin-grid admin-grid-1" style={{gap: '12px'}}>
                           {/* Taxa de Abertura */}
                           <div className="admin-flex admin-flex-between admin-p-3 admin-bg-gray-50 admin-rounded-lg">
@@ -811,14 +811,14 @@ export default function UnifiedEmailMarketingPage() {
                   <div className="admin-grid admin-grid-2">
                     {/* Problemas Identificados */}
                     {campaignHealth.issues.length > 0 && (
-                      <div className="admin-card">
-                        <div className="admin-card-header">
-                          <h3 className="admin-card-title admin-text-red-600">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title admin-text-red-600">
                             <AlertCircle className="w-5 h-5" />
                             Problemas Identificados
                           </h3>
                         </div>
-                        <div className="admin-card-content">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                           <div className="admin-grid admin-grid-1" style={{gap: '8px'}}>
                             {campaignHealth.issues.map((issue, index) => (
                               <div key={index} className="admin-flex admin-p-3 admin-bg-red-50 admin-rounded-lg admin-border" style={{borderColor: '#fecaca'}}>
@@ -833,14 +833,14 @@ export default function UnifiedEmailMarketingPage() {
 
                     {/* Recomendações */}
                     {campaignHealth.recommendations.length > 0 && (
-                      <div className="admin-card">
-                        <div className="admin-card-header">
-                          <h3 className="admin-card-title admin-text-blue-600">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title admin-text-blue-600">
                             <Target className="w-5 h-5" />
                             Recomendações
                           </h3>
                         </div>
-                        <div className="admin-card-content">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                           <div className="admin-grid admin-grid-1" style={{gap: '8px'}}>
                             {campaignHealth.recommendations.map((rec, index) => (
                               <div key={index} className="admin-flex admin-p-3 admin-bg-blue-50 admin-rounded-lg admin-border" style={{borderColor: '#bfdbfe'}}>
@@ -855,11 +855,11 @@ export default function UnifiedEmailMarketingPage() {
                   </div>
 
                   {/* Resumo Executivo */}
-                  <div className="admin-card">
-                    <div className="admin-card-header">
-                      <h3 className="admin-card-title">📋 Resumo Executivo</h3>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📋 Resumo Executivo</h3>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-grid admin-grid-3">
                         <div className="admin-text-center admin-p-4 admin-bg-gray-50 admin-rounded-lg">
                           <div className="admin-text-2xl admin-font-bold" style={{color: '#10b981'}}>
@@ -884,8 +884,8 @@ export default function UnifiedEmailMarketingPage() {
                   </div>
                 </div>
               ) : (
-                <div className="admin-card">
-                  <div className="admin-card-content admin-text-center" style={{padding: '48px 24px'}}>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content admin-text-center" style={{padding: '48px 24px'}}>
                     <Shield className="w-12 h-12 admin-text-gray-400" style={{margin: '0 auto 16px'}} />
                     <h3 className="admin-text-lg admin-font-semibold admin-text-gray-600 admin-mb-2">Selecione uma Campanha</h3>
                     <p className="admin-text-gray-500">Escolha uma campanha na aba "Campanhas" para ver análise de saúde detalhada</p>
@@ -900,14 +900,14 @@ export default function UnifiedEmailMarketingPage() {
               <div className="admin-grid admin-grid-1">
                 
                 {/* Header da seção */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                     <div className="admin-flex admin-flex-between">
                       <div>
-                        <h3 className="admin-card-title">📧 Templates de Email</h3>
-                        <p className="admin-card-description">Gerencie seus templates de email marketing</p>
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📧 Templates de Email</h3>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Gerencie seus templates de email marketing</p>
                       </div>
-                      <button className="admin-btn admin-btn-primary admin-btn-sm">
+                      <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm">
                         <Plus className="w-4 h-4" />
                         Novo Template
                       </button>
@@ -918,19 +918,19 @@ export default function UnifiedEmailMarketingPage() {
                 {/* Grid de Templates */}
                 <div className="admin-grid admin-grid-2">
                   {templates.length > 0 ? templates.map((template, index) => (
-                    <div key={template.id || index} className="admin-card">
-                      <div className="admin-card-header">
+                    <div key={template.id || index} className="bg-white rounded-xl shadow-lg border border-gray-200">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                         <div className="admin-flex admin-flex-between">
                           <div>
-                            <h4 className="admin-card-title admin-text-lg">{template.name}</h4>
-                            <p className="admin-card-description">{template.description}</p>
+                            <h4 className="bg-white rounded-xl shadow-lg border border-gray-200-title admin-text-lg">{template.name}</h4>
+                            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">{template.description}</p>
                           </div>
-                          <span className={`admin-badge admin-badge-${template.type === 'promotional' ? 'info' : template.type === 'newsletter' ? 'success' : 'warning'}`}>
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-${template.type === 'promotional' ? 'info' : template.type === 'newsletter' ? 'success' : 'warning'}`}>
                             {template.type}
                           </span>
                         </div>
                       </div>
-                      <div className="admin-card-content">
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                         <div className="admin-mb-4">
                           <div className="admin-text-sm admin-text-gray-600 admin-mb-2">
                             <strong>Assunto:</strong> {template.subject}
@@ -942,11 +942,11 @@ export default function UnifiedEmailMarketingPage() {
                         </div>
                         
                         <div className="admin-flex admin-gap-2">
-                          <button className="admin-btn admin-btn-outline admin-btn-sm admin-flex-1">
+                          <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm admin-flex-1">
                             <Eye className="w-4 h-4" />
                             Visualizar
                           </button>
-                          <button className="admin-btn admin-btn-primary admin-btn-sm admin-flex-1">
+                          <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm admin-flex-1">
                             <Send className="w-4 h-4" />
                             Usar Template
                           </button>
@@ -954,12 +954,12 @@ export default function UnifiedEmailMarketingPage() {
                       </div>
                     </div>
                   )) : (
-                    <div className="admin-card" style={{gridColumn: 'span 2'}}>
-                      <div className="admin-card-content admin-text-center" style={{padding: '48px 24px'}}>
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200" style={{gridColumn: 'span 2'}}>
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content admin-text-center" style={{padding: '48px 24px'}}>
                         <FileText className="w-12 h-12 admin-text-gray-400" style={{margin: '0 auto 16px'}} />
                         <h3 className="admin-text-lg admin-font-semibold admin-text-gray-600 admin-mb-2">Nenhum Template Encontrado</h3>
                         <p className="admin-text-gray-500 admin-mb-4">Crie seu primeiro template de email marketing</p>
-                        <button className="admin-btn admin-btn-primary">
+                        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary">
                           <Plus className="w-4 h-4" />
                           Criar Primeiro Template
                         </button>
@@ -970,11 +970,11 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Estatísticas dos Templates */}
                 {templates.length > 0 && (
-                  <div className="admin-card">
-                    <div className="admin-card-header">
-                      <h3 className="admin-card-title">📊 Estatísticas dos Templates</h3>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📊 Estatísticas dos Templates</h3>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-grid admin-grid-3">
                         <div className="admin-text-center admin-p-4 admin-bg-gray-50 admin-rounded-lg">
                           <div className="admin-text-2xl admin-font-bold" style={{color: '#3b82f6'}}>{templates.length}</div>
@@ -1005,19 +1005,19 @@ export default function UnifiedEmailMarketingPage() {
               <div className="admin-grid admin-grid-1">
                 
                 {/* Header da seção */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                     <div className="admin-flex admin-flex-between">
                       <div>
-                        <h3 className="admin-card-title">👥 Gestão de Contatos</h3>
-                        <p className="admin-card-description">Gerencie sua base de contatos para email marketing</p>
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">👥 Gestão de Contatos</h3>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Gerencie sua base de contatos para email marketing</p>
                       </div>
                       <div className="admin-flex admin-gap-2">
-                        <button className="admin-btn admin-btn-outline admin-btn-sm">
+                        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm">
                           <FileText className="w-4 h-4" />
                           Importar CSV
                         </button>
-                        <button className="admin-btn admin-btn-primary admin-btn-sm">
+                        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm">
                           <Plus className="w-4 h-4" />
                           Novo Contato
                         </button>
@@ -1028,59 +1028,59 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Estatísticas dos Contatos */}
                 <div className="admin-grid admin-grid-4">
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Total Contatos</span>
                       <Users className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value">{contactStats?.total?.toLocaleString() || '0'}</div>
-                    <div className="admin-stats-label">Contatos cadastrados</div>
+                    <div className="text-3xl font-bold text-slate-900 mb-2">{contactStats?.total?.toLocaleString() || '0'}</div>
+                    <div className="text-sm font-medium text-slate-600">Contatos cadastrados</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Ativos</span>
                       <CheckCircle className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#10b981'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#10b981'}}>
                       {contactStats?.byStatus?.ativo || 0}
                     </div>
-                    <div className="admin-stats-label">Recebem emails</div>
+                    <div className="text-sm font-medium text-slate-600">Recebem emails</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Inativos</span>
                       <AlertCircle className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#f59e0b'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#f59e0b'}}>
                       {contactStats?.byStatus?.inativo || 0}
                     </div>
-                    <div className="admin-stats-label">Não recebem</div>
+                    <div className="text-sm font-medium text-slate-600">Não recebem</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Segmentos</span>
                       <Target className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#8b5cf6'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#8b5cf6'}}>
                       {Object.keys(contactStats?.bySegment || {}).length}
                     </div>
-                    <div className="admin-stats-label">Diferentes segmentos</div>
+                    <div className="text-sm font-medium text-slate-600">Diferentes segmentos</div>
                   </div>
                 </div>
 
                 {/* Lista de Contatos */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                     <div className="admin-flex admin-flex-between">
-                      <h3 className="admin-card-title">📋 Lista de Contatos</h3>
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📋 Lista de Contatos</h3>
                       <div className="admin-flex admin-gap-2">
                         <input 
                           type="text" 
                           placeholder="Buscar contatos..." 
-                          className="admin-input" 
+                          className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                           style={{width: '200px'}}
                         />
                         <select className="admin-select" style={{width: '150px'}}>
@@ -1092,7 +1092,7 @@ export default function UnifiedEmailMarketingPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     {contacts.length > 0 ? (
                       <div className="admin-table-container">
                         <table className="admin-table">
@@ -1112,12 +1112,12 @@ export default function UnifiedEmailMarketingPage() {
                                 <td>{contact.nome || contact.name || 'Sem nome'}</td>
                                 <td>{contact.email}</td>
                                 <td>
-                                  <span className="admin-badge admin-badge-info">
+                                  <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-info">
                                     {contact.segmento || contact.segment || 'Geral'}
                                   </span>
                                 </td>
                                 <td>
-                                  <span className={`admin-badge ${contact.status === 'ativo' ? 'admin-badge-success' : 'admin-badge-warning'}`}>
+                                  <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${contact.status === 'ativo' ? 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-success' : 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-warning'}`}>
                                     {contact.status || 'ativo'}
                                   </span>
                                 </td>
@@ -1126,10 +1126,10 @@ export default function UnifiedEmailMarketingPage() {
                                 </td>
                                 <td>
                                   <div className="admin-flex admin-gap-1">
-                                    <button className="admin-btn admin-btn-outline admin-btn-sm" style={{padding: '4px 8px'}}>
+                                    <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm" style={{padding: '4px 8px'}}>
                                       <Eye className="w-3 h-3" />
                                     </button>
-                                    <button className="admin-btn admin-btn-primary admin-btn-sm" style={{padding: '4px 8px'}}>
+                                    <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm" style={{padding: '4px 8px'}}>
                                       <Mail className="w-3 h-3" />
                                     </button>
                                   </div>
@@ -1144,7 +1144,7 @@ export default function UnifiedEmailMarketingPage() {
                         <Users className="w-12 h-12 admin-text-gray-400" style={{margin: '0 auto 16px'}} />
                         <h3 className="admin-text-lg admin-font-semibold admin-text-gray-600 admin-mb-2">Nenhum Contato Encontrado</h3>
                         <p className="admin-text-gray-500 admin-mb-4">Importe contatos ou adicione manualmente</p>
-                        <button className="admin-btn admin-btn-primary">
+                        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary">
                           <Plus className="w-4 h-4" />
                           Adicionar Primeiro Contato
                         </button>
@@ -1155,11 +1155,11 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Segmentação */}
                 {Object.keys(contactStats?.bySegment || {}).length > 0 && (
-                  <div className="admin-card">
-                    <div className="admin-card-header">
-                      <h3 className="admin-card-title">🎯 Segmentação de Contatos</h3>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🎯 Segmentação de Contatos</h3>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-grid admin-grid-3">
                         {Object.entries(contactStats?.bySegment || {}).map(([segment, count]) => (
                           <div key={segment} className="admin-text-center admin-p-4 admin-bg-gray-50 admin-rounded-lg">
@@ -1180,12 +1180,12 @@ export default function UnifiedEmailMarketingPage() {
               <div className="admin-grid admin-grid-1">
                 
                 {/* Header da seção */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                     <div className="admin-flex admin-flex-between">
                       <div>
-                        <h3 className="admin-card-title">📊 Analytics Avançados</h3>
-                        <p className="admin-card-description">Análise detalhada de performance das campanhas</p>
+                        <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📊 Analytics Avançados</h3>
+                        <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Análise detalhada de performance das campanhas</p>
                       </div>
                       <div className="admin-flex admin-gap-2">
                         <select className="admin-select">
@@ -1193,7 +1193,7 @@ export default function UnifiedEmailMarketingPage() {
                           <option value="30">Últimos 30 dias</option>
                           <option value="90">Últimos 90 dias</option>
                         </select>
-                        <button className="admin-btn admin-btn-outline admin-btn-sm">
+                        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-outline inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm">
                           <FileText className="w-4 h-4" />
                           Exportar Relatório
                         </button>
@@ -1204,57 +1204,57 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Métricas Principais */}
                 <div className="admin-grid admin-grid-4">
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Taxa Média Abertura</span>
                       <Eye className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#10b981'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#10b981'}}>
                       {analytics?.averageOpenRate ? `${analytics.averageOpenRate.toFixed(1)}%` : '24.3%'}
                     </div>
-                    <div className="admin-stats-label">+2.1% vs mês anterior</div>
+                    <div className="text-sm font-medium text-slate-600">+2.1% vs mês anterior</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Taxa Média Clique</span>
                       <MousePointer className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#3b82f6'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#3b82f6'}}>
                       {analytics?.averageClickRate ? `${analytics.averageClickRate.toFixed(1)}%` : '3.8%'}
                     </div>
-                    <div className="admin-stats-label">+0.5% vs mês anterior</div>
+                    <div className="text-sm font-medium text-slate-600">+0.5% vs mês anterior</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">Taxa Conversão</span>
                       <TrendingUp className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#8b5cf6'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#8b5cf6'}}>
                       {analytics?.conversionRate ? `${analytics.conversionRate.toFixed(1)}%` : '2.1%'}
                     </div>
-                    <div className="admin-stats-label">+0.3% vs mês anterior</div>
+                    <div className="text-sm font-medium text-slate-600">+0.3% vs mês anterior</div>
                   </div>
                   
-                  <div className="admin-stats-card">
+                  <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
                     <div className="admin-stats-header">
                       <span className="admin-stats-title">ROI Médio</span>
                       <Zap className="admin-stats-icon" />
                     </div>
-                    <div className="admin-stats-value" style={{color: '#f59e0b'}}>
+                    <div className="text-3xl font-bold text-slate-900 mb-2" style={{color: '#f59e0b'}}>
                       {analytics?.averageROI ? `${analytics.averageROI.toFixed(0)}%` : '340%'}
                     </div>
-                    <div className="admin-stats-label">+15% vs mês anterior</div>
+                    <div className="text-sm font-medium text-slate-600">+15% vs mês anterior</div>
                   </div>
                 </div>
 
                 {/* Performance por Segmento */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <h3 className="admin-card-title">🎯 Performance por Segmento</h3>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🎯 Performance por Segmento</h3>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div className="admin-table-container">
                       <table className="admin-table">
                         <thead className="admin-table-header">
@@ -1269,7 +1269,7 @@ export default function UnifiedEmailMarketingPage() {
                         </thead>
                         <tbody className="admin-table-body">
                           <tr>
-                            <td><span className="admin-badge admin-badge-success">Premium</span></td>
+                            <td><span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-success">Premium</span></td>
                             <td>15</td>
                             <td><span style={{color: '#10b981', fontWeight: '600'}}>28.5%</span></td>
                             <td><span style={{color: '#3b82f6', fontWeight: '600'}}>4.2%</span></td>
@@ -1277,7 +1277,7 @@ export default function UnifiedEmailMarketingPage() {
                             <td><span style={{color: '#f59e0b', fontWeight: '600'}}>420%</span></td>
                           </tr>
                           <tr>
-                            <td><span className="admin-badge admin-badge-info">Regular</span></td>
+                            <td><span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-info">Regular</span></td>
                             <td>28</td>
                             <td><span style={{color: '#10b981', fontWeight: '600'}}>22.1%</span></td>
                             <td><span style={{color: '#3b82f6', fontWeight: '600'}}>3.4%</span></td>
@@ -1285,7 +1285,7 @@ export default function UnifiedEmailMarketingPage() {
                             <td><span style={{color: '#f59e0b', fontWeight: '600'}}>285%</span></td>
                           </tr>
                           <tr>
-                            <td><span className="admin-badge admin-badge-warning">Novos</span></td>
+                            <td><span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-warning">Novos</span></td>
                             <td>22</td>
                             <td><span style={{color: '#10b981', fontWeight: '600'}}>19.8%</span></td>
                             <td><span style={{color: '#3b82f6', fontWeight: '600'}}>2.9%</span></td>
@@ -1300,11 +1300,11 @@ export default function UnifiedEmailMarketingPage() {
 
                 {/* Gráficos de Performance */}
                 <div className="admin-grid admin-grid-2">
-                  <div className="admin-card">
-                    <div className="admin-card-header">
-                      <h3 className="admin-card-title">📈 Evolução das Métricas</h3>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📈 Evolução das Métricas</h3>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-text-center" style={{padding: '40px 20px'}}>
                         <BarChart3 className="w-16 h-16 admin-text-gray-400" style={{margin: '0 auto 16px'}} />
                         <p className="admin-text-gray-500">Gráfico de evolução das métricas</p>
@@ -1313,19 +1313,19 @@ export default function UnifiedEmailMarketingPage() {
                     </div>
                   </div>
 
-                  <div className="admin-card">
-                    <div className="admin-card-header">
-                      <h3 className="admin-card-title">⏰ Melhor Horário para Envio</h3>
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                      <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">⏰ Melhor Horário para Envio</h3>
                     </div>
-                    <div className="admin-card-content">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                       <div className="admin-grid admin-grid-1" style={{gap: '12px'}}>
                         <div className="admin-flex admin-flex-between admin-p-3 admin-bg-gray-50 admin-rounded-lg">
                           <span className="admin-font-medium">Terça-feira</span>
-                          <span className="admin-badge admin-badge-success">Melhor dia</span>
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-success">Melhor dia</span>
                         </div>
                         <div className="admin-flex admin-flex-between admin-p-3 admin-bg-gray-50 admin-rounded-lg">
                           <span className="admin-font-medium">10:00 - 11:00</span>
-                          <span className="admin-badge admin-badge-info">Melhor horário</span>
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-info">Melhor horário</span>
                         </div>
                         <div className="admin-flex admin-flex-between admin-p-3 admin-bg-gray-50 admin-rounded-lg">
                           <span className="admin-font-medium">Taxa de abertura</span>
@@ -1337,11 +1337,11 @@ export default function UnifiedEmailMarketingPage() {
                 </div>
 
                 {/* Comparativo de Campanhas */}
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <h3 className="admin-card-title">🏆 Top 5 Campanhas do Mês</h3>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🏆 Top 5 Campanhas do Mês</h3>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div className="admin-grid admin-grid-1" style={{gap: '12px'}}>
                       {[
                         { name: 'Black Friday 2024', openRate: 45.2, clickRate: 8.1, conversions: 234 },

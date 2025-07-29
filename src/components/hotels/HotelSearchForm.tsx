@@ -583,8 +583,6 @@ export default function HotelSearchForm({
           max-width: 1000px;
           margin: 0 auto;
           width: 100%;
-          left: 50%;
-          transform: translateX(-50%);
         }
         
         .form-header {

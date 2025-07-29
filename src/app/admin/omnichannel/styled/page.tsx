@@ -39,11 +39,11 @@ export default function StyledOmnichannelPage() {
           transition: all 0.3s ease;
         }
         
-        .admin-card {
+        .bg-white rounded-xl shadow-lg border border-gray-200 {
           transition: all 0.3s ease;
         }
         
-        .admin-card:hover {
+        .bg-white rounded-xl shadow-lg border border-gray-200:hover {
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
         
@@ -152,8 +152,8 @@ export default function StyledOmnichannelPage() {
             {activeTab === 'chat' && (
               <div className="chat-layout">
                 <div className="chat-sidebar">
-                  <div className="admin-card-header">
-                    <div className="admin-card-title">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">
                       📋 Conversas Ativas
                     </div>
                   </div>
@@ -170,8 +170,8 @@ export default function StyledOmnichannelPage() {
                       onConversationUpdate={setSelectedConversation}
                     />
                   ) : (
-                    <div className="admin-card" style={{ height: '700px' }}>
-                      <div className="admin-card-content" style={{ 
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200" style={{ height: '700px' }}>
+                      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content" style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
@@ -204,11 +204,11 @@ export default function StyledOmnichannelPage() {
 
             {activeTab === 'analytics' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <div className="admin-card-title">📊 Métricas por Canal</div>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">📊 Métricas por Canal</div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ padding: '16px', backgroundColor: 'var(--color-green-50)', borderRadius: 'var(--admin-border-radius)', border: '1px solid var(--color-green-200)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -249,11 +249,11 @@ export default function StyledOmnichannelPage() {
                   </div>
                 </div>
 
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <div className="admin-card-title">⚡ Performance do Time</div>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">⚡ Performance do Time</div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ padding: '16px', backgroundColor: 'var(--color-green-50)', borderRadius: 'var(--admin-border-radius)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -281,11 +281,11 @@ export default function StyledOmnichannelPage() {
 
             {activeTab === 'settings' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <div className="admin-card-title">🔗 Status dos Canais</div>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">🔗 Status dos Canais</div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ padding: '16px', backgroundColor: 'var(--color-green-50)', borderRadius: 'var(--admin-border-radius)', border: '1px solid var(--color-green-200)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -320,11 +320,11 @@ export default function StyledOmnichannelPage() {
                   </div>
                 </div>
 
-                <div className="admin-card">
-                  <div className="admin-card-header">
-                    <div className="admin-card-title">🤖 Automações Ativas</div>
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">🤖 Automações Ativas</div>
                   </div>
-                  <div className="admin-card-content">
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <div style={{ padding: '16px', backgroundColor: 'var(--color-green-50)', borderRadius: 'var(--admin-border-radius)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

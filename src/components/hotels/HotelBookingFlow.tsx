@@ -25,6 +25,7 @@ import {
   Star
 } from 'lucide-react';
 import Image from 'next/image';
+import PaymentForm, { PaymentMethod } from './PaymentForm';
 import type { Hotel, Rate, Guest, ContactInfo, BookingResponse, PreBookingResponse } from '@/types/hotels';
 
 interface HotelBookingFlowProps {
@@ -53,6 +54,8 @@ interface BookingState {
   termsAccepted: boolean;
   prebooking: PreBookingResponse | null;
   booking: BookingResponse | null;
+  paymentMethod: PaymentMethod | null;
+  paymentCompleted: boolean;
   isLoading: boolean;
   error: string | null;
 }
@@ -95,6 +98,8 @@ export default function HotelBookingFlow({
     termsAccepted: false,
     prebooking: null,
     booking: null,
+    paymentMethod: null,
+    paymentCompleted: false,
     isLoading: false,
     error: null
   });
@@ -145,6 +150,7 @@ export default function HotelBookingFlow({
           prebookId: `demo_prebook_${Date.now()}`,
           status: 'confirmed' as const,
           validUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutos
+          secretKey: `demo_secret_${Date.now()}`, // For User Payment SDK
           totalPrice: {
             amount: selectedRate.totalPrice?.amount || selectedRate.price.amount,
             currency: selectedRate.currency || 'BRL',
@@ -198,6 +204,81 @@ export default function HotelBookingFlow({
         isLoading: false 
       });
     }
+  };
+
+  const handlePaymentComplete = async (paymentResult: any) => {
+    console.log('Payment completed:', paymentResult);
+    
+    updateState({ 
+      paymentCompleted: true,
+      paymentMethod: paymentResult.paymentMethod,
+      isLoading: true 
+    });
+
+    try {
+      // Para métodos que não processam automaticamente, finalizar aqui
+      if (paymentResult.paymentMethod !== 'USER_PAYMENT') {
+        const bookingResponse = await fetch('/api/hotels/booking/finalize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            transactionId: bookingState.prebooking?.prebookId,
+            paymentMethod: paymentResult.paymentMethod,
+            paymentDetails: paymentResult.paymentDetails,
+            guestDetails: {
+              guests: bookingState.guests,
+              contact: bookingState.contact,
+              specialRequests: bookingState.specialRequests
+            }
+          }),
+        });
+
+        const result = await bookingResponse.json();
+
+        if (result.success) {
+          const bookingData: BookingResponse = {
+            bookingReference: result.data.bookingReference,
+            status: result.data.status,
+            hotel: result.data.hotel,
+            checkIn: result.data.checkIn,
+            checkOut: result.data.checkOut,
+            totalPrice: result.data.totalPrice,
+            guests: result.data.guests,
+            confirmationEmail: result.data.confirmationEmail
+          };
+
+          updateState({ 
+            booking: bookingData,
+            step: 'confirmation',
+            isLoading: false 
+          });
+
+          onBookingComplete(bookingData);
+        } else {
+          throw new Error(result.error || 'Erro ao finalizar reserva');
+        }
+      } else {
+        // Para USER_PAYMENT, a finalização é feita na página de retorno
+        updateState({ isLoading: false });
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar booking:', error);
+      updateState({ 
+        error: error instanceof Error ? error.message : 'Erro ao finalizar reserva',
+        isLoading: false 
+      });
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    updateState({ 
+      error: error,
+      paymentCompleted: false,
+      isLoading: false 
+    });
   };
 
   const handleConfirmBooking = async () => {
@@ -632,7 +713,7 @@ export default function HotelBookingFlow({
             {bookingState.step === 'payment' && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">💳 Finalizar Reserva</h2>
-                <p className="text-gray-600 mb-8">Confirme seus dados e finalize sua reserva de hotel.</p>
+                <p className="text-gray-600 mb-8">Escolha seu método de pagamento e finalize sua reserva.</p>
 
                 {bookingState.prebooking && (
                   <div className="flex items-start gap-3 p-4 mb-6 bg-blue-50 border border-blue-200 rounded-lg">
@@ -646,7 +727,8 @@ export default function HotelBookingFlow({
                   </div>
                 )}
 
-                <div className="space-y-6">
+                <div className="space-y-8">
+                  {/* Guest Summary */}
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-semibold text-gray-900 mb-3">👥 Resumo dos Hóspedes</h3>
                     <div className="space-y-2">
@@ -662,6 +744,7 @@ export default function HotelBookingFlow({
                     </div>
                   </div>
 
+                  {/* Contact Summary */}
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-semibold text-gray-900 mb-3">📞 Contato</h3>
                     <div className="space-y-2">
@@ -676,6 +759,21 @@ export default function HotelBookingFlow({
                     </div>
                   </div>
 
+                  {/* Payment Form */}
+                  {bookingState.prebooking && (
+                    <PaymentForm
+                      prebookingData={{
+                        secretKey: bookingState.prebooking.secretKey,
+                        transactionId: bookingState.prebooking.prebookId,
+                        totalPrice: bookingState.prebooking.totalPrice
+                      }}
+                      onPaymentComplete={handlePaymentComplete}
+                      onPaymentError={handlePaymentError}
+                      isLoading={bookingState.isLoading}
+                    />
+                  )}
+
+                  {/* Terms and Conditions */}
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h3 className="font-semibold text-gray-900 mb-3">📋 Termos e Condições</h3>
                     

@@ -834,6 +834,7 @@ export interface PreBookingResponse {
   prebookId: string;
   status: 'confirmed' | 'pending' | 'failed';
   validUntil?: string;
+  secretKey?: string; // For User Payment SDK
   totalPrice?: {
     amount: number;
     currency: string;

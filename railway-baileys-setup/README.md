@@ -1,5 +1,17 @@
 # 🚀 Baileys WhatsApp Service - Railway Deployment
 
+## ⚡ Quick Start (FASTEST)
+
+```bash
+# Deploy automatically
+./deploy.sh
+
+# Test deployment  
+./test-deployment.sh https://your-railway-url.up.railway.app
+```
+
+**📖 For detailed instructions, see [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**
+
 ## 📋 Passo a Passo para Deploy no Railway
 
 ### 1️⃣ Criar Novo Projeto no Railway

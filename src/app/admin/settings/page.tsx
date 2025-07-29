@@ -72,7 +72,7 @@ export default function SettingsPage() {
           <label className="admin-label">Nome da Empresa</label>
           <input
             type="text"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.companyName}
             onChange={(e) => updateSetting('general', 'companyName', e.target.value)}
           />
@@ -81,7 +81,7 @@ export default function SettingsPage() {
           <label className="admin-label">Email Principal</label>
           <input
             type="email"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.email}
             onChange={(e) => updateSetting('general', 'email', e.target.value)}
           />
@@ -90,7 +90,7 @@ export default function SettingsPage() {
           <label className="admin-label">Telefone</label>
           <input
             type="tel"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.phone}
             onChange={(e) => updateSetting('general', 'phone', e.target.value)}
           />
@@ -99,7 +99,7 @@ export default function SettingsPage() {
           <label className="admin-label">Website</label>
           <input
             type="url"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.website}
             onChange={(e) => updateSetting('general', 'website', e.target.value)}
           />
@@ -108,7 +108,7 @@ export default function SettingsPage() {
           <label className="admin-label">Endereço</label>
           <input
             type="text"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.address}
             onChange={(e) => updateSetting('general', 'address', e.target.value)}
           />
@@ -116,7 +116,7 @@ export default function SettingsPage() {
         <div>
           <label className="admin-label">Fuso Horário</label>
           <select
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.timezone}
             onChange={(e) => updateSetting('general', 'timezone', e.target.value)}
           >
@@ -212,7 +212,7 @@ export default function SettingsPage() {
           <label className="admin-label">Token WhatsApp Business API</label>
           <input
             type="password"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.whatsappToken}
             onChange={(e) => updateSetting('integrations', 'whatsappToken', e.target.value)}
             placeholder="Insira o token do WhatsApp"
@@ -225,7 +225,7 @@ export default function SettingsPage() {
           <label className="admin-label">Google Analytics ID</label>
           <input
             type="text"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.googleAnalytics}
             onChange={(e) => updateSetting('integrations', 'googleAnalytics', e.target.value)}
             placeholder="GA-XXXXXXXXX"
@@ -235,7 +235,7 @@ export default function SettingsPage() {
           <label className="admin-label">Facebook Pixel ID</label>
           <input
             type="text"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.facebookPixel}
             onChange={(e) => updateSetting('integrations', 'facebookPixel', e.target.value)}
             placeholder="123456789012345"
@@ -245,7 +245,7 @@ export default function SettingsPage() {
           <label className="admin-label">Mailchimp API Key</label>
           <input
             type="password"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.mailchimp}
             onChange={(e) => updateSetting('integrations', 'mailchimp', e.target.value)}
             placeholder="API Key do Mailchimp"
@@ -255,7 +255,7 @@ export default function SettingsPage() {
           <label className="admin-label">Stripe Secret Key</label>
           <input
             type="password"
-            className="admin-input"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.stripe}
             onChange={(e) => updateSetting('integrations', 'stripe', e.target.value)}
             placeholder="sk_live_..."
@@ -317,7 +317,7 @@ export default function SettingsPage() {
             <label className="admin-label">Delay para Follow-up (horas)</label>
             <input
               type="number"
-              className="admin-input"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={settings.automation.followUpDelay}
               onChange={(e) => updateSetting('automation', 'followUpDelay', parseInt(e.target.value))}
               min="1"
@@ -328,7 +328,7 @@ export default function SettingsPage() {
             <label className="admin-label">Lembrete de Follow-up (dias)</label>
             <input
               type="number"
-              className="admin-input"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={settings.automation.reminderDays}
               onChange={(e) => updateSetting('automation', 'reminderDays', parseInt(e.target.value))}
               min="1"
@@ -391,8 +391,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-admin-text-primary mb-1">
@@ -415,8 +415,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex space-x-1 bg-admin-bg-secondary/50 p-1 rounded-lg">
             {tabs.map((tab) => (
               <button
@@ -437,8 +437,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           {renderTabContent()}
         </div>
       </div>

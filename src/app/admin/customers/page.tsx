@@ -83,7 +83,7 @@ const getStatusBadge = (status: string) => {
     'Premium': 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-orange-300',
     'Regular': 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-300'
   };
-  return badges[status as keyof typeof badges] || 'admin-badge-neutral';
+  return badges[status as keyof typeof badges] || 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-neutral';
 };
 
 export default function CustomersPage() {
@@ -312,70 +312,70 @@ export default function CustomersPage() {
           gap: '20px',
           marginBottom: '24px'
         }}>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-2xl shadow-lg">
               👥
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {stats.total}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Total de Clientes</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Total de Clientes</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center text-2xl shadow-lg">
               👑
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {stats.vip}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Clientes VIP</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Clientes VIP</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex items-center justify-center text-2xl shadow-lg">
               💰
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {formatCurrency(stats.totalRevenue)}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Receita Total</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Receita Total</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center text-2xl shadow-lg">
               📊
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {formatCurrency(stats.avgSpent)}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Ticket Médio</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Ticket Médio</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
-              <label className="admin-label">Buscar</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
               <input
                 type="text"
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nome, email ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div>
-              <label className="admin-label">Status</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -389,39 +389,39 @@ export default function CustomersPage() {
       </div>
 
       {/* Customers Table */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">Clientes ({filteredCustomers.length})</h2>
-          <p className="admin-card-description">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Clientes ({filteredCustomers.length})</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
             Lista de todos os clientes cadastrados
           </p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-admin-border-color">
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Cliente</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Viagens</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Gasto Total</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Última Viagem</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Ações</th>
+                <tr className="border-b border-border-slate-200">
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Cliente</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Viagens</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Gasto Total</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Última Viagem</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Status</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
+                  <tr key={customer.id} className="border-b border-border-slate-200 hover:bg-bg-slate-100/30">
                     <td className="py-3 px-2">
                       <div>
-                        <div className="font-semibold text-admin-text-primary">{customer.name}</div>
-                        <div className="text-sm text-admin-text-secondary">{customer.email}</div>
-                        <div className="text-sm text-admin-text-secondary">{customer.phone}</div>
+                        <div className="font-semibold text-text-slate-900">{customer.name}</div>
+                        <div className="text-sm text-text-slate-600">{customer.email}</div>
+                        <div className="text-sm text-text-slate-600">{customer.phone}</div>
                       </div>
                     </td>
-                    <td className="py-3 px-2 text-admin-text-primary font-semibold">{customer.totalTrips}</td>
-                    <td className="py-3 px-2 text-admin-text-primary font-semibold">{formatCurrency(customer.totalSpent)}</td>
-                    <td className="py-3 px-2 text-admin-text-secondary">
+                    <td className="py-3 px-2 text-text-slate-900 font-semibold">{customer.totalTrips}</td>
+                    <td className="py-3 px-2 text-text-slate-900 font-semibold">{formatCurrency(customer.totalSpent)}</td>
+                    <td className="py-3 px-2 text-text-slate-600">
                       {customer.lastTrip ? formatDate(customer.lastTrip) : 'Nenhuma'}
                     </td>
                     <td className="py-3 px-2">
@@ -471,65 +471,65 @@ export default function CustomersPage() {
       {/* Customer Detail Modal */}
       {selectedCustomer && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Detalhes do Cliente</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Detalhes do Cliente</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => setSelectedCustomer(null)}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome</label>
-                  <div className="text-admin-text-primary font-semibold">{selectedCustomer.name}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome</label>
+                  <div className="text-text-slate-900 font-semibold">{selectedCustomer.name}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(selectedCustomer.status)}`}>
                     {selectedCustomer.status}
                   </span>
                 </div>
                 <div>
-                  <label className="admin-label">Email</label>
-                  <div className="text-admin-text-primary">{selectedCustomer.email}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                  <div className="text-text-slate-900">{selectedCustomer.email}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Telefone</label>
-                  <div className="text-admin-text-primary">{selectedCustomer.phone}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Telefone</label>
+                  <div className="text-text-slate-900">{selectedCustomer.phone}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Data de Nascimento</label>
-                  <div className="text-admin-text-primary">{formatDate(selectedCustomer.birthDate)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Nascimento</label>
+                  <div className="text-text-slate-900">{formatDate(selectedCustomer.birthDate)}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Cliente desde</label>
-                  <div className="text-admin-text-primary">{formatDate(selectedCustomer.createdAt)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Cliente desde</label>
+                  <div className="text-text-slate-900">{formatDate(selectedCustomer.createdAt)}</div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Endereço</label>
-                  <div className="text-admin-text-primary">{selectedCustomer.address}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Endereço</label>
+                  <div className="text-text-slate-900">{selectedCustomer.address}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Total de Viagens</label>
-                  <div className="text-admin-text-primary font-semibold">{selectedCustomer.totalTrips}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Total de Viagens</label>
+                  <div className="text-text-slate-900 font-semibold">{selectedCustomer.totalTrips}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Gasto Total</label>
-                  <div className="text-admin-text-primary font-semibold">{formatCurrency(selectedCustomer.totalSpent)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Gasto Total</label>
+                  <div className="text-text-slate-900 font-semibold">{formatCurrency(selectedCustomer.totalSpent)}</div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Preferências</label>
-                  <div className="text-admin-text-primary">{selectedCustomer.preferences}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Preferências</label>
+                  <div className="text-text-slate-900">{selectedCustomer.preferences}</div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Observações</label>
-                  <div className="text-admin-text-primary">{selectedCustomer.notes}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observações</label>
+                  <div className="text-text-slate-900">{selectedCustomer.notes}</div>
                 </div>
               </div>
               <div className="flex gap-2 mt-6">
@@ -566,62 +566,62 @@ export default function CustomersPage() {
       {/* Create Customer Form Modal */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Criar Novo Cliente</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Criar Novo Cliente</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => { setShowCreateForm(false); resetForm(); }}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Email *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email *</label>
                   <input
                     type="email"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Telefone</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Telefone</label>
                   <input
                     type="tel"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Nascimento</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Nascimento</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.birthDate}
                     onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                   >
@@ -631,27 +631,27 @@ export default function CustomersPage() {
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Endereço</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Endereço</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Preferências</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Preferências</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.preferences}
                     onChange={(e) => setFormData({...formData, preferences: e.target.value})}
                     placeholder="Destinos preferidos, tipo de acomodação, etc..."
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Observações</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observações</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   />
@@ -680,62 +680,62 @@ export default function CustomersPage() {
       {/* Edit Customer Form Modal */}
       {showEditForm && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Editar Cliente</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Editar Cliente</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => { setShowEditForm(false); resetForm(); }}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Email *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email *</label>
                   <input
                     type="email"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Telefone</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Telefone</label>
                   <input
                     type="tel"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Nascimento</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Nascimento</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.birthDate}
                     onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                   >
@@ -745,27 +745,27 @@ export default function CustomersPage() {
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Endereço</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Endereço</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Preferências</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Preferências</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.preferences}
                     onChange={(e) => setFormData({...formData, preferences: e.target.value})}
                     placeholder="Destinos preferidos, tipo de acomodação, etc..."
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Observações</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Observações</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   />

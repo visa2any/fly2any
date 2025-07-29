@@ -149,15 +149,15 @@ function AdminLayoutContent({
   };
 
   return (
-    <div className="admin-app">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Sidebar */}
       <aside 
-        className={`admin-sidebar ${sidebarExpanded ? 'expanded' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}
+        className={`fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300 ${sidebarExpanded ? 'expanded' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}
         onMouseEnter={() => setSidebarExpanded(true)}
         onMouseLeave={() => setSidebarExpanded(false)}
       >
         {/* Logo/Header */}
-        <div className="admin-sidebar-header">
+        <div className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-header">
           <div className="admin-logo">
             <Image
               src="/fly2any-logo.png"
@@ -171,7 +171,7 @@ function AdminLayoutContent({
         </div>
 
         {/* Navigation */}
-        <nav className="admin-sidebar-nav">
+        <nav className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-nav">
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -188,7 +188,7 @@ function AdminLayoutContent({
         </nav>
 
         {/* User Menu */}
-        <div className="admin-sidebar-footer">
+        <div className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-footer">
           <div className="admin-user-menu">
             <div className="admin-user-avatar">
               {session?.user?.name?.[0]?.toUpperCase() || 'A'}
@@ -217,7 +217,7 @@ function AdminLayoutContent({
 
         {/* Toggle Button */}
         <button
-          className="admin-sidebar-toggle"
+          className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-toggle"
           onClick={() => setSidebarExpanded(!sidebarExpanded)}
           aria-label="Toggle sidebar"
         >
@@ -226,9 +226,9 @@ function AdminLayoutContent({
       </aside>
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className="flex-1 ml-16 transition-all duration-300 flex flex-col">
         {/* Header */}
-        <header className="admin-header">
+        <header className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6">
           <div className="admin-breadcrumb">
             <span>Admin</span>
             {pathname !== '/admin' && (
@@ -241,7 +241,7 @@ function AdminLayoutContent({
             )}
           </div>
 
-          <div className="admin-header-actions">
+          <div className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6-actions">
             {/* Mobile Menu Toggle */}
             <button
               className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg md:hidden border-0"
@@ -276,7 +276,7 @@ function AdminLayoutContent({
         </header>
 
         {/* Content Area */}
-        <div className="admin-content">
+        <div className="flex-1 p-6 overflow-y-auto">
           {children}
         </div>
       </main>

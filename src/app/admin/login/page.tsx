@@ -142,7 +142,7 @@ export default function AdminLoginPage() {
           </div>
 
           {/* Login Form Card */}
-          <div className="admin-card admin-login-form-card">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 admin-login-form-card">
             <form className="admin-login-form" onSubmit={handleSubmit} noValidate>
               {/* Error Message */}
               {error && (
@@ -173,7 +173,7 @@ export default function AdminLoginPage() {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="admin-input admin-login-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent admin-login-input"
                     placeholder="admin@fly2any.com"
                     disabled={isLoading}
                   />
@@ -197,7 +197,7 @@ export default function AdminLoginPage() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="admin-input admin-login-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent admin-login-input"
                     placeholder="Digite sua senha"
                     disabled={isLoading}
                   />

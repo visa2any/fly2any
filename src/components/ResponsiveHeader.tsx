@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import Logo from './Logo';
 import MobileHeader from './MobileHeader';
 import { FlightIcon, PhoneIcon } from './Icons';
+import LoginButton from './auth/LoginButton';
 
 interface ResponsiveHeaderProps {
   style?: React.CSSProperties;
@@ -110,6 +111,21 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
             <FlightIcon style={{ width: '14px', height: '14px' }} />
             Voos
           </Link>
+          <Link href="/hoteis" style={{
+            color: pathname === '/hoteis' ? 'white' : 'rgba(255, 255, 255, 0.9)',
+            textDecoration: 'none',
+            fontWeight: pathname === '/hoteis' ? '600' : '500',
+            transition: 'color 0.3s',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            Hotéis
+          </Link>
           <Link href="/como-funciona" style={{
             color: pathname === '/como-funciona' ? 'white' : 'rgba(255, 255, 255, 0.9)',
             textDecoration: 'none',
@@ -185,56 +201,63 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
           </Link>
         </nav>
 
-        {/* Language Selector */}
-        <div style={{ position: 'relative', marginLeft: '24px' }}>
-          <button
-            ref={buttonRef}
-            onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '8px',
-              padding: '8px 12px',
-              color: 'white',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              backdropFilter: 'blur(10px)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>
-              {languages.find(lang => lang.code === currentLang)?.flag}
-            </span>
-            <span>
-              {languages.find(lang => lang.code === currentLang)?.code.toUpperCase()}
-            </span>
-            <svg 
-              style={{ 
-                width: '12px', 
-                height: '12px', 
-                transform: isLanguageDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.3s ease'
-              }} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+        {/* Auth & Language Section */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: '24px' }}>
+          {/* Login Button */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <LoginButton variant="header" showText={true} />
+          </div>
 
+          {/* Language Selector */}
+          <div style={{ position: 'relative' }}>
+            <button
+              ref={buttonRef}
+              onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              <span style={{ fontSize: '16px' }}>
+                {languages.find(lang => lang.code === currentLang)?.flag}
+              </span>
+              <span>
+                {languages.find(lang => lang.code === currentLang)?.code.toUpperCase()}
+              </span>
+              <svg 
+                style={{ 
+                  width: '12px', 
+                  height: '12px', 
+                  transform: isLanguageDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.3s ease'
+                }} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>

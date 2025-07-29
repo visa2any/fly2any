@@ -108,8 +108,8 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
   };
 
   return (
-    <div className="admin-card admin-card-hover">
-      <div className="admin-card-header">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 bg-white rounded-xl shadow-lg border border-gray-200-hover">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
@@ -179,7 +179,7 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
         </div>
       </div>
 
-      <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Contact Info */}
           <div className="space-y-2">

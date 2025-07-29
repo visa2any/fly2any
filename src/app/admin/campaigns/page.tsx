@@ -43,7 +43,7 @@ const getStatusBadge = (status: string) => {
     'Finalizada': 'bg-gradient-to-r from-gray-500 to-gray-600 text-white border-gray-300',
     'Rascunho': 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-blue-300'
   };
-  return badges[status as keyof typeof badges] || 'admin-badge-neutral';
+  return badges[status as keyof typeof badges] || 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-neutral';
 };
 
 const getROI = (conversions: number, spent: number) => {
@@ -258,14 +258,14 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+              <h1 className="text-xl font-bold text-text-slate-900 mb-1">
                 Gestão de Campanhas
               </h1>
-              <p className="text-sm text-admin-text-secondary">
+              <p className="text-sm text-text-slate-600">
                 Gerencie campanhas de marketing e publicidade
               </p>
             </div>
@@ -281,71 +281,71 @@ export default function CampaignsPage() {
       </div>
 
       {/* Stats */}
-      <div className="admin-stats-grid">
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center text-2xl shadow-lg">
               📢
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {stats.total}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Total Campanhas</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Total Campanhas</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-white flex items-center justify-center text-2xl shadow-lg">
               ⚡
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {stats.active}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Campanhas Ativas</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Campanhas Ativas</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center justify-center text-2xl shadow-lg">
               💰
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {formatCurrency(stats.totalSpent)}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Investimento Total</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Investimento Total</div>
         </div>
-        <div className="admin-stats-card group hover:scale-105 transition-all duration-300">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50 group hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center text-2xl shadow-lg">
               🎯
             </div>
           </div>
-          <div className="admin-stats-value text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+          <div className="text-3xl font-bold text-slate-900 mb-2 text-3xl font-bold mb-1 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             {stats.totalLeads}
           </div>
-          <div className="admin-stats-label text-gray-500 font-medium">Leads Gerados</div>
+          <div className="text-sm font-medium text-slate-600 text-gray-500 font-medium">Leads Gerados</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
-              <label className="admin-label">Buscar</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Buscar</label>
               <input
                 type="text"
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nome da campanha ou destino..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div>
-              <label className="admin-label">Status</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -355,9 +355,9 @@ export default function CampaignsPage() {
               </select>
             </div>
             <div>
-              <label className="admin-label">Tipo</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
               >
@@ -371,62 +371,62 @@ export default function CampaignsPage() {
       </div>
 
       {/* Campaigns Table */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">Campanhas ({filteredCampaigns.length})</h2>
-          <p className="admin-card-description">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Campanhas ({filteredCampaigns.length})</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
             Lista de todas as campanhas de marketing
           </p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="text-admin-text-secondary">Carregando campanhas...</div>
+              <div className="text-text-slate-600">Carregando campanhas...</div>
             </div>
           ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-admin-border-color">
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Campanha</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Tipo</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Status</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Orçamento</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Leads</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">ROI</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Período</th>
-                  <th className="text-left py-2 px-2 text-admin-text-secondary font-medium text-sm">Ações</th>
+                <tr className="border-b border-border-slate-200">
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Campanha</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Tipo</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Status</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Orçamento</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Leads</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">ROI</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Período</th>
+                  <th className="text-left py-2 px-2 text-text-slate-600 font-medium text-sm">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCampaigns.map((campaign) => (
-                  <tr key={campaign.id} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
+                  <tr key={campaign.id} className="border-b border-border-slate-200 hover:bg-bg-slate-100/30">
                     <td className="py-2 px-2">
                       <div>
-                        <div className="font-medium text-sm text-admin-text-primary">{campaign.name}</div>
-                        <div className="text-xs text-admin-text-secondary">{campaign.destination}</div>
+                        <div className="font-medium text-sm text-text-slate-900">{campaign.name}</div>
+                        <div className="text-xs text-text-slate-600">{campaign.destination}</div>
                       </div>
                     </td>
-                    <td className="py-2 px-2 text-sm text-admin-text-primary">{campaign.type}</td>
+                    <td className="py-2 px-2 text-sm text-text-slate-900">{campaign.type}</td>
                     <td className="py-2 px-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusBadge(campaign.status)}`}>
                         {campaign.status}
                       </span>
                     </td>
                     <td className="py-2 px-2">
-                      <div className="text-sm text-admin-text-primary font-semibold">{formatCurrency(campaign.budget)}</div>
-                      <div className="text-xs text-admin-text-secondary">Gasto: {formatCurrency(campaign.spent)}</div>
+                      <div className="text-sm text-text-slate-900 font-semibold">{formatCurrency(campaign.budget)}</div>
+                      <div className="text-xs text-text-slate-600">Gasto: {formatCurrency(campaign.spent)}</div>
                     </td>
                     <td className="py-2 px-2">
-                      <div className="text-sm text-admin-text-primary font-semibold">{campaign.leads}</div>
-                      <div className="text-xs text-admin-text-secondary">{campaign.conversions} conversões</div>
+                      <div className="text-sm text-text-slate-900 font-semibold">{campaign.leads}</div>
+                      <div className="text-xs text-text-slate-600">{campaign.conversions} conversões</div>
                     </td>
                     <td className="py-2 px-2">
                       <span className={`text-sm font-semibold ${getROI(campaign.conversions, campaign.spent) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                         {getROI(campaign.conversions, campaign.spent).toFixed(1)}%
                       </span>
                     </td>
-                    <td className="py-2 px-2 text-xs text-admin-text-secondary">
+                    <td className="py-2 px-2 text-xs text-text-slate-600">
                       {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
                     </td>
                     <td className="py-2 px-2">
@@ -473,64 +473,64 @@ export default function CampaignsPage() {
       {/* Campaign Detail Modal */}
       {selectedCampaign && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Detalhes da Campanha</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Detalhes da Campanha</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => setSelectedCampaign(null)}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome da Campanha</label>
-                  <div className="text-admin-text-primary font-semibold">{selectedCampaign.name}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome da Campanha</label>
+                  <div className="text-text-slate-900 font-semibold">{selectedCampaign.name}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Status</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(selectedCampaign.status)}`}>
                     {selectedCampaign.status}
                   </span>
                 </div>
                 <div>
-                  <label className="admin-label">Tipo</label>
-                  <div className="text-admin-text-primary">{selectedCampaign.type}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
+                  <div className="text-text-slate-900">{selectedCampaign.type}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Destino</label>
-                  <div className="text-admin-text-primary">{selectedCampaign.destination}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Destino</label>
+                  <div className="text-text-slate-900">{selectedCampaign.destination}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Orçamento</label>
-                  <div className="text-admin-text-primary font-semibold">{formatCurrency(selectedCampaign.budget)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Orçamento</label>
+                  <div className="text-text-slate-900 font-semibold">{formatCurrency(selectedCampaign.budget)}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Gasto</label>
-                  <div className="text-admin-text-primary font-semibold">{formatCurrency(selectedCampaign.spent)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Gasto</label>
+                  <div className="text-text-slate-900 font-semibold">{formatCurrency(selectedCampaign.spent)}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Leads Gerados</label>
-                  <div className="text-admin-text-primary font-semibold">{selectedCampaign.leads}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Leads Gerados</label>
+                  <div className="text-text-slate-900 font-semibold">{selectedCampaign.leads}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Conversões</label>
-                  <div className="text-admin-text-primary font-semibold">{selectedCampaign.conversions}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Conversões</label>
+                  <div className="text-text-slate-900 font-semibold">{selectedCampaign.conversions}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Data de Início</label>
-                  <div className="text-admin-text-primary">{formatDate(selectedCampaign.startDate)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Início</label>
+                  <div className="text-text-slate-900">{formatDate(selectedCampaign.startDate)}</div>
                 </div>
                 <div>
-                  <label className="admin-label">Data de Fim</label>
-                  <div className="text-admin-text-primary">{formatDate(selectedCampaign.endDate)}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Fim</label>
+                  <div className="text-text-slate-900">{formatDate(selectedCampaign.endDate)}</div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Canais</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Canais</label>
                   <div className="flex gap-2 flex-wrap">
                     {selectedCampaign.channels.map(channel => (
                       <span key={channel} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
@@ -540,12 +540,12 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Público-Alvo</label>
-                  <div className="text-admin-text-primary">{selectedCampaign.targetAudience}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Público-Alvo</label>
+                  <div className="text-text-slate-900">{selectedCampaign.targetAudience}</div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Descrição</label>
-                  <div className="text-admin-text-primary">{selectedCampaign.description}</div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Descrição</label>
+                  <div className="text-text-slate-900">{selectedCampaign.description}</div>
                 </div>
               </div>
               <div className="flex gap-2 mt-6">
@@ -576,34 +576,34 @@ export default function CampaignsPage() {
       {/* Create Campaign Form Modal */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Criar Nova Campanha</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Criar Nova Campanha</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => { setShowCreateForm(false); resetForm(); }}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome da Campanha *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome da Campanha *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Tipo *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo *</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.type}
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                   >
@@ -613,47 +613,47 @@ export default function CampaignsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="admin-label">Destino *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Destino *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.destination}
                     onChange={(e) => setFormData({...formData, destination: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Orçamento *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Orçamento *</label>
                   <input
                     type="number"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.budget}
                     onChange={(e) => setFormData({...formData, budget: parseInt(e.target.value)})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Início *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Início *</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.startDate}
                     onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Fim *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Fim *</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.endDate}
                     onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                     required
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Canais de Marketing</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Canais de Marketing</label>
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     {channelOptions.map(channel => (
                       <label key={channel} className="flex items-center gap-2">
@@ -669,19 +669,19 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Público-Alvo</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Público-Alvo</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.targetAudience}
                     onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
                     placeholder="Ex: Casais, 25-45 anos, alta renda"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Descrição</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Descrição</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                   />
@@ -710,34 +710,34 @@ export default function CampaignsPage() {
       {/* Edit Campaign Form Modal */}
       {showEditForm && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Editar Campanha</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Editar Campanha</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => { setShowEditForm(false); resetForm(); }}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="admin-label">Nome da Campanha *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Nome da Campanha *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Tipo *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo *</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.type}
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                   >
@@ -747,47 +747,47 @@ export default function CampaignsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="admin-label">Destino *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Destino *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.destination}
                     onChange={(e) => setFormData({...formData, destination: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Orçamento *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Orçamento *</label>
                   <input
                     type="number"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.budget}
                     onChange={(e) => setFormData({...formData, budget: parseInt(e.target.value)})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Início *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Início *</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.startDate}
                     onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                     required
                   />
                 </div>
                 <div>
-                  <label className="admin-label">Data de Fim *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Data de Fim *</label>
                   <input
                     type="date"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.endDate}
                     onChange={(e) => setFormData({...formData, endDate: e.target.value})}
                     required
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Canais de Marketing</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Canais de Marketing</label>
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     {channelOptions.map(channel => (
                       <label key={channel} className="flex items-center gap-2">
@@ -803,19 +803,19 @@ export default function CampaignsPage() {
                   </div>
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Público-Alvo</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Público-Alvo</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.targetAudience}
                     onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
                     placeholder="Ex: Casais, 25-45 anos, alta renda"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="admin-label">Descrição</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Descrição</label>
                   <textarea
-                    className="admin-input h-24 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                   />

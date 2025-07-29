@@ -17,6 +17,7 @@ import HotelDetailsPage from '@/components/hotels/HotelDetailsPage';
 import HotelBookingFlow from '@/components/hotels/HotelBookingFlow';
 import HotelFilters from '@/components/hotels/HotelFilters';
 import HotelComparison from '@/components/hotels/HotelComparison';
+import PopularHotelsGrid from '@/components/hotels/PopularHotelsGrid';
 import { BenefitsSection } from '@/components/ui/benefits-section';
 import { HeroSection } from '@/components/ui/hero-section';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -929,23 +930,39 @@ export default function HoteisPage() {
     switch (state.view) {
       case 'search':
         return (
-          <div className="w-full space-y-12 md:space-y-16">
+          <div className="w-full space-y-6 md:space-y-8">
             <div className="transform transition-all duration-700 ease-out">
               <HeroSection
-                title="🏨 Hotéis pelo Mundo"
+                title="🏨 + DE 500.000 HOTÉIS NO MUNDO TODO!"
                 subtitle="Encontre e reserve hotéis incríveis com os melhores preços"
-                features={[
-                  { icon: '🔍', text: 'Busca inteligente' },
-                  { icon: '💰', text: 'Melhores preços' },
-                  { icon: '✅', text: 'Confirmação imediata' },
-                  { icon: '🌍', text: 'Hotéis mundiais' }
-                ]}
+                features={[]}
               >
-                <div className="mt-8">
+                <div className="mt-4">
                   <HotelSearchForm 
                     onSearch={handleSearch}
                     isLoading={state.isLoading}
                   />
+                </div>
+                
+                {/* Features Cards - Movido para depois do formulário */}
+                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-4xl mx-auto">
+                  {[
+                    { icon: '🔍', text: 'Busca inteligente' },
+                    { icon: '💰', text: 'Melhores preços' },
+                    { icon: '✅', text: 'Confirmação imediata' },
+                    { icon: '🌍', text: 'Hotéis mundiais' }
+                  ].map((feature, index) => (
+                    <div 
+                      key={index} 
+                      className="bg-white rounded-xl p-3 md:p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      style={{
+                        animationDelay: `${index * 100}ms`,
+                      }}
+                    >
+                      <span className="text-xl md:text-2xl mb-2 block">{feature.icon}</span>
+                      <span className="text-slate-700 text-xs md:text-sm font-medium">{feature.text}</span>
+                    </div>
+                  ))}
                 </div>
               </HeroSection>
             </div>
@@ -958,6 +975,35 @@ export default function HoteisPage() {
                 />
               </div>
             )}
+
+            {/* Popular Hotels Grid */}
+            <div className="transform transition-all duration-700 ease-out delay-200">
+              <PopularHotelsGrid 
+                onHotelSelect={(hotel) => {
+                  // Trigger search for this hotel's city
+                  const checkIn = new Date();
+                  checkIn.setDate(checkIn.getDate() + 7); // Next week
+                  
+                  const checkOut = new Date(checkIn);
+                  checkOut.setDate(checkOut.getDate() + 2); // 2 nights
+                  
+                  const searchParams: HotelSearchParams = {
+                    destination: `${hotel.city}, ${hotel.state}`,
+                    destinationType: 'city',
+                    checkIn,
+                    checkOut,
+                    adults: 2,
+                    children: 0,
+                    childrenAges: [],
+                    rooms: 1,
+                    currency: 'BRL'
+                  };
+                  
+                  console.log('🏨 Searching hotels in:', hotel.city);
+                  handleSearch(searchParams);
+                }}
+              />
+            </div>
 
             <div className="transform transition-all duration-700 ease-out delay-300">
               <BenefitsSection

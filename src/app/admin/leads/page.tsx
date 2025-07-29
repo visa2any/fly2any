@@ -284,8 +284,8 @@ export default function LeadsPage() {
       )}
       
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-admin-text-primary mb-1">
@@ -307,8 +307,8 @@ export default function LeadsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="admin-card">
-          <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-2xl">
                 📊
@@ -319,8 +319,8 @@ export default function LeadsPage() {
           </div>
         </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white flex items-center justify-center text-2xl">
                 📅
@@ -331,8 +331,8 @@ export default function LeadsPage() {
           </div>
         </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white flex items-center justify-center text-2xl">
                 📈
@@ -343,8 +343,8 @@ export default function LeadsPage() {
           </div>
         </div>
 
-        <div className="admin-card">
-          <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white flex items-center justify-center text-2xl">
                 🎯
@@ -357,15 +357,15 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="admin-label">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>
@@ -386,7 +386,7 @@ export default function LeadsPage() {
               <select
                 value={filters.source}
                 onChange={(e) => handleFilterChange('source', e.target.value)}
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {sourceOptions.map(source => (
                   <option key={source} value={source}>
@@ -408,7 +408,7 @@ export default function LeadsPage() {
                 value={filters.search}
                 onChange={handleSearch}
                 placeholder="Nome, email, telefone..."
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -416,16 +416,16 @@ export default function LeadsPage() {
       </div>
 
       {/* Leads Table */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">
             Leads ({filteredLeads.length})
           </h2>
-          <p className="admin-card-description">
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
             Lista de todos os leads recebidos
           </p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

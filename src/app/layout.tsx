@@ -5,6 +5,7 @@ import ChatAgent from "@/components/ChatAgent";
 import FloatingChat from "@/components/FloatingChat";
 import TestChat from "@/components/TestChat";
 import SimpleChatAgent from "@/components/SimpleChatAgent";
+import SessionWrapper from "@/components/SessionWrapper";
 import "./globals.css";
 
 const inter = Inter({
@@ -452,7 +453,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-inter antialiased">
-        {children}
+        <SessionWrapper>
+          {children}
+        </SessionWrapper>
         <div id="chat-container"></div>
         <script dangerouslySetInnerHTML={{
           __html: `

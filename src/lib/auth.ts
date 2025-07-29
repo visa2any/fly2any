@@ -8,17 +8,46 @@ interface AdminCredentials {
   password: string;
 }
 
-// Hard-coded admin credentials (in production, use database)
+// 🚨 SECURITY WARNING: This implementation uses hardcoded credentials
+// In production, you MUST:
+// 1. Set ADMIN_EMAIL and ADMIN_PASSWORD_HASH environment variables
+// 2. Use properly hashed passwords (bcrypt with salt)
+// 3. Move to database-based authentication
+// 4. Remove hardcoded fallback values
+
+if (process.env.NODE_ENV === 'production' && 
+    (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD_HASH)) {
+  console.error('🚨 CRITICAL SECURITY WARNING: Admin credentials not properly configured for production!');
+  console.error('Set ADMIN_EMAIL and ADMIN_PASSWORD_HASH environment variables');
+}
+
 const ADMIN_CREDENTIALS = {
   email: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
-  password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
+  // Use ADMIN_PASSWORD_HASH in production, ADMIN_PASSWORD for dev
+  password: process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_PASSWORD || 'fly2any2024!'
 };
+
+// Demo user credentials (in production, use database with proper registration)
+const DEMO_USERS = [
+  {
+    id: '2',
+    email: 'user@fly2any.com',
+    password: 'user123!',
+    name: 'Usuário Demo',
+    role: 'user'
+  },
+  {
+    id: '3', 
+    email: 'guest@fly2any.com',
+    password: 'guest123!',
+    name: 'Convidado Demo',
+    role: 'user'
+  }
+];
 
 // Get correct base URL for environment
 const getBaseUrl = () => {
   if (process.env.NODE_ENV === 'development') {
-    process.env.NEXTAUTH_URL = 'http://localhost:3000';
-    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
     return 'http://localhost:3000';
   }
   
@@ -64,44 +93,51 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email e senha são obrigatórios');
         }
 
-        console.log('🔍 [AUTH] Comparando credenciais:', {
-          providedEmail: credentials.email,
-          expectedEmail: ADMIN_CREDENTIALS.email,
-          emailMatch: credentials.email === ADMIN_CREDENTIALS.email
-        });
+        // Check admin credentials first
+        if (credentials.email === ADMIN_CREDENTIALS.email) {
+          console.log('🔍 [AUTH] Validando admin');
+          
+          const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password ||
+                                 verifyPassword(credentials.password, ADMIN_CREDENTIALS.password);
 
-        // Check if credentials match admin account
-        if (credentials.email !== ADMIN_CREDENTIALS.email) {
-          console.error('❌ [AUTH] Email inválido:', credentials.email);
-          throw new Error('Credenciais inválidas');
+          if (!isValidPassword) {
+            console.error('❌ [AUTH] Senha admin inválida');
+            throw new Error('Credenciais inválidas');
+          }
+
+          console.log('✅ [AUTH] Admin autorizado');
+          return {
+            id: '1',
+            email: ADMIN_CREDENTIALS.email,
+            name: 'Administrador',
+            role: 'admin',
+            image: null
+          };
         }
 
-        // For development, allow plain text comparison
-        // In production, use proper password hashing
-        const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password ||
-                               verifyPassword(credentials.password, ADMIN_CREDENTIALS.password);
+        // Check demo users
+        const demoUser = DEMO_USERS.find(user => user.email === credentials.email);
+        if (demoUser) {
+          console.log('🔍 [AUTH] Validando usuário demo:', demoUser.email);
+          
+          if (credentials.password !== demoUser.password) {
+            console.error('❌ [AUTH] Senha de usuário inválida');
+            throw new Error('Credenciais inválidas');
+          }
 
-        console.log('🔍 [AUTH] Validação de senha:', {
-          plainTextMatch: credentials.password === ADMIN_CREDENTIALS.password,
-          isValidPassword,
-          expectedPassword: ADMIN_CREDENTIALS.password.slice(0, 3) + '***'
-        });
-
-        if (!isValidPassword) {
-          console.error('❌ [AUTH] Senha inválida');
-          throw new Error('Credenciais inválidas');
+          console.log('✅ [AUTH] Usuário demo autorizado');
+          return {
+            id: demoUser.id,
+            email: demoUser.email,
+            name: demoUser.name,
+            role: demoUser.role,
+            image: null
+          };
         }
 
-        console.log('✅ [AUTH] Autorização bem-sucedida');
-
-        // Return user object
-        return {
-          id: '1',
-          email: ADMIN_CREDENTIALS.email,
-          name: 'Administrador',
-          role: 'admin',
-          image: null
-        };
+        // If no match found
+        console.error('❌ [AUTH] Email não encontrado:', credentials.email);
+        throw new Error('Credenciais inválidas');
       }
     })
   ],
@@ -198,7 +234,7 @@ export const authOptions: NextAuthOptions = {
     }
   },
 
-  debug: process.env.NODE_ENV === 'development',
+  debug: false, // Disable debug to prevent JSON parsing errors
   
   secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024',
   
@@ -244,11 +280,32 @@ export const authOptions: NextAuthOptions = {
 
   events: {
     async signIn({ user, account, profile }) {
-      console.log(`[AUTH] Admin login: ${user.email} at ${new Date().toISOString()}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[AUTH] Login: ${user.email} at ${new Date().toISOString()}`);
+      }
     },
     async signOut({ session, token }) {
-      console.log(`[AUTH] Admin logout at ${new Date().toISOString()}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[AUTH] Logout at ${new Date().toISOString()}`);
+      }
     },
+  },
+
+  // Additional configuration to prevent fetch errors
+  trustHost: true,
+  
+  logger: {
+    error: (code, metadata) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[NextAuth Error]', code, metadata);
+      }
+    },
+    warn: (code) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[NextAuth Warning]', code);
+      }
+    },
+    debug: () => {}, // Disable debug logging
   }
 };
 

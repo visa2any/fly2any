@@ -70,13 +70,13 @@ export default function AnalyticsPage() {
         {data.values.map((value, index) => (
           <div key={index} className="flex flex-col items-center flex-1">
             <div 
-              className="bg-admin-accent-primary rounded-t w-full min-h-4 transition-all duration-500"
+              className="bg-bg-gradient-primary rounded-t w-full min-h-4 transition-all duration-500"
               style={{ height: `${(value / maxValue) * 100}%` }}
             />
-            <div className="text-xs text-admin-text-secondary mt-2 font-medium">
+            <div className="text-xs text-text-slate-600 mt-2 font-medium">
               {data.labels[index]}
             </div>
-            <div className="text-xs text-admin-text-primary font-semibold">
+            <div className="text-xs text-text-slate-900 font-semibold">
               {selectedChart === 'revenue' ? formatCurrency(value) : value}
             </div>
           </div>
@@ -95,20 +95,20 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold text-admin-text-primary mb-1">
+              <h1 className="text-xl font-bold text-text-slate-900 mb-1">
                 Analytics & Relatórios
               </h1>
-              <p className="text-sm text-admin-text-secondary">
+              <p className="text-sm text-text-slate-600">
                 Performance e métricas detalhadas
               </p>
             </div>
             <div className="flex gap-2">
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
               >
@@ -128,31 +128,31 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Main Stats */}
-      <div className="admin-stats-grid">
-        <div className="admin-stats-card">
-          <div className="admin-stats-value">{totalStats.leads}</div>
-          <div className="admin-stats-label">Total de Leads</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
+          <div className="text-3xl font-bold text-slate-900 mb-2">{totalStats.leads}</div>
+          <div className="text-sm font-medium text-slate-600">Total de Leads</div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
             +15% vs período anterior
           </div>
         </div>
-        <div className="admin-stats-card">
-          <div className="admin-stats-value">{totalStats.conversions}</div>
-          <div className="admin-stats-label">Conversões</div>
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
+          <div className="text-3xl font-bold text-slate-900 mb-2">{totalStats.conversions}</div>
+          <div className="text-sm font-medium text-slate-600">Conversões</div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
             +22% vs período anterior
           </div>
         </div>
-        <div className="admin-stats-card">
-          <div className="admin-stats-value">{formatPercentage(totalStats.conversionRate)}</div>
-          <div className="admin-stats-label">Taxa de Conversão</div>
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
+          <div className="text-3xl font-bold text-slate-900 mb-2">{formatPercentage(totalStats.conversionRate)}</div>
+          <div className="text-sm font-medium text-slate-600">Taxa de Conversão</div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
             +3.2% vs período anterior
           </div>
         </div>
-        <div className="admin-stats-card">
-          <div className="admin-stats-value">{formatCurrency(totalStats.revenue)}</div>
-          <div className="admin-stats-label">Receita Total</div>
+        <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
+          <div className="text-3xl font-bold text-slate-900 mb-2">{formatCurrency(totalStats.revenue)}</div>
+          <div className="text-sm font-medium text-slate-600">Receita Total</div>
           <div className="text-sm text-emerald-600 font-medium mt-2">
             +18% vs período anterior
           </div>
@@ -162,17 +162,17 @@ export default function AnalyticsPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Performance Chart */}
-        <div className="admin-card">
-          <div className="admin-card-header">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="admin-card-title">Gráfico de Performance</h2>
-                <p className="admin-card-description">
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Gráfico de Performance</h2>
+                <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
                   Visualização de métricas ao longo do tempo
                 </p>
               </div>
               <select 
-                className="admin-input text-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 value={selectedChart}
                 onChange={(e) => setSelectedChart(e.target.value)}
               >
@@ -184,41 +184,41 @@ export default function AnalyticsPage() {
               </select>
             </div>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             {renderChart()}
           </div>
         </div>
 
         {/* Top Destinations */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">Destinos Mais Populares</h2>
-            <p className="admin-card-description">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Destinos Mais Populares</h2>
+            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
               Ranking dos destinos com melhor performance
             </p>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="space-y-4">
               {topDestinations.map((dest, index) => (
-                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-admin-bg-secondary/30">
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-bg-slate-100/30">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-admin-accent-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="w-8 h-8 bg-bg-gradient-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium text-admin-text-primary">
+                      <div className="font-medium text-text-slate-900">
                         {dest.destination}
                       </div>
-                      <div className="text-sm text-admin-text-secondary">
+                      <div className="text-sm text-text-slate-600">
                         {dest.leads} leads • {dest.conversions} conversões
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-admin-text-primary">
+                    <div className="font-semibold text-text-slate-900">
                       {formatCurrency(dest.revenue)}
                     </div>
-                    <div className="text-sm text-admin-text-secondary">
+                    <div className="text-sm text-text-slate-600">
                       {formatPercentage((dest.conversions / dest.leads) * 100)} conv.
                     </div>
                   </div>
@@ -230,58 +230,58 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Source Analytics */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">Análise de Fontes de Tráfego</h2>
-          <p className="admin-card-description">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Análise de Fontes de Tráfego</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
             Performance detalhada por canal de aquisição
           </p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-admin-border-color">
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Fonte</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Leads</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">% do Total</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Conversões</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Taxa Conv.</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Eficiência</th>
+                <tr className="border-b border-border-slate-200">
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Fonte</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Leads</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">% do Total</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Conversões</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Taxa Conv.</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Eficiência</th>
                 </tr>
               </thead>
               <tbody>
                 {sourceAnalytics.map((source, index) => (
-                  <tr key={index} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
+                  <tr key={index} className="border-b border-border-slate-200 hover:bg-bg-slate-100/30">
                     <td className="py-3 px-2">
-                      <div className="font-medium text-admin-text-primary">{source.source}</div>
+                      <div className="font-medium text-text-slate-900">{source.source}</div>
                     </td>
-                    <td className="py-3 px-2 text-admin-text-primary font-semibold">
+                    <td className="py-3 px-2 text-text-slate-900 font-semibold">
                       {source.leads}
                     </td>
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-admin-bg-secondary rounded-full h-2">
+                        <div className="flex-1 bg-bg-slate-100 rounded-full h-2">
                           <div 
-                            className="bg-admin-accent-primary h-2 rounded-full"
+                            className="bg-bg-gradient-primary h-2 rounded-full"
                             style={{ width: `${source.percentage}%` }}
                           />
                         </div>
-                        <span className="text-sm text-admin-text-secondary min-w-12">
+                        <span className="text-sm text-text-slate-600 min-w-12">
                           {formatPercentage(source.percentage)}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-2 text-admin-text-primary font-semibold">
+                    <td className="py-3 px-2 text-text-slate-900 font-semibold">
                       {source.conversions}
                     </td>
                     <td className="py-3 px-2">
-                      <span className={`admin-badge ${
+                      <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${
                         (source.conversions / source.leads) > 0.2 
-                          ? 'admin-badge-success' 
+                          ? 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-success' 
                           : (source.conversions / source.leads) > 0.1 
-                          ? 'admin-badge-warning' 
-                          : 'admin-badge-danger'
+                          ? 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-warning' 
+                          : 'inline-flex items-center px-3 py-1 text-xs font-medium rounded-full-danger'
                       }`}>
                         {formatPercentage((source.conversions / source.leads) * 100)}
                       </span>
@@ -294,7 +294,7 @@ export default function AnalyticsPage() {
                             className={`w-2 h-2 rounded-full ${
                               i < Math.round((source.conversions / source.leads) * 20)
                                 ? 'bg-emerald-500'
-                                : 'bg-admin-bg-secondary'
+                                : 'bg-bg-slate-100'
                             }`}
                           />
                         ))}
@@ -310,68 +310,68 @@ export default function AnalyticsPage() {
 
       {/* Revenue Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">Receita por Categoria</h2>
-            <p className="admin-card-description">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Receita por Categoria</h2>
+            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
               Breakdown de receita por tipo de serviço
             </p>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-admin-text-primary">Pacotes Completos</span>
-                <span className="font-semibold text-admin-text-primary">$245,000</span>
+                <span className="text-text-slate-900">Pacotes Completos</span>
+                <span className="font-semibold text-text-slate-900">$245,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-admin-text-primary">Hospedagem</span>
-                <span className="font-semibold text-admin-text-primary">$89,000</span>
+                <span className="text-text-slate-900">Hospedagem</span>
+                <span className="font-semibold text-text-slate-900">$89,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-admin-text-primary">Passagens</span>
-                <span className="font-semibold text-admin-text-primary">$156,000</span>
+                <span className="text-text-slate-900">Passagens</span>
+                <span className="font-semibold text-text-slate-900">$156,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-admin-text-primary">Transfers</span>
-                <span className="font-semibold text-admin-text-primary">$23,000</span>
+                <span className="text-text-slate-900">Transfers</span>
+                <span className="font-semibold text-text-slate-900">$23,000</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">Metas do Mês</h2>
-            <p className="admin-card-description">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Metas do Mês</h2>
+            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
               Progresso em relação às metas estabelecidas
             </p>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-admin-text-primary">Leads (Meta: 200)</span>
+                  <span className="text-text-slate-900">Leads (Meta: 200)</span>
                   <span className="font-semibold">168 / 200</span>
                 </div>
-                <div className="w-full bg-admin-bg-secondary rounded-full h-3">
+                <div className="w-full bg-bg-slate-100 rounded-full h-3">
                   <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '84%' }} />
                 </div>
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-admin-text-primary">Conversões (Meta: 50)</span>
+                  <span className="text-text-slate-900">Conversões (Meta: 50)</span>
                   <span className="font-semibold">45 / 50</span>
                 </div>
-                <div className="w-full bg-admin-bg-secondary rounded-full h-3">
+                <div className="w-full bg-bg-slate-100 rounded-full h-3">
                   <div className="bg-amber-500 h-3 rounded-full" style={{ width: '90%' }} />
                 </div>
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-admin-text-primary">Revenue (Goal: $500k)</span>
+                  <span className="text-text-slate-900">Revenue (Goal: $500k)</span>
                   <span className="font-semibold">$513k / $500k</span>
                 </div>
-                <div className="w-full bg-admin-bg-secondary rounded-full h-3">
+                <div className="w-full bg-bg-slate-100 rounded-full h-3">
                   <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '100%' }} />
                 </div>
               </div>

@@ -206,8 +206,8 @@ export default function SupportPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl font-bold text-admin-text-primary mb-1">
@@ -229,7 +229,7 @@ export default function SupportPage() {
       </div>
 
       {/* Stats */}
-      <div className="admin-stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="admin-stats-card">
           <div className="admin-stats-value">{stats.total}</div>
           <div className="admin-stats-label">Total de Tickets</div>
@@ -249,14 +249,14 @@ export default function SupportPage() {
       </div>
 
       {/* Filters */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
               <label className="admin-label">Buscar</label>
               <input
                 type="text"
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Assunto, cliente ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -265,7 +265,7 @@ export default function SupportPage() {
             <div>
               <label className="admin-label">Status</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -277,7 +277,7 @@ export default function SupportPage() {
             <div>
               <label className="admin-label">Prioridade</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedPriority}
                 onChange={(e) => setSelectedPriority(e.target.value)}
               >
@@ -289,7 +289,7 @@ export default function SupportPage() {
             <div>
               <label className="admin-label">Categoria</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
@@ -303,14 +303,14 @@ export default function SupportPage() {
       </div>
 
       {/* Tickets Table */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">Tickets ({filteredTickets.length})</h2>
-          <p className="admin-card-description">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Tickets ({filteredTickets.length})</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
             Lista de todos os tickets de suporte
           </p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -390,12 +390,12 @@ export default function SupportPage() {
       {/* Ticket Detail Modal */}
       {selectedTicket && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="admin-card-title">Ticket #{selectedTicket.id}</h2>
-                  <p className="admin-card-description">{selectedTicket.subject}</p>
+                  <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Ticket #{selectedTicket.id}</h2>
+                  <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">{selectedTicket.subject}</p>
                 </div>
                 <button 
                   className="text-admin-text-secondary hover:text-admin-text-primary"
@@ -406,7 +406,7 @@ export default function SupportPage() {
               </div>
             </div>
             
-            <div className="admin-card-content flex-1 overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content flex-1 overflow-y-auto">
               {/* Ticket Info */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-admin-bg-secondary/30 rounded-lg">
                 <div>
@@ -460,7 +460,7 @@ export default function SupportPage() {
               <div className="mt-6 border-t border-admin-border-color pt-6">
                 <label className="admin-label">Nova Mensagem</label>
                 <textarea
-                  className="admin-input h-24 resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                   placeholder="Digite sua resposta..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
@@ -497,10 +497,10 @@ export default function SupportPage() {
       {/* Create Ticket Modal */}
       {showCreateTicket && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">Criar Novo Ticket</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Criar Novo Ticket</h2>
                 <button 
                   className="text-admin-text-secondary hover:text-admin-text-primary"
                   onClick={() => { setShowCreateTicket(false); resetTicketForm(); }}
@@ -509,13 +509,13 @@ export default function SupportPage() {
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="admin-label">Nome do Cliente *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.customer}
                     onChange={(e) => setTicketForm({...ticketForm, customer: e.target.value})}
                     required
@@ -525,7 +525,7 @@ export default function SupportPage() {
                   <label className="admin-label">Email *</label>
                   <input
                     type="email"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.email}
                     onChange={(e) => setTicketForm({...ticketForm, email: e.target.value})}
                     required
@@ -535,7 +535,7 @@ export default function SupportPage() {
                   <label className="admin-label">Assunto *</label>
                   <input
                     type="text"
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.subject}
                     onChange={(e) => setTicketForm({...ticketForm, subject: e.target.value})}
                     required
@@ -544,7 +544,7 @@ export default function SupportPage() {
                 <div>
                   <label className="admin-label">Prioridade</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.priority}
                     onChange={(e) => setTicketForm({...ticketForm, priority: e.target.value})}
                   >
@@ -556,7 +556,7 @@ export default function SupportPage() {
                 <div>
                   <label className="admin-label">Categoria</label>
                   <select 
-                    className="admin-input"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.category}
                     onChange={(e) => setTicketForm({...ticketForm, category: e.target.value})}
                   >
@@ -570,7 +570,7 @@ export default function SupportPage() {
                 <div className="col-span-2">
                   <label className="admin-label">Descrição do Problema *</label>
                   <textarea
-                    className="admin-input h-32 resize-none"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
                     value={ticketForm.description}
                     onChange={(e) => setTicketForm({...ticketForm, description: e.target.value})}
                     required

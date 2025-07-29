@@ -138,11 +138,11 @@ export function LeadFilters({
   };
 
   return (
-    <div className="admin-card">
-      <div className="admin-card-header">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="admin-card-title flex items-center gap-2">
+            <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title flex items-center gap-2">
               <Filter className="h-5 w-5" />
               🔍 Filtros
             </h3>
@@ -168,12 +168,12 @@ export function LeadFilters({
         </div>
       </div>
 
-      <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
         {/* Search Bar - Always Visible */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
-            className="admin-input pl-10"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
             placeholder="Buscar por nome, email, telefone..."
             value={filters.search}
             onChange={(e) => updateFilter('search', e.target.value)}
@@ -260,7 +260,7 @@ export function LeadFilters({
               <label className="admin-label">Orçamento (R$)</label>
               <div className="flex gap-2">
                 <input
-                  className="admin-input"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   type="number"
                   placeholder="Mín"
                   value={filters.budgetRange.min || ''}
@@ -270,7 +270,7 @@ export function LeadFilters({
                   })}
                 />
                 <input
-                  className="admin-input"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   type="number"
                   placeholder="Máx"
                   value={filters.budgetRange.max || ''}
@@ -286,7 +286,7 @@ export function LeadFilters({
             <div>
               <label className="admin-label">Origem</label>
               <input
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Cidade de origem"
                 value={filters.origem}
                 onChange={(e) => updateFilter('origem', e.target.value)}
@@ -296,7 +296,7 @@ export function LeadFilters({
             <div>
               <label className="admin-label">Destino</label>
               <input
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Cidade de destino"
                 value={filters.destino}
                 onChange={(e) => updateFilter('destino', e.target.value)}
@@ -307,7 +307,7 @@ export function LeadFilters({
             <div>
               <label className="admin-label">Atribuído para</label>
               <input
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nome do responsável"
                 value={filters.assignedTo}
                 onChange={(e) => updateFilter('assignedTo', e.target.value)}

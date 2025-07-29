@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import { FlightIcon, PhoneIcon } from './Icons';
+import LoginButton from './auth/LoginButton';
 
 interface MobileHeaderProps {
   currentPath?: string;
@@ -41,6 +42,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   const navigationItems = [
     { href: '/', label: 'Início', icon: 'home' },
     { href: '/voos-brasil-eua', label: 'Voos Brasil-EUA', icon: 'flight' },
+    { href: '/hoteis', label: 'Hotéis', icon: 'hotel' },
     { href: '/voos-miami-sao-paulo', label: 'Miami ↔ São Paulo', icon: 'flight' },
     { href: '/voos-new-york-rio-janeiro', label: 'NY ↔ Rio de Janeiro', icon: 'flight' },
     { href: '/como-funciona', label: 'Como Funciona', icon: 'help' },
@@ -80,8 +82,13 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
           <Logo size="sm" variant="logo-only" />
         </Link>
 
-        {/* Right Side - Language Selector + Menu */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Right Side - Login + Language + Menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Login Button Mobile */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <LoginButton variant="mobile" showText={false} />
+          </div>
+
           {/* Language Selector Mobile */}
           <div style={{ position: 'relative' }}>
             <button

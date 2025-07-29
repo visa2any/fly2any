@@ -89,12 +89,12 @@ export default function TestGmailPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="admin-card-title">🧪 Diagnóstico Gmail SMTP</h1>
-              <p className="admin-card-description">
+              <h1 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🧪 Diagnóstico Gmail SMTP</h1>
+              <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
                 Teste completo do sistema de email marketing
               </p>
             </div>
@@ -112,9 +112,9 @@ export default function TestGmailPage() {
       </div>
 
       {/* Teste de Email Específico */}
-      <div className="admin-card">
-        <div className="admin-card-content">
-          <h3 className="admin-card-title" style={{ marginBottom: '12px' }}>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title" style={{ marginBottom: '12px' }}>
             📧 Teste de Email Específico
           </h3>
           <div className="flex gap-3">
@@ -123,7 +123,7 @@ export default function TestGmailPage() {
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
               placeholder="Digite um email para teste..."
-              className="admin-input flex-1"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1"
             />
             <button 
               onClick={testSpecificEmail}
@@ -138,16 +138,16 @@ export default function TestGmailPage() {
 
       {/* Resultados dos Diagnósticos */}
       {results && (
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">
               📊 Resultados do Diagnóstico
             </h2>
-            <p className="admin-card-description">
+            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
               Executado em: {new Date(results.timestamp).toLocaleString('pt-BR')}
             </p>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             {/* Summary */}
             <div className={`p-4 rounded-lg border mb-6 ${getStatusColor(results.summary.status)}`}>
               <div className="flex items-center gap-3">
@@ -191,9 +191,9 @@ export default function TestGmailPage() {
       )}
 
       {/* Instruções */}
-      <div className="admin-card">
-        <div className="admin-card-content">
-          <h3 className="admin-card-title" style={{ marginBottom: '12px' }}>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title" style={{ marginBottom: '12px' }}>
             📖 Como Interpretar os Resultados
           </h3>
           <div className="space-y-3 text-sm">

@@ -200,7 +200,7 @@ const StyledOmnichannelDashboard: React.FC<StyledOmnichannelDashboardProps> = ({
         <div className="admin-content">
           {/* Stats Cards */}
           {stats && (
-            <div className="admin-stats-grid">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="admin-stats-card">
                 <div className="admin-stats-value" style={{ color: 'var(--color-blue-600)' }}>
                   {stats.activeConversations}
@@ -275,14 +275,14 @@ const StyledOmnichannelDashboard: React.FC<StyledOmnichannelDashboardProps> = ({
             marginTop: '24px'
           }}>
             {/* Conversations List */}
-            <div className="admin-card">
-              <div className="admin-card-header">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div className="admin-card-title">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">
                       📋 Conversas Ativas
                     </div>
-                    <div className="admin-card-description">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200-description">
                       {conversations.length} conversas em andamento
                     </div>
                   </div>
@@ -296,7 +296,7 @@ const StyledOmnichannelDashboard: React.FC<StyledOmnichannelDashboardProps> = ({
                 </div>
               </div>
               
-              <div className="admin-card-content" style={{ padding: 0 }}>
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200-content" style={{ padding: 0 }}>
                 <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
                   {conversations.map((conversation) => (
                     <div
@@ -414,17 +414,17 @@ const StyledOmnichannelDashboard: React.FC<StyledOmnichannelDashboardProps> = ({
             </div>
 
             {/* Conversation Details */}
-            <div className="admin-card">
-              <div className="admin-card-header">
-                <div className="admin-card-title">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-title">
                   👤 Detalhes da Conversa
                 </div>
-                <div className="admin-card-description">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-description">
                   Informações completas do cliente
                 </div>
               </div>
               
-              <div className="admin-card-content">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                 {selectedConversation ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Customer Info */}

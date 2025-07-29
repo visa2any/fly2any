@@ -596,8 +596,8 @@ export default function ModernLeadsPage() {
               <>
 
       {/* View Toggle and Select All */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-3">
@@ -641,14 +641,14 @@ export default function ModernLeadsPage() {
             <span>Carregando leads...</span>
           </div>
       ) : (
-          <div className="admin-card">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div>
-                <h3 className="admin-card-title">Leads ({filteredLeads.length})</h3>
-                <p className="admin-card-description">Visualização em cards dos leads</p>
+                <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Leads ({filteredLeads.length})</h3>
+                <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Visualização em cards dos leads</p>
               </div>
             </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             <div className="admin-grid admin-grid-3">
               {filteredLeads.map((lead) => (
                 <div key={lead.id} className="relative">
@@ -695,14 +695,14 @@ export default function ModernLeadsPage() {
             )}
 
             {activeTab === 'analytics' && (
-              <div className="admin-card">
-                <div className="admin-card-header">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                   <div>
-                    <h3 className="admin-card-title">📊 Analytics de Leads</h3>
-                    <p className="admin-card-description">Métricas e insights de performance</p>
+                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📊 Analytics de Leads</h3>
+                    <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Métricas e insights de performance</p>
                   </div>
                 </div>
-                <div className="admin-card-content">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                   <div className="admin-grid admin-grid-2">
                     <div className="admin-stats-card">
                       <div className="admin-stats-header">
@@ -729,14 +729,14 @@ export default function ModernLeadsPage() {
             )}
 
             {activeTab === 'tags' && (
-              <div className="admin-card">
-                <div className="admin-card-header">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
                   <div>
-                    <h3 className="admin-card-title">🏷️ Gestão de Tags</h3>
-                    <p className="admin-card-description">Organize e categorize seus leads</p>
+                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🏷️ Gestão de Tags</h3>
+                    <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Organize e categorize seus leads</p>
                   </div>
                 </div>
-                <div className="admin-card-content">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
                   <div className="admin-grid admin-grid-4">
                     {availableTags.map((tag) => (
                       <div key={tag.id} className="admin-stats-card">

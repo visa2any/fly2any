@@ -5,11 +5,12 @@
 ### Core MCPs Ativos:
 - **Context7** → Documentação atualizada (`use context7`)
 - **Puppeteer** → Automação web e scraping  
+- **Playwright** → Automação web avançada e testes E2E 🆕
 - **GitHub** → Operações Git/GitHub completas
 - **FileSystem** → Manipulação segura de arquivos
 - **Fetch/HTTP** → Testes de API e requisições
 - **Sequential Thinking** → Planejamento estruturado
-- **Serena** → Análise semântica de código e edição avançada 🆕
+- **Serena** → Análise semântica de código e edição avançada
 
 ### Dicas de Uso de MCPs:
 - use os mcps para ajudar na tarefa
@@ -40,13 +41,15 @@
 ```
 
 #### 🤖 **Web Automation**
-**Palavras-chave:** `scrape`, `screenshot`, `browser`, `automation`
-**MCPs ativados:** Puppeteer + Fetch  
+**Palavras-chave:** `scrape`, `screenshot`, `browser`, `automation`, `test`, `e2e`
+**MCPs ativados:** Playwright + Puppeteer + Fetch  
 ```bash
 # Exemplos de uso:
 - "fazer scraping do site"
 - "capturar screenshot"
 - "automatizar testes E2E"
+- "testar interface do usuário"
+- "simular cliques e navegação"
 ```
 
 #### 📚 **Documentation**
@@ -103,10 +106,11 @@
 
 - `@git` → Ativa GitHub + FileSystem
 - `@api` → Ativa Fetch + Context7 + Sequential  
-- `@web` → Ativa Puppeteer + Fetch
+- `@web` → Ativa Playwright + Puppeteer + Fetch
 - `@docs` → Ativa Context7 + FileSystem + GitHub
 - `@plan` → Ativa Sequential + FileSystem + GitHub
-- `@serena` → Ativa Serena + FileSystem + Sequential  
+- `@serena` → Ativa Serena + FileSystem + Sequential
+- `@playwright` → Ativa Playwright + FileSystem + Sequential 🆕
 - `@all` → Ativa TODOS os MCPs
 
 ## 🔄 Como Funciona
@@ -127,7 +131,32 @@ claude mcp list
 
 # Verificar configuração
 cat .claude-automation.json
+
+# Playwright - Automação Web
+npx @playwright/mcp --version           # Verificar versão
+npx @playwright/mcp --help             # Ver opções disponíveis
+npx playwright install chromium        # Instalar navegadores
 ```
+
+## 🎭 Playwright MCP - Recursos Disponíveis
+
+### 🔧 Funcionalidades:
+- **Screenshot** → Captura de tela de páginas web
+- **Navigation** → Navegação automatizada entre páginas
+- **Form Filling** → Preenchimento automático de formulários
+- **Element Interaction** → Cliques, digitação, seleção
+- **Content Extraction** → Extração de dados de páginas
+- **Network Monitoring** → Monitoramento de requisições
+- **Mobile Emulation** → Simulação de dispositivos móveis
+- **Visual Testing** → Comparação visual de interfaces
+
+### 🎯 Casos de Uso:
+- Testes E2E automatizados
+- Validação de interfaces responsivas
+- Extração de dados de sites
+- Automação de fluxos de usuário
+- Monitoramento de performance web
+- Captura de evidências visuais
 
 ## 🎉 Benefícios
 

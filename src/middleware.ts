@@ -9,6 +9,19 @@ const RATE_LIMITS = {
   '/api/leads': { requests: 10, windowMs: 60 * 1000 }, // 10 requests per minute
   '/api/health': { requests: 30, windowMs: 60 * 1000 }, // 30 requests per minute
   '/api/admin': { requests: 60, windowMs: 60 * 1000 }, // 60 requests per minute
+  
+  // Product booking APIs - more restrictive
+  '/api/hotels/booking': { requests: 5, windowMs: 5 * 60 * 1000 }, // 5 per 5min
+  '/api/flights/booking': { requests: 5, windowMs: 5 * 60 * 1000 }, // 5 per 5min
+  '/api/cars/booking': { requests: 5, windowMs: 5 * 60 * 1000 }, // 5 per 5min
+  '/api/tours/booking': { requests: 5, windowMs: 5 * 60 * 1000 }, // 5 per 5min
+  '/api/insurance/booking': { requests: 5, windowMs: 5 * 60 * 1000 }, // 5 per 5min
+  
+  // Search APIs - moderate limiting
+  '/api/hotels/search': { requests: 30, windowMs: 60 * 1000 }, // 30 per minute
+  '/api/flights/search': { requests: 30, windowMs: 60 * 1000 }, // 30 per minute
+  '/api/cars/search': { requests: 30, windowMs: 60 * 1000 }, // 30 per minute
+  
   'default': { requests: 100, windowMs: 60 * 1000 } // 100 requests per minute for other routes
 };
 
@@ -211,10 +224,12 @@ export async function middleware(request: NextRequest) {
     response.headers.set(key, value);
   });
   
-  // Check authentication for admin pages (but not login page or API auth routes)
-  if (pathname.startsWith('/admin') && 
-      pathname !== '/admin/login' && 
-      !pathname.startsWith('/api/auth/')) {
+  // Check authentication for admin pages and customer account area
+  if ((pathname.startsWith('/admin') && 
+       pathname !== '/admin/login' && 
+       !pathname.startsWith('/api/auth/')) ||
+      pathname.startsWith('/account/') ||
+      pathname.startsWith('/minha-conta/')) {
     
     try {
       const token = await getToken({ 
@@ -237,17 +252,32 @@ export async function middleware(request: NextRequest) {
         });
       }
       
-      if (!token || token.role !== 'admin') {
-        if (process.env.NODE_ENV === 'production') {
-          console.log('❌ [PROD-MIDDLEWARE] Auth failed - redirecting to login');
+      // Admin pages require admin role
+      if (pathname.startsWith('/admin')) {
+        if (!token || token.role !== 'admin') {
+          if (process.env.NODE_ENV === 'production') {
+            console.log('❌ [PROD-MIDDLEWARE] Admin auth failed - redirecting to login');
+          }
+          
+          const loginUrl = new URL('/admin/login', request.url);
+          if (pathname !== '/admin') {
+            loginUrl.searchParams.set('callbackUrl', pathname);
+          }
+          return NextResponse.redirect(loginUrl);
         }
-        
-        // Prevent redirect loops
-        const loginUrl = new URL('/admin/login', request.url);
-        if (pathname !== '/admin') {  // Only set callback if not root admin
+      }
+      
+      // Customer account area requires user authentication
+      if (pathname.startsWith('/account/') || pathname.startsWith('/minha-conta/')) {
+        if (!token) {
+          if (process.env.NODE_ENV === 'production') {
+            console.log('❌ [PROD-MIDDLEWARE] Account access failed - redirecting to login');
+          }
+          
+          const loginUrl = new URL('/login', request.url);
           loginUrl.searchParams.set('callbackUrl', pathname);
+          return NextResponse.redirect(loginUrl);
         }
-        return NextResponse.redirect(loginUrl);
       }
       
       if (process.env.NODE_ENV === 'production') {

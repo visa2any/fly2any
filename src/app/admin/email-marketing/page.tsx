@@ -410,14 +410,14 @@ export default function EmailMarketingPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-admin-text-primary mb-1">
+              <h1 className="text-2xl font-bold text-text-slate-900 mb-1">
                 📧 Email Marketing GRATUITO - Resend
               </h1>
-              <p className="text-admin-text-secondary">
+              <p className="text-text-slate-600">
                 Gerencie seus 5.000 emails sem custo usando N8N + Gmail API
               </p>
             </div>
@@ -430,7 +430,7 @@ export default function EmailMarketingPage() {
                 Importar 5k Emails
               </button>
               <div className="text-right">
-                <div className="text-sm text-admin-text-secondary">Custo Total</div>
+                <div className="text-sm text-text-slate-600">Custo Total</div>
                 <div className="text-2xl font-bold text-green-600">$0/mês</div>
               </div>
             </div>
@@ -440,15 +440,15 @@ export default function EmailMarketingPage() {
 
       {/* Stats Overview */}
       {stats && (
-        <div className="admin-stats-grid">
-          <div className="admin-stats-card">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white flex items-center justify-center text-2xl">
                 📧
               </div>
             </div>
-            <div className="admin-stats-value">{stats ? formatNumber(stats.totalContacts) : '0'}</div>
-            <div className="admin-stats-label">Total de Contatos</div>
+            <div className="text-3xl font-bold text-slate-900 mb-2">{stats ? formatNumber(stats.totalContacts) : '0'}</div>
+            <div className="text-sm font-medium text-slate-600">Total de Contatos</div>
             <button 
               onClick={() => setShowContacts(!showContacts)}
               className="mt-2 text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
@@ -457,45 +457,45 @@ export default function EmailMarketingPage() {
             </button>
           </div>
           
-          <div className="admin-stats-card">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white flex items-center justify-center text-2xl">
                 📊
               </div>
             </div>
-            <div className="admin-stats-value">{stats ? formatNumber(stats.campaignsSent) : '0'}</div>
-            <div className="admin-stats-label">Campanhas Enviadas</div>
+            <div className="text-3xl font-bold text-slate-900 mb-2">{stats ? formatNumber(stats.campaignsSent) : '0'}</div>
+            <div className="text-sm font-medium text-slate-600">Campanhas Enviadas</div>
           </div>
           
-          <div className="admin-stats-card">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center text-2xl">
                 👀
               </div>
             </div>
-            <div className="admin-stats-value">{stats ? (stats.avgOpenRate || '0%') : '0%'}</div>
-            <div className="admin-stats-label">Taxa de Abertura</div>
+            <div className="text-3xl font-bold text-slate-900 mb-2">{stats ? (stats.avgOpenRate || '0%') : '0%'}</div>
+            <div className="text-sm font-medium text-slate-600">Taxa de Abertura</div>
           </div>
           
-          <div className="admin-stats-card">
+          <div className="glass-card rounded-xl p-6 text-center shadow-lg shadow-gray-200/50">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white flex items-center justify-center text-2xl">
                 🎯
               </div>
             </div>
-            <div className="admin-stats-value">{stats ? (stats.avgClickRate || '0%') : '0%'}</div>
-            <div className="admin-stats-label">Taxa de Clique</div>
+            <div className="text-3xl font-bold text-slate-900 mb-2">{stats ? (stats.avgClickRate || '0%') : '0%'}</div>
+            <div className="text-sm font-medium text-slate-600">Taxa de Clique</div>
           </div>
         </div>
       )}
 
       {/* Quick Actions */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">🚀 Ações Rápidas</h2>
-          <p className="admin-card-description">Envie campanhas instantaneamente</p>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🚀 Ações Rápidas</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Envie campanhas instantaneamente</p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           {message && (
             <div className={`mb-4 p-3 rounded-lg ${
               message.includes('✅') 
@@ -508,9 +508,9 @@ export default function EmailMarketingPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="admin-label">Segmento (Opcional)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Segmento (Opcional)</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedSegment}
                 onChange={(e) => setSelectedSegment(e.target.value)}
               >
@@ -599,12 +599,12 @@ export default function EmailMarketingPage() {
       </div>
 
       {/* Automation */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">⚡ Automação</h2>
-          <p className="admin-card-description">Configure envios automáticos</p>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">⚡ Automação</h2>
+          <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Configure envios automáticos</p>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
               <h3 className="font-semibold text-lg mb-2">📅 Campanhas Semanais</h3>
@@ -635,12 +635,12 @@ export default function EmailMarketingPage() {
 
       {/* Contacts List */}
       {showContacts && (
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h2 className="admin-card-title">👥 Contatos Importados ({Array.isArray(contacts) ? contacts.length : 0})</h2>
-            <p className="admin-card-description">Primeiros 500 contatos disponíveis para email marketing</p>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">👥 Contatos Importados ({Array.isArray(contacts) ? contacts.length : 0})</h2>
+            <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Primeiros 500 contatos disponíveis para email marketing</p>
           </div>
-          <div className="admin-card-content">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
             {!Array.isArray(contacts) || contacts.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">📭</div>
@@ -656,20 +656,20 @@ export default function EmailMarketingPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-admin-border-color">
-                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">#</th>
-                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Nome</th>
-                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Email</th>
-                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Segmento</th>
-                      <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
+                    <tr className="border-b border-border-slate-200">
+                      <th className="text-left py-3 px-2 text-text-slate-600 font-medium">#</th>
+                      <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Nome</th>
+                      <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Email</th>
+                      <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Segmento</th>
+                      <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {Array.isArray(contacts) ? contacts.slice(0, 500).map((contact, index) => (
-                      <tr key={contact.id || index} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
-                        <td className="py-3 px-2 text-admin-text-secondary text-sm">{index + 1}</td>
-                        <td className="py-3 px-2 font-medium text-admin-text-primary">{contact.nome}</td>
-                        <td className="py-3 px-2 text-admin-text-secondary text-sm">{contact.email}</td>
+                      <tr key={contact.id || index} className="border-b border-border-slate-200 hover:bg-bg-slate-100/30">
+                        <td className="py-3 px-2 text-text-slate-600 text-sm">{index + 1}</td>
+                        <td className="py-3 px-2 font-medium text-text-slate-900">{contact.nome}</td>
+                        <td className="py-3 px-2 text-text-slate-600 text-sm">{contact.email}</td>
                         <td className="py-3 px-2">
                           <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
                             {contact.segmento || 'geral'}
@@ -687,7 +687,7 @@ export default function EmailMarketingPage() {
                       </tr>
                     )) : (
                       <tr>
-                        <td colSpan={5} className="py-4 text-center text-admin-text-secondary">
+                        <td colSpan={5} className="py-4 text-center text-text-slate-600">
                           Nenhum contato encontrado
                         </td>
                       </tr>
@@ -710,10 +710,10 @@ export default function EmailMarketingPage() {
       )}
 
       {/* Campaign History */}
-      <div className="admin-card">
-        <div className="admin-card-header">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
           <div className="flex justify-between items-center">
-            <h2 className="admin-card-title">📈 Histórico de Campanhas ({campaigns.length})</h2>
+            <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📈 Histórico de Campanhas ({campaigns.length})</h2>
             <div className="flex gap-2">
               <button
                 onClick={fetchCampaigns}
@@ -733,48 +733,48 @@ export default function EmailMarketingPage() {
             </div>
           </div>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-admin-border-color">
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Campanha</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Tipo</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Enviados</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Aberturas</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Cliques</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Data</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Status</th>
-                  <th className="text-left py-3 px-2 text-admin-text-secondary font-medium">Ações</th>
+                <tr className="border-b border-border-slate-200">
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Campanha</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Tipo</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Enviados</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Aberturas</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Cliques</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Data</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Status</th>
+                  <th className="text-left py-3 px-2 text-text-slate-600 font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {campaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-admin-text-secondary">
+                    <td colSpan={8} className="py-8 text-center text-text-slate-600">
                       📭 Nenhuma campanha encontrada.<br/>
                       <span className="text-sm">Envie sua primeira campanha usando os botões acima!</span>
                     </td>
                   </tr>
                 ) : (
                   campaigns.map((campaign) => (
-                  <tr key={campaign.id} className="border-b border-admin-border-color hover:bg-admin-bg-secondary/30">
-                    <td className="py-3 px-2 font-medium text-admin-text-primary">{campaign.name}</td>
-                    <td className="py-3 px-2 text-admin-text-secondary">{campaign.type}</td>
-                    <td className="py-3 px-2 text-admin-text-primary">{formatNumber(campaign.sent)}</td>
+                  <tr key={campaign.id} className="border-b border-border-slate-200 hover:bg-bg-slate-100/30">
+                    <td className="py-3 px-2 font-medium text-text-slate-900">{campaign.name}</td>
+                    <td className="py-3 px-2 text-text-slate-600">{campaign.type}</td>
+                    <td className="py-3 px-2 text-text-slate-900">{formatNumber(campaign.sent)}</td>
                     <td className="py-3 px-2">
-                      <div className="text-admin-text-primary">{formatNumber(campaign.opens)}</div>
-                      <div className="text-xs text-admin-text-secondary">
+                      <div className="text-text-slate-900">{formatNumber(campaign.opens)}</div>
+                      <div className="text-xs text-text-slate-600">
                         {calculateRate(campaign.opens, campaign.sent)}
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <div className="text-admin-text-primary">{formatNumber(campaign.clicks)}</div>
-                      <div className="text-xs text-admin-text-secondary">
+                      <div className="text-text-slate-900">{formatNumber(campaign.clicks)}</div>
+                      <div className="text-xs text-text-slate-600">
                         {calculateRate(campaign.clicks, campaign.sent)}
                       </div>
                     </td>
-                    <td className="py-3 px-2 text-admin-text-secondary text-sm">
+                    <td className="py-3 px-2 text-text-slate-600 text-sm">
                       {new Date(campaign.date).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="py-3 px-2">
@@ -832,11 +832,11 @@ export default function EmailMarketingPage() {
       </div>
 
       {/* Current System Status */}
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h2 className="admin-card-title">✅ Sistema Configurado</h2>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+          <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">✅ Sistema Configurado</h2>
         </div>
-        <div className="admin-card-content">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold mb-3">📧 Gmail SMTP Ativo</h3>
@@ -868,19 +868,19 @@ export default function EmailMarketingPage() {
       {/* Import Modal */}
       {showImportModal && (
         <div className="fixed inset-0 bg-admin-bg-overlay z-50 flex items-center justify-center p-4">
-          <div className="admin-card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="admin-card-header">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
               <div className="flex justify-between items-center">
-                <h2 className="admin-card-title">📤 Importar Lista de Emails</h2>
+                <h2 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📤 Importar Lista de Emails</h2>
                 <button 
-                  className="text-admin-text-secondary hover:text-admin-text-primary"
+                  className="text-text-slate-600 hover:text-text-slate-900"
                   onClick={() => { setShowImportModal(false); setImportResult(null); }}
                 >
                   ✕
                 </button>
               </div>
             </div>
-            <div className="admin-card-content">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               {!importResult ? (
                 <>
                   <div className="mb-6">
@@ -1012,10 +1012,10 @@ export default function EmailMarketingPage() {
             <h2 className="text-xl font-semibold mb-4">🧪 Enviar Email Teste</h2>
             
             <div className="mb-4">
-              <label className="admin-label">Email para Teste</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Email para Teste</label>
               <input
                 type="email"
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="seu@email.com"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
@@ -1023,9 +1023,9 @@ export default function EmailMarketingPage() {
             </div>
 
             <div className="mb-4">
-              <label className="admin-label">Tipo de Campanha</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Campanha</label>
               <select 
-                className="admin-input"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={testCampaignType}
                 onChange={(e) => setTestCampaignType(e.target.value)}
               >

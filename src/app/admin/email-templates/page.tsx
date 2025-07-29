@@ -1119,8 +1119,8 @@ export default function EmailTemplatesPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="admin-card">
-          <div className="admin-card-content text-center py-12">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p>Carregando templates...</p>
           </div>
@@ -1132,19 +1132,19 @@ export default function EmailTemplatesPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="admin-card">
-        <div className="admin-card-content">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="admin-card-title">📧 Templates de Email</h1>
-              <p className="admin-card-description">
+              <h1 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📧 Templates de Email</h1>
+              <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">
                 Gerencie e visualize os templates das campanhas de email marketing
               </p>
             </div>
             <div className="flex gap-3">
               <button 
                 onClick={createNewTemplate}
-                className="admin-btn admin-btn-sm admin-btn-secondary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-secondary"
               >
                 ➕ Novo Template
               </button>
@@ -1156,13 +1156,13 @@ export default function EmailTemplatesPage() {
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates.map((template) => (
-          <div key={template.id} className="admin-card">
-            <div className="admin-card-content">
+          <div key={template.id} className="bg-white rounded-xl shadow-lg border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{getTypeIcon(template.type)}</span>
                   <div>
-                    <h3 className="font-semibold text-admin-text-primary">
+                    <h3 className="font-semibold text-text-slate-900">
                       {template.name}
                     </h3>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTypeColor(template.type)}`}>
@@ -1172,15 +1172,15 @@ export default function EmailTemplatesPage() {
                 </div>
               </div>
               
-              <p className="text-sm text-admin-text-secondary mb-4">
+              <p className="text-sm text-text-slate-600 mb-4">
                 {template.description}
               </p>
               
               <div className="mb-4">
-                <h4 className="text-sm font-medium text-admin-text-primary mb-1">
+                <h4 className="text-sm font-medium text-text-slate-900 mb-1">
                   📬 Assunto:
                 </h4>
-                <p className="text-sm text-admin-text-secondary bg-gray-50 p-2 rounded">
+                <p className="text-sm text-text-slate-600 bg-gray-50 p-2 rounded">
                   {template.subject}
                 </p>
               </div>
@@ -1189,13 +1189,13 @@ export default function EmailTemplatesPage() {
                 <div className="flex gap-2">
                   <button 
                     onClick={() => previewEmail(template)}
-                    className="admin-btn admin-btn-sm admin-btn-primary flex-1"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary flex-1"
                   >
                     👁️ Visualizar
                   </button>
                   <button 
                     onClick={() => editTemplate(template)}
-                    className="admin-btn admin-btn-sm admin-btn-secondary"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-secondary"
                   >
                     ✏️ Editar
                   </button>
@@ -1203,7 +1203,7 @@ export default function EmailTemplatesPage() {
                   {!['promotional', 'newsletter', 'reactivation'].includes(template.id) && (
                     <button 
                       onClick={() => deleteTemplate(template.id)}
-                      className="admin-btn admin-btn-sm text-red-600 border-red-300 hover:bg-red-50"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm text-red-600 border-red-300 hover:bg-red-50"
                       title="Deletar template personalizado"
                     >
                       🗑️
@@ -1212,7 +1212,7 @@ export default function EmailTemplatesPage() {
                 </div>
                 <button 
                   onClick={() => handleUseTemplate(template)}
-                  className="admin-btn admin-btn-sm w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:scale-105 transition-transform"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 hover:scale-105 transition-transform"
                 >
                   📤 Usar Template
                 </button>
@@ -1256,13 +1256,13 @@ export default function EmailTemplatesPage() {
             <div className="p-4 border-t flex justify-end gap-2">
               <button 
                 onClick={() => setShowPreview(false)}
-                className="admin-btn admin-btn-sm admin-btn-secondary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-secondary"
               >
                 Fechar
               </button>
               <button 
                 onClick={() => handleUseTemplate(previewTemplate)}
-                className="admin-btn admin-btn-sm admin-btn-primary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary"
               >
                 📤 Usar Template
               </button>
@@ -1310,7 +1310,7 @@ export default function EmailTemplatesPage() {
                       type="text"
                       value={editingTemplate.name}
                       onChange={(e) => updateTemplateField('name', e.target.value)}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: Super Oferta - Alta Conversão"
                     />
                   </div>
@@ -1324,7 +1324,7 @@ export default function EmailTemplatesPage() {
                       type="text"
                       value={editingTemplate.description}
                       onChange={(e) => updateTemplateField('description', e.target.value)}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: Template promocional com gatilhos de urgência"
                     />
                   </div>
@@ -1338,7 +1338,7 @@ export default function EmailTemplatesPage() {
                       type="text"
                       value={editingTemplate.subject}
                       onChange={(e) => updateTemplateField('subject', e.target.value)}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: ⚡ ÚLTIMAS 24H: Pacote COMPLETO..."
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -1354,7 +1354,7 @@ export default function EmailTemplatesPage() {
                     <select
                       value={editingTemplate.type}
                       onChange={(e) => updateTemplateField('type', e.target.value)}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     >
                       <option value="promotional">🎯 Promocional</option>
                       <option value="newsletter">📰 Newsletter</option>
@@ -1405,7 +1405,7 @@ export default function EmailTemplatesPage() {
                             type="text"
                             value={editableFields.headerTitle || ''}
                             onChange={(e) => updateEditableField('headerTitle', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: FLY2ANY"
                           />
                         </div>
@@ -1418,7 +1418,7 @@ export default function EmailTemplatesPage() {
                             type="text"
                             value={editableFields.headerSubtitle || ''}
                             onChange={(e) => updateEditableField('headerSubtitle', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: 21 anos conectando brasileiros ao mundo"
                           />
                         </div>
@@ -1436,7 +1436,7 @@ export default function EmailTemplatesPage() {
                             type="text"
                             value={editableFields.mainTitle || ''}
                             onChange={(e) => updateEditableField('mainTitle', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: PACOTE COMPLETO: TUDO INCLUÍDO!"
                           />
                           <p className="text-xs text-gray-500 mt-1">
@@ -1457,7 +1457,7 @@ export default function EmailTemplatesPage() {
                             type="url"
                             value={editableFields.ctaUrl || ''}
                             onChange={(e) => updateEditableField('ctaUrl', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="https://fly2any.com"
                           />
                         </div>
@@ -1470,7 +1470,7 @@ export default function EmailTemplatesPage() {
                             type="text"
                             value={editableFields.ctaText || ''}
                             onChange={(e) => updateEditableField('ctaText', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: QUERO MEU PACOTE COMPLETO"
                           />
                           <p className="text-xs text-gray-500 mt-1">
@@ -1491,7 +1491,7 @@ export default function EmailTemplatesPage() {
                             type="text"
                             value={editableFields.whatsappNumber || ''}
                             onChange={(e) => updateEditableField('whatsappNumber', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="+55 11 99999-9999"
                           />
                         </div>
@@ -1504,7 +1504,7 @@ export default function EmailTemplatesPage() {
                             type="email"
                             value={editableFields.email || ''}
                             onChange={(e) => updateEditableField('email', e.target.value)}
-                            className="admin-input w-full"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="info@fly2any.com"
                           />
                         </div>
@@ -1520,7 +1520,7 @@ export default function EmailTemplatesPage() {
                       <textarea
                         value={editingTemplate.html}
                         onChange={(e) => updateTemplateField('html', e.target.value)}
-                        className="admin-input w-full font-mono text-sm"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full font-mono text-sm"
                         rows={25}
                         placeholder="Cole seu HTML aqui..."
                       />
@@ -1557,14 +1557,14 @@ export default function EmailTemplatesPage() {
               <div className="flex gap-2">
                 <button 
                   onClick={resetToDefault}
-                  className="admin-btn admin-btn-sm text-orange-600 border-orange-300 hover:bg-orange-50"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm text-orange-600 border-orange-300 hover:bg-orange-50"
                   title="Restaurar template padrão"
                 >
                   🔄 Restaurar Padrão
                 </button>
                 <button 
                   onClick={exportTemplate}
-                  className="admin-btn admin-btn-sm text-blue-600 border-blue-300 hover:bg-blue-50"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm text-blue-600 border-blue-300 hover:bg-blue-50"
                   title="Exportar template como JSON"
                 >
                   📤 Exportar
@@ -1585,14 +1585,14 @@ export default function EmailTemplatesPage() {
                       setEditingTemplate(null);
                     }
                   }}
-                  className="admin-btn admin-btn-sm admin-btn-secondary"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-secondary"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={saveTemplate}
                   disabled={saving}
-                  className="admin-btn admin-btn-sm admin-btn-primary"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary"
                 >
                   {saving ? '💾 Salvando...' : (isCreatingNew ? '➕ Criar Template' : '💾 Salvar Template')}
                 </button>
@@ -1678,7 +1678,7 @@ export default function EmailTemplatesPage() {
                       type="email"
                       value={campaignSettings.testEmail}
                       onChange={(e) => setCampaignSettings({...campaignSettings, testEmail: e.target.value})}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="seu@email.com"
                       required
                     />
@@ -1697,7 +1697,7 @@ export default function EmailTemplatesPage() {
                     <select
                       value={campaignSettings.segment}
                       onChange={(e) => setCampaignSettings({...campaignSettings, segment: e.target.value})}
-                      className="admin-input w-full"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     >
                       <option value="">
                         Todos os contatos {contactsCount[''] ? `(${contactsCount[''].toLocaleString()} contatos)` : ''}
@@ -1769,7 +1769,7 @@ export default function EmailTemplatesPage() {
                   setShowUseTemplateModal(false);
                   setSelectedTemplateForUse(null);
                 }}
-                className="admin-btn admin-btn-sm admin-btn-secondary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-secondary"
                 disabled={sendingCampaign}
               >
                 Cancelar
@@ -1777,7 +1777,7 @@ export default function EmailTemplatesPage() {
               <button 
                 onClick={sendCampaignWithTemplate}
                 disabled={sendingCampaign || (campaignSettings.sendType === 'test' && !campaignSettings.testEmail)}
-                className="admin-btn admin-btn-sm admin-btn-primary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-sm inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200-primary"
               >
                 {sendingCampaign ? (
                   <>
@@ -1796,9 +1796,9 @@ export default function EmailTemplatesPage() {
       )}
 
       {/* Instructions */}
-      <div className="admin-card">
-        <div className="admin-card-content">
-          <h3 className="admin-card-title" style={{ marginBottom: '12px' }}>
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+          <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title" style={{ marginBottom: '12px' }}>
             📖 Como Usar o Editor de Templates
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
