@@ -411,7 +411,7 @@ export interface HotelDetailsResult {
   };
 }
 
-export interface HotelDetailsResponse extends LiteAPIResponse<HotelDetailsResult> {}
+export type HotelDetailsResponse = LiteAPIResponse<HotelDetailsResult>;
 
 // ============ TARIFAS E DISPONIBILIDADE ============
 
