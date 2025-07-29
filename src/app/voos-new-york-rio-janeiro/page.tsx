@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FlightIcon } from '@/components/Icons';
-import Logo from '@/components/Logo';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -21,63 +20,26 @@ export default function VoosNewYorkRioJaneiro() {
   return (
     <>
       <GlobalMobileStyles />
+      <ResponsiveHeader />
+      
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-      <header style={{
-        position: 'relative',
-        zIndex: 10,
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-      }}>
+        {/* Breadcrumbs */}
         <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }} className="mobile-container">
-          <Logo size="md" variant="logo-only" headingLevel="div" />
-          <nav style={{ display: 'flex', gap: '24px' }}>
-            <Link href="/" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px'
-            }}>
-              Home
-            </Link>
-            <Link href="/voos-brasil-eua" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px'
-            }}>
-              Voos Brasil-EUA
-            </Link>
-            <Link href="/contato" style={{
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              fontSize: '14px'
-            }}>
-              Contato
-            </Link>
-          </nav>
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '16px'
+        }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+            <Breadcrumbs 
+              items={[
+                { label: 'Início', href: '/' },
+                { label: 'Voos Brasil-EUA', href: '/voos-brasil-eua' },
+                { label: 'New York - Rio de Janeiro' }
+              ]} 
+            />
+          </div>
         </div>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }} className="mobile-container">
-          <Breadcrumbs 
-            items={[
-              { label: 'Início', href: '/' },
-              { label: 'Voos Brasil-EUA', href: '/voos-brasil-eua' },
-              { label: 'New York - Rio de Janeiro' }
-            ]} 
-          />
-        </div>
-      </header>
 
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 24px' }} className="mobile-container">
         <div style={{ maxWidth: '896px', margin: '0 auto' }} className="mobile-container">

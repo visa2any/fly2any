@@ -7,8 +7,9 @@ import {
   CalendarIcon,
   CheckIcon
 } from '@/components/Icons';
-import Logo from '@/components/Logo';
+import ResponsiveHeader from '@/components/ResponsiveHeader';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: "Complete Brazil Travel Guide for Americans | Fly2Any",
@@ -35,53 +36,25 @@ export default function BrazilTravelGuide() {
   return (
     <>
       <GlobalMobileStyles />
+      <ResponsiveHeader />
+      
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-        
-        {/* Header */}
-        <header style={{
-          position: 'relative',
-          zIndex: 10,
+        {/* Breadcrumbs */}
+        <div style={{
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '16px'
         }}>
-          <div style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            padding: '16px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }} className="mobile-container">
-            <Logo size="md" variant="logo-only" headingLevel="div" />
-            <nav style={{ display: 'flex', gap: '24px' }}>
-              <Link href="/en" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                fontSize: '14px'
-              }}>
-                Home
-              </Link>
-              <Link href="/en/brazil-travel-guide" style={{
-                color: '#facc15',
-                textDecoration: 'none',
-                fontWeight: '500',
-                fontSize: '14px'
-              }}>
-                Travel Guide
-              </Link>
-              <Link href="/en/contact" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                fontSize: '14px'
-              }}>
-                Contact
-              </Link>
-            </nav>
+          <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+            <Breadcrumbs 
+              items={[
+                { label: 'Home', href: '/en' },
+                { label: 'Brazil Travel Guide' }
+              ]} 
+            />
           </div>
-        </header>
+        </div>
 
         {/* Hero Section */}
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 24px 32px' }} className="mobile-container">

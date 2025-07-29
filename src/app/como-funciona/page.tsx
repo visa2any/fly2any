@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FlightIcon, PhoneIcon } from '@/components/Icons';
-import Logo from '@/components/Logo';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
 import Footer from '@/components/Footer';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export const metadata: Metadata = {
   title: "Como Funciona | Processo Simples em 4 Passos | Fly2Any",
@@ -128,129 +128,24 @@ export default function ComoFunciona() {
         }}
       />
 
+      <GlobalMobileStyles />
       <ResponsiveHeader />
       
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
         {/* Breadcrumbs */}
         <div style={{
-          position: 'relative',
-          zIndex: 10,
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '16px'
         }}>
-          <div style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            padding: '16px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-        }} className="mobile-container">
-            <Logo size="md" variant="logo-only" />
-            <nav style={{ display: 'flex', gap: '24px' }}>
-              <Link href="/" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Home
-              </Link>
-              <Link href="/voos-brasil-eua" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <FlightIcon style={{ width: '14px', height: '14px' }} />
-                Voos
-              </Link>
-              <Link href="/como-funciona" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Como Funciona
-              </Link>
-              <Link href="/blog" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-                Blog
-              </Link>
-              <Link href="/faq" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                FAQ
-              </Link>
-              <Link href="/sobre" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <svg style={{ width: '14px', height: '14px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Sobre
-              </Link>
-              <Link href="/contato" style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <PhoneIcon style={{ width: '14px', height: '14px' }} />
-                Contato
-              </Link>
-            </nav>
+          <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+            <Breadcrumbs 
+              items={[
+                { label: 'Início', href: '/' },
+                { label: 'Como Funciona' }
+              ]} 
+            />
           </div>
         </div>
 
