@@ -169,7 +169,7 @@ export default function HotelSearchForm({
       children: formData.children,
       childrenAges: formData.childrenAges,
       rooms: formData.rooms,
-      currency: 'USD'
+      currency: 'BRL'
     };
 
     onSearch(searchParams);

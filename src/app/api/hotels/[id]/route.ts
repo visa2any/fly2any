@@ -12,7 +12,7 @@ import { liteApiClient } from '@/lib/hotels/liteapi-client';
 import type { Hotel, APIResponse } from '@/types/hotels';
 
 // Cache for hotel details (longer TTL since details change less frequently)
-const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes - Reduzido de 15min para melhor atualização
 const detailsCache = new Map<string, { data: any; timestamp: number }>();
 
 // Validation schema for query parameters

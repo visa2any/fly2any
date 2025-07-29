@@ -18,7 +18,7 @@ import type {
 } from '@/types/hotels';
 
 // Rate limiting and caching
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes - Reduzido para preços mais atualizados
 const searchCache = new Map<string, { data: any; timestamp: number }>();
 
 // Validation schema for query parameters

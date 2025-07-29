@@ -65,6 +65,7 @@ function HoteisContent() {
   const [state, setState] = useState<PageState>(initialState);
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -1420,6 +1421,60 @@ function HoteisContent() {
             onClose={toggleComparison}
             onSelectHotel={handleHotelSelect}
           />
+        )}
+
+        {/* Mobile Filters Button (show only when there are results and on mobile) */}
+        {state.view === 'results' && state.searchResults && isMobile && (
+          <button
+            onClick={() => setShowMobileFilters(true)}  
+            className="lg:hidden fixed bottom-6 right-6 z-40 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110"
+            aria-label="Abrir filtros"
+          >
+            <Filter className="w-6 h-6" />
+          </button>
+        )}
+
+        {/* Mobile Filters Modal */}
+        {showMobileFilters && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl max-h-[80vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Filtros</h2>
+                  <button
+                    onClick={() => setShowMobileFilters(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Fechar filtros"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  <HotelFilters
+                    filters={{}}
+                    onFiltersChange={(filters) => {
+                      console.log('Mobile filters changed:', filters);
+                      // Auto-close modal after applying filters
+                      setShowMobileFilters(false);
+                    }}
+                    priceRange={state.searchResults?.filters?.priceRange}
+                    availableAmenities={state.searchResults?.filters?.amenities?.map(a => a.id)}
+                    loading={state.isLoading}
+                  />
+                </div>
+                
+                <div className="mt-6 pt-6 border-t">
+                  <button
+                    onClick={() => setShowMobileFilters(false)}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-xl font-semibold"
+                  >
+                    Aplicar Filtros
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </>
