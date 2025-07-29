@@ -180,7 +180,7 @@ export default function HotelResultsList({
   const filteredAndSortedHotels = useMemo(() => {
     if (!searchResults?.hotels) return [];
 
-    let filtered = searchResults.hotels.filter(hotel => {
+    const filtered = searchResults.hotels.filter(hotel => {
       // Search filter
       if (filterSearch) {
         const searchLower = filterSearch.toLowerCase();

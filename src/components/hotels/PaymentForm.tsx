@@ -78,9 +78,9 @@ export default function PaymentForm({
         returnUrl: `${window.location.origin}/hoteis/booking/payment-return?transactionId=${prebookingData.transactionId}`
       };
 
-      // @ts-ignore - LiteAPI SDK global
+      // @ts-expect-error - LiteAPI SDK global
       if (window.liteAPIPayment) {
-        // @ts-ignore
+        // @ts-expect-error
         window.liteAPIPayment.init(liteAPIConfig);
       }
     }
