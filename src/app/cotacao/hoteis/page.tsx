@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PhoneInputSimple from '@/components/PhoneInputSimple';
+import ResponsiveHeader from '@/components/ResponsiveHeader';
 
 interface FormData {
   destino: string;
@@ -164,16 +165,13 @@ export default function CotacaoHoteis() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-600 to-blue-700">
-      <header className="bg-white shadow-lg">
+      <ResponsiveHeader />
+      
+      {/* Progress Indicator */}
+      <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">F</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-800">Flyy2Any</h1>
-            </Link>
-            <div className="text-sm text-gray-600">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-semibold text-gray-800">
               Cotação de Hotéis - Passo {currentStep} de 3
             </div>
           </div>
@@ -185,7 +183,7 @@ export default function CotacaoHoteis() {
             ]} 
           />
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">

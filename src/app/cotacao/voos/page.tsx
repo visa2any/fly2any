@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PhoneInputSimple from '@/components/PhoneInputSimple';
+import ResponsiveHeader from '@/components/ResponsiveHeader';
 import { trackFormSubmission } from '@/lib/tracking';
 
 interface FormData {
@@ -171,14 +172,10 @@ export default function CotacaoVoos() {
 
   return (
     <div style={{ minHeight: '100vh' }} className="bg-gradient-hero">
-      {/* Header */}
-      <header style={{ 
-        background: 'white',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50
-      }}>
+      <ResponsiveHeader />
+      
+      {/* Progress Indicator - movido para faixa separada */}
+      <div className="bg-white border-b border-gray-200">
         <div className="container-mobile" style={{ padding: '12px 16px' }}>
           <div style={{ 
             display: 'flex', 
@@ -186,38 +183,12 @@ export default function CotacaoVoos() {
             justifyContent: 'space-between',
             marginBottom: '8px'
           }}>
-            <Link href="/" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              textDecoration: 'none'
-            }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                background: '#2563eb',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>F</span>
-              </div>
-              <h1 style={{ 
-                fontSize: '18px',
-                fontWeight: 'bold',
-                color: '#1f2937',
-                margin: 0
-              }}>
-                Fly2Any
-              </h1>
-            </Link>
             <div style={{ 
-              fontSize: '12px',
-              color: '#6b7280',
-              fontWeight: '500'
+              fontSize: '14px',
+              color: '#374151',
+              fontWeight: '600'
             }}>
-              Passo {currentStep} de 3
+              Cotação de Voos - Passo {currentStep} de 3
             </div>
           </div>
           <Breadcrumbs 
@@ -228,7 +199,7 @@ export default function CotacaoVoos() {
             ]} 
           />
         </div>
-      </header>
+      </div>
 
       <div className="container-mobile spacing-mobile">
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
