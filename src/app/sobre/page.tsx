@@ -11,8 +11,9 @@ export default function Sobre() {
   return (
     <>
       <GlobalMobileStyles />
+      <ResponsiveHeader />
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-      <header style={{
+      <div style={{
         position: 'relative',
         zIndex: 10,
         background: 'rgba(255, 255, 255, 0.1)',
@@ -133,7 +134,7 @@ export default function Sobre() {
             ]} 
           />
         </div>
-      </header>
+      </div>
 
       <div className="container-mobile spacing-mobile">
         <div style={{ maxWidth: '800px', margin: '0 auto' }} className="mobile-container">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import ResponsiveHeader from "@/components/ResponsiveHeader";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade | Fly2Any",
@@ -16,8 +17,10 @@ export const metadata: Metadata = {
 export default function PoliticaPrivacidade() {
   return (
     <div className="min-h-screen bg-gradient-hero">
-      {/* Header */}
-      <header className="bg-glass border-b border-white/20">
+      <ResponsiveHeader />
+      
+      {/* Breadcrumbs */}
+      <div className="bg-glass border-b border-white/20">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
@@ -37,7 +40,7 @@ export default function PoliticaPrivacidade() {
             </nav>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className="py-20">

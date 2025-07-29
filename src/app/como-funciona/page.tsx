@@ -128,9 +128,11 @@ export default function ComoFunciona() {
         }}
       />
 
+      <ResponsiveHeader />
+      
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)' }}>
-        {/* Header */}
-        <header style={{
+        {/* Breadcrumbs */}
+        <div style={{
           position: 'relative',
           zIndex: 10,
           background: 'rgba(255, 255, 255, 0.1)',
@@ -250,7 +252,7 @@ export default function ComoFunciona() {
               </Link>
             </nav>
           </div>
-        </header>
+        </div>
 
         {/* Hero Section */}
         <section style={{ padding: '80px 0' }} className="mobile-section">
