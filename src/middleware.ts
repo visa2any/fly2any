@@ -195,7 +195,10 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
-    pathname.includes('.') // Skip files with extensions
+    pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/robots.txt') ||
+    pathname.startsWith('/sitemap.xml') ||
+    /\.(ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot)$/.test(pathname)
   ) {
     return NextResponse.next();
   }
