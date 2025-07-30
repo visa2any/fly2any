@@ -98,10 +98,10 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
             </svg>
             Home
           </Link>
-          <Link href="/voos-brasil-eua" style={{
-            color: pathname === '/voos-brasil-eua' ? 'white' : 'rgba(255, 255, 255, 0.9)',
+          <Link href="/voos" style={{
+            color: (pathname === '/voos' || pathname === '/voos-brasil-eua') ? 'white' : 'rgba(255, 255, 255, 0.9)',
             textDecoration: 'none',
-            fontWeight: pathname === '/voos-brasil-eua' ? '600' : '500',
+            fontWeight: (pathname === '/voos' || pathname === '/voos-brasil-eua') ? '600' : '500',
             transition: 'color 0.3s',
             fontSize: '14px',
             display: 'flex',
