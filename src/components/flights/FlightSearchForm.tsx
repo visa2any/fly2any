@@ -27,27 +27,84 @@ interface AirportSearchResult {
   detailedName: string;
 }
 
+// Cache para armazenar últimas escolhas e buscas de aeroportos
+interface AirportCache {
+  lastOrigin?: AirportSelection;
+  lastDestination?: AirportSelection;
+  recentSearches: AirportSelection[];
+  searchCache: { [key: string]: AirportSearchResult[] };
+}
+
+const CACHE_KEY = 'fly2any_airport_cache';
+const MAX_RECENT_SEARCHES = 10;
+const MAX_SEARCH_CACHE = 50;
+
+// Funções para gerenciar o cache
+const getAirportCache = (): AirportCache => {
+  if (typeof window === 'undefined') return { recentSearches: [], searchCache: {} };
+  
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : { recentSearches: [], searchCache: {} };
+  } catch {
+    return { recentSearches: [], searchCache: {} };
+  }
+};
+
+const saveAirportCache = (cache: AirportCache) => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (error) {
+    console.warn('Failed to save airport cache:', error);
+  }
+};
+
+const updateRecentSearches = (airport: AirportSelection) => {
+  const cache = getAirportCache();
+  
+  // Remove duplicatas
+  cache.recentSearches = cache.recentSearches.filter(
+    item => item.iataCode !== airport.iataCode
+  );
+  
+  // Adiciona no início
+  cache.recentSearches.unshift(airport);
+  
+  // Limita o número de itens
+  if (cache.recentSearches.length > MAX_RECENT_SEARCHES) {
+    cache.recentSearches = cache.recentSearches.slice(0, MAX_RECENT_SEARCHES);
+  }
+  
+  saveAirportCache(cache);
+};
+
 export default function FlightSearchForm({ 
   onSearch, 
   isLoading = false, 
   className = '',
   initialData 
 }: FlightSearchFormProps) {
-  // Form state with international defaults
+  // Defaults seguros para SSR
+  const defaultOrigin = { iataCode: 'NYC', name: 'New York', city: 'New York', country: 'United States' };
+  const defaultDestination = { iataCode: '', name: '', city: '', country: '' };
+
+  // Form state with safe defaults (para evitar hydration mismatch)
   const [formData, setFormData] = useState<FlightSearchFormData>({
     tripType: 'round-trip',
-    origin: { iataCode: 'NYC', name: 'New York', city: 'New York', country: 'United States' },
-    destination: { iataCode: '', name: '', city: '', country: '' },
+    origin: defaultOrigin,
+    destination: defaultDestination,
     departureDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days (better for international)
     returnDate: new Date(Date.now() + 44 * 24 * 60 * 60 * 1000), // 2 weeks trip
     segments: [
       {
-        origin: { iataCode: 'NYC', name: 'New York', city: 'New York', country: 'United States' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: defaultOrigin,
+        destination: defaultDestination,
         departureDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       },
       {
-        origin: { iataCode: '', name: '', city: '', country: '' },
+        origin: defaultDestination,
         destination: { iataCode: '', name: '', city: '', country: '' },
         departureDate: new Date(Date.now() + 37 * 24 * 60 * 60 * 1000)
       }
@@ -93,6 +150,35 @@ export default function FlightSearchForm({
   const [destinationSearch, setDestinationSearch] = useState('');
   const [originResults, setOriginResults] = useState<AirportSearchResult[]>([]);
   const [destinationResults, setDestinationResults] = useState<AirportSearchResult[]>([]);
+  
+  // Cache states para buscas recentes
+  const [recentSearches, setRecentSearches] = useState<AirportSelection[]>([]);
+  
+  // Carregar dados cached apenas no cliente (após hydratação)
+  useEffect(() => {
+    const cache = getAirportCache();
+    setRecentSearches(cache.recentSearches || []);
+    
+    // Aplicar valores cached se disponíveis
+    if (cache.lastOrigin || cache.lastDestination) {
+      setFormData(prev => ({
+        ...prev,
+        origin: cache.lastOrigin || prev.origin,
+        destination: cache.lastDestination || prev.destination,
+        segments: [
+          {
+            ...prev.segments?.[0],
+            origin: cache.lastOrigin || prev.segments?.[0]?.origin,
+            destination: cache.lastDestination || prev.segments?.[0]?.destination
+          },
+          {
+            ...prev.segments?.[1],
+            origin: cache.lastDestination || prev.segments?.[1]?.origin
+          }
+        ]
+      }));
+    }
+  }, []);
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
@@ -139,7 +225,7 @@ export default function FlightSearchForm({
   }, []);
 
   // Update dropdown position
-  const updateDropdownPosition = useCallback((type: 'origin' | 'destination' | 'passenger', ref: React.RefObject<HTMLInputElement | HTMLButtonElement>) => {
+  const updateDropdownPosition = useCallback((type: 'origin' | 'destination' | 'passenger', ref: React.RefObject<HTMLInputElement | HTMLButtonElement | null>) => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       setDropdownPositions(prev => ({
@@ -345,6 +431,24 @@ export default function FlightSearchForm({
     setErrors([]);
     setIsSearching(true);
     
+    // Salvar escolhas no cache antes de buscar
+    const cache = getAirportCache();
+    cache.lastOrigin = formData.origin;
+    cache.lastDestination = formData.destination;
+    saveAirportCache(cache);
+    
+    // Adicionar às buscas recentes
+    if (formData.origin.iataCode) {
+      updateRecentSearches(formData.origin);
+    }
+    if (formData.destination.iataCode) {
+      updateRecentSearches(formData.destination);
+    }
+    
+    // Atualizar estado local das buscas recentes
+    const updatedCache = getAirportCache();
+    setRecentSearches(updatedCache.recentSearches || []);
+    
     try {
       await onSearch(formData);
     } catch (error) {
@@ -408,7 +512,9 @@ export default function FlightSearchForm({
         </div>
 
         {/* Row 1: Origin, Swap, Destination, and Passengers - Premium Card Style */}
-        <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-white/60 mb-4 sm:mb-6 hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-x-hidden">
+        <div className={`relative backdrop-blur-sm rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-white/60 mb-4 sm:mb-6 hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-x-hidden ${
+          isLoading ? 'bg-white/60 opacity-75 pointer-events-none' : 'bg-white/80'
+        }`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 relative z-10 w-full max-w-full">
           
           {/* Origin */}
@@ -529,7 +635,7 @@ export default function FlightSearchForm({
                       </div>
                       <span className="font-semibold text-gray-900">Flight {index + 1}</span>
                     </div>
-                    {formData.segments.length > 2 && (
+                    {formData.segments && formData.segments.length > 2 && (
                       <button
                         type="button"
                         onClick={() => removeSegment(index)}
@@ -594,7 +700,7 @@ export default function FlightSearchForm({
                     </div>
                   </div>
 
-                  {index < formData.segments.length - 1 && (
+                  {formData.segments && index < formData.segments.length - 1 && (
                     <div className="flex justify-center mt-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm">
                         ↓
@@ -615,7 +721,9 @@ export default function FlightSearchForm({
         )}
 
         {/* Row 2: Dates, Class, and Direct flights - Premium Card Style */}
-        <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-white/60 mb-4 sm:mb-6 hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-x-hidden">
+        <div className={`relative backdrop-blur-sm rounded-2xl p-3 sm:p-4 lg:p-6 shadow-lg border border-white/60 mb-4 sm:mb-6 hover:shadow-xl transition-all duration-300 w-full max-w-full overflow-x-hidden ${
+          isLoading ? 'bg-white/60 opacity-75 pointer-events-none' : 'bg-white/80'
+        }`}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-6 relative z-10 w-full max-w-full">
           
           {/* Departure Date */}
@@ -740,14 +848,18 @@ export default function FlightSearchForm({
           <button
             type="submit"
             disabled={isLoading || isSearching}
-            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 disabled:from-gray-400 disabled:via-gray-500 disabled:to-gray-600 text-white font-black py-5 px-8 rounded-2xl text-xl transition-all transform hover:scale-[1.02] disabled:hover:scale-100 shadow-2xl hover:shadow-[0_25px_80px_-10px_rgba(59,130,246,0.6)] relative overflow-hidden group border-2 border-white/20"
+            className={`w-full font-black py-5 px-8 rounded-2xl text-xl transition-all transform shadow-2xl relative overflow-hidden group border-2 border-white/20 ${
+              isLoading || isSearching 
+                ? 'bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 cursor-not-allowed opacity-75' 
+                : 'bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 hover:scale-[1.02] hover:shadow-[0_25px_80px_-10px_rgba(59,130,246,0.6)]'
+            } text-white`}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10 flex items-center justify-center gap-3">
               {isLoading || isSearching ? (
                 <>
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  <span className="text-lg">🔍 Searching flights...</span>
+                  <span className="text-lg">Search in Progress...</span>
                 </>
               ) : (
                 <>
@@ -831,6 +943,41 @@ export default function FlightSearchForm({
                 </div>
               </div>
               
+              {/* Recent Searches (quando não há busca ativa) */}
+              {!originSearch && recentSearches.length > 0 && (
+                <div className="py-2 border-b border-gray-100">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Recent Searches
+                  </div>
+                  {recentSearches.slice(0, 5).map((airport, index) => (
+                    <button
+                      key={`recent-origin-${airport.iataCode}-${index}`}
+                      type="button"
+                      className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 group"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, origin: airport }));
+                        setOriginSearch('');
+                        setShowOriginDropdown(false);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-900 text-sm group-hover:text-blue-700 transition-colors">
+                            {airport.iataCode} - {airport.name}
+                          </div>
+                          <div className="text-xs text-gray-600 truncate">
+                            {airport.city}, {airport.country}
+                          </div>
+                        </div>
+                        <div className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                          <span className="text-xs">Recent</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Airport List */}
               <div className="py-2">
                 {originResults.map((airport, index) => (
@@ -908,6 +1055,41 @@ export default function FlightSearchForm({
                 </div>
               </div>
               
+              {/* Recent Searches (quando não há busca ativa) */}
+              {!destinationSearch && recentSearches.length > 0 && (
+                <div className="py-2 border-b border-gray-100">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Recent Searches
+                  </div>
+                  {recentSearches.slice(0, 5).map((airport, index) => (
+                    <button
+                      key={`recent-dest-${airport.iataCode}-${index}`}
+                      type="button"
+                      className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all duration-200 group"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, destination: airport }));
+                        setDestinationSearch('');
+                        setShowDestinationDropdown(false);
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors">
+                            {airport.iataCode} - {airport.name}
+                          </div>
+                          <div className="text-xs text-gray-600 truncate">
+                            {airport.city}, {airport.country}
+                          </div>
+                        </div>
+                        <div className="text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                          <span className="text-xs">Recent</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Airport List */}
               <div className="py-2">
                 {destinationResults.map((airport, index) => (

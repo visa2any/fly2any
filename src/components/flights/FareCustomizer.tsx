@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { ProcessedFlightOffer } from '@/types/flights';
+import { useRealFareCustomization } from '@/lib/flights/useRealFareCustomization';
 import { 
   CheckIcon, 
   ArrowRightIcon,
@@ -24,7 +25,7 @@ import {
 
 interface UpsellOption {
   id: string;
-  type: 'refund' | 'change' | 'bag' | 'seat' | 'class';
+  type: 'refund' | 'change' | 'bag' | 'seat' | 'class' | 'bundle';
   title: string;
   description: string;
   price: number;
@@ -35,6 +36,9 @@ interface UpsellOption {
   category: 'popular' | 'savings' | 'premium';
   icon: React.ComponentType<any>;
   available: boolean;
+  dataSource?: 'api' | 'estimated' | 'unavailable';
+  confidence?: number;
+  restrictions?: string[];
 }
 
 interface FareCustomization {
@@ -65,115 +69,258 @@ export default function FareCustomizer({
 }: FareCustomizerProps) {
   const [selectedOptions, setSelectedOptions] = useState<Set<string>>(new Set());
 
+  // Helper function to get icon for real data types - MUST be before useMemo
+  const getIconForType = useCallback((type: string) => {
+    try {
+      switch (type) {
+        case 'change': return RefreshIcon;
+        case 'refund': return ShieldIcon;
+        case 'bag': return LuggageIcon;
+        case 'seat': return SeatIcon;
+        case 'class': return CrownIcon;
+        case 'bundle': return SparklesIcon;
+        default: return SparklesIcon;
+      }
+    } catch (error) {
+      console.warn('Error getting icon for type:', type, error);
+      return SparklesIcon;
+    }
+  }, []);
+
   // ========================================================================
   // MOCK DATA - Will be replaced with real Amadeus API data
   // ========================================================================
   
-  const mockUpsellOptions: UpsellOption[] = useMemo(() => [
-    // POPULAR OPTIONS
-    {
-      id: 'free-changes',
-      type: 'change',
-      title: 'Free Changes',
-      description: 'Change dates without fees',
-      price: 45,
-      originalPrice: 75,
-      savings: 30,
-      popular: true,
-      category: 'popular',
-      icon: RefreshIcon,
-      available: true
-    },
-    {
-      id: 'refundable',
-      type: 'refund',
-      title: 'Refundable',
-      description: 'Get money back if you cancel',
-      price: 85,
-      originalPrice: 120,
-      savings: 35,
-      popular: true,
-      category: 'popular',
-      icon: ShieldIcon,
-      available: true
-    },
-    {
-      id: 'bundle-flex',
-      type: 'change',
-      title: 'Flexibility Bundle',
-      description: 'Free changes + Refundable',
-      price: 120,
-      originalPrice: 165,
-      savings: 45,
-      bundle: true,
-      popular: true,
-      category: 'popular',
-      icon: SparklesIcon,
-      available: true
-    },
-    
-    // SAVINGS OPTIONS
-    {
-      id: 'extra-bag',
-      type: 'bag',
-      title: 'Extra Bag',
-      description: '23kg checked bag',
-      price: 35,
-      category: 'savings',
-      icon: LuggageIcon,
-      available: true
-    },
-    {
-      id: 'pick-seat',
-      type: 'seat',
-      title: 'Pick Seat',
-      description: 'Choose your preferred seat',
-      price: 15,
-      category: 'savings',
-      icon: SeatIcon,
-      available: true
-    },
-    {
-      id: 'priority-bag',
-      type: 'bag',
-      title: 'Priority Baggage',
-      description: 'First off the plane',
-      price: 25,
-      category: 'savings',
-      icon: LuggageIcon,
-      available: true
-    },
-    
-    // PREMIUM OPTIONS
-    {
-      id: 'business-class',
-      type: 'class',
-      title: 'Business Class',
-      description: 'Premium cabin experience',
-      price: 250,
-      category: 'premium',
-      icon: CrownIcon,
-      available: true
+  // 🎯 ROBUST REAL DATA: Full implementation with proper error boundaries
+  const {
+    loading: realDataLoading,
+    data: realCustomizationData,
+    error: realDataError,
+    selectedOptions: realSelectedOptions,
+    setSelectedOptions: setRealSelectedOptions,
+    loadRealCustomizationData,
+    refresh,
+    statistics
+  } = useRealFareCustomization(offer, {
+    autoLoad: true, // Restored auto-load - the robust system as intended
+    enableFallback: true,
+    cacheTimeout: 5 * 60 * 1000
+  });
+
+  // 🔄 SAFE TRANSITION: Use real data when available, fallback to mock for backward compatibility
+  const mockUpsellOptions: UpsellOption[] = useMemo(() => {
+    // Comprehensive safety checks for real data
+    if (realCustomizationData && 
+        typeof realCustomizationData === 'object' && 
+        realCustomizationData.options && 
+        Array.isArray(realCustomizationData.options) &&
+        realCustomizationData.options.length > 0) {
+      try {
+        const processedOptions = realCustomizationData.options
+          .filter((realOpt: any) => realOpt && typeof realOpt === 'object')
+          .map((realOpt: any) => {
+            try {
+              return {
+                id: String(realOpt.id || `option-${Math.random()}`),
+                type: (['change', 'refund', 'bag', 'seat', 'class', 'bundle'].includes(realOpt.type) ? realOpt.type : 'change') as any,
+                title: String(realOpt.title || 'Option'),
+                description: String(realOpt.description || ''),
+                price: Math.max(0, Number(realOpt.price) || 0),
+                originalPrice: realOpt.originalPrice ? Math.max(0, Number(realOpt.originalPrice)) : undefined,
+                savings: realOpt.savings ? Math.max(0, Number(realOpt.savings)) : undefined,
+                popular: Boolean(realOpt.popular),
+                category: (['popular', 'savings', 'premium'].includes(realOpt.category) ? realOpt.category : 'popular') as any,
+                bundle: Boolean(realOpt.bundle),
+                icon: getIconForType(realOpt.type || 'change'),
+                available: Boolean(realOpt.available !== false),
+                dataSource: (['api', 'estimated', 'unavailable'].includes(realOpt.dataSource) ? realOpt.dataSource : 'api') as any,
+                confidence: Math.min(100, Math.max(0, Number(realOpt.confidence) || 100)),
+                restrictions: Array.isArray(realOpt.restrictions) ? realOpt.restrictions.map(String) : []
+              };
+            } catch (optError) {
+              console.warn('Error processing individual option:', optError);
+              return null;
+            }
+          })
+          .filter(Boolean); // Remove null options
+        
+        if (processedOptions.length > 0) {
+          return processedOptions as UpsellOption[];
+        }
+      } catch (error) {
+        console.warn('Error processing real customization data:', error);
+        // Fall through to mock data
+      }
     }
-  ], []);
+
+    // Fallback to original mock data if real data not available
+    return [
+      // POPULAR OPTIONS
+      {
+        id: 'free-changes',
+        type: 'change',
+        title: 'Free Changes',
+        description: 'Change dates without fees',
+        price: 45,
+        originalPrice: 75,
+        savings: 30,
+        popular: true,
+        category: 'popular',
+        icon: RefreshIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      {
+        id: 'refundable',
+        type: 'refund',
+        title: 'Refundable',
+        description: 'Get money back if you cancel',
+        price: 85,
+        originalPrice: 120,
+        savings: 35,
+        popular: true,
+        category: 'popular',
+        icon: ShieldIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      {
+        id: 'bundle-flex',
+        type: 'change',
+        title: 'Flexibility Bundle',
+        description: 'Free changes + Refundable',
+        price: 120,
+        originalPrice: 165,
+        savings: 45,
+        bundle: true,
+        popular: true,
+        category: 'popular',
+        icon: SparklesIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      
+      // SAVINGS OPTIONS
+      {
+        id: 'extra-bag',
+        type: 'bag',
+        title: 'Extra Bag',
+        description: '23kg checked bag',
+        price: 35,
+        category: 'savings',
+        icon: LuggageIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      {
+        id: 'pick-seat',
+        type: 'seat',
+        title: 'Pick Seat',
+        description: 'Choose your preferred seat',
+        price: 15,
+        category: 'savings',
+        icon: SeatIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      {
+        id: 'priority-bag',
+        type: 'bag',
+        title: 'Priority Baggage',
+        description: 'First off the plane',
+        price: 25,
+        category: 'savings',
+        icon: LuggageIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      },
+      
+      // PREMIUM OPTIONS
+      {
+        id: 'business-class',
+        type: 'class',
+        title: 'Business Class',
+        description: 'Premium cabin experience',
+        price: 250,
+        category: 'premium',
+        icon: CrownIcon,
+        available: true,
+        dataSource: 'estimated',
+        confidence: 50
+      }
+    ];
+  }, [realCustomizationData, getIconForType]);
+
+  // 🛡️ SAFE MEMOIZED OPTIONS: Add error boundary protection
+  const safeUpsellOptions: UpsellOption[] = useMemo(() => {
+    try {
+      return mockUpsellOptions;
+    } catch (error) {
+      console.error('Critical error in mockUpsellOptions useMemo:', error);
+      // Return minimal fallback options
+      return [
+        {
+          id: 'fallback-change',
+          type: 'change',
+          title: 'Free Changes',
+          description: 'Change dates without fees',
+          price: 45,
+          category: 'popular',
+          icon: RefreshIcon,
+          available: true,
+          dataSource: 'estimated',
+          confidence: 50
+        },
+        {
+          id: 'fallback-bag',
+          type: 'bag', 
+          title: 'Extra Bag',
+          description: '23kg checked bag',
+          price: 35,
+          category: 'savings',
+          icon: LuggageIcon,
+          available: true,
+          dataSource: 'estimated',
+          confidence: 50
+        }
+      ];
+    }
+  }, [mockUpsellOptions]);
 
   // ========================================================================
   // COMPUTED VALUES
   // ========================================================================
   
   const customization = useMemo(() => {
-    const selectedOpts = mockUpsellOptions.filter(opt => selectedOptions.has(opt.id));
-    const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
-    const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
-    const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, ''));
-    
-    return {
-      selectedOptions: selectedOpts,
-      totalUpgrade,
-      totalPrice: basePrice + totalUpgrade,
-      savings: totalSavings
-    };
-  }, [selectedOptions, mockUpsellOptions, offer.totalPrice]);
+    try {
+      const selectedOpts = safeUpsellOptions.filter(opt => selectedOptions.has(opt.id));
+      const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
+      const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
+      const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, '')) || 0;
+      
+      return {
+        selectedOptions: selectedOpts,
+        totalUpgrade,
+        totalPrice: basePrice + totalUpgrade,
+        savings: totalSavings
+      };
+    } catch (error) {
+      console.error('Error in customization calculation:', error);
+      const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, '')) || 0;
+      return {
+        selectedOptions: [],
+        totalUpgrade: 0,
+        totalPrice: basePrice,
+        savings: 0
+      };
+    }
+  }, [selectedOptions, safeUpsellOptions, offer.totalPrice]);
 
   // ========================================================================
   // EVENT HANDLERS
@@ -188,7 +335,7 @@ export default function FareCustomizer({
         newSet.add(optionId);
         
         // Smart bundle logic - if adding refundable or changes, suggest bundle
-        const option = mockUpsellOptions.find(opt => opt.id === optionId);
+        const option = safeUpsellOptions.find(opt => opt.id === optionId);
         if (option?.type === 'refund' || option?.type === 'change') {
           // Could auto-suggest bundle here
         }
@@ -196,23 +343,27 @@ export default function FareCustomizer({
       
       // Notify parent of change
       if (onCustomizationChange) {
-        // Calculate new customization
-        const selectedOpts = mockUpsellOptions.filter(opt => newSet.has(opt.id));
-        const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
-        const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
-        const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, ''));
+        try {
+          // Calculate new customization
+          const selectedOpts = safeUpsellOptions.filter(opt => newSet.has(opt.id));
+          const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
+          const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
+          const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, '')) || 0;
         
-        onCustomizationChange({
-          selectedOptions: selectedOpts,
-          totalUpgrade,
-          totalPrice: basePrice + totalUpgrade,
-          savings: totalSavings
-        });
+          onCustomizationChange({
+            selectedOptions: selectedOpts,
+            totalUpgrade,
+            totalPrice: basePrice + totalUpgrade,
+            savings: totalSavings
+          });
+        } catch (changeError) {
+          console.warn('Error in customization change calculation:', changeError);
+        }
       }
       
       return newSet;
     });
-  }, [mockUpsellOptions, onCustomizationChange, offer.totalPrice]);
+  }, [safeUpsellOptions, onCustomizationChange, offer.totalPrice]);
 
   // Notify parent of changes (removed useEffect to avoid circular dependency)
 
@@ -220,9 +371,9 @@ export default function FareCustomizer({
   // CATEGORY SECTIONS
   // ========================================================================
   
-  const popularOptions = mockUpsellOptions.filter(opt => opt.category === 'popular').slice(0, 3);
-  const savingsOptions = mockUpsellOptions.filter(opt => opt.category === 'savings').slice(0, 3);
-  const premiumOptions = mockUpsellOptions.filter(opt => opt.category === 'premium').slice(0, 1);
+  const popularOptions = safeUpsellOptions.filter(opt => opt.category === 'popular').slice(0, 3);
+  const savingsOptions = safeUpsellOptions.filter(opt => opt.category === 'savings').slice(0, 3);
+  const premiumOptions = safeUpsellOptions.filter(opt => opt.category === 'premium').slice(0, 1);
 
   // ========================================================================
   // RENDER HELPERS
@@ -261,6 +412,17 @@ export default function FareCustomizer({
             </span>
             {option.bundle && <SparklesIcon className="w-3 h-3 text-amber-500" />}
             {option.popular && <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">HOT</span>}
+            {/* Data Source Indicators */}
+            {option.dataSource === 'api' && (
+              <span className="text-xs bg-green-100 text-green-600 px-1 rounded font-medium" title="Real-time data from airline">
+                ✓
+              </span>
+            )}
+            {option.dataSource === 'estimated' && (
+              <span className="text-xs bg-amber-100 text-amber-600 px-1 rounded font-medium" title="Estimated price - confirm at booking">
+                ~
+              </span>
+            )}
           </div>
           {showDescription && (
             <p className="text-xs text-gray-600 truncate">{option.description}</p>
@@ -292,7 +454,20 @@ export default function FareCustomizer({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <SparklesIcon className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Customize This Flight</h3>
+            <div>
+              <h3 className="font-semibold text-gray-900">Customize This Flight</h3>
+              {realCustomizationData?.dataQuality && (
+                <div className={`text-xs font-medium ${
+                  realCustomizationData.dataQuality.overall >= 80 ? 'text-green-600' :
+                  realCustomizationData.dataQuality.overall >= 60 ? 'text-blue-600' :
+                  'text-amber-600'
+                }`}>
+                  {realCustomizationData.dataQuality.overall >= 80 ? '🎯 Real-time data' :
+                   realCustomizationData.dataQuality.overall >= 60 ? '📊 Mixed data' :
+                   '⚠️ Estimated prices'} ({realCustomizationData.dataQuality.overall}%)
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button

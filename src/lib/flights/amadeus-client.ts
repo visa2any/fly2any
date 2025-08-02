@@ -13,22 +13,52 @@ export class AmadeusClient {
   private refreshPromise: Promise<void> | null = null;
 
   constructor() {
-    const environment = process.env.AMADEUS_ENVIRONMENT || 'test';
-    
-    this.config = {
-      environment: environment as 'test' | 'production',
-      apiKey: process.env.AMADEUS_API_KEY!,
-      apiSecret: process.env.AMADEUS_API_SECRET!,
-      baseUrl: environment === 'production' 
-        ? 'https://api.amadeus.com' 
-        : 'https://test.api.amadeus.com',
-      tokenUrl: environment === 'production'
-        ? 'https://api.amadeus.com/v1/security/oauth2/token'
-        : 'https://test.api.amadeus.com/v1/security/oauth2/token'
-    };
+    try {
+      // 🛡️ Browser Environment Check - AmadeusClient should only run server-side
+      if (typeof window !== 'undefined') {
+        console.warn('⚠️ AmadeusClient initialized in browser - API calls will be limited');
+        this.config = {
+          environment: 'test',
+          apiKey: 'browser-placeholder',
+          apiSecret: 'browser-placeholder',
+          baseUrl: 'https://test.api.amadeus.com',
+          tokenUrl: 'https://test.api.amadeus.com/v1/security/oauth2/token'
+        };
+        return;
+      }
 
-    if (!this.config.apiKey || !this.config.apiSecret) {
-      throw new Error('Amadeus API credentials not found in environment variables');
+      // Server-side initialization
+      const environment = process.env.AMADEUS_ENVIRONMENT || 'test';
+      
+      this.config = {
+        environment: environment as 'test' | 'production',
+        apiKey: process.env.AMADEUS_API_KEY || '',
+        apiSecret: process.env.AMADEUS_API_SECRET || '',
+        baseUrl: environment === 'production' 
+          ? 'https://api.amadeus.com' 
+          : 'https://test.api.amadeus.com',
+        tokenUrl: environment === 'production'
+          ? 'https://api.amadeus.com/v1/security/oauth2/token'
+          : 'https://test.api.amadeus.com/v1/security/oauth2/token'
+      };
+
+      // Warn about missing credentials but don't throw (allows graceful degradation)
+      if (!this.config.apiKey || !this.config.apiSecret) {
+        console.warn('⚠️ Amadeus API credentials not found in environment variables. Some features may be limited.');
+        // Set placeholder values to prevent immediate failures
+        this.config.apiKey = this.config.apiKey || 'placeholder';
+        this.config.apiSecret = this.config.apiSecret || 'placeholder';
+      }
+    } catch (error) {
+      console.error('❌ Error initializing AmadeusClient:', error);
+      // Fallback configuration
+      this.config = {
+        environment: 'test',
+        apiKey: 'placeholder',
+        apiSecret: 'placeholder',
+        baseUrl: 'https://test.api.amadeus.com',
+        tokenUrl: 'https://test.api.amadeus.com/v1/security/oauth2/token'
+      };
     }
   }
 
@@ -104,12 +134,38 @@ export class AmadeusClient {
   }
 
   /**
+   * Check if client has valid credentials and environment
+   */
+  private hasValidCredentials(): boolean {
+    // Browser environment should not make direct API calls
+    if (typeof window !== 'undefined') {
+      return false;
+    }
+    
+    return this.config.apiKey !== 'placeholder' && 
+           this.config.apiSecret !== 'placeholder' &&
+           this.config.apiKey !== 'browser-placeholder' &&
+           this.config.apiSecret !== 'browser-placeholder' &&
+           this.config.apiKey.length > 0 && 
+           this.config.apiSecret.length > 0;
+  }
+
+  /**
    * Make authenticated API request
    */
   protected async makeRequest<T>(
     endpoint: string, 
     options: RequestInit = {}
   ): Promise<T> {
+    // 🛡️ Browser Environment Protection
+    if (typeof window !== 'undefined') {
+      throw new Error('AmadeusClient API calls cannot be made from browser environment. Use server-side routes instead.');
+    }
+    
+    // Check credentials before making request
+    if (!this.hasValidCredentials()) {
+      throw new Error('Invalid Amadeus API credentials. Please check your environment variables.');
+    }
     const token = await this.getValidToken();
     
     const url = `${this.config.baseUrl}${endpoint}`;
@@ -321,6 +377,38 @@ export class AmadeusClient {
   }
 
   /**
+   * 🎯 OPTIMIZED: Get comprehensive pricing with all includes in single call
+   */
+  async confirmPricingWithAllIncludes(flightOffers: any[], includes: string = ''): Promise<any> {
+    const baseEndpoint = '/v1/shopping/flight-offers/pricing';
+    const endpoint = includes ? `${baseEndpoint}?include=${includes}` : baseEndpoint;
+    
+    const requestBody = {
+      data: {
+        type: 'flight-offers-pricing',
+        flightOffers: flightOffers
+      }
+    };
+
+    try {
+      console.log(`🎯 Getting comprehensive pricing data with includes: ${includes || 'none'}`);
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'X-HTTP-Method-Override': 'POST'
+        }
+      });
+      
+      console.log('✅ Comprehensive pricing data retrieved');
+      return response;
+    } catch (error) {
+      console.error('❌ Comprehensive pricing failed:', error);
+      throw new Error(`Comprehensive pricing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get baggage options for flight offers
    */
   async getBaggageOptions(flightOffers: any[]): Promise<any> {
@@ -349,6 +437,15 @@ export class AmadeusClient {
       console.error('❌ Baggage options failed:', error);
       throw new Error(`Baggage options failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Confirm flight offer pricing with baggage information
+   * @deprecated Use getBaggageOptions instead - this method is for backward compatibility
+   */
+  async confirmPricingWithBaggage(flightOffers: any[]): Promise<any> {
+    console.warn('⚠️ confirmPricingWithBaggage is deprecated, use getBaggageOptions instead');
+    return this.getBaggageOptions(flightOffers);
   }
 
   /**

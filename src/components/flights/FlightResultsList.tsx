@@ -41,7 +41,16 @@ import {
   EyeIcon,
   AlertTriangleIcon,
   InfoIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  BaggageIcon,
+  DurationIcon,
+  DollarIcon,
+  WifiIcon,
+  UtensilsIcon,
+  RefundIcon,
+  ChangeIcon,
+  DirectFlightIcon,
+  BriefcaseIcon
 } from '@/components/Icons';
 import { 
   formatStops, 
@@ -54,7 +63,7 @@ import {
   getTimeOfDayEmoji,
   parseDetailedFareRules
 } from '@/lib/flights/formatters';
-import FareCustomizer from '@/components/flights/FareCustomizer';
+import SafeFareCustomizer from '@/components/flights/SafeFareCustomizer';
 import {
   filterFlightOffers,
   sortFlightOffers,
@@ -364,155 +373,79 @@ export default function FlightResultsList({
   // ========================================================================
   
   const extractFareRules = useCallback((offer: ProcessedFlightOffer) => {
-    const fareDetails = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-    const pricingOptions = offer.rawOffer?.pricingOptions;
-    const rawOffer = offer.rawOffer;
+    // Import the enhanced parser
+    const { extractRealFareRulesData, formatFareRulesForDisplay } = require('@/lib/flights/enhanced-fare-rules-parser');
     
-    // 🎯 REAL BAGGAGE DATA from API
-    const checkedBags = fareDetails?.includedCheckedBags?.quantity || 0;
-    const checkedBagWeight = fareDetails?.includedCheckedBags?.weight || null;
-    const checkedBagUnit = fareDetails?.includedCheckedBags?.weightUnit || null;
+    // Extract maximum real data using enhanced parser
+    const realData = extractRealFareRulesData(offer.rawOffer || offer);
+    const formattedData = formatFareRulesForDisplay(realData);
     
-    const baggage = {
-      carryOn: {
-        included: true, // Industry standard
-        weight: '8kg', // IATA standard
-        quantity: 1,
-        hasRealData: false // No specific API field for carry-on
-      },
-      checked: {
-        included: checkedBags > 0,
-        quantity: checkedBags,
-        weight: checkedBagWeight ? `${checkedBagWeight}${checkedBagUnit?.toLowerCase() || 'kg'}` : null,
-        hasRealData: true // This comes from API
-      }
-    };
-
-    // 🎯 REAL FARE DATA from API  
-    const fareBasis = fareDetails?.fareBasis || null;
-    const fareOption = offer.travelerPricings?.[0]?.fareOption || null;
-    const brandedFare = fareDetails?.brandedFare || null;
-    const cabin = fareDetails?.cabin || null;
-    const fareClass = fareDetails?.class || null;
-    
-    // Real fare type from actual fare basis codes
-    let fareType = null;
-    let fareTypeSource = 'unknown';
-    
-    if (fareBasis) {
-      fareTypeSource = 'fareBasis';
-      // IATA standard fare basis interpretation
-      const firstLetter = fareBasis.charAt(0);
-      if (['K', 'L', 'M', 'N', 'Q', 'T', 'V', 'X', 'Z'].includes(firstLetter)) {
-        fareType = 'BASIC';
-      } else if (['Y', 'H', 'B', 'M'].includes(firstLetter)) {
-        fareType = 'FLEXIBLE';
-      } else {
-        fareType = 'STANDARD';
-      }
-    } else if (brandedFare) {
-      fareTypeSource = 'brandedFare';
-      const branded = brandedFare.toLowerCase();
-      if (branded.includes('basic') || branded.includes('light')) {
-        fareType = 'BASIC';
-      } else if (branded.includes('flex') || branded.includes('premium')) {
-        fareType = 'FLEXIBLE';
-      } else {
-        fareType = 'STANDARD';
-      }
-    }
-    
-    // 🎯 TRY TO EXTRACT REAL POLICY DATA (limited in flight offers API)
-    const instantTicketing = rawOffer?.instantTicketingRequired || false;
-    const lastTicketingDate = rawOffer?.lastTicketingDate || null;
-    const nonHomogeneous = rawOffer?.nonHomogeneous || false;
-    
-    // 🆕 TRY TO PARSE DETAILED FARE RULES if available
-    let detailedPolicies = null;
-    if (rawOffer?.detailedFareRules) {
-      try {
-        detailedPolicies = parseDetailedFareRules(rawOffer.detailedFareRules);
-      } catch (error) {
-        console.warn('Failed to parse detailed fare rules:', error);
-      }
-    }
-    
-    // Real refund/change info (limited in basic flight offers, enhanced with detailed rules)
-    let refundPolicy = null;
-    let changePolicy = null;
-    let seatPolicy = null;
-    
-    if (detailedPolicies) {
-      // Use parsed detailed fare rules
-      refundPolicy = detailedPolicies.refundPolicy;
-      changePolicy = detailedPolicies.changePolicy;
-      seatPolicy = detailedPolicies.seatSelection;
-    } else {
-      // Fallback to basic API data
-      const refundableFare = pricingOptions?.refundableFare;
-      const noPenaltyFare = pricingOptions?.noPenaltyFare;
-      const noRestrictionFare = pricingOptions?.noRestrictionFare;
-      
-      if (refundableFare !== undefined) {
-        refundPolicy = {
-          allowed: refundableFare,
-          fee: refundableFare ? null : 'Non-refundable',
-          hasRealData: true
-        };
-      }
-      
-      if (noPenaltyFare !== undefined || noRestrictionFare !== undefined) {
-        changePolicy = {
-          allowed: noPenaltyFare || noRestrictionFare || false,
-          fee: (noPenaltyFare || noRestrictionFare) ? null : 'Change fee applies',
-          hasRealData: true
-        };
-      }
-    }
-    
-    // Some airlines include policy hints in validatingAirlineCodes or pricingOptions
-    const fareTypeIndicators = pricingOptions?.fareType || [];
-    const includedCheckedBagsOnly = pricingOptions?.includedCheckedBagsOnly || false;
-    
+    // Convert to legacy format for backward compatibility
     return {
-      // REAL DATA from API
-      fareType,
-      fareTypeSource,
-      fareBasis,
-      brandedFare,
-      cabin,
-      fareClass,
-      fareOption,
-      instantTicketing,
-      lastTicketingDate,
-      nonHomogeneous,
-      fareTypeIndicators,
+      // REAL DATA from enhanced parser
+      fareType: realData.fareType.category,
+      fareTypeSource: realData.fareType.dataSource,
+      fareBasis: realData.fareType.fareBasis,
+      brandedFare: realData.fareType.brandedFare,
       
-      // BAGGAGE - REAL DATA
-      baggage,
+      // BAGGAGE - REAL DATA with confidence indicators
+      baggage: {
+        carryOn: {
+          included: realData.baggage.carryOn.included,
+          weight: realData.baggage.carryOn.weight,
+          quantity: 1,
+          hasRealData: realData.baggage.carryOn.dataSource === 'api'
+        },
+        checked: {
+          included: realData.baggage.checked.included,
+          quantity: realData.baggage.checked.quantity,
+          weight: realData.baggage.checked.weight,
+          hasRealData: realData.baggage.checked.dataSource === 'api',
+          additionalFee: realData.baggage.checked.additionalFee
+        }
+      },
       
-      // POLICIES - ENHANCED WITH DETAILED FARE RULES
-      refundable: refundPolicy?.allowed !== undefined ? refundPolicy.allowed : null,
-      refundFee: refundPolicy?.fee || (refundPolicy?.allowed === false ? 'Non-refundable' : 'See details'),
-      exchangeable: changePolicy?.allowed !== undefined ? changePolicy.allowed : null,
-      changeFee: changePolicy?.fee || (changePolicy?.allowed === false ? 'Change fee applies' : 'See details'),
+      // POLICIES - ENHANCED WITH REAL DATA CONFIDENCE
+      refundable: realData.refund.allowed,
+      refundFee: formattedData.refund.display,
+      refundConfidence: realData.refund.confidence,
+      refundDataSource: realData.refund.dataSource,
+      
+      exchangeable: realData.change.allowed,
+      changeFee: formattedData.change.display,
+      changeConfidence: realData.change.confidence,
+      changeDataSource: realData.change.dataSource,
+      
       seatSelection: {
-        allowed: seatPolicy?.allowed !== undefined ? seatPolicy.allowed : true,
-        cost: seatPolicy?.cost || 'See details',
-        advanceOnly: null
+        allowed: realData.seatSelection.advance !== false,
+        cost: realData.seatSelection.fee || formattedData.baggage.checked.display,
+        free: realData.seatSelection.free,
+        dataSource: realData.seatSelection.dataSource
       },
       
-      // METADATA
+      // METADATA WITH QUALITY SCORES
       dataAvailability: {
-        fareType: fareType !== null,
+        fareType: realData.fareType.category !== null,
         baggage: true,
-        refundPolicy: refundPolicy?.allowed !== undefined,
-        changePolicy: changePolicy?.allowed !== undefined,
-        seatPolicy: seatPolicy?.allowed !== undefined,
-        detailedRules: detailedPolicies !== null
+        refundPolicy: realData.refund.allowed !== null,
+        changePolicy: realData.change.allowed !== null,
+        seatPolicy: realData.seatSelection.advance !== null,
+        overall: Math.round((realData.refund.confidence + realData.change.confidence + realData.fareType.confidence) / 3)
       },
-      systemLimitations: detailedPolicies ? 'Enhanced fare rules from detailed API data.' : 'Complete fare rules shown during booking process.',
-      disclaimer: 'Full terms and conditions available during booking. Policies may vary by airline.'
+      
+      // Enhanced metadata
+      dataQuality: {
+        overall: Math.round((realData.refund.confidence + realData.change.confidence + realData.fareType.confidence) / 3),
+        sources: {
+          refund: realData.refund.dataSource,
+          change: realData.change.dataSource,
+          baggage: realData.baggage.checked.dataSource,
+          fareType: realData.fareType.dataSource
+        }
+      },
+      
+      systemLimitations: realData.refund.dataSource === 'api' ? 'Real-time data from airline API.' : 'Based on fare rules analysis and industry standards.',
+      disclaimer: 'Fare rules subject to airline terms. Final conditions confirmed at booking.'
     };
   }, []);
   
@@ -980,7 +913,10 @@ export default function FlightResultsList({
                   <FlightIcon className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-blue-500 bg-white p-1 rounded-full" />
                 </div>
                 {journey.stops === 0 && (
-                  <div className="text-xs text-green-600 font-medium mt-1">Direct Flight ✈️</div>
+                  <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
+                    <DirectFlightIcon className="w-3 h-3" />
+                    Direct Flight
+                  </div>
                 )}
               </div>
               
@@ -1118,9 +1054,60 @@ export default function FlightResultsList({
   // 🎆 ULTRA-ADVANCED FLIGHT CARD RENDERING
   // ========================================================================
   
+  // Helper function para formatar datas de forma robusta
+  const formatFlightDate = useCallback((dateString: string | undefined, context?: string) => {
+    if (!dateString) {
+      console.log(`No date string provided for ${context || 'unknown'}`);
+      return '';
+    }
+    
+    try {
+      // Tentar diferentes formatos de data possíveis
+      let date;
+      
+      if (typeof dateString === 'string' && dateString.includes('T')) {
+        // ISO format: "2024-01-15T18:15:00"
+        date = new Date(dateString);
+      } else if (typeof dateString === 'string' && dateString.includes('-')) {
+        // Date format: "2024-01-15"
+        date = new Date(dateString + 'T00:00:00');
+      } else if (typeof dateString === 'string' && dateString.includes('/')) {
+        // Date format: "16/09/2025" (dd/MM/yyyy)
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // JavaScript months are 0-indexed
+          const year = parseInt(parts[2], 10);
+          date = new Date(year, month, day);
+        } else {
+          date = new Date(dateString);
+        }
+      } else {
+        // Fallback
+        date = new Date(dateString);
+      }
+      
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date format for ${context || 'unknown'}:`, dateString);
+        return '';
+      }
+      
+      const formatted = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      
+      return formatted;
+    } catch (error) {
+      console.warn(`Date parsing error for ${context || 'unknown'}:`, error, dateString);
+      return '';
+    }
+  }, []);
+
   // 🚀 Ultra-Advanced Flight Offer Card with AI Enhancement
   const renderUltraAdvancedFlightOffer = useCallback((offer: ProcessedFlightOffer, index: number) => {
     const isExpanded = expandedOffers.has(offer.id);
+    
     const isTracked = trackedOffers.has(offer.id);
     const isFavorited = favoritedOffers.has(offer.id);
     const isCompared = comparedFlights.some(cf => cf.offer.id === offer.id);
@@ -1227,13 +1214,25 @@ export default function FlightResultsList({
                         <div className="text-xs font-bold text-blue-600">{offer.outbound.departure.iataCode}</div>
                       </div>
                       <div className="flex-1 text-center px-3">
-                        <div className="text-xs font-medium text-slate-600 mb-1">{formatDuration(offer.outbound.duration)}</div>
+                        <div className="text-xs font-medium text-slate-600 mb-1">
+                          {offer.outbound.durationMinutes ? formatDuration(offer.outbound.durationMinutes) : formatDuration(offer.outbound.duration)}
+                        </div>
                         <div className="relative">
                           <div className="h-0.5 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400"></div>
                           <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full shadow-lg border-2 border-white"></div>
                         </div>
                         <div className="text-xs font-medium text-slate-600 mt-1">
-                          {offer.outbound.stops === 0 ? '✈️ Nonstop' : `🔄 ${offer.outbound.stops} stop${offer.outbound.stops > 1 ? 's' : ''}`}
+                          {offer.outbound.stops === 0 ? (
+                            <span className="flex items-center gap-1">
+                              <DirectFlightIcon className="w-3 h-3" />
+                              Nonstop
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <FlightIcon className="w-3 h-3" />
+                              {offer.outbound.stops} stop{offer.outbound.stops > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-center">
@@ -1261,9 +1260,21 @@ export default function FlightResultsList({
                         <div className="text-xs font-bold text-emerald-600">{offer.inbound.departure.iataCode}</div>
                       </div>
                       <div className="flex-1 text-center">
-                        <div className="text-xs font-medium text-slate-600">{formatDuration(offer.inbound.duration)}</div>
+                        <div className="text-xs font-medium text-slate-600">
+                          {offer.inbound.durationMinutes ? formatDuration(offer.inbound.durationMinutes) : formatDuration(offer.inbound.duration)}
+                        </div>
                         <div className="text-xs text-slate-600">
-                          {offer.inbound.stops === 0 ? '🔄 Return Nonstop' : `🔄 ${offer.inbound.stops} stop return`}
+                          {offer.inbound.stops === 0 ? (
+                            <span className="flex items-center gap-1">
+                              <DirectFlightIcon className="w-3 h-3" />
+                              Return Nonstop
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <FlightIcon className="w-3 h-3" />
+                              {offer.inbound.stops} stop return
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-center">
@@ -1311,7 +1322,10 @@ export default function FlightResultsList({
                     <div className="text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
                       ${parseFloat(offer.totalPrice.toString().replace(/[^0-9.]/g, '')).toFixed(2)}
                     </div>
-                    <div className="text-xs font-medium text-slate-600">{offer.currency} per person</div>
+                    <div className="flex items-center gap-1 text-xs font-medium text-slate-600">
+                      <DollarIcon className="w-4 h-4 flex-shrink-0" />
+                      {offer.currency} per person
+                    </div>
                   </div>
                   <div className="flex space-x-2">
                     <button 
@@ -1394,11 +1408,11 @@ export default function FlightResultsList({
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50/30 via-white/80 to-cyan-50/30 rounded-2xl p-4 border border-blue-100/30 shadow-lg">
-                  <div className="grid grid-cols-12 gap-4 items-center">
+                <div className="bg-gradient-to-br from-blue-50/30 via-white/80 to-cyan-50/30 rounded-2xl p-4 lg:p-6 border border-blue-100/30 shadow-lg">
+                  <div className="grid grid-cols-12 xl:grid-cols-16 gap-4 lg:gap-6 items-center">
                 
                     {/* ✈️ ESSENTIAL FLIGHT INFO (3 cols) - MOVED TO POSITION 1 */}
-                    <div className="col-span-3">
+                    <div className="col-span-3 xl:col-span-4">
                       <div className="space-y-2">
                         {/* Airline Info with REAL LOGO */}
                         <div className="flex items-center space-x-2">
@@ -1414,8 +1428,8 @@ export default function FlightResultsList({
                             <div className="text-sm font-bold text-slate-800 leading-tight">
                               {offer.validatingAirlines[0] ? formatAirlineName(offer.validatingAirlines[0]) : 'Multiple Airlines'}
                             </div>
-                            <div className="text-xs text-slate-600 leading-tight">
-                              {offer.cabin || 'Economy'} • {offer.numberOfBookableSeats} seats available
+                            <div className="flex items-center gap-1 text-xs text-slate-600 leading-tight">
+                              💺 {offer.cabin || 'Economy'} • {offer.numberOfBookableSeats} seats available
                             </div>
                           </div>
                         </div>
@@ -1423,14 +1437,20 @@ export default function FlightResultsList({
                         {/* Essential Flight Details */}
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="bg-white/50 rounded-md p-1.5 border border-gray-200/50">
-                            <div className="text-slate-500 text-xs leading-tight">Flight Numbers</div>
+                            <div className="flex items-center gap-1 text-slate-500 text-xs leading-tight">
+                              <FlightIcon className="w-4 h-4 flex-shrink-0" />
+                              Flight Numbers
+                            </div>
                             <div className="font-semibold text-slate-800 leading-tight">
                               {offer.outbound.segments[0]?.flightNumber || 'N/A'}
                               {offer.inbound && ` • ${offer.inbound.segments[0]?.flightNumber || 'N/A'}`}
                             </div>
                           </div>
                           <div className="bg-white/50 rounded-md p-1.5 border border-gray-200/50">
-                            <div className="text-slate-500 text-xs leading-tight">Aircraft</div>
+                            <div className="flex items-center gap-1 text-slate-500 text-xs leading-tight">
+                              <FlightIcon className="w-3 h-3" />
+                              Aircraft
+                            </div>
                             <div className="font-semibold text-slate-800 leading-tight">
                               {offer.outbound.segments[0]?.aircraft?.name || 'Boeing 737'}
                             </div>
@@ -1438,28 +1458,41 @@ export default function FlightResultsList({
                         </div>
                         
                         {/* Quick Trip Info */}
-                        <div className="bg-gradient-to-r from-blue-50/50 to-cyan-50/50 rounded-md p-1.5 border border-blue-200/30">
-                          <div className="flex items-center justify-between text-xs">
-                            <div>
-                              <span className="text-slate-500">Duration:</span>
-                              <span className="font-bold text-slate-800 ml-1">
-                                {formatDuration(offer.outbound.duration)}
-                                {offer.inbound && ` + ${formatDuration(offer.inbound.duration)}`}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-slate-500">Bags:</span>
-                              <span className="font-bold text-slate-800 ml-1">
-                                {offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity || '0'}x23kg
-                              </span>
-                            </div>
+                        <div className="bg-gradient-to-r from-blue-50/50 to-cyan-50/50 rounded-md p-2 border border-blue-200/30 space-y-2">
+                          {/* Duration Info */}
+                          <div className="flex items-center gap-2">
+                            <DurationIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            <span className="text-slate-500 text-xs font-medium">Duration:</span>
+                            <span className="font-bold text-slate-800 text-xs">
+                              {offer.outbound.durationMinutes ? formatDuration(offer.outbound.durationMinutes) : formatDuration(offer.outbound.duration)}
+                              {offer.inbound && (offer.inbound.durationMinutes ? ` + ${formatDuration(offer.inbound.durationMinutes)}` : ` + ${formatDuration(offer.inbound.duration)}`)}
+                            </span>
+                          </div>
+                          
+                          {/* Baggage Info */}
+                          <div className="flex items-center gap-2">
+                            <BaggageIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                            <span className="text-slate-500 text-xs font-medium">Bags:</span>
+                            <span className="font-bold text-slate-800 text-xs">
+                              {(() => {
+                                const baggageQty = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity;
+                                const weight = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.weight || 23;
+                                const weightUnit = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.weightUnit || 'kg';
+                                
+                                if (!baggageQty || baggageQty === 0) {
+                                  return 'Not included';
+                                }
+                                
+                                return `${baggageQty}x${weight}${weightUnit}`;
+                              })()}
+                            </span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* ✈️ STUNNING FLIGHT ROUTE (6 cols) - MOVED TO POSITION 2 */}
-                    <div className="col-span-6">
+                    <div className="col-span-6 xl:col-span-8">
                       <div className="flex items-center space-x-4">
                         {/* Departure */}
                         <div className="text-center group">
@@ -1468,12 +1501,15 @@ export default function FlightResultsList({
                           </div>
                           <div className="text-sm font-bold text-blue-600 tracking-wide">{offer.outbound.departure.iataCode}</div>
                           <div className="text-xs text-slate-500 font-medium">{offer.outbound.departure.cityName}</div>
+                          <div className="text-xs text-slate-400 font-medium mt-1">{formatFlightDate(offer.outbound.departure.at || offer.outbound.departure.date, 'outbound departure')}</div>
                         </div>
                         
                         {/* Flight Path - Absolutely Beautiful */}
                         <div className="flex-1 relative px-4">
                           <div className="text-center mb-2">
-                            <div className="text-sm font-bold text-slate-700">{formatDuration(offer.outbound.duration)}</div>
+                            <div className="text-sm font-bold text-slate-700">
+                              {offer.outbound.durationMinutes ? formatDuration(offer.outbound.durationMinutes) : formatDuration(offer.outbound.duration)}
+                            </div>
                           </div>
                           
                           {/* Gradient Flight Line */}
@@ -1505,6 +1541,7 @@ export default function FlightResultsList({
                           </div>
                           <div className="text-sm font-bold text-emerald-600 tracking-wide">{offer.outbound.arrival.iataCode}</div>
                           <div className="text-xs text-slate-500 font-medium">{offer.outbound.arrival.cityName}</div>
+                          <div className="text-xs text-slate-400 font-medium mt-1">{formatFlightDate(offer.outbound.arrival.at || offer.outbound.arrival.date, 'outbound arrival')}</div>
                         </div>
                       </div>
                       
@@ -1519,12 +1556,15 @@ export default function FlightResultsList({
                               </div>
                               <div className="text-sm font-bold text-emerald-600 tracking-wide">{offer.inbound.departure.iataCode}</div>
                               <div className="text-xs text-slate-500 font-medium">{offer.inbound.departure.cityName}</div>
+                              <div className="text-xs text-slate-400 font-medium mt-1">{formatFlightDate(offer.inbound?.departure?.at || offer.inbound?.departure?.date, 'inbound departure')}</div>
                             </div>
                             
                             {/* Return Flight Path */}
                             <div className="flex-1 relative px-4">
                               <div className="text-center mb-2">
-                                <div className="text-sm font-bold text-slate-700">{formatDuration(offer.inbound.duration)}</div>
+                                <div className="text-sm font-bold text-slate-700">
+                                  {offer.inbound.durationMinutes ? formatDuration(offer.inbound.durationMinutes) : formatDuration(offer.inbound.duration)}
+                                </div>
                               </div>
                               
                               <div className="relative h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full shadow-sm">
@@ -1551,6 +1591,7 @@ export default function FlightResultsList({
                               </div>
                               <div className="text-sm font-bold text-blue-600 tracking-wide">{offer.inbound.arrival.iataCode}</div>
                               <div className="text-xs text-slate-500 font-medium">{offer.inbound.arrival.cityName}</div>
+                              <div className="text-xs text-slate-400 font-medium mt-1">{formatFlightDate(offer.inbound?.arrival?.at || offer.inbound?.arrival?.date, 'inbound arrival')}</div>
                             </div>
                           </div>
                         </div>
@@ -1558,7 +1599,7 @@ export default function FlightResultsList({
                     </div>
 
                     {/* 💎 MESMERIZING PRICE & CTA (3 cols) */}
-                    <div className="col-span-3">
+                    <div className="col-span-3 xl:col-span-4">
                       <div className="text-center">
                         <div className="text-4xl font-black bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent group-hover:from-purple-500 group-hover:to-cyan-500 transition-all duration-300">
                           ${parseFloat(offer.totalPrice.toString().replace(/[^0-9.]/g, '')).toFixed(2)}
@@ -1589,7 +1630,7 @@ export default function FlightResultsList({
                       {/* Left Side: Fare Type + Badges */}
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm">💼</span>
+                          <BriefcaseIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
                           <span className={`text-xs font-bold ${
                             fareRules.fareType === 'FLEXIBLE' ? 'text-green-700' :
                             fareRules.fareType === 'BASIC' ? 'text-red-700' : 
@@ -1597,9 +1638,6 @@ export default function FlightResultsList({
                           }`}>
                             {fareRules.fareType || 'Unknown Fare'}
                           </span>
-                          {!fareRules.dataAvailability.fareType && (
-                            <span className="text-xs text-gray-500">* Check terms</span>
-                          )}
                         </div>
                         
                         {/* Additional compact badges */}
@@ -1609,45 +1647,93 @@ export default function FlightResultsList({
                           </div>
                         )}
                         
-                        {offer.outbound.stops === 0 && (
-                          <div className="inline-flex items-center px-2 py-1 rounded-lg bg-green-100 text-green-700 border border-green-200">
-                            <span className="text-xs font-bold">✈️ Direct</span>
+                        {/* Data Quality Indicator */}
+                        {fareRules.dataQuality?.overall && (
+                          <div className={`inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold border ${
+                            fareRules.dataQuality.overall >= 90 ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                            fareRules.dataQuality.overall >= 70 ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            'bg-amber-100 text-amber-700 border-amber-200'
+                          }`}>
+                            {fareRules.dataQuality.overall >= 90 ? '🎯' : 
+                             fareRules.dataQuality.overall >= 70 ? '📊' : '⚠️'} 
+                            {fareRules.dataQuality.overall}% Data
                           </div>
                         )}
+                        
                       </div>
                       
-                      {/* Right Side: Real Data Status */}
+                      {/* Right Side: Essential Purchase Info */}
                       <div className="flex items-center space-x-2">
-                        {/* Refund - Check at booking */}
-                        <div className="flex items-center space-x-1 px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 border border-blue-200">
-                          <span>ℹ️</span>
-                          <span className="font-bold">Refund: See details</span>
-                        </div>
-                        
-                        {/* Change - Check at booking */}
-                        <div className="flex items-center space-x-1 px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 border border-blue-200">
-                          <span>ℹ️</span>
-                          <span className="font-bold">Change: See details</span>
-                        </div>
-                        
-                        {/* Seats - Check at booking */}
-                        <div className="flex items-center space-x-1 px-2 py-1 rounded-lg text-xs bg-blue-100 text-blue-700 border border-blue-200">
-                          <span>ℹ️</span>
-                          <span className="font-bold">Seats: See details</span>
-                        </div>
-                        
-                        {/* Baggage - REAL API DATA */}
-                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-xs ${
-                          fareRules.baggage.checked.included 
-                            ? 'bg-green-100 text-green-700 border border-green-200' 
-                            : 'bg-red-100 text-red-700 border border-red-200'
+                        {/* Refund Policy - Real Data with Quality Indicator */}
+                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-xs border ${
+                          fareRules.refundable === true 
+                            ? 'bg-green-100 text-green-700 border-green-200' 
+                            : fareRules.refundable === false
+                            ? 'bg-red-100 text-red-700 border-red-200'
+                            : 'bg-yellow-100 text-yellow-700 border-yellow-200'
                         }`}>
-                          <span>✅</span>
+                          {fareRules.refundable === true ? (
+                            <RefundIcon className="w-4 h-4 text-green-600 flex-shrink-0" />
+                          ) : fareRules.refundable === false ? (
+                            <XIcon className="w-4 h-4 text-red-600 flex-shrink-0" />
+                          ) : (
+                            <InfoIcon className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                          )}
+                          <span className="font-bold">{fareRules.refundFee}</span>
+                          {fareRules.refundDataSource === 'api' && (
+                            <span className="text-xs bg-green-600 text-white px-1 rounded" title="Real-time data from airline">✓</span>
+                          )}
+                          {fareRules.refundDataSource === 'fare-rules' && (
+                            <span className="text-xs bg-blue-600 text-white px-1 rounded" title="From fare rules analysis">R</span>
+                          )}
+                        </div>
+                        
+                        {/* Change Policy - Real Data with Quality Indicator */}
+                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-xs border ${
+                          fareRules.exchangeable === true 
+                            ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                            : fareRules.exchangeable === false
+                            ? 'bg-red-100 text-red-700 border-red-200'
+                            : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                        }`}>
+                          {fareRules.exchangeable === true ? (
+                            <ChangeIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                          ) : fareRules.exchangeable === false ? (
+                            <XIcon className="w-4 h-4 text-red-600 flex-shrink-0" />
+                          ) : (
+                            <InfoIcon className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                          )}
+                          <span className="font-bold">{fareRules.changeFee}</span>
+                          {fareRules.changeDataSource === 'api' && (
+                            <span className="text-xs bg-green-600 text-white px-1 rounded" title="Real-time data from airline">✓</span>
+                          )}
+                          {fareRules.changeDataSource === 'fare-rules' && (
+                            <span className="text-xs bg-blue-600 text-white px-1 rounded" title="From fare rules analysis">R</span>
+                          )}
+                        </div>
+                        
+                        {/* Seat Selection - Real Data with Quality Indicator */}
+                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-xs border ${
+                          fareRules.seatSelection.free === true 
+                            ? 'bg-green-100 text-green-700 border-green-200' 
+                            : fareRules.seatSelection.allowed
+                            ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                            : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                        }`}>
+                          <InfoIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
                           <span className="font-bold">
-                            {fareRules.baggage.checked.included 
-                              ? `${fareRules.baggage.checked.quantity}x${fareRules.baggage.checked.weight || '23kg'}` 
-                              : 'Bag: Not included'}
+                            {fareRules.seatSelection.free === true 
+                              ? 'Free Seats'
+                              : fareRules.seatSelection.allowed 
+                              ? (fareRules.seatSelection.cost && fareRules.seatSelection.cost !== 'See details' ? `Seats: ${fareRules.seatSelection.cost}` : 'Seat Selection')
+                              : 'Seats: At check-in'}
                           </span>
+                          {fareRules.seatSelection.dataSource === 'api' && (
+                            <span className="text-xs bg-green-600 text-white px-1 rounded" title="Real-time data from airline">✓</span>
+                          )}
+                          {fareRules.seatSelection.dataSource === 'fare-rules' && (
+                            <span className="text-xs bg-blue-600 text-white px-1 rounded" title="From fare rules analysis">R</span>
+                          )}
                         </div>
                         
                         {/* Action Buttons - Same Line */}
@@ -1682,9 +1768,9 @@ export default function FlightResultsList({
               
               {/* 🎯 FARE CUSTOMIZER - HYBRID LAYOUT */}
               <div className="mb-8">
-                <FareCustomizer
+                <SafeFareCustomizer
                   offer={offer}
-                  onCustomizationChange={(customization) => {
+                  onSelectCustomization={(customization) => {
                     console.log('🎯 Fare customization changed:', customization);
                   }}
                   onViewAllOptions={() => {
@@ -1722,7 +1808,9 @@ export default function FlightResultsList({
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-500">Total Duration</div>
-                        <div className="font-bold text-lg text-gray-900">{formatDuration(offer.outbound.duration)}</div>
+                        <div className="font-bold text-lg text-gray-900">
+                          {offer.outbound.durationMinutes ? formatDuration(offer.outbound.durationMinutes) : formatDuration(offer.outbound.duration)}
+                        </div>
                       </div>
                     </div>
                     
@@ -1826,7 +1914,9 @@ export default function FlightResultsList({
                         </div>
                         <div className="text-right">
                           <div className="text-sm text-gray-500">Total Duration</div>
-                          <div className="font-bold text-lg text-gray-900">{formatDuration(offer.inbound.duration)}</div>
+                          <div className="font-bold text-lg text-gray-900">
+                            {offer.inbound.durationMinutes ? formatDuration(offer.inbound.durationMinutes) : formatDuration(offer.inbound.duration)}
+                          </div>
                         </div>
                       </div>
                       
@@ -1985,7 +2075,7 @@ export default function FlightResultsList({
                   {/* 💼 COMPREHENSIVE FARE RULES & POLICIES */}
                   <div className="bg-white rounded-xl p-5 border border-orange-200 shadow-lg">
                     <h4 className="font-bold text-orange-600 mb-4 flex items-center">
-                      <span className="text-lg">💼</span>
+                      <BriefcaseIcon className="w-5 h-5 text-orange-600 flex-shrink-0" />
                       <span className="ml-2">Fare Rules & Policies</span>
                     </h4>
                     
@@ -2019,9 +2109,9 @@ export default function FlightResultsList({
                                 fareRules.fareType === 'BASIC' ? 'bg-red-500' :
                                 'bg-blue-500'
                               }`}>
-                                <span className="text-white text-xl">
-                                  {fareRules.fareType === 'FLEXIBLE' ? '✅' :
-                                   fareRules.fareType === 'BASIC' ? '⚠️' : '📋'}
+                                <span className="text-white">
+                                  {fareRules.fareType === 'FLEXIBLE' ? <CheckIcon className="w-6 h-6" /> :
+                                   fareRules.fareType === 'BASIC' ? <AlertTriangleIcon className="w-6 h-6" /> : <BriefcaseIcon className="w-6 h-6" />}
                                 </span>
                               </div>
                             </div>
@@ -2120,7 +2210,10 @@ export default function FlightResultsList({
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="font-bold text-green-700">✅ INCLUDED</div>
+                                <div className="font-bold text-green-700 flex items-center gap-1">
+                                  <CheckIcon className="w-4 h-4" />
+                                  INCLUDED
+                                </div>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-4 text-sm">
@@ -2165,7 +2258,17 @@ export default function FlightResultsList({
                                 <div className={`font-bold ${
                                   fareRules.baggage.checked.included ? 'text-green-700' : 'text-red-700'
                                 }`}>
-                                  {fareRules.baggage.checked.included ? '✅ INCLUDED' : '💰 EXTRA'}
+                                  {fareRules.baggage.checked.included ? (
+                                    <span className="flex items-center gap-1">
+                                      <CheckIcon className="w-4 h-4" />
+                                      INCLUDED
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1">
+                                      <DollarIcon className="w-4 h-4" />
+                                      EXTRA
+                                    </span>
+                                  )}
                                 </div>
                                 {!fareRules.baggage.checked.included && (
                                   <div className="text-sm text-gray-600">{fareRules.baggage.checked.additionalCost}</div>
@@ -2230,7 +2333,7 @@ export default function FlightResultsList({
                   {features.length > 0 && (
                     <div className="bg-white rounded-xl p-5 border border-green-200 shadow-lg">
                       <h4 className="font-bold text-green-600 mb-4 flex items-center">
-                        <span className="text-lg">✅</span>
+                        <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0" />
                         <span className="ml-2">Included Features</span>
                       </h4>
                       
@@ -2252,7 +2355,7 @@ export default function FlightResultsList({
                 
       </div>
     );
-  }, [expandedOffers, trackedOffers, favoritedOffers, comparedFlights, aiInsights, conversionBoosters, userPreferences, enableGamification, enableSocialProof, sortOptions]);
+  }, [expandedOffers, trackedOffers, favoritedOffers, comparedFlights, aiInsights, conversionBoosters, userPreferences, enableGamification, enableSocialProof, sortOptions, formatFlightDate]);
 
   if (isLoading) {
     return (
@@ -2293,9 +2396,24 @@ export default function FlightResultsList({
           <h2 className="text-xl font-semibold text-gray-900">
             {offers.length} flight{offers.length !== 1 ? 's' : ''} found
           </h2>
-          <p className="text-sm text-gray-600">
-            Sorted by {sortOptions.value === 'price' ? 'Price' : sortOptions.value === 'duration' ? 'Duration' : 'Quality Score'}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Sorted by</span>
+            {onSortChange ? (
+              <select 
+                value={sortOptions.sortBy}
+                onChange={(e) => onSortChange({ ...sortOptions, sortBy: e.target.value as any })}
+                className="bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="price">Price</option>
+                <option value="duration">Duration</option>
+                <option value="quality">Quality Score</option>
+              </select>
+            ) : (
+              <span className="font-medium">
+                {sortOptions.sortBy === 'price' ? 'Price' : sortOptions.sortBy === 'duration' ? 'Duration' : 'Quality Score'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

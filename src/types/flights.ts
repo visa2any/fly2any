@@ -82,6 +82,7 @@ export interface FlightOffer {
   pricingOptions: PricingOptions;
   validatingAirlineCodes: string[];
   travelerPricings: TravelerPricing[];
+  enhancedWith?: string[]; // Track which enhancements have been applied
 }
 
 export interface Itinerary {
@@ -245,6 +246,12 @@ export interface ProcessedFlightOffer {
   lastTicketingDate: string;
   instantTicketingRequired: boolean;
   
+  // Backward compatibility properties
+  price?: string; // Deprecated, use totalPrice
+  offer?: string; // Deprecated, use id  
+  cabin?: string; // Cabin class for display
+  travelerPricings?: TravelerPricing[]; // Direct access to pricing data
+  
   // Enhanced properties for ultra-advanced features
   totalDuration?: string;
   enhanced?: {
@@ -290,6 +297,7 @@ export interface ProcessedFlightEndpoint {
   time: string;
   timeZone?: string;
   city?: string; // For enhanced city display
+  at?: string; // Backward compatibility - same as dateTime
 }
 
 export interface ProcessedSegment {
@@ -301,7 +309,7 @@ export interface ProcessedSegment {
   airline: AirlineInfo;
   flightNumber: string;
   aircraft: AircraftInfo;
-  cabin: CabinClass;
+  cabin: CabinClass | string; // Allow string for flexibility
 }
 
 export interface Layover {

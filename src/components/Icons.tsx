@@ -147,6 +147,43 @@ export const CreditCardIcon = ({ className = "w-4 h-4", style }: { className?: s
   </svg>
 );
 
+export const BaggageIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 4v4H8V4a2 2 0 012-2h4a2 2 0 012 2zM5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 16v-2" />
+  </svg>
+);
+
+export const DurationIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+export const DollarIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+export const WifiIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+  </svg>
+);
+
+export const UtensilsIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 2v6a3 3 0 003 3h1m0-6V2m0 0V2m0 0h1m7-2v20M17 2v20m2-10a2 2 0 01-2-2V4a2 2 0 012-2 2 2 0 012 2v6a2 2 0 01-2 2z" />
+  </svg>
+);
+
+export const ChevronDownIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
 export const LockClosedIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
   <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -177,15 +214,21 @@ export const ShieldCheckIcon = ({ className = "w-4 h-4", style }: { className?: 
   </svg>
 );
 
-export const ChevronDownIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
 export const ChevronUpIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
   <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+  </svg>
+);
+
+export const ChevronLeftIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+export const ChevronRightIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
   </svg>
 );
 
@@ -261,23 +304,6 @@ export const InformationCircleIcon = ({ className = "w-4 h-4", style }: { classN
   </svg>
 );
 
-export const DollarIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-  </svg>
-);
-
-export const WifiIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-  </svg>
-);
-
-export const UtensilsIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
-  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3v18l3-3h12l3 3V3H3z" />
-  </svg>
-);
 
 export const LightBulbIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
   <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -355,5 +381,29 @@ export const LuggageIcon = ({ className = "w-4 h-4", style }: { className?: stri
 export const SeatIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
   <svg className={className} style={style} fill="currentColor" viewBox="0 0 24 24">
     <path d="M4,18V20H18V18H4M3,8V16H5V8H3M19,8V16H21V8H19M6,8V16H18V8H6Z"/>
+  </svg>
+);
+
+export const RefundIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+  </svg>
+);
+
+export const ChangeIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0-7H4m0 0l4-4M4 7l4 4" />
+  </svg>
+);
+
+export const DirectFlightIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5-5 5M6 12h12" />
+  </svg>
+);
+
+export const BriefcaseIcon = ({ className = "w-4 h-4", style }: { className?: string, style?: React.CSSProperties }) => (
+  <svg className={className} style={style} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6m8 0V4a2 2 0 00-2-2h-4a2 2 0 00-2-2" />
   </svg>
 );

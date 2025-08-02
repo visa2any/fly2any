@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ProcessedFlightOffer } from '@/types/flights';
-import { getAmadeusClient } from '@/lib/flights/amadeus-client';
+import { safeApiClient } from '@/lib/flights/safe-api-client';
 
 // ============================================================================
 // INTERFACES & TYPES
@@ -26,6 +26,7 @@ export interface UpsellOption {
   category: 'popular' | 'savings' | 'premium';
   available: boolean;
   source: 'api' | 'estimated' | 'calculated';
+  icon?: React.ComponentType<any>; // For UI display
   metadata?: {
     segmentIds?: string[];
     travelerIds?: string[];
@@ -114,25 +115,37 @@ export function useFareCustomization({
     setError(null);
     
     try {
-      const amadeusClient = getAmadeusClient();
-      const flightOffers = [offer.rawOffer];
-      
-      // Parallel API calls with error handling
-      const promises = [
-        amadeusClient.getBrandedFareUpsell(flightOffers).catch(e => ({ error: e.message })),
-        amadeusClient.getBaggageOptions(flightOffers).catch(e => ({ error: e.message })),
-        amadeusClient.getSeatMaps(flightOffers).catch(e => ({ error: e.message }))
-      ];
-      
-      const [brandedFares, baggage, seatMaps] = await Promise.all(promises);
-      
-      setApiData({
-        brandedFares: brandedFares.error ? null : brandedFares,
-        baggage: baggage.error ? null : baggage,
-        seatMaps: seatMaps.error ? null : seatMaps
-      });
-      
-      console.log('🎯 Upsell data loaded:', { brandedFares, baggage, seatMaps });
+      // Use safe API client instead of direct Amadeus calls
+      const result = await safeApiClient.callAmadeusApi(
+        '/customization-options',
+        {
+          flightOffer: offer.rawOffer,
+          includes: ['branded-fares', 'baggage', 'seat-maps']
+        },
+        {
+          method: 'POST',
+          useCache: true,
+          cacheKey: `upsell-${offer.id}`
+        }
+      );
+
+      if (result.success && result.data) {
+        const apiResponseData = result.data as any;
+        const pricingWithBaggage = apiResponseData.pricingWithBaggage || null;
+        const brandedFares = apiResponseData.brandedFares || null;
+        const seatMaps = apiResponseData.seatMaps || null;
+        
+        setApiData({
+          brandedFares: brandedFares,
+          baggage: pricingWithBaggage,
+          seatMaps: seatMaps
+        });
+        
+        console.log('🎯 Upsell data loaded from', result.source);
+      } else {
+        console.warn('⚠️ Failed to load upsell data:', result.error);
+        setError('Failed to load upgrade options');
+      }
       
     } catch (error) {
       console.error('❌ Failed to load upsell data:', error);
@@ -430,25 +443,25 @@ export function useFareCustomization({
   
   const customization = useMemo((): FareCustomization => {
     const selectedOpts = availableOptions.filter(opt => selectedOptions.has(opt.id));
-    const selectedBundles = availableBundles.filter(bundle => selectedBundles.has(bundle.id));
+    const selectedBundlesList = availableBundles.filter((bundle: any) => selectedBundles.has(bundle.id));
     
-    const upgradePrice = selectedOpts.reduce((sum, opt) => sum + opt.price, 0) +
-                        selectedBundles.reduce((sum, bundle) => sum + bundle.bundlePrice, 0);
+    const upgradePrice = selectedOpts.reduce((sum: number, opt) => sum + opt.price, 0) +
+                        selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.bundlePrice, 0);
     
-    const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0) +
-                        selectedBundles.reduce((sum, bundle) => sum + bundle.savings, 0);
+    const totalSavings = selectedOpts.reduce((sum: number, opt) => sum + (opt.savings || 0), 0) +
+                        selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.savings, 0);
     
     return {
       selectedOptions: selectedOpts,
-      selectedBundles,
+      selectedBundles: selectedBundlesList,
       basePrice,
       upgradePrice,
       totalPrice: basePrice + upgradePrice,
       totalSavings,
       priceBreakdown: {
         base: basePrice,
-        upgrades: selectedOpts.reduce((sum, opt) => sum + opt.price, 0),
-        bundles: selectedBundles.reduce((sum, bundle) => sum + bundle.bundlePrice, 0),
+        upgrades: selectedOpts.reduce((sum: number, opt) => sum + opt.price, 0),
+        bundles: selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.bundlePrice, 0),
         taxes: 0, // Would be calculated from API
         fees: 0   // Would be calculated from API
       }
