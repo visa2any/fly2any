@@ -94,36 +94,73 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
     errors.push('Tipo de viagem é obrigatório');
   }
 
-  // Origin validation
-  if (!formData.origin?.iataCode) {
-    errors.push('Aeroporto de origem é obrigatório');
-  }
+  // Multi-city validation
+  if (formData.tripType === 'multi-city') {
+    if (!formData.segments || formData.segments.length < 2) {
+      errors.push('Viagens multi-city requerem pelo menos 2 segmentos');
+    } else {
+      formData.segments.forEach((segment, index) => {
+        if (!segment.origin.iataCode && !segment.origin.city) {
+          errors.push(`Voo ${index + 1}: Selecione o aeroporto de origem`);
+        }
+        if (!segment.destination.iataCode && !segment.destination.city) {
+          errors.push(`Voo ${index + 1}: Selecione o aeroporto de destino`);
+        }
+        if (segment.origin.iataCode === segment.destination.iataCode && segment.origin.iataCode) {
+          errors.push(`Voo ${index + 1}: Origem e destino devem ser diferentes`);
+        }
+        if (!segment.departureDate) {
+          errors.push(`Voo ${index + 1}: Selecione a data de partida`);
+        } else {
+          const departureDate = new Date(segment.departureDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (departureDate < today) {
+            errors.push(`Voo ${index + 1}: Data de partida deve ser hoje ou no futuro`);
+          }
+          
+          // Check sequential dates
+          if (index > 0 && formData.segments[index - 1]) {
+            const prevDate = new Date(formData.segments[index - 1].departureDate);
+            if (departureDate <= prevDate) {
+              errors.push(`Voo ${index + 1}: Data deve ser após o Voo ${index}`);
+            }
+          }
+        }
+      });
+    }
+  } else {
+    // Regular validation for round-trip and one-way
+    if (!formData.origin?.iataCode) {
+      errors.push('Aeroporto de origem é obrigatório');
+    }
 
-  // Destination validation
-  if (!formData.destination?.iataCode) {
-    errors.push('Aeroporto de destino é obrigatório');
-  }
+    if (!formData.destination?.iataCode) {
+      errors.push('Aeroporto de destino é obrigatório');
+    }
 
-  if (formData.origin?.iataCode === formData.destination?.iataCode) {
-    errors.push('Aeroporto de origem e destino devem ser diferentes');
-  }
+    if (formData.origin?.iataCode === formData.destination?.iataCode) {
+      errors.push('Aeroporto de origem e destino devem ser diferentes');
+    }
 
-  // Date validation
-  if (!formData.departureDate) {
-    errors.push('Data de partida é obrigatória');
-  }
+    // Date validation
+    if (!formData.departureDate) {
+      errors.push('Data de partida é obrigatória');
+    }
 
-  if (formData.tripType === 'round-trip' && !formData.returnDate) {
-    errors.push('Data de retorno é obrigatória para viagens de ida e volta');
-  }
+    if (formData.tripType === 'round-trip' && !formData.returnDate) {
+      errors.push('Data de retorno é obrigatória para viagens de ida e volta');
+    }
 
-  if (formData.departureDate && formData.returnDate) {
-    if (formData.returnDate <= formData.departureDate) {
-      errors.push('Data de retorno deve ser posterior à data de partida');
+    if (formData.departureDate && formData.returnDate) {
+      if (formData.returnDate <= formData.departureDate) {
+        errors.push('Data de retorno deve ser posterior à data de partida');
+      }
     }
   }
 
-  // Passenger validation
+  // Passenger validation (common for all trip types)
   const totalPassengers = formData.passengers.adults + formData.passengers.children + formData.passengers.infants;
   if (totalPassengers === 0) {
     errors.push('Pelo menos um passageiro é obrigatório');

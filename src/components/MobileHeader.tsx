@@ -16,14 +16,8 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const pathname = usePathname();
 
-  // Detectar idioma atual baseado na URL
-  const getCurrentLanguage = () => {
-    if (pathname.startsWith('/en')) return 'en';
-    if (pathname.startsWith('/es')) return 'es';
-    return 'pt';
-  };
-
-  const currentLang = getCurrentLanguage();
+  // Site principal em inglês americano
+  const currentLang = 'en';
 
   // Mapear URLs equivalentes entre idiomas
   const getLanguageUrl = (targetLang: string) => {
@@ -33,6 +27,51 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
     return '/'; // português (default)
   };
 
+  // Traduções do mobile header
+  const translations = {
+    pt: {
+      home: 'Início',
+      flights: 'Voos Brasil-EUA',
+      hotels: 'Hotéis',
+      flightsMiami: 'Miami ↔ São Paulo',
+      flightsNY: 'NY ↔ Rio de Janeiro',
+      howItWorks: 'Como Funciona',
+      blog: 'Blog',
+      faq: 'FAQ',
+      about: 'Sobre Nós',
+      contact: 'Contato',
+      login: 'Entrar'
+    },
+    en: {
+      home: 'Home',
+      flights: 'Brazil-USA Flights',
+      hotels: 'Hotels',
+      flightsMiami: 'Miami ↔ São Paulo',
+      flightsNY: 'NY ↔ Rio de Janeiro',
+      howItWorks: 'How It Works',
+      blog: 'Blog',
+      faq: 'FAQ',
+      about: 'About Us',
+      contact: 'Contact',
+      login: 'Sign In'
+    },
+    es: {
+      home: 'Inicio',
+      flights: 'Vuelos Brasil-EUA',
+      hotels: 'Hoteles',
+      flightsMiami: 'Miami ↔ São Paulo',
+      flightsNY: 'NY ↔ Rio de Janeiro',
+      howItWorks: 'Cómo Funciona',
+      blog: 'Blog',
+      faq: 'FAQ',
+      about: 'Acerca de',
+      contact: 'Contacto',
+      login: 'Iniciar Sesión'
+    }
+  };
+
+  const t = translations[currentLang] || translations.pt;
+
   const languages = [
     { code: 'pt', name: 'Português', flag: '🇧🇷' },
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -40,16 +79,56 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
   ];
 
   const navigationItems = [
-    { href: '/', label: 'Início', icon: 'home' },
-    { href: '/voos-brasil-eua', label: 'Voos Brasil-EUA', icon: 'flight' },
-    { href: '/hoteis', label: 'Hotéis', icon: 'hotel' },
-    { href: '/voos-miami-sao-paulo', label: 'Miami ↔ São Paulo', icon: 'flight' },
-    { href: '/voos-new-york-rio-janeiro', label: 'NY ↔ Rio de Janeiro', icon: 'flight' },
-    { href: '/como-funciona', label: 'Como Funciona', icon: 'help' },
-    { href: '/blog', label: 'Blog', icon: 'blog' },
-    { href: '/faq', label: 'FAQ', icon: 'faq' },
-    { href: '/sobre', label: 'Sobre Nós', icon: 'info' },
-    { href: '/contato', label: 'Contato', icon: 'contact' },
+    { 
+      href: '/', 
+      label: t.home, 
+      icon: 'home' 
+    },
+    { 
+      href: '/flights', 
+      label: t.flights, 
+      icon: 'flight' 
+    },
+    { 
+      href: '/hotels', 
+      label: t.hotels, 
+      icon: 'hotel' 
+    },
+    { 
+      href: '/miami-sao-paulo-flights', 
+      label: t.flightsMiami, 
+      icon: 'flight' 
+    },
+    { 
+      href: '/new-york-rio-flights', 
+      label: t.flightsNY, 
+      icon: 'flight' 
+    },
+    { 
+      href: '/how-it-works', 
+      label: t.howItWorks, 
+      icon: 'help' 
+    },
+    { 
+      href: '/blog', 
+      label: t.blog, 
+      icon: 'blog' 
+    },
+    { 
+      href: '/faq', 
+      label: t.faq, 
+      icon: 'faq' 
+    },
+    { 
+      href: '/about', 
+      label: t.about, 
+      icon: 'info' 
+    },
+    { 
+      href: '/contact', 
+      label: t.contact, 
+      icon: 'contact' 
+    },
   ];
 
   const toggleMenu = () => {
@@ -69,7 +148,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
         left: 0,
         right: 0,
         height: '70px',
-        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+        background: 'linear-gradient(to bottom right, #1e3a8a, #581c87, #312e81)',
         zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
         display: 'flex',
@@ -86,7 +165,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Login Button Mobile */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <LoginButton variant="mobile" showText={false} />
+            <LoginButton variant="mobile" showText={false} loginText={t.login} />
           </div>
 
           {/* Language Selector Mobile */}

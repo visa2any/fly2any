@@ -45,6 +45,7 @@ export default function Logo({
           src="/fly2any-logo.png"
           alt="Fly2Any - Sua ponte para o Brasil"
           fill
+          sizes="(max-width: 768px) 150px, (max-width: 1200px) 200px, 250px"
           className="object-contain"
           priority
           style={{

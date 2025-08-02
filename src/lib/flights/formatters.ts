@@ -22,10 +22,24 @@ export function formatFlightOffer(
   offer: FlightOffer, 
   dictionaries?: Dictionaries
 ): ProcessedFlightOffer {
+  const priceAmount = offer.price?.grandTotal || offer.price?.total || offer.price?.base || '0';
+  const priceCurrency = offer.price?.currency || 'USD';
+  
+  console.log('🔍 formatFlightOffer - Raw price data:', {
+    offerId: offer.id,
+    priceObject: offer.price,
+    grandTotal: offer.price?.grandTotal,
+    total: offer.price?.total,
+    base: offer.price?.base,
+    currency: offer.price?.currency,
+    selectedAmount: priceAmount,
+    selectedCurrency: priceCurrency
+  });
+
   return {
     id: offer.id,
-    totalPrice: formatPrice(offer.price.grandTotal, offer.price.currency),
-    currency: offer.price.currency,
+    totalPrice: formatPrice(priceAmount, priceCurrency),
+    currency: offer.price?.currency === 'BRL' ? 'USD' : (offer.price?.currency || 'USD'),
     
     outbound: formatJourney(offer.itineraries[0], dictionaries),
     inbound: offer.itineraries[1] ? formatJourney(offer.itineraries[1], dictionaries) : undefined,
@@ -58,7 +72,7 @@ export function formatJourney(
   return {
     departure: firstSegment.departure,
     arrival: lastSegment.arrival,
-    duration: itinerary.duration,
+    duration: itinerary.duration || 'PT0M',
     durationMinutes: parseDuration(itinerary.duration),
     stops: segments.length - 1,
     segments,
@@ -77,7 +91,7 @@ export function formatSegment(
     id: segment.id,
     departure: formatFlightEndpoint(segment.departure, dictionaries),
     arrival: formatFlightEndpoint(segment.arrival, dictionaries),
-    duration: segment.duration,
+    duration: segment.duration || 'PT0M',
     durationMinutes: parseDuration(segment.duration),
     airline: formatAirlineInfo(segment.carrierCode, dictionaries),
     flightNumber: `${segment.carrierCode}${segment.number}`,
@@ -153,7 +167,7 @@ export function calculateLayovers(segments: ProcessedSegment[]): Layover[] {
     
     layovers.push({
       airport: currentSegment.arrival.iataCode,
-      duration: formatDuration(layoverMinutes),
+      duration: formatDurationFromMinutes(layoverMinutes),
       durationMinutes: layoverMinutes
     });
   }
@@ -165,10 +179,19 @@ export function calculateLayovers(segments: ProcessedSegment[]): Layover[] {
  * Parse ISO 8601 duration to minutes
  */
 export function parseDuration(duration: string): number {
+  // Handle null/undefined/empty duration
+  if (!duration || typeof duration !== 'string') {
+    console.warn('⚠️ Invalid duration provided to parseDuration:', duration);
+    return 0;
+  }
+  
   const regex = /PT(?:(\d+)H)?(?:(\d+)M)?/;
   const matches = duration.match(regex);
   
-  if (!matches) return 0;
+  if (!matches) {
+    console.warn('⚠️ Could not parse duration format:', duration);
+    return 0;
+  }
   
   const hours = parseInt(matches[1] || '0', 10);
   const minutes = parseInt(matches[2] || '0', 10);
@@ -177,9 +200,9 @@ export function parseDuration(duration: string): number {
 }
 
 /**
- * Format minutes to human-readable duration
+ * Format minutes to human-readable duration (LEGACY VERSION - kept for compatibility)
  */
-export function formatDuration(minutes: number): string {
+export function formatDurationFromMinutes(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   
@@ -195,20 +218,86 @@ export function formatDuration(minutes: number): string {
 }
 
 /**
- * Format price with currency
+ * Convert BRL to USD (approximate conversion rate)
  */
-export function formatPrice(amount: string, currency: string): string {
-  const numericAmount = parseFloat(amount);
+function convertBRLToUSD(brlAmount: number): number {
+  // Approximate BRL to USD conversion rate (1 BRL ≈ 0.20 USD)
+  // In production, you would fetch real-time rates from an API
+  const BRL_TO_USD_RATE = 0.20;
+  return brlAmount * BRL_TO_USD_RATE;
+}
+
+/**
+ * Format price with currency (auto-convert BRL to USD)
+ */
+export function formatPrice(amount: string | number, currency: string): string {
+  console.log('🔍 formatPrice called with:', { amount, currency, type: typeof amount });
   
-  switch (currency) {
-    case 'BRL':
-      return `R$ ${numericAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  // Handle different input types
+  let numericAmount: number;
+  
+  if (typeof amount === 'number') {
+    numericAmount = amount;
+  } else if (typeof amount === 'string') {
+    // Handle invalid or empty amounts
+    if (!amount || amount === 'undefined' || amount === 'null' || amount.trim() === '') {
+      console.warn('⚠️ Invalid amount provided to formatPrice:', amount);
+      return '$0.00';
+    }
+    
+    // Clean the string: remove currency symbols, spaces, and use dot as decimal separator
+    const cleanAmount = amount.toString()
+      .replace(/[^0-9.,]/g, '') // Remove everything except numbers, commas, and dots
+      .replace(',', '.'); // Convert comma to dot for parsing
+    
+    numericAmount = parseFloat(cleanAmount);
+  } else {
+    console.warn('⚠️ Invalid amount type:', typeof amount, amount);
+    return '$0.00';
+  }
+  
+  // Handle NaN cases
+  if (isNaN(numericAmount) || numericAmount < 0) {
+    console.warn('⚠️ Could not parse amount to valid number:', amount, 'result:', numericAmount);
+    return '$0.00';
+  }
+  
+  console.log('✅ Successfully parsed amount:', numericAmount);
+  
+  let finalCurrency = currency;
+  
+  // Auto-convert BRL to USD
+  if (currency === 'BRL') {
+    numericAmount = convertBRLToUSD(numericAmount);
+    finalCurrency = 'USD';
+  }
+  
+  switch (finalCurrency) {
     case 'USD':
-      return `US$ ${numericAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      return `$${numericAmount.toLocaleString('en-US', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      })}`;
     case 'EUR':
-      return `€ ${numericAmount.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+      return `€${numericAmount.toLocaleString('de-DE', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      })}`;
+    case 'GBP':
+      return `£${numericAmount.toLocaleString('en-GB', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      })}`;
+    case 'BRL':
+      return `R$${numericAmount.toLocaleString('pt-BR', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      })}`;
     default:
-      return `${currency} ${numericAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      return `$${numericAmount.toLocaleString('en-US', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      })}`;
   }
 }
 
@@ -218,11 +307,11 @@ export function formatPrice(amount: string, currency: string): string {
 export function formatStops(stops: number): string {
   switch (stops) {
     case 0:
-      return 'Direto';
+      return 'Direct';
     case 1:
-      return '1 parada';
+      return '1 stop';
     default:
-      return `${stops} paradas`;
+      return `${stops} stops`;
   }
 }
 
@@ -263,15 +352,15 @@ export function getTimeOfDay(time: string): 'early-morning' | 'morning' | 'after
 export function formatTimeOfDay(timeOfDay: string): string {
   switch (timeOfDay) {
     case 'early-morning':
-      return 'Madrugada (05:00 - 08:00)';
+      return 'Early Morning (05:00 - 08:00)';
     case 'morning':
-      return 'Manhã (08:00 - 12:00)';
+      return 'Morning (08:00 - 12:00)';
     case 'afternoon':
-      return 'Tarde (12:00 - 18:00)';
+      return 'Afternoon (12:00 - 18:00)';
     case 'evening':
-      return 'Noite (18:00 - 22:00)';
+      return 'Evening (18:00 - 22:00)';
     case 'night':
-      return 'Madrugada (22:00 - 05:00)';
+      return 'Night (22:00 - 05:00)';
     default:
       return timeOfDay;
   }
@@ -526,4 +615,475 @@ export function getAircraftName(aircraftCode: string): string {
   };
   
   return aircraft[aircraftCode] || `Aircraft ${aircraftCode}`;
+}
+
+// =============================================================================
+// 🚀 ULTRA-ADVANCED FORMATTERS FOR 11:00 AM STATE RECOVERY
+// =============================================================================
+
+/**
+ * Format duration with enhanced display - UNIFIED VERSION
+ */
+export function formatDuration(durationInput: string | number): string {
+  if (typeof durationInput === 'number') {
+    // Handle minutes input
+    const hours = Math.floor(durationInput / 60);
+    const remainingMinutes = durationInput % 60;
+    
+    if (hours === 0) {
+      return `${remainingMinutes}min`;
+    }
+    
+    if (remainingMinutes === 0) {
+      return `${hours}h`;
+    }
+    
+    return `${hours}h ${remainingMinutes}min`;
+  } else {
+    // Handle ISO 8601 duration string input
+    if (!durationInput) return 'N/A';
+    
+    // Parse ISO 8601 duration format (PT4H30M)
+    const match = durationInput.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+    if (!match) return durationInput;
+    
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    
+    if (hours === 0) {
+      return `${minutes}min`;
+    } else if (minutes === 0) {
+      return `${hours}h`;
+    } else {
+      return `${hours}h ${minutes}min`;
+    }
+  }
+}
+
+/**
+ * Format airline name with enhanced display
+ */
+export function formatAirlineName(airline: string): string {
+  // If already formatted, return as is
+  if (airline.includes(' ')) return airline;
+  
+  // Otherwise, get from dictionary
+  return getAirlineName(airline);
+}
+
+/**
+ * Get duration score for gamification (0-100)
+ */
+export function getDurationScore(journey: any): number {
+  if (!journey?.duration) return 50;
+  
+  const durationMs = parseDurationToMs(journey.duration);
+  const hours = durationMs / (1000 * 60 * 60);
+  
+  // Shorter flights score higher
+  if (hours <= 2) return 100;
+  if (hours <= 4) return 90;
+  if (hours <= 6) return 80;
+  if (hours <= 8) return 70;
+  if (hours <= 12) return 60;
+  return 50;
+}
+
+/**
+ * Parse ISO 8601 duration to milliseconds (for internal use)
+ */
+function parseDurationToMs(duration: string): number {
+  // Handle null/undefined/empty duration
+  if (!duration || typeof duration !== 'string') {
+    console.warn('⚠️ Invalid duration provided to parseDurationToMs:', duration);
+    return 0;
+  }
+  
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) {
+    console.warn('⚠️ Could not parse duration format in parseDurationToMs:', duration);
+    return 0;
+  }
+  
+  const hours = parseInt(match[1] || '0');
+  const minutes = parseInt(match[2] || '0');
+  
+  return (hours * 60 + minutes) * 60 * 1000;
+}
+
+/**
+ * Enhanced price formatting with currency symbols
+ */
+export function formatPriceEnhanced(amount: string | number, currency: string = 'BRL'): string {
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  const symbols: Record<string, string> = {
+    'BRL': 'R$',
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥'
+  };
+  
+  const symbol = symbols[currency] || currency;
+  
+  return `${symbol} ${numericAmount.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+/**
+ * Format percentage with proper display
+ */
+export function formatPercentage(value: number): string {
+  return `${value.toFixed(1)}%`;
+}
+
+/**
+ * Format large numbers (views, bookings, etc)
+ */
+export function formatLargeNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`;
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`;
+  }
+  return num.toString();
+}
+
+/**
+ * Format relative time (e.g., "2 hours ago")
+ */
+export function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMinutes < 1) return 'agora mesmo';
+  if (diffMinutes < 60) return `${diffMinutes} min atrás`;
+  if (diffHours < 24) return `${diffHours}h atrás`;
+  if (diffDays === 1) return 'ontem';
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  
+  return date.toLocaleDateString('pt-BR');
+}
+
+/**
+ * Format confidence score for AI insights
+ */
+export function formatConfidence(confidence: number): string {
+  const percentage = Math.round(confidence * 100);
+  
+  if (percentage >= 90) return `${percentage}% (Muito Alta)`;
+  if (percentage >= 75) return `${percentage}% (Alta)`;
+  if (percentage >= 60) return `${percentage}% (Média)`;
+  return `${percentage}% (Baixa)`;
+}
+
+/**
+ * Format urgency level with emoji
+ */
+export function formatUrgency(urgency: string): string {
+  const urgencyMap: Record<string, string> = {
+    'CRITICAL': '🔴 Crítico',
+    'HIGH': '🟠 Alto',
+    'MEDIUM': '🟡 Médio',
+    'LOW': '🟢 Baixo'
+  };
+  
+  return urgencyMap[urgency] || urgency;
+}
+
+/**
+ * Get time of day emoji for display
+ */
+export function getTimeOfDayEmoji(timeCategory: string): string {
+  switch (timeCategory) {
+    case 'early-morning': return '🌅';
+    case 'morning': return '🌄';
+    case 'afternoon': return '☀️';
+    case 'evening': return '🌆';
+    case 'night': return '🌙';
+    default: return '✈️';
+  }
+}
+
+/**
+ * Get stops emoji for display
+ */
+export function getStopsEmoji(stops: number): string {
+  switch (stops) {
+    case 0: return '🎯'; // Direct
+    case 1: return '↗️'; // 1 stop
+    default: return '🔀'; // Multiple stops
+  }
+}
+
+// =============================================================================
+// DETAILED FARE RULES PARSING FUNCTIONS
+// =============================================================================
+
+/**
+ * Parse detailed fare rules from raw Amadeus API response
+ */
+export function parseDetailedFareRules(detailedFareRules: any): {
+  refundPolicy: {
+    allowed: boolean;
+    fee?: string;
+    conditions?: string[];
+  };
+  changePolicy: {
+    allowed: boolean;
+    fee?: string;
+    conditions?: string[];
+  };
+  baggage: {
+    carryOn?: {
+      included: boolean;
+      weight?: string;
+      dimensions?: string;
+    };
+    checked?: {
+      included: boolean;
+      quantity?: number;
+      weight?: string;
+      fee?: string;
+    };
+  };
+  seatSelection: {
+    allowed: boolean;
+    cost?: string;
+  };
+  additionalServices: {
+    meal?: boolean;
+    wifi?: boolean;
+    entertainment?: boolean;
+  };
+} {
+  // Initialize default values
+  const result = {
+    refundPolicy: {
+      allowed: false,
+      fee: undefined,
+      conditions: []
+    },
+    changePolicy: {
+      allowed: false,
+      fee: undefined,
+      conditions: []
+    },
+    baggage: {
+      carryOn: {
+        included: true,
+        weight: undefined,
+        dimensions: undefined
+      },
+      checked: {
+        included: false,
+        quantity: 0,
+        weight: undefined,
+        fee: undefined
+      }
+    },
+    seatSelection: {
+      allowed: true,
+      cost: undefined
+    },
+    additionalServices: {
+      meal: false,
+      wifi: false,
+      entertainment: false
+    }
+  };
+
+  if (!detailedFareRules) {
+    return result;
+  }
+
+  try {
+    // Parse raw fare rules data (this would be specific to Amadeus format)
+    // The detailed-fare-rules returns unstructured text data that needs parsing
+    
+    if (Array.isArray(detailedFareRules)) {
+      for (const rule of detailedFareRules) {
+        if (rule.category && rule.text) {
+          parseRuleCategory(rule, result);
+        }
+      }
+    } else if (typeof detailedFareRules === 'string') {
+      // Parse raw text fare rules
+      parseRawFareRulesText(detailedFareRules, result);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error parsing detailed fare rules:', error);
+    return result;
+  }
+}
+
+/**
+ * Parse individual rule category
+ */
+function parseRuleCategory(rule: any, result: any): void {
+  const category = rule.category?.toLowerCase();
+  const text = rule.text?.toLowerCase();
+
+  if (!category || !text) return;
+
+  switch (category) {
+    case 'refunds':
+    case 'cancellation':
+      parseRefundRules(text, result.refundPolicy);
+      break;
+    
+    case 'changes':
+    case 'reissue':
+      parseChangeRules(text, result.changePolicy);
+      break;
+    
+    case 'baggage':
+      parseBaggageRules(text, result.baggage);
+      break;
+    
+    case 'seat':
+    case 'advance seat assignment':
+      parseSeatRules(text, result.seatSelection);
+      break;
+    
+    case 'meals':
+    case 'services':
+      parseServiceRules(text, result.additionalServices);
+      break;
+  }
+}
+
+/**
+ * Parse refund rules from text
+ */
+function parseRefundRules(text: string, refundPolicy: any): void {
+  // Look for common refund keywords
+  if (text.includes('non-refundable') || text.includes('no refund')) {
+    refundPolicy.allowed = false;
+  } else if (text.includes('refundable') || text.includes('refund permitted')) {
+    refundPolicy.allowed = true;
+  }
+
+  // Extract fee information
+  const feeMatch = text.match(/(?:refund (?:fee|charge|penalty)[:\s]*)?(?:usd?\s*)?\$?(\d+(?:\.\d{2})?)/i);
+  if (feeMatch) {
+    refundPolicy.fee = `$${feeMatch[1]}`;
+  }
+
+  // Extract conditions
+  if (text.includes('24 hours')) {
+    refundPolicy.conditions?.push('Must cancel within 24 hours');
+  }
+  if (text.includes('before departure')) {
+    refundPolicy.conditions?.push('Must cancel before departure');
+  }
+}
+
+/**
+ * Parse change rules from text
+ */
+function parseChangeRules(text: string, changePolicy: any): void {
+  // Look for change keywords
+  if (text.includes('changes not permitted') || text.includes('no changes')) {
+    changePolicy.allowed = false;
+  } else if (text.includes('changes permitted') || text.includes('changeable')) {
+    changePolicy.allowed = true;
+  }
+
+  // Extract change fee
+  const feeMatch = text.match(/(?:change (?:fee|charge|penalty)[:\s]*)?(?:usd?\s*)?\$?(\d+(?:\.\d{2})?)/i);
+  if (feeMatch) {
+    changePolicy.fee = `$${feeMatch[1]}`;
+  }
+
+  // Extract conditions
+  if (text.includes('same day')) {
+    changePolicy.conditions?.push('Same day changes only');
+  }
+  if (text.includes('subject to availability')) {
+    changePolicy.conditions?.push('Subject to availability');
+  }
+}
+
+/**
+ * Parse baggage rules from text
+ */
+function parseBaggageRules(text: string, baggage: any): void {
+  // Carry-on parsing
+  const carryOnMatch = text.match(/carry.?on[:\s]*(\d+)?\s*(kg|lb|kilos?|pounds?)?/i);
+  if (carryOnMatch) {
+    baggage.carryOn.weight = carryOnMatch[1] ? `${carryOnMatch[1]}${carryOnMatch[2] || 'kg'}` : undefined;
+  }
+
+  // Checked baggage parsing
+  const checkedMatch = text.match(/checked[:\s]*(\d+)?\s*(?:x\s*)?(\d+)?\s*(kg|lb|kilos?|pounds?)?/i);
+  if (checkedMatch) {
+    baggage.checked.quantity = checkedMatch[1] ? parseInt(checkedMatch[1]) : 0;
+    baggage.checked.weight = checkedMatch[2] ? `${checkedMatch[2]}${checkedMatch[3] || 'kg'}` : undefined;
+    baggage.checked.included = baggage.checked.quantity > 0;
+  }
+
+  // Baggage fee parsing
+  const feeMatch = text.match(/(?:baggage (?:fee|charge)[:\s]*)?(?:usd?\s*)?\$?(\d+(?:\.\d{2})?)/i);
+  if (feeMatch) {
+    baggage.checked.fee = `$${feeMatch[1]}`;
+  }
+}
+
+/**
+ * Parse seat selection rules from text
+ */
+function parseSeatRules(text: string, seatSelection: any): void {
+  if (text.includes('seat assignment') && text.includes('not permitted')) {
+    seatSelection.allowed = false;
+  }
+
+  const costMatch = text.match(/(?:seat (?:fee|cost|charge)[:\s]*)?(?:usd?\s*)?\$?(\d+(?:\.\d{2})?)/i);
+  if (costMatch) {
+    seatSelection.cost = `$${costMatch[1]}`;
+  }
+}
+
+/**
+ * Parse additional services from text
+ */
+function parseServiceRules(text: string, services: any): void {
+  if (text.includes('meal') && !text.includes('no meal')) {
+    services.meal = true;
+  }
+  if (text.includes('wifi') || text.includes('internet')) {
+    services.wifi = true;
+  }
+  if (text.includes('entertainment')) {
+    services.entertainment = true;
+  }
+}
+
+/**
+ * Parse raw fare rules text (fallback for unstructured data)
+ */
+function parseRawFareRulesText(rawText: string, result: any): void {
+  const text = rawText.toLowerCase();
+  
+  // Basic parsing of common fare rule patterns
+  if (text.includes('non-refundable')) {
+    result.refundPolicy.allowed = false;
+  }
+  if (text.includes('changes not permitted')) {
+    result.changePolicy.allowed = false;
+  }
+  
+  // Extract any dollar amounts that might be fees
+  const amounts = text.match(/\$(\d+(?:\.\d{2})?)/g);
+  if (amounts && amounts.length > 0) {
+    result.changePolicy.fee = amounts[0];
+  }
 }

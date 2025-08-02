@@ -111,8 +111,8 @@ export const AMADEUS_CONFIG = {
 
   // Default values
   DEFAULTS: {
-    CURRENCY: 'BRL',
-    MAX_RESULTS: 50,
+    CURRENCY: 'USD',
+    MAX_RESULTS: 100,
     TRAVEL_CLASS: 'ECONOMY' as const,
     ADULTS: 1,
     CHILDREN: 0,
@@ -178,7 +178,7 @@ export const AMADEUS_CONFIG = {
       'CNF'                // Belo Horizonte
     ],
     TIMEZONE: 'America/Sao_Paulo',
-    CURRENCY: 'BRL',
+    CURRENCY: 'USD',
     COUNTRY_CODE: 'BR'
   },
 
@@ -297,14 +297,14 @@ export function getRateLimit() {
  * Check if code is a Brazilian airport
  */
 export function isBrazilianAirport(iataCode: string): boolean {
-  return AMADEUS_CONFIG.BRAZIL.MAIN_AIRPORTS.includes(iataCode.toUpperCase());
+  return AMADEUS_CONFIG.BRAZIL.MAIN_AIRPORTS.includes(iataCode.toUpperCase() as any);
 }
 
 /**
  * Check if airline is low-cost carrier
  */
 export function isLowCostCarrier(airlineCode: string): boolean {
-  return AMADEUS_CONFIG.LOW_COST_CARRIERS.includes(airlineCode.toUpperCase());
+  return AMADEUS_CONFIG.LOW_COST_CARRIERS.includes(airlineCode.toUpperCase() as any);
 }
 
 /**
@@ -313,13 +313,13 @@ export function isLowCostCarrier(airlineCode: string): boolean {
 export function getAirlineAlliance(airlineCode: string): string | null {
   const code = airlineCode.toUpperCase();
   
-  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.STAR_ALLIANCE.includes(code)) {
+  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.STAR_ALLIANCE.includes(code as any)) {
     return 'Star Alliance';
   }
-  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.ONEWORLD.includes(code)) {
+  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.ONEWORLD.includes(code as any)) {
     return 'oneworld';
   }
-  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.SKYTEAM.includes(code)) {
+  if (AMADEUS_CONFIG.AIRLINE_ALLIANCES.SKYTEAM.includes(code as any)) {
     return 'SkyTeam';
   }
   

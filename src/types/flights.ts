@@ -41,9 +41,11 @@ export interface FlightSearchParams {
   maxPrice?: number;                 // Maximum price cap
   max?: number;                      // Max number of offers (default 250)
   currencyCode?: string;             // Currency (e.g., "BRL", "USD")
+  travelerCountry?: string;          // Traveler country code
 }
 
 export type TravelClass = 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+export type ServiceLevelType = 'VIP' | 'PREMIUM' | 'STANDARD';
 
 // =============================================================================
 // FLIGHT OFFER TYPES
@@ -176,12 +178,19 @@ export interface Location {
 // UI COMPONENT TYPES
 // =============================================================================
 
+export interface FlightSegment {
+  origin: AirportSelection;
+  destination: AirportSelection;
+  departureDate: Date;
+}
+
 export interface FlightSearchFormData {
   tripType: 'round-trip' | 'one-way' | 'multi-city';
   origin: AirportSelection;
   destination: AirportSelection;
   departureDate: Date;
   returnDate?: Date;
+  segments?: FlightSegment[]; // For multi-city trips
   passengers: PassengerCounts;
   travelClass: TravelClass;
   preferences: SearchPreferences;
@@ -236,8 +245,27 @@ export interface ProcessedFlightOffer {
   lastTicketingDate: string;
   instantTicketingRequired: boolean;
   
+  // Enhanced properties for ultra-advanced features
+  totalDuration?: string;
+  enhanced?: {
+    conversionScore?: number;
+    choiceProbability?: number;
+    priceAnalysis?: PriceAnalysis;
+    recommendations?: string[];
+    socialProof?: Array<{
+      type: string;
+      message: string;
+      count: number;
+    }> | string[];
+    urgencyIndicators?: string[];
+  };
+  
   // Original raw data
   rawOffer: FlightOffer;
+  
+  // Optional properties for comparison page
+  layovers?: any[];
+  segments?: any[];
 }
 
 export interface ProcessedJourney {
@@ -248,6 +276,7 @@ export interface ProcessedJourney {
   stops: number;
   segments: ProcessedSegment[];
   layovers?: Layover[];
+  carrierName?: string;
 }
 
 export interface ProcessedFlightEndpoint {
@@ -260,6 +289,7 @@ export interface ProcessedFlightEndpoint {
   date: string;
   time: string;
   timeZone?: string;
+  city?: string; // For enhanced city display
 }
 
 export interface ProcessedSegment {
@@ -278,6 +308,8 @@ export interface Layover {
   airport: string;
   duration: string;
   durationMinutes: number;
+  city?: string; // For enhanced city display
+  terminal?: string; // For terminal information
 }
 
 export interface AirlineInfo {
@@ -301,8 +333,8 @@ export interface FlightFilters {
     max: number;
   };
   airlines?: string[];
-  stops?: ('direct' | '1-stop' | '2-plus-stops')[];
-  departureTime?: TimePreference;
+  stops?: ('direct' | '1-stop' | '2-plus-stops')[] | number;
+  departureTime?: TimePreference | string[];
   arrivalTime?: TimePreference;
   duration?: {
     max: number; // in minutes
@@ -311,6 +343,17 @@ export interface FlightFilters {
     departure?: string[];
     arrival?: string[];
   };
+  travelClass?: TravelClass;
+  flexible?: {
+    dates?: boolean;
+    airports?: boolean;
+    refundable?: boolean;
+  };
+  baggage?: {
+    carryOn?: boolean;
+    checked?: boolean;
+  };
+  amenities?: string[];
 }
 
 export interface FlightSortOptions {
@@ -360,7 +403,12 @@ export interface Document {
 }
 
 export interface ContactInfo {
-  emailAddress: string;
+  email?: string;
+  emailAddress?: string;
+  phone?: {
+    number: string;
+    countryCode: string;
+  };
   phones: Phone[];
 }
 
@@ -382,6 +430,46 @@ export interface FlightOrder {
   flightOffers: FlightOffer[];
   travelers: TravelerInfo[];
   contacts: ContactInfo[];
+  serviceLevel?: 'VIP' | 'PREMIUM' | 'STANDARD';
+  proactiveSupport?: {
+    flightAlerts: boolean;
+    delayNotifications: boolean;
+    gateChanges: boolean;
+    weatherAlerts: boolean;
+    rebookingAssistance: boolean;
+  };
+  selfServiceOptions?: string[];
+  loyaltyProgram?: {
+    eligible: boolean;
+    pointsEarned: number;
+    currentTier: string;
+    nextTierBenefits: string[];
+  };
+  upsellOpportunities?: any[];
+  customerExperience?: {
+    nextSteps: string[];
+    tips: string[];
+    timeline?: any;
+    support: {
+      available24h: boolean;
+      phone: string;
+      chat: boolean;
+      whatsapp?: string;
+    };
+  };
+  conversionElements?: {
+    urgencyIndicators: string[];
+    socialProof: string[];
+    recommendations: string[];
+    trustSignals?: string[];
+    urgencyFactors?: string[];
+    valueProposition?: string[];
+    gamificationRewards: {
+      points: number;
+      badges: string[];
+      achievements: string[];
+    };
+  };
 }
 
 export interface AssociatedRecord {
@@ -504,6 +592,13 @@ export interface FlightResultsListProps {
   onSortChange?: (sort: FlightSortOptions) => void;
   isLoading?: boolean;
   className?: string;
+  showInsights?: boolean;
+  onAddToComparison?: (flight: ProcessedFlightOffer) => void;
+  comparedFlights?: FlightComparison[];
+  onRemoveFromComparison?: (flightId: string) => void;
+  enableGamification?: boolean;
+  enablePersonalization?: boolean;
+  userPreferences?: UserPreferences;
 }
 
 export interface FlightDetailsProps {
@@ -513,3 +608,652 @@ export interface FlightDetailsProps {
   isLoading?: boolean;
   className?: string;
 }
+
+// =============================================================================
+// 🚀 ULTRA-ADVANCED TYPES FOR 11:00 AM STATE RECOVERY
+// =============================================================================
+
+// Missing types for API endpoints
+export interface OriginDestination {
+  id: string;
+  originLocationCode: string;
+  destinationLocationCode: string;
+  departureDate: string;
+  returnDate?: string;
+}
+
+export interface AvailabilitySearchCriteria {
+  originDestinations: OriginDestination[];
+  travelers: TravelerInfo[];
+  sources: ('GDS' | 'NDC')[];
+  searchCriteria?: {
+    maxFlightOffers?: number;
+    flightFilters?: {
+      cabinRestrictions?: {
+        cabin: CabinClass;
+        coverage: 'MOST_SEGMENTS' | 'AT_LEAST_ONE_SEGMENT' | 'ALL_SEGMENTS';
+        originDestinationIds: string[];
+      }[];
+      carrierRestrictions?: {
+        blacklistedInEUByCEC?: boolean;
+        excludedCarrierCodes?: string[];
+        includedCarrierCodes?: string[];
+      };
+    };
+  };
+}
+
+export interface FlightDateSearchParams extends Omit<FlightSearchParams, 'departureDate'> {
+  origin: string;
+  destination: string;
+  departureDate?: string;
+  viewBy?: 'DATE' | 'WEEK' | 'MONTH';
+  departureDateTimeRange?: {
+    date: string;
+    dateWindow?: string;
+    timeWindow?: string;
+  };
+}
+
+export interface FlightDestinationSearchParams {
+  origin: string;
+  departureDate?: string;
+  oneWay?: boolean;
+  duration?: string;
+  nonStop?: boolean;
+  maxPrice?: number;
+  viewBy?: 'DATE' | 'DESTINATION' | 'DURATION' | 'WEEK' | 'COUNTRY';
+}
+
+export interface BookingFormData {
+  passengers: PassengerInfo[];
+  contactInfo: ContactInfo;
+  payment: {
+    type: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BANK_TRANSFER';
+    cardNumber?: string;
+    expiryDate?: string;
+    cvv?: string;
+    holderName?: string;
+    installments?: number;
+    billingAddress?: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
+    };
+  };
+  specialRequests?: string[];
+  agreements: {
+    terms: boolean;
+    privacy: boolean;
+    marketing: boolean;
+    termsAndConditions?: boolean;
+    privacyPolicy?: boolean;
+    marketingEmails?: boolean;
+  };
+}
+
+export interface PassengerInfo {
+  id: string;
+  type: TravelerType;
+  title?: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  name?: {
+    firstName: string;
+    lastName: string;
+    middleName?: string;
+  };
+  dateOfBirth: string;
+  gender: 'MALE' | 'FEMALE' | 'M' | 'F';
+  nationality?: string;
+  document?: {
+    type: 'PASSPORT' | 'IDENTITY_CARD';
+    number: string;
+    expiryDate: string;
+    issuingCountry: string;
+  };
+  documents?: Document[];
+  contact?: {
+    email?: string;
+    phone?: string;
+  };
+}
+
+export interface BookingState {
+  isLoading: boolean;
+  paymentProcessing: boolean;
+  bookingConfirmed: boolean;
+  errors: BookingError[];
+  warnings?: string[];
+  validationState?: {
+    passengers: boolean;
+    contact: boolean;
+    payment: boolean;
+    agreements: boolean;
+    overall: boolean;
+  };
+  currentStep: 'PASSENGER_INFO' | 'SPECIAL_REQUESTS' | 'PAYMENT' | 'CONFIRMATION' | 'passengers' | 'payment' | 'confirmation';
+}
+
+export interface BookingError {
+  field: string;
+  message: string;
+  type: 'validation' | 'payment' | 'api' | 'general' | 'API' | 'GENERAL';
+}
+
+export interface FareRules {
+  category: string;
+  maxPenaltyAmount?: string;
+  rules: {
+    refundable: boolean;
+    exchangeable: boolean;
+    penalties?: string[];
+    conditions?: string[];
+  };
+}
+
+export interface FareRulesRequest {
+  flightOfferId: string;
+  segmentIds?: string[];
+}
+
+export interface FareRulesResponse {
+  success?: boolean;
+  data: FareRules[];
+  warnings?: Warning[];
+  meta?: {
+    source: string;
+    lastUpdated: string;
+    cacheExpiry: string;
+  };
+}
+
+export interface FareRulesIconsProps {
+  fareRules: FareRules[];
+  className?: string;
+}
+
+export interface FareRuleTooltipData {
+  title: string;
+  description: string;
+  color: 'green' | 'red' | 'yellow' | 'blue' | 'gray';
+  icon: string;
+}
+
+export interface FareRulesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  fareRules: FareRules[];
+  flightOffer: ProcessedFlightOffer;
+}
+
+export interface EnhancedFlightDate {
+  date?: string;
+  departureDate?: string;
+  price: {
+    total: string;
+    currency: string;
+  } | number;
+  currency?: string;
+  savings?: {
+    amount: string;
+    percentage: number;
+  };
+  priceChange?: {
+    trend: 'up' | 'down' | 'stable' | 'RISING' | 'FALLING' | 'STABLE';
+    percentage: number;
+    prediction?: string;
+    historicalLow?: boolean;
+  };
+  availability: 'HIGH' | 'MEDIUM' | 'LOW';
+  demand?: 'HIGH' | 'MEDIUM' | 'LOW';
+  demandLevel?: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
+  persuasionTags: string[];
+  bookingUrgency?: {
+    level: number;
+    message: string;
+  };
+  weatherForecast?: {
+    condition: string;
+    temperature: number;
+  };
+  eventBasedPricing?: {
+    hasEvents: boolean;
+    events?: string[];
+  };
+  flexibilityBonus?: {
+    message: string;
+  };
+}
+
+export interface EnhancedFlightDestination {
+  iataCode: string;
+  name: string;
+  origin?: string;
+  destination?: string;
+  price: {
+    total: string;
+    currency: string;
+  } | number;
+  currency?: string;
+  departureDate: string;
+  returnDate?: string;
+  subType: 'AIRPORT' | 'CITY' | 'city';
+  analytics: {
+    travelers: {
+      score: number;
+    };
+  };
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  trendingStatus: 'HOT' | 'RISING' | 'STEADY';
+  persuasionTags: string[];
+  imageUrl?: string;
+  description?: string;
+  seasonality?: 'LOW' | 'HIGH';
+  savings?: {
+    amount: string;
+    percentage: number;
+  };
+  popularityScore?: number;
+  socialMedia?: {
+    instagramHashtags: string[];
+    influencerRecommendations: number;
+  };
+}
+
+export interface PriceAnalysis {
+  quartileRanking: 'FIRST' | 'SECOND' | 'THIRD' | 'FOURTH';
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  historicalAverage: number;
+  currentPrice: number;
+  priceChange: {
+    amount: number;
+    percentage: number;
+    trend: 'rising' | 'falling' | 'stable';
+  };
+  recommendations: string[];
+}
+
+export interface FlightAvailability {
+  type: string;
+  id: string;
+  source: string;
+  instantTicketingRequired: boolean;
+  paymentCardRequired: boolean;
+  lastTicketingDate: string;
+  numberOfBookableSeats: number;
+  itineraries: Itinerary[];
+  price: Price;
+  pricingOptions: PricingOptions;
+  validatingAirlineCodes: string[];
+  travelerPricings: TravelerPricing[];
+  scarcityIndicators?: {
+    remainingSeats: number;
+    seatsLeft?: number;
+    priceIncreaseRisk: 'LOW' | 'MEDIUM' | 'HIGH';
+    demandLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    urgencyMessage?: string;
+    priceVolatility?: string;
+    bookingVelocity?: string;
+  };
+  conversionBoosts?: {
+    limitedTimeOffer: boolean;
+    priceGuarantee: string;
+    instantConfirmation: boolean;
+    loyaltyPoints?: number;
+    freeCancellation?: string;
+  };
+  competitiveAdvantage?: string[];
+}
+
+export interface Remark {
+  category: string;
+  text: string;
+}
+
+export interface Contact {
+  addresseeName: {
+    firstName: string;
+    lastName: string;
+  };
+  companyName?: string;
+  purpose: 'STANDARD' | 'UNACCOMPANIED_MINOR' | 'DISABLED_PASSENGER';
+  phones: Phone[];
+  emailAddress: string;
+  address?: {
+    lines: string[];
+    postalCode: string;
+    cityName: string;
+    countryCode: string;
+  };
+}
+
+export interface FormOfPayment {
+  other: {
+    method: 'CASH' | 'CHECK' | 'CREDIT_CARD' | 'AGENCY_ACCOUNT';
+    creditCard?: {
+      number: string;
+      holderName: string;
+      vendorCode: string;
+      expiryDate: string;
+    };
+  };
+}
+
+// Advanced Flight Comparison
+export interface FlightComparison {
+  id: string;
+  offer: ProcessedFlightOffer;
+  addedAt: Date;
+  comparisonScore: number;
+  highlights: string[];
+}
+
+// Price Insights with AI
+export interface PriceInsights {
+  trend: 'rising' | 'falling' | 'stable';
+  percentage: number;
+  confidence: number;
+  historicalData: Array<{
+    date: string;
+    price: number;
+  }>;
+  recommendations: string[];
+  nextUpdate: Date;
+}
+
+// AI-Generated Flight Recommendations
+export interface FlightRecommendation {
+  id: string;
+  type: 'BEST_VALUE' | 'FASTEST' | 'MOST_CONVENIENT' | 'PERSONALIZED';
+  offer: ProcessedFlightOffer;
+  reason: string;
+  confidence: number;
+  tags: string[];
+  urgency: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+}
+
+// Advanced Gamification System
+export interface GamificationState {
+  points: number;
+  level: number;
+  currentLevelPoints: number;
+  nextLevelPoints: number;
+  achievements: Achievement[];
+  streaks: {
+    viewing: number;
+    booking: number;
+    comparing: number;
+  };
+  badges: Badge[];
+  totalRewards: number;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  points: number;
+  unlockedAt?: Date;
+  progress?: {
+    current: number;
+    target: number;
+  };
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  icon: string;
+  rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  earnedAt: Date;
+}
+
+// Booking Timeline for Enhanced UX
+export interface BookingTimeline {
+  events: BookingEvent[];
+}
+
+export interface BookingEvent {
+  title: string;
+  date: Date;
+  status: 'COMPLETED' | 'PENDING' | 'UPCOMING';
+  description: string;
+  icon?: string;
+}
+
+// Enhanced Booking Upsells
+export interface BookingUpsell {
+  type: 'SEAT_SELECTION' | 'BAGGAGE' | 'INSURANCE' | 'LOUNGE' | 'MEAL' | 'WIFI';
+  title: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  savings?: string;
+  cta: string;
+  popular?: boolean;
+  recommended?: boolean;
+}
+
+// Service Level Management
+export interface ServiceLevel {
+  level: 'VIP' | 'PREMIUM' | 'STANDARD';
+  benefits: string[];
+  priority: number;
+  contactOptions: string[];
+}
+
+// Advanced User Preferences for Personalization
+export interface UserPreferences {
+  preferredAirlines: string[];
+  preferredTimeOfDay: 'morning' | 'afternoon' | 'evening' | 'flexible';
+  preferDirect: boolean;
+  seatPreference: 'aisle' | 'window' | 'middle' | 'no_preference';
+  mealPreference: string[];
+  budgetRange: {
+    min: number;
+    max: number;
+  };
+  travelPurpose: 'business' | 'leisure' | 'family' | 'emergency';
+  frequentRoutes: Array<{
+    origin: string;
+    destination: string;
+    frequency: number;
+  }>;
+  loyaltyPrograms: Array<{
+    airline: string;
+    membershipLevel: string;
+    points: number;
+  }>;
+}
+
+// Additional component interfaces
+export interface FlightFiltersProps {
+  filters: FlightFilters;
+  onFiltersChange: (filters: FlightFilters) => void;
+  className?: string;
+}
+
+export interface FlightCompareBarProps {
+  compareFlights: ProcessedFlightOffer[];
+  onRemoveFlight: (flightId: string) => void;
+  onCompare: () => void;
+  className?: string;
+}
+
+export interface FeatureItem {
+  id?: string;
+  icon: string;
+  text: string;
+  desc?: string;
+}
+
+// Payment and Booking Types
+export interface PaymentInfo {
+  type: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BANK_TRANSFER';
+  method?: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BANK_TRANSFER';
+  cardNumber?: string;
+  expiryDate?: string;
+  cvv?: string;
+  holderName?: string;
+  installments?: number;
+  cardInfo?: {
+    number: string;
+    cvv: string;
+    expiryDate: string;
+    holderName: string;
+  };
+  billingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+}
+
+export interface BookingError {
+  field: string;
+  message: string;
+  type: 'validation' | 'payment' | 'api' | 'general' | 'API' | 'GENERAL';
+}
+
+// BookingState already defined above - removed duplicate
+
+export interface BookingAgreements {
+  terms: boolean;
+  privacy: boolean;
+  marketing: boolean;
+  termsAndConditions?: boolean;
+  privacyPolicy?: boolean;
+  marketingEmails?: boolean;
+}
+
+export interface BookingData {
+  passengers: PassengerInfo[];
+  contactInfo: ContactInfo;
+  payment: PaymentInfo;
+  agreements: BookingAgreements;
+  specialRequests?: string;
+}
+
+// Enhanced FareRules with all needed properties
+export interface FareRules {
+  fareType?: string;
+  fareClass?: string;
+  dataSource?: string;
+  flexibility?: 'BASIC' | 'STANDARD' | 'FLEXIBLE' | 'PREMIUM';
+  refundable?: boolean;
+  refundFee?: {
+    formatted: string;
+  };
+  exchangeable?: boolean;
+  changeFee?: {
+    formatted: string;
+  };
+  transferable?: boolean;
+  lastUpdated?: string;
+  cancellationFee?: {
+    formatted: string;
+  };
+  baggage?: {
+    carryOn: {
+      included: boolean;
+      weight: string;
+      weightUnit: string;
+      dimensions: string;
+      quantity: number;
+      additionalCost?: {
+        formatted: string;
+      };
+    };
+    checked: {
+      included: boolean;
+      quantity: number;
+      weight: string;
+      weightUnit: string;
+      firstBagFree?: boolean;
+      additionalCost?: {
+        formatted: string;
+      };
+    };
+    special?: {
+      sports: boolean;
+      pets: boolean;
+      musical: boolean;
+    };
+  };
+  policies?: {
+    seatSelection: {
+      allowed: boolean;
+      cost: 'FREE' | 'PAID' | 'PREMIUM';
+      advanceOnly: boolean;
+    };
+    mealService: {
+      included: boolean;
+      type: 'PREMIUM' | 'MEAL' | 'SNACK' | 'NONE';
+      dietaryOptions: boolean;
+    };
+    entertainment: {
+      wifi: 'FREE' | 'PAID';
+      streaming: boolean;
+      seatPower: boolean;
+    };
+    boarding: {
+      priority: boolean;
+      zones: string[];
+      earlyBoarding: boolean;
+      group?: number;
+    };
+    checkin: {
+      online: boolean;
+      mobile: boolean;
+      kiosk: boolean;
+      priority: boolean;
+    };
+  };
+}
+
+// FareRulesResponse already defined above - removed duplicate
+
+export interface FareRuleTooltipData {
+  title: string;
+  description: string;
+  status?: 'included' | 'not-included' | 'fee-applies';
+  color: 'green' | 'red' | 'yellow' | 'blue' | 'gray';
+}
+
+export interface FareRulesIconsProps {
+  fareRules: FareRules[];
+  onDetailsClick?: () => void;
+  compact?: boolean;
+  showTooltips?: boolean;
+}
+
+// Additional ProcessedFlightOffer properties
+export interface ProcessedSegmentExtended extends ProcessedSegment {
+  carrierName?: string;
+}
+
+export interface ProcessedFlightOfferExtended extends ProcessedFlightOffer {
+  segments?: ProcessedSegmentExtended[];
+}
+
+// Additional Social Proof Types
+export interface SocialProofItem {
+  type: string;
+  message: string;
+  count: number;
+  includes?: (substring: string) => boolean;
+  replace?: (searchValue: string | RegExp, replaceValue: string) => string;
+}
+
+// Flight Results List Props
+// FlightResultsListProps already defined above - removed duplicate

@@ -16,7 +16,7 @@ export class AmadeusClient {
     const environment = process.env.AMADEUS_ENVIRONMENT || 'test';
     
     this.config = {
-      environment,
+      environment: environment as 'test' | 'production',
       apiKey: process.env.AMADEUS_API_KEY!,
       apiSecret: process.env.AMADEUS_API_SECRET!,
       baseUrl: environment === 'production' 
@@ -106,7 +106,7 @@ export class AmadeusClient {
   /**
    * Make authenticated API request
    */
-  private async makeRequest<T>(
+  protected async makeRequest<T>(
     endpoint: string, 
     options: RequestInit = {}
   ): Promise<T> {
@@ -259,6 +259,124 @@ export class AmadeusClient {
   }
 
   /**
+   * Confirm flight offer pricing with detailed fare rules
+   */
+  async confirmPricingWithFareRules(flightOffers: any[]): Promise<any> {
+    const endpoint = '/v1/shopping/flight-offers/pricing?include=detailed-fare-rules';
+    
+    const requestBody = {
+      data: {
+        type: 'flight-offers-pricing',
+        flightOffers: flightOffers
+      }
+    };
+
+    try {
+      console.log('💰 Confirming flight pricing with detailed fare rules...');
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'X-HTTP-Method-Override': 'POST'
+        }
+      });
+      
+      console.log('✅ Flight pricing with fare rules confirmed');
+      return response;
+    } catch (error) {
+      console.error('❌ Flight pricing with fare rules confirmation failed:', error);
+      throw new Error(`Flight pricing with fare rules confirmation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get branded fare upsell options
+   */
+  async getBrandedFareUpsell(flightOffers: any[]): Promise<any> {
+    const endpoint = '/v1/shopping/flight-offers/upselling';
+    
+    const requestBody = {
+      data: {
+        type: 'flight-offers-upselling',
+        flightOffers: flightOffers
+      }
+    };
+
+    try {
+      console.log('🎯 Getting branded fare upsell options...');
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'X-HTTP-Method-Override': 'POST'
+        }
+      });
+      
+      console.log('✅ Branded fare upsell options retrieved');
+      return response;
+    } catch (error) {
+      console.error('❌ Branded fare upsell failed:', error);
+      throw new Error(`Branded fare upsell failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get baggage options for flight offers
+   */
+  async getBaggageOptions(flightOffers: any[]): Promise<any> {
+    const endpoint = '/v1/shopping/flight-offers/pricing?include=bags';
+    
+    const requestBody = {
+      data: {
+        type: 'flight-offers-pricing',
+        flightOffers: flightOffers
+      }
+    };
+
+    try {
+      console.log('🎒 Getting baggage options...');
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody),
+        headers: {
+          'X-HTTP-Method-Override': 'POST'
+        }
+      });
+      
+      console.log('✅ Baggage options retrieved');
+      return response;
+    } catch (error) {
+      console.error('❌ Baggage options failed:', error);
+      throw new Error(`Baggage options failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get seat maps for flight offers
+   */
+  async getSeatMaps(flightOffers: any[]): Promise<any> {
+    const endpoint = '/v1/shopping/seatmaps';
+    
+    const requestBody = {
+      data: flightOffers
+    };
+
+    try {
+      console.log('🪑 Getting seat maps...');
+      const response = await this.makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('✅ Seat maps retrieved');
+      return response;
+    } catch (error) {
+      console.error('❌ Seat maps failed:', error);
+      throw new Error(`Seat maps failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get airport information by IATA code
    */
   async getAirport(iataCode: string): Promise<any> {
@@ -284,7 +402,7 @@ export class AmadeusClient {
     try {
       console.log(`🔍 Searching airports with keyword: ${keyword}`);
       const response = await this.makeRequest(endpoint);
-      console.log(`✅ Found ${response.data?.length || 0} airports`);
+      console.log(`✅ Found ${(response as any)?.data?.length || 0} airports`);
       return response;
     } catch (error) {
       console.error('❌ Airport search failed:', error);

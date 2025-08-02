@@ -9,9 +9,10 @@ import { useRouter } from 'next/navigation';
 interface LoginButtonProps {
   variant?: 'header' | 'mobile' | 'inline';
   showText?: boolean;
+  loginText?: string;
 }
 
-export default function LoginButton({ variant = 'header', showText = true }: LoginButtonProps) {
+export default function LoginButton({ variant = 'header', showText = true, loginText = 'Sign In' }: LoginButtonProps) {
   const { data: session, status } = useSession();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
@@ -191,7 +192,7 @@ export default function LoginButton({ variant = 'header', showText = true }: Log
           className="flex items-center gap-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
         >
           <LogIn size={16} />
-          {showText && <span>Entrar</span>}
+          {showText && <span>{loginText}</span>}
         </button>
       </div>
     );
@@ -204,7 +205,7 @@ export default function LoginButton({ variant = 'header', showText = true }: Log
         className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
       >
         <LogIn size={16} />
-        {showText && <span>Entrar</span>}
+        {showText && <span>{loginText}</span>}
       </button>
     );
   }
@@ -223,7 +224,7 @@ export default function LoginButton({ variant = 'header', showText = true }: Log
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
         <LogIn size={16} />
-        {showText && <span>Entrar</span>}
+        {showText && <span>{loginText}</span>}
       </button>
     </div>
   );
