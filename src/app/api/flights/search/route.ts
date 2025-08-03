@@ -20,6 +20,20 @@ function parseISODateSafe(dateString: string): Date {
 }
 
 /**
+ * Format date consistently avoiding timezone issues
+ * Input: "2025-08-20" -> Output: "Aug 20"
+ */
+function formatDateConsistent(dateString: string): string {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  return `${monthNames[month - 1]} ${day}`;
+}
+
+/**
  * GET /api/flights/search
  * Search for flight offers
  */
@@ -45,6 +59,20 @@ export async function GET(request: NextRequest) {
       max: searchParams.get('max') ? parseInt(searchParams.get('max')!, 10) : AMADEUS_CONFIG.DEFAULTS.MAX_RESULTS,
       currencyCode: searchParams.get('currencyCode') || 'USD'
     };
+
+    // Handle Multi-City segments
+    const tripType = searchParams.get('tripType') || 'round-trip';
+    const segments = searchParams.get('segments');
+    let multiCitySegments: any[] = [];
+    
+    if (tripType === 'multi-city' && segments) {
+      try {
+        multiCitySegments = JSON.parse(segments);
+        console.log('📍 Multi-city segments received:', multiCitySegments.length, 'segments');
+      } catch (error) {
+        console.warn('⚠️ Failed to parse multi-city segments:', error);
+      }
+    }
 
     console.log('🔍 Flight search parameters:', flightSearchParams);
 
@@ -214,7 +242,9 @@ export async function GET(request: NextRequest) {
       // Since we confirmed the API works, this error might be internal
       
       // Generate more realistic flight data based on the real API response structure
-      const enhancedFallbackData = generateEnhancedFallbackData(flightSearchParams);
+      const enhancedFallbackData = tripType === 'multi-city' 
+        ? generateMultiCityFallbackData(multiCitySegments, flightSearchParams)
+        : generateEnhancedFallbackData(flightSearchParams);
       
       console.log(`🔄 Using enhanced fallback data (${enhancedFallbackData.length} flights) while investigating API issue`);
       console.log('🐛 DEBUG Final API Response - Sample Flight:', {
@@ -251,6 +281,165 @@ export async function GET(request: NextRequest) {
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
+}
+
+/**
+ * Generate Multi-City fallback flight data
+ */
+function generateMultiCityFallbackData(segments: any[], params: FlightSearchParams): ProcessedFlightOffer[] {
+  if (!segments || segments.length === 0) return [];
+  
+  console.log('🗺️ Generating Multi-City flight data for', segments.length, 'segments');
+  
+  // For multi-city, we create a single "flight offer" that represents the entire journey
+  const multiCityOffer: ProcessedFlightOffer = {
+    id: `multi-city-${Date.now()}`,
+    totalPrice: `$${(segments.length * 250 + Math.random() * 200).toFixed(2)}`,
+    currency: 'USD',
+    
+    // First segment as outbound
+    outbound: createMultiCitySegment(segments[0], 0),
+    
+    // Additional segments stored in a custom property
+    segments: segments.map((segment, index) => createMultiCitySegment(segment, index)),
+    
+    numberOfBookableSeats: Math.floor(Math.random() * 7) + 3,
+    validatingAirlines: ['Multi-City Journey'],
+    lastTicketingDate: segments[0]?.departureDate || new Date().toISOString(),
+    instantTicketingRequired: false,
+    
+    // Required properties
+    cabinAnalysis: {
+      detectedClass: 'ECONOMY' as const,
+      confidence: 85,
+      definition: null,
+      sources: ['multi-city-mock']
+    },
+    baggageAnalysis: {
+      carryOn: {
+        included: [],
+        additional: [],
+        total: { quantity: 1, weight: '8kg', included: true }
+      },
+      checked: {
+        included: [],
+        additional: [],
+        total: { quantity: 0, weight: '0kg', included: false }
+      },
+      personalItem: {
+        included: [],
+        additional: [],
+        total: { quantity: 1, weight: 'No limit', included: true }
+      }
+    },
+    rawOffer: {
+      id: `multi-city-${Date.now()}`,
+      type: 'flight-offer',
+      source: 'GDS',
+      instantTicketingRequired: false,
+      nonHomogeneous: false,
+      oneWay: true, // Multi-city is essentially one-way
+      lastTicketingDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      numberOfBookableSeats: Math.floor(Math.random() * 7) + 3,
+      itineraries: [],
+      validatingAirlineCodes: ['LA', 'G3'],
+      price: {
+        currency: 'USD',
+        total: (segments.length * 250 + Math.random() * 200).toFixed(2),
+        grandTotal: (segments.length * 250 + Math.random() * 200).toFixed(2),
+        base: ((segments.length * 250 + Math.random() * 200) * 0.85).toFixed(2)
+      },
+      pricingOptions: {
+        fareType: ['PUBLISHED'],
+        includedCheckedBagsOnly: false
+      },
+      travelerPricings: [{
+        travelerId: '1',
+        fareOption: 'STANDARD',
+        travelerType: 'ADULT' as TravelerType,
+        price: {
+          currency: 'USD',
+          total: (segments.length * 250 + Math.random() * 200).toFixed(2),
+          base: ((segments.length * 250 + Math.random() * 200) * 0.85).toFixed(2),
+          grandTotal: (segments.length * 250 + Math.random() * 200).toFixed(2)
+        },
+        fareDetailsBySegment: [{
+          segmentId: '1',
+          cabin: 'ECONOMY' as CabinClass,
+          fareBasis: 'MULTI',
+          brandedFare: 'MC',
+          class: 'M',
+          includedCheckedBags: { quantity: 0 }
+        }]
+      }]
+    }
+  };
+  
+  return [multiCityOffer];
+}
+
+function createMultiCitySegment(segment: any, index: number): any {
+  const departureTime = `${6 + (index * 3)}:00`; // Stagger departure times
+  const duration = 'PT2H30M'; // Standard 2.5 hour flight
+  const arrivalTime = `${8 + (index * 3)}:30`;
+  
+  return {
+    departure: {
+      iataCode: segment.origin?.iataCode || 'JFK',
+      airportName: getAirportName(segment.origin?.iataCode || 'JFK'),
+      cityName: segment.origin?.city || 'New York',
+      countryName: segment.origin?.country || 'United States',
+      dateTime: `${segment.departureDate}T${departureTime}:00`,
+      date: formatDateConsistent(segment.departureDate),
+      time: departureTime,
+      timeZone: 'America/New_York'
+    },
+    arrival: {
+      iataCode: segment.destination?.iataCode || 'LAX',
+      airportName: getAirportName(segment.destination?.iataCode || 'LAX'),
+      cityName: segment.destination?.city || 'Los Angeles',
+      countryName: segment.destination?.country || 'United States',
+      dateTime: `${segment.departureDate}T${arrivalTime}:00`,
+      date: formatDateConsistent(segment.departureDate),
+      time: arrivalTime,
+      timeZone: 'America/Los_Angeles'
+    },
+    duration: duration,
+    durationMinutes: 150, // 2.5 hours
+    stops: 0,
+    segments: [{
+      id: `multi-seg-${index}`,
+      departure: {
+        iataCode: segment.origin?.iataCode || 'JFK',
+        airportName: getAirportName(segment.origin?.iataCode || 'JFK'),
+        cityName: segment.origin?.city || 'New York',
+        dateTime: `${segment.departureDate}T${departureTime}:00`,
+        date: formatDateConsistent(segment.departureDate),
+        time: departureTime
+      },
+      arrival: {
+        iataCode: segment.destination?.iataCode || 'LAX',
+        airportName: getAirportName(segment.destination?.iataCode || 'LAX'),
+        cityName: segment.destination?.city || 'Los Angeles',
+        dateTime: `${segment.departureDate}T${arrivalTime}:00`,
+        date: formatDateConsistent(segment.departureDate),
+        time: arrivalTime
+      },
+      duration: duration,
+      durationMinutes: 150,
+      airline: {
+        code: 'LA',
+        name: 'LATAM Airlines',
+        logo: 'https://images.kiwi.com/airlines/64/LA.png'
+      },
+      flightNumber: `LA${Math.floor(Math.random() * 9999) + 1000}`,
+      aircraft: {
+        code: '320',
+        name: 'Airbus A320'
+      },
+      cabin: 'ECONOMY'
+    }]
+  };
 }
 
 /**
@@ -386,7 +575,7 @@ function createFlightOffer(params: {
         cityName: getCityName(origin),
         countryName: 'Brasil',
         dateTime: `${departureDate}T${flight.departureTime}:00`,
-        date: parseISODateSafe(departureDate).toLocaleDateString('en-US'),
+        date: formatDateConsistent(departureDate),
         time: flight.departureTime,
         timeZone: 'America/Sao_Paulo'
       },
@@ -396,7 +585,7 @@ function createFlightOffer(params: {
         cityName: getCityName(destination),
         countryName: 'Brasil',
         dateTime: `${departureDate}T${flight.arrivalTime.replace('+1', '')}:00`,
-        date: parseISODateSafe(departureDate).toLocaleDateString('en-US'),
+        date: formatDateConsistent(departureDate),
         time: flight.arrivalTime.replace('+1', ''),
         timeZone: 'America/Sao_Paulo'
       },
@@ -410,7 +599,7 @@ function createFlightOffer(params: {
           airportName: getAirportName(origin),
           cityName: getCityName(origin),
           dateTime: `${departureDate}T${flight.departureTime}:00`,
-          date: parseISODateSafe(departureDate).toLocaleDateString('en-US'),
+          date: formatDateConsistent(departureDate),
           time: flight.departureTime
         },
         arrival: {
@@ -418,7 +607,7 @@ function createFlightOffer(params: {
           airportName: getAirportName(destination),
           cityName: getCityName(destination),
           dateTime: `${departureDate}T${flight.arrivalTime.replace('+1', '')}:00`,
-          date: parseISODateSafe(departureDate).toLocaleDateString('en-US'),
+          date: formatDateConsistent(departureDate),
           time: flight.arrivalTime.replace('+1', '')
         },
         duration: flight.duration,
@@ -443,7 +632,7 @@ function createFlightOffer(params: {
         cityName: getCityName(destination),
         countryName: 'Brasil',
         dateTime: `${returnDate}T${flight.departureTime}:00`,
-        date: parseISODateSafe(returnDate!).toLocaleDateString('en-US'),
+        date: formatDateConsistent(returnDate!),
         time: flight.departureTime,
         timeZone: 'America/Sao_Paulo'
       },
@@ -453,7 +642,7 @@ function createFlightOffer(params: {
         cityName: getCityName(origin),
         countryName: 'Brasil',
         dateTime: `${returnDate}T${flight.arrivalTime.replace('+1', '')}:00`,
-        date: parseISODateSafe(returnDate!).toLocaleDateString('en-US'),
+        date: formatDateConsistent(returnDate!),
         time: flight.arrivalTime.replace('+1', ''),
         timeZone: 'America/Sao_Paulo'
       },
@@ -467,7 +656,7 @@ function createFlightOffer(params: {
           airportName: getAirportName(destination),
           cityName: getCityName(destination),
           dateTime: `${returnDate}T${flight.departureTime}:00`,
-          date: parseISODateSafe(returnDate!).toLocaleDateString('en-US'),
+          date: formatDateConsistent(returnDate!),
           time: flight.departureTime
         },
         arrival: {
@@ -475,7 +664,7 @@ function createFlightOffer(params: {
           airportName: getAirportName(origin),
           cityName: getCityName(origin),
           dateTime: `${returnDate}T${flight.arrivalTime.replace('+1', '')}:00`,
-          date: parseISODateSafe(returnDate!).toLocaleDateString('en-US'),
+          date: formatDateConsistent(returnDate!),
           time: flight.arrivalTime.replace('+1', '')
         },
         duration: flight.duration,

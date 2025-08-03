@@ -9,6 +9,7 @@ import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass, F
 import { validateFlightSearchForm } from '@/lib/flights/validators';
 import { AMADEUS_CONFIG } from '@/lib/flights/amadeus-config';
 import EnterpriseDatePicker from '@/components/ui/enterprise-date-picker';
+import FlightSearchTransition from './FlightSearchTransition';
 
 interface FlightSearchFormProps {
   onSearch: (searchData: FlightSearchFormData) => void;
@@ -49,6 +50,18 @@ export default function FlightSearchForm({
     destination: { iataCode: '', name: '', city: '', country: '' },
     departureDate: new Date(),
     returnDate: new Date(),
+    segments: [
+      {
+        origin: { iataCode: '', name: '', city: '', country: '' },
+        destination: { iataCode: '', name: '', city: '', country: '' },
+        departureDate: new Date()
+      },
+      {
+        origin: { iataCode: '', name: '', city: '', country: '' },
+        destination: { iataCode: '', name: '', city: '', country: '' },
+        departureDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000) // Next day by default
+      }
+    ],
     passengers: { adults: 1, children: 0, infants: 0 },
     travelClass: 'ECONOMY' as TravelClass,
     preferences: {
@@ -58,17 +71,38 @@ export default function FlightSearchForm({
     ...initialData
   });
 
+  // Transition screen state
+  const [showTransition, setShowTransition] = useState(false);
+
   // Search states
   const [originSearch, setOriginSearch] = useState('');
   const [destinationSearch, setDestinationSearch] = useState('');
   const [originResults, setOriginResults] = useState<EnhancedAirportResult[]>([]);
   const [destinationResults, setDestinationResults] = useState<EnhancedAirportResult[]>([]);
+  
+  // Multi-city segment search states
+  const [segmentSearches, setSegmentSearches] = useState<{ origin: string; destination: string }[]>([
+    { origin: '', destination: '' },
+    { origin: '', destination: '' }
+  ]);
+  const [segmentResults, setSegmentResults] = useState<{ 
+    origin: EnhancedAirportResult[]; 
+    destination: EnhancedAirportResult[] 
+  }[]>([
+    { origin: [], destination: [] },
+    { origin: [], destination: [] }
+  ]);
 
   // Dropdown visibility
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
   const [showClassDropdown, setShowClassDropdown] = useState(false);
+  
+  // Multi-city segment dropdown visibility
+  const [segmentDropdowns, setSegmentDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // Refs for positioning
   const originRef = useRef<HTMLInputElement>(null);
@@ -319,6 +353,33 @@ export default function FlightSearchForm({
     }
   }, [destinationSearch, aiSmartSearch]);
 
+  // Multi-city segment search effects
+  useEffect(() => {
+    segmentSearches.forEach((search, index) => {
+      if (search.origin.trim().length >= 1) {
+        const timeoutId = setTimeout(() => {
+          aiSmartSearch(search.origin).then(results => {
+            setSegmentResults(prev => prev.map((result, i) => 
+              i === index ? { ...result, origin: results } : result
+            ));
+          });
+        }, 150);
+        return () => clearTimeout(timeoutId);
+      }
+      
+      if (search.destination.trim().length >= 1) {
+        const timeoutId = setTimeout(() => {
+          aiSmartSearch(search.destination).then(results => {
+            setSegmentResults(prev => prev.map((result, i) => 
+              i === index ? { ...result, destination: results } : result
+            ));
+          });
+        }, 150);
+        return () => clearTimeout(timeoutId);
+      }
+    });
+  }, [segmentSearches, aiSmartSearch]);
+
   // PERFECT POSITIONING - Below input, never overlapping
   const updateDropdownPosition = (element: HTMLElement | null, key: 'origin' | 'destination' | 'passenger' | 'class') => {
     if (element) {
@@ -346,7 +407,30 @@ export default function FlightSearchForm({
       return;
     }
 
+    // Additional validation for multi-city
+    if (formData.tripType === 'multi-city') {
+      const dateErrors = validateDateSequence();
+      if (dateErrors.length > 0) {
+        console.error('Date sequence errors:', dateErrors);
+        return;
+      }
+    }
+
+    // Show transition screen
+    setShowTransition(true);
+    
+    // Pass search data to transition and eventually call onSearch
+    // onSearch(formData); // This will be called from transition component
+  };
+
+  // Handle transition completion
+  const handleTransitionComplete = (results: any) => {
     onSearch(formData);
+  };
+
+  // Handle transition close
+  const handleTransitionClose = () => {
+    setShowTransition(false);
   };
 
   // Handle swap origin/destination with smooth animation
@@ -366,6 +450,95 @@ export default function FlightSearchForm({
     setShowDestinationDropdown(false);
     setShowPassengerDropdown(false);
     setShowClassDropdown(false);
+    setSegmentDropdowns({});
+  };
+
+  // Multi-City segment management functions
+  const addSegment = () => {
+    if (formData.segments && formData.segments.length < 6) {
+      const lastSegment = formData.segments[formData.segments.length - 1];
+      const newSegment: FlightSegment = {
+        origin: { iataCode: '', name: '', city: '', country: '' },
+        destination: { iataCode: '', name: '', city: '', country: '' },
+        departureDate: new Date(lastSegment.departureDate.getTime() + 24 * 60 * 60 * 1000) // Next day
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        segments: [...(prev.segments || []), newSegment]
+      }));
+      
+      setSegmentSearches(prev => [...prev, { origin: '', destination: '' }]);
+      setSegmentResults(prev => [...prev, { origin: [], destination: [] }]);
+    }
+  };
+
+  const removeSegment = (index: number) => {
+    if (formData.segments && formData.segments.length > 2) {
+      setFormData(prev => ({
+        ...prev,
+        segments: prev.segments?.filter((_, i) => i !== index)
+      }));
+      
+      setSegmentSearches(prev => prev.filter((_, i) => i !== index));
+      setSegmentResults(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateSegment = (index: number, field: keyof FlightSegment, value: any) => {
+    setFormData(prev => {
+      const newSegments = prev.segments?.map((segment, i) => 
+        i === index ? { ...segment, [field]: value } : segment
+      );
+      
+      // 🧠 SMART AUTO-CONNECTION: When destination of a flight is set, auto-fill origin of next flight
+      if (field === 'destination' && value.iataCode && newSegments && index < newSegments.length - 1) {
+        const nextSegment = newSegments[index + 1];
+        if (!nextSegment.origin.iataCode) {
+          newSegments[index + 1] = {
+            ...nextSegment,
+            origin: value // Auto-connect destination → next origin
+          };
+          console.log(`🔗 Auto-connected Flight ${index + 1} → Flight ${index + 2}: ${value.city}`);
+        }
+      }
+      
+      return {
+        ...prev,
+        segments: newSegments
+      };
+    });
+  };
+
+  const updateSegmentSearch = (index: number, field: 'origin' | 'destination', value: string) => {
+    setSegmentSearches(prev => prev.map((search, i) => 
+      i === index ? { ...search, [field]: value } : search
+    ));
+  };
+
+  // Validate date sequence for multi-city with connection time
+  const validateDateSequence = (): string[] => {
+    const errors: string[] = [];
+    if (formData.tripType === 'multi-city' && formData.segments) {
+      for (let i = 1; i < formData.segments.length; i++) {
+        const prevDate = formData.segments[i - 1].departureDate;
+        const currentDate = formData.segments[i].departureDate;
+        
+        if (currentDate <= prevDate) {
+          errors.push(`Flight ${i + 1} departure date must be after Flight ${i} departure date`);
+        } else {
+          // Check for minimum connection time (at least 2 hours for domestic, 3 hours for international)
+          const timeDiff = currentDate.getTime() - prevDate.getTime();
+          const hoursDiff = timeDiff / (1000 * 60 * 60);
+          
+          // For same day connections, ensure minimum 3 hours
+          if (prevDate.toDateString() === currentDate.toDateString() && hoursDiff < 3) {
+            errors.push(`Flight ${i + 1} needs at least 3 hours connection time from Flight ${i}`);
+          }
+        }
+      }
+    }
+    return errors;
   };
 
   // Total passengers for display
@@ -446,209 +619,566 @@ export default function FlightSearchForm({
 
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* REVOLUTIONARY MAIN SEARCH - AI-Powered */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-end">
-              
-              {/* Origin - AI Smart Search */}
-              <div className="lg:col-span-4 space-y-3 lg:pr-0">
-                <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
-                  <span className="text-blue-400 text-lg">✈️</span>
-                  <span>Flying from</span>
-                  <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">AI Search</span>
-                </label>
-                <div className="relative lg:mr-[-20px]">
-                  <input
-                    ref={originRef}
-                    type="text"
-                    value={formData.origin.iataCode ? formData.origin.city : originSearch}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setOriginSearch(value);
-                      if (formData.origin.iataCode && value !== formData.origin.city) {
-                        setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
-                      }
-                    }}
-                    onFocus={() => {
-                      closeAllDropdowns();
-                      updateDropdownPosition(originRef.current, 'origin');
-                      setShowOriginDropdown(true);
-                    }}
-                    placeholder="City, airport, or even nickname..."
-                    className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-blue-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
-                  />
-                  {formData.origin.iataCode && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
-                      {formData.origin.iataCode}
-                    </div>
-                  )}
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none">
-                    <FlightIcon className="w-6 h-6" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Revolutionary Swap Button - Integrated Junction */}
-              <div className="lg:col-span-1 flex justify-center items-end pb-3 -mx-4">
-                <button
-                  type="button"
-                  onClick={handleSwapAirports}
-                  className="w-16 h-16 bg-transparent rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-all duration-300 hover:scale-110 group p-0 m-0"
-                >
-                  <div className="text-3xl group-hover:rotate-180 transition-transform duration-500">⇄</div>
-                </button>
-              </div>
-
-              {/* Destination - AI Smart Search */}
-              <div className="lg:col-span-4 space-y-3 lg:pl-0">
-                <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
-                  <span className="text-purple-400 text-lg">🌍</span>
-                  <span>Flying to</span>
-                  <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Global Search</span>
-                </label>
-                <div className="relative lg:ml-[-20px]">
-                  <input
-                    ref={destinationRef}
-                    type="text"
-                    value={formData.destination.iataCode ? formData.destination.city : destinationSearch}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setDestinationSearch(value);
-                      if (formData.destination.iataCode && value !== formData.destination.city) {
-                        setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
-                      }
-                    }}
-                    onFocus={() => {
-                      closeAllDropdowns();
-                      updateDropdownPosition(destinationRef.current, 'destination');
-                      setShowDestinationDropdown(true);
-                    }}
-                    placeholder="Anywhere in the world..."
-                    className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-purple-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
-                  />
-                  {formData.destination.iataCode && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
-                      {formData.destination.iataCode}
-                    </div>
-                  )}
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none">
-                    <div className="w-6 h-6 text-xl">🌍</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Travelers - Na mesma linha */}
-              <div className="lg:col-span-3 space-y-3 lg:ml-6">
-                <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
-                  <span className="text-pink-400">👥</span>
-                  Travelers
-                </label>
-                <button
-                  ref={passengerRef}
-                  type="button"
-                  onClick={() => {
-                    closeAllDropdowns();
-                    updateDropdownPosition(passengerRef.current, 'passenger');
-                    setShowPassengerDropdown(true);
-                  }}
-                  className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-pink-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
-                >
-                  <span>
-                    {totalPassengers} traveler{totalPassengers !== 1 ? 's' : ''}
-                    {formData.passengers.children > 0 && (
-                      <span className="text-sm text-white/70 ml-2">
-                        (+{formData.passengers.children} child{formData.passengers.children > 1 ? 'ren' : ''})
-                      </span>
+            {/* REVOLUTIONARY MAIN SEARCH - AI-Powered (Hidden for Multi-City) */}
+            {formData.tripType !== 'multi-city' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-end">
+                
+                {/* Origin - AI Smart Search */}
+                <div className="lg:col-span-4 space-y-3 lg:pr-0">
+                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
+                    <span className="text-blue-400 text-lg">✈️</span>
+                    <span>Flying from</span>
+                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">AI Search</span>
+                  </label>
+                  <div className="relative lg:mr-[-20px]">
+                    <input
+                      ref={originRef}
+                      type="text"
+                      value={formData.origin.iataCode ? formData.origin.city : originSearch}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setOriginSearch(value);
+                        if (formData.origin.iataCode && value !== formData.origin.city) {
+                          setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
+                        }
+                      }}
+                      onFocus={() => {
+                        closeAllDropdowns();
+                        updateDropdownPosition(originRef.current, 'origin');
+                        setShowOriginDropdown(true);
+                      }}
+                      placeholder="City, airport, or even nickname..."
+                      className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-blue-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
+                    />
+                    {formData.origin.iataCode && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
+                        {formData.origin.iataCode}
+                      </div>
                     )}
-                  </span>
-                  <UsersIcon className="w-6 h-6 text-pink-400" />
-                </button>
-              </div>
-            </div>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-blue-400 pointer-events-none">
+                      <FlightIcon className="w-6 h-6" />
+                    </div>
+                  </div>
+                </div>
 
-            {/* CONTROLES SECUNDÁRIOS - Dates, Class & Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              
-              {/* Departure Date */}
-              <div className="space-y-3">
-                <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
-                  <span className="text-green-400">📅</span>
-                  Departure
-                </label>
-                <div className="relative">
-                  <EnterpriseDatePicker
-                    value={formData.departureDate.toISOString().split('T')[0]}
-                    onChange={(value) => setFormData(prev => ({ ...prev, departureDate: new Date(value) }))}
-                    placeholder="MM/DD/YYYY"
-                    minDate={new Date().toISOString().split('T')[0]}
-                    className=""
-                  />
+                {/* Revolutionary Swap Button - Integrated Junction */}
+                <div className="lg:col-span-1 flex justify-center items-end pb-3 -mx-4">
+                  <button
+                    type="button"
+                    onClick={handleSwapAirports}
+                    className="w-16 h-16 bg-transparent rounded-full flex items-center justify-center text-white hover:bg-white/5 transition-all duration-300 hover:scale-110 group p-0 m-0"
+                  >
+                    <div className="text-3xl group-hover:rotate-180 transition-transform duration-500">⇄</div>
+                  </button>
+                </div>
+
+                {/* Destination - AI Smart Search */}
+                <div className="lg:col-span-4 space-y-3 lg:pl-0">
+                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
+                    <span className="text-purple-400 text-lg">🌍</span>
+                    <span>Flying to</span>
+                    <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Global Search</span>
+                  </label>
+                  <div className="relative lg:ml-[-20px]">
+                    <input
+                      ref={destinationRef}
+                      type="text"
+                      value={formData.destination.iataCode ? formData.destination.city : destinationSearch}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setDestinationSearch(value);
+                        if (formData.destination.iataCode && value !== formData.destination.city) {
+                          setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
+                        }
+                      }}
+                      onFocus={() => {
+                        closeAllDropdowns();
+                        updateDropdownPosition(destinationRef.current, 'destination');
+                        setShowDestinationDropdown(true);
+                      }}
+                      placeholder="Anywhere in the world..."
+                      className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-purple-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
+                    />
+                    {formData.destination.iataCode && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
+                        {formData.destination.iataCode}
+                      </div>
+                    )}
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none">
+                      <div className="w-6 h-6 text-xl">🌍</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Travelers - Na mesma linha */}
+                <div className="lg:col-span-3 space-y-3 lg:ml-6">
+                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
+                    <span className="text-pink-400">👥</span>
+                    Travelers
+                  </label>
+                  <button
+                    ref={passengerRef}
+                    type="button"
+                    onClick={() => {
+                      closeAllDropdowns();
+                      updateDropdownPosition(passengerRef.current, 'passenger');
+                      setShowPassengerDropdown(true);
+                    }}
+                    className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-pink-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
+                  >
+                    <span>
+                      {totalPassengers} traveler{totalPassengers !== 1 ? 's' : ''}
+                      {formData.passengers.children > 0 && (
+                        <span className="text-sm text-white/70 ml-2">
+                          (+{formData.passengers.children} child{formData.passengers.children > 1 ? 'ren' : ''})
+                        </span>
+                      )}
+                    </span>
+                    <UsersIcon className="w-6 h-6 text-pink-400" />
+                  </button>
                 </div>
               </div>
+            )}
 
-              {/* Return Date */}
-              {formData.tripType === 'round-trip' && (
+            {/* CONTROLES SECUNDÁRIOS - For Regular Trips Only */}
+            {formData.tripType !== 'multi-city' && (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${formData.tripType === 'round-trip' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+                
+                {/* Departure Date */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
-                    <span className="text-orange-400">🔄</span>
-                    Return
+                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
+                    <span className="text-green-400 text-lg">📅</span>
+                    <span>Departure</span>
                   </label>
                   <div className="relative">
                     <EnterpriseDatePicker
-                      value={formData.returnDate?.toISOString().split('T')[0] || ''}
-                      onChange={(value) => setFormData(prev => ({ ...prev, returnDate: new Date(value) }))}
+                      value={formData.departureDate.toLocaleDateString('sv-SE')}
+                      onChange={(value) => {
+                        const [year, month, day] = value.split('-').map(Number);
+                        const localDate = new Date(year, month - 1, day);
+                        setFormData(prev => ({ ...prev, departureDate: localDate }));
+                      }}
                       placeholder="MM/DD/YYYY"
-                      minDate={formData.departureDate.toISOString().split('T')[0]}
+                      minDate={new Date().toLocaleDateString('sv-SE')}
                       className=""
                     />
                   </div>
                 </div>
-              )}
 
-              {/* Travel Class */}
-              <div className="space-y-3">
-                <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
-                  <span className="text-yellow-400">✨</span>
-                  Class
-                </label>
-                <button
-                  ref={classRef}
-                  type="button"
-                  onClick={() => {
-                    closeAllDropdowns();
-                    updateDropdownPosition(classRef.current, 'class');
-                    setShowClassDropdown(true);
-                  }}
-                  className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-yellow-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
-                >
-                  <span>{getClassLabel(formData.travelClass)}</span>
-                  <div className="text-yellow-400 text-2xl">
-                    {travelClasses.find(c => c.value === formData.travelClass)?.icon || '🛋️'}
+                {/* Return Date */}
+                {formData.tripType === 'round-trip' && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-3">
+                      <span className="text-orange-400 text-lg">🔄</span>
+                      <span>Return</span>
+                    </label>
+                    <div className="relative">
+                      <EnterpriseDatePicker
+                        value={formData.returnDate?.toLocaleDateString('sv-SE') || ''}
+                        onChange={(value) => {
+                          const [year, month, day] = value.split('-').map(Number);
+                          const localDate = new Date(year, month - 1, day);
+                          setFormData(prev => ({ ...prev, returnDate: localDate }));
+                        }}
+                        placeholder="MM/DD/YYYY"
+                        minDate={formData.departureDate.toLocaleDateString('sv-SE')}
+                        className=""
+                      />
+                    </div>
                   </div>
-                </button>
-              </div>
+                )}
 
-              {/* ULTRA-PREMIUM SEARCH BUTTON */}
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
-                  className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-500/50 disabled:via-gray-600/50 disabled:to-gray-500/50 text-white font-black text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/25 disabled:shadow-lg transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed relative overflow-hidden group backdrop-blur-lg"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>
-                  {isLoading ? (
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Searching...</span>
+                {/* Travel Class */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
+                    <span className="text-yellow-400">✨</span>
+                    Class
+                  </label>
+                  <button
+                    ref={classRef}
+                    type="button"
+                    onClick={() => {
+                      closeAllDropdowns();
+                      updateDropdownPosition(classRef.current, 'class');
+                      setShowClassDropdown(true);
+                    }}
+                    className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-yellow-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
+                  >
+                    <span>{getClassLabel(formData.travelClass)}</span>
+                    <div className="text-yellow-400 text-2xl">
+                      {travelClasses.find(c => c.value === formData.travelClass)?.icon || '🛋️'}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="text-2xl">🚀</span>
-                      <span>Search Flights</span>
-                    </div>
-                  )}
-                </button>
+                  </button>
+                </div>
+
+                {/* ULTRA-PREMIUM SEARCH BUTTON */}
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
+                    className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-500/50 disabled:via-gray-600/50 disabled:to-gray-500/50 text-white font-black text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/25 disabled:shadow-lg transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed relative overflow-hidden group backdrop-blur-lg"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Searching...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="text-2xl">🚀</span>
+                        <span>Search Flights</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* 🚀 MULTI-CITY SEGMENTS INTERFACE - Dynamic & Intelligent */}
+            {formData.tripType === 'multi-city' && (
+              <div className="mt-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                    <span className="text-green-400">🗺️</span>
+                    Your Multi-City Journey
+                    <span className="text-sm bg-green-500/20 text-green-300 px-3 py-1 rounded-full">
+                      {formData.segments?.length || 0} flights
+                    </span>
+                  </h3>
+                  
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={addSegment}
+                      disabled={!formData.segments || formData.segments.length >= 6}
+                      className="px-4 py-2 bg-gradient-to-r from-green-600/70 to-emerald-600/70 hover:from-green-600/80 hover:to-emerald-600/80 disabled:from-gray-500/50 disabled:to-gray-600/50 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      Add Flight
+                    </button>
+                  </div>
+                </div>
+
+                {/* 🗺️ ROUTE PREVIEW - Visual Journey Map */}
+                {formData.segments && formData.segments.length > 0 && (
+                  <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-green-500/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-cyan-400 text-lg">🌐</span>
+                      <h4 className="text-lg font-bold text-white">Route Preview</h4>
+                    </div>
+                    
+                    <div className="flex items-center justify-between overflow-x-auto pb-2 gap-2">
+                      {formData.segments.map((segment, index) => (
+                        <div key={`route-${index}`} className="flex items-center gap-2 flex-shrink-0">
+                          {/* Origin */}
+                          <div className="text-center">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
+                              segment.origin.iataCode 
+                                ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white' 
+                                : 'bg-gray-500/30 text-gray-400 border-2 border-dashed border-gray-400'
+                            }`}>
+                              {segment.origin.iataCode || '?'}
+                            </div>
+                            <div className="text-xs text-white/70 mt-1 max-w-20 truncate">
+                              {segment.origin.city || 'Select'}
+                            </div>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="text-green-400 text-xl animate-pulse">→</div>
+                            <div className="text-xs text-white/60">
+                              Flight {index + 1}
+                            </div>
+                          </div>
+                          
+                          {/* Show destination for last segment */}
+                          {index === formData.segments.length - 1 && (
+                            <div className="text-center">
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
+                                segment.destination.iataCode 
+                                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' 
+                                  : 'bg-gray-500/30 text-gray-400 border-2 border-dashed border-gray-400'
+                              }`}>
+                                {segment.destination.iataCode || '?'}
+                              </div>
+                              <div className="text-xs text-white/70 mt-1 max-w-20 truncate">
+                                {segment.destination.city || 'Select'}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Route Summary */}
+                    <div className="mt-4 pt-4 border-t border-white/20">
+                      <div className="flex items-center justify-between text-sm text-white/70">
+                        <span>
+                          {formData.segments.filter(s => s.origin.iataCode && s.destination.iataCode).length} / {formData.segments.length} flights configured
+                        </span>
+                        <span>
+                          {formData.segments.length > 1 
+                            ? `${formData.segments.length - 1} connections` 
+                            : 'Direct journey'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Dynamic Flight Segments */}
+                <div className="space-y-4">
+                  {formData.segments?.map((segment, index) => (
+                    <div key={`segment-${index}`} className="relative">
+                      {/* Connection Line for segments after the first */}
+                      {index > 0 && (
+                        <div className="flex items-center justify-center mb-4">
+                          <div className="flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                            <span className="text-sm text-white/80 font-medium">
+                              {segment.origin.iataCode && formData.segments && formData.segments[index - 1]?.destination.iataCode === segment.origin.iataCode
+                                ? `✅ Connected from ${formData.segments[index - 1].destination.city}`
+                                : `⚠️ Connection required`
+                              }
+                            </span>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/20 p-6">
+                        {/* Segment Header */}
+                        <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                              index === 0 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                              index === formData.segments!.length - 1 ? 'bg-gradient-to-r from-orange-500 to-red-500' :
+                              'bg-gradient-to-r from-blue-500 to-purple-500'
+                            }`}>
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                                Flight {index + 1}
+                                {index === 0 && <span className="text-xs bg-green-500/30 text-green-300 px-2 py-1 rounded-full">Departure</span>}
+                                {index === formData.segments!.length - 1 && <span className="text-xs bg-red-500/30 text-red-300 px-2 py-1 rounded-full">Final</span>}
+                                {index > 0 && index < formData.segments!.length - 1 && <span className="text-xs bg-blue-500/30 text-blue-300 px-2 py-1 rounded-full">Connection</span>}
+                              </h4>
+                              <div className="flex items-center gap-3 text-sm text-white/70">
+                                <span>
+                                  {segment.departureDate.toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                                </span>
+                                {/* Connection Time Indicator */}
+                                {index > 0 && formData.segments && (
+                                  <span className="flex items-center gap-1">
+                                    <span className="text-orange-400">⏱️</span>
+                                    {(() => {
+                                      const prevDate = formData.segments[index - 1].departureDate;
+                                      const currentDate = segment.departureDate;
+                                      const hoursDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60);
+                                      
+                                      if (prevDate.toDateString() === currentDate.toDateString()) {
+                                        return `${hoursDiff.toFixed(1)}h connection`;
+                                      } else {
+                                        const daysDiff = Math.floor(hoursDiff / 24);
+                                        return `${daysDiff}d ${(hoursDiff % 24).toFixed(0)}h layover`;
+                                      }
+                                    })()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Remove Button */}
+                          {formData.segments && formData.segments.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => removeSegment(index)}
+                              className="w-8 h-8 bg-red-500/20 hover:bg-red-500/40 border border-red-400/40 hover:border-red-400/60 rounded-xl flex items-center justify-center text-red-400 hover:text-red-300 transition-all duration-300"
+                            >
+                              <MinusIcon className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                      {/* Segment Form */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        {/* From */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-bold text-white/90 flex items-center gap-2">
+                            <span className="text-blue-400">✈️</span>
+                            From
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={segment.origin.iataCode ? segment.origin.city : segmentSearches[index]?.origin || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateSegmentSearch(index, 'origin', value);
+                                if (segment.origin.iataCode && value !== segment.origin.city) {
+                                  updateSegment(index, 'origin', { iataCode: '', name: '', city: '', country: '' });
+                                }
+                              }}
+                              onFocus={() => {
+                                closeAllDropdowns();
+                                setSegmentDropdowns({ [`segment-${index}-origin`]: true });
+                              }}
+                              placeholder="City or airport..."
+                              className="w-full px-4 py-3 bg-transparent border-2 border-white/20 rounded-xl focus:border-blue-400/80 focus:ring-0 text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
+                            />
+                            {segment.origin.iataCode && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-500/80 text-white text-xs font-bold px-2 py-1 rounded">
+                                {segment.origin.iataCode}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* To */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-bold text-white/90 flex items-center gap-2">
+                            <span className="text-purple-400">🌍</span>
+                            To
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={segment.destination.iataCode ? segment.destination.city : segmentSearches[index]?.destination || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateSegmentSearch(index, 'destination', value);
+                                if (segment.destination.iataCode && value !== segment.destination.city) {
+                                  updateSegment(index, 'destination', { iataCode: '', name: '', city: '', country: '' });
+                                }
+                              }}
+                              onFocus={() => {
+                                closeAllDropdowns();
+                                setSegmentDropdowns({ [`segment-${index}-destination`]: true });
+                              }}
+                              placeholder="City or airport..."
+                              className="w-full px-4 py-3 bg-transparent border-2 border-white/20 rounded-xl focus:border-purple-400/80 focus:ring-0 text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
+                            />
+                            {segment.destination.iataCode && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-purple-500/80 text-white text-xs font-bold px-2 py-1 rounded">
+                                {segment.destination.iataCode}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Date */}
+                        <div className="space-y-2">
+                          <label className="block text-sm font-bold text-white/90 flex items-center gap-2">
+                            <span className="text-green-400">📅</span>
+                            Departure
+                          </label>
+                          <EnterpriseDatePicker
+                            value={segment.departureDate.toLocaleDateString('sv-SE')}
+                            onChange={(value) => {
+                              const [year, month, day] = value.split('-').map(Number);
+                              const localDate = new Date(year, month - 1, day);
+                              updateSegment(index, 'departureDate', localDate);
+                            }}
+                            placeholder="MM/DD/YYYY"
+                            minDate={index === 0 ? new Date().toLocaleDateString('sv-SE') : 
+                              formData.segments?.[index - 1]?.departureDate.toLocaleDateString('sv-SE')}
+                            className=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* MULTI-CITY COMMON CONTROLS - Travelers, Class & Search */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+                  
+                  {/* Travelers */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
+                      <span className="text-pink-400">👥</span>
+                      Travelers
+                    </label>
+                    <button
+                      ref={passengerRef}
+                      type="button"
+                      onClick={() => {
+                        closeAllDropdowns();
+                        updateDropdownPosition(passengerRef.current, 'passenger');
+                        setShowPassengerDropdown(true);
+                      }}
+                      className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-pink-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
+                    >
+                      <span>
+                        {totalPassengers} traveler{totalPassengers !== 1 ? 's' : ''}
+                        {formData.passengers.children > 0 && (
+                          <span className="text-sm text-white/70 ml-2">
+                            (+{formData.passengers.children} child{formData.passengers.children > 1 ? 'ren' : ''})
+                          </span>
+                        )}
+                      </span>
+                      <UsersIcon className="w-6 h-6 text-pink-400" />
+                    </button>
+                  </div>
+
+                  {/* Travel Class */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-bold text-white/90 ml-2 flex items-center gap-2">
+                      <span className="text-yellow-400">✨</span>
+                      Class
+                    </label>
+                    <button
+                      ref={classRef}
+                      type="button"
+                      onClick={() => {
+                        closeAllDropdowns();
+                        updateDropdownPosition(classRef.current, 'class');
+                        setShowClassDropdown(true);
+                      }}
+                      className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-yellow-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
+                    >
+                      <span>{getClassLabel(formData.travelClass)}</span>
+                      <div className="text-yellow-400 text-2xl">
+                        {travelClasses.find(c => c.value === formData.travelClass)?.icon || '🛋️'}
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* MULTI-CITY SEARCH BUTTON */}
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      disabled={isLoading || !formData.segments?.every(s => s.origin.iataCode && s.destination.iataCode)}
+                      className="w-full px-8 py-5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 disabled:from-gray-500/50 disabled:via-gray-600/50 disabled:to-gray-500/50 text-white font-black text-xl rounded-2xl shadow-2xl hover:shadow-green-500/25 disabled:shadow-lg transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed relative overflow-hidden group backdrop-blur-lg"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Searching...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-3">
+                          <span className="text-2xl">🗺️</span>
+                          <span>Search Multi-City</span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
 
       {/* REVOLUTIONARY PORTAL DROPDOWNS - Perfect Positioning */}
@@ -1128,17 +1658,171 @@ export default function FlightSearchForm({
               </div>
             </div>
           )}
+
+          {/* MULTI-CITY SEGMENT DROPDOWNS */}
+          {Object.entries(segmentDropdowns).map(([key, isVisible]) => {
+            if (!isVisible) return null;
+            
+            const [, segmentIndex, field] = key.split('-');
+            const index = parseInt(segmentIndex);
+            const isOrigin = field === 'origin';
+            const searchValue = segmentSearches[index]?.[field as 'origin' | 'destination'] || '';
+            const results = segmentResults[index]?.[field as 'origin' | 'destination'] || [];
+            
+            return (
+              <div
+                key={key}
+                style={{
+                  position: 'absolute',
+                  top: 0, // Will be dynamically positioned
+                  left: 0,
+                  width: 400,
+                  zIndex: 99999,
+                  maxHeight: '400px',
+                  overflowY: 'auto'
+                }}
+                className="backdrop-blur-xl bg-slate-900/80 border border-white/30 rounded-2xl shadow-2xl p-6"
+              >
+                {/* Search Results */}
+                {searchValue && results.length > 0 && (
+                  <div>
+                    <div className="text-sm font-bold text-white/80 mb-4 flex items-center gap-2">
+                      <span className="text-green-400">🤖</span>
+                      AI found {results.length} result{results.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="space-y-2">
+                      {results.map((airport, airportIndex) => (
+                        <button
+                          key={`${key}-${airport.iataCode}-${airportIndex}`}
+                          type="button"
+                          className="w-full text-left p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30 hover:border-blue-400/60"
+                          onClick={() => {
+                            updateSegment(index, isOrigin ? 'origin' : 'destination', {
+                              iataCode: airport.iataCode,
+                              name: airport.name,
+                              city: airport.city,
+                              country: airport.country
+                            });
+                            updateSegmentSearch(index, field as 'origin' | 'destination', '');
+                            setSegmentDropdowns({});
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/30 flex-shrink-0">
+                              <img 
+                                src={airport.imageUrl} 
+                                alt={airport.city}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-white group-hover:text-blue-300 transition-colors">
+                                {airport.city}
+                              </div>
+                              <div className="text-sm text-white/70 truncate">
+                                {airport.name}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs bg-blue-500/30 text-blue-300 px-2 py-1 rounded-full">
+                                  {airport.region}
+                                </span>
+                                {airport.weather && (
+                                  <span className="text-xs text-white/60">
+                                    {airport.weather.emoji} {airport.weather.temp}°F
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-sm font-bold text-white bg-blue-500/30 px-2 py-1 rounded flex-shrink-0">
+                              {airport.iataCode}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Popular Options */}
+                {(!searchValue || results.length === 0) && (
+                  <div>
+                    <div className="text-sm font-bold text-white/80 mb-4 flex items-center gap-2">
+                      <span className={isOrigin ? "text-blue-400" : "text-purple-400"}>
+                        {isOrigin ? "✈️" : "🌍"}
+                      </span>
+                      {isOrigin ? 'Popular Departures' : 'Popular Destinations'}
+                    </div>
+                    <div className="space-y-2">
+                      {(isOrigin ? popularOrigins : popularDestinations).slice(0, 6).map((airport) => (
+                        <button
+                          key={`${key}-popular-${airport.iataCode}`}
+                          type="button"
+                          className="w-full text-left p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30"
+                          onClick={() => {
+                            updateSegment(index, isOrigin ? 'origin' : 'destination', {
+                              iataCode: airport.iataCode,
+                              name: airport.name,
+                              city: airport.city,
+                              country: airport.country
+                            });
+                            updateSegmentSearch(index, field as 'origin' | 'destination', '');
+                            setSegmentDropdowns({});
+                          }}  
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="text-xl">
+                              {isOrigin ? '✈️' : '🌍'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-white group-hover:text-blue-300 transition-colors">
+                                {airport.city}
+                              </div>
+                              <div className="text-sm text-white/70 truncate">
+                                {airport.country}
+                              </div>
+                            </div>
+                            <div className="text-sm font-bold text-white/80 bg-white/10 px-2 py-1 rounded">
+                              {airport.iataCode}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </>,
         document.body
       )}
 
       {/* Click outside handlers */}
-      {(showOriginDropdown || showDestinationDropdown || showPassengerDropdown || showClassDropdown) && (
+      {(showOriginDropdown || showDestinationDropdown || showPassengerDropdown || showClassDropdown || Object.values(segmentDropdowns).some(Boolean)) && (
         <div
           className="fixed inset-0 z-[9998]"
           onClick={closeAllDropdowns}
         />
       )}
+
+      {/* Innovative Transition Screen */}
+      <FlightSearchTransition
+        isVisible={showTransition}
+        searchData={{
+          origin: formData.tripType === 'multi-city' 
+            ? formData.segments?.[0]?.origin?.iataCode || ''
+            : formData.origin?.iataCode || '',
+          destination: formData.tripType === 'multi-city'
+            ? formData.segments?.[formData.segments.length - 1]?.destination?.iataCode || ''
+            : formData.destination?.iataCode || '',
+          tripType: formData.tripType === 'round-trip' ? 'Ida e Volta' 
+                   : formData.tripType === 'one-way' ? 'Só Ida' 
+                   : 'Multi-City',
+          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants
+        }}
+        onComplete={handleTransitionComplete}
+        onClose={handleTransitionClose}
+      />
       </div>
     </div>
   );

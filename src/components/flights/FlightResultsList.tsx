@@ -1056,7 +1056,7 @@ export default function FlightResultsList({
   // 🎆 ULTRA-ADVANCED FLIGHT CARD RENDERING
   // ========================================================================
   
-  // Helper function para formatar datas de forma robusta
+  // Helper function para formatar datas de forma robusta - FIXED TIMEZONE ISSUES
   const formatFlightDate = useCallback((dateString: string | undefined, context?: string) => {
     if (!dateString) {
       console.log(`No date string provided for ${context || 'unknown'}`);
@@ -1071,8 +1071,9 @@ export default function FlightResultsList({
         // ISO format: "2024-01-15T18:15:00"
         date = new Date(dateString);
       } else if (typeof dateString === 'string' && dateString.includes('-')) {
-        // Date format: "2024-01-15"
-        date = new Date(dateString + 'T00:00:00');
+        // Date format: "2024-01-15" - Parse as local timezone
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day); // Local timezone, month is 0-indexed
       } else if (typeof dateString === 'string' && dateString.includes('/')) {
         // Date format: "16/09/2025" (dd/MM/yyyy)
         const parts = dateString.split('/');
@@ -1094,10 +1095,10 @@ export default function FlightResultsList({
         return '';
       }
       
-      const formatted = date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
+      // Use manual formatting to avoid timezone issues
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const formatted = `${months[date.getMonth()]} ${date.getDate()}`;
       
       return formatted;
     } catch (error) {

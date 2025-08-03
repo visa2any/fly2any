@@ -18,7 +18,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Popover, Transition } from '@headlessui/react';
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths, parseISO, isAfter, isBefore, parse, isValid } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths, isAfter, isBefore, parse, isValid } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 
 interface EnterpriseDatePickerProps {
@@ -44,19 +44,31 @@ export default function EnterpriseDatePicker({
   className = "",
   required = false
 }: EnterpriseDatePickerProps) {
+  // Safe date parsing to avoid timezone issues
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const result = new Date(year, month - 1, day); // month is 0-indexed
+    
+    // Debug removed for cleaner console
+    
+    return result;
+  };
+
   const [currentMonth, setCurrentMonth] = useState(
-    value ? parseISO(value) : new Date()
+    value ? parseLocalDate(value) : new Date()
   );
   const [inputValue, setInputValue] = useState('');
-  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0, width: 0, openUpward: false });
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const selectedDate = value ? parseISO(value) : null;
+  const selectedDate = value ? parseLocalDate(value) : null;
+  
+  // Debug removed for cleaner console
   
   // Date validation
   const isDateDisabled = (date: Date) => {
-    const minDateTime = minDate ? parseISO(minDate) : null;
-    const maxDateTime = maxDate ? parseISO(maxDate) : null;
+    const minDateTime = minDate ? parseLocalDate(minDate) : null;
+    const maxDateTime = maxDate ? parseLocalDate(maxDate) : null;
     
     if (minDateTime && isBefore(date, minDateTime)) return true;
     if (maxDateTime && isAfter(date, maxDateTime)) return true;
@@ -78,10 +90,13 @@ export default function EnterpriseDatePicker({
       return isValid(date) ? date : null;
     }
     
-    // Try ISO format as fallback
+    // Try ISO format as fallback (YYYY-MM-DD)
     try {
-      const isoDate = parseISO(dateStr);
-      return isValid(isoDate) ? isoDate : null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        const isoDate = parseLocalDate(dateStr);
+        return isValid(isoDate) ? isoDate : null;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -99,14 +114,22 @@ export default function EnterpriseDatePicker({
     }
   };
 
-  // Calculate calendar position
+  // Calculate calendar position - Open upward
   const updateCalendarPosition = () => {
     if (inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
+      const calendarHeight = 420; // Approximate calendar height
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      // Prefer opening upward, but check if there's enough space
+      const shouldOpenUpward = spaceAbove >= calendarHeight || spaceAbove > spaceBelow;
+      
       setCalendarPosition({
-        top: rect.bottom + 4,
+        top: shouldOpenUpward ? rect.top - calendarHeight - 4 : rect.bottom + 4,
         left: rect.left,
-        width: Math.max(rect.width, 320)
+        width: Math.max(rect.width, 320),
+        openUpward: shouldOpenUpward
       });
     }
   };
@@ -145,15 +168,25 @@ export default function EnterpriseDatePicker({
   const handleDateSelect = (date: Date, close: () => void) => {
     // Ensure date is in local timezone to avoid UTC shifts
     const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const isoString = format(localDate, 'yyyy-MM-dd');
+    
+    // Format manually to avoid any timezone issues
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const isoString = `${year}-${month}-${day}`;
+    
+    // Debug removed for cleaner console
+    
     onChange(isoString);
     close();
   };
   
   // Format display value - Using MM/DD/YYYY for USA but ISO for API
   const displayValue = selectedDate 
-    ? format(selectedDate, 'MM/dd/yyyy', { locale: enUS })
+    ? `${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${String(selectedDate.getDate()).padStart(2, '0')}/${selectedDate.getFullYear()}`
     : inputValue;
+    
+  // Debug removed for cleaner console
   
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
@@ -162,39 +195,43 @@ export default function EnterpriseDatePicker({
       {({ open, close }) => (
         <>
           <div className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={displayValue}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onFocus={() => {
-                updateCalendarPosition();
-                !open && (document.querySelector(`[data-headlessui-state]`) as HTMLElement)?.click();
-              }}
-              placeholder={placeholder}
-              disabled={disabled}
-              className={`
-                w-full px-6 py-5 
-                bg-transparent border-2 border-white/20 
-                rounded-2xl 
-                focus:ring-0 focus:border-blue-500/80 
-                text-xl font-semibold text-white 
-                transition-all duration-300 
-                hover:border-white/40 
-                placeholder-white/70
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${error ? 'border-red-500 focus:border-red-500' : ''}
-                pr-12
-              `}
-            />
             <Popover.Button
+              as="div"
               disabled={disabled}
               onClick={updateCalendarPosition}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-md transition-colors"
+              className="w-full cursor-pointer"
             >
-              <CalendarDaysIcon 
-                className={`w-5 h-5 text-white/70 hover:text-white transition-all duration-300 ${open ? 'rotate-180' : 'rotate-0'}`}
+              <input
+                ref={inputRef}
+                type="text"
+                value={displayValue}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onFocus={() => {
+                  updateCalendarPosition();
+                  !open && (document.querySelector(`[data-headlessui-state]`) as HTMLElement)?.click();
+                }}
+                placeholder={placeholder}
+                disabled={disabled}
+                className={`
+                  w-full px-6 py-5 
+                  bg-transparent border-2 border-white/20 
+                  rounded-2xl 
+                  focus:ring-0 focus:border-blue-500/80 
+                  text-xl font-semibold text-white 
+                  transition-all duration-300 
+                  hover:border-white/40 
+                  placeholder-white/70
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  ${error ? 'border-red-500 focus:border-red-500' : ''}
+                  pr-12 cursor-pointer
+                `}
+                readOnly
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-md transition-colors pointer-events-none">
+                <CalendarDaysIcon 
+                  className={`w-5 h-5 text-white/70 hover:text-white transition-all duration-300 ${open ? 'rotate-180' : 'rotate-0'}`}
+                />
+              </div>
             </Popover.Button>
             {required && !displayValue && (
               <span className="absolute right-12 top-1/2 -translate-y-1/2 text-red-500 text-sm">*</span>
@@ -221,7 +258,9 @@ export default function EnterpriseDatePicker({
               <div 
                 className="fixed z-[99999] bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/60 p-6 ring-1 ring-white/20"
                 style={{
-                  top: Math.min(calendarPosition.top, window.innerHeight - 420), // Prevent overflow  
+                  top: calendarPosition.openUpward 
+                    ? Math.max(calendarPosition.top, 20) // Ensure minimum 20px from top
+                    : Math.min(calendarPosition.top, window.innerHeight - 420), // Prevent overflow  
                   left: Math.min(calendarPosition.left, window.innerWidth - 340),
                   width: 340,
                   maxHeight: '420px',

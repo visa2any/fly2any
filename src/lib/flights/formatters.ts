@@ -3,6 +3,27 @@
  * Converts raw Amadeus API responses to UI-friendly format
  */
 
+/**
+ * Format date consistently avoiding timezone issues
+ * Input: Date object or ISO string -> Output: "Aug 20"
+ */
+function formatDateConsistent(date: Date | string): string {
+  let dateObj: Date;
+  
+  if (typeof date === 'string') {
+    // Parse ISO string safely
+    const [year, month, day] = date.split('T')[0].split('-').map(Number);
+    dateObj = new Date(year, month - 1, day);
+  } else {
+    dateObj = date;
+  }
+  
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  return `${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
+}
+
 import { 
   FlightOffer, 
   ProcessedFlightOffer, 
@@ -207,7 +228,7 @@ export function formatFlightEndpoint(
     countryName: location?.countryCode ? getCountryName(location.countryCode) : undefined,
     terminal: endpoint.terminal,
     dateTime: endpoint.at,
-    date: dateTime.toLocaleDateString('en-US'),
+    date: formatDateConsistent(dateTime),
     time: dateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     timeZone: location?.timeZone
   };
@@ -856,7 +877,7 @@ export function formatRelativeTime(date: Date): string {
   if (diffDays === 1) return 'yesterday';
   if (diffDays < 7) return `${diffDays} days ago`;
   
-  return date.toLocaleDateString('en-US');
+  return formatDateConsistent(date);
 }
 
 /**

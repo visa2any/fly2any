@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendar Debug Test</title>
+</head>
+<body>
+    <h1>Calendar Debug Test</h1>
+    
+    <script>
+        console.log('=== CALENDAR DEBUG TEST ===');
+        
+        // Test your current timezone
+        console.log('Current timezone offset:', new Date().getTimezoneOffset());
+        console.log('Current date:', new Date().toString());
+        
+        // Test the problematic parseISO vs our fix
+        function parseISOProblematic(dateString) {
+            return new Date(dateString + 'T00:00:00.000Z'); // Forces UTC
+        }
+        
+        function parseLocalDateFixed(dateString) {
+            const [year, month, day] = dateString.split('-').map(Number);
+            return new Date(year, month - 1, day); // Local timezone
+        }
+        
+        // Test case: August 20, 2025
+        const testDate = '2025-08-20';
+        
+        console.log('\nInput:', testDate);
+        console.log('Problematic result:', parseISOProblematic(testDate).getDate());
+        console.log('Fixed result:', parseLocalDateFixed(testDate).getDate());
+        
+        // Test calendar flow
+        function simulateCalendarClick(day, month, year) {
+            console.log(`\n--- Simulating click on ${month}/${day}/${year} ---`);
+            
+            // Create date as if clicked in calendar
+            const clickedDate = new Date(year, month - 1, day);
+            console.log('Clicked date object:', clickedDate);
+            console.log('Clicked day:', clickedDate.getDate());
+            
+            // Format as we do in handleDateSelect
+            const isoString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            console.log('ISO string sent:', isoString);
+            
+            // Parse back as we do in parseLocalDate
+            const parsedBack = parseLocalDateFixed(isoString);
+            console.log('Parsed back day:', parsedBack.getDate());
+            
+            console.log('SUCCESS:', day === parsedBack.getDate() ? '✅' : '❌');
+            
+            return parsedBack.getDate();
+        }
+        
+        // Test multiple dates
+        simulateCalendarClick(20, 8, 2025); // August 20
+        simulateCalendarClick(1, 8, 2025);  // August 1
+        simulateCalendarClick(31, 8, 2025); // August 31
+        simulateCalendarClick(15, 2, 2025); // February 15
+        
+        document.body.innerHTML += '<p>Check console for results. If all show ✅, the fix is working!</p>';
+    </script>
+</body>
+</html>

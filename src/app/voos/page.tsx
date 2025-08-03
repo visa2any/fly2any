@@ -251,16 +251,41 @@ function VoosAdvancedContent() {
       const searchParams = convertFormToSearchParams(searchData);
       
       const queryParams = new URLSearchParams();
-      queryParams.set('originLocationCode', searchParams.originLocationCode);
-      queryParams.set('destinationLocationCode', searchParams.destinationLocationCode);
-      queryParams.set('departureDate', searchParams.departureDate);
-      queryParams.set('adults', searchParams.adults.toString());
-      if (searchParams.returnDate) {
-        queryParams.set('returnDate', searchParams.returnDate);
-        queryParams.set('oneWay', 'false');
+      
+      // Handle Multi-City vs Regular trips
+      if (searchData.tripType === 'multi-city' && searchData.segments && searchData.segments.length > 0) {
+        queryParams.set('tripType', 'multi-city');
+        queryParams.set('segments', JSON.stringify(searchData.segments.map(segment => ({
+          origin: segment.origin,
+          destination: segment.destination,
+          departureDate: segment.departureDate.toLocaleDateString('sv-SE')
+        }))));
+        
+        // Use first segment for basic parameters
+        const firstSegment = searchData.segments[0];
+        queryParams.set('originLocationCode', firstSegment.origin.iataCode);
+        queryParams.set('destinationLocationCode', firstSegment.destination.iataCode);
+        queryParams.set('departureDate', firstSegment.departureDate.toLocaleDateString('sv-SE'));
+        queryParams.set('oneWay', 'true'); // Multi-city is essentially one-way
+        
+        console.log('🗺️ Multi-City search with', searchData.segments.length, 'segments');
       } else {
-        queryParams.set('oneWay', 'true');
+        // Regular round-trip or one-way
+        queryParams.set('tripType', searchData.tripType);
+        queryParams.set('originLocationCode', searchParams.originLocationCode);
+        queryParams.set('destinationLocationCode', searchParams.destinationLocationCode);
+        queryParams.set('departureDate', searchParams.departureDate);
+        
+        if (searchParams.returnDate) {
+          queryParams.set('returnDate', searchParams.returnDate);
+          queryParams.set('oneWay', 'false');
+        } else {
+          queryParams.set('oneWay', 'true');
+        }
       }
+      
+      // Common parameters for all trip types
+      queryParams.set('adults', searchParams.adults.toString());
       if (searchParams.children) {
         queryParams.set('children', searchParams.children.toString());
       }
