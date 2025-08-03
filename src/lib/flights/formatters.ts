@@ -14,9 +14,12 @@ import {
   AircraftInfo,
   Dictionaries 
 } from '@/types/flights';
+import { CabinClassEngine, CabinClassDetectionData, CabinClassDefinition } from './cabin-class-engine';
+import { BaggageTransparencyEngine, BaggageAnalysisResult } from './baggage-transparency-engine';
 
 /**
  * Convert raw flight offer to processed format for UI
+ * 🎯 ENHANCED WITH CABIN CLASS & BAGGAGE TRANSPARENCY
  */
 export function formatFlightOffer(
   offer: FlightOffer, 
@@ -36,13 +39,64 @@ export function formatFlightOffer(
     selectedCurrency: priceCurrency
   });
 
+  // 🎯 EXTRACT CABIN CLASS DATA
+  const cabinEngine = CabinClassEngine.getInstance();
+  const baggageEngine = BaggageTransparencyEngine.getInstance();
+  
+  const travelerPricing = offer.travelerPricings?.[0];
+  const fareDetails = travelerPricing?.fareDetailsBySegment?.[0];
+  
+  const cabinDetectionData: CabinClassDetectionData = {
+    apiCabin: fareDetails?.cabin,
+    fareBasis: fareDetails?.fareBasis,
+    brandedFare: fareDetails?.brandedFare,
+    fareClass: fareDetails?.class,
+    price: {
+      total: parseFloat(priceAmount),
+      base: parseFloat(offer.price?.base || '0'),
+      currency: priceCurrency
+    },
+    airline: offer.validatingAirlineCodes?.[0],
+    includedCheckedBags: fareDetails?.includedCheckedBags,
+    pricingOptions: {
+      refundableFare: offer.pricingOptions?.fareType?.includes('REFUNDABLE') || false,
+      noPenaltyFare: offer.pricingOptions?.fareType?.includes('NO_PENALTY') || false,
+      noRestrictionFare: offer.pricingOptions?.fareType?.includes('NO_RESTRICTION') || false
+    }
+  };
+  
+  // 🎯 DETECTAR CABIN CLASS
+  const cabinAnalysis = cabinEngine.detectCabinClass(cabinDetectionData);
+  
+  // 🎯 ANALISAR BAGAGEM
+  const baggageAnalysis = baggageEngine.analyzeBaggage({
+    airline: offer.validatingAirlineCodes?.[0] || 'DEFAULT',
+    cabinClass: cabinAnalysis.cabin,
+    route: {
+      domestic: true, // Simplificado por enquanto
+      international: false
+    },
+    apiData: {
+      includedCheckedBags: fareDetails?.includedCheckedBags
+    }
+  });
+  
+  console.log('🎯 CABIN & BAGGAGE ANALYSIS:', {
+    offerId: offer.id,
+    detectedCabin: cabinAnalysis.cabin,
+    confidence: cabinAnalysis.confidence,
+    sources: cabinAnalysis.sources,
+    baggageIncluded: baggageAnalysis.checked.included.length,
+    carryOnWeight: baggageAnalysis.carryOn.total.weight
+  });
+
   return {
     id: offer.id,
     totalPrice: formatPrice(priceAmount, priceCurrency),
-    currency: offer.price?.currency === 'BRL' ? 'USD' : (offer.price?.currency || 'USD'),
+    currency: offer.price?.currency || 'USD',
     
-    outbound: formatJourney(offer.itineraries[0], dictionaries),
-    inbound: offer.itineraries[1] ? formatJourney(offer.itineraries[1], dictionaries) : undefined,
+    outbound: formatJourney(offer.itineraries[0], dictionaries, offer.travelerPricings),
+    inbound: offer.itineraries[1] ? formatJourney(offer.itineraries[1], dictionaries, offer.travelerPricings) : undefined,
     
     numberOfBookableSeats: offer.numberOfBookableSeats,
     validatingAirlines: offer.validatingAirlineCodes.map(code => 
@@ -50,6 +104,15 @@ export function formatFlightOffer(
     ),
     lastTicketingDate: offer.lastTicketingDate,
     instantTicketingRequired: offer.instantTicketingRequired,
+    
+    // 🎯 NOVOS CAMPOS - TRANSPARÊNCIA TOTAL
+    cabinAnalysis: {
+      detectedClass: cabinAnalysis.cabin,
+      confidence: cabinAnalysis.confidence,
+      definition: cabinAnalysis.definition,
+      sources: cabinAnalysis.sources
+    },
+    baggageAnalysis,
     
     rawOffer: offer
   };
@@ -60,10 +123,11 @@ export function formatFlightOffer(
  */
 export function formatJourney(
   itinerary: any, 
-  dictionaries?: Dictionaries
+  dictionaries?: Dictionaries,
+  travelerPricings?: any[]
 ): ProcessedJourney {
   const segments = itinerary.segments.map((segment: any) => 
-    formatSegment(segment, dictionaries)
+    formatSegment(segment, dictionaries, travelerPricings)
   );
   
   const firstSegment = segments[0];
@@ -85,8 +149,34 @@ export function formatJourney(
  */
 export function formatSegment(
   segment: any, 
-  dictionaries?: Dictionaries
+  dictionaries?: Dictionaries,
+  travelerPricings?: any[]
 ): ProcessedSegment {
+  // 🎯 EXTRACT REAL CABIN CLASS from travelerPricings
+  let realCabinClass = 'ECONOMY'; // Default fallback
+  
+  if (travelerPricings && travelerPricings.length > 0) {
+    const travelerPricing = travelerPricings[0];
+    if (travelerPricing?.fareDetailsBySegment) {
+      // Find cabin class for this specific segment
+      const segmentFareDetails = travelerPricing.fareDetailsBySegment.find(
+        (fd: any) => fd.segmentId === segment.id
+      );
+      
+      if (segmentFareDetails?.cabin) {
+        realCabinClass = segmentFareDetails.cabin;
+        console.log(`✅ Real cabin class extracted: ${realCabinClass} for segment ${segment.id}`);
+      } else {
+        // Fallback to first segment's cabin if specific segment not found
+        const firstSegmentCabin = travelerPricing.fareDetailsBySegment[0]?.cabin;
+        if (firstSegmentCabin) {
+          realCabinClass = firstSegmentCabin;
+          console.log(`⚠️ Using fallback cabin class: ${realCabinClass} for segment ${segment.id}`);
+        }
+      }
+    }
+  }
+
   return {
     id: segment.id,
     departure: formatFlightEndpoint(segment.departure, dictionaries),
@@ -96,7 +186,7 @@ export function formatSegment(
     airline: formatAirlineInfo(segment.carrierCode, dictionaries),
     flightNumber: `${segment.carrierCode}${segment.number}`,
     aircraft: formatAircraftInfo(segment.aircraft.code, dictionaries),
-    cabin: 'ECONOMY' // Will be refined based on traveler pricing
+    cabin: realCabinClass as 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST'
   };
 }
 
@@ -117,8 +207,8 @@ export function formatFlightEndpoint(
     countryName: location?.countryCode ? getCountryName(location.countryCode) : undefined,
     terminal: endpoint.terminal,
     dateTime: endpoint.at,
-    date: dateTime.toLocaleDateString('pt-BR'),
-    time: dateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    date: dateTime.toLocaleDateString('en-US'),
+    time: dateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     timeZone: location?.timeZone
   };
 }
@@ -182,7 +272,13 @@ export function parseDuration(duration: string): number {
   // Handle null/undefined/empty duration
   if (!duration || typeof duration !== 'string') {
     console.warn('⚠️ Invalid duration provided to parseDuration:', duration);
-    return 0;
+    return 120; // Default 2 hours for invalid/missing durations
+  }
+  
+  // Special case for PT0M (empty duration) - this indicates missing data
+  if (duration === 'PT0M' || duration === 'PT0H' || duration === 'PT') {
+    console.warn('⚠️ Empty/zero duration detected, using fallback:', duration);
+    return 120; // Default 2 hours for zero durations
   }
   
   const regex = /PT(?:(\d+)H)?(?:(\d+)M)?/;
@@ -190,13 +286,20 @@ export function parseDuration(duration: string): number {
   
   if (!matches) {
     console.warn('⚠️ Could not parse duration format:', duration);
-    return 0;
+    return 120; // Default 2 hours for invalid formats
   }
   
   const hours = parseInt(matches[1] || '0', 10);
   const minutes = parseInt(matches[2] || '0', 10);
+  const totalMinutes = hours * 60 + minutes;
   
-  return hours * 60 + minutes;
+  // If parsed duration is 0, use fallback
+  if (totalMinutes === 0) {
+    console.warn('⚠️ Parsed duration is zero, using fallback:', duration);
+    return 120; // Default 2 hours
+  }
+  
+  return totalMinutes;
 }
 
 /**
@@ -217,18 +320,9 @@ export function formatDurationFromMinutes(minutes: number): string {
   return `${hours}h ${remainingMinutes}min`;
 }
 
-/**
- * Convert BRL to USD (approximate conversion rate)
- */
-function convertBRLToUSD(brlAmount: number): number {
-  // Approximate BRL to USD conversion rate (1 BRL ≈ 0.20 USD)
-  // In production, you would fetch real-time rates from an API
-  const BRL_TO_USD_RATE = 0.20;
-  return brlAmount * BRL_TO_USD_RATE;
-}
 
 /**
- * Format price with currency (auto-convert BRL to USD)
+ * Format price with currency in USD
  */
 export function formatPrice(amount: string | number, currency: string): string {
   console.log('🔍 formatPrice called with:', { amount, currency, type: typeof amount });
@@ -264,13 +358,7 @@ export function formatPrice(amount: string | number, currency: string): string {
   
   console.log('✅ Successfully parsed amount:', numericAmount);
   
-  let finalCurrency = currency;
-  
-  // Auto-convert BRL to USD
-  if (currency === 'BRL') {
-    numericAmount = convertBRLToUSD(numericAmount);
-    finalCurrency = 'USD';
-  }
+  let finalCurrency = currency || 'USD';
   
   switch (finalCurrency) {
     case 'USD':
@@ -321,13 +409,13 @@ export function formatStops(stops: number): string {
 export function formatTravelClass(travelClass: string): string {
   switch (travelClass) {
     case 'ECONOMY':
-      return 'Econômica';
+      return 'Economy';
     case 'PREMIUM_ECONOMY':
-      return 'Econômica Premium';
+      return 'Premium Economy';
     case 'BUSINESS':
-      return 'Executiva';
+      return 'Business';
     case 'FIRST':
-      return 'Primeira Classe';
+      return 'First Class';
     default:
       return travelClass;
   }
@@ -376,22 +464,22 @@ export function formatTimeOfDay(timeOfDay: string): string {
 export function getAirportName(iataCode: string): string {
   const airports: Record<string, string> = {
     // Brazil
-    'GRU': 'Aeroporto Internacional de São Paulo/Guarulhos',
-    'CGH': 'Aeroporto de São Paulo/Congonhas',
-    'VCP': 'Aeroporto Internacional de Viracopos',
-    'GIG': 'Aeroporto Internacional do Rio de Janeiro/Galeão',
-    'SDU': 'Aeroporto Santos Dumont',
-    'BSB': 'Aeroporto Internacional de Brasília',
-    'SSA': 'Aeroporto Internacional de Salvador',
-    'REC': 'Aeroporto Internacional do Recife',
-    'FOR': 'Aeroporto Internacional de Fortaleza',
-    'BEL': 'Aeroporto Internacional de Belém',
-    'MAO': 'Aeroporto Internacional de Manaus',
-    'CWB': 'Aeroporto Internacional de Curitiba',
-    'POA': 'Aeroporto Internacional de Porto Alegre',
-    'FLN': 'Aeroporto Internacional de Florianópolis',
-    'VIX': 'Aeroporto de Vitória',
-    'CNF': 'Aeroporto Internacional de Belo Horizonte',
+    'GRU': 'São Paulo/Guarulhos International Airport',
+    'CGH': 'São Paulo/Congonhas Airport',
+    'VCP': 'Campinas/Viracopos International Airport',
+    'GIG': 'Rio de Janeiro/Galeão International Airport',
+    'SDU': 'Santos Dumont Airport',
+    'BSB': 'Brasília International Airport',
+    'SSA': 'Salvador International Airport',
+    'REC': 'Recife International Airport',
+    'FOR': 'Fortaleza International Airport',
+    'BEL': 'Belém International Airport',
+    'MAO': 'Manaus International Airport',
+    'CWB': 'Curitiba International Airport',
+    'POA': 'Porto Alegre International Airport',
+    'FLN': 'Florianópolis International Airport',
+    'VIX': 'Vitória Airport',
+    'CNF': 'Belo Horizonte International Airport',
     
     // USA
     'JFK': 'John F. Kennedy International Airport',
@@ -471,7 +559,7 @@ export function getCityName(cityCode: string): string {
     'FLN': 'Florianópolis',
     'VIX': 'Vitória',
     'CNF': 'Belo Horizonte',
-    'NYC': 'Nova York',
+    'NYC': 'New York',
     'LAX': 'Los Angeles',
     'MIA': 'Miami',
     'CHI': 'Chicago',
@@ -481,21 +569,21 @@ export function getCityName(cityCode: string): string {
     'PHX': 'Phoenix',
     'LAS': 'Las Vegas',
     'SEA': 'Seattle',
-    'SFO': 'São Francisco',
-    'LON': 'Londres',
+    'SFO': 'San Francisco',
+    'LON': 'London',
     'PAR': 'Paris',
     'FRA': 'Frankfurt',
     'AMS': 'Amsterdam',
     'MAD': 'Madrid',
-    'ROM': 'Roma',
-    'MUC': 'Munique',
-    'ZUR': 'Zurique',
-    'VIE': 'Viena',
+    'ROM': 'Rome',
+    'MUC': 'Munich',
+    'ZUR': 'Zurich',
+    'VIE': 'Vienna',
     'CPH': 'Copenhagen',
-    'ARN': 'Estocolmo',
+    'ARN': 'Stockholm',
     'OSL': 'Oslo',
     'HEL': 'Helsinki',
-    'LIS': 'Lisboa',
+    'LIS': 'Lisbon',
     'BCN': 'Barcelona'
   };
   
@@ -507,33 +595,33 @@ export function getCityName(cityCode: string): string {
  */
 export function getCountryName(countryCode: string): string {
   const countries: Record<string, string> = {
-    'BR': 'Brasil',
-    'US': 'Estados Unidos',
-    'GB': 'Reino Unido',
-    'FR': 'França',
-    'DE': 'Alemanha',
-    'NL': 'Holanda',
-    'ES': 'Espanha',
-    'IT': 'Itália',
-    'CH': 'Suíça',
-    'AT': 'Áustria',
-    'DK': 'Dinamarca',
-    'SE': 'Suécia',
-    'NO': 'Noruega',
-    'FI': 'Finlândia',
+    'BR': 'Brazil',
+    'US': 'United States',
+    'GB': 'United Kingdom',
+    'FR': 'France',
+    'DE': 'Germany',
+    'NL': 'Netherlands',
+    'ES': 'Spain',
+    'IT': 'Italy',
+    'CH': 'Switzerland',
+    'AT': 'Austria',
+    'DK': 'Denmark',
+    'SE': 'Sweden',
+    'NO': 'Norway',
+    'FI': 'Finland',
     'PT': 'Portugal',
-    'CA': 'Canadá',
-    'MX': 'México',
-    'JP': 'Japão',
-    'KR': 'Coreia do Sul',
-    'SG': 'Singapura',
+    'CA': 'Canada',
+    'MX': 'Mexico',
+    'JP': 'Japan',
+    'KR': 'South Korea',
+    'SG': 'Singapore',
     'HK': 'Hong Kong',
-    'AE': 'Emirados Árabes Unidos',
-    'QA': 'Catar',
-    'TR': 'Turquia',
-    'EG': 'Egito',
-    'ZA': 'África do Sul',
-    'AU': 'Austrália'
+    'AE': 'United Arab Emirates',
+    'QA': 'Qatar',
+    'TR': 'Turkey',
+    'EG': 'Egypt',
+    'ZA': 'South Africa',
+    'AU': 'Australia'
   };
   
   return countries[countryCode] || countryCode;
@@ -714,7 +802,7 @@ function parseDurationToMs(duration: string): number {
 /**
  * Enhanced price formatting with currency symbols
  */
-export function formatPriceEnhanced(amount: string | number, currency: string = 'BRL'): string {
+export function formatPriceEnhanced(amount: string | number, currency: string = 'USD'): string {
   const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
   
   const symbols: Record<string, string> = {
@@ -727,7 +815,7 @@ export function formatPriceEnhanced(amount: string | number, currency: string = 
   
   const symbol = symbols[currency] || currency;
   
-  return `${symbol} ${numericAmount.toLocaleString('pt-BR', {
+  return `${symbol} ${numericAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
@@ -762,13 +850,13 @@ export function formatRelativeTime(date: Date): string {
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
   
-  if (diffMinutes < 1) return 'agora mesmo';
-  if (diffMinutes < 60) return `${diffMinutes} min atrás`;
-  if (diffHours < 24) return `${diffHours}h atrás`;
-  if (diffDays === 1) return 'ontem';
-  if (diffDays < 7) return `${diffDays} dias atrás`;
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
   
-  return date.toLocaleDateString('pt-BR');
+  return date.toLocaleDateString('en-US');
 }
 
 /**

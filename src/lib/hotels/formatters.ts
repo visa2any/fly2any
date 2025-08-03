@@ -1,14 +1,14 @@
 /**
- * Formatters para dados de hotéis
- * Funções para formatar preços, datas, avaliações, etc.
+ * Formatters for hotel data
+ * Functions to format prices, dates, reviews, etc.
  */
 
 import type { HotelSearchResult, HotelDetailsResult, RateDetails } from '../../types/hotels';
 
 /**
- * Formatar preço com moeda
+ * Format price with currency
  */
-export function formatPrice(amount: number, currency: string = 'BRL', locale: string = 'pt-BR'): string {
+export function formatPrice(amount: number, currency: string = 'USD', locale: string = 'en-US'): string {
   try {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
@@ -17,15 +17,15 @@ export function formatPrice(amount: number, currency: string = 'BRL', locale: st
       maximumFractionDigits: 2
     }).format(amount);
   } catch (error) {
-    // Fallback se a moeda não for suportada
+    // Fallback if currency is not supported
     return `${currency} ${amount.toFixed(2)}`;
   }
 }
 
 /**
- * Formatar data para exibição
+ * Format date for display
  */
-export function formatDate(date: string | Date, locale: string = 'pt-BR'): string {
+export function formatDate(date: string | Date, locale: string = 'en-US'): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
   return dateObj.toLocaleDateString(locale, {
@@ -36,9 +36,9 @@ export function formatDate(date: string | Date, locale: string = 'pt-BR'): strin
 }
 
 /**
- * Formatar data para exibição curta
+ * Format date for short display
  */
-export function formatDateShort(date: string | Date, locale: string = 'pt-BR'): string {
+export function formatDateShort(date: string | Date, locale: string = 'en-US'): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
   return dateObj.toLocaleDateString(locale, {
@@ -255,7 +255,7 @@ export function formatCheckTime(time: string): string {
     const date = new Date();
     date.setHours(hours, minutes, 0, 0);
     
-    return date.toLocaleTimeString('pt-BR', {
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
@@ -363,7 +363,7 @@ function calculateAge(dateOfBirth: string): number {
 /**
  * Formatar tempo relativo (ex: "em 3 dias", "há 2 horas")
  */
-export function formatRelativeTime(date: string | Date, locale: string = 'pt-BR'): string {
+export function formatRelativeTime(date: string | Date, locale: string = 'en-US'): string {
   const targetDate = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   const diffInSeconds = Math.floor((targetDate.getTime() - now.getTime()) / 1000);

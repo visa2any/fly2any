@@ -147,7 +147,7 @@ export default function FlightOrderStatus({
                 <span className="text-green-600 font-semibold">Confirmada</span>
               </div>
               <div className="text-sm text-gray-600">
-                Criada em {new Date(order.associatedRecords[0]?.creationDate || Date.now()).toLocaleDateString('pt-BR')}
+                Created on {new Date(order.associatedRecords[0]?.creationDate || Date.now()).toLocaleDateString('en-US')}
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function FlightOrderStatus({
           <div>
             <div className="text-sm text-gray-600 mb-1">Data & Horário</div>
             <div className="font-semibold text-gray-900">
-              {new Date(order.flightOffers[0]?.itineraries?.[0]?.segments?.[0]?.departure?.at || Date.now()).toLocaleDateString('pt-BR')}
+              {new Date(order.flightOffers[0]?.itineraries?.[0]?.segments?.[0]?.departure?.at || Date.now()).toLocaleDateString('en-US')}
             </div>
           </div>
           <div>
@@ -366,7 +366,7 @@ function DetailsTab({ order }: { order: FlightOrder }) {
                 {traveler.name.firstName} {traveler.name.lastName}
               </div>
               <div className="text-sm text-gray-600">
-                Nascimento: {new Date(traveler.dateOfBirth).toLocaleDateString('pt-BR')}
+                Birth Date: {new Date(traveler.dateOfBirth).toLocaleDateString('en-US')}
               </div>
               {traveler.documents && traveler.documents[0] && (
                 <div className="text-sm text-gray-600">
@@ -490,7 +490,7 @@ function TimelineTab({ order }: { order: FlightOrder }) {
                     {event.title}
                   </h4>
                   <span className="text-sm text-gray-500">
-                    {event.date.toLocaleDateString('pt-BR')} às {event.date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    {event.date.toLocaleDateString('en-US')} at {event.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">{event.description}</p>

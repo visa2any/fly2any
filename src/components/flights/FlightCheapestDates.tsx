@@ -94,9 +94,9 @@ export default function FlightCheapestDates({
     const date = new Date(dateString);
     return {
       day: date.getDate(),
-      weekday: date.toLocaleDateString('pt-BR', { weekday: 'short' }),
-      month: date.toLocaleDateString('pt-BR', { month: 'short' }),
-      full: date.toLocaleDateString('pt-BR')
+      weekday: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      full: date.toLocaleDateString('en-US')
     };
   };
 

@@ -64,6 +64,8 @@ import {
   parseDetailedFareRules
 } from '@/lib/flights/formatters';
 import SafeFareCustomizer from '@/components/flights/SafeFareCustomizer';
+import { CabinClassDisplay } from './CabinClassDisplay';
+import { BaggageTransparencyDisplay } from './BaggageTransparencyDisplay';
 import {
   filterFlightOffers,
   sortFlightOffers,
@@ -1428,8 +1430,26 @@ export default function FlightResultsList({
                             <div className="text-sm font-bold text-slate-800 leading-tight">
                               {offer.validatingAirlines[0] ? formatAirlineName(offer.validatingAirlines[0]) : 'Multiple Airlines'}
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-slate-600 leading-tight">
-                              💺 {offer.cabin || 'Economy'} • {offer.numberOfBookableSeats} seats available
+                            <div className="flex items-center gap-2 text-xs leading-tight">
+                              {/* 🎯 CABIN CLASS TRANSPARENTE */}
+                              {offer.cabinAnalysis ? (
+                                <CabinClassDisplay
+                                  detectedClass={offer.cabinAnalysis.detectedClass}
+                                  confidence={offer.cabinAnalysis.confidence}
+                                  definition={offer.cabinAnalysis.definition}
+                                  sources={offer.cabinAnalysis.sources}
+                                  compact={true}
+                                />
+                              ) : (
+                                <div className="text-slate-600">
+                                  💺 {(() => {
+                                    const cabin = offer.outbound?.segments?.[0]?.cabin || 'ECONOMY';
+                                    return formatTravelClass(cabin);
+                                  })()}
+                                </div>
+                              )}
+                              • 
+                              <span className="text-slate-600">{offer.numberOfBookableSeats} seats available</span>
                             </div>
                           </div>
                         </div>
@@ -1475,10 +1495,30 @@ export default function FlightResultsList({
                             <span className="text-slate-500 text-xs font-medium">Bags:</span>
                             <span className="font-bold text-slate-800 text-xs">
                               {(() => {
+                                // Get cabin class to determine baggage allowance
+                                const cabinClass = offer.outbound?.segments?.[0]?.cabin || 'ECONOMY';
                                 const baggageQty = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity;
                                 const weight = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.weight || 23;
                                 const weightUnit = offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.weightUnit || 'kg';
                                 
+                                // 🎯 BUSINESS/FIRST CLASS RULES
+                                if (cabinClass === 'BUSINESS' || cabinClass === 'FIRST') {
+                                  if (baggageQty && baggageQty > 0) {
+                                    return `${baggageQty}x${weight}${weightUnit}`;
+                                  }
+                                  // Default for Business/First when API doesn't specify
+                                  return '2x32kg'; // Standard Business allowance
+                                }
+                                
+                                // PREMIUM ECONOMY RULES  
+                                if (cabinClass === 'PREMIUM_ECONOMY') {
+                                  if (baggageQty && baggageQty > 0) {
+                                    return `${baggageQty}x${weight}${weightUnit}`;
+                                  }
+                                  return '2x23kg'; // Standard Premium Economy
+                                }
+                                
+                                // ECONOMY RULES (original logic)
                                 if (!baggageQty || baggageQty === 0) {
                                   return 'Not included';
                                 }
@@ -1965,7 +2005,7 @@ export default function FlightResultsList({
                             </div>
                           </div>
                           
-                          {idx < offer.inbound.segments.length - 1 && (
+                          {offer.inbound && idx < offer.inbound.segments.length - 1 && (
                             <div className="my-3 text-center">
                               <div className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
                                 <ClockIcon className="w-4 h-4 mr-1" />
@@ -2166,7 +2206,7 @@ export default function FlightResultsList({
                                   {fareRules.seatSelection.cost}
                                 </div>
                                 <div className="text-gray-600">
-                                  {fareRules.seatSelection.advanceOnly ? 'Available in advance' : 'Available anytime'}
+                                  {'Available anytime'}
                                 </div>
                               </div>
                             </div>
@@ -2179,7 +2219,7 @@ export default function FlightResultsList({
                               </div>
                               <div className="text-sm">
                                 <div className="font-semibold text-blue-700">24h Free Cancellation</div>
-                                <div className="text-gray-600">After: {fareRules.cancellationFee}</div>
+                                <div className="text-gray-600">After: Varies by fare</div>
                               </div>
                             </div>
                           </div>
@@ -2188,12 +2228,22 @@ export default function FlightResultsList({
                     })()}
                   </div>
 
-                  {/* 🧳 DETAILED BAGGAGE INFORMATION */}
-                  <div className="bg-white rounded-xl p-5 border border-purple-200 shadow-lg">
-                    <h4 className="font-bold text-purple-600 mb-4 flex items-center">
-                      <span className="text-lg">🧳</span>
-                      <span className="ml-2">Baggage Allowance</span>
-                    </h4>
+                  {/* 🎯 TRANSPARENCY ENGINE - BAGGAGE */}
+                  {offer.baggageAnalysis ? (
+                    <BaggageTransparencyDisplay
+                      baggageAnalysis={offer.baggageAnalysis}
+                      cabinClass={offer.cabinAnalysis?.detectedClass || 'ECONOMY'}
+                      airline={offer.validatingAirlines[0] || 'DEFAULT'}
+                      showCompetitorComparison={true}
+                      showDetailedBreakdown={false}
+                    />
+                  ) : (
+                    /* FALLBACK: Original baggage section */
+                    <div className="bg-white rounded-xl p-5 border border-purple-200 shadow-lg">
+                      <h4 className="font-bold text-purple-600 mb-4 flex items-center">
+                        <span className="text-lg">🧳</span>
+                        <span className="ml-2">Baggage Allowance (Legacy)</span>
+                      </h4>
                     
                     {(() => {
                       const fareRules = extractFareRules(offer);
@@ -2271,7 +2321,7 @@ export default function FlightResultsList({
                                   )}
                                 </div>
                                 {!fareRules.baggage.checked.included && (
-                                  <div className="text-sm text-gray-600">{fareRules.baggage.checked.additionalCost}</div>
+                                  <div className="text-sm text-gray-600">{fareRules.baggage.checked.additionalFee || 'Extra fees apply'}</div>
                                 )}
                               </div>
                             </div>
@@ -2327,7 +2377,8 @@ export default function FlightResultsList({
                         </div>
                       );
                     })()}
-                  </div>
+                    </div>
+                  )}
                   
                   {/* INCLUDED FEATURES */}
                   {features.length > 0 && (

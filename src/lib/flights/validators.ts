@@ -193,7 +193,7 @@ export function convertFormToSearchParams(formData: FlightSearchFormData): Fligh
     oneWay: formData.tripType === 'one-way',
     nonStop: formData.preferences.nonStop,
     maxPrice: formData.preferences.maxPrice,
-    currencyCode: 'BRL'
+    currencyCode: 'USD'
   };
 }
 

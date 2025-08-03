@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarIcon, ArrowLeftIcon, ArrowRightIcon } from './Icons';
 
 interface DatePickerProps {
@@ -12,6 +13,7 @@ interface DatePickerProps {
   error?: string;
   minDate?: string;
   maxDate?: string;
+  className?: string;
 }
 
 interface CalendarDay {
@@ -31,7 +33,8 @@ export default function DatePicker({
   iconColor = '#6b7280',
   error,
   minDate,
-  maxDate
+  maxDate,
+  className = ''
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -39,21 +42,22 @@ export default function DatePicker({
     value ? new Date(value) : null
   );
   const [displayValue, setDisplayValue] = useState('');
+  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0, width: 0 });
   
   const containerRef = useRef<HTMLDivElement>(null);
 
   const months = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   useEffect(() => {
     if (value) {
       const date = new Date(value);
       setSelectedDate(date);
-      setDisplayValue(formatDateBR(date));
+      setDisplayValue(formatDateUS(date));
     } else {
       setSelectedDate(null);
       setDisplayValue('');
@@ -71,8 +75,8 @@ export default function DatePicker({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const formatDateBR = (date: Date): string => {
-    return date.toLocaleDateString('pt-BR', {
+  const formatDateUS = (date: Date): string => {
+    return date.toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -158,7 +162,7 @@ export default function DatePicker({
     if (day.isDisabled || !day.isCurrentMonth) return;
     
     setSelectedDate(day.date);
-    setDisplayValue(formatDateBR(day.date));
+    setDisplayValue(formatDateUS(day.date));
     onChange(formatDateISO(day.date));
     setIsOpen(false);
   };
@@ -175,10 +179,28 @@ export default function DatePicker({
     });
   };
 
+  const updateCalendarPosition = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCalendarPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  };
+
+  const handleToggleOpen = () => {
+    if (!isOpen) {
+      updateCalendarPosition();
+    }
+    setIsOpen(!isOpen);
+  };
+
   const calendarDays = generateCalendarDays();
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+    <div ref={containerRef} className="relative w-full">
       {label && (
         <label style={{
           display: 'flex',
@@ -195,151 +217,72 @@ export default function DatePicker({
       )}
       
       <div
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '100%',
-          padding: '14px 16px',
-          border: error ? '2px solid #ef4444' : '2px solid #e5e7eb',
-          borderRadius: '12px',
-          fontSize: '16px',
-          background: 'white',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          transition: 'all 0.3s ease',
-          outline: 'none'
-        }}
+        onClick={handleToggleOpen}
+        className={`w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4 bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl sm:rounded-2xl focus:ring-2 sm:focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 text-sm sm:text-base font-bold text-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/80 cursor-pointer flex items-center justify-between group ${className} ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}`}
       >
-        <span style={{ 
-          color: displayValue ? '#1f2937' : '#9ca3af',
-          fontSize: '16px'
-        }}>
+        <span className={`${displayValue ? 'text-gray-900' : 'text-gray-500'} text-sm sm:text-base font-bold`}>
           {displayValue || placeholder}
         </span>
         <CalendarIcon 
-          style={{ 
-            width: '16px', 
-            height: '16px', 
-            color: '#6b7280',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s ease'
-          }} 
+          className={`w-4 h-4 text-gray-600 group-hover:text-gray-900 transition-all duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         />
       </div>
 
       {error && (
-        <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+        <span className="text-red-500 text-xs mt-1 block">
           {error}
         </span>
       )}
 
       {/* Calendar Dropdown */}
-      {isOpen && (
+      {isOpen && typeof window !== 'undefined' && createPortal(
         <div
+          className="fixed bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[99999] p-5"
           style={{
-            position: 'absolute',
-            bottom: '100%',
-            left: 0,
-            right: 0,
-            background: 'white',
-            border: '2px solid #e5e7eb',
-            borderRadius: '12px',
-            boxShadow: '0 -20px 60px rgba(0, 0, 0, 0.15)',
-            zIndex: 1000,
-            marginBottom: '4px',
-            padding: '20px',
-            minWidth: '320px'
+            top: `${calendarPosition.top}px`,
+            left: `${calendarPosition.left}px`,
+            width: `${Math.max(calendarPosition.width, 320)}px`,
+            maxHeight: '400px',
+            overflow: 'auto'
           }}
         >
-          {/* Header do Calendário */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '20px'
-          }}>
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-5">
             <button
               type="button"
               onClick={() => navigateMonth('prev')}
-              style={{
-                padding: '8px',
-                background: 'none',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+              className="p-2 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
             >
-              <ArrowLeftIcon style={{ width: '16px', height: '16px', color: '#374151' }} />
+              <ArrowLeftIcon className="w-4 h-4 text-gray-700" />
             </button>
             
-            <h3 style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: '#1f2937',
-              margin: 0,
-              textAlign: 'center',
-              flex: 1
-            }}>
+            <h3 className="text-base font-semibold text-gray-900 text-center flex-1">
               {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </h3>
             
             <button
               type="button"
               onClick={() => navigateMonth('next')}
-              style={{
-                padding: '8px',
-                background: 'none',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+              className="p-2 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
             >
-              <ArrowRightIcon style={{ width: '16px', height: '16px', color: '#374151' }} />
+              <ArrowRightIcon className="w-4 h-4 text-gray-700" />
             </button>
           </div>
 
-          {/* Dias da Semana */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-            gap: '2px',
-            marginBottom: '8px'
-          }}>
+          {/* Week Days */}
+          <div className="grid grid-cols-7 gap-0.5 mb-2">
             {weekDays.map(day => (
               <div
                 key={day}
-                style={{
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: '#6b7280',
-                  padding: '8px 4px'
-                }}
+                className="text-center text-xs font-semibold text-gray-500 py-2 px-1"
               >
                 {day}
               </div>
             ))}
           </div>
 
-          {/* Grid do Calendário */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-            gap: '2px'
-          }}>
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-0.5">
             {calendarDays.map((day, index) => (
               <button
                 key={index}
@@ -403,10 +346,11 @@ export default function DatePicker({
               color: '#64748b',
               fontWeight: '500'
             }}>
-              💡 Selecione uma data a partir de hoje
+              💡 Please select a date from today onwards
             </span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

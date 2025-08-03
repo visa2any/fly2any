@@ -19,59 +19,29 @@ export default function FlightComparisonPage() {
   useEffect(() => {
     const loadFlightData = async () => {
       try {
-        // Get flight ID from URL params
-        const flightId = searchParams.get('voo');
-        const origem = searchParams.get('origem');
-        const destino = searchParams.get('destino');
+        // Get flight IDs from URL params for comparison
+        const flightIds = searchParams.get('flights')?.split(',') || [];
         
-        if (flightId && origem && destino) {
-          // In a real implementation, you would fetch the specific flight
-          // and similar flights for comparison
-          
-          // For now, create a mock comparison
-          const mockFlight: ProcessedFlightOffer = {
-            id: flightId,
-            totalPrice: '$1,407.48',
-            currency: 'USD',
-            totalDuration: '5h 45min',
-            outbound: {
-              departure: {
-                iataCode: origem,
-                airportName: origem === 'MIA' ? 'Miami International Airport' : origem === 'LGA' ? 'LaGuardia Airport' : `${origem} International Airport`,
-                cityName: origem === 'MIA' ? 'Miami' : origem === 'LGA' ? 'New York' : origem,
-                countryName: 'United States', 
-                dateTime: '2025-08-01T10:45:00',
-                date: '08/01/2025',
-                time: '10:45 AM',
-                timeZone: 'America/New_York'
-              },
-              arrival: {
-                iataCode: destino,
-                airportName: destino === 'LGA' ? 'LaGuardia Airport' : destino === 'MIA' ? 'Miami International Airport' : `${destino} International Airport`,
-                cityName: destino === 'LGA' ? 'New York' : destino === 'MIA' ? 'Miami' : destino,
-                countryName: 'United States',
-                dateTime: '2025-08-01T16:30:00', 
-                date: '08/01/2025',
-                time: '4:30 PM',
-                timeZone: 'America/New_York'
-              },
-              duration: '5h 45min',
-              durationMinutes: 345,
-              stops: 1,
-              segments: []
-            },
-            layovers: [],
-            numberOfBookableSeats: 5,
-            validatingAirlines: ['FRONTIER AIRLINES'],
-            lastTicketingDate: '2025-07-29T23:59:59',
-            instantTicketingRequired: false,
-            rawOffer: {} as any
-          };
-          
-          setFlights([mockFlight]);
+        if (flightIds.length === 0) {
+          setLoading(false);
+          return;
         }
+
+        // Fetch real flight data for comparison
+        const flightPromises = flightIds.map(async (flightId) => {
+          const response = await fetch(`/api/flights/details/${flightId}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch flight ${flightId}: ${response.status}`);
+          }
+          return response.json();
+        });
+
+        const flightData = await Promise.all(flightPromises);
+        setFlights(flightData);
+        
       } catch (error) {
-        console.error('Error loading flight data:', error);
+        console.error('Error loading flight comparison data:', error);
+        setFlights([]);
       } finally {
         setLoading(false);
       }

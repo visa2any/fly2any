@@ -246,6 +246,15 @@ export interface ProcessedFlightOffer {
   lastTicketingDate: string;
   instantTicketingRequired: boolean;
   
+  // 🎯 TRANSPARENCY TOTAL - CABIN CLASS & BAGGAGE
+  cabinAnalysis: {
+    detectedClass: 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+    confidence: number;
+    definition: any; // CabinClassDefinition
+    sources: string[];
+  };
+  baggageAnalysis: any; // BaggageAnalysisResult
+  
   // Backward compatibility properties
   price?: string; // Deprecated, use totalPrice
   offer?: string; // Deprecated, use id  

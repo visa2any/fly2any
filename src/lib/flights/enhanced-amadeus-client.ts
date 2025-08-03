@@ -462,32 +462,17 @@ export class EnhancedAmadeusClient extends AmadeusClient {
   /**
    * Get detailed flight information for flight details page
    */
-  async getFlightDetails(flightId: string, flight: ProcessedFlightOffer): Promise<any> {
+  async getFlightDetails(flightId: string): Promise<ProcessedFlightOffer> {
     try {
       console.log('🔍 Getting detailed flight information...');
 
-      // Get delay prediction for specific flight
-      const flightDetails = this.extractFlightDetails(flight.rawOffer);
-      const delayPrediction = await this.getDelayPrediction(flightDetails);
+      // In a real implementation, retrieve the flight from session storage, database, or re-fetch
+      // For now, we'll throw an error to indicate the flight wasn't found
+      throw new Error(`Flight ${flightId} not found in current session`);
 
-      // Get seat map if available
-      const seatMap = await this.getSeatMap(flightId);
-
-      // Enhanced flight data for details page
-      return {
-        ...flight,
-        detailedInfo: {
-          delayPrediction,
-          seatMap,
-          additionalServices: this.generateAdditionalServices(flight),
-          pricingBreakdown: this.generatePricingBreakdown(flight),
-          policies: this.generatePolicies(flight),
-          reviews: this.generateAirlineReviews(flight)
-        }
-      };
     } catch (error) {
       console.error('Error getting flight details:', error);
-      return flight;
+      throw new Error(`Unable to retrieve flight details for ${flightId}`);
     }
   }
 
@@ -498,35 +483,35 @@ export class EnhancedAmadeusClient extends AmadeusClient {
     return [
       {
         type: 'seat_selection',
-        name: 'Seleção de Assento Premium',
-        description: 'Escolha seu assento preferido (janela, corredor, saída de emergência)',
-        price: 'R$ 45',
+        name: 'Premium Seat Selection',
+        description: 'Choose your preferred seat (window, aisle, emergency exit)',
+        price: '$45',
         popular: true
       },
       {
         type: 'baggage',
-        name: 'Bagagem Extra (23kg)',
-        description: 'Adicione bagagem despachada de até 23kg',
-        price: 'R$ 120',
-        savings: 'Economize R$ 30 comprando agora'
+        name: 'Extra Baggage (23kg)',
+        description: 'Add checked baggage up to 23kg',
+        price: '$120',
+        savings: 'Save $30 when purchasing now'
       },
       {
         type: 'meal',
-        name: 'Refeição Especial',
-        description: 'Refeição premium com opções vegetarianas e sem glúten',
-        price: 'R$ 35'
+        name: 'Special Meal',
+        description: 'Premium meal with vegetarian and gluten-free options',
+        price: '$35'
       },
       {
         type: 'fast_track',
         name: 'Fast Track Security',
-        description: 'Passe pela segurança do aeroporto mais rapidamente',
-        price: 'R$ 25'
+        description: 'Skip airport security lines for faster processing',
+        price: '$25'
       },
       {
         type: 'lounge',
-        name: 'Acesso ao Lounge VIP',
-        description: 'WiFi grátis, alimentação e bebidas no lounge do aeroporto',
-        price: 'R$ 89'
+        name: 'VIP Lounge Access',
+        description: 'Free WiFi, food and drinks in the airport lounge',
+        price: '$89'
       }
     ];
   }
@@ -535,15 +520,15 @@ export class EnhancedAmadeusClient extends AmadeusClient {
    * Generate pricing breakdown
    */
   private generatePricingBreakdown(flight: ProcessedFlightOffer): any {
-    const basePrice = parseFloat(flight.totalPrice.replace(/[^\d,]/g, '').replace(',', '.'));
+    const basePrice = parseFloat(flight.totalPrice.replace(/[^\d.,]/g, '').replace(',', '.'));
     const taxes = Math.round(basePrice * 0.15);
     const fees = Math.round(basePrice * 0.05);
     const flightPrice = basePrice - taxes - fees;
 
     return {
-      flight: `R$ ${flightPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      taxes: `R$ ${taxes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-      fees: `R$ ${fees.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      flight: `$${flightPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      taxes: `$${taxes.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      fees: `$${fees.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       total: flight.totalPrice
     };
   }
@@ -555,23 +540,23 @@ export class EnhancedAmadeusClient extends AmadeusClient {
     return {
       cancellation: {
         allowed: true,
-        fee: 'R$ 150',
-        timeLimit: '24 horas antes do voo'
+        fee: '$150',
+        timeLimit: '24 hours before flight'
       },
       changes: {
         allowed: true,
-        fee: 'R$ 200',
-        conditions: 'Sujeito à disponibilidade e diferença tarifária'
+        fee: '$200',
+        conditions: 'Subject to availability and fare difference'
       },
       baggage: {
-        handLuggage: '10kg incluído',
-        checkedBaggage: 'Não incluído - a partir de R$ 120',
-        restrictions: 'Máximo 158cm (altura + largura + profundidade)'
+        handLuggage: '22 lbs included',
+        checkedBaggage: 'Not included - starting at $120',
+        restrictions: 'Maximum 62 inches (height + width + depth)'
       },
       checkin: {
-        online: '48h a 1h antes do voo',
-        airport: '3h a 40min antes do voo (internacional)',
-        mobile: 'Disponível pelo app da companhia'
+        online: '48h to 1h before flight',
+        airport: '3h to 40min before flight (international)',
+        mobile: 'Available through airline app'
       }
     };
   }
@@ -580,7 +565,7 @@ export class EnhancedAmadeusClient extends AmadeusClient {
    * Generate airline reviews
    */
   private generateAirlineReviews(flight: ProcessedFlightOffer): any {
-    const airlineName = flight.validatingAirlines[0] || 'Companhia Aérea';
+    const airlineName = flight.validatingAirlines[0] || 'Airline';
     
     return {
       overall: 4.2,
@@ -592,20 +577,20 @@ export class EnhancedAmadeusClient extends AmadeusClient {
       recentReviews: [
         {
           rating: 5,
-          text: 'Voo pontual e atendimento excelente. Recomendo!',
-          author: 'Maria S.',
+          text: 'On-time flight and excellent service. Highly recommend!',
+          author: 'Sarah M.',
           date: '2024-01-15'
         },
         {
           rating: 4,
-          text: 'Boa experiência geral. Assento confortável.',
-          author: 'João P.',
+          text: 'Good overall experience. Comfortable seat.',
+          author: 'John P.',
           date: '2024-01-10'
         },
         {
           rating: 5,
-          text: 'Melhor custo-benefício da rota. Voaria novamente.',
-          author: 'Ana R.',
+          text: 'Best value for money on this route. Would fly again.',
+          author: 'Anna R.',
           date: '2024-01-08'
         }
       ]

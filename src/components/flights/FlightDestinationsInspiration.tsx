@@ -314,7 +314,7 @@ export default function FlightDestinationsInspiration({
                   
                   <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                     <span>✈️ {destination.origin} → {destination.destination}</span>
-                    <span>📅 {new Date(destination.departureDate).toLocaleDateString('pt-BR')}</span>
+                    <span>📅 {new Date(destination.departureDate).toLocaleDateString('en-US')}</span>
                     {destination.popularityScore && (
                       <span>⭐ {destination.popularityScore}/100</span>
                     )}

@@ -148,7 +148,7 @@ export function extractRealFareRulesData(offer: any): RealFareRulesData {
     // Extract fare basis for fare type analysis
     if (fareDetails.fareBasis) {
       result.fareType.fareBasis = fareDetails.fareBasis;
-      result.fareType.category = analyzeFareBasis(fareDetails.fareBasis);
+      result.fareType.category = analyzeFareBasis(fareDetails.fareBasis, fareDetails.cabin);
       result.fareType.dataSource = 'fare-basis';
       result.fareType.confidence = 85;
     }
@@ -157,7 +157,7 @@ export function extractRealFareRulesData(offer: any): RealFareRulesData {
     if (fareDetails.brandedFare) {
       result.fareType.brandedFare = fareDetails.brandedFare;
       if (!result.fareType.category) {
-        result.fareType.category = analyzeBrandedFare(fareDetails.brandedFare);
+        result.fareType.category = analyzeBrandedFare(fareDetails.brandedFare, fareDetails.cabin);
         result.fareType.dataSource = 'branded-fare';
         result.fareType.confidence = 80;
       }
@@ -186,24 +186,46 @@ export function extractRealFareRulesData(offer: any): RealFareRulesData {
 /**
  * Analyze fare basis code to determine fare type
  */
-function analyzeFareBasis(fareBasis: string): 'BASIC' | 'STANDARD' | 'FLEXIBLE' | null {
+function analyzeFareBasis(fareBasis: string, cabinClass?: string): 'BASIC' | 'STANDARD' | 'FLEXIBLE' | null {
   const code = fareBasis.toUpperCase();
   const firstLetter = code.charAt(0);
+  const cabin = cabinClass?.toUpperCase();
   
-  // IATA fare basis analysis
-  if (['Y', 'H', 'B'].includes(firstLetter)) {
-    return 'FLEXIBLE'; // Full fare, business, first class
-  } else if (['W', 'S', 'A', 'F'].includes(firstLetter)) {
-    return 'STANDARD'; // Mid-tier restrictions
-  } else if (['K', 'L', 'M', 'N', 'Q', 'T', 'V', 'X', 'Z'].includes(firstLetter)) {
-    return 'BASIC'; // Heavily restricted
+  // 🎯 PRIORITY: CABIN CLASS DETERMINES BASE FARE TYPE
+  if (cabin === 'BUSINESS' || cabin === 'FIRST') {
+    return 'FLEXIBLE'; // Business/First are always flexible
+  } else if (cabin === 'PREMIUM_ECONOMY') {
+    return 'STANDARD'; // Premium Economy is standard tier
   }
   
-  // Advanced analysis based on fare basis patterns
-  if (code.includes('PROMO') || code.includes('SALE') || code.includes('BASIC')) {
-    return 'BASIC';
-  } else if (code.includes('FLEX') || code.includes('FULL') || code.includes('PREMIUM')) {
+  // For Economy, analyze fare basis for granular classification
+  if (cabin === 'ECONOMY') {
+    // IATA fare basis analysis for Economy
+    if (['Y', 'H', 'B'].includes(firstLetter)) {
+      return 'FLEXIBLE'; // Full fare economy
+    } else if (['W', 'S', 'A', 'F'].includes(firstLetter)) {
+      return 'STANDARD'; // Mid-tier restrictions
+    } else if (['K', 'L', 'M', 'N', 'Q', 'T', 'V', 'X', 'Z'].includes(firstLetter)) {
+      return 'BASIC'; // Heavily restricted
+    }
+    
+    // Advanced analysis based on fare basis patterns
+    if (code.includes('PROMO') || code.includes('SALE') || code.includes('BASIC')) {
+      return 'BASIC';
+    } else if (code.includes('FLEX') || code.includes('FULL') || code.includes('PREMIUM')) {
+      return 'FLEXIBLE';
+    }
+    
+    return 'STANDARD'; // Default for Economy
+  }
+  
+  // Fallback to original logic if no cabin class
+  if (['Y', 'H', 'B'].includes(firstLetter)) {
     return 'FLEXIBLE';
+  } else if (['W', 'S', 'A', 'F'].includes(firstLetter)) {
+    return 'STANDARD';
+  } else if (['K', 'L', 'M', 'N', 'Q', 'T', 'V', 'X', 'Z'].includes(firstLetter)) {
+    return 'BASIC';
   }
   
   return 'STANDARD';
@@ -212,8 +234,16 @@ function analyzeFareBasis(fareBasis: string): 'BASIC' | 'STANDARD' | 'FLEXIBLE' 
 /**
  * Analyze branded fare name
  */
-function analyzeBrandedFare(brandedFare: string): 'BASIC' | 'STANDARD' | 'FLEXIBLE' | null {
+function analyzeBrandedFare(brandedFare: string, cabinClass?: string): 'BASIC' | 'STANDARD' | 'FLEXIBLE' | null {
   const branded = brandedFare.toLowerCase();
+  const cabin = cabinClass?.toUpperCase();
+  
+  // 🎯 PRIORITY: CABIN CLASS DETERMINES BASE FARE TYPE
+  if (cabin === 'BUSINESS' || cabin === 'FIRST') {
+    return 'FLEXIBLE'; // Business/First are always flexible
+  } else if (cabin === 'PREMIUM_ECONOMY') {
+    return 'STANDARD'; // Premium Economy is standard tier
+  }
   
   if (branded.includes('basic') || branded.includes('light') || branded.includes('saver')) {
     return 'BASIC';

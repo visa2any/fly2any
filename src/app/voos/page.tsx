@@ -33,6 +33,16 @@ import type {
 } from '@/types/flights';
 import { convertFormToSearchParams } from '@/lib/flights/validators';
 
+/**
+ * Parse date from URL ensuring correct timezone handling
+ * Input: "2025-09-02" -> Output: Date object for September 2, 2025 in local timezone
+ */
+function parseUrlDate(dateString: string): Date {
+  // For ISO format YYYY-MM-DD, create date in local timezone to avoid UTC shift
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+}
+
 type PageView = 'search' | 'results' | 'details' | 'booking' | 'confirmation';
 
 interface AdvancedPageState {
@@ -166,8 +176,8 @@ function VoosAdvancedContent() {
           city: params.get('destino') || '', 
           country: 'United States'
         },
-        departureDate: params.get('partida') ? new Date(params.get('partida')!) : new Date(),
-        returnDate: params.get('volta') ? new Date(params.get('volta')!) : undefined,
+        departureDate: params.get('partida') ? parseUrlDate(params.get('partida')!) : new Date(),
+        returnDate: params.get('volta') ? parseUrlDate(params.get('volta')!) : undefined,
         passengers: {
           adults: parseInt(params.get('adultos') || '1'),
           children: parseInt(params.get('children') || '0'),
@@ -545,7 +555,7 @@ function VoosAdvancedContent() {
               </div>
 
               {/* Hero Content */}
-              <div className="relative z-10 px-4 py-12 md:py-20 w-full max-w-full">
+              <div className="relative z-10 px-4 py-6 md:py-10 w-full max-w-full">
                 <div className="max-w-7xl mx-auto text-center w-full">
                   {/* Main Headline */}
                   <div className="mb-8">
@@ -561,9 +571,19 @@ function VoosAdvancedContent() {
                       </span>
                     </h1>
                     
-                    <p className="text-xl md:text-2xl text-white/80 mb-4 font-light">
+                    <p className="text-xl md:text-2xl text-white/80 mb-8 font-light">
                       🤖 AI finds the best prices • 💰 Save up to 65%
                     </p>
+
+                    {/* 🌟 ULTRA-ROBUST PREMIUM SEARCH FORM - MOVED TO PERFECT POSITION */}
+                    <div className="max-w-[1400px] mx-auto mb-12 px-4 relative w-full">
+                      <FlightSearchForm 
+                        onSearch={handleFlightSearch}
+                        isLoading={state.isLoading}
+                        className=""
+                        initialData={state.searchData || undefined}
+                      />
+                    </div>
                     
                     <div className="flex flex-wrap justify-center gap-4 text-white/70 text-sm mb-8">
                       <div className="flex items-center gap-2">
@@ -579,16 +599,6 @@ function VoosAdvancedContent() {
                         <span>Best price guarantee</span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* 🌟 ULTRA-ROBUST PREMIUM SEARCH FORM - FULLY FUNCTIONAL */}
-                  <div className="max-w-[1400px] mx-auto mb-12 px-4 relative w-full">
-                    <FlightSearchForm 
-                      onSearch={handleFlightSearch}
-                      isLoading={state.isLoading}
-                      className="bg-white/98 backdrop-blur-2xl rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.25)] border-2 border-white/40 w-full max-w-full"
-                      initialData={state.searchData || undefined}
-                    />
                   </div>
                 </div>
               </div>
@@ -1027,11 +1037,11 @@ function VoosAdvancedContent() {
                         </div>
                         <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
                           <span>📅</span>
-                          <span className="truncate">{state.searchData.departureDate.toLocaleDateString('pt-BR')}{state.searchData.returnDate && ` → ${state.searchData.returnDate.toLocaleDateString('pt-BR')}`}</span>
+                          <span className="truncate">{state.searchData.departureDate.toLocaleDateString('en-US')}{state.searchData.returnDate && ` → ${state.searchData.returnDate.toLocaleDateString('en-US')}`}</span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
                           <span>👥</span>
-                          <span>{state.searchData.passengers.adults + state.searchData.passengers.children + state.searchData.passengers.infants} passageiros</span>
+                          <span>{state.searchData.passengers.adults + state.searchData.passengers.children + state.searchData.passengers.infants} passengers</span>
                         </div>
                       </>
                     )}
@@ -1321,6 +1331,8 @@ function VoosAdvancedContent() {
                   validatingAirlines: flight.offer.validatingAirlines,
                   lastTicketingDate: flight.offer.lastTicketingDate,
                   instantTicketingRequired: flight.offer.instantTicketingRequired,
+                  cabinAnalysis: flight.offer.cabinAnalysis,
+                  baggageAnalysis: flight.offer.baggageAnalysis,
                   rawOffer: flight.offer.rawOffer
                 }))}
                 onRemoveFlight={handleRemoveFromComparison}

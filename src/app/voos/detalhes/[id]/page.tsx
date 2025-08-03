@@ -47,161 +47,39 @@ export default function FlightDetailsPage() {
   const [expandedSection, setExpandedSection] = useState<string | null>('itinerary');
   const [timeRemaining, setTimeRemaining] = useState(15 * 60); // 15 minutes
 
-  // Mock data baseado nos parâmetros da URL
+  // Real flight data fetching from API
   useEffect(() => {
     const loadFlightData = async () => {
       try {
         const flightId = params?.id as string;
-        const origem = searchParams.get('origem');
-        const destino = searchParams.get('destino'); 
-        const preco = searchParams.get('preco');
-
-        if (flightId && origem && destino && preco) {
-          // In a real implementation, would fetch flight data from API
-          const mockFlight: ProcessedFlightOffer = {
-            id: flightId,
-            totalPrice: decodeURIComponent(preco).replace('R$', '$'),
-            currency: 'USD',
-            totalDuration: '5h 45min',
-            outbound: {
-              departure: {
-                iataCode: origem,
-                airportName: origem === 'MIA' ? 'Miami International Airport' : origem === 'LGA' ? 'LaGuardia Airport' : `${origem} International Airport`,
-                cityName: origem === 'MIA' ? 'Miami' : origem === 'LGA' ? 'New York' : origem,
-                countryName: origem === 'MIA' ? 'United States' : origem === 'LGA' ? 'United States' : 'United States',
-                dateTime: '2025-08-01T10:45:00',
-                date: '08/01/2025',
-                time: '10:45 AM',
-                timeZone: 'America/New_York',
-                city: origem === 'MIA' ? 'Miami' : origem === 'LGA' ? 'New York' : origem,
-                terminal: 'Terminal 3'
-              },
-              arrival: {
-                iataCode: destino,
-                airportName: destino === 'LGA' ? 'LaGuardia Airport' : destino === 'MIA' ? 'Miami International Airport' : `${destino} International Airport`,
-                cityName: destino === 'LGA' ? 'New York' : destino === 'MIA' ? 'Miami' : destino,
-                countryName: destino === 'LGA' ? 'United States' : destino === 'MIA' ? 'United States' : 'United States',
-                dateTime: '2025-08-01T16:30:00',
-                date: '08/01/2025', 
-                time: '4:30 PM',
-                timeZone: 'America/New_York',
-                city: destino === 'LGA' ? 'New York' : destino === 'MIA' ? 'Miami' : destino,
-                terminal: 'Terminal 1'
-              },
-              duration: '5h 45min',
-              durationMinutes: 345,
-              stops: 1,
-              segments: [
-                {
-                  id: 'segment-1',
-                  departure: {
-                    iataCode: origem,
-                    airportName: `Aeroporto Internacional de ${origem}`,
-                    cityName: origem === 'MIA' ? 'Miami' : origem,
-                    countryName: origem === 'MIA' ? 'Estados Unidos' : 'Brasil',
-                    dateTime: '2025-08-01T10:45:00',
-                    date: '08/01/2025',
-                    time: '10:45',
-                    timeZone: 'America/New_York',
-                    city: origem === 'MIA' ? 'Miami' : origem,
-                    terminal: 'Terminal 3'
-                  },
-                  arrival: {
-                    iataCode: 'ATL',
-                    airportName: 'Aeroporto Internacional Hartsfield-Jackson Atlanta',
-                    cityName: 'Atlanta',
-                    countryName: 'United States',
-                    dateTime: '2025-08-01T14:15:00',
-                    date: '08/01/2025',
-                    time: '2:15 PM',
-                    timeZone: 'America/New_York',
-                    city: 'Atlanta',
-                    terminal: 'Terminal 2'
-                  },
-                  duration: '2h 30min',
-                  durationMinutes: 150,
-                  airline: {
-                    code: 'F9',
-                    name: 'FRONTIER AIRLINES'
-                  },
-                  aircraft: {
-                    code: 'A320',
-                    name: 'Airbus A320'
-                  },
-                  flightNumber: 'F9 1234',
-                  cabin: 'ECONOMY' as CabinClass
-                },
-                {
-                  id: 'segment-2', 
-                  departure: {
-                    iataCode: 'ATL',
-                    airportName: 'Aeroporto Internacional Hartsfield-Jackson Atlanta',
-                    cityName: 'Atlanta',
-                    countryName: 'United States',
-                    dateTime: '2025-08-01T15:00:00',
-                    date: '08/01/2025',
-                    time: '3:00 PM',
-                    timeZone: 'America/New_York',
-                    city: 'Atlanta',
-                    terminal: 'Terminal 2'
-                  },
-                  arrival: {
-                    iataCode: destino,
-                    airportName: `Aeroporto Internacional de ${destino}`,
-                    cityName: destino === 'LGA' ? 'Nova York' : destino,
-                    countryName: 'United States',
-                    dateTime: '2025-08-01T16:30:00',
-                    date: '08/01/2025',
-                    time: '4:30 PM',
-                    timeZone: 'America/New_York',
-                    city: destino === 'LGA' ? 'Nova York' : destino,
-                    terminal: 'Terminal 1'
-                  },
-                  duration: '1h 30min',
-                  durationMinutes: 90,
-                  airline: {
-                    code: 'F9',
-                    name: 'FRONTIER AIRLINES'
-                  },
-                  aircraft: {
-                    code: 'A319',
-                    name: 'Airbus A319'
-                  },
-                  flightNumber: 'F9 5678',
-                  cabin: 'ECONOMY' as CabinClass
-                }
-              ],
-              layovers: [
-                {
-                  airport: 'ATL',
-                  city: 'Atlanta',
-                  durationMinutes: 45,
-                  duration: '45min'
-                }
-              ],
-              carrierName: 'FRONTIER AIRLINES'
-            },
-            segments: [], // Preenchido pelos segmentos do outbound
-            numberOfBookableSeats: 5,
-            validatingAirlines: ['FRONTIER AIRLINES'],
-            lastTicketingDate: '2025-07-29T23:59:59',
-            instantTicketingRequired: false,
-            rawOffer: {} as any
-          };
-
-          setFlightData(mockFlight);
+        
+        if (!flightId) {
+          setLoading(false);
+          return;
         }
+
+        // Fetch real flight data from API
+        const response = await fetch(`/api/flights/details/${flightId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch flight details: ${response.status}`);
+        }
+        
+        const flightData: ProcessedFlightOffer = await response.json();
+        setFlightData(flightData);
+        
       } catch (error) {
         console.error('Error loading flight data:', error);
+        setFlightData(null);
       } finally {
         setLoading(false);
       }
     };
 
     loadFlightData();
-  }, [params?.id, searchParams]);
+  }, [params?.id]);
 
-  // Timer para o price lock
+  // Price lock timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
@@ -260,10 +138,10 @@ export default function FlightDetailsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header global */}
+      {/* Global Header */}
       <ResponsiveHeader />
       
-      {/* Header específico da página com navegação */}
+      {/* Page-specific header with navigation */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -293,10 +171,10 @@ export default function FlightDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Coluna Principal - Detalhes do Voo */}
+          {/* Main Column - Flight Details */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Header do Voo */}
+            {/* Flight Header */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -304,7 +182,7 @@ export default function FlightDetailsPage() {
                     ✈️ {flightData.outbound.departure.iataCode} → {flightData.outbound.arrival.iataCode}
                   </h1>
                   <p className="text-gray-600">
-                    {flightData.outbound.departure.date} • {flightData.validatingAirlines[0]}
+                    {flightData.outbound.departure.date} • {flightData.validatingAirlines.join(', ')}
                   </p>
                 </div>
                 
@@ -329,7 +207,7 @@ export default function FlightDetailsPage() {
                 </div>
               </div>
 
-              {/* Resumo da Rota */}
+              {/* Route Summary */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 <div className="text-center">
                   <div className="font-bold text-2xl text-gray-900 mb-1">{flightData.outbound.departure.time}</div>
@@ -358,10 +236,10 @@ export default function FlightDetailsPage() {
               </div>
             </div>
 
-            {/* Seções Expansíveis */}
+            {/* Expandable Sections */}
             <div className="space-y-4">
               
-              {/* Itinerário Detalhado */}
+              {/* Detailed Itinerary */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <button
                   onClick={() => toggleSection('itinerary')}
@@ -421,7 +299,7 @@ export default function FlightDetailsPage() {
                 )}
               </div>
 
-              {/* Políticas e Bagagem */}
+              {/* Baggage & Policies */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <button
                   onClick={() => toggleSection('policies')}
@@ -479,10 +357,10 @@ export default function FlightDetailsPage() {
             </div>
           </div>
 
-          {/* Sidebar - Resumo e Ações */}
+          {/* Sidebar - Summary and Actions */}
           <div className="space-y-6">
             
-            {/* Card de Preço e Ação Principal */}
+            {/* Price Card and Main Action */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-6">
               <div className="text-center mb-6">
                 <div className="text-3xl font-bold text-blue-600 mb-2">{flightData.totalPrice}</div>
@@ -529,7 +407,7 @@ export default function FlightDetailsPage() {
 
             {/* Trust Signals */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">🛡️ Why choose Fly2Any?</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">🛡️ Why Choose Fly2Any?</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3 text-sm">
                   <LockClosedIcon className="w-4 h-4 text-green-600" />
@@ -561,7 +439,7 @@ export default function FlightDetailsPage() {
                         <StarIcon key={i} className="w-4 h-4 text-yellow-500" />
                       ))}
                     </div>
-                    <span className="text-sm font-medium text-gray-900">Maria S.</span>
+                    <span className="text-sm font-medium text-gray-900">Sarah M.</span>
                   </div>
                   <p className="text-sm text-gray-600">"Super easy and fast booking process!"</p>
                 </div>
@@ -595,7 +473,7 @@ export default function FlightDetailsPage() {
         </div>
       </div>
 
-      {/* Modal do Formulário de Reserva */}
+      {/* Booking Form Modal */}
       {showBookingForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -624,7 +502,7 @@ export default function FlightDetailsPage() {
         </div>
       )}
       
-      {/* Footer global */}
+      {/* Global Footer */}
       <Footer />
     </div>
   );
