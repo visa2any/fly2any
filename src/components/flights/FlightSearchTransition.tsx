@@ -46,29 +46,29 @@ export default function FlightSearchTransition({
   const searchSteps = [
     {
       id: 'searching',
-      title: 'Buscando voos disponíveis',
-      subtitle: 'Conectando com mais de 500 companhias aéreas',
+      title: 'Searching available flights',
+      subtitle: 'Connecting with 500+ airlines worldwide',
       icon: MagnifyingGlassIcon,
       color: 'from-blue-500 to-cyan-500'
     },
     {
       id: 'analyzing',
-      title: 'Analisando melhores preços',
-      subtitle: 'Comparando tarifas e horários ideais',
+      title: 'Analyzing best prices',
+      subtitle: 'Comparing fares and optimal schedules',
       icon: GlobeAltIcon,
       color: 'from-purple-500 to-pink-500'
     },
     {
       id: 'optimizing',
-      title: 'Otimizando resultados',
-      subtitle: 'Ordenando por melhor custo-benefício',
+      title: 'Optimizing results',
+      subtitle: 'Sorting by best value for money',
       icon: ClockIcon,
       color: 'from-green-500 to-emerald-500'
     },
     {
       id: 'complete',
-      title: 'Busca concluída!',
-      subtitle: 'Redirecionando para os resultados...',
+      title: 'Search completed!',
+      subtitle: 'Redirecting to results...',
       icon: CheckCircleIcon,
       color: 'from-emerald-500 to-green-500'
     }
@@ -150,11 +150,11 @@ export default function FlightSearchTransition({
               <div className="flex items-center justify-center gap-3 mb-4">
                 <PaperAirplaneIcon className="w-8 h-8 text-white" />
                 <h1 className="text-2xl font-black text-white">
-                  Sistema Fly2any
+                  Fly2any System
                 </h1>
               </div>
               <p className="text-white/70 text-lg font-medium">
-                Inovação em busca inteligente de voos
+                Innovation in intelligent flight search
               </p>
             </motion.div>
 
@@ -171,7 +171,7 @@ export default function FlightSearchTransition({
                     {searchData.origin}
                   </div>
                   <div className="text-white/70 text-sm font-medium">
-                    Origem
+                    Origin
                   </div>
                 </div>
                 
@@ -185,7 +185,7 @@ export default function FlightSearchTransition({
                   </div>
                   <div className="text-center mt-3">
                     <span className="text-white/70 text-xs font-medium">
-                      {searchData.passengers} passageiro{searchData.passengers > 1 ? 's' : ''} • {searchData.tripType}
+                      {searchData.passengers} passenger{searchData.passengers > 1 ? 's' : ''} • {searchData.tripType}
                     </span>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function FlightSearchTransition({
                     {searchData.destination}
                   </div>
                   <div className="text-white/70 text-sm font-medium">
-                    Destino
+                    Destination
                   </div>
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function FlightSearchTransition({
               {/* Progress Bar */}
               <div className="mb-6">
                 <div className="flex justify-between text-sm text-white/70 mb-2">
-                  <span>Progresso</span>
+                  <span>Progress</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
@@ -277,7 +277,7 @@ export default function FlightSearchTransition({
               className="mt-8 text-center"
             >
               <p className="text-white/70 text-sm font-medium">
-                Aguarde enquanto preparamos os melhores resultados para você
+                Please wait while we prepare the best results for you
               </p>
               {currentStep === searchSteps.length - 1 && (
                 <motion.div
@@ -286,7 +286,7 @@ export default function FlightSearchTransition({
                   className="mt-4 flex items-center justify-center gap-2 text-emerald-400"
                 >
                   <CheckCircleIcon className="w-5 h-5" />
-                  <span className="font-bold">Abrindo resultados em nova aba...</span>
+                  <span className="font-bold">Opening results in new tab...</span>
                   <ArrowRightIcon className="w-4 h-4 animate-pulse" />
                 </motion.div>
               )}
