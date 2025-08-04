@@ -9,7 +9,7 @@ import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass, F
 import { validateFlightSearchForm } from '@/lib/flights/validators';
 import { AMADEUS_CONFIG } from '@/lib/flights/amadeus-config';
 import EnterpriseDatePicker from '@/components/ui/enterprise-date-picker';
-import CinematicFlightTransition from './CinematicFlightTransition';
+import PremiumFlightTransition from './PremiumFlightTransition';
 
 interface FlightSearchFormProps {
   onSearch: (searchData: FlightSearchFormData) => void;
@@ -1805,8 +1805,8 @@ export default function FlightSearchForm({
         />
       )}
 
-      {/* Cinematic Transition Experience */}
-      <CinematicFlightTransition
+      {/* Premium Instant Search - Better Than Competition */}
+      <PremiumFlightTransition
         isVisible={showTransition}
         searchData={{
           origin: formData.tripType === 'multi-city' 
@@ -1821,12 +1821,7 @@ export default function FlightSearchForm({
           destinationCity: formData.tripType === 'multi-city'
             ? formData.segments?.[formData.segments.length - 1]?.destination?.city || ''
             : formData.destination?.city || '',
-          tripType: formData.tripType === 'round-trip' ? 'round-trip journey' 
-                   : formData.tripType === 'one-way' ? 'one-way adventure' 
-                   : 'multi-city expedition',
-          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants,
-          departureDate: formData.departureDate,
-          returnDate: formData.returnDate
+          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants
         }}
         onComplete={handleTransitionComplete}
         onClose={handleTransitionClose}
