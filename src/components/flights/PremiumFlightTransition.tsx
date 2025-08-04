@@ -36,6 +36,7 @@ interface PremiumFlightTransitionProps {
     tripType?: string;
     travelClass?: string;
   };
+  onSearchComplete?: (results: any) => void; // Real search results
   onComplete: (results: any) => void;
   onClose: () => void;
 }
@@ -43,6 +44,7 @@ interface PremiumFlightTransitionProps {
 export default function PremiumFlightTransition({
   isVisible,
   searchData,
+  onSearchComplete,
   onComplete,
   onClose
 }: PremiumFlightTransitionProps) {
@@ -50,89 +52,157 @@ export default function PremiumFlightTransition({
   const [currentPrice, setCurrentPrice] = useState(899);
   const [sitesSearched, setSitesSearched] = useState(0);
   const [phase, setPhase] = useState<'searching' | 'analyzing' | 'complete'>('searching');
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const [isSearchComplete, setIsSearchComplete] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Lightning fast progression (total 2.5 seconds)
+  // Real Amadeus API search
   useEffect(() => {
     if (!isVisible) return;
 
+    const performRealSearch = async () => {
+      try {
+        // Build search parameters
+        const queryParams = new URLSearchParams({
+          originLocationCode: searchData.origin,
+          destinationLocationCode: searchData.destination,
+          departureDate: searchData.departureDate || '',
+          adults: searchData.passengers.toString(),
+          currencyCode: 'USD',
+          max: '50'
+        });
+
+        if (searchData.returnDate && searchData.tripType === 'round-trip') {
+          queryParams.append('returnDate', searchData.returnDate);
+        }
+
+        if (searchData.travelClass) {
+          queryParams.append('travelClass', searchData.travelClass);
+        }
+
+        // Start the real API call
+        const response = await fetch(`/api/flights/search?${queryParams.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success && data.flights) {
+          setSearchResults(data.flights);
+          setIsSearchComplete(true);
+          setPhase('complete');
+          
+          // Update progress to 100%
+          setProgress(100);
+          
+          // Wait a moment then open results
+          setTimeout(() => {
+            // Build results URL with real data
+            const resultsParams = new URLSearchParams({
+              origin: searchData.origin,
+              destination: searchData.destination,
+              passengers: searchData.passengers.toString(),
+            });
+
+            if (searchData.departureDate) {
+              resultsParams.append('departure', searchData.departureDate);
+            }
+            
+            if (searchData.returnDate) {
+              resultsParams.append('return', searchData.returnDate);
+            }
+            
+            if (searchData.travelClass) {
+              resultsParams.append('class', searchData.travelClass);
+            }
+
+            const resultsUrl = `/voos/results?${resultsParams.toString()}`;
+            
+            // Open new tab with real results
+            const newTab = window.open(resultsUrl, '_blank');
+            if (newTab) {
+              newTab.focus();
+            }
+            
+            // Complete the transition
+            onComplete({ flights: data.flights });
+          }, 1000);
+          
+        } else {
+          throw new Error(data.error || 'No flights found');
+        }
+        
+      } catch (error) {
+        console.error('Flight search error:', error);
+        setPhase('complete');
+        setProgress(100);
+        
+        // Still complete but with error
+        setTimeout(() => {
+          onComplete({ error: error instanceof Error ? error.message : 'Search failed' });
+        }, 500);
+      }
+    };
+
+    // Start search immediately
+    performRealSearch();
+
+    // Visual progress updates while search is happening
     const intervals: NodeJS.Timeout[] = [];
     
-    // Progress animation
+    // Smooth progress animation (slower, more realistic)
     const progressInterval = setInterval(() => {
       setProgress(prev => {
-        const newProgress = prev + Math.random() * 8 + 4; // Fast increment
-        
-        if (newProgress >= 100) {
-          clearInterval(progressInterval);
+        if (isSearchComplete) {
           return 100;
         }
-        return Math.min(newProgress, 100);
+        
+        // Slower progress until search completes
+        const increment = Math.random() * 3 + 1;
+        const newProgress = Math.min(prev + increment, 90); // Stop at 90% until search completes
+        return newProgress;
       });
-    }, 50);
+    }, 200);
     intervals.push(progressInterval);
 
-    // Sites counter (like Kayak but better)
+    // Sites counter
     const sitesInterval = setInterval(() => {
       setSitesSearched(prev => {
-        const increment = Math.floor(Math.random() * 25) + 15;
-        const newCount = Math.min(prev + increment, 500);
-        return newCount;
+        if (isSearchComplete) return 500;
+        const increment = Math.floor(Math.random() * 20) + 10;
+        return Math.min(prev + increment, 480);
       });
-    }, 80);
+    }, 300);
     intervals.push(sitesInterval);
 
-    // Real-time price discovery (unique feature)
+    // Real-time price updates (based on actual search progress)
     const priceInterval = setInterval(() => {
       setCurrentPrice(prev => {
-        const change = Math.floor(Math.random() * 40) - 20;
+        if (isSearchComplete && searchResults?.length > 0) {
+          // Use real price from results
+          const realPrice = Math.min(...searchResults.map((f: any) => parseFloat(f.price?.total || f.grandTotal || '999')));
+          return Math.round(realPrice);
+        }
+        
+        // Gradual price improvement while searching
+        const change = Math.floor(Math.random() * 15) - 10;
         const newPrice = Math.max(prev + change, 200);
         return Math.min(newPrice, 1200);
       });
-    }, 200);
+    }, 400);
     intervals.push(priceInterval);
 
-    // Phase transitions
-    setTimeout(() => setPhase('analyzing'), 800);
-    setTimeout(() => setPhase('complete'), 1800);
-    
-    // Auto complete and open results in new tab
+    // Phase transitions based on real progress
     setTimeout(() => {
-      // Build comprehensive results URL
-      const params = new URLSearchParams({
-        origin: searchData.origin,
-        destination: searchData.destination,
-        passengers: searchData.passengers.toString(),
-      });
-
-      if (searchData.departureDate) {
-        params.append('departure', searchData.departureDate);
-      }
-      
-      if (searchData.returnDate) {
-        params.append('return', searchData.returnDate);
-      }
-      
-      if (searchData.travelClass) {
-        params.append('class', searchData.travelClass);
-      }
-
-      const resultsUrl = `/voos/results?${params.toString()}`;
-      
-      // Open new tab
-      const newTab = window.open(resultsUrl, '_blank');
-      if (newTab) {
-        newTab.focus();
-      }
-      
-      // Complete the transition
-      onComplete({});
-    }, 2500);
+      if (!isSearchComplete) setPhase('analyzing');
+    }, 2000);
 
     return () => {
       intervals.forEach(interval => clearInterval(interval));
     };
-  }, [isVisible, onComplete]);
+  }, [isVisible, isSearchComplete, searchResults, onComplete, searchData]);
 
   // Premium route animation
   useEffect(() => {
@@ -361,10 +431,12 @@ export default function PremiumFlightTransition({
                 >
                   <p className="text-slate-600 font-medium text-sm">
                     {phase === 'complete' ? 
-                      '🎉 Perfect flights found! Loading your results...' :
+                      isSearchComplete ? 
+                        `🎉 Found ${searchResults?.length || 0} flights! Opening results...` :
+                        '❌ Search completed with issues. Please try again.' :
                      phase === 'analyzing' ? 
-                      '🔍 Comparing prices and schedules across all airlines...' :
-                      '⚡ Scanning the web for the best flight deals...'}
+                      '🔍 Analyzing real-time prices from Amadeus API...' :
+                      '⚡ Connecting to Amadeus Global Distribution System...'}
                   </p>
                 </motion.div>
               </div>
