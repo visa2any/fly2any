@@ -211,7 +211,7 @@ function VoosAdvancedContent() {
         handleFlightSearch(initialSearchData);
       }, 500);
     }
-  }, [hasAutoSearched]);
+  }, []); // FIXED: Empty dependency array to run only once
 
   // Mobile detection
   useEffect(() => {

@@ -54,6 +54,7 @@ export default function PremiumFlightTransition({
   const [phase, setPhase] = useState<'searching' | 'analyzing' | 'complete'>('searching');
   const [searchResults, setSearchResults] = useState<any>(null);
   const [isSearchComplete, setIsSearchComplete] = useState(false);
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Real Amadeus API search
@@ -136,13 +137,77 @@ export default function PremiumFlightTransition({
         
       } catch (error) {
         console.error('Flight search error:', error);
-        setPhase('complete');
-        setProgress(100);
         
-        // Still complete but with error
-        setTimeout(() => {
-          onComplete({ error: error instanceof Error ? error.message : 'Search failed' });
-        }, 500);
+        // Handle specific API errors
+        if (error instanceof Error && error.message.includes('429')) {
+          console.warn('Amadeus API rate limit reached. Using fallback experience.');
+          setIsFallbackMode(true);
+          
+          // Simulate successful search for development/demo
+          const mockResults = [
+            { 
+              id: '1', 
+              price: { total: '693.81' }, 
+              grandTotal: '693.81',
+              outbound: { segments: [{ origin: searchData.origin, destination: searchData.destination }] }
+            },
+            { 
+              id: '2', 
+              price: { total: '756.42' }, 
+              grandTotal: '756.42',
+              outbound: { segments: [{ origin: searchData.origin, destination: searchData.destination }] }
+            }
+          ];
+          
+          setSearchResults(mockResults);
+          setIsSearchComplete(true);
+          setPhase('complete');
+          setProgress(100);
+          
+          // Update with mock data for demonstration
+          setCurrentPrice(694);
+          setSitesSearched(500);
+          
+          setTimeout(() => {
+            // Build results URL
+            const resultsParams = new URLSearchParams({
+              origin: searchData.origin,
+              destination: searchData.destination,
+              passengers: searchData.passengers.toString(),
+            });
+
+            if (searchData.departureDate) {
+              resultsParams.append('departure', searchData.departureDate);
+            }
+            
+            if (searchData.returnDate) {
+              resultsParams.append('return', searchData.returnDate);
+            }
+            
+            if (searchData.travelClass) {
+              resultsParams.append('class', searchData.travelClass);
+            }
+
+            const resultsUrl = `/voos/results?${resultsParams.toString()}`;
+            
+            // Open new tab
+            const newTab = window.open(resultsUrl, '_blank');
+            if (newTab) {
+              newTab.focus();
+            }
+            
+            onComplete({ flights: mockResults, fallback: true });
+          }, 1000);
+          
+        } else {
+          // Other errors
+          setPhase('complete');
+          setProgress(100);
+          
+          setTimeout(() => {
+            onComplete({ error: error instanceof Error ? error.message : 'Search failed' });
+          }, 500);
+        }
       }
     };
 
@@ -432,11 +497,17 @@ export default function PremiumFlightTransition({
                   <p className="text-slate-600 font-medium text-sm">
                     {phase === 'complete' ? 
                       isSearchComplete ? 
-                        `🎉 Found ${searchResults?.length || 0} flights! Opening results...` :
+                        isFallbackMode ?
+                          `🎯 Demo: Found ${searchResults?.length || 0} flights! Opening results...` :
+                          `🎉 Found ${searchResults?.length || 0} flights! Opening results...` :
                         '❌ Search completed with issues. Please try again.' :
                      phase === 'analyzing' ? 
-                      '🔍 Analyzing real-time prices from Amadeus API...' :
-                      '⚡ Connecting to Amadeus Global Distribution System...'}
+                      isFallbackMode ?
+                        '🔄 Demo mode: Generating sample results...' :
+                        '🔍 Analyzing real-time prices from Amadeus API...' :
+                      isFallbackMode ?
+                        '⚡ Demo mode: API rate limit reached, using fallback...' :
+                        '⚡ Connecting to Amadeus Global Distribution System...'}
                   </p>
                 </motion.div>
               </div>
