@@ -12,72 +12,72 @@ export function validateFlightSearchParams(params: FlightSearchParams): string[]
 
   // Required fields validation
   if (!params.originLocationCode || params.originLocationCode.length !== 3) {
-    errors.push('Código do aeroporto de origem deve ter 3 caracteres');
+    errors.push('Origin airport code must be 3 characters');
   }
 
   if (!params.destinationLocationCode || params.destinationLocationCode.length !== 3) {
-    errors.push('Código do aeroporto de destino deve ter 3 caracteres');
+    errors.push('Destination airport code must be 3 characters');
   }
 
   if (params.originLocationCode === params.destinationLocationCode) {
-    errors.push('Aeroporto de origem e destino devem ser diferentes');
+    errors.push('Origin and destination airports must be different');
   }
 
   if (!params.departureDate) {
-    errors.push('Data de partida é obrigatória');
+    errors.push('Departure date is required');
   } else {
-    const departureDate = new Date(params.departureDate);
+    const departureDate = new Date(params.departureDate + 'T00:00:00');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     if (departureDate < today) {
-      errors.push('Data de partida não pode ser no passado');
+      errors.push('Departure date cannot be in the past');
     }
     
     // Check if departure date is too far in the future (360 days)
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 360);
     if (departureDate > maxDate) {
-      errors.push('Data de partida não pode ser mais de 360 dias no futuro');
+      errors.push('Departure date cannot be more than 360 days in the future');
     }
   }
 
   // Return date validation (if provided)
   if (params.returnDate) {
-    const departureDate = new Date(params.departureDate);
-    const returnDate = new Date(params.returnDate);
+    const departureDate = new Date(params.departureDate + 'T00:00:00');
+    const returnDate = new Date(params.returnDate + 'T00:00:00');
     
     if (returnDate <= departureDate) {
-      errors.push('Data de retorno deve ser posterior à data de partida');
+      errors.push('Return date must be after departure date');
     }
   }
 
   // Passenger count validation
   if (!params.adults || params.adults < 1 || params.adults > 9) {
-    errors.push('Número de adultos deve ser entre 1 e 9');
+    errors.push('Number of adults must be between 1 and 9');
   }
 
   if (params.children && (params.children < 0 || params.children > 8)) {
-    errors.push('Número de crianças deve ser entre 0 e 8');
+    errors.push('Number of children must be between 0 and 8');
   }
 
   if (params.infants && (params.infants < 0 || params.infants > params.adults)) {
-    errors.push('Número de bebês não pode ser maior que o número de adultos');
+    errors.push('Number of infants cannot exceed number of adults');
   }
 
   const totalPassengers = params.adults + (params.children || 0) + (params.infants || 0);
   if (totalPassengers > 9) {
-    errors.push('Número total de passageiros não pode exceder 9');
+    errors.push('Total number of passengers cannot exceed 9');
   }
 
   // Price validation
   if (params.maxPrice && (params.maxPrice < 0 || params.maxPrice > 100000)) {
-    errors.push('Preço máximo deve ser entre R$ 0 e R$ 100.000');
+    errors.push('Maximum price must be between $0 and $100,000');
   }
 
   // Max results validation
   if (params.max && (params.max < 1 || params.max > 250)) {
-    errors.push('Número máximo de resultados deve ser entre 1 e 250');
+    errors.push('Maximum number of results must be between 1 and 250');
   }
 
   return errors;
@@ -91,40 +91,40 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
 
   // Trip type validation
   if (!formData.tripType) {
-    errors.push('Tipo de viagem é obrigatório');
+    errors.push('Trip type is required');
   }
 
   // Multi-city validation
   if (formData.tripType === 'multi-city') {
     if (!formData.segments || formData.segments.length < 2) {
-      errors.push('Viagens multi-city requerem pelo menos 2 segmentos');
+      errors.push('Multi-city trips require at least 2 segments');
     } else {
       formData.segments.forEach((segment, index) => {
         if (!segment.origin.iataCode && !segment.origin.city) {
-          errors.push(`Voo ${index + 1}: Selecione o aeroporto de origem`);
+          errors.push(`Flight ${index + 1}: Select origin airport`);
         }
         if (!segment.destination.iataCode && !segment.destination.city) {
-          errors.push(`Voo ${index + 1}: Selecione o aeroporto de destino`);
+          errors.push(`Flight ${index + 1}: Select destination airport`);
         }
         if (segment.origin.iataCode === segment.destination.iataCode && segment.origin.iataCode) {
-          errors.push(`Voo ${index + 1}: Origem e destino devem ser diferentes`);
+          errors.push(`Flight ${index + 1}: Origin and destination must be different`);
         }
         if (!segment.departureDate) {
-          errors.push(`Voo ${index + 1}: Selecione a data de partida`);
+          errors.push(`Flight ${index + 1}: Select departure date`);
         } else {
-          const departureDate = new Date(segment.departureDate);
+          const departureDate = new Date(segment.departureDate + 'T00:00:00');
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           
           if (departureDate < today) {
-            errors.push(`Voo ${index + 1}: Data de partida deve ser hoje ou no futuro`);
+            errors.push(`Flight ${index + 1}: Departure date must be today or in the future`);
           }
           
           // Check sequential dates
           if (index > 0 && formData.segments && formData.segments[index - 1]) {
-            const prevDate = new Date(formData.segments[index - 1].departureDate);
+            const prevDate = new Date(formData.segments[index - 1].departureDate + 'T00:00:00');
             if (departureDate <= prevDate) {
-              errors.push(`Voo ${index + 1}: Data deve ser após o Voo ${index}`);
+              errors.push(`Flight ${index + 1}: Date must be after Flight ${index}`);
             }
           }
         }
@@ -133,29 +133,33 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
   } else {
     // Regular validation for round-trip and one-way
     if (!formData.origin?.iataCode) {
-      errors.push('Aeroporto de origem é obrigatório');
+      errors.push('Origin airport is required');
     }
 
     if (!formData.destination?.iataCode) {
-      errors.push('Aeroporto de destino é obrigatório');
+      errors.push('Destination airport is required');
     }
 
     if (formData.origin?.iataCode === formData.destination?.iataCode) {
-      errors.push('Aeroporto de origem e destino devem ser diferentes');
+      errors.push('Origin and destination airports must be different');
     }
 
     // Date validation
     if (!formData.departureDate) {
-      errors.push('Data de partida é obrigatória');
+      errors.push('Departure date is required');
     }
 
     if (formData.tripType === 'round-trip' && !formData.returnDate) {
-      errors.push('Data de retorno é obrigatória para viagens de ida e volta');
+      errors.push('Return date is required for round-trip flights');
     }
 
+    // Fix date comparison with proper timezone handling
     if (formData.departureDate && formData.returnDate) {
-      if (formData.returnDate <= formData.departureDate) {
-        errors.push('Data de retorno deve ser posterior à data de partida');
+      const departureDate = new Date(formData.departureDate + 'T00:00:00');
+      const returnDate = new Date(formData.returnDate + 'T00:00:00');
+      
+      if (returnDate <= departureDate) {
+        errors.push('Return date must be after departure date');
       }
     }
   }
@@ -163,15 +167,15 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
   // Passenger validation (common for all trip types)
   const totalPassengers = formData.passengers.adults + formData.passengers.children + formData.passengers.infants;
   if (totalPassengers === 0) {
-    errors.push('Pelo menos um passageiro é obrigatório');
+    errors.push('At least one passenger is required');
   }
 
   if (totalPassengers > 9) {
-    errors.push('Número total de passageiros não pode exceder 9');
+    errors.push('Total number of passengers cannot exceed 9');
   }
 
   if (formData.passengers.infants > formData.passengers.adults) {
-    errors.push('Número de bebês não pode ser maior que o número de adultos');
+    errors.push('Number of infants cannot exceed number of adults');
   }
 
   return errors;
