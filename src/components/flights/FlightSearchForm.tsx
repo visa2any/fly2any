@@ -9,7 +9,7 @@ import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass, F
 import { validateFlightSearchForm } from '@/lib/flights/validators';
 import { AMADEUS_CONFIG } from '@/lib/flights/amadeus-config';
 import EnterpriseDatePicker from '@/components/ui/enterprise-date-picker';
-import FlightSearchTransition from './FlightSearchTransition';
+import CinematicFlightTransition from './CinematicFlightTransition';
 
 interface FlightSearchFormProps {
   onSearch: (searchData: FlightSearchFormData) => void;
@@ -1805,8 +1805,8 @@ export default function FlightSearchForm({
         />
       )}
 
-      {/* Innovative Transition Screen */}
-      <FlightSearchTransition
+      {/* Cinematic Transition Experience */}
+      <CinematicFlightTransition
         isVisible={showTransition}
         searchData={{
           origin: formData.tripType === 'multi-city' 
@@ -1815,10 +1815,18 @@ export default function FlightSearchForm({
           destination: formData.tripType === 'multi-city'
             ? formData.segments?.[formData.segments.length - 1]?.destination?.iataCode || ''
             : formData.destination?.iataCode || '',
-          tripType: formData.tripType === 'round-trip' ? 'Ida e Volta' 
-                   : formData.tripType === 'one-way' ? 'Só Ida' 
-                   : 'Multi-City',
-          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants
+          originCity: formData.tripType === 'multi-city'
+            ? formData.segments?.[0]?.origin?.city || ''
+            : formData.origin?.city || '',
+          destinationCity: formData.tripType === 'multi-city'
+            ? formData.segments?.[formData.segments.length - 1]?.destination?.city || ''
+            : formData.destination?.city || '',
+          tripType: formData.tripType === 'round-trip' ? 'round-trip journey' 
+                   : formData.tripType === 'one-way' ? 'one-way adventure' 
+                   : 'multi-city expedition',
+          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants,
+          departureDate: formData.departureDate,
+          returnDate: formData.returnDate
         }}
         onComplete={handleTransitionComplete}
         onClose={handleTransitionClose}
