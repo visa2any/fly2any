@@ -1821,7 +1821,11 @@ export default function FlightSearchForm({
           destinationCity: formData.tripType === 'multi-city'
             ? formData.segments?.[formData.segments.length - 1]?.destination?.city || ''
             : formData.destination?.city || '',
-          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants
+          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants,
+          departureDate: formData.departureDate,
+          returnDate: formData.returnDate,
+          tripType: formData.tripType,
+          travelClass: formData.travelClass
         }}
         onComplete={handleTransitionComplete}
         onClose={handleTransitionClose}

@@ -31,6 +31,10 @@ interface PremiumFlightTransitionProps {
     originCity: string;
     destinationCity: string;
     passengers: number;
+    departureDate?: string;
+    returnDate?: string;
+    tripType?: string;
+    travelClass?: string;
   };
   onComplete: (results: any) => void;
   onClose: () => void;
@@ -92,8 +96,36 @@ export default function PremiumFlightTransition({
     setTimeout(() => setPhase('analyzing'), 800);
     setTimeout(() => setPhase('complete'), 1800);
     
-    // Auto complete
+    // Auto complete and open results in new tab
     setTimeout(() => {
+      // Build comprehensive results URL
+      const params = new URLSearchParams({
+        origin: searchData.origin,
+        destination: searchData.destination,
+        passengers: searchData.passengers.toString(),
+      });
+
+      if (searchData.departureDate) {
+        params.append('departure', searchData.departureDate);
+      }
+      
+      if (searchData.returnDate) {
+        params.append('return', searchData.returnDate);
+      }
+      
+      if (searchData.travelClass) {
+        params.append('class', searchData.travelClass);
+      }
+
+      const resultsUrl = `/voos/results?${params.toString()}`;
+      
+      // Open new tab
+      const newTab = window.open(resultsUrl, '_blank');
+      if (newTab) {
+        newTab.focus();
+      }
+      
+      // Complete the transition
       onComplete({});
     }, 2500);
 
