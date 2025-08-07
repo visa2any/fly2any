@@ -161,6 +161,7 @@ function VoosAdvancedContent() {
   const [showOriginChangeDropdown, setShowOriginChangeDropdown] = useState(false);
   const [showDestinationChangeDropdown, setShowDestinationChangeDropdown] = useState(false);
   const [showPassengersChangeDropdown, setShowPassengersChangeDropdown] = useState(false);
+  const [showClassChangeDropdown, setShowClassChangeDropdown] = useState(false);
   const [originChangeSearch, setOriginChangeSearch] = useState('');
   const [destinationChangeSearch, setDestinationChangeSearch] = useState('');
   
@@ -168,6 +169,7 @@ function VoosAdvancedContent() {
   const originChangeRef = useRef<HTMLDivElement>(null);
   const destinationChangeRef = useRef<HTMLDivElement>(null);
   const passengersChangeRef = useRef<HTMLDivElement>(null);
+  const classChangeRef = useRef<HTMLDivElement>(null);
 
   // Auto-fill form from URL parameters on page load and execute search (only once)
   useEffect(() => {
@@ -618,6 +620,9 @@ function VoosAdvancedContent() {
         if (passengersChangeRef.current && !passengersChangeRef.current.contains(target)) {
           setShowPassengersChangeDropdown(false);
         }
+        if (classChangeRef.current && !classChangeRef.current.contains(target)) {
+          setShowClassChangeDropdown(false);
+        }
       }
     };
     
@@ -719,7 +724,7 @@ function VoosAdvancedContent() {
     return results;
   }, []);
 
-  // Enhanced Change Search Dropdown Component with Portal
+  // Enhanced Change Search Dropdown Component with Portal and Scroll Handling
   const ChangeSearchDropdown = ({ type, searchQuery, onSearchChange, onSelect, onClose }: {
     type: 'origin' | 'destination';
     searchQuery: string;
@@ -730,16 +735,43 @@ function VoosAdvancedContent() {
     const results = searchAirportsForChange(searchQuery);
     const displayResults = results.length > 0 ? results : searchAirportsForChange('', 6);
     
-    // Get button position for dropdown positioning
-    const buttonRef = type === 'origin' ? originChangeRef : destinationChangeRef;
-    const buttonRect = buttonRef.current?.getBoundingClientRect();
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
     
-    const dropdownStyle = buttonRect ? {
+    // Get button position for dropdown positioning with scroll handling
+    const buttonRef = type === 'origin' ? originChangeRef : destinationChangeRef;
+    
+    const updatePosition = useCallback(() => {
+      if (buttonRef.current) {
+        const buttonRect = buttonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: buttonRect.bottom + 8,
+          left: buttonRect.left
+        });
+      }
+    }, [buttonRef]);
+    
+    // Update position on mount and scroll
+    useEffect(() => {
+      updatePosition();
+      
+      const handleScroll = () => updatePosition();
+      const handleResize = () => updatePosition();
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }, [updatePosition]);
+    
+    const dropdownStyle = {
       position: 'fixed' as const,
-      top: buttonRect.bottom + 8,
-      left: buttonRect.left,
+      top: dropdownPosition.top,
+      left: dropdownPosition.left,
       zIndex: 999999
-    } : { position: 'fixed' as const, zIndex: 999999 };
+    };
     
     const dropdownContent = (
       <div className="bg-white shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none rounded-2xl" style={dropdownStyle} data-dropdown-portal="true">
@@ -834,25 +866,155 @@ function VoosAdvancedContent() {
     return typeof window !== 'undefined' ? createPortal(dropdownContent, document.body) : null;
   };
 
-  // Enhanced Passengers Change Dropdown Component with Portal
-  const PassengersChangeDropdown = ({ passengers, travelClass, onPassengersChange, onTravelClassChange, onClose }: {
-    passengers: { adults: number; children: number; infants: number };
+  // Travel Class Change Dropdown Component with Portal and Scroll Handling
+  const ClassChangeDropdown = ({ travelClass, onTravelClassChange, onClose }: {
     travelClass: string;
-    onPassengersChange: (passengers: { adults: number; children: number; infants: number }) => void;
     onTravelClassChange: (travelClass: string) => void;
     onClose: () => void;
   }) => {
-    const totalPassengers = passengers.adults + passengers.children + passengers.infants;
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
-    // Get button position for dropdown positioning
-    const buttonRect = passengersChangeRef.current?.getBoundingClientRect();
+    // Get button position for dropdown positioning with scroll handling
+    const updatePosition = useCallback(() => {
+      if (classChangeRef.current) {
+        const buttonRect = classChangeRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: buttonRect.bottom + 8,
+          left: buttonRect.left
+        });
+      }
+    }, []);
     
-    const dropdownStyle = buttonRect ? {
+    // Update position on mount and scroll
+    useEffect(() => {
+      updatePosition();
+      
+      const handleScroll = () => updatePosition();
+      const handleResize = () => updatePosition();
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }, [updatePosition]);
+
+    const dropdownStyle = {
       position: 'fixed' as const,
-      top: buttonRect.bottom + 8,
-      left: buttonRect.left,
+      top: dropdownPosition.top,
+      left: dropdownPosition.left,
       zIndex: 999999
-    } : { position: 'fixed' as const, zIndex: 999999 };
+    };
+
+    const dropdownContent = (
+      <div className="bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-80 min-w-80 max-w-[calc(100vw-2rem)] md:max-w-none" style={dropdownStyle} data-dropdown-portal="true">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200/60">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+            <span className="text-white text-lg">✨</span>
+          </div>
+          <div>
+            <div className="font-bold text-gray-900">Travel Class</div>
+            <div className="text-xs text-gray-500">Choose your preferred class</div>
+          </div>
+        </div>
+
+        {/* Travel Class Options */}
+        <div className="grid grid-cols-1 gap-2 mb-6">
+          {[
+            { value: 'ECONOMY', label: 'Economy', emoji: '💺', desc: 'Standard seating' },
+            { value: 'PREMIUM_ECONOMY', label: 'Premium Economy', emoji: '🛋️', desc: 'Extra legroom' },
+            { value: 'BUSINESS', label: 'Business', emoji: '💼', desc: 'Lie-flat seats' },
+            { value: 'FIRST', label: 'First Class', emoji: '👑', desc: 'Ultimate luxury' }
+          ].map((cls) => (
+            <label key={cls.value} className={`relative flex items-center gap-4 p-4 cursor-pointer rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
+              travelClass === cls.value 
+                ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg' 
+                : 'border-gray-200 hover:border-gray-300 bg-white'
+            }`}>
+              <div className="flex items-center gap-3 flex-1">
+                <span className="text-2xl">{cls.emoji}</span>
+                <div>
+                  <div className="font-semibold text-gray-900">{cls.label}</div>
+                  <div className="text-xs text-gray-500">{cls.desc}</div>
+                </div>
+              </div>
+              {travelClass === cls.value && (
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                  <span className="text-white text-sm">✓</span>
+                </div>
+              )}
+              <input
+                type="radio"
+                name="travelClass"
+                checked={travelClass === cls.value}
+                onChange={() => onTravelClassChange(cls.value)}
+                className="sr-only"
+              />
+            </label>
+          ))}
+        </div>
+        
+        {/* Footer with action button */}
+        <button
+          onClick={onClose}
+          className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white py-3 px-6 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+        >
+          <span>✨</span>
+          Done ({travelClass.replace('_', ' ')})
+        </button>
+      </div>
+    );
+
+    // Use portal to render dropdown at document body level to avoid z-index issues
+    return typeof window !== 'undefined' ? createPortal(dropdownContent, document.body) : null;
+  };
+
+  // Enhanced Passengers Change Dropdown Component with Portal and Scroll Handling (Passengers Only)
+  const PassengersChangeDropdown = ({ passengers, onPassengersChange, onClose }: {
+    passengers: { adults: number; children: number; infants: number };
+    onPassengersChange: (passengers: { adults: number; children: number; infants: number }) => void;
+    onClose: () => void;
+  }) => {
+    const totalPassengers = passengers.adults + passengers.children + passengers.infants;
+    
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+    // Get button position for dropdown positioning with scroll handling
+    const updatePosition = useCallback(() => {
+      if (passengersChangeRef.current) {
+        const buttonRect = passengersChangeRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: buttonRect.bottom + 8,
+          left: buttonRect.left
+        });
+      }
+    }, []);
+    
+    // Update position on mount and scroll
+    useEffect(() => {
+      updatePosition();
+      
+      const handleScroll = () => updatePosition();
+      const handleResize = () => updatePosition();
+      
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll, true);
+        window.removeEventListener('resize', handleResize);
+      };
+    }, [updatePosition]);
+
+    const dropdownStyle = {
+      position: 'fixed' as const,
+      top: dropdownPosition.top,
+      left: dropdownPosition.left,
+      zIndex: 999999
+    };
 
     const dropdownContent = (
       <div className="bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none" style={dropdownStyle} data-dropdown-portal="true">
@@ -862,9 +1024,9 @@ function VoosAdvancedContent() {
             <span className="text-white text-lg">👥</span>
           </div>
           <div>
-            <div className="font-bold text-gray-900">Travelers & Class</div>
+            <div className="font-bold text-gray-900">Passengers</div>
             <div className="text-xs text-gray-500">
-              {totalPassengers} passenger{totalPassengers !== 1 ? 's' : ''} • {travelClass.replace('_', ' ')}
+              {totalPassengers} passenger{totalPassengers !== 1 ? 's' : ''}
             </div>
           </div>
         </div>
@@ -965,46 +1127,6 @@ function VoosAdvancedContent() {
                 +
               </button>
             </div>
-          </div>
-        </div>
-        
-        {/* Travel Class */}
-        <div className="border-t border-gray-200/60 pt-5 mb-6">
-          <div className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-yellow-500">✨</span>
-            Travel Class
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'ECONOMY', label: 'Economy', emoji: '💺', desc: 'Standard seating' },
-              { value: 'PREMIUM_ECONOMY', label: 'Premium Economy', emoji: '🛋️', desc: 'Extra legroom' },
-              { value: 'BUSINESS', label: 'Business', emoji: '💼', desc: 'Lie-flat seats' },
-              { value: 'FIRST', label: 'First Class', emoji: '👑', desc: 'Ultimate luxury' }
-            ].map((cls) => (
-              <label key={cls.value} className={`relative flex flex-col p-3 cursor-pointer rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
-                travelClass === cls.value 
-                  ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg' 
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}>
-                <input
-                  type="radio"
-                  name="travelClass"
-                  checked={travelClass === cls.value}
-                  onChange={() => onTravelClassChange(cls.value)}
-                  className="sr-only"
-                />
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-lg">{cls.emoji}</span>
-                  {travelClass === cls.value && (
-                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                      <span className="text-white text-xs">✓</span>
-                    </div>
-                  )}
-                </div>
-                <div className="font-semibold text-gray-900 text-sm">{cls.label}</div>
-                <div className="text-xs text-gray-500">{cls.desc}</div>
-              </label>
-            ))}
           </div>
         </div>
         
@@ -1511,7 +1633,7 @@ function VoosAdvancedContent() {
                   {/* Advanced Change Search Form */}
                   {showChangeSearch && (
                     <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 mb-4 animate-slideDown relative z-[100]">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                         {/* Origin */}
                         <div className="relative" ref={originChangeRef}>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">From</label>
@@ -1620,28 +1742,62 @@ function VoosAdvancedContent() {
                           </div>
                         )}
 
-                        {/* Passengers & Class Combined */}
+                        {/* Passengers */}
                         <div className="relative" ref={passengersChangeRef}>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Travelers & Class</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Passengers</label>
                           <button
                             onClick={() => setShowPassengersChangeDropdown(!showPassengersChangeDropdown)}
                             className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
                           >
-                            <div>
-                              <div className="font-semibold text-gray-900 text-sm">
-                                {changeSearchData.passengers.adults + changeSearchData.passengers.children + changeSearchData.passengers.infants} Traveler{(changeSearchData.passengers.adults + changeSearchData.passengers.children + changeSearchData.passengers.infants) !== 1 ? 's' : ''}
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
+                                👥
                               </div>
-                              <div className="text-xs text-gray-500">{changeSearchData.travelClass.replace('_', ' ')}</div>
+                              <div className="text-left">
+                                <div className="font-semibold text-gray-900 text-sm">
+                                  {changeSearchData.passengers.adults + changeSearchData.passengers.children + changeSearchData.passengers.infants} Passenger{(changeSearchData.passengers.adults + changeSearchData.passengers.children + changeSearchData.passengers.infants) !== 1 ? 's' : ''}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {changeSearchData.passengers.adults} Adults{changeSearchData.passengers.children > 0 ? `, ${changeSearchData.passengers.children} Kids` : ''}{changeSearchData.passengers.infants > 0 ? `, ${changeSearchData.passengers.infants} Infants` : ''}
+                                </div>
+                              </div>
                             </div>
                             <span className="text-gray-400 group-hover:text-blue-500 transition-colors">⌄</span>
                           </button>
                           {showPassengersChangeDropdown && (
                             <PassengersChangeDropdown
                               passengers={changeSearchData.passengers}
-                              travelClass={changeSearchData.travelClass}
                               onPassengersChange={(passengers) => setChangeSearchData(prev => ({ ...prev, passengers }))}
-                              onTravelClassChange={(travelClass) => setChangeSearchData(prev => ({ ...prev, travelClass }))}
                               onClose={() => setShowPassengersChangeDropdown(false)}
+                            />
+                          )}
+                        </div>
+
+                        {/* Travel Class */}
+                        <div className="relative" ref={classChangeRef}>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Class</label>
+                          <button
+                            onClick={() => setShowClassChangeDropdown(!showClassChangeDropdown)}
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
+                                ✨
+                              </div>
+                              <div className="text-left">
+                                <div className="font-semibold text-gray-900 text-sm">
+                                  {changeSearchData.travelClass.replace('_', ' ')}
+                                </div>
+                                <div className="text-xs text-gray-500">Travel Class</div>
+                              </div>
+                            </div>
+                            <span className="text-gray-400 group-hover:text-blue-500 transition-colors">⌄</span>
+                          </button>
+                          {showClassChangeDropdown && (
+                            <ClassChangeDropdown
+                              travelClass={changeSearchData.travelClass}
+                              onTravelClassChange={(travelClass) => setChangeSearchData(prev => ({ ...prev, travelClass }))}
+                              onClose={() => setShowClassChangeDropdown(false)}
                             />
                           )}
                         </div>
