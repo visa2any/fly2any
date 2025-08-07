@@ -113,7 +113,7 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
       </div>
       
       <div style={{
-        maxWidth: '1280px',
+        maxWidth: '1600px',
         margin: '0 auto',
         padding: '16px 24px',
         display: 'flex',
