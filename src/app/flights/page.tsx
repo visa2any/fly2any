@@ -32,7 +32,7 @@ import type {
   FlightComparison,
   PriceInsights
 } from '@/types/flights';
-import { convertFormToSearchParams } from '@/lib/flights/validators';
+import { convertFormToSearchParams, validateFlightSearchForm } from '@/lib/flights/validators';
 
 type PageView = 'search' | 'results' | 'details' | 'booking' | 'confirmation';
 
@@ -268,8 +268,16 @@ function VoosAdvancedContent() {
     try {
       console.log('🔍 Iniciando busca avançada de voos com IA:', searchData);
 
+      // Validate form data before converting
+      const formErrors = validateFlightSearchForm(searchData);
+      if (formErrors.length > 0) {
+        console.error('❌ Form validation errors:', formErrors);
+        throw new Error(`Form validation failed: ${formErrors.join(', ')}`);
+      }
+
       // Convert form data to API parameters
       const searchParams = convertFormToSearchParams(searchData);
+      console.log('🔍 Converted search params:', searchParams);
       
       const queryParams = new URLSearchParams();
       queryParams.set('originLocationCode', searchParams.originLocationCode);
@@ -315,7 +323,16 @@ function VoosAdvancedContent() {
       ]);
 
       if (!flightResponse.ok) {
-        throw new Error(`API Error: ${flightResponse.status} ${flightResponse.statusText}`);
+        // Get detailed error information
+        let errorDetails = `${flightResponse.status} ${flightResponse.statusText}`;
+        try {
+          const errorData = await flightResponse.json();
+          console.error('❌ API Error Details:', errorData);
+          errorDetails = errorData.error || errorData.details?.join(', ') || errorDetails;
+        } catch {
+          console.error('❌ Could not parse error response');
+        }
+        throw new Error(`API Error: ${errorDetails}`);
       }
 
       const flightResult: FlightSearchResponse = await flightResponse.json();
