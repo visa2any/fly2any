@@ -725,7 +725,7 @@ function VoosAdvancedContent() {
     const displayResults = results.length > 0 ? results : searchAirportsForChange('', 6);
     
     return (
-      <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden">
+      <div className="absolute top-full left-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
         {/* Enhanced Search Input */}
         <div className="relative mb-4">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
@@ -778,17 +778,17 @@ function VoosAdvancedContent() {
               {/* Airport Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="font-bold text-gray-900 text-sm truncate">{airport.city}</div>
+                  <div className="font-bold text-gray-900 text-base">{airport.city}</div>
                   {airport.isHub && (
                     <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-1.5 py-0.5 rounded-md font-medium">
                       HUB
                     </div>
                   )}
                   {airport.popularity === 5 && (
-                    <div className="text-yellow-500 text-xs">⭐</div>
+                    <div className="text-yellow-500 text-sm">⭐</div>
                   )}
                 </div>
-                <div className="text-xs text-gray-600 truncate font-medium">{airport.name}</div>
+                <div className="text-sm text-gray-600 font-medium leading-tight">{airport.name}</div>
                 <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                   <span>🌍</span>
                   <span>{airport.country}</span>
@@ -826,7 +826,7 @@ function VoosAdvancedContent() {
     const totalPassengers = passengers.adults + passengers.children + passengers.infants;
 
     return (
-      <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 min-w-96">
+      <div className="absolute top-full left-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200/60">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
