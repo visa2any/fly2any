@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useCallback, useEffect, Suspense, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import Footer from '@/components/Footer';
@@ -713,7 +714,7 @@ function VoosAdvancedContent() {
     return results;
   }, []);
 
-  // Enhanced Change Search Dropdown Component
+  // Enhanced Change Search Dropdown Component with Portal
   const ChangeSearchDropdown = ({ type, searchQuery, onSearchChange, onSelect, onClose }: {
     type: 'origin' | 'destination';
     searchQuery: string;
@@ -724,8 +725,19 @@ function VoosAdvancedContent() {
     const results = searchAirportsForChange(searchQuery);
     const displayResults = results.length > 0 ? results : searchAirportsForChange('', 6);
     
-    return (
-      <div className="absolute top-full left-0 z-[9999] mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
+    // Get button position for dropdown positioning
+    const buttonRef = type === 'origin' ? originChangeRef : destinationChangeRef;
+    const buttonRect = buttonRef.current?.getBoundingClientRect();
+    
+    const dropdownStyle = buttonRect ? {
+      position: 'fixed' as const,
+      top: buttonRect.bottom + 8,
+      left: buttonRect.left,
+      zIndex: 999999
+    } : { position: 'fixed' as const, zIndex: 999999 };
+    
+    const dropdownContent = (
+      <div className="bg-white shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none rounded-2xl" style={dropdownStyle}>
         {/* Enhanced Search Input */}
         <div className="relative mb-4">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
@@ -813,9 +825,12 @@ function VoosAdvancedContent() {
         </div>
       </div>
     );
+
+    // Use portal to render dropdown at document body level to avoid z-index issues
+    return typeof window !== 'undefined' ? createPortal(dropdownContent, document.body) : null;
   };
 
-  // Enhanced Passengers Change Dropdown Component
+  // Enhanced Passengers Change Dropdown Component with Portal
   const PassengersChangeDropdown = ({ passengers, travelClass, onPassengersChange, onTravelClassChange, onClose }: {
     passengers: { adults: number; children: number; infants: number };
     travelClass: string;
@@ -825,8 +840,18 @@ function VoosAdvancedContent() {
   }) => {
     const totalPassengers = passengers.adults + passengers.children + passengers.infants;
 
-    return (
-      <div className="absolute top-full left-0 z-[9999] mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
+    // Get button position for dropdown positioning
+    const buttonRect = passengersChangeRef.current?.getBoundingClientRect();
+    
+    const dropdownStyle = buttonRect ? {
+      position: 'fixed' as const,
+      top: buttonRect.bottom + 8,
+      left: buttonRect.left,
+      zIndex: 999999
+    } : { position: 'fixed' as const, zIndex: 999999 };
+
+    const dropdownContent = (
+      <div className="bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none" style={dropdownStyle}>
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200/60">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
@@ -989,6 +1014,9 @@ function VoosAdvancedContent() {
         </button>
       </div>
     );
+
+    // Use portal to render dropdown at document body level to avoid z-index issues
+    return typeof window !== 'undefined' ? createPortal(dropdownContent, document.body) : null;
   };
 
   // Render different views
