@@ -600,19 +600,24 @@ function VoosAdvancedContent() {
     handleFlightSearch(changeSearchData);
   }, [changeSearchData, handleFlightSearch]);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside (improved for Portal dropdowns)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      if (originChangeRef.current && !originChangeRef.current.contains(target)) {
-        setShowOriginChangeDropdown(false);
-      }
-      if (destinationChangeRef.current && !destinationChangeRef.current.contains(target)) {
-        setShowDestinationChangeDropdown(false);
-      }
-      if (passengersChangeRef.current && !passengersChangeRef.current.contains(target)) {
-        setShowPassengersChangeDropdown(false);
+      // Check if click is inside any dropdown content (rendered via Portal)
+      const isInsideDropdown = target.closest('[data-dropdown-portal="true"]');
+      
+      if (!isInsideDropdown) {
+        if (originChangeRef.current && !originChangeRef.current.contains(target)) {
+          setShowOriginChangeDropdown(false);
+        }
+        if (destinationChangeRef.current && !destinationChangeRef.current.contains(target)) {
+          setShowDestinationChangeDropdown(false);
+        }
+        if (passengersChangeRef.current && !passengersChangeRef.current.contains(target)) {
+          setShowPassengersChangeDropdown(false);
+        }
       }
     };
     
@@ -737,7 +742,7 @@ function VoosAdvancedContent() {
     } : { position: 'fixed' as const, zIndex: 999999 };
     
     const dropdownContent = (
-      <div className="bg-white shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none rounded-2xl" style={dropdownStyle}>
+      <div className="bg-white shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none rounded-2xl" style={dropdownStyle} data-dropdown-portal="true">
         {/* Enhanced Search Input */}
         <div className="relative mb-4">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
@@ -749,7 +754,6 @@ function VoosAdvancedContent() {
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={`Search ${type === 'origin' ? 'departure' : 'arrival'} city or airport...`}
             className="w-full pl-10 pr-10 py-3 bg-gradient-to-r from-blue-50/80 to-purple-50/80 border-2 border-blue-200/60 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100/60 text-sm font-medium placeholder-gray-500 transition-all duration-300"
-            autoFocus
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
@@ -851,7 +855,7 @@ function VoosAdvancedContent() {
     } : { position: 'fixed' as const, zIndex: 999999 };
 
     const dropdownContent = (
-      <div className="bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none" style={dropdownStyle}>
+      <div className="bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none" style={dropdownStyle} data-dropdown-portal="true">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200/60">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
