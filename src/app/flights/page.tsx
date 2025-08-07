@@ -725,7 +725,7 @@ function VoosAdvancedContent() {
     const displayResults = results.length > 0 ? results : searchAirportsForChange('', 6);
     
     return (
-      <div className="absolute top-full left-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
+      <div className="absolute top-full left-0 z-[9999] mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-5 max-h-96 overflow-hidden w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
         {/* Enhanced Search Input */}
         <div className="relative mb-4">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
@@ -826,7 +826,7 @@ function VoosAdvancedContent() {
     const totalPassengers = passengers.adults + passengers.children + passengers.infants;
 
     return (
-      <div className="absolute top-full left-0 z-50 mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
+      <div className="absolute top-full left-0 z-[9999] mt-2 bg-white/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-200/50 p-6 w-96 min-w-96 max-w-[calc(100vw-2rem)] md:max-w-none">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200/60">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
@@ -1478,7 +1478,7 @@ function VoosAdvancedContent() {
 
                   {/* Advanced Change Search Form */}
                   {showChangeSearch && (
-                    <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 mb-4 animate-slideDown">
+                    <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 mb-4 animate-slideDown relative z-[100]">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         {/* Origin */}
                         <div className="relative" ref={originChangeRef}>
