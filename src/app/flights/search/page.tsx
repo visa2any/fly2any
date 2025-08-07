@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import FlightSearchForm from '@/components/flights/FlightSearchForm';
 import FlightFilters from '@/components/flights/FlightFilters';
+import type { FlightSearchFormData, TravelClass } from '@/types/flights';
 
 export default function FlightSearchPage() {
   const router = useRouter();
@@ -29,14 +30,28 @@ export default function FlightSearchPage() {
     airports: {}
   });
 
-  // Get initial search values from URL params
-  const initialValues = {
-    origin: searchParams.get('from') || '',
-    destination: searchParams.get('to') || '',
-    departure: searchParams.get('departure') || '',
-    return: searchParams.get('return') || '',
-    passengers: parseInt(searchParams.get('passengers') || '1'),
-    class: searchParams.get('class') || 'ECONOMY'
+  // Get initial search values from URL params - convert to proper types
+  const initialValues: Partial<FlightSearchFormData> = {
+    origin: searchParams.get('from') ? { 
+      iataCode: searchParams.get('from') || '', 
+      name: '', 
+      city: searchParams.get('from') || '', 
+      country: '' 
+    } : undefined,
+    destination: searchParams.get('to') ? { 
+      iataCode: searchParams.get('to') || '', 
+      name: '', 
+      city: searchParams.get('to') || '', 
+      country: '' 
+    } : undefined,
+    departureDate: searchParams.get('departure') ? new Date(searchParams.get('departure')!) : undefined,
+    returnDate: searchParams.get('return') ? new Date(searchParams.get('return')!) : undefined,
+    passengers: {
+      adults: parseInt(searchParams.get('passengers') || '1'),
+      children: 0,
+      infants: 0
+    },
+    travelClass: (searchParams.get('class') || 'ECONOMY') as TravelClass
   };
 
   const handleSearch = (searchData: any) => {
@@ -164,8 +179,8 @@ export default function FlightSearchPage() {
               
               {showAdvancedFilters ? (
                 <FlightFilters 
-                  filters={filters}
-                  onFiltersChange={setFilters}
+                  filters={filters as any}
+                  onFiltersChange={(newFilters) => setFilters(newFilters as any)}
                 />
               ) : (
                 <div className="text-center py-8">

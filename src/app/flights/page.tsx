@@ -30,7 +30,8 @@ import type {
   FlightSortOptions,
   FlightSearchResponse,
   FlightComparison,
-  PriceInsights
+  PriceInsights,
+  TravelClass
 } from '@/types/flights';
 import { convertFormToSearchParams, validateFlightSearchForm } from '@/lib/flights/validators';
 
@@ -1659,7 +1660,7 @@ function VoosAdvancedContent() {
                               setShowOriginChangeDropdown(!showOriginChangeDropdown);
                               setShowDestinationChangeDropdown(false);
                             }}
-                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group min-h-[72px]"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
@@ -1669,9 +1670,9 @@ function VoosAdvancedContent() {
                                 <div className="font-semibold text-gray-900 text-sm">
                                   {changeSearchData.origin.city || 'Select Origin'}
                                 </div>
-                                {changeSearchData.origin.country && (
-                                  <div className="text-xs text-gray-500">{changeSearchData.origin.country}</div>
-                                )}
+                                <div className="text-xs text-gray-500 min-h-[16px]">
+                                  {changeSearchData.origin.country || 'Choose departure city'}
+                                </div>
                               </div>
                             </div>
                             <span className="text-gray-400 group-hover:text-blue-500 transition-colors">⌄</span>
@@ -1695,7 +1696,7 @@ function VoosAdvancedContent() {
                               setShowDestinationChangeDropdown(!showDestinationChangeDropdown);
                               setShowOriginChangeDropdown(false);
                             }}
-                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group min-h-[72px]"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
@@ -1705,9 +1706,9 @@ function VoosAdvancedContent() {
                                 <div className="font-semibold text-gray-900 text-sm">
                                   {changeSearchData.destination.city || 'Select Destination'}
                                 </div>
-                                {changeSearchData.destination.country && (
-                                  <div className="text-xs text-gray-500">{changeSearchData.destination.country}</div>
-                                )}
+                                <div className="text-xs text-gray-500 min-h-[16px]">
+                                  {changeSearchData.destination.country || 'Choose arrival city'}
+                                </div>
                               </div>
                             </div>
                             <span className="text-gray-400 group-hover:text-blue-500 transition-colors">⌄</span>
@@ -1735,7 +1736,7 @@ function VoosAdvancedContent() {
                                 departureDate: new Date(e.target.value)
                               }))}
                               min={new Date().toISOString().split('T')[0]}
-                              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                              className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 min-h-[72px]"
                             />
                           </div>
                         </div>
@@ -1753,7 +1754,7 @@ function VoosAdvancedContent() {
                                   returnDate: e.target.value ? new Date(e.target.value) : undefined
                                 }))}
                                 min={changeSearchData.departureDate.toISOString().split('T')[0]}
-                                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 min-h-[72px]"
                               />
                             </div>
                           </div>
@@ -1764,7 +1765,7 @@ function VoosAdvancedContent() {
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Passengers</label>
                           <button
                             onClick={() => setShowPassengersChangeDropdown(!showPassengersChangeDropdown)}
-                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group min-h-[72px]"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">
@@ -1795,7 +1796,7 @@ function VoosAdvancedContent() {
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Class</label>
                           <button
                             onClick={() => setShowClassChangeDropdown(!showClassChangeDropdown)}
-                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group"
+                            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-left hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 flex items-center justify-between group min-h-[72px]"
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
@@ -1813,7 +1814,7 @@ function VoosAdvancedContent() {
                           {showClassChangeDropdown && (
                             <ClassChangeDropdown
                               travelClass={changeSearchData.travelClass}
-                              onTravelClassChange={(travelClass) => setChangeSearchData(prev => ({ ...prev, travelClass }))}
+                              onTravelClassChange={(travelClass) => setChangeSearchData(prev => ({ ...prev, travelClass: travelClass as TravelClass }))}
                               onClose={() => setShowClassChangeDropdown(false)}
                             />
                           )}

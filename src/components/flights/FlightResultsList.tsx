@@ -268,12 +268,12 @@ export default function FlightResultsList({
       shareParams.set('flight', offer.id);
       shareParams.set('from', offer.outbound.departure.iataCode);
       shareParams.set('to', offer.outbound.arrival.iataCode);
-      shareParams.set('departure', offer.outbound.departure.at.split('T')[0]);
+      shareParams.set('departure', offer.outbound.departure.at?.split('T')[0] || '');
       shareParams.set('price', offer.totalPrice.replace(/[^\d.]/g, ''));
       
       // Add return flight if available
       if (offer.inbound) {
-        shareParams.set('return', offer.inbound.departure.at.split('T')[0]);
+        shareParams.set('return', offer.inbound.departure.at?.split('T')[0] || '');
       }
       
       const shareUrl = `${baseUrl}?${shareParams.toString()}`;

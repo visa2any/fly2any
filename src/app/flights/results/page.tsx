@@ -14,7 +14,7 @@ function FlightResultsContent() {
   const searchParams = useSearchParams();
   const [flights, setFlights] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const searchData = {
     from: searchParams.get('from') || '',
@@ -66,7 +66,7 @@ function FlightResultsContent() {
         }
       } catch (err) {
         console.error('Flight search error:', err);
-        setError(err.message || 'An error occurred while searching for flights');
+        setError(err instanceof Error ? err.message : 'An error occurred while searching for flights');
       } finally {
         setIsLoading(false);
       }
@@ -160,8 +160,7 @@ function FlightResultsContent() {
           onOfferSelect={(flight) => {
             window.open(`/flights/${flight.id}`, '_blank');
           }}
-          loading={false}
-          error={null}
+          isLoading={false}
           searchParams={{
             origin: searchData.from,
             destination: searchData.to,
