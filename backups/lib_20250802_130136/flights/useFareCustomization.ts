@@ -430,17 +430,17 @@ export function useFareCustomization({
   
   const customization = useMemo((): FareCustomization => {
     const selectedOpts = availableOptions.filter(opt => selectedOptions.has(opt.id));
-    const selectedBundles = availableBundles.filter(bundle => selectedBundles.has(bundle.id));
+    const selectedBundlesList = availableBundles.filter(bundle => selectedBundles.has(bundle.id));
     
     const upgradePrice = selectedOpts.reduce((sum, opt) => sum + opt.price, 0) +
-                        selectedBundles.reduce((sum, bundle) => sum + bundle.bundlePrice, 0);
+                        selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.bundlePrice, 0);
     
     const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0) +
-                        selectedBundles.reduce((sum, bundle) => sum + bundle.savings, 0);
+                        selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.savings, 0);
     
     return {
       selectedOptions: selectedOpts,
-      selectedBundles,
+      selectedBundles: selectedBundlesList,
       basePrice,
       upgradePrice,
       totalPrice: basePrice + upgradePrice,
@@ -448,7 +448,7 @@ export function useFareCustomization({
       priceBreakdown: {
         base: basePrice,
         upgrades: selectedOpts.reduce((sum, opt) => sum + opt.price, 0),
-        bundles: selectedBundles.reduce((sum, bundle) => sum + bundle.bundlePrice, 0),
+        bundles: selectedBundlesList.reduce((sum: number, bundle: any) => sum + bundle.bundlePrice, 0),
         taxes: 0, // Would be calculated from API
         fees: 0   // Would be calculated from API
       }

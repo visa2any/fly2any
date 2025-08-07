@@ -72,12 +72,12 @@ const CLASS_COLORS = {
   FIRST: 'bg-rose-100 text-rose-800 border-rose-200'
 };
 
-// 🎯 NOMES AMIGÁVEIS
+// 🎯 CLASS NAMES
 const CLASS_NAMES = {
-  ECONOMY: 'Econômica',
-  PREMIUM_ECONOMY: 'Econômica Premium',
-  BUSINESS: 'Executiva',
-  FIRST: 'Primeira Classe'
+  ECONOMY: 'Economy',
+  PREMIUM_ECONOMY: 'Premium Economy',
+  BUSINESS: 'Business',
+  FIRST: 'First Class'
 };
 
 export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
@@ -115,7 +115,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
             <TooltipContent>
               <div className="text-xs space-y-1">
                 <div className="font-semibold">Detecção: {confidence}% confiança</div>
-                <div>Fonte: {sources[0]?.replace('-', ' ')}</div>
+                <div>Fonte: {sources && sources.length > 0 ? sources[0]?.replace('-', ' ') : 'Análise Amadeus API'}</div>
                 <div className="text-green-600">✓ Precisão superior aos competidores</div>
               </div>
             </TooltipContent>
@@ -284,7 +284,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                 <div className="text-2xl font-bold text-green-600">{confidence}%</div>
                 <div className="text-xs text-gray-600">Multi-dimensional</div>
                 <div className="text-xs text-green-600 mt-1">
-                  ✓ {sources.length} fontes analisadas
+                  ✓ {sources && sources.length > 0 ? sources.length : 1} fontes analisadas
                 </div>
               </div>
               
@@ -321,11 +321,14 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
               <div className="text-sm">
                 <span className="font-medium">Fonte Primária:</span> 
                 <Badge variant="outline" className="ml-2">
-                  {sources[0]?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  {sources && sources.length > 0 
+                    ? sources[0]?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                    : 'Amadeus API'
+                  }
                 </Badge>
               </div>
               
-              {sources.length > 1 && (
+              {sources && sources.length > 1 && (
                 <div className="text-sm">
                   <span className="font-medium">Fontes Secundárias:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
@@ -365,7 +368,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                   className="justify-start"
                 >
                   <Coffee className="h-4 w-4 mr-2" />
-                  Upgrade para Premium Economy
+                  Upgrade to Premium Economy
                 </Button>
               )}
               {definition.tier < 3 && (
@@ -376,7 +379,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                   className="justify-start"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Upgrade para Executiva
+                  Upgrade to Business
                 </Button>
               )}
               {definition.tier < 4 && (
@@ -387,7 +390,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                   className="justify-start"
                 >
                   <Crown className="h-4 w-4 mr-2" />
-                  Upgrade para Primeira Classe
+                  Upgrade to First Class
                 </Button>
               )}
             </div>

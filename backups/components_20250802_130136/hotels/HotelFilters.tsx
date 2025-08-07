@@ -24,7 +24,7 @@ import { Card } from '../ui/card';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import { Badge } from '../ui/badge';
-import type { HotelFiltersProps, SearchFilters } from '../../types/hotels';
+import type { HotelFiltersProps, SearchFilters } from '@/types/hotels';
 
 // Facilidades disponíveis com ícones
 const availableAmenities = [
@@ -119,7 +119,7 @@ export default function HotelFilters({
     const current = localFilters.starRating || [];
     const updated = checked 
       ? [...current, rating]
-      : current.filter(r => r !== rating);
+      : current.filter((r: number) => r !== rating);
     
     setLocalFilters({ ...localFilters, starRating: updated });
   };
@@ -128,7 +128,7 @@ export default function HotelFilters({
     const current = localFilters.amenities || [];
     const updated = checked 
       ? [...current, amenity]
-      : current.filter(a => a !== amenity);
+      : current.filter((a: string) => a !== amenity);
     
     setLocalFilters({ ...localFilters, amenities: updated });
   };
@@ -137,7 +137,7 @@ export default function HotelFilters({
     const current = localFilters.propertyTypes || [];
     const updated = checked 
       ? [...current, type]
-      : current.filter(t => t !== type);
+      : current.filter((t: string) => t !== type);
     
     setLocalFilters({ ...localFilters, propertyTypes: updated });
   };
@@ -146,7 +146,7 @@ export default function HotelFilters({
     const current = localFilters.mealPlans || [];
     const updated = checked 
       ? [...current, plan]
-      : current.filter(p => p !== plan);
+      : current.filter((p: string) => p !== plan);
     
     setLocalFilters({ ...localFilters, mealPlans: updated });
   };
@@ -258,7 +258,7 @@ export default function HotelFilters({
       <div className="space-y-3">
         <Label className="text-sm font-medium">Facilidades</Label>
         <div className="space-y-2 max-h-40 overflow-y-auto">
-          {amenities.map(amenity => {
+          {amenities.map((amenity: any) => {
             const IconComponent = typeof amenity === 'object' && 'icon' in amenity 
               ? amenity.icon 
               : Wifi;
@@ -304,7 +304,7 @@ export default function HotelFilters({
       {/* Filtros ativos */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
-          {filters.starRating?.map(rating => (
+          {filters.starRating?.map((rating: number) => (
             <Badge key={`star-${rating}`} variant="secondary" className="flex items-center gap-1">
               {rating} estrela{rating > 1 ? 's' : ''}
               <button onClick={() => handleStarRatingChange(rating, false)}>
@@ -313,7 +313,7 @@ export default function HotelFilters({
             </Badge>
           ))}
           
-          {filters.amenities?.map(amenity => (
+          {filters.amenities?.map((amenity: string) => (
             <Badge key={`amenity-${amenity}`} variant="secondary" className="flex items-center gap-1">
               {amenity}
               <button onClick={() => handleAmenityChange(amenity, false)}>

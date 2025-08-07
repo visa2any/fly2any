@@ -51,7 +51,7 @@ export default function PremiumFlightTransition({
   const [progress, setProgress] = useState(0);
   const [currentPrice, setCurrentPrice] = useState(899);
   const [sitesSearched, setSitesSearched] = useState(0);
-  const [phase, setPhase] = useState<'searching' | 'analyzing' | 'complete'>('searching');
+  const [phase, setPhase] = useState<'searching' | 'analyzing' | 'complete' | 'opening'>('searching');
   const [searchResults, setSearchResults] = useState<any>(null);
   const [isSearchComplete, setIsSearchComplete] = useState(false);
   const [isFallbackMode, setIsFallbackMode] = useState(false);
@@ -59,7 +59,17 @@ export default function PremiumFlightTransition({
 
   // Real Amadeus API search
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible) {
+      // Reset all states when component becomes invisible
+      setProgress(0);
+      setCurrentPrice(899);
+      setSitesSearched(0);
+      setPhase('searching');
+      setSearchResults(null);
+      setIsSearchComplete(false);
+      setIsFallbackMode(false);
+      return;
+    }
 
     const performRealSearch = async () => {
       try {
@@ -90,16 +100,19 @@ export default function PremiumFlightTransition({
 
         const data = await response.json();
         
-        if (data.success && data.flights) {
-          setSearchResults(data.flights);
+        if (data.success) {
+          // Handle both cases: flights found or empty results
+          const flights = data.flights || data.data || [];
+          setSearchResults(flights);
           setIsSearchComplete(true);
-          setPhase('complete');
+          setPhase('analyzing'); // Keep analyzing until we're ready to open
           
           // Update progress to 100%
           setProgress(100);
           
-          // Wait a moment then open results
+          // Wait a moment, then show complete and open results
           setTimeout(() => {
+            setPhase('opening'); // Only now show "Opening results..."
             // Build results URL with real data
             const resultsParams = new URLSearchParams({
               origin: searchData.origin,
@@ -119,20 +132,18 @@ export default function PremiumFlightTransition({
               resultsParams.append('class', searchData.travelClass);
             }
 
-            const resultsUrl = `/voos/results?${resultsParams.toString()}`;
+            const resultsUrl = `/flights?${resultsParams.toString()}`;
             
-            // Open new tab with real results
-            const newTab = window.open(resultsUrl, '_blank');
-            if (newTab) {
-              newTab.focus();
-            }
+            // Navigate to results page in same tab (better UX)
+            window.location.href = resultsUrl;
             
-            // Complete the transition
-            onComplete({ flights: data.flights });
+            // Complete the transition and close
+            onComplete({ flights: flights });
+            onClose(); // Ensure component closes after navigation
           }, 1000);
           
         } else {
-          throw new Error(data.error || 'No flights found');
+          throw new Error(data.error || 'Search failed');
         }
         
       } catch (error) {
@@ -161,7 +172,7 @@ export default function PremiumFlightTransition({
           
           setSearchResults(mockResults);
           setIsSearchComplete(true);
-          setPhase('complete');
+          setPhase('analyzing'); // Keep analyzing until ready to open
           setProgress(100);
           
           // Update with mock data for demonstration
@@ -169,6 +180,8 @@ export default function PremiumFlightTransition({
           setSitesSearched(500);
           
           setTimeout(() => {
+            setPhase('opening'); // Show "Opening results..." right before opening
+            
             // Build results URL
             const resultsParams = new URLSearchParams({
               origin: searchData.origin,
@@ -188,24 +201,23 @@ export default function PremiumFlightTransition({
               resultsParams.append('class', searchData.travelClass);
             }
 
-            const resultsUrl = `/voos/results?${resultsParams.toString()}`;
+            const resultsUrl = `/flights?${resultsParams.toString()}`;
             
-            // Open new tab
-            const newTab = window.open(resultsUrl, '_blank');
-            if (newTab) {
-              newTab.focus();
-            }
+            // Navigate to results page in same tab (better UX)
+            window.location.href = resultsUrl;
             
             onComplete({ flights: mockResults, fallback: true });
+            onClose(); // Ensure component closes after navigation
           }, 1000);
           
         } else {
           // Other errors
-          setPhase('complete');
+          setPhase('opening');
           setProgress(100);
           
           setTimeout(() => {
             onComplete({ error: error instanceof Error ? error.message : 'Search failed' });
+            onClose(); // Ensure component closes on error
           }, 500);
         }
       }
@@ -220,8 +232,8 @@ export default function PremiumFlightTransition({
     // Smooth progress animation (slower, more realistic)
     const progressInterval = setInterval(() => {
       setProgress(prev => {
-        if (isSearchComplete) {
-          return 100;
+        if (isSearchComplete || phase === 'opening') {
+          return 100; // Stop animation when complete
         }
         
         // Slower progress until search completes
@@ -232,10 +244,10 @@ export default function PremiumFlightTransition({
     }, 200);
     intervals.push(progressInterval);
 
-    // Sites counter
+    // Airlines counter (more accurate than "sites")
     const sitesInterval = setInterval(() => {
       setSitesSearched(prev => {
-        if (isSearchComplete) return 500;
+        if (isSearchComplete || phase === 'opening') return 500; // Stop animation when complete
         const increment = Math.floor(Math.random() * 20) + 10;
         return Math.min(prev + increment, 480);
       });
@@ -246,9 +258,13 @@ export default function PremiumFlightTransition({
     const priceInterval = setInterval(() => {
       setCurrentPrice(prev => {
         if (isSearchComplete && searchResults?.length > 0) {
-          // Use real price from results
+          // Use real price from results - stop animation
           const realPrice = Math.min(...searchResults.map((f: any) => parseFloat(f.price?.total || f.grandTotal || '999')));
           return Math.round(realPrice);
+        }
+        
+        if (phase === 'opening') {
+          return prev; // Stop price changes when opening
         }
         
         // Gradual price improvement while searching
@@ -390,7 +406,7 @@ export default function PremiumFlightTransition({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100000] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[999999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
         >
           {/* Main Search Card */}
           <motion.div
@@ -404,7 +420,7 @@ export default function PremiumFlightTransition({
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 rounded-2xl flex items-center justify-center">
-                    {phase === 'complete' ? (
+                    {phase === 'opening' ? (
                       <CheckCircleIcon className="w-6 h-6 text-white" />
                     ) : phase === 'analyzing' ? (
                       <SparklesIcon className="w-6 h-6 text-white" />
@@ -414,7 +430,7 @@ export default function PremiumFlightTransition({
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-800">
-                      {phase === 'complete' ? 'Search Complete!' : 
+                      {phase === 'opening' ? 'Opening Results...' :
                        phase === 'analyzing' ? 'Analyzing Best Deals' : 
                        'Searching 500+ Airlines'}
                     </h2>
@@ -427,10 +443,16 @@ export default function PremiumFlightTransition({
                 {/* Live Price Counter (Unique Feature) */}
                 <div className="text-right">
                   <div className="text-2xl font-black text-slate-800">
-                    ${currentPrice}
+                    {isSearchComplete && searchResults?.length > 0 ? 
+                      `$${currentPrice}` : 
+                      phase === 'opening' ? `$${currentPrice}` :
+                      'Searching...'}
                   </div>
                   <div className="text-slate-500 text-xs font-medium">
-                    Best price found
+                    {isSearchComplete && searchResults?.length > 0 ? 
+                      'Best price found' : 
+                      phase === 'opening' ? 'Best price found' :
+                      'Finding best price...'}
                   </div>
                 </div>
               </div>
@@ -473,7 +495,7 @@ export default function PremiumFlightTransition({
                       {sitesSearched}
                     </div>
                     <div className="text-blue-600 text-xs font-medium">
-                      Sites searched
+                      Airlines checked
                     </div>
                   </div>
                   
@@ -495,7 +517,7 @@ export default function PremiumFlightTransition({
                   className="text-center py-2"
                 >
                   <p className="text-slate-600 font-medium text-sm">
-                    {phase === 'complete' ? 
+                    {phase === 'opening' ? 
                       isSearchComplete ? 
                         isFallbackMode ?
                           `🎯 Demo: Found ${searchResults?.length || 0} flights! Opening results...` :
@@ -503,7 +525,7 @@ export default function PremiumFlightTransition({
                         '❌ Search completed with issues. Please try again.' :
                      phase === 'analyzing' ? 
                       isFallbackMode ?
-                        '🔄 Demo mode: Generating sample results...' :
+                        '🔄 Demo mode: Finalizing results...' :
                         '🔍 Analyzing real-time prices from Amadeus API...' :
                       isFallbackMode ?
                         '⚡ Demo mode: API rate limit reached, using fallback...' :

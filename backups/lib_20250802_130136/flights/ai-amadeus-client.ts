@@ -737,7 +737,13 @@ export class AIAmadeusClient extends EnhancedAmadeusClient {
   }
 
   // 🎯 BRANDED FARES UPSELL (Upselling inteligente)
-  async getBrandedFareUpsell(flightOfferId: string): Promise<BrandedFareUpsell | null> {
+  async getBrandedFareUpsell(flightOffers: any[]): Promise<any> {
+    // Convert to old signature for compatibility  
+    const flightOfferId = flightOffers[0]?.id || '';
+    return this.getBrandedFareUpsellById(flightOfferId);
+  }
+
+  async getBrandedFareUpsellById(flightOfferId: string): Promise<BrandedFareUpsell | null> {
     const cacheKey = `branded_fares_${flightOfferId}`;
     const cached = this.cache.get(cacheKey);
     if (cached) return cached;

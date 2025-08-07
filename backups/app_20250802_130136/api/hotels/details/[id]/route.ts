@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { liteApiClient } from '../../../../../lib/hotels/liteapi-client';
+import { liteApiClient } from '@/lib/hotels/liteapi-client';
 import { z } from 'zod';
 
 // Schema de validação para parâmetros

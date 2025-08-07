@@ -165,7 +165,7 @@ export default function FlightSearchForm({
         ...prev,
         origin: cache.lastOrigin || prev.origin,
         destination: cache.lastDestination || prev.destination,
-        segments: [
+        segments: prev.segments ? [
           {
             ...prev.segments[0],
             origin: cache.lastOrigin || prev.segments[0].origin,
@@ -175,7 +175,7 @@ export default function FlightSearchForm({
             ...prev.segments[1],
             origin: cache.lastDestination || prev.segments[1].origin
           }
-        ]
+        ] : undefined
       }));
     }
   }, []);
@@ -225,7 +225,7 @@ export default function FlightSearchForm({
   }, []);
 
   // Update dropdown position
-  const updateDropdownPosition = useCallback((type: 'origin' | 'destination' | 'passenger', ref: React.RefObject<HTMLInputElement | HTMLButtonElement>) => {
+  const updateDropdownPosition = useCallback((type: 'origin' | 'destination' | 'passenger', ref: React.RefObject<HTMLInputElement | HTMLButtonElement | null>) => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       setDropdownPositions(prev => ({
@@ -635,7 +635,7 @@ export default function FlightSearchForm({
                       </div>
                       <span className="font-semibold text-gray-900">Flight {index + 1}</span>
                     </div>
-                    {formData.segments.length > 2 && (
+                    {formData.segments && formData.segments.length > 2 && (
                       <button
                         type="button"
                         onClick={() => removeSegment(index)}
@@ -700,7 +700,7 @@ export default function FlightSearchForm({
                     </div>
                   </div>
 
-                  {index < formData.segments.length - 1 && (
+                  {formData.segments && index < formData.segments.length - 1 && (
                     <div className="flex justify-center mt-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm">
                         ↓

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Check Vercel-optimized Baileys status
     try {
-      const { WhatsAppVercelService } = await import('../../../../lib/whatsapp-vercel-optimized');
+      const { WhatsAppVercelService } = await import('@/lib/whatsapp-vercel-optimized');
       const vercelService = WhatsAppVercelService.getInstance();
       const vercelStatus = vercelService.getStatus();
       

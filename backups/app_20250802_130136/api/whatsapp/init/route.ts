@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     console.log('🚀 Inicializando WhatsApp otimizado para Vercel...');
     
     // Use Railway WhatsApp service 
-    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
+    const { WhatsAppRailwayService } = await import('@/lib/whatsapp-railway');
     
     // Initialize Railway service
     const whatsapp = WhatsAppRailwayService.getInstance();
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { WhatsAppRailwayService } = await import('../../../../lib/whatsapp-railway');
+    const { WhatsAppRailwayService } = await import('@/lib/whatsapp-railway');
     const whatsapp = WhatsAppRailwayService.getInstance();
     const status = await whatsapp.getStatus();
     

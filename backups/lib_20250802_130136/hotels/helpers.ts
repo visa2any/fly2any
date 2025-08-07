@@ -8,7 +8,7 @@ import type {
   HotelSearchParams, 
   HotelSearchResult,
   SearchFilters 
-} from '../../types/hotels';
+} from '@/types/hotels';
 
 /**
  * Converter dados do formulário para parâmetros da API
@@ -105,8 +105,8 @@ export function applyFiltersToResults(
   if (filters.amenities && filters.amenities.length > 0) {
     filteredResults = filteredResults.filter(hotel => {
       if (!hotel.amenities) return false;
-      return filters.amenities!.some(amenity => 
-        hotel.amenities!.some(hotelAmenity => hotelAmenity.name === amenity)
+      return filters.amenities!.some((amenity: string) => 
+        hotel.amenities!.some((hotelAmenity: any) => hotelAmenity.name === amenity)
       );
     });
   }

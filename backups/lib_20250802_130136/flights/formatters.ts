@@ -51,6 +51,28 @@ export function formatFlightOffer(
     lastTicketingDate: offer.lastTicketingDate,
     instantTicketingRequired: offer.instantTicketingRequired,
     
+    // Required properties from ProcessedFlightOffer interface
+    cabinAnalysis: {
+      detectedClass: (offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin as any) || 'ECONOMY',
+      confidence: 0.8,
+      definition: null,
+      sources: ['travelerPricings']
+    },
+    baggageAnalysis: {
+      carryOn: {
+        included: true,
+        quantity: 1,
+        weight: '8kg',
+        hasRealData: false
+      },
+      checked: {
+        included: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity > 0 || false,
+        quantity: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity || 0,
+        weight: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.weight ? `${offer.travelerPricings[0].fareDetailsBySegment[0].includedCheckedBags.weight}kg` : null,
+        hasRealData: true
+      }
+    },
+    
     rawOffer: offer
   };
 }

@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import type { ValidationResult, FormValidation, HotelSearchFormState, GuestInfo } from '../../types/hotels';
+import type { ValidationResult, FormValidation, HotelSearchFormState, GuestInfo } from '@/types/hotels';
 
 // ============ SCHEMAS BASE ============
 

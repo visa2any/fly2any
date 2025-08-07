@@ -2,20 +2,30 @@
  * ULTRA-INNOVATIVE Flight Search Form - Beyond Google Flights, Expedia, Kayak
  * Revolutionary UX with AI-powered search and glassmorphism design
  */
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FlightIcon, CalendarIcon, UsersIcon, SwitchIcon, PlusIcon, MinusIcon } from '@/components/Icons';
 import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass, FlightSegment } from '@/types/flights';
 import { validateFlightSearchForm } from '@/lib/flights/validators';
 import { AMADEUS_CONFIG } from '@/lib/flights/amadeus-config';
 import EnterpriseDatePicker from '@/components/ui/enterprise-date-picker';
-import PremiumFlightTransition from './PremiumFlightTransition';
+
+// Import all comprehensive airport databases
+import { US_AIRPORTS_DATABASE } from '@/lib/airports/us-airports-database';
+import { BRAZIL_AIRPORTS_DATABASE } from '@/lib/airports/brazil-airports-database';
+import { SOUTH_AMERICA_AIRPORTS_DATABASE } from '@/lib/airports/south-america-airports-database';
+import { NORTH_CENTRAL_AMERICA_AIRPORTS_DATABASE } from '@/lib/airports/north-central-america-airports-database';
+import { ASIA_AIRPORTS_DATABASE } from '@/lib/airports/asia-airports-database';
+import { EUROPE_AIRPORTS_DATABASE } from '@/lib/airports/europe-airports-database';
+import { AFRICA_AIRPORTS_DATABASE } from '@/lib/airports/africa-airports-database';
+import { OCEANIA_AIRPORTS_DATABASE } from '@/lib/airports/oceania-airports-database';
 
 interface FlightSearchFormProps {
   onSearch: (searchData: FlightSearchFormData) => void;
   initialData?: Partial<FlightSearchFormData>;
   isLoading?: boolean;
   className?: string;
+  openInNewTab?: boolean; // Add option to control behavior
 }
 
 interface EnhancedAirportResult {
@@ -41,7 +51,8 @@ export default function FlightSearchForm({
   onSearch, 
   initialData, 
   isLoading = false, 
-  className = '' 
+  className = '',
+  openInNewTab = false 
 }: FlightSearchFormProps) {
   // Form state
   const [formData, setFormData] = useState<FlightSearchFormData>({
@@ -49,7 +60,7 @@ export default function FlightSearchForm({
     origin: { iataCode: '', name: '', city: '', country: '' },
     destination: { iataCode: '', name: '', city: '', country: '' },
     departureDate: new Date(),
-    returnDate: new Date(),
+    returnDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000), // Next day by default
     segments: [
       {
         origin: { iataCode: '', name: '', city: '', country: '' },
@@ -70,9 +81,6 @@ export default function FlightSearchForm({
     },
     ...initialData
   });
-
-  // Transition screen state
-  const [showTransition, setShowTransition] = useState(false);
 
   // Search states
   const [originSearch, setOriginSearch] = useState('');
@@ -118,120 +126,121 @@ export default function FlightSearchForm({
     class: { top: 0, left: 0, width: 0 }
   });
 
-  // ULTRA-ENHANCED GLOBAL AIRPORT DATABASE with AI Intelligence
-  const enhancedAirports: EnhancedAirportResult[] = [
-    // US Major Hubs - Top Tier
-    { 
-      iataCode: 'JFK', name: 'John F. Kennedy International Airport', city: 'New York', country: 'United States', region: 'North America',
-      timezone: 'America/New_York', coordinates: { lat: 40.6413, lng: -73.7781 }, popularity: 5, isHub: true,
-      weather: { temp: 72, condition: 'Sunny', emoji: '☀️' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&q=80'
-    },
-    { 
-      iataCode: 'LAX', name: 'Los Angeles International Airport', city: 'Los Angeles', country: 'United States', region: 'North America',
-      timezone: 'America/Los_Angeles', coordinates: { lat: 33.9428, lng: -118.4081 }, popularity: 5, isHub: true,
-      weather: { temp: 78, condition: 'Clear', emoji: '🌞' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1484642065381-9b40ceb8efbb?w=400&q=80'
-    },
-    { 
-      iataCode: 'ORD', name: "Chicago O'Hare International Airport", city: 'Chicago', country: 'United States', region: 'North America',
-      timezone: 'America/Chicago', coordinates: { lat: 41.9786, lng: -87.9048 }, popularity: 5, isHub: true,
-      weather: { temp: 65, condition: 'Cloudy', emoji: '☁️' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&q=80'
-    },
-    { 
-      iataCode: 'MIA', name: 'Miami International Airport', city: 'Miami', country: 'United States', region: 'North America',
-      timezone: 'America/New_York', coordinates: { lat: 25.7617, lng: -80.1918 }, popularity: 4, isHub: true,
-      weather: { temp: 84, condition: 'Partly Cloudy', emoji: '⛅' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&q=80'
-    },
-    { 
-      iataCode: 'SFO', name: 'San Francisco International Airport', city: 'San Francisco', country: 'United States', region: 'North America',
-      timezone: 'America/Los_Angeles', coordinates: { lat: 37.6213, lng: -122.3790 }, popularity: 5, isHub: true,
-      weather: { temp: 68, condition: 'Foggy', emoji: '🌫️' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&q=80'
-    },
-    { 
-      iataCode: 'DFW', name: 'Dallas/Fort Worth International Airport', city: 'Dallas', country: 'United States', region: 'North America',
-      timezone: 'America/Chicago', coordinates: { lat: 32.8968, lng: -97.0380 }, popularity: 4, isHub: true,
-      weather: { temp: 76, condition: 'Hot', emoji: '🌡️' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1559268950-2d7ceb2efa13?w=400&q=80'
-    },
-    { 
-      iataCode: 'ATL', name: 'Hartsfield-Jackson Atlanta International Airport', city: 'Atlanta', country: 'United States', region: 'North America',
-      timezone: 'America/New_York', coordinates: { lat: 33.6407, lng: -84.4277 }, popularity: 5, isHub: true,
-      weather: { temp: 74, condition: 'Humid', emoji: '💧' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&q=80'
-    },
-    { 
-      iataCode: 'LAS', name: 'Harry Reid International Airport', city: 'Las Vegas', country: 'United States', region: 'North America',
-      timezone: 'America/Los_Angeles', coordinates: { lat: 36.0840, lng: -115.1537 }, popularity: 4, isHub: false,
-      weather: { temp: 89, condition: 'Desert Sun', emoji: '🏜️' }, priceIndex: 'low',
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80'
-    },
-    { 
-      iataCode: 'SEA', name: 'Seattle-Tacoma International Airport', city: 'Seattle', country: 'United States', region: 'North America',
-      timezone: 'America/Los_Angeles', coordinates: { lat: 47.4502, lng: -122.3088 }, popularity: 4, isHub: true,
-      weather: { temp: 62, condition: 'Rainy', emoji: '🌧️' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80'
-    },
-    { 
-      iataCode: 'BOS', name: 'Logan International Airport', city: 'Boston', country: 'United States', region: 'North America',
-      timezone: 'America/New_York', coordinates: { lat: 42.3656, lng: -71.0096 }, popularity: 4, isHub: true,
-      weather: { temp: 66, condition: 'Breezy', emoji: '💨' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1495954484750-af469f2f9be5?w=400&q=80'
-    },
+  // CONSOLIDATED GLOBAL AIRPORT DATABASE from all comprehensive databases
+  const createEnhancedAirportsDatabase = useCallback((): EnhancedAirportResult[] => {
+    const allAirports: EnhancedAirportResult[] = [];
 
-    // International Top Destinations
-    { 
-      iataCode: 'LHR', name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom', region: 'Europe',
-      timezone: 'Europe/London', coordinates: { lat: 51.4700, lng: -0.4543 }, popularity: 5, isHub: true,
-      weather: { temp: 61, condition: 'Overcast', emoji: '☁️' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=400&q=80'
-    },
-    { 
-      iataCode: 'CDG', name: 'Charles de Gaulle Airport', city: 'Paris', country: 'France', region: 'Europe',
-      timezone: 'Europe/Paris', coordinates: { lat: 49.0097, lng: 2.5479 }, popularity: 5, isHub: true,
-      weather: { temp: 64, condition: 'Romantic', emoji: '🗼' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80'
-    },
-    { 
-      iataCode: 'NRT', name: 'Narita International Airport', city: 'Tokyo', country: 'Japan', region: 'Asia',
-      timezone: 'Asia/Tokyo', coordinates: { lat: 35.7720, lng: 140.3929 }, popularity: 5, isHub: true,
-      weather: { temp: 70, condition: 'Spring', emoji: '🌸' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80'
-    },
-    { 
-      iataCode: 'DXB', name: 'Dubai International Airport', city: 'Dubai', country: 'United Arab Emirates', region: 'Middle East',
-      timezone: 'Asia/Dubai', coordinates: { lat: 25.2532, lng: 55.3657 }, popularity: 5, isHub: true,
-      weather: { temp: 95, condition: 'Luxury Heat', emoji: '🏰' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=80'
-    },
-    { 
-      iataCode: 'SIN', name: 'Singapore Changi Airport', city: 'Singapore', country: 'Singapore', region: 'Asia',
-      timezone: 'Asia/Singapore', coordinates: { lat: 1.3644, lng: 103.9915 }, popularity: 5, isHub: true,
-      weather: { temp: 86, condition: 'Tropical', emoji: '🌺' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&q=80'
-    },
-    { 
-      iataCode: 'SYD', name: 'Sydney Kingsford Smith Airport', city: 'Sydney', country: 'Australia', region: 'Oceania',
-      timezone: 'Australia/Sydney', coordinates: { lat: -33.9399, lng: 151.1753 }, popularity: 4, isHub: true,
-      weather: { temp: 73, condition: 'Beach Weather', emoji: '🏖️' }, priceIndex: 'high',
-      imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80'
-    },
-    { 
-      iataCode: 'YYZ', name: 'Toronto Pearson International Airport', city: 'Toronto', country: 'Canada', region: 'North America',
-      timezone: 'America/Toronto', coordinates: { lat: 43.6777, lng: -79.6248 }, popularity: 4, isHub: true,
-      weather: { temp: 59, condition: 'Maple Season', emoji: '🍁' }, priceIndex: 'medium',
-      imageUrl: 'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=400&q=80'
-    },
-    { 
-      iataCode: 'GRU', name: 'São Paulo/Guarulhos International Airport', city: 'São Paulo', country: 'Brazil', region: 'South America',
-      timezone: 'America/Sao_Paulo', coordinates: { lat: -23.4356, lng: -46.4731 }, popularity: 4, isHub: true,
-      weather: { temp: 77, condition: 'Vibrant', emoji: '🎭' }, priceIndex: 'low',
-      imageUrl: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=80'
-    }
-  ];
+    // Helper function to convert database airport to enhanced format
+    const convertToEnhanced = (airport: any, defaultImageUrl: string): EnhancedAirportResult => {
+      // Determine popularity based on passenger count and category
+      let popularity = 3; // Default
+      if (airport.category === 'major_hub' && airport.passengerCount > 50) popularity = 5;
+      else if (airport.category === 'major_hub') popularity = 4;
+      else if (airport.category === 'hub' && airport.passengerCount > 20) popularity = 4;
+      else if (airport.category === 'hub') popularity = 3;
+      else if (airport.passengerCount > 10) popularity = 3;
+      else popularity = 2;
+
+      // Determine price index based on region and country
+      let priceIndex: 'low' | 'medium' | 'high' = 'medium';
+      const highPriceCountries = ['United States', 'United Kingdom', 'Switzerland', 'Norway', 'Japan', 'Australia'];
+      const lowPriceCountries = ['India', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Egypt', 'Morocco', 'Brazil', 'Mexico'];
+      
+      if (highPriceCountries.includes(airport.country)) priceIndex = 'high';
+      else if (lowPriceCountries.includes(airport.country)) priceIndex = 'low';
+
+      // Generate weather emoji based on region/location
+      const getWeatherEmoji = (country: string, city: string): string => {
+        const weatherMap: { [key: string]: string } = {
+          'United Arab Emirates': '🏜️', 'Egypt': '☀️', 'Morocco': '🌞',
+          'Norway': '❄️', 'Iceland': '🌨️', 'Finland': '🌨️',
+          'United Kingdom': '☁️', 'Ireland': '🌧️', 'Netherlands': '🌦️',
+          'Thailand': '🌺', 'Singapore': '🌺', 'Malaysia': '🌺',
+          'Australia': '🏖️', 'New Zealand': '🌿', 'Fiji': '🏝️',
+          'Japan': '🌸', 'South Korea': '🌸', 'China': '🏮',
+          'Brazil': '🎭', 'Argentina': '🥩', 'Chile': '🍷',
+          'India': '🕌', 'Pakistan': '🕌', 'Bangladesh': '🕌'
+        };
+        return weatherMap[country] || '🌤️';
+      };
+
+      return {
+        iataCode: airport.iataCode,
+        name: airport.name,
+        city: airport.city,
+        country: airport.country,
+        region: airport.region || 'Unknown',
+        timezone: airport.timezone,
+        coordinates: { 
+          lat: airport.coordinates?.latitude || 0, 
+          lng: airport.coordinates?.longitude || 0 
+        },
+        popularity,
+        isHub: airport.category === 'major_hub' || airport.category === 'hub',
+        weather: {
+          temp: 72, // Default temp
+          condition: 'Clear',
+          emoji: getWeatherEmoji(airport.country, airport.city)
+        },
+        priceIndex,
+        imageUrl: defaultImageUrl
+      };
+    };
+
+    // Image URLs by region for variety
+    const imageUrls = {
+      'North America': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&q=80',
+      'South America': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=80',
+      'Europe': 'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=400&q=80',
+      'Asia': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80',
+      'Africa': 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&q=80',
+      'Oceania': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80',
+      'Middle East': 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=80'
+    };
+
+    // Convert all airport databases
+    US_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['North America']));
+    });
+
+    BRAZIL_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['South America']));
+    });
+
+    SOUTH_AMERICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['South America']));
+    });
+
+    NORTH_CENTRAL_AMERICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['North America']));
+    });
+
+    ASIA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['Asia']));
+    });
+
+    EUROPE_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['Europe']));
+    });
+
+    AFRICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['Africa']));
+    });
+
+    OCEANIA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToEnhanced(airport, imageUrls['Oceania']));
+    });
+
+    return allAirports.sort((a, b) => {
+      // Sort by popularity first, then by passenger count (implied by category)
+      if (a.popularity !== b.popularity) return b.popularity - a.popularity;
+      if (a.isHub !== b.isHub) return a.isHub ? -1 : 1;
+      return a.city.localeCompare(b.city);
+    });
+  }, []);
+
+  // Memoize the enhanced airports database
+  const enhancedAirports = useMemo(() => createEnhancedAirportsDatabase(), [createEnhancedAirportsDatabase]);
 
   // Popular US-focused suggestions
   const popularOrigins = enhancedAirports.filter(a => a.country === 'United States' && a.isHub).slice(0, 6);
@@ -271,7 +280,7 @@ export default function FlightSearchForm({
       'south america': enhancedAirports.filter(a => a.region === 'South America'),
     };
 
-    let expandedSearch = [searchTerm];
+    const expandedSearch = [searchTerm];
     
     // Check for nicknames and expand search
     for (const [nickname, alternatives] of Object.entries(patterns)) {
@@ -416,22 +425,67 @@ export default function FlightSearchForm({
       }
     }
 
-    // Show transition screen
-    setShowTransition(true);
+    // Close all dropdowns 
+    closeAllDropdowns();
     
-    // Pass search data to transition and eventually call onSearch
-    // onSearch(formData); // This will be called from transition component
+    // Build URL parameters for the flights page
+    const searchParams = new URLSearchParams();
+    
+    // Basic search parameters
+    if (formData.tripType) searchParams.append('tripType', formData.tripType);
+    if (formData.origin?.iataCode) searchParams.append('from', formData.origin.iataCode);
+    if (formData.destination?.iataCode) searchParams.append('to', formData.destination.iataCode);
+    if (formData.departureDate) searchParams.append('departure', formData.departureDate.toISOString().split('T')[0]);
+    if (formData.returnDate) searchParams.append('return', formData.returnDate.toISOString().split('T')[0]);
+    
+    // Passenger counts
+    searchParams.append('adults', formData.passengers.adults.toString());
+    if (formData.passengers.children > 0) searchParams.append('children', formData.passengers.children.toString());
+    if (formData.passengers.infants > 0) searchParams.append('infants', formData.passengers.infants.toString());
+    
+    // Travel preferences
+    if (formData.travelClass) searchParams.append('class', formData.travelClass);
+    if (formData.preferences?.nonStop) searchParams.append('direct', 'true');
+    searchParams.append('currency', 'USD'); // Default currency
+    
+    // Multi-city segments
+    if (formData.tripType === 'multi-city' && formData.segments) {
+      searchParams.append('segments', JSON.stringify(formData.segments));
+    }
+    
+    if (openInNewTab) {
+      // 🚀 ULTRA-PREMIUM: Open our revolutionary results page in new tab
+      const ultraSearchUrl = `/flights/results?${searchParams.toString()}`;
+      console.log('🚀 Opening ULTRA-PREMIUM Results:', ultraSearchUrl);
+      
+      const newTab = window.open(ultraSearchUrl, '_blank', 'noopener,noreferrer');
+      if (newTab) {
+        newTab.focus();
+        
+        // Advanced analytics tracking
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'ultra_search_initiated', {
+            route: `${formData.origin.iataCode}-${formData.destination.iataCode}`,
+            trip_type: formData.tripType,
+            passengers: formData.passengers.adults,
+            class: formData.travelClass
+          });
+        }
+      } else {
+        // Fallback if popup blocked
+        console.warn('🚨 Popup blocked, redirecting current tab');
+        window.location.href = ultraSearchUrl;
+      }
+    } else if (onSearch) {
+      // Call the onSearch function for same-page search
+      onSearch(formData);
+    } else {
+      // Fallback: redirect to ultra-premium results in current tab
+      const ultraSearchUrl = `/flights/results?${searchParams.toString()}`;
+      window.location.href = ultraSearchUrl;
+    }
   };
 
-  // Handle transition completion
-  const handleTransitionComplete = (results: any) => {
-    onSearch(formData);
-  };
-
-  // Handle transition close
-  const handleTransitionClose = () => {
-    setShowTransition(false);
-  };
 
   // Handle swap origin/destination with smooth animation
   const handleSwapAirports = () => {
@@ -756,7 +810,18 @@ export default function FlightSearchForm({
                       onChange={(value) => {
                         const [year, month, day] = value.split('-').map(Number);
                         const localDate = new Date(year, month - 1, day);
-                        setFormData(prev => ({ ...prev, departureDate: localDate }));
+                        setFormData(prev => {
+                          // If return date is same or before new departure date, set it to next day
+                          const newReturnDate = prev.returnDate && prev.returnDate <= localDate 
+                            ? new Date(localDate.getTime() + 24 * 60 * 60 * 1000)
+                            : prev.returnDate;
+                          
+                          return { 
+                            ...prev, 
+                            departureDate: localDate,
+                            returnDate: newReturnDate
+                          };
+                        });
                       }}
                       placeholder="MM/DD/YYYY"
                       minDate={new Date().toLocaleDateString('sv-SE')}
@@ -781,7 +846,7 @@ export default function FlightSearchForm({
                           setFormData(prev => ({ ...prev, returnDate: localDate }));
                         }}
                         placeholder="MM/DD/YYYY"
-                        minDate={formData.departureDate.toLocaleDateString('sv-SE')}
+                        minDate={new Date(formData.departureDate.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE')}
                         className=""
                       />
                     </div>
@@ -894,7 +959,7 @@ export default function FlightSearchForm({
                           </div>
                           
                           {/* Show destination for last segment */}
-                          {index === formData.segments.length - 1 && (
+                          {index === (formData.segments?.length || 0) - 1 && (
                             <div className="text-center">
                               <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
                                 segment.destination.iataCode 
@@ -1805,31 +1870,6 @@ export default function FlightSearchForm({
         />
       )}
 
-      {/* Premium Instant Search - Better Than Competition */}
-      <PremiumFlightTransition
-        isVisible={showTransition}
-        searchData={{
-          origin: formData.tripType === 'multi-city' 
-            ? formData.segments?.[0]?.origin?.iataCode || ''
-            : formData.origin?.iataCode || '',
-          destination: formData.tripType === 'multi-city'
-            ? formData.segments?.[formData.segments.length - 1]?.destination?.iataCode || ''
-            : formData.destination?.iataCode || '',
-          originCity: formData.tripType === 'multi-city'
-            ? formData.segments?.[0]?.origin?.city || ''
-            : formData.origin?.city || '',
-          destinationCity: formData.tripType === 'multi-city'
-            ? formData.segments?.[formData.segments.length - 1]?.destination?.city || ''
-            : formData.destination?.city || '',
-          passengers: formData.passengers.adults + formData.passengers.children + formData.passengers.infants,
-          departureDate: formData.departureDate,
-          returnDate: formData.returnDate,
-          tripType: formData.tripType,
-          travelClass: formData.travelClass
-        }}
-        onComplete={handleTransitionComplete}
-        onClose={handleTransitionClose}
-      />
       </div>
     </div>
   );

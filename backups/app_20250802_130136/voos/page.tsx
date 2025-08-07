@@ -1321,6 +1321,8 @@ function VoosAdvancedContent() {
                   validatingAirlines: flight.offer.validatingAirlines,
                   lastTicketingDate: flight.offer.lastTicketingDate,
                   instantTicketingRequired: flight.offer.instantTicketingRequired,
+                  cabinAnalysis: flight.offer.cabinAnalysis,
+                  baggageAnalysis: flight.offer.baggageAnalysis,
                   rawOffer: flight.offer.rawOffer
                 }))}
                 onRemoveFlight={handleRemoveFromComparison}

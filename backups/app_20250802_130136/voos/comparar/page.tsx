@@ -65,6 +65,29 @@ export default function FlightComparisonPage() {
             validatingAirlines: ['FRONTIER AIRLINES'],
             lastTicketingDate: '2025-07-29T23:59:59',
             instantTicketingRequired: false,
+            
+            // Required properties from ProcessedFlightOffer interface
+            cabinAnalysis: {
+              detectedClass: 'ECONOMY',
+              confidence: 0.8,
+              definition: null,
+              sources: ['mock']
+            },
+            baggageAnalysis: {
+              carryOn: {
+                included: true,
+                quantity: 1,
+                weight: '8kg',
+                hasRealData: false
+              },
+              checked: {
+                included: false,
+                quantity: 0,
+                weight: null,
+                hasRealData: false
+              }
+            },
+            
             rawOffer: {} as any
           };
           

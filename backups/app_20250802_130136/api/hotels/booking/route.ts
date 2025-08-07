@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { liteApiClient } from '../../../../lib/hotels/liteapi-client';
-import type { BookingRequest, Guest } from '../../../../types/hotels';
+import { liteApiClient } from '@/lib/hotels/liteapi-client';
+import type { BookingRequest, Guest } from '@/types/hotels';
 import { z } from 'zod';
 
 // Schema de validação para guest info

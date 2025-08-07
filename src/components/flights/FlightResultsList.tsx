@@ -260,10 +260,28 @@ export default function FlightResultsList({
   
   const shareOffer = useCallback(async (offer: ProcessedFlightOffer) => {
     try {
+      // Create a comprehensive URL that includes flight details and context
+      const baseUrl = window.location.origin + '/flights';
+      const shareParams = new URLSearchParams();
+      
+      // Add flight-specific parameters
+      shareParams.set('flight', offer.id);
+      shareParams.set('from', offer.outbound.departure.iataCode);
+      shareParams.set('to', offer.outbound.arrival.iataCode);
+      shareParams.set('departure', offer.outbound.departure.at.split('T')[0]);
+      shareParams.set('price', offer.totalPrice.replace(/[^\d.]/g, ''));
+      
+      // Add return flight if available
+      if (offer.inbound) {
+        shareParams.set('return', offer.inbound.departure.at.split('T')[0]);
+      }
+      
+      const shareUrl = `${baseUrl}?${shareParams.toString()}`;
+      
       const shareData = {
         title: `Flight ${offer.outbound.departure.iataCode} → ${offer.outbound.arrival.iataCode}`,
-        text: `Found this flight for ${offer.totalPrice}!`,
-        url: window.location.href + `?flight=${offer.id}`
+        text: `Found this flight for ${offer.totalPrice}! ✈️`,
+        url: shareUrl
       };
       
       if (navigator.share) {
@@ -462,7 +480,7 @@ export default function FlightResultsList({
   
   const updateSocialActivity = useCallback(() => {
     const activity = new Map();
-    offers.forEach(offer => {
+    (offers || []).forEach(offer => {
       activity.set(offer.id, {
         views: Math.floor(Math.random() * 500) + 50,
         bookings: Math.floor(Math.random() * 50) + 5,
@@ -478,7 +496,7 @@ export default function FlightResultsList({
   
   // 📊 Advanced Analytics & Insights Generation
   useEffect(() => {
-    if (offers.length > 0 && showAdvancedInsights) {
+    if (offers && offers.length > 0 && showAdvancedInsights) {
       generateAIInsights();
       generateConversionBoosters();
       generatePersonalizedRecommendations();
@@ -489,6 +507,10 @@ export default function FlightResultsList({
   // 🎯 Ultra-Advanced Processing with AI Enhancement
   const processedOffers = useMemo(() => {
     try {
+      // Ensure offers is an array before processing
+      if (!offers || !Array.isArray(offers)) {
+        return [];
+      }
       let result = [...offers];
       
       // 🅰️ Apply AI-enhanced filters
@@ -565,7 +587,7 @@ export default function FlightResultsList({
   const togglePriceTracking = useCallback(async (offerId: string) => {
     setTrackedOffers(prev => {
       const newSet = new Set(prev);
-      const offer = offers.find(o => o.id === offerId);
+      const offer = (offers || []).find(o => o.id === offerId);
       
       if (!offer) return prev;
       
@@ -605,7 +627,7 @@ export default function FlightResultsList({
   const toggleFavorite = useCallback((offerId: string) => {
     setFavoritedOffers(prev => {
       const newSet = new Set(prev);
-      const offer = offers.find(o => o.id === offerId);
+      const offer = (offers || []).find(o => o.id === offerId);
       
       if (!offer) return prev;
       
@@ -779,7 +801,7 @@ export default function FlightResultsList({
                 alt={segment.airline.name}
                 className="w-10 h-10 rounded-lg shadow-sm"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/airline-default.png';
+                  (e.target as HTMLImageElement).src = '/images/airline-default.svg';
                 }}
               />
               {segmentInsights.isPremiumAirline && (
@@ -1424,7 +1446,7 @@ export default function FlightResultsList({
                             alt={offer.outbound.segments[0]?.airline?.name || 'Airline'}
                             className="w-8 h-8 rounded-lg shadow-sm object-contain bg-white p-0.5"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/images/airline-default.png';
+                              (e.target as HTMLImageElement).src = '/images/airline-default.svg';
                             }}
                           />
                           <div>
@@ -1867,7 +1889,7 @@ export default function FlightResultsList({
                                 alt={segment.airline?.name}
                                 className="w-8 h-8 rounded-lg shadow-sm"
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).src = '/images/airline-default.png';
+                                  (e.target as HTMLImageElement).src = '/images/airline-default.svg';
                                 }}
                               />
                               <div>
@@ -2446,7 +2468,7 @@ export default function FlightResultsList({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
-            {offers.length} flight{offers.length !== 1 ? 's' : ''} found
+            {(offers || []).length} flight{(offers || []).length !== 1 ? 's' : ''} found
           </h2>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Sorted by</span>
@@ -2471,7 +2493,7 @@ export default function FlightResultsList({
 
       {/* 🎯 Flight Cards */}
       <div className="space-y-3">
-        {offers.map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))}
+        {(offers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))}
       </div>
 
       {/* 🎮 Gamification Summary */}

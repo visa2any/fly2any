@@ -276,6 +276,17 @@ export interface ProcessedFlightOffer {
     urgencyIndicators?: string[];
   };
   
+  // Ultra-premium AI properties
+  aiScore?: number;
+  priceHistory?: {
+    trend: 'increasing' | 'decreasing' | 'stable';
+    prediction: 'book_now' | 'wait' | 'monitor';
+  };
+  carbonFootprint?: {
+    kg: number;
+    rating: 'A' | 'B' | 'C' | 'D' | 'E';
+  };
+  
   // Original raw data
   rawOffer: FlightOffer;
   
@@ -374,7 +385,7 @@ export interface FlightFilters {
 }
 
 export interface FlightSortOptions {
-  sortBy: 'price' | 'duration' | 'departure' | 'arrival' | 'stops';
+  sortBy: 'price' | 'duration' | 'departure' | 'arrival' | 'stops' | 'aiScore';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -974,15 +985,19 @@ export interface FlightComparison {
 
 // Price Insights with AI
 export interface PriceInsights {
-  trend: 'rising' | 'falling' | 'stable';
-  percentage: number;
-  confidence: number;
-  historicalData: Array<{
+  lowest: number;
+  highest: number;
+  average: number;
+  trend: 'rising' | 'falling' | 'stable' | 'increasing';
+  percentage?: number;
+  confidence?: number;
+  historicalData?: Array<{
     date: string;
     price: number;
   }>;
-  recommendations: string[];
-  nextUpdate: Date;
+  recommendations?: string[];
+  recommendation: 'book_soon' | 'book_now' | 'wait' | 'monitor';
+  nextUpdate?: Date;
 }
 
 // AI-Generated Flight Recommendations

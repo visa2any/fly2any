@@ -3,7 +3,7 @@
  * Funções para formatar preços, datas, avaliações, etc.
  */
 
-import type { HotelSearchResult, HotelDetailsResult, RateDetails } from '../../types/hotels';
+import type { HotelSearchResult, HotelDetailsResult, RateDetails } from '@/types/hotels';
 
 /**
  * Formatar preço com moeda

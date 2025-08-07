@@ -121,7 +121,7 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
           }
           
           // Check sequential dates
-          if (index > 0 && formData.segments[index - 1]) {
+          if (index > 0 && formData.segments && formData.segments[index - 1]) {
             const prevDate = new Date(formData.segments[index - 1].departureDate);
             if (departureDate <= prevDate) {
               errors.push(`Voo ${index + 1}: Data deve ser após o Voo ${index}`);

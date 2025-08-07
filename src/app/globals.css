@@ -18,9 +18,24 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  width: 100%;
-  max-width: 100vw;
+}
+
+/* Change Search Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500px;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
 }
 
 /* Scrollbar personalizado usando Tailwind */
@@ -179,6 +194,62 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Flight Loading Screen Animations */
+@keyframes flight-progress {
+  0% { width: 0%; }
+  100% { width: 95%; }
+}
+
+@keyframes flight-plane-move {
+  0% { 
+    left: -48px; 
+    opacity: 0;
+    transform: translateY(-50%) scale(0.7);
+  }
+  5% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  95% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  100% { 
+    left: calc(95% - 24px); 
+    opacity: 0.9;
+    transform: translateY(-50%) scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.flight-progress-bar {
+  animation: flight-progress 3s ease-out forwards;
+  width: 0%;
+}
+
+.flight-plane-animation {
+  animation: flight-plane-move 3s ease-out forwards;
+  left: -48px;
+  transform: translateY(-50%);
+}
+
+.shimmer-effect {
+  animation: shimmer 2s infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
 }
 
 /* ===========================================

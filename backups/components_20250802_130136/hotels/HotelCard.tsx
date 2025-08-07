@@ -22,7 +22,7 @@ import {
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Card } from '../ui/card';
-import type { HotelCardProps } from '../../types/hotels';
+import type { HotelCardProps } from '@/types/hotels';
 
 const amenityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'wifi': Wifi,

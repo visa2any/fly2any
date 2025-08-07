@@ -434,9 +434,9 @@ export default function FlightResultsList({
     
     // 🆕 TRY TO PARSE DETAILED FARE RULES if available
     let detailedPolicies = null;
-    if (rawOffer?.detailedFareRules) {
+    if ((rawOffer as any)?.detailedFareRules) {
       try {
-        detailedPolicies = parseDetailedFareRules(rawOffer.detailedFareRules);
+        detailedPolicies = parseDetailedFareRules((rawOffer as any).detailedFareRules);
       } catch (error) {
         console.warn('Failed to parse detailed fare rules:', error);
       }
@@ -454,9 +454,9 @@ export default function FlightResultsList({
       seatPolicy = detailedPolicies.seatSelection;
     } else {
       // Fallback to basic API data
-      const refundableFare = pricingOptions?.refundableFare;
-      const noPenaltyFare = pricingOptions?.noPenaltyFare;
-      const noRestrictionFare = pricingOptions?.noRestrictionFare;
+      const refundableFare = (pricingOptions as any)?.refundableFare;
+      const noPenaltyFare = (pricingOptions as any)?.noPenaltyFare;
+      const noRestrictionFare = (pricingOptions as any)?.noRestrictionFare;
       
       if (refundableFare !== undefined) {
         refundPolicy = {
@@ -1967,11 +1967,11 @@ export default function FlightResultsList({
                             </div>
                           </div>
                           
-                          {idx < offer.inbound.segments.length - 1 && (
+                          {offer.inbound && idx < offer.inbound.segments.length - 1 && (
                             <div className="my-3 text-center">
                               <div className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
                                 <ClockIcon className="w-4 h-4 mr-1" />
-                                Layover: {offer.inbound.layovers?.[idx]?.duration || '1h 30m'} in {segment.arrival.iataCode}
+                                Layover: {offer.inbound?.layovers?.[idx]?.duration || '1h 30m'} in {segment.arrival.iataCode}
                               </div>
                             </div>
                           )}
@@ -2181,7 +2181,7 @@ export default function FlightResultsList({
                               </div>
                               <div className="text-sm">
                                 <div className="font-semibold text-blue-700">24h Free Cancellation</div>
-                                <div className="text-gray-600">After: {fareRules.cancellationFee}</div>
+                                <div className="text-gray-600">After: {fareRules.refundFee || 'Fee applies'}</div>
                               </div>
                             </div>
                           </div>
@@ -2260,7 +2260,7 @@ export default function FlightResultsList({
                                   {fareRules.baggage.checked.included ? '✅ INCLUDED' : '💰 EXTRA'}
                                 </div>
                                 {!fareRules.baggage.checked.included && (
-                                  <div className="text-sm text-gray-600">{fareRules.baggage.checked.additionalCost}</div>
+                                  <div className="text-sm text-gray-600">Extra fee applies</div>
                                 )}
                               </div>
                             </div>

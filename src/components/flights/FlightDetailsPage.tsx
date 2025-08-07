@@ -223,7 +223,7 @@ export default function FlightDetailsPage({
                   alt={segment.airline.name}
                   className="w-8 h-8 rounded"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/airline-default.png';
+                    (e.target as HTMLImageElement).src = '/images/airline-default.svg';
                   }}
                 />
                 <div>

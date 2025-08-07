@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const amadeusClient = new EnhancedAmadeusClient();
 
     // Get detailed flight information
-    const detailedFlight = await amadeusClient.getFlightDetails(flightId, flight);
+    const detailedFlight = await amadeusClient.getFlightDetails(flightId);
 
     console.log('✅ Flight details retrieved successfully');
 

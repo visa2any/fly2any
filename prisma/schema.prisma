@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+  
+  @@map("users")
+}
+
+model Booking {
+  id                String   @id @default(cuid())
+  bookingReference  String   @unique
+  paymentIntentId   String?
+  flightId          String?
+  
+  // User relationship
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id])
+  
+  // Passenger information (JSON)
+  passengerInfo     Json
+  
+  // Contact information (JSON)
+  contactInfo       Json
+  
+  // Flight details (JSON)
+  flightDetails     Json
+  
+  // Services selected (JSON)
+  services          Json?
+  
+  // Pricing breakdown
+  basePrice         Float
+  serviceCharges    Float    @default(0)
+  taxes             Float    @default(0)
+  totalPrice        Float
+  currency          String   @default("USD")
+  
+  // Status tracking
+  status            BookingStatus @default(CONFIRMED)
+  paymentStatus     PaymentStatus @default(PENDING)
+  
+  // Timestamps
+  bookingDate       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  cancellation      Cancellation?
+  modifications     BookingModification[]
+  
+  @@map("bookings")
+}
+
+model Cancellation {
+  id                String   @id @default(cuid())
+  bookingId         String   @unique
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  
+  reason            String
+  refundAmount      Float
+  refundId          String?  // Stripe refund ID
+  
+  status            CancellationStatus @default(PENDING)
+  
+  createdAt         DateTime @default(now())
+  processedAt       DateTime?
+  
+  @@map("cancellations")
+}
+
+model BookingModification {
+  id                String   @id @default(cuid())
+  bookingId         String
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  
+  modificationType  String   // 'DATE_CHANGE', 'PASSENGER_UPDATE', 'SERVICE_ADD', etc.
+  originalData      Json
+  newData           Json
+  additionalCost    Float    @default(0)
+  
+  status            ModificationStatus @default(PENDING)
+  
+  createdAt         DateTime @default(now())
+  processedAt       DateTime?
+  
+  @@map("booking_modifications")
+}
+
+model Airport {
+  id            String   @id @default(cuid())
+  iataCode      String   @unique
+  icaoCode      String?
+  name          String
+  city          String
+  country       String
+  countryCode   String
+  timezone      String?
+  latitude      Float?
+  longitude     Float?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("airports")
+}
+
+model Airline {
+  id            String   @id @default(cuid())
+  iataCode      String   @unique
+  icaoCode      String?
+  name          String
+  country       String?
+  logoUrl       String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("airlines")
+}
+
+model FlightSearch {
+  id                    String   @id @default(cuid())
+  originCode            String
+  destinationCode       String
+  departureDate         String
+  returnDate            String?
+  adults                Int
+  children              Int      @default(0)
+  infants               Int      @default(0)
+  travelClass           String   @default("ECONOMY")
+  
+  // Search results metadata
+  resultsCount          Int?
+  searchDuration        Int?     // in milliseconds
+  providerUsed          String?  // 'AMADEUS', 'FALLBACK', etc.
+  
+  // User tracking (optional)
+  userEmail             String?
+  userIp                String?
+  userAgent             String?
+  
+  createdAt             DateTime @default(now())
+  
+  @@map("flight_searches")
+}
+
+model EmailLog {
+  id            String   @id @default(cuid())
+  to            String
+  subject       String
+  template      String
+  status        EmailStatus @default(PENDING)
+  
+  // Email content
+  htmlContent   String?
+  textContent   String?
+  
+  // Tracking
+  emailProvider String?  // 'SENDGRID', 'MAILGUN', etc.
+  providerMessageId String?
+  
+  // Related booking
+  bookingId     String?
+  
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  
+  @@map("email_logs")
+}
+
+model SMSLog {
+  id            String   @id @default(cuid())
+  to            String
+  message       String
+  service       String   // 'TWILIO', 'AWS_SNS', etc.
+  status        SMSStatus @default(PENDING)
+  
+  // Related booking
+  bookingId     String?
+  
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  
+  @@map("sms_logs")
+}
+
+model ErrorLog {
+  id            String   @id @default(cuid())
+  level         String   // 'ERROR', 'WARN', 'INFO'
+  message       String
+  stack         String?
+  
+  // Context
+  endpoint      String?
+  method        String?
+  userAgent     String?
+  userIp        String?
+  userId        String?
+  bookingId     String?
+  
+  // Additional data
+  metadata      Json?
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("error_logs")
+}
+
+// Enums
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  MODIFIED
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum CancellationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum ModificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+enum SMSStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}

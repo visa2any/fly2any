@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
         console.log('💎 Getting branded fares upsell...');
         const upsells = await Promise.all(
           offers.slice(0, 3).map(async (offer: ProcessedFlightOffer) => {
-            const upsell = await aiClient.getBrandedFareUpsell(offer.id);
+            const upsell = await aiClient.getBrandedFareUpsell([offer.rawOffer]);
             return {
               flightId: offer.id,
               ...upsell
