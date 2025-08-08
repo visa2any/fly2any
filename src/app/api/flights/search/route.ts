@@ -99,12 +99,13 @@ export async function GET(request: NextRequest) {
     
     try {
       console.log('🔍 Attempting optimized data enhancement...');
-      const firstFiveOffers = response.data.slice(0, 5); // Limit to first 5 to avoid API limits
+      // Process all offers, not just first 5
+      const offersToEnhance = response.data;
       
       // Try optimized single API call first
       try {
         const optimizedResult = await amadeusClient.confirmPricingWithAllIncludes(
-          firstFiveOffers,
+          offersToEnhance,
           'detailed-fare-rules,bags'
         );
         
@@ -125,11 +126,11 @@ export async function GET(request: NextRequest) {
         
         // Fallback to individual calls (existing behavior)
         const enhancementAttempts = [
-          amadeusClient.confirmPricingWithFareRules(firstFiveOffers)
+          amadeusClient.confirmPricingWithFareRules(offersToEnhance)
             .then(result => ({ type: 'detailed-fare-rules', data: result }))
             .catch(error => ({ type: 'detailed-fare-rules', error })),
           
-          amadeusClient.getBaggageOptions(firstFiveOffers)
+          amadeusClient.getBaggageOptions(offersToEnhance)
             .then((result: any) => ({ type: 'baggage', data: result }))
             .catch((error: any) => ({ type: 'baggage', error }))
         ];

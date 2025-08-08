@@ -774,6 +774,31 @@ export const BRAZIL_SECONDARY_AIRPORTS: BrazilAirport[] = [
     searchKeywords: ['porto velho', 'rondonia', 'ro', 'norte', 'jorge teixeira'],
     groundTransport: ['bus', 'taxi', 'rideshare', 'rental_car'],
     amenities: ['wifi', 'shopping', 'dining']
+  },
+
+  // Porto Seguro Airport
+  {
+    iataCode: 'BPS',
+    icaoCode: 'SBPS',
+    name: 'Porto Seguro Airport',
+    city: 'Porto Seguro',
+    state: 'Bahia',
+    stateCode: 'BA',
+    region: 'Northeast',
+    country: 'Brazil',
+    timezone: 'America/Bahia',
+    coordinates: { latitude: -16.4386, longitude: -39.0808 },
+    elevation: 51,
+    category: 'regional',
+    isInternational: false,
+    passengerCount: 1.2,
+    airlines: ['G3', 'LA', 'AD', 'JJ'],
+    terminals: 1,
+    runways: 1,
+    popularDestinations: ['GRU', 'GIG', 'BSB', 'CGH', 'SSA', 'CNF', 'REC', 'FOR'],
+    searchKeywords: ['porto seguro', 'bahia', 'ba', 'nordeste', 'costa do descobrimento', 'praia', 'turismo'],
+    groundTransport: ['bus', 'taxi', 'rideshare', 'rental_car'],
+    amenities: ['wifi', 'shopping', 'dining']
   }
 ];
 

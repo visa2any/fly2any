@@ -4,6 +4,7 @@
  */
 
 import { AmadeusConfig, AmadeusTokenResponse, FlightSearchParams, FlightOffersResponse } from '@/types/flights';
+import { AMADEUS_CONFIG } from '@/lib/flights/amadeus-config';
 
 export class AmadeusClient {
   private config: AmadeusConfig;
@@ -265,9 +266,11 @@ export class AmadeusClient {
     if (params.maxPrice) {
       searchParams.set('maxPrice', params.maxPrice.toString());
     }
-    if (params.max && params.max !== 250) {
-      searchParams.set('max', params.max.toString());
-    }
+    // Always set max parameter to ensure we get the desired number of results
+    // Use provided value or default from configuration
+    const maxResults = params.max || AMADEUS_CONFIG.DEFAULTS.MAX_RESULTS;
+    searchParams.set('max', maxResults.toString());
+    
     if (params.currencyCode) {
       searchParams.set('currencyCode', params.currencyCode);
     }

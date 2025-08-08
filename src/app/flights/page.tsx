@@ -23,6 +23,16 @@ import { BenefitsSection } from '@/components/ui/benefits-section';
 import { HeroSection } from '@/components/ui/hero-section';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { FilterIcon, XIcon, CheckCircleIcon } from '@/components/Icons';
+
+// Import global airport databases for comprehensive search
+import { BRAZIL_AIRPORTS_DATABASE } from '@/lib/airports/brazil-airports-database';
+import { US_AIRPORTS_DATABASE } from '@/lib/airports/us-airports-database';
+import { SOUTH_AMERICA_AIRPORTS_DATABASE } from '@/lib/airports/south-america-airports-database';
+import { NORTH_CENTRAL_AMERICA_AIRPORTS_DATABASE } from '@/lib/airports/north-central-america-airports-database';
+import { ASIA_AIRPORTS_DATABASE } from '@/lib/airports/asia-airports-database';
+import { EUROPE_AIRPORTS_DATABASE } from '@/lib/airports/europe-airports-database';
+import { AFRICA_AIRPORTS_DATABASE } from '@/lib/airports/africa-airports-database';
+import { OCEANIA_AIRPORTS_DATABASE } from '@/lib/airports/oceania-airports-database';
 import type { 
   FlightSearchFormData, 
   ProcessedFlightOffer, 
@@ -172,6 +182,12 @@ function VoosAdvancedContent() {
   const passengersChangeRef = useRef<HTMLDivElement>(null);
   const classChangeRef = useRef<HTMLDivElement>(null);
 
+  // Safe date parsing helper to avoid timezone issues (US market)
+  const parseLocalDateFromISO = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month is 0-indexed, creates date in local US timezone
+  };
+
   // Auto-fill form from URL parameters on page load and execute search (only once)
   useEffect(() => {
     console.log('🔄 Auto-search useEffect running - hasAutoSearched:', hasAutoSearched);
@@ -198,8 +214,8 @@ function VoosAdvancedContent() {
           city: params.get('destino') || '', 
           country: 'United States'
         },
-        departureDate: params.get('partida') ? new Date(params.get('partida')!) : new Date(),
-        returnDate: params.get('volta') ? new Date(params.get('volta')!) : undefined,
+        departureDate: params.get('partida') ? parseLocalDateFromISO(params.get('partida')!) : new Date(),
+        returnDate: params.get('volta') ? parseLocalDateFromISO(params.get('volta')!) : undefined,
         passengers: {
           adults: parseInt(params.get('adultos') || '1'),
           children: parseInt(params.get('children') || '0'),
@@ -327,11 +343,18 @@ function VoosAdvancedContent() {
         // Get detailed error information
         let errorDetails = `${flightResponse.status} ${flightResponse.statusText}`;
         try {
-          const errorData = await flightResponse.json();
-          console.error('❌ API Error Details:', errorData);
-          errorDetails = errorData.error || errorData.details?.join(', ') || errorDetails;
-        } catch {
-          console.error('❌ Could not parse error response');
+          const responseText = await flightResponse.text();
+          if (responseText) {
+            const errorData = JSON.parse(responseText);
+            if (errorData && Object.keys(errorData).length > 0) {
+              console.error('❌ API Error Details:', errorData);
+              errorDetails = errorData.error || errorData.details?.join(', ') || errorDetails;
+            }
+          } else {
+            console.error('❌ Empty error response from API');
+          }
+        } catch (parseError) {
+          console.error('❌ Could not parse error response:', parseError);
         }
         throw new Error(`API Error: ${errorDetails}`);
       }
@@ -648,21 +671,91 @@ function VoosAdvancedContent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Convert global airport databases to unified format for Change Search
+  const createComprehensiveAirportsDatabase = useCallback(() => {
+    const allAirports: any[] = [];
+
+    // Convert function to standardize airport data
+    const convertToStandardFormat = (airport: any, region: string) => {
+      // Determine popularity based on passenger count and category
+      let popularity = 3; // Default
+      if (airport.category === 'major_hub' && airport.passengerCount > 50) popularity = 5;
+      else if (airport.category === 'major_hub') popularity = 4;
+      else if (airport.category === 'hub' && airport.passengerCount > 20) popularity = 4;
+      else if (airport.category === 'hub') popularity = 3;
+      else if (airport.passengerCount > 10) popularity = 3;
+      else popularity = 2;
+
+      // Determine isHub status
+      const isHub = airport.category === 'major_hub' || airport.category === 'hub' || airport.category === 'international_gateway';
+
+      return {
+        iataCode: airport.iataCode || airport.iata || airport.code,
+        name: airport.name,
+        city: airport.city,
+        country: airport.country,
+        popularity,
+        isHub,
+        region
+      };
+    };
+
+    // Add all airport databases
+    BRAZIL_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'South America'));
+    });
+
+    US_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'North America'));
+    });
+
+    SOUTH_AMERICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'South America'));
+    });
+
+    NORTH_CENTRAL_AMERICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'North America'));
+    });
+
+    ASIA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'Asia'));
+    });
+
+    EUROPE_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'Europe'));
+    });
+
+    AFRICA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'Africa'));
+    });
+
+    OCEANIA_AIRPORTS_DATABASE.forEach(airport => {
+      allAirports.push(convertToStandardFormat(airport, 'Oceania'));
+    });
+
+    return allAirports;
+  }, []);
+
+  // Memoize the comprehensive database for performance
+  const comprehensiveAirportsDb = useMemo(() => createComprehensiveAirportsDatabase(), [createComprehensiveAirportsDatabase]);
+
   // Enhanced airport search function with comprehensive database
   const searchAirportsForChange = useCallback((query: string, limit: number = 8) => {
     if (!query || query.length < 1) {
-      // Return popular suggestions when no query
-      const popularAirports = [
-        { iataCode: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'United States', popularity: 5, isHub: true },
-        { iataCode: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'United States', popularity: 5, isHub: true },
-        { iataCode: 'LHR', name: 'London Heathrow', city: 'London', country: 'United Kingdom', popularity: 5, isHub: true },
-        { iataCode: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', popularity: 5, isHub: true },
-        { iataCode: 'DXB', name: 'Dubai International', city: 'Dubai', country: 'United Arab Emirates', popularity: 5, isHub: true },
-        { iataCode: 'NRT', name: 'Narita International', city: 'Tokyo', country: 'Japan', popularity: 5, isHub: true },
-        { iataCode: 'GRU', name: 'São Paulo/Guarulhos International', city: 'São Paulo', country: 'Brazil', popularity: 4, isHub: true },
-        { iataCode: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'United States', popularity: 4, isHub: false }
-      ];
-      return popularAirports.slice(0, limit);
+      // Return popular suggestions from memoized comprehensive database
+      const popularAirports = comprehensiveAirportsDb
+        .filter(airport => airport.popularity >= 4 && airport.isHub)
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, limit);
+      
+      // Ensure we have at least some airports if filtering was too strict
+      if (popularAirports.length === 0) {
+        return comprehensiveAirportsDb
+          .sort((a, b) => b.popularity - a.popularity)
+          .slice(0, limit);
+      }
+      
+      return popularAirports;
     }
     
     const normalizedQuery = query.toLowerCase().trim();
@@ -689,28 +782,8 @@ function VoosAdvancedContent() {
       }
     }
     
-    // Extended airport database with popularity and hub status
-    const comprehensiveAirports = [
-      { iataCode: 'JFK', name: 'John F. Kennedy International', city: 'New York', country: 'United States', popularity: 5, isHub: true },
-      { iataCode: 'LAX', name: 'Los Angeles International', city: 'Los Angeles', country: 'United States', popularity: 5, isHub: true },
-      { iataCode: 'LHR', name: 'London Heathrow', city: 'London', country: 'United Kingdom', popularity: 5, isHub: true },
-      { iataCode: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', popularity: 5, isHub: true },
-      { iataCode: 'DXB', name: 'Dubai International', city: 'Dubai', country: 'United Arab Emirates', popularity: 5, isHub: true },
-      { iataCode: 'NRT', name: 'Narita International', city: 'Tokyo', country: 'Japan', popularity: 5, isHub: true },
-      { iataCode: 'SYD', name: 'Sydney Kingsford Smith', city: 'Sydney', country: 'Australia', popularity: 5, isHub: true },
-      { iataCode: 'GRU', name: 'São Paulo/Guarulhos International', city: 'São Paulo', country: 'Brazil', popularity: 4, isHub: true },
-      { iataCode: 'LGA', name: 'LaGuardia Airport', city: 'New York', country: 'United States', popularity: 4, isHub: false },
-      { iataCode: 'EWR', name: 'Newark Liberty International', city: 'New York', country: 'United States', popularity: 4, isHub: true },
-      { iataCode: 'ORD', name: 'Chicago O\'Hare International', city: 'Chicago', country: 'United States', popularity: 5, isHub: true },
-      { iataCode: 'MIA', name: 'Miami International Airport', city: 'Miami', country: 'United States', popularity: 4, isHub: true },
-      { iataCode: 'FCO', name: 'Leonardo da Vinci International', city: 'Rome', country: 'Italy', popularity: 4, isHub: true },
-      { iataCode: 'MAD', name: 'Madrid-Barajas Airport', city: 'Madrid', country: 'Spain', popularity: 4, isHub: true },
-      { iataCode: 'AMS', name: 'Amsterdam Airport Schiphol', city: 'Amsterdam', country: 'Netherlands', popularity: 4, isHub: true },
-      { iataCode: 'FRA', name: 'Frankfurt am Main Airport', city: 'Frankfurt', country: 'Germany', popularity: 4, isHub: true }
-    ];
-    
-    // Smart matching with scoring
-    const results = comprehensiveAirports.map(airport => {
+    // Smart matching with scoring using memoized database
+    const results = comprehensiveAirportsDb.map(airport => {
       let score = 0;
       
       for (const searchQuery of searchQueries) {
@@ -740,7 +813,7 @@ function VoosAdvancedContent() {
     .slice(0, limit);
     
     return results;
-  }, []);
+  }, [comprehensiveAirportsDb]);
 
   // Enhanced Change Search Dropdown Component with Portal and Scroll Handling
   const ChangeSearchDropdown = ({ type, searchQuery, onSearchChange, onSelect, onClose }: {
@@ -754,6 +827,7 @@ function VoosAdvancedContent() {
     const displayResults = results.length > 0 ? results : searchAirportsForChange('', 6);
     
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    const inputRef = useRef<HTMLInputElement>(null);
     
     // Get button position for dropdown positioning with scroll handling
     const buttonRef = type === 'origin' ? originChangeRef : destinationChangeRef;
@@ -784,6 +858,17 @@ function VoosAdvancedContent() {
       };
     }, [updatePosition]);
     
+    // Separate effect for focus management - only run once when dropdown opens
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
+      
+      return () => clearTimeout(timer);
+    }, []);
+    
     const dropdownStyle = {
       position: 'fixed' as const,
       top: dropdownPosition.top,
@@ -799,11 +884,21 @@ function VoosAdvancedContent() {
             {type === 'origin' ? '🛫' : '🛬'}
           </div>
           <input
+            ref={inputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={`Search ${type === 'origin' ? 'departure' : 'arrival'} city or airport...`}
             className="w-full pl-10 pr-10 py-3 bg-gradient-to-r from-blue-50/80 to-purple-50/80 border-2 border-blue-200/60 rounded-xl focus:border-blue-400 focus:ring-4 focus:ring-blue-100/60 text-sm font-medium placeholder-gray-500 transition-all duration-300"
+            onBlur={(e) => {
+              // Prevent blur if clicking within the dropdown
+              const relatedTarget = e.relatedTarget as HTMLElement;
+              if (relatedTarget?.closest('[data-dropdown-portal="true"]')) {
+                e.preventDefault();
+                inputRef.current?.focus();
+              }
+            }}
+            autoFocus
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
