@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       _count: true
     });
 
-    const summary = alertStats.reduce((acc, stat) => {
+    const summary = alertStats.reduce((acc: Record<string, number>, stat) => {
       const key = `${stat.severity}_${stat.isResolved ? 'resolved' : 'active'}`;
       acc[key] = stat._count;
       return acc;
