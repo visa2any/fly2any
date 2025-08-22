@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     }, {} as Record<string, number>);
 
     // Format alerts for frontend
-    const formattedAlerts = alerts.map(alert => ({
+    const formattedAlerts = alerts.map((alert: any) => ({
       id: alert.id,
       type: alert.type,
       severity: alert.severity,
