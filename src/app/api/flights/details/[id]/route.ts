@@ -3,12 +3,13 @@ import { EnhancedAmadeusClient } from '@/lib/flights/enhanced-amadeus-client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     console.log('🔍 API Flight Details - Starting details search...');
     
-    const flightId = params.id;
+    const flightId = id;
 
     if (!flightId) {
       return NextResponse.json({
