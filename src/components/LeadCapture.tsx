@@ -16,6 +16,9 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import PhoneInputSimple from './PhoneInputSimple';
+import DatePicker from './DatePicker';
+import AirportAutocomplete from './flights/AirportAutocomplete';
+import { AirportSelection } from '@/types/flights';
 
 interface LeadCaptureProps {
   isOpen: boolean;
@@ -39,8 +42,8 @@ interface LeadFormData {
   
   // Viagem
   tipoViagem: 'ida' | 'ida_volta' | 'multiplas_cidades';
-  origem: string;
-  destino: string;
+  origem: AirportSelection | null;
+  destino: AirportSelection | null;
   dataPartida: string;
   dataRetorno?: string;
   numeroPassageiros: number;
@@ -111,8 +114,8 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
     estado: '',
     pais: 'Brasil',
     tipoViagem: 'ida_volta',
-    origem: '',
-    destino: '',
+    origem: null,
+    destino: null,
     dataPartida: '',
     numeroPassageiros: 1,
     classeViagem: 'economica',
@@ -152,8 +155,8 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
         if (!formData.whatsapp.trim()) newErrors.whatsapp = 'WhatsApp é obrigatório';
         break;
       case 2:
-        if (!formData.origem.trim()) newErrors.origem = 'Origem é obrigatória';
-        if (!formData.destino.trim()) newErrors.destino = 'Destino é obrigatório';
+        if (!formData.origem) newErrors.origem = 'Origem é obrigatória';
+        if (!formData.destino) newErrors.destino = 'Destino é obrigatório';
         if (!formData.dataPartida) newErrors.dataPartida = 'Data de partida é obrigatória';
         if (formData.tipoViagem === 'ida_volta' && !formData.dataRetorno) {
           newErrors.dataRetorno = 'Data de retorno é obrigatória';
@@ -344,14 +347,13 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data de Nascimento
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.dataNascimento}
-                    onChange={(e) => updateFormData('dataNascimento', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <DatePicker
+                    value={formData.dataNascimento || ''}
+                    onChange={(value) => updateFormData('dataNascimento', value)}
+                    placeholder="Selecione sua data de nascimento"
+                    label="Data de Nascimento"
+                    maxDate={new Date().toISOString().split('T')[0]}
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -431,12 +433,12 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Origem *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.origem}
-                    onChange={(e) => updateFormData('origem', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <AirportAutocomplete
+                    value={formData.origem || { iataCode: '', name: '', city: '', country: '' }}
+                    onChange={(airport) => updateFormData('origem', airport)}
                     placeholder="De onde você vai partir?"
+                    error={errors.origem}
+                    className="w-full"
                   />
                   {errors.origem && <p className="text-red-500 text-sm mt-1">{errors.origem}</p>}
                 </div>
@@ -445,12 +447,12 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Destino *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.destino}
-                    onChange={(e) => updateFormData('destino', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <AirportAutocomplete
+                    value={formData.destino || { iataCode: '', name: '', city: '', country: '' }}
+                    onChange={(airport) => updateFormData('destino', airport)}
                     placeholder="Para onde você quer ir?"
+                    error={errors.destino}
+                    className="w-full"
                   />
                   {errors.destino && <p className="text-red-500 text-sm mt-1">{errors.destino}</p>}
                 </div>
@@ -458,30 +460,28 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data de Partida *
-                  </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={formData.dataPartida}
-                    onChange={(e) => updateFormData('dataPartida', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(value) => updateFormData('dataPartida', value)}
+                    placeholder="Selecione a data de partida"
+                    label="Data de Partida *"
+                    minDate={new Date().toISOString().split('T')[0]}
+                    error={errors.dataPartida}
+                    className="w-full"
                   />
                   {errors.dataPartida && <p className="text-red-500 text-sm mt-1">{errors.dataPartida}</p>}
                 </div>
 
                 {formData.tipoViagem === 'ida_volta' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Data de Retorno *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.dataRetorno}
-                      onChange={(e) => updateFormData('dataRetorno', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min={formData.dataPartida}
+                    <DatePicker
+                      value={formData.dataRetorno || ''}
+                      onChange={(value) => updateFormData('dataRetorno', value)}
+                      placeholder="Selecione a data de retorno"
+                      label="Data de Retorno *"
+                      minDate={formData.dataPartida}
+                      error={errors.dataRetorno}
+                      className="w-full"
                     />
                     {errors.dataRetorno && <p className="text-red-500 text-sm mt-1">{errors.dataRetorno}</p>}
                   </div>
@@ -871,7 +871,7 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
                 <h4 className="font-semibold text-gray-800 mb-2">Resumo da Viagem</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><strong>Destino:</strong> {formData.origem} → {formData.destino}</p>
+                    <p><strong>Destino:</strong> {formData.origem ? `${formData.origem.city} (${formData.origem.iataCode})` : ''} → {formData.destino ? `${formData.destino.city} (${formData.destino.iataCode})` : ''}</p>
                     <p><strong>Datas:</strong> {formData.dataPartida} {formData.dataRetorno && `- ${formData.dataRetorno}`}</p>
                     <p><strong>Passageiros:</strong> {formData.numeroPassageiros}</p>
                   </div>

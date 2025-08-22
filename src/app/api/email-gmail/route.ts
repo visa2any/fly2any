@@ -45,11 +45,12 @@ export async function POST(request: NextRequest) {
     await transporter.verify();
 
     const mailOptions = {
-      from: '"Fly2Any" <info@fly2any.com>',
+      from: `"Fly2Any" <${process.env.GMAIL_EMAIL}>`,
       to: email,
       subject: subject,
       html: html,
-      text: text
+      text: text,
+      replyTo: 'info@fly2any.com'
     };
 
     const result = await transporter.sendMail(mailOptions);

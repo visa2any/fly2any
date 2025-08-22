@@ -43,6 +43,7 @@ export default function DatePicker({
   );
   const [displayValue, setDisplayValue] = useState('');
   const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [isClient, setIsClient] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +53,10 @@ export default function DatePicker({
   ];
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (value) {
@@ -66,14 +71,23 @@ export default function DatePicker({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      const target = event.target as HTMLElement;
+      
+      // Check if click is outside the container
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        // Also check if the click is not on the calendar portal
+        const isCalendarClick = target.closest('[data-datepicker-calendar]');
+        if (!isCalendarClick) {
+          setIsOpen(false);
+        }
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
 
   const formatDateUS = (date: Date): string => {
     return date.toLocaleDateString('en-US', {
@@ -127,8 +141,13 @@ export default function DatePicker({
     // Dias do mês atual
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
       const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+      
       const isToday = date.getTime() === today.getTime();
-      const isSelected = selectedDate && date.getTime() === selectedDate.getTime();
+      const isSelected = selectedDate && 
+        date.getFullYear() === selectedDate.getFullYear() &&
+        date.getMonth() === selectedDate.getMonth() &&
+        date.getDate() === selectedDate.getDate();
       const isDisabled = isDateDisabled(date);
 
       days.push({
@@ -161,9 +180,12 @@ export default function DatePicker({
   const handleDateSelect = (day: CalendarDay) => {
     if (day.isDisabled || !day.isCurrentMonth) return;
     
-    setSelectedDate(day.date);
-    setDisplayValue(formatDateUS(day.date));
-    onChange(formatDateISO(day.date));
+    const selectedDate = new Date(day.date);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    setSelectedDate(selectedDate);
+    setDisplayValue(formatDateUS(selectedDate));
+    onChange(formatDateISO(selectedDate));
     setIsOpen(false);
   };
 
@@ -182,8 +204,17 @@ export default function DatePicker({
   const updateCalendarPosition = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const calendarHeight = 400; // approximate height
+      
+      // Determine if calendar should appear above or below
+      const showAbove = spaceBelow < calendarHeight && spaceAbove > spaceBelow;
+      
       setCalendarPosition({
-        top: rect.bottom + window.scrollY + 4,
+        top: showAbove 
+          ? rect.top + window.scrollY - calendarHeight - 4
+          : rect.bottom + window.scrollY + 4,
         left: rect.left + window.scrollX,
         width: rect.width
       });
@@ -193,9 +224,28 @@ export default function DatePicker({
   const handleToggleOpen = () => {
     if (!isOpen) {
       updateCalendarPosition();
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
     }
-    setIsOpen(!isOpen);
   };
+  
+  // Update position on scroll
+  useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => {
+        updateCalendarPosition();
+      };
+      
+      window.addEventListener('scroll', handleScroll);
+      window.addEventListener('resize', handleScroll);
+      
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+      };
+    }
+  }, [isOpen]);
 
   const calendarDays = generateCalendarDays();
 
@@ -235,8 +285,9 @@ export default function DatePicker({
       )}
 
       {/* Calendar Dropdown */}
-      {isOpen && typeof window !== 'undefined' && createPortal(
+      {isOpen && isClient && typeof window !== 'undefined' && createPortal(
         <div
+          data-datepicker-calendar="true"
           className="fixed bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[99999] p-5"
           style={{
             top: `${calendarPosition.top}px`,

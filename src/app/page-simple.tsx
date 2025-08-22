@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics';
+import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
 import CityAutocomplete from '@/components/CityAutocomplete';

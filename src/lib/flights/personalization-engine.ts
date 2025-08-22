@@ -383,7 +383,7 @@ class PersonalizationEngine {
     const conversionRate = bookings.length / searches.length;
 
     let newType: TravelProfile['type'];
-    let confidence = 0.7;
+    const confidence = 0.7;
 
     if (avgPrice < 200) {
       newType = 'budget_traveler';

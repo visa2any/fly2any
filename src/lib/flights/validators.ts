@@ -196,6 +196,10 @@ export function convertFormToSearchParams(formData: FlightSearchFormData): Fligh
     travelClass: formData.travelClass,
     oneWay: formData.tripType === 'one-way',
     nonStop: formData.preferences.nonStop,
+    flexibleDates: formData.preferences.flexibleDates && 'enabled' in formData.preferences.flexibleDates ? {
+      enabled: formData.preferences.flexibleDates.enabled,
+      days: formData.preferences.flexibleDates.days
+    } : undefined,
     maxPrice: formData.preferences.maxPrice,
     currencyCode: 'USD'
   };

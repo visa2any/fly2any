@@ -28,7 +28,7 @@ const searchQuerySchema = z.object({
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-in date format'),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-out date format'),
   adults: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(8)),
-  children: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0).max(8)).default(() => 0),
+  children: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0).max(8)).default('0'),
   childrenAges: z.string().transform(val => 
     val ? val.split(',').map(age => parseInt(age, 10)) : []
   ).optional(),
@@ -42,8 +42,8 @@ const searchQuerySchema = z.object({
   guestRating: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(10)).optional(),
   sortBy: z.enum(['price', 'rating', 'distance', 'stars']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-  limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(100)).default(() => 20),
-  offset: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0)).default(() => 0),
+  limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(100)).default('20'),
+  offset: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0)).default('0'),
   amenities: z.string().transform(val => 
     val ? val.split(',') : []
   ).optional(),

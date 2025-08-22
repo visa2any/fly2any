@@ -78,6 +78,161 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  // 🚀 US MARKET DOMINATION - High Priority Routes
+  const usMarketPages = [
+    // Core US Flight Search Pages (Target: "cheap flights", "flight deals")
+    {
+      url: `${baseUrl}/flights`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 1.0, // Maximum priority for main search
+    },
+    {
+      url: `${baseUrl}/cheap-flights`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.98,
+    },
+    {
+      url: `${baseUrl}/flight-deals`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.98,
+    },
+    {
+      url: `${baseUrl}/best-flight-prices`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.98,
+    },
+    
+    // Top US Domestic Routes (High-Volume Keywords)
+    {
+      url: `${baseUrl}/flights/new-york-los-angeles`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.97,
+    },
+    {
+      url: `${baseUrl}/flights/new-york-miami`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.97,
+    },
+    {
+      url: `${baseUrl}/flights/los-angeles-new-york`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.97,
+    },
+    {
+      url: `${baseUrl}/flights/chicago-los-angeles`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    {
+      url: `${baseUrl}/flights/atlanta-new-york`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    {
+      url: `${baseUrl}/flights/dallas-los-angeles`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    
+    // Top US International Routes
+    {
+      url: `${baseUrl}/flights/new-york-london`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    {
+      url: `${baseUrl}/flights/los-angeles-tokyo`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    {
+      url: `${baseUrl}/flights/miami-sao-paulo`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96,
+    },
+    {
+      url: `${baseUrl}/flights/new-york-paris`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.95,
+    },
+    
+    // City-specific Landing Pages (Major US Markets)
+    {
+      url: `${baseUrl}/flights-from-new-york`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/flights-from-los-angeles`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/flights-from-chicago`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94,
+    },
+    {
+      url: `${baseUrl}/flights-from-miami`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94,
+    },
+    {
+      url: `${baseUrl}/flights-from-dallas`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94,
+    },
+    {
+      url: `${baseUrl}/flights-from-atlanta`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94,
+    },
+    {
+      url: `${baseUrl}/flights-from-san-francisco`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.93,
+    },
+    {
+      url: `${baseUrl}/flights-from-denver`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.93,
+    },
+    {
+      url: `${baseUrl}/flights-from-seattle`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.93,
+    },
+    {
+      url: `${baseUrl}/flights-from-boston`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.93,
+    },
+  ]
+
   // Service pages (alta prioridade para SEO)
   const servicePages = [
     // Portuguese routes (existing)
@@ -228,6 +383,58 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
+  // 🎯 US Travel Blog Posts (SEO Content Marketing)
+  const usBlogPosts = [
+    {
+      url: `${baseUrl}/blog/best-time-book-flights-usa`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/blog/cheapest-flights-from-new-york`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/blog/flight-deals-alert-guide`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.84,
+    },
+    {
+      url: `${baseUrl}/blog/domestic-flights-usa-guide`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.84,
+    },
+    {
+      url: `${baseUrl}/blog/international-flights-from-usa`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.83,
+    },
+    {
+      url: `${baseUrl}/blog/airline-comparison-usa`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.82,
+    },
+    {
+      url: `${baseUrl}/blog/travel-tips-american-travelers`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.81,
+    },
+    {
+      url: `${baseUrl}/blog/business-travel-flights-usa`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.80,
+    },
+  ]
+
   // Blog posts (será expandido dinamicamente)
   const blogPosts = [
     {
@@ -250,5 +457,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  return [...mainPages, ...staticPages, ...servicePages, ...cotacaoPages, ...blogPosts]
+  return [...mainPages, ...staticPages, ...usMarketPages, ...servicePages, ...cotacaoPages, ...usBlogPosts, ...blogPosts]
 }

@@ -415,10 +415,10 @@ export default function EmailMarketingPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-text-slate-900 mb-1">
-                📧 Email Marketing GRATUITO - Resend
+                📧 Email Marketing Professional - Mailgun
               </h1>
               <p className="text-text-slate-600">
-                Gerencie seus 5.000 emails sem custo usando N8N + Gmail API
+                Sistema profissional com Mailgun: 1k emails grátis/mês + webhooks avançados
               </p>
             </div>
             <div className="flex gap-3">
@@ -524,17 +524,18 @@ export default function EmailMarketingPage() {
             </div>
           </div>
           
-          {/* Gmail Rate Limiting Alert */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+          {/* Mailgun Professional Info */}
+          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
             <div className="flex items-start space-x-3">
-              <div className="text-yellow-600 text-lg">⚠️</div>
+              <div className="text-purple-600 text-lg">🚀</div>
               <div>
-                <h4 className="font-semibold text-yellow-800 mb-2">Limites do Gmail (SMTP)</h4>
-                <div className="text-sm text-yellow-700 space-y-1">
-                  <p>• <strong>Máximo por dia:</strong> 500 emails via SMTP</p>
-                  <p>• <strong>Rate limiting:</strong> 5 emails por lote, 1 minuto entre lotes</p>
-                  <p>• <strong>Seleção:</strong> Os {selectedSegment ? 'primeiros 500 do segmento' : 'primeiros 500 contatos'} (ordenados por data de cadastro)</p>
-                  <p>• <strong>Tempo estimado:</strong> ~{Math.ceil(Math.min(stats?.totalContacts || 0, 500) / 5)} minutos para {Math.min(stats?.totalContacts || 0, 500)} emails</p>
+                <h4 className="font-semibold text-purple-800 mb-2">Mailgun Professional Features</h4>
+                <div className="text-sm text-purple-700 space-y-1">
+                  <p>• <strong>Volume:</strong> 1,000 emails grátis/mês, depois $0.80/1k emails</p>
+                  <p>• <strong>Velocidade:</strong> Até 1,000 emails por lote (sem rate limiting)</p>
+                  <p>• <strong>Tracking:</strong> Webhooks automáticos para aberturas, cliques, bounces</p>
+                  <p>• <strong>Deliverability:</strong> 99%+ garantida com reputação Mailgun</p>
+                  <p>• <strong>Fallback:</strong> Backup automático para SendGrid/SMTP se necessário</p>
                 </div>
               </div>
             </div>
@@ -839,16 +840,17 @@ export default function EmailMarketingPage() {
         <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-3">📧 Gmail SMTP Ativo</h3>
-              <div className="bg-green-50 p-4 rounded-lg text-sm border border-green-200">
+              <h3 className="font-semibold mb-3">🚀 Mailgun Primary Provider</h3>
+              <div className="bg-purple-50 p-4 rounded-lg text-sm border border-purple-200">
                 <div className="flex items-center mb-2">
-                  <span className="text-green-600 mr-2">✅</span>
-                  <span className="font-semibold">Sistema funcionando</span>
+                  <span className="text-purple-600 mr-2">✅</span>
+                  <span className="font-semibold">Sistema profissional ativo</span>
                 </div>
-                <p className="mb-2 text-green-700">• Gmail SMTP configurado</p>
-                <p className="mb-2 text-green-700">• Rate limiting otimizado</p>
-                <p className="mb-2 text-green-700">• Templates profissionais</p>
-                <p className="text-green-700">• Tracking de campanhas ativo</p>
+                <p className="mb-2 text-purple-700">• Mailgun API configurado</p>
+                <p className="mb-2 text-purple-700">• Webhooks para tracking avançado</p>
+                <p className="mb-2 text-purple-700">• 99%+ deliverability garantida</p>
+                <p className="mb-2 text-purple-700">• 1,000 emails grátis/mês</p>
+                <p className="text-purple-700">• Fallback automático para SendGrid/SMTP</p>
               </div>
             </div>
             

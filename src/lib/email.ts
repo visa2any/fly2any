@@ -20,33 +20,68 @@ class EmailService {
 
   async sendEmail(emailData: EmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // Prioridade 1: Gmail via API email-gmail (novo endpoint limpo)
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-gmail`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: emailData.to,
-            subject: emailData.subject,
-            html: emailData.html,
-            text: emailData.text
-          })
-        });
+      // Check email service configurations
+      const hasMailgunConfig = process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN;
+      const hasGmailConfig = process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD;
+      
+      // Prioridade 1: Gmail via API email-gmail (Currently working)
+      if (hasGmailConfig) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-gmail`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailData.to,
+              subject: emailData.subject,
+              html: emailData.html,
+              text: emailData.text
+            })
+          });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.messageId) {
-            console.log('📧 Email sent via Gmail successfully');
-            return { success: true, messageId: result.messageId };
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.messageId) {
+              console.log('📧 Email sent via Gmail successfully');
+              return { success: true, messageId: result.messageId };
+            }
           }
+        } catch (gmailError) {
+          console.warn('Gmail sending failed:', gmailError);
         }
-      } catch (gmailError) {
-        console.warn('Gmail sending failed:', gmailError);
+      }
+      
+      // Prioridade 2: Mailgun (When domain is configured)
+      if (hasMailgunConfig) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-mailgun`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'send_simple',
+              email: emailData.to,
+              subject: emailData.subject,
+              html: emailData.html,
+              text: emailData.text
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.messageId) {
+              console.log('📧 Email sent via Mailgun successfully');
+              return { success: true, messageId: result.messageId };
+            }
+          }
+        } catch (mailgunError) {
+          console.warn('Mailgun sending failed (domain setup needed):', mailgunError);
+        }
       }
 
-      // Prioridade 2: N8N webhook se configurado
+      // Prioridade 3: N8N webhook se configurado
       if (process.env.N8N_WEBHOOK_EMAIL) {
         try {
           const response = await fetch(process.env.N8N_WEBHOOK_EMAIL, {
@@ -72,16 +107,63 @@ class EmailService {
         }
       }
 
-      // Fallback: log para debug
-      console.log('⚠️ Email não pôde ser enviado - verificar configurações Gmail/N8N:', {
-        to: emailData.to,
-        subject: emailData.subject,
-        timestamp: new Date().toISOString()
-      });
+      // Development/Fallback: Save to file system for testing
+      if (!hasMailgunConfig && !hasGmailConfig) { // Only save to file if no email service configured
+        console.log('\n' + '='.repeat(80));
+        console.log('📧 NEW LEAD EMAIL NOTIFICATION');
+        console.log('='.repeat(80));
+        console.log(`To: ${emailData.to}`);
+        console.log(`Subject: ${emailData.subject}`);
+        console.log(`Time: ${new Date().toISOString()}`);
+        console.log('-'.repeat(80));
+        console.log('Email Content Preview:');
+        console.log(emailData.text?.substring(0, 500) || 'No text content');
+        console.log('='.repeat(80) + '\n');
+        
+        // Save email to a file for review
+        try {
+          const fs = await import('fs/promises');
+          const path = await import('path');
+          const emailDir = path.default.join(process.cwd(), 'logs', 'emails');
+          
+          // Create directory if it doesn't exist
+          await fs.mkdir(emailDir, { recursive: true });
+          
+          // Save email
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const filename = `${timestamp}-${emailData.to.replace('@', '-at-')}.html`;
+          const filepath = path.default.join(emailDir, filename);
+          
+          await fs.writeFile(filepath, emailData.html);
+          console.log(`📁 Email saved to: ${filepath}`);
+          
+          // Also create a summary file
+          const summaryPath = path.default.join(emailDir, 'email-summary.txt');
+          const summaryEntry = `
+================================================================================
+Date: ${new Date().toISOString()}
+To: ${emailData.to}
+Subject: ${emailData.subject}
+File: ${filename}
+================================================================================
+${emailData.text?.substring(0, 1000) || 'No text content'}
+
+`;
+          await fs.appendFile(summaryPath, summaryEntry);
+          
+          return { 
+            success: true, 
+            messageId: `dev_${timestamp}`,
+            error: 'Email saved locally (No email service configured)'
+          };
+        } catch (fsError) {
+          console.error('Failed to save email to file:', fsError);
+        }
+      }
       
       return { 
         success: false, 
-        error: 'Nenhum provedor de email disponível (Gmail SMTP ou N8N webhook)' 
+        error: 'No email service configured. Please set Mailgun or Gmail credentials in .env' 
       };
     } catch (error) {
       console.error('❌ Email sending error:', error);

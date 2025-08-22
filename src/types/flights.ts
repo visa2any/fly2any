@@ -38,6 +38,7 @@ export interface FlightSearchParams {
   travelClass?: TravelClass;         // Travel class
   oneWay?: boolean;                  // Is one-way trip
   nonStop?: boolean;                 // Direct flights only
+  flexibleDates?: { enabled: boolean; days: number }; // Search ±X days from selected dates
   maxPrice?: number;                 // Maximum price cap
   max?: number;                      // Max number of offers (default 250)
   currencyCode?: string;             // Currency (e.g., "BRL", "USD")
@@ -210,8 +211,75 @@ export interface PassengerCounts {
   infants: number;
 }
 
+// Enhanced flexible dates configuration
+export interface EnhancedFlexibleDates {
+  departure: {
+    enabled: boolean;
+    days: number; // 1-7 days
+    dayOfWeek?: {
+      preferredDays?: ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[];
+      avoidWeekends?: boolean;
+    };
+    timeOfDay?: {
+      preferMorning?: boolean;
+      preferEvening?: boolean;
+      avoidRedEye?: boolean;
+    };
+    priorityLevel?: 'low' | 'medium' | 'high';
+  };
+  return?: {
+    enabled: boolean;
+    days: number;
+    dayOfWeek?: {
+      preferredDays?: ('monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday')[];
+      avoidWeekends?: boolean;
+    };
+    timeOfDay?: {
+      preferMorning?: boolean;
+      preferEvening?: boolean;
+      avoidRedEye?: boolean;
+    };
+    priorityLevel?: 'low' | 'medium' | 'high';
+  };
+  searchStrategy?: 'exhaustive' | 'optimized' | 'smart';
+  maxSearches?: number; // Limit total API calls
+  cacheResults?: boolean;
+}
+
+// Multi-city segment flexibility
+export interface MultiCityFlexibility {
+  segments: SegmentFlexibility[];
+}
+
+export interface SegmentFlexibility {
+  segmentIndex: number;
+  departure: {
+    enabled: boolean;
+    days: number;
+    priorityLevel?: 'low' | 'medium' | 'high';
+    dependsOnPrevious?: boolean; // Automatically adjust based on previous segment
+  };
+  constraints?: {
+    minLayoverHours?: number;
+    maxLayoverHours?: number;
+    preferredLayoverAirports?: string[];
+  };
+}
+
+// Legacy support
+export interface LegacyFlexibleDates {
+  enabled: boolean;
+  days: number;
+}
+
+// Union type for backward compatibility
+export type FlexibleDatesConfig = LegacyFlexibleDates | EnhancedFlexibleDates;
+
 export interface SearchPreferences {
   nonStop: boolean;
+  flexibleDates?: FlexibleDatesConfig;
+  enhancedFlexibility?: EnhancedFlexibleDates;
+  multiCityFlexibility?: MultiCityFlexibility;
   maxPrice?: number;
   preferredAirlines: string[];
   departureTimePreference?: TimePreference;
@@ -1289,3 +1357,62 @@ export interface SocialProofItem {
 
 // Flight Results List Props
 // FlightResultsListProps already defined above - removed duplicate
+
+// =============================================================================
+// ENHANCED FLEXIBLE DATES SEARCH METADATA
+// =============================================================================
+
+export interface FlexibleSearchMetadata {
+  isFlexibleSearch: boolean;
+  originalDepartureDate: string;
+  originalReturnDate?: string;
+  flexibleDays: number;
+  searchStrategy: 'exhaustive' | 'optimized' | 'smart';
+  totalSearchesExecuted: number;
+  totalSearchesPlanned: number;
+  optimizationsSaved: number;
+  searchEfficiencyScore: number; // 0-100
+  searchedDates: string[];
+  bestAlternativeDates?: {
+    departureDate: string;
+    returnDate?: string;
+    savings: number;
+    priceComparisonPercent: number;
+  };
+  performanceMetrics: {
+    totalApiCalls: number;
+    averageResponseTime: number;
+    cacheHitRate?: number;
+    rateLimitingEncountered: boolean;
+  };
+}
+
+// Enhanced search results with flexible dates context
+export interface EnhancedFlightSearchResults {
+  offers: ProcessedFlightOffer[];
+  metadata: FlexibleSearchMetadata;
+  recommendations?: FlexibilityRecommendation[];
+  priceCalendar?: DailyPriceData[];
+}
+
+export interface FlexibilityRecommendation {
+  type: 'date-shift' | 'time-preference' | 'alternative-airport';
+  title: string;
+  description: string;
+  potentialSavings: number;
+  confidence: 'low' | 'medium' | 'high';
+  actionable: boolean;
+  alternativeDates?: {
+    departureDate: string;
+    returnDate?: string;
+  };
+}
+
+export interface DailyPriceData {
+  date: string;
+  price: number;
+  savings?: number;
+  availability: 'high' | 'medium' | 'low';
+  dayOfWeek: string;
+  isOriginalDate: boolean;
+}

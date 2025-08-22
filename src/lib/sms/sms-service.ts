@@ -23,7 +23,13 @@ class TwilioProvider implements SMSProvider {
 
   async send(smsData: SMSData) {
     try {
-      const twilio = require('twilio');
+      let twilio;
+      try {
+        twilio = require('twilio');
+      } catch (e) {
+        console.warn('⚠️ Twilio not installed - SMS functionality disabled');
+        return { success: false, error: 'Twilio dependency not available' };
+      }
       const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
       const message = await client.messages.create({
@@ -51,7 +57,13 @@ class AWSSNSProvider implements SMSProvider {
 
   async send(smsData: SMSData) {
     try {
-      const AWS = require('aws-sdk');
+      let AWS;
+      try {
+        AWS = require('aws-sdk');
+      } catch (e) {
+        console.warn('⚠️ AWS SDK not installed - SMS functionality disabled');
+        return { success: false, error: 'AWS SDK dependency not available' };
+      }
       const sns = new AWS.SNS({
         region: process.env.AWS_REGION || 'us-east-1',
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,

@@ -1,4 +1,5 @@
-import { NextAuthOptions } from 'next-auth';
+// Legacy auth configuration - migrated to /src/auth.ts for NextAuth v5
+import type { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 
@@ -65,7 +66,7 @@ const verifyPassword = (plainPassword: string, hashedPassword: string): boolean 
   return bcrypt.compareSync(plainPassword, hashedPassword);
 };
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthConfig = {
   providers: [
     CredentialsProvider({
       id: 'credentials',
@@ -98,7 +99,7 @@ export const authOptions: NextAuthOptions = {
           console.log('🔍 [AUTH] Validando admin');
           
           const isValidPassword = credentials.password === ADMIN_CREDENTIALS.password ||
-                                 verifyPassword(credentials.password, ADMIN_CREDENTIALS.password);
+                                 verifyPassword(credentials.password as string, ADMIN_CREDENTIALS.password);
 
           if (!isValidPassword) {
             console.error('❌ [AUTH] Senha admin inválida');
@@ -158,7 +159,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: any; user: any }) {
       // First time JWT callback is run, user object is available
       if (user) {
         token.role = user.role;
@@ -167,7 +168,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token }) {
+    async session({ session, token }: { session: any; token: any }) {
       // Send properties to the client
       if (token) {
         session.user.id = token.id as string;
@@ -176,7 +177,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       const actualBaseUrl = getBaseUrl();
       
       if (process.env.NODE_ENV === 'production') {
@@ -284,7 +285,7 @@ export const authOptions: NextAuthOptions = {
         console.log(`[AUTH] Login: ${user.email} at ${new Date().toISOString()}`);
       }
     },
-    async signOut({ session, token }) {
+    async signOut(params) {
       if (process.env.NODE_ENV === 'development') {
         console.log(`[AUTH] Logout at ${new Date().toISOString()}`);
       }
@@ -295,12 +296,12 @@ export const authOptions: NextAuthOptions = {
   // trustHost is not a valid NextAuth v4 option
   
   logger: {
-    error: (code, metadata) => {
+    error: (error) => {
       if (process.env.NODE_ENV === 'development') {
-        console.error('[NextAuth Error]', code, metadata);
+        console.error('[NextAuth Error]', error);
       }
     },
-    warn: (code) => {
+    warn: (code: any) => {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[NextAuth Warning]', code);
       }
@@ -308,9 +309,6 @@ export const authOptions: NextAuthOptions = {
     debug: () => {}, // Disable debug logging
   }
 };
-
-// Helper function to get server session
-export { getServerSession } from 'next-auth';
 
 // Auth configuration export
 export default authOptions;

@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import DatePicker from './DatePicker';
+import AirportAutocomplete from './flights/AirportAutocomplete';
+import { AirportSelection } from '@/types/flights';
 
 interface LeadCaptureSimpleProps {
   isOpen: boolean;
@@ -15,8 +18,8 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
     nome: '',
     email: '',
     whatsapp: '',
-    origem: '',
-    destino: '',
+    origem: null as AirportSelection | null,
+    destino: null as AirportSelection | null,
     dataPartida: '',
     selectedServices: [] as string[]
   });
@@ -171,12 +174,11 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Origem *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.origem}
-                    onChange={(e) => setFormData({...formData, origem: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <AirportAutocomplete
+                    value={formData.origem || { iataCode: '', name: '', city: '', country: '' }}
+                    onChange={(airport) => setFormData({...formData, origem: airport})}
                     placeholder="De onde você vai partir?"
+                    className="w-full"
                   />
                 </div>
 
@@ -184,12 +186,11 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Destino *
                   </label>
-                  <input
-                    type="text"
-                    value={formData.destino}
-                    onChange={(e) => setFormData({...formData, destino: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <AirportAutocomplete
+                    value={formData.destino || { iataCode: '', name: '', city: '', country: '' }}
+                    onChange={(airport) => setFormData({...formData, destino: airport})}
                     placeholder="Para onde você quer ir?"
+                    className="w-full"
                   />
                 </div>
 
@@ -197,12 +198,13 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Data de Partida *
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={formData.dataPartida}
-                    onChange={(e) => setFormData({...formData, dataPartida: e.target.value})}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(value) => setFormData({...formData, dataPartida: value})}
+                    placeholder="Selecione a data de partida"
+                    label="Data de Partida *"
+                    minDate={new Date().toISOString().split('T')[0]}
+                    className="w-full"
                   />
                 </div>
               </div>

@@ -77,6 +77,7 @@ export default function FlightSearchForm({
     travelClass: 'ECONOMY' as TravelClass,
     preferences: {
       nonStop: false,
+      flexibleDates: { enabled: false, days: 2 },
       preferredAirlines: []
     },
     ...initialData
@@ -446,6 +447,17 @@ export default function FlightSearchForm({
     // Travel preferences
     if (formData.travelClass) searchParams.append('class', formData.travelClass);
     if (formData.preferences?.nonStop) searchParams.append('direct', 'true');
+    if (formData.preferences?.flexibleDates) {
+      const flexDates = formData.preferences.flexibleDates;
+      // Check if it's legacy format with enabled/days properties
+      if ('enabled' in flexDates && flexDates.enabled) {
+        searchParams.append('flexibleDates', 'true');
+        searchParams.append('flexibleDays', (flexDates as any).days.toString());
+      } else {
+        // Enhanced flexible dates format
+        searchParams.append('flexibleDates', 'true');
+      }
+    }
     searchParams.append('currency', 'USD'); // Default currency
     
     // Multi-city segments
@@ -668,11 +680,12 @@ export default function FlightSearchForm({
                 />
                 <span className="text-sm font-bold text-white">⚡ Direct flights only</span>
               </label>
+              
             </div>
           </div>
 
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            
             {/* REVOLUTIONARY MAIN SEARCH - AI-Powered (Hidden for Multi-City) */}
             {formData.tripType !== 'multi-city' && (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-end">
@@ -796,7 +809,7 @@ export default function FlightSearchForm({
 
             {/* CONTROLES SECUNDÁRIOS - For Regular Trips Only */}
             {formData.tripType !== 'multi-city' && (
-              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${formData.tripType === 'round-trip' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 ${formData.tripType === 'round-trip' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} items-start`}>
                 
                 {/* Departure Date */}
                 <div className="space-y-3">
@@ -828,6 +841,114 @@ export default function FlightSearchForm({
                       className=""
                     />
                   </div>
+                  
+                  {/* Enhanced Departure Flexibility */}
+                  <div className="flex items-center gap-2 ml-2">
+                    <input
+                      type="checkbox"
+                      id="flexible-departure"
+                      checked={formData.preferences.enhancedFlexibility?.departure?.enabled || ('enabled' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).enabled : false) || false}
+                      onChange={(e) => {
+                        setFormData(prev => {
+                          const currentEnhanced = prev.preferences.enhancedFlexibility;
+                          const legacyDays = ('days' in (prev.preferences.flexibleDates || {}) ? (prev.preferences.flexibleDates as any).days : 2) || 2;
+                          
+                          return {
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              enhancedFlexibility: {
+                                ...currentEnhanced,
+                                departure: {
+                                  enabled: e.target.checked,
+                                  days: currentEnhanced?.departure?.days || legacyDays,
+                                  priorityLevel: 'medium'
+                                },
+                                searchStrategy: 'optimized'
+                              },
+                              // Keep legacy support
+                              flexibleDates: {
+                                enabled: e.target.checked,
+                                days: currentEnhanced?.departure?.days || legacyDays
+                              }
+                            }
+                          };
+                        });
+                      }}
+                      className="w-3 h-3 text-green-400 bg-transparent border border-white/30 rounded focus:ring-green-400 focus:ring-1"
+                    />
+                    <label htmlFor="flexible-departure" className="text-xs text-white/80 cursor-pointer">
+                      Flexible ±
+                    </label>
+                    {(formData.preferences.enhancedFlexibility?.departure?.enabled || ('enabled' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).enabled : false)) && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDays = formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2;
+                            const newDays = Math.max(1, currentDays - 1);
+                            setFormData(prev => {
+                              const currentEnhanced = prev.preferences.enhancedFlexibility;
+                              return {
+                                ...prev,
+                                preferences: {
+                                  ...prev.preferences,
+                                  enhancedFlexibility: {
+                                    ...currentEnhanced,
+                                    departure: {
+                                      ...currentEnhanced?.departure,
+                                      enabled: true,
+                                      days: newDays,
+                                      priorityLevel: 'medium'
+                                    }
+                                  },
+                                  flexibleDates: { enabled: true, days: newDays }
+                                }
+                              };
+                            });
+                          }}
+                          disabled={(formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2) === 1}
+                          className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                        >
+                          −
+                        </button>
+                        <span className="text-xs text-white/80 min-w-[1rem] text-center">
+                          {formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDays = formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2;
+                            const newDays = Math.min(7, currentDays + 1);
+                            setFormData(prev => {
+                              const currentEnhanced = prev.preferences.enhancedFlexibility;
+                              return {
+                                ...prev,
+                                preferences: {
+                                  ...prev.preferences,
+                                  enhancedFlexibility: {
+                                    ...currentEnhanced,
+                                    departure: {
+                                      ...currentEnhanced?.departure,
+                                      enabled: true,
+                                      days: newDays,
+                                      priorityLevel: 'medium'
+                                    }
+                                  },
+                                  flexibleDates: { enabled: true, days: newDays }
+                                }
+                              };
+                            });
+                          }}
+                          disabled={(formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2) === 7}
+                          className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                        >
+                          +
+                        </button>
+                        <span className="text-xs text-white/60">days</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Return Date */}
@@ -850,8 +971,129 @@ export default function FlightSearchForm({
                         className=""
                       />
                     </div>
+                    
+                    <div className="flex items-center gap-2 ml-2">
+                      <input
+                        type="checkbox"
+                        id="flexible-return"
+                        checked={formData.preferences.enhancedFlexibility?.return?.enabled || false}
+                        onChange={(e) => {
+                          setFormData(prev => {
+                            const currentEnhanced = prev.preferences.enhancedFlexibility;
+                            const departureDays = currentEnhanced?.departure?.days || ('days' in (prev.preferences.flexibleDates || {}) ? (prev.preferences.flexibleDates as any).days : 2) || 2;
+                            
+                            return {
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                enhancedFlexibility: {
+                                  departure: currentEnhanced?.departure || {
+                                    enabled: false,
+                                    days: 2,
+                                    priorityLevel: 'medium' as const
+                                  },
+                                  return: {
+                                    enabled: e.target.checked,
+                                    days: currentEnhanced?.return?.days || departureDays,
+                                    priorityLevel: 'medium' as const
+                                  },
+                                  searchStrategy: 'optimized' as const,
+                                  maxSearches: currentEnhanced?.maxSearches || 25,
+                                  cacheResults: currentEnhanced?.cacheResults || true
+                                }
+                              }
+                            };
+                          });
+                        }}
+                        className="w-3 h-3 text-orange-400 bg-transparent border border-white/30 rounded focus:ring-orange-400 focus:ring-1"
+                      />
+                      <label htmlFor="flexible-return" className="text-xs text-white/80 cursor-pointer">
+                        Flexible ±
+                      </label>
+                      {formData.preferences.enhancedFlexibility?.return?.enabled && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentDays = formData.preferences.enhancedFlexibility?.return?.days || 2;
+                              const newDays = Math.max(1, currentDays - 1);
+                              setFormData(prev => {
+                                const currentEnhanced = prev.preferences.enhancedFlexibility;
+                                return {
+                                  ...prev,
+                                  preferences: {
+                                    ...prev.preferences,
+                                    enhancedFlexibility: {
+                                      departure: currentEnhanced?.departure || {
+                                        enabled: false,
+                                        days: 2,
+                                        priorityLevel: 'medium' as const
+                                      },
+                                      return: {
+                                        ...currentEnhanced?.return,
+                                        enabled: true,
+                                        days: newDays,
+                                        priorityLevel: 'medium' as const
+                                      },
+                                      searchStrategy: currentEnhanced?.searchStrategy || 'optimized' as const,
+                                      maxSearches: currentEnhanced?.maxSearches || 25,
+                                      cacheResults: currentEnhanced?.cacheResults || true
+                                    }
+                                  }
+                                };
+                              });
+                            }}
+                            disabled={(formData.preferences.enhancedFlexibility?.return?.days || 2) === 1}
+                            className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                          >
+                            −
+                          </button>
+                          <span className="text-xs text-white/80 min-w-[1rem] text-center">
+                            {formData.preferences.enhancedFlexibility?.return?.days || 2}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentDays = formData.preferences.enhancedFlexibility?.return?.days || 2;
+                              const newDays = Math.min(7, currentDays + 1);
+                              setFormData(prev => {
+                                const currentEnhanced = prev.preferences.enhancedFlexibility;
+                                return {
+                                  ...prev,
+                                  preferences: {
+                                    ...prev.preferences,
+                                    enhancedFlexibility: {
+                                      departure: currentEnhanced?.departure || {
+                                        enabled: false,
+                                        days: 2,
+                                        priorityLevel: 'medium' as const
+                                      },
+                                      return: {
+                                        ...currentEnhanced?.return,
+                                        enabled: true,
+                                        days: newDays,
+                                        priorityLevel: 'medium' as const
+                                      },
+                                      searchStrategy: currentEnhanced?.searchStrategy || 'optimized' as const,
+                                      maxSearches: currentEnhanced?.maxSearches || 25,
+                                      cacheResults: currentEnhanced?.cacheResults || true
+                                    }
+                                  }
+                                };
+                              });
+                            }}
+                            disabled={(formData.preferences.enhancedFlexibility?.return?.days || 2) === 7}
+                            className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                          >
+                            +
+                          </button>
+                          <span className="text-xs text-white/60">days</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
+
 
                 {/* Travel Class */}
                 <div className="space-y-3">
@@ -859,25 +1101,30 @@ export default function FlightSearchForm({
                     <span className="text-yellow-400">✨</span>
                     Class
                   </label>
-                  <button
-                    ref={classRef}
-                    type="button"
-                    onClick={() => {
-                      closeAllDropdowns();
-                      updateDropdownPosition(classRef.current, 'class');
-                      setShowClassDropdown(true);
-                    }}
-                    className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-yellow-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
-                  >
-                    <span>{getClassLabel(formData.travelClass)}</span>
-                    <div className="text-yellow-400 text-2xl">
-                      {travelClasses.find(c => c.value === formData.travelClass)?.icon || '🛋️'}
-                    </div>
-                  </button>
+                  <div className="relative">
+                    <button
+                      ref={classRef}
+                      type="button"
+                      onClick={() => {
+                        closeAllDropdowns();
+                        updateDropdownPosition(classRef.current, 'class');
+                        setShowClassDropdown(true);
+                      }}
+                      className="w-full px-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-yellow-400/80 focus:ring-0 text-xl font-semibold text-white hover:border-white/40 transition-all duration-300 text-left flex items-center justify-between"
+                    >
+                      <span>{getClassLabel(formData.travelClass)}</span>
+                      <div className="text-yellow-400 text-2xl">
+                        {travelClasses.find(c => c.value === formData.travelClass)?.icon || '🛋️'}
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
                 {/* ULTRA-PREMIUM SEARCH BUTTON */}
-                <div className="flex items-end">
+                <div className="space-y-3">
+                  <label className="block text-sm font-bold text-white/90 ml-2 opacity-0 pointer-events-none">
+                    Search
+                  </label>
                   <button
                     type="submit"
                     disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
@@ -1159,6 +1406,156 @@ export default function FlightSearchForm({
                               formData.segments?.[index - 1]?.departureDate.toLocaleDateString('sv-SE')}
                             className=""
                           />
+                          
+                          {/* Multi-City Segment Flexibility */}
+                          <div className="flex items-center gap-2 mt-2">
+                            <input
+                              type="checkbox"
+                              id={`flexible-segment-${index}`}
+                              checked={
+                                formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.enabled || false
+                              }
+                              onChange={(e) => {
+                                setFormData(prev => {
+                                  const currentMultiCity = prev.preferences.multiCityFlexibility;
+                                  const currentSegments = currentMultiCity?.segments || [];
+                                  const existingSegmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                  
+                                  let updatedSegments;
+                                  if (existingSegmentIndex >= 0) {
+                                    // Update existing segment
+                                    updatedSegments = [...currentSegments];
+                                    updatedSegments[existingSegmentIndex] = {
+                                      ...updatedSegments[existingSegmentIndex],
+                                      departure: {
+                                        enabled: e.target.checked,
+                                        days: updatedSegments[existingSegmentIndex].departure.days || 2,
+                                        priorityLevel: 'medium' as const
+                                      }
+                                    };
+                                  } else {
+                                    // Add new segment
+                                    updatedSegments = [
+                                      ...currentSegments,
+                                      {
+                                        segmentIndex: index,
+                                        departure: {
+                                          enabled: e.target.checked,
+                                          days: 2,
+                                          priorityLevel: 'medium' as const,
+                                          dependsOnPrevious: index > 0
+                                        },
+                                        constraints: {
+                                          minLayoverHours: 2,
+                                          maxLayoverHours: 24
+                                        }
+                                      }
+                                    ];
+                                  }
+                                  
+                                  return {
+                                    ...prev,
+                                    preferences: {
+                                      ...prev.preferences,
+                                      multiCityFlexibility: {
+                                        segments: updatedSegments
+                                      }
+                                    }
+                                  };
+                                });
+                              }}
+                              className="w-3 h-3 text-green-400 bg-transparent border border-white/30 rounded focus:ring-green-400 focus:ring-1"
+                            />
+                            <label htmlFor={`flexible-segment-${index}`} className="text-xs text-white/80 cursor-pointer">
+                              Flexible ±
+                            </label>
+                            {formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.enabled && (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => {
+                                      const currentMultiCity = prev.preferences.multiCityFlexibility;
+                                      const currentSegments = currentMultiCity?.segments || [];
+                                      const segmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                      
+                                      if (segmentIndex >= 0) {
+                                        const currentDays = currentSegments[segmentIndex].departure.days;
+                                        const newDays = Math.max(1, currentDays - 1);
+                                        
+                                        const updatedSegments = [...currentSegments];
+                                        updatedSegments[segmentIndex] = {
+                                          ...updatedSegments[segmentIndex],
+                                          departure: {
+                                            ...updatedSegments[segmentIndex].departure,
+                                            days: newDays
+                                          }
+                                        };
+                                        
+                                        return {
+                                          ...prev,
+                                          preferences: {
+                                            ...prev.preferences,
+                                            multiCityFlexibility: {
+                                              segments: updatedSegments
+                                            }
+                                          }
+                                        };
+                                      }
+                                      return prev;
+                                    });
+                                  }}
+                                  disabled={(formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.days || 2) === 1}
+                                  className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                                >
+                                  −
+                                </button>
+                                <span className="text-xs text-white/80 min-w-[1rem] text-center">
+                                  {formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.days || 2}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => {
+                                      const currentMultiCity = prev.preferences.multiCityFlexibility;
+                                      const currentSegments = currentMultiCity?.segments || [];
+                                      const segmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                      
+                                      if (segmentIndex >= 0) {
+                                        const currentDays = currentSegments[segmentIndex].departure.days;
+                                        const newDays = Math.min(7, currentDays + 1);
+                                        
+                                        const updatedSegments = [...currentSegments];
+                                        updatedSegments[segmentIndex] = {
+                                          ...updatedSegments[segmentIndex],
+                                          departure: {
+                                            ...updatedSegments[segmentIndex].departure,
+                                            days: newDays
+                                          }
+                                        };
+                                        
+                                        return {
+                                          ...prev,
+                                          preferences: {
+                                            ...prev.preferences,
+                                            multiCityFlexibility: {
+                                              segments: updatedSegments
+                                            }
+                                          }
+                                        };
+                                      }
+                                      return prev;
+                                    });
+                                  }}
+                                  disabled={(formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.days || 2) === 7}
+                                  className="w-4 h-4 flex items-center justify-center text-white/60 hover:text-white bg-black/20 rounded text-xs disabled:opacity-30"
+                                >
+                                  +
+                                </button>
+                                <span className="text-xs text-white/60">days</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

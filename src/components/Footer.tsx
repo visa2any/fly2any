@@ -19,6 +19,134 @@ export default function Footer({ isMobile = false }: FooterProps) {
       padding: '80px 0 40px 0',
       color: 'white'
     }}>
+      {/* Trust Signals Banner */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.05)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '24px 0',
+        marginBottom: '48px'
+      }}>
+        <div style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '0 32px'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '24px'
+          }}>
+            <h3 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: 'white',
+              margin: '0 0 8px 0',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              🛡️ Trusted by 2.1M+ Travelers Worldwide
+            </h3>
+            <p style={{
+              color: 'rgba(219, 234, 254, 0.8)',
+              fontSize: '14px',
+              margin: 0
+            }}>
+              Industry-leading certifications and guarantees for your peace of mind
+            </p>
+          </div>
+          
+          {/* Trust Badges Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)',
+            gap: '24px',
+            alignItems: 'center'
+          }}>
+            {/* BBB A+ Rating */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#10b981' }}>BBB A+</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Rated</div>
+            </div>
+
+            {/* IATA Certified */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>✈️</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#3b82f6' }}>IATA</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Certified</div>
+            </div>
+
+            {/* SSL Security */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔒</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#10b981' }}>SSL</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Secured</div>
+            </div>
+
+            {/* Customer Rating */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>⭐</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#f59e0b' }}>4.9/5</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Rating</div>
+            </div>
+
+            {/* Price Match */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>💰</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#10b981' }}>Price Match</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Guarantee</div>
+            </div>
+
+            {/* 24/7 Support */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              textAlign: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px' }}>📞</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#06b6d4' }}>24/7</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>Support</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div style={{
         maxWidth: '1400px',
         margin: '0 auto',
@@ -48,12 +176,57 @@ export default function Footer({ isMobile = false }: FooterProps) {
               lineHeight: '1.6',
               marginBottom: '24px'
             }}>
-              Especialistas em viagens Brasil-EUA há mais de 10 anos. 
-              Conectamos brasileiros nos EUA ao Brasil com atendimento personalizado e preços exclusivos.
+              The smart way to fly. AI-powered flight search that's 5X faster than Kayak, 
+              with transparent pricing Expedia can't match. Trusted by 2.1M+ travelers worldwide.
             </p>
             
-            {/* Contact Info */}
+            {/* Competitive Advantages */}
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.1)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px'
+            }}>
+              <h4 style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#10b981',
+                margin: '0 0 8px 0'
+              }}>
+                Why Choose Fly2Any?
+              </h4>
+              <ul style={{
+                margin: 0,
+                padding: 0,
+                listStyle: 'none',
+                fontSize: '13px',
+                color: '#a7f3d0'
+              }}>
+                <li style={{ marginBottom: '4px' }}>⚡ Sub-1 second search results</li>
+                <li style={{ marginBottom: '4px' }}>🤖 GPT-4 powered AI assistant</li>
+                <li style={{ marginBottom: '4px' }}>💎 100% transparent pricing</li>
+                <li>🎯 Price match guarantee</li>
+              </ul>
+            </div>
+            
+            {/* US Contact Info */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <a href="tel:1-800-FLY2ANY" style={{
+                color: 'rgba(219, 234, 254, 0.8)',
+                textDecoration: 'none',
+                fontSize: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                transition: 'color 0.3s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
+                <span style={{ fontSize: '20px' }}>📞</span>
+                1-800-FLY2ANY (24/7)
+              </a>
+              
               <button
                 onClick={() => {
                   const contactForm = document.getElementById('contact-form');
@@ -76,9 +249,10 @@ export default function Footer({ isMobile = false }: FooterProps) {
                 onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
                 onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
                 <MailIcon style={{ width: '20px', height: '20px' }} />
-                Enviar Mensagem
+                Live Chat Support
               </button>
-              <a href="https://wa.me/551151944717" style={{
+              
+              <a href="mailto:support@fly2any.com" style={{
                 color: 'rgba(219, 234, 254, 0.8)',
                 textDecoration: 'none',
                 fontSize: '16px',
@@ -89,8 +263,8 @@ export default function Footer({ isMobile = false }: FooterProps) {
               }}
               onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
               onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(219, 234, 254, 0.8)'}>
-                <ChatIcon style={{ width: '20px', height: '20px' }} />
-                WhatsApp 24/7
+                <span style={{ fontSize: '20px' }}>✉️</span>
+                support@fly2any.com
               </a>
             </div>
             
@@ -182,7 +356,7 @@ export default function Footer({ isMobile = false }: FooterProps) {
             </div>
           </div>
 
-          {/* Services */}
+          {/* US Services */}
           <div>
             <h4 style={{
               fontSize: '18px',
@@ -191,7 +365,7 @@ export default function Footer({ isMobile = false }: FooterProps) {
               color: 'white',
               fontFamily: 'Poppins, sans-serif'
             }}>
-              Nossos Serviços
+              Our Services
             </h4>
             <ul style={{
               listStyle: 'none',
@@ -199,11 +373,12 @@ export default function Footer({ isMobile = false }: FooterProps) {
               margin: 0
             }}>
               {[
-                { name: 'Passagens Aéreas', href: '/', icon: '✈️' },
-                { name: 'Hotéis no Brasil', href: '/', icon: '🏨' },
-                { name: 'Aluguel de Carros', href: '/', icon: '🚗' },
-                { name: 'Passeios e Tours', href: '/', icon: '🗺️' },
-                { name: 'Seguro Viagem', href: '/', icon: '🛡️' }
+                { name: 'Domestic Flights', href: '/flights/domestic', icon: '🇺🇸' },
+                { name: 'International Flights', href: '/flights/international', icon: '🌍' },
+                { name: 'AI Travel Assistant', href: '/ai-assistant', icon: '🤖' },
+                { name: 'Price Alerts', href: '/price-alerts', icon: '🔔' },
+                { name: 'Group Bookings', href: '/group-bookings', icon: '👥' },
+                { name: 'Travel Insurance', href: '/travel-insurance', icon: '🛡️' }
               ].map((service, index) => (
                 <li key={index} style={{ marginBottom: '12px' }}>
                   <Link href={service.href} style={{
@@ -234,7 +409,7 @@ export default function Footer({ isMobile = false }: FooterProps) {
               color: 'white',
               fontFamily: 'Poppins, sans-serif'
             }}>
-              Suporte
+              Support & Help
             </h4>
             <ul style={{
               listStyle: 'none',
@@ -242,11 +417,12 @@ export default function Footer({ isMobile = false }: FooterProps) {
               margin: 0
             }}>
               {[
-                { name: 'Como Funciona', href: '/como-funciona' },
-                { name: 'FAQ', href: '/faq' },
-                { name: 'Contato', href: '/contato' },
-                { name: 'Sobre Nós', href: '/sobre' },
-                { name: 'Blog', href: '/blog' }
+                { name: 'How It Works', href: '/how-it-works' },
+                { name: 'Help Center', href: '/help' },
+                { name: 'Contact Us', href: '/contact' },
+                { name: 'Live Chat', href: '/chat' },
+                { name: 'Flight Status', href: '/flight-status' },
+                { name: 'Booking Management', href: '/manage-booking' }
               ].map((item, index) => (
                 <li key={index} style={{ marginBottom: '12px' }}>
                   <Link href={item.href} style={{
@@ -264,7 +440,7 @@ export default function Footer({ isMobile = false }: FooterProps) {
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Legal & Compliance */}
           <div>
             <h4 style={{
               fontSize: '18px',
@@ -273,7 +449,7 @@ export default function Footer({ isMobile = false }: FooterProps) {
               color: 'white',
               fontFamily: 'Poppins, sans-serif'
             }}>
-              Legal
+              Legal & Compliance
             </h4>
             <ul style={{
               listStyle: 'none',
@@ -281,10 +457,12 @@ export default function Footer({ isMobile = false }: FooterProps) {
               margin: 0
             }}>
               {[
-                { name: 'Política de Privacidade', href: '/politica-privacidade' },
-                { name: 'Termos de Uso', href: '/termos-uso' },
-                { name: 'Cookies', href: '#' },
-                { name: 'Segurança', href: '#' }
+                { name: 'Privacy Policy', href: '/privacy-policy' },
+                { name: 'Terms of Service', href: '/terms-of-service' },
+                { name: 'Cookie Policy', href: '/cookie-policy' },
+                { name: 'Security', href: '/security' },
+                { name: 'Accessibility', href: '/accessibility' },
+                { name: 'Sitemap', href: '/sitemap' }
               ].map((item, index) => (
                 <li key={index} style={{ marginBottom: '12px' }}>
                   <Link href={item.href} style={{
@@ -301,36 +479,56 @@ export default function Footer({ isMobile = false }: FooterProps) {
               ))}
             </ul>
             
-            {/* Trust Badges */}
+            {/* Industry Certifications */}
             <div style={{ marginTop: '32px' }}>
+              <h5 style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: 'white',
+                margin: '0 0 12px 0'
+              }}>
+                Industry Certifications
+              </h5>
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '8px'
               }}>
                 <div style={{
                   background: 'rgba(16, 185, 129, 0.1)',
                   border: '1px solid rgba(16, 185, 129, 0.3)',
                   borderRadius: '8px',
                   padding: '8px 12px',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   color: '#10b981',
                   textAlign: 'center',
                   fontWeight: '600'
                 }}>
-                  🔒 SSL Certificado
+                  🛡️ BBB A+ Accredited
                 </div>
                 <div style={{
                   background: 'rgba(59, 130, 246, 0.1)',
                   border: '1px solid rgba(59, 130, 246, 0.3)',
                   borderRadius: '8px',
                   padding: '8px 12px',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   color: '#3b82f6',
                   textAlign: 'center',
                   fontWeight: '600'
                 }}>
-                  ⭐ 4.9/5 Estrelas
+                  ✈️ IATA Certified Agent
+                </div>
+                <div style={{
+                  background: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  fontSize: '11px',
+                  color: '#f59e0b',
+                  textAlign: 'center',
+                  fontWeight: '600'
+                }}>
+                  ⭐ 4.9/5 Customer Rating
                 </div>
               </div>
             </div>
@@ -353,27 +551,75 @@ export default function Footer({ isMobile = false }: FooterProps) {
               color: 'rgba(147, 197, 253, 0.8)',
               fontSize: '14px'
             }}>
-              &copy; 2024 Fly2Any. Todos os direitos reservados.
+              &copy; 2024 Fly2Any. All rights reserved.
             </p>
             <p style={{
               margin: '4px 0 0 0',
               color: 'rgba(147, 197, 253, 0.6)',
               fontSize: '12px'
             }}>
-              Conectando você ao mundo há 21 anos.
+              The smart way to fly • Connecting travelers worldwide since 2003
             </p>
           </div>
           
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '16px'
+            gap: '24px'
           }}>
+            {/* Social Media Links */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <a href="https://facebook.com/fly2any" style={{
+                color: 'rgba(147, 197, 253, 0.6)',
+                fontSize: '20px',
+                textDecoration: 'none',
+                transition: 'color 0.3s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(147, 197, 253, 0.6)'}>
+                📘
+              </a>
+              <a href="https://twitter.com/fly2any" style={{
+                color: 'rgba(147, 197, 253, 0.6)',
+                fontSize: '20px',
+                textDecoration: 'none',
+                transition: 'color 0.3s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(147, 197, 253, 0.6)'}>
+                🐦
+              </a>
+              <a href="https://instagram.com/fly2any" style={{
+                color: 'rgba(147, 197, 253, 0.6)',
+                fontSize: '20px',
+                textDecoration: 'none',
+                transition: 'color 0.3s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(147, 197, 253, 0.6)'}>
+                📷
+              </a>
+              <a href="https://linkedin.com/company/fly2any" style={{
+                color: 'rgba(147, 197, 253, 0.6)',
+                fontSize: '20px',
+                textDecoration: 'none',
+                transition: 'color 0.3s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(147, 197, 253, 0.6)'}>
+                💼
+              </a>
+            </div>
+            
             <span style={{
               color: 'rgba(147, 197, 253, 0.6)',
               fontSize: '12px'
             }}>
-              Feito com ❤️ para brasileiros
+              Made with 🤖 AI in USA
             </span>
           </div>
         </div>

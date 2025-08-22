@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getServerSession } from 'next-auth';
+import { auth } from '@/auth';
 import { authOptions } from '@/lib/auth';
 
 /**
@@ -43,9 +43,9 @@ export async function verifyAdminAuth(request: NextRequest) {
  */
 export async function verifyServerAuth() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user as any).role !== 'admin') {
       return {
         isAuthenticated: false,
         error: 'Acesso não autorizado'

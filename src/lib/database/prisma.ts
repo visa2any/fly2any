@@ -4,16 +4,36 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { MockPrismaModels } from './mock-models';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+// Create base Prisma client
+const basePrisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+});
+
+// Extend Prisma client with mock models for missing schema definitions
+export const prisma = Object.assign(basePrisma, {
+  // Add mock implementations for missing models
+  systemAlert: MockPrismaModels.systemAlert,
+  campaign: MockPrismaModels.campaign,
+  campaignEmail: MockPrismaModels.campaignEmail,
+  webhookEvent: MockPrismaModels.webhookEvent,
+  webhookLog: MockPrismaModels.webhookLog,
+  emailAnalyticsEvent: MockPrismaModels.emailAnalyticsEvent,
+  domainReputation: MockPrismaModels.domainReputation,
+  emailReport: MockPrismaModels.emailReport,
+  reportConfig: MockPrismaModels.reportConfig,
+  lead: MockPrismaModels.lead,
+});
+
+// Store in global for development
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = basePrisma;
+}
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 

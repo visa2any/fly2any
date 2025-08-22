@@ -23,7 +23,7 @@ const detailsQuerySchema = z.object({
   children: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0).max(8)).optional(),
   rooms: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(5)).optional(),
   currency: z.string().length(3).default('USD'),
-  includeRates: z.string().transform(val => val === 'true').default(() => true)
+  includeRates: z.string().transform(val => val === 'true').default('true')
 });
 
 /**

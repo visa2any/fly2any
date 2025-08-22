@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-08-18T13:19:17.036Z",
+  "environment": {
+    "nodeVersion": "v18.20.8",
+    "platform": "linux",
+    "arch": "x64",
+    "memory": "7535MB",
+    "cpus": 4
+  },
+  "tests": {
+    "config_file_next_config_ts": "EXISTS",
+    "config_file_webpack_enterprise-react19_js": "EXISTS",
+    "config_file_scripts_enterprise-build-system_js": "EXISTS",
+    "webpack_config_loadable": "FAILED",
+    "originalFactory_fix_originalFactory____typeof_originalFactory______function_": "FOUND",
+    "originalFactory_fix_originalFactory_call_this_": "MISSING",
+    "originalFactory_fix_EnterpriseReact19FastRefreshPlugin": "FOUND",
+    "originalFactory_fix_originalFactory_undefined_errors": "FOUND",
+    "originalFactory_analysis": "COMPLETED"
+  },
+  "errors": [
+    {
+      "type": "webpack_config_error",
+      "message": "Cannot find module 'webpack'\nRequire stack:\n- /mnt/d/Users/vilma/fly2any/webpack.enterprise-react19.js\n- /mnt/d/Users/vilma/fly2any/enterprise-test-simple.js",
+      "timestamp": "2025-08-18T13:19:53.108Z"
+    }
+  ],
+  "serverAttempts": [
+    {
+      "method": "Standard dev script",
+      "success": false,
+      "error": "NODE_OPTIONS --expose-gc not allowed",
+      "exitCode": 9,
+      "signal": null,
+      "duration": 517,
+      "stdout": "\n> fly2any@0.1.0 dev\n> NODE_OPTIONS=\"--max-old-space-size=4096 --expose-gc\" next dev\n\n",
+      "stderr": "node: --expose-gc is not allowed in NODE_OPTIONS\n"
+    },
+    {
+      "method": "Legacy dev script",
+      "success": false,
+      "error": "Timeout after 30 seconds",
+      "duration": 33582,
+      "stdout": "\n> fly2any@0.1.0 dev:legacy\n> next dev\n\n",
+      "stderr": ""
+    },
+    {
+      "method": "Direct Next.js with memory management",
+      "success": false,
+      "error": "Exit code: 1, Signal: null",
+      "exitCode": 1,
+      "signal": null,
+      "duration": 238,
+      "stdout": "",
+      "stderr": "/mnt/d/Users/vilma/fly2any/node_modules/.bin/next:2\nbasedir=$(dirname \"$(echo \"$0\" | sed -e 's,\\\\,/,g')\")\n          ^^^^^^^\n\nSyntaxError: missing ) after argument list\n    at internalCompileFunction (node:internal/vm:76:18)\n    at wrapSafe (node:internal/modules/cjs/loader:1283:20)\n    at Module._compile (node:internal/modules/cjs/loader:1328:27)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)\n    at Module.load (node:internal/modules/cjs/loader:1203:32)\n    at Module._load (node:internal/modules/cjs/loader:1019:12)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)\n    at node:internal/main/run_main_module:28:49\n\nNode.js v18.20.8\n"
+    },
+    {
+      "method": "Enterprise build system",
+      "success": false,
+      "error": "Exit code: 1, Signal: null",
+      "exitCode": 1,
+      "signal": null,
+      "duration": 1680,
+      "stdout": "\n\u001b[36m\n███████╗███╗   ██╗████████╗███████╗██████╗ ██████╗ ██████╗ ██╗███████╗███████╗\n██╔════╝████╗  ██║╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██║██╔════╝██╔════╝\n█████╗  ██╔██╗ ██║   ██║   █████╗  ██████╔╝██████╔╝██████╔╝██║███████╗█████╗  \n██╔══╝  ██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗██╔═══╝ ██╔══██╗██║╚════██║██╔══╝  \n███████╗██║ ╚████║   ██║   ███████╗██║  ██║██║     ██║  ██║██║███████║███████╗\n╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚══════╝\n\n\u001b[1mENTERPRISE BUILD SYSTEM FOR REACT 19 + NEXT.JS 15.X\u001b[0m\n\u001b[2mNode.js v22.17.0 Optimized | webpack originalFactory Fix | Bus Error Prevention\u001b[0m\n\u001b[36m═══════════════════════════════════════════════════════════════════════════════════\u001b[0m\n\u001b[36m\n🖥️  System: linux x64 | Node.js v18.20.8\u001b[0m\n\u001b[36m💾 Memory: 7535MB total, 6525MB available\u001b[0m\n\u001b[36m🔧 CPUs: 4 cores\n\u001b[0m\n\u001b[34m[1] System: 4 CPUs, 7535MB RAM\u001b[0m\n\u001b[34m[2] Configuring Node.js memory: 4897.75MB old space, 306.109375MB semi-space\u001b[0m\n\u001b[32m✅ Enterprise Node.js environment configured\u001b[0m\n\u001b[34m[5] Cleaning previous build artifacts...\u001b[0m\n\u001b[32m✅ Cleanup completed: 0 paths cleaned\u001b[0m\n\u001b[33m⚠️  Garbage collection not available (run with --expose-gc)\u001b[0m\n\u001b[36m\n======================================================================\u001b[0m\n\u001b[36m🚀 Enterprise Development Build\u001b[0m\n\u001b[36m======================================================================\u001b[0m\n\u001b[34m[1] Initial memory usage: 5MB\u001b[0m\n\u001b[34m[2] Build type: development\u001b[0m\n\u001b[34m[3] Command: npm run dev\u001b[0m\n\u001b[34m[EXEC] Running: npm run dev\u001b[0m\n\n> fly2any@0.1.0 dev\n> NODE_OPTIONS=\"--max-old-space-size=4096 --expose-gc\" next dev\n\n\u001b[31m❌ Command failed with exit code 127 after 1.08s\u001b[0m\n\u001b[31m❌ Build failed after 1.17s: Command failed with code 127\u001b[0m\n\u001b[41m🚨 Enterprise build system failed: Command failed with code 127\u001b[0m\n",
+      "stderr": "sh: 1: next: not found\nError: Command failed with code 127\n    at ChildProcess.<anonymous> (/mnt/d/Users/vilma/fly2any/scripts/enterprise-build-system.js:338:18)\n    at ChildProcess.emit (node:events:517:28)\n    at maybeClose (node:internal/child_process:1098:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:303:5)\n"
+    }
+  ],
+  "conclusions": [
+    "🏗️  ENTERPRISE WEBPACK CONFIGURATION VALIDATION COMPLETE",
+    "📊 Tests: 7/9 successful, 2 failed",
+    "🚨 Bus errors detected: 0 (This is the exact issue the enterprise config should fix)",
+    "⚙️  Configuration errors: 1",
+    "",
+    "🔍 KEY FINDINGS:",
+    "❌ No server startup methods worked - enterprise configuration fixes needed",
+    "❌ Enterprise webpack configuration has issues and needs attention"
+  ]
+}

@@ -31,7 +31,13 @@ class SendGridProvider implements EmailProvider {
 
   async send(emailData: EmailData) {
     try {
-      const sgMail = require('@sendgrid/mail');
+      let sgMail;
+      try {
+        sgMail = require('@sendgrid/mail');
+      } catch (e) {
+        console.warn('⚠️ SendGrid not installed - email functionality disabled');
+        return { success: false, error: 'SendGrid dependency not available' };
+      }
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
       const msg = {
@@ -62,32 +68,91 @@ class MailgunProvider implements EmailProvider {
 
   async send(emailData: EmailData) {
     try {
-      const formData = require('form-data');
-      const Mailgun = require('mailgun.js');
+      // Validate required environment variables
+      if (!process.env.MAILGUN_API_KEY) {
+        return { success: false, error: 'MAILGUN_API_KEY not configured' };
+      }
+      if (!process.env.MAILGUN_DOMAIN) {
+        return { success: false, error: 'MAILGUN_DOMAIN not configured' };
+      }
+
+      let formData, Mailgun;
+      try {
+        formData = require('form-data');
+        Mailgun = require('mailgun.js');
+      } catch (e) {
+        console.warn('⚠️ Mailgun dependencies not installed. Run: npm install mailgun.js form-data');
+        return { success: false, error: 'Mailgun dependencies not available. Install with: npm install mailgun.js form-data' };
+      }
 
       const mailgun = new Mailgun(formData);
       const mg = mailgun.client({
         username: 'api',
-        key: process.env.MAILGUN_API_KEY
+        key: process.env.MAILGUN_API_KEY,
+        url: 'https://api.mailgun.net' // Explicit API URL
       });
 
-      const response = await mg.messages.create(process.env.MAILGUN_DOMAIN, {
-        from: `Fly2Any <noreply@${process.env.MAILGUN_DOMAIN}>`,
+      // Prepare message data
+      const messageData: any = {
+        from: process.env.MAILGUN_FROM_EMAIL || `Fly2Any <noreply@${process.env.MAILGUN_DOMAIN}>`,
         to: [emailData.to],
         subject: emailData.subject,
-        text: emailData.textContent,
-        html: emailData.htmlContent,
-      });
+      };
 
+      // Add content based on what's available
+      if (emailData.htmlContent) {
+        messageData.html = emailData.htmlContent;
+      }
+      if (emailData.textContent) {
+        messageData.text = emailData.textContent;
+      }
+
+      // Add tracking and campaign tags
+      messageData['o:tracking'] = 'yes';
+      messageData['o:tracking-clicks'] = 'yes';
+      messageData['o:tracking-opens'] = 'yes';
+      
+      if (emailData.template) {
+        messageData['o:tag'] = [emailData.template, 'fly2any'];
+      } else {
+        messageData['o:tag'] = ['custom', 'fly2any'];
+      }
+
+      // Add custom variables for tracking
+      if (emailData.bookingId) {
+        messageData['v:booking_id'] = emailData.bookingId;
+      }
+      messageData['v:sent_at'] = new Date().toISOString();
+
+      console.log(`📧 Sending via Mailgun to ${emailData.to} with subject: "${emailData.subject}"`);
+      
+      const response = await mg.messages.create(process.env.MAILGUN_DOMAIN, messageData);
+
+      console.log(`✅ Mailgun email sent successfully. Message ID: ${response.id}`);
+      
       return {
         success: true,
         messageId: response.id
       };
     } catch (error: any) {
       console.error('❌ Mailgun error:', error);
+      
+      // Provide specific error messages for common issues
+      let errorMessage = error.message || 'Mailgun send failed';
+      
+      if (error.status === 401) {
+        errorMessage = 'Mailgun authentication failed. Check your API key.';
+      } else if (error.status === 400) {
+        errorMessage = 'Mailgun request invalid. Check domain and email format.';
+      } else if (error.status === 402) {
+        errorMessage = 'Mailgun payment required. Check your account billing.';
+      } else if (error.status === 404) {
+        errorMessage = 'Mailgun domain not found. Verify MAILGUN_DOMAIN setting.';
+      }
+
       return {
         success: false,
-        error: error.message || 'Mailgun send failed'
+        error: errorMessage
       };
     }
   }
@@ -136,21 +201,30 @@ export class EmailService {
   private providers: EmailProvider[] = [];
 
   constructor() {
-    // Initialize providers based on environment variables
-    if (process.env.SENDGRID_API_KEY) {
-      this.providers.push(new SendGridProvider());
-    }
+    // Initialize providers in priority order (Mailgun first as primary provider)
     
+    // 1. Mailgun (PRIMARY) - Best cost-effectiveness and reliability
     if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
       this.providers.push(new MailgunProvider());
+      console.log('✅ Mailgun configured as PRIMARY email provider');
+    }
+    
+    // 2. SendGrid (BACKUP) - Secondary option
+    if (process.env.SENDGRID_API_KEY) {
+      this.providers.push(new SendGridProvider());
+      console.log('✅ SendGrid configured as BACKUP email provider');
     }
 
+    // 3. SMTP (FALLBACK) - Last resort
     if (process.env.SMTP_HOST) {
       this.providers.push(new SMTPProvider());
+      console.log('✅ SMTP configured as FALLBACK email provider');
     }
 
     if (this.providers.length === 0) {
       console.warn('⚠️ No email providers configured. Emails will be logged only.');
+    } else {
+      console.log(`📧 Email service initialized with ${this.providers.length} provider(s): ${this.providers.map(p => p.name).join(', ')}`);
     }
   }
 

@@ -35,8 +35,8 @@ export interface LeadNotificationData {
 export async function sendLeadNotificationToAdmin(leadData: LeadNotificationData) {
   try {
     const adminEmails = [
-      'info@fly2any.com',
-      'fly2any.travel@gmail.com'
+      'fly2any.travel@gmail.com',  // Primary Gmail account
+      'info@fly2any.com'  // Secondary if needed
     ];
 
     const subject = `🚨 Novo Lead Recebido - ${leadData.nome}`;
@@ -798,29 +798,58 @@ Fly2Any Travel Inc.
   }
 }
 
+/**
+ * Enhanced Lead Notification System
+ * Now uses enterprise-grade email queue and notification service
+ */
 export async function sendLeadNotification(leadData: LeadNotificationData) {
-  try {
-    // Enviar email de confirmação para o cliente
-    const customerEmailResult = await sendCustomerConfirmationEmail(leadData);
-    
-    // Enviar notificação para admin
-    const adminEmailResult = await sendLeadNotificationToAdmin(leadData);
-    
-    // Tentar enviar via N8N webhook como backup
-    const webhookResult = await sendLeadNotificationToN8N(leadData);
+  console.log('📧 [LEAD-NOTIFICATION] Processing lead notification', {
+    leadId: leadData.id,
+    email: leadData.email,
+    nome: leadData.nome,
+    origem: leadData.origem,
+    destino: leadData.destino
+  });
 
-    return {
-      success: customerEmailResult.success || adminEmailResult.success || webhookResult.success,
-      customerEmail: customerEmailResult,
-      adminEmail: adminEmailResult,
-      webhook: webhookResult
-    };
+  // Send both admin and customer notifications directly
+  const [adminResult, customerResult, webhookResult] = await Promise.allSettled([
+    sendLeadNotificationToAdmin(leadData),
+    sendCustomerConfirmationEmail(leadData),
+    sendLeadNotificationToN8N(leadData)
+  ]);
 
-  } catch (error) {
-    console.error('Erro geral no sistema de notificações:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Erro desconhecido'
-    };
+  // Process results
+  const adminSuccess = adminResult.status === 'fulfilled' && adminResult.value.success;
+  const customerSuccess = customerResult.status === 'fulfilled' && customerResult.value.success;
+  const webhookSuccess = webhookResult.status === 'fulfilled' && webhookResult.value.success;
+
+  const combinedResult = {
+    success: adminSuccess || customerSuccess || webhookSuccess,
+    customerEmail: customerResult.status === 'fulfilled' ? customerResult.value : { success: false, error: 'Failed to send' },
+    adminEmail: adminResult.status === 'fulfilled' ? adminResult.value : { success: false, error: 'Failed to send' },
+    webhook: webhookResult.status === 'fulfilled' ? webhookResult.value : { success: false, error: 'Failed to send' },
+    metadata: {
+      adminSuccess,
+      customerSuccess,
+      webhookSuccess,
+      timestamp: new Date().toISOString()
+    }
+  };
+
+  console.log('📧 [LEAD-NOTIFICATION] Notification processing completed', {
+    success: combinedResult.success,
+    adminSuccess,
+    customerSuccess,
+    webhookSuccess
+  });
+
+  if (!combinedResult.success) {
+    console.error('❌ [LEAD-NOTIFICATION] All notification methods failed', {
+      adminError: adminResult.status === 'rejected' ? adminResult.reason : undefined,
+      customerError: customerResult.status === 'rejected' ? customerResult.reason : undefined,
+      webhookError: webhookResult.status === 'rejected' ? webhookResult.reason : undefined
+    });
   }
+
+  return combinedResult;
 }

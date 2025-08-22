@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
+
 import Image from "next/image";
 import ChatAgent from "@/components/ChatAgent";
 import FloatingChat from "@/components/FloatingChat";
@@ -10,18 +11,20 @@ import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
   display: "swap",
-  preload: true,
+  variable: "--font-inter",
 });
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-poppins",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
-  preload: true,
+  variable: "--font-poppins",
 });
+
+
+
+
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fly2any.com'),

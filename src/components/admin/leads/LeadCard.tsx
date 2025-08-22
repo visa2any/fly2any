@@ -108,8 +108,8 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 bg-white rounded-xl shadow-lg border border-gray-200-hover">
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200">
+      <div className="p-4 border-b border-gray-100">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
@@ -139,14 +139,14 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
           </div>
           
           <div className="flex items-center gap-2">
-            <span className={`admin-badge admin-status-${lead.status.toLowerCase()}`}>
+            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusColors[lead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200'} border`}>
               {lead.status.replace('_', ' ').toUpperCase()}
             </span>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="admin-btn admin-btn-ghost admin-btn-sm">
-                  <MoreHorizontal className="h-4 w-4" />
+                <button className="p-2 rounded-md hover:bg-gray-100 transition-colors">
+                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -179,7 +179,7 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+      <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Contact Info */}
           <div className="space-y-2">
@@ -223,14 +223,13 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
               {lead.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.id}
-                  className="admin-badge"
-                  style={{ backgroundColor: tag.color }}
+                  className={`px-2 py-1 text-xs font-medium rounded-full border ${tag.color}`}
                 >
                   {tag.name}
                 </span>
               ))}
               {lead.tags.length > 3 && (
-                <span className="admin-badge admin-badge-outline">
+                <span className="px-2 py-1 text-xs font-medium rounded-full border border-gray-300 bg-gray-50 text-gray-600">
                   +{lead.tags.length - 3} mais
                 </span>
               )}
@@ -257,14 +256,14 @@ export function LeadCard({ lead, onEdit, onDelete, onAssign, onContact }: LeadCa
           <div className="flex gap-2">
             <button 
               onClick={() => onContact(lead.id, 'email')}
-              className="admin-btn admin-btn-outline admin-btn-sm"
+              className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
             >
               <Mail className="h-3 w-3" />
               Email
             </button>
             <button 
               onClick={() => onContact(lead.id, 'whatsapp')}
-              className="admin-btn admin-btn-outline admin-btn-sm"
+              className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 transition-colors"
             >
               <MessageSquare className="h-3 w-3" />
               WhatsApp

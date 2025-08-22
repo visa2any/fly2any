@@ -26,6 +26,10 @@ interface FlightFiltersProps {
   priceRange?: { min: number; max: number };
   availableAirlines?: string[];
   className?: string;
+  searchMetadata?: {
+    flexibleDays?: number;
+    originalFlexibleDates?: boolean;
+  };
 }
 
 interface FilterChip {
@@ -40,7 +44,8 @@ export default function FlightFilters({
   onFiltersChange,
   priceRange = { min: 0, max: 2000 },
   availableAirlines = [],
-  className = ''
+  className = '',
+  searchMetadata
 }: FlightFiltersProps) {
   const [localFilters, setLocalFilters] = useState<FlightFiltersType>(filters || {});
 
@@ -394,7 +399,9 @@ export default function FlightFilters({
                 }}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-900">Flexible dates (±3 days)</span>
+              <span className="text-sm text-gray-900">
+                Flexible dates (±{searchMetadata?.flexibleDays || 3} days)
+              </span>
             </label>
             
             <label className="flex items-center gap-3 cursor-pointer">

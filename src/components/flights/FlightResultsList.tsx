@@ -99,6 +99,7 @@ interface FlightResultsListProps {
   onOfferSelect: (offer: ProcessedFlightOffer) => void;
   filters?: FlightFilters;
   onFiltersChange?: (filters: FlightFilters) => void;
+  flexibleMetadata?: any; // Flexible search metadata
   sortOptions?: FlightSortOptions;
   onSortChange?: (sort: FlightSortOptions) => void;
   isLoading?: boolean;
@@ -179,7 +180,8 @@ export default function FlightResultsList({
   viewMode = 'list',
   itemsPerPage = 10,
   currentPage = 1,
-  onPageChange
+  onPageChange,
+  flexibleMetadata
 }: FlightResultsListProps) {
   // ========================================================================
   // 🎯 ULTRA-ADVANCED STATE MANAGEMENT
@@ -2507,7 +2509,51 @@ export default function FlightResultsList({
 
           {/* 🎯 Flight Cards */}
           <div className="space-y-3">
-            {(paginatedOffers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))}
+            {(paginatedOffers || []).length === 0 ? (
+              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-3xl p-12 text-center shadow-xl">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                  <span className="text-4xl">✈️</span>
+                </div>
+                
+                <h3 className="text-2xl font-black text-slate-800 mb-4">
+                  No Direct Flights Available
+                </h3>
+                
+                <p className="text-gray-600 font-medium mb-8 max-w-md mx-auto">
+                  {searchData?.origin} to {searchData?.destination} doesn't have direct flights. 
+                  Most routes require connections through major hubs.
+                </p>
+
+                <div className="space-y-4">
+                  <button
+                    onClick={() => {
+                      // Remove direct flight requirement and search again
+                      const currentUrl = new URL(window.location.href);
+                      currentUrl.searchParams.set('direct', 'false');
+                      window.location.href = currentUrl.toString();
+                    }}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                  >
+                    <FlightIcon className="w-5 h-5" />
+                    Search with Connections
+                  </button>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                      <LightBulbIcon className="w-4 h-4" />
+                      Helpful Tips
+                    </h4>
+                    <ul className="text-sm text-blue-800 space-y-1 text-left">
+                      <li>• Most international flights connect through major hubs</li>
+                      <li>• Try flexible dates for better availability</li>
+                      <li>• Consider nearby airports for more options</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              (paginatedOffers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))
+            )}
           </div>
         </div>
       </div>

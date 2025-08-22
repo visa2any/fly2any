@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, email, campaignType, subject, htmlContent, toEmails } = body;
+    const { action, email, campaignType, subject, htmlContent, toEmails, html, text } = body;
 
     // Verificar se as credenciais Mailgun estão configuradas
     const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY;
@@ -24,6 +24,57 @@ export async function POST(request: NextRequest) {
           step4: 'Setup completo em 2 minutos!'
         }
       }, { status: 500 });
+    }
+
+    // Simple email sending for lead notifications
+    if (action === 'send_simple') {
+      if (!email) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Email is required' 
+        }, { status: 400 });
+      }
+
+      if (!subject || !html) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Subject and HTML are required' 
+        }, { status: 400 });
+      }
+
+      // Send via Mailgun API
+      const mailgunUrl = `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`;
+      
+      const formData = new FormData();
+      formData.append('from', `Fly2Any <${MAILGUN_FROM_EMAIL}>`);
+      formData.append('to', email);
+      formData.append('subject', subject);
+      formData.append('html', html);
+      if (text) {
+        formData.append('text', text);
+      }
+
+      const response = await fetch(mailgunUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`api:${MAILGUN_API_KEY}`).toString('base64')}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Mailgun error: ${response.status} - ${errorData}`);
+      }
+
+      const result = await response.json();
+
+      return NextResponse.json({ 
+        success: true, 
+        message: `Email sent via Mailgun to ${email}!`,
+        messageId: result.id,
+        provider: 'Mailgun'
+      });
     }
 
     if (action === 'send_test') {

@@ -7,8 +7,11 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import FlightResultsList from '@/components/flights/FlightResultsList';
+import FlightResultsActions from '@/components/flights/FlightResultsActions';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import Footer from '@/components/Footer';
+import FallbackDateNotice from '@/components/flights/FallbackDateNotice';
+import TestDataNotice from '@/components/flights/TestDataNotice';
 import { FlightFilters } from '@/types/flights';
 
 function FlightResultsContent() {
@@ -17,11 +20,35 @@ function FlightResultsContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FlightFilters>({});
+  const [flexibleMetadata, setFlexibleMetadata] = useState<any>(null);
+  const [fallbackDateInfo, setFallbackDateInfo] = useState<any>(null);
+  const [testDataUsed, setTestDataUsed] = useState<boolean>(false);
 
   // Handle filter changes
   const handleFiltersChange = (newFilters: FlightFilters) => {
     console.log('🔍 FILTERS CHANGED:', newFilters);
     setFilters(newFilters);
+  };
+
+  // Handle action button clicks
+  const handleExploreMore = () => {
+    console.log('🗺️ Opening Explore More modal...');
+    // TODO: Implement explore more modal with similar destinations
+  };
+
+  const handlePriceAlerts = () => {
+    console.log('🔔 Opening Price Alerts setup...');
+    // TODO: Implement price alerts setup modal
+  };
+
+  const handleShareResults = () => {
+    console.log('🔗 Sharing search results...');
+    // TODO: Implement sharing functionality
+  };
+
+  const handleSaveSearch = () => {
+    console.log('💾 Saving search...');
+    // TODO: Implement save search functionality
   };
 
   const searchData = {
@@ -69,6 +96,29 @@ function FlightResultsContent() {
         
         if (data.success && data.data) {
           setFlights(data.data);
+          // Store flexible dates metadata if available
+          if (data.meta?.flexibleDates) {
+            setFlexibleMetadata(data.meta.flexibleDates);
+          }
+          
+          // Check if test data was used
+          if (data.meta?.testDataUsed) {
+            setTestDataUsed(true);
+          }
+          
+          // Check if any flight has fallback date metadata
+          if (data.data.length > 0) {
+            const firstFlight = data.data[0];
+            if (firstFlight.searchMetadata?.fallbackDatesUsed) {
+              setFallbackDateInfo({
+                originalDeparture: firstFlight.searchMetadata.originalDepartureDate,
+                originalReturn: firstFlight.searchMetadata.originalReturnDate,
+                actualDeparture: firstFlight.searchMetadata.actualDepartureDate,
+                actualReturn: firstFlight.searchMetadata.actualReturnDate,
+                flightsFound: data.data.length
+              });
+            }
+          }
         } else {
           throw new Error(data.error || 'Failed to fetch flights');
         }
@@ -148,7 +198,7 @@ function FlightResultsContent() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="text-right">
                 <div className="text-2xl font-black text-slate-800">
                   {flights.length}
@@ -157,12 +207,47 @@ function FlightResultsContent() {
                   flights found
                 </div>
               </div>
+              
+              {/* Action Buttons */}
+              <FlightResultsActions
+                searchData={{
+                  from: searchData.from,
+                  to: searchData.to,
+                  departure: searchData.departure,
+                  return: searchData.return,
+                  adults: searchData.adults,
+                  class: searchData.class
+                }}
+                onExploreMore={handleExploreMore}
+                onPriceAlerts={handlePriceAlerts}
+                onShareResults={handleShareResults}
+                onSaveSearch={handleSaveSearch}
+              />
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Test Data Notice */}
+        {testDataUsed && (
+          <TestDataNotice
+            flightsCount={flights.length}
+            route={`${searchData.from} → ${searchData.to}`}
+          />
+        )}
+
+        {/* Fallback Date Notice */}
+        {fallbackDateInfo && (
+          <FallbackDateNotice
+            originalDeparture={fallbackDateInfo.originalDeparture}
+            originalReturn={fallbackDateInfo.originalReturn}
+            actualDeparture={fallbackDateInfo.actualDeparture}
+            actualReturn={fallbackDateInfo.actualReturn}
+            flightsFound={fallbackDateInfo.flightsFound}
+          />
+        )}
+        
         <FlightResultsList
           offers={flights}
           onOfferSelect={(flight) => {
@@ -171,6 +256,7 @@ function FlightResultsContent() {
           isLoading={false}
           filters={filters}
           onFiltersChange={handleFiltersChange}
+          flexibleMetadata={flexibleMetadata}
           searchData={{
             origin: searchData.from,
             destination: searchData.to,

@@ -379,7 +379,7 @@ export function formatPrice(amount: string | number, currency: string): string {
   
   console.log('✅ Successfully parsed amount:', numericAmount);
   
-  let finalCurrency = currency || 'USD';
+  const finalCurrency = currency || 'USD';
   
   switch (finalCurrency) {
     case 'USD':

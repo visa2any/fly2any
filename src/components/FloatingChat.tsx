@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { trackWhatsAppClick, trackButtonClick } from '@/lib/analytics';
+import { trackWhatsAppClick, trackButtonClick } from '@/lib/analytics-safe';
 
 export default function FloatingChat() {
   const [isVisible, setIsVisible] = useState(false);

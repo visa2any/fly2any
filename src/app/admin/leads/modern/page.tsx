@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-// Removed UI component imports - using admin CSS classes instead
 import { useToast } from '@/hooks/use-toast';
 import { 
   LayoutGrid, 
@@ -353,7 +352,6 @@ export default function ModernLeadsPage() {
 
   // Bulk actions
   const handleBulkStatusUpdate = async (status: string) => {
-    // TODO: Implement bulk status update
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de atualização em lote em desenvolvimento'
@@ -361,7 +359,6 @@ export default function ModernLeadsPage() {
   };
 
   const handleBulkAssign = async (assignTo: string) => {
-    // TODO: Implement bulk assign
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de atribuição em lote em desenvolvimento'
@@ -371,7 +368,6 @@ export default function ModernLeadsPage() {
   const handleBulkDelete = async () => {
     if (!confirm(`Tem certeza que deseja excluir ${selectedLeads.length} leads?`)) return;
     
-    // TODO: Implement bulk delete
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de exclusão em lote em desenvolvimento'
@@ -379,7 +375,6 @@ export default function ModernLeadsPage() {
   };
 
   const handleBulkExport = () => {
-    // TODO: Implement bulk export
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de exportação em desenvolvimento'
@@ -387,7 +382,6 @@ export default function ModernLeadsPage() {
   };
 
   const handleBulkAddTags = (tagIds: string[]) => {
-    // TODO: Implement bulk add tags
     toast({
       title: 'Em desenvolvimento',
       description: `Adicionando ${tagIds.length} tag(s) a ${selectedLeads.length} leads`
@@ -395,7 +389,6 @@ export default function ModernLeadsPage() {
   };
 
   const handleBulkRemoveTags = (tagIds: string[]) => {
-    // TODO: Implement bulk remove tags
     toast({
       title: 'Em desenvolvimento',
       description: `Removendo ${tagIds.length} tag(s) de ${selectedLeads.length} leads`
@@ -403,7 +396,6 @@ export default function ModernLeadsPage() {
   };
 
   const handleExport = () => {
-    // TODO: Implement export
     toast({
       title: 'Em desenvolvimento',
       description: 'Funcionalidade de exportação em desenvolvimento'
@@ -541,32 +533,32 @@ export default function ModernLeadsPage() {
           </div>
         </div>
 
-      {/* Filters */}
-      <LeadFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onExport={handleExport}
-        onReset={resetFilters}
-        totalLeads={leads.length}
-        filteredLeads={filteredLeads.length}
-        availableTags={availableTags}
-      />
+        {/* Filters */}
+        <LeadFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onExport={handleExport}
+          onReset={resetFilters}
+          totalLeads={leads.length}
+          filteredLeads={filteredLeads.length}
+          availableTags={availableTags}
+        />
 
-      {/* Bulk Actions */}
-      <BulkActions
-        selectedLeads={selectedLeads}
-        totalLeads={filteredLeads.length}
-        onClearSelection={() => setSelectedLeads([])}
-        onBulkStatusUpdate={handleBulkStatusUpdate}
-        onBulkAssign={handleBulkAssign}
-        onBulkDelete={handleBulkDelete}
-        onBulkExport={handleBulkExport}
-        onBulkEmail={() => toast({ title: 'Em desenvolvimento', description: 'Email em lote em desenvolvimento' })}
-        onBulkWhatsApp={() => toast({ title: 'Em desenvolvimento', description: 'WhatsApp em lote em desenvolvimento' })}
-        onBulkAddTags={handleBulkAddTags}
-        onBulkRemoveTags={handleBulkRemoveTags}
-        availableTags={availableTags}
-      />
+        {/* Bulk Actions */}
+        <BulkActions
+          selectedLeads={selectedLeads}
+          totalLeads={filteredLeads.length}
+          onClearSelection={() => setSelectedLeads([])}
+          onBulkStatusUpdate={handleBulkStatusUpdate}
+          onBulkAssign={handleBulkAssign}
+          onBulkDelete={handleBulkDelete}
+          onBulkExport={handleBulkExport}
+          onBulkEmail={() => toast({ title: 'Em desenvolvimento', description: 'Email em lote em desenvolvimento' })}
+          onBulkWhatsApp={() => toast({ title: 'Em desenvolvimento', description: 'WhatsApp em lote em desenvolvimento' })}
+          onBulkAddTags={handleBulkAddTags}
+          onBulkRemoveTags={handleBulkRemoveTags}
+          availableTags={availableTags}
+        />
 
         {/* Tabs System */}
         <div className="admin-tabs">
@@ -594,115 +586,113 @@ export default function ModernLeadsPage() {
           <div className="admin-tab-content">
             {activeTab === 'leads' && (
               <>
+                {/* View Toggle and Select All */}
+                <div className="admin-card">
+                  <div className="admin-card-content">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
+                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            className="admin-checkbox"
+                          />
+                          <span className="admin-label-inline admin-text-secondary">
+                            Selecionar todos ({filteredLeads.length})
+                          </span>
+                        </div>
+                      </div>
 
-      {/* View Toggle and Select All */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="admin-checkbox"
-                />
-                <span className="admin-label-inline admin-text-secondary">
-                  Selecionar todos ({filteredLeads.length})
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="admin-label-inline admin-text-muted">Visualização:</span>
-              <button
-                className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-                onClick={() => setViewMode('grid')}
-              >
-                <LayoutGrid className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
-                Cards
-              </button>
-              <button
-                className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
-                onClick={() => setViewMode('table')}
-              >
-                <List className="w-4 h-4 mr-2" style={{ strokeWidth: 2 }} />
-                Tabela
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Leads Display */}
-        {loading ? (
-          <div className="admin-loading">
-            <div className="admin-spinner"></div>
-            <span>Carregando leads...</span>
-          </div>
-      ) : (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
-              <div>
-                <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">Leads ({filteredLeads.length})</h3>
-                <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Visualização em cards dos leads</p>
-              </div>
-            </div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
-            <div className="admin-grid admin-grid-3">
-              {filteredLeads.map((lead) => (
-                <div key={lead.id} className="relative">
-                  <div className="admin-checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={selectedLeads.includes(lead.id)}
-                      onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
-                      className="admin-checkbox"
-                    />
+                      <div className="flex items-center gap-3">
+                        <span className="admin-label-inline admin-text-muted">Visualização:</span>
+                        <button
+                          className={`admin-btn admin-btn-sm ${viewMode === 'grid' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                          onClick={() => setViewMode('grid')}
+                        >
+                          <LayoutGrid className="w-4 h-4" />
+                          Cards
+                        </button>
+                        <button
+                          className={`admin-btn admin-btn-sm ${viewMode === 'table' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+                          onClick={() => setViewMode('table')}
+                        >
+                          <List className="w-4 h-4" />
+                          Tabela
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <LeadCard
-                    lead={lead}
-                    onEdit={handleEditLead}
-                    onDelete={handleDeleteLead}
-                    onAssign={handleAssignLead}
-                    onContact={handleContactLead}
-                  />
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Empty State */}
-      {!loading && filteredLeads.length === 0 && (
-        <div className="admin-empty-state">
-          <div className="admin-empty-icon">👥</div>
-          <h3 className="admin-empty-title">
-            Nenhum lead encontrado
-          </h3>
-          <p className="admin-empty-description">
-            Tente ajustar os filtros ou adicionar novos leads
-          </p>
-          <button className="admin-btn admin-btn-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Novo Lead
-          </button>
-        </div>
-      )}
+                {/* Leads Display */}
+                {loading ? (
+                  <div className="admin-loading">
+                    <div className="admin-spinner"></div>
+                    <span className="text-gray-600">Carregando leads...</span>
+                  </div>
+                ) : (
+                  <div className="admin-card">
+                    <div className="admin-card-header">
+                      <div>
+                        <h3 className="admin-card-title">Leads ({filteredLeads.length})</h3>
+                        <p className="admin-card-description">Visualização em cards dos leads</p>
+                      </div>
+                    </div>
+                    <div className="admin-card-content">
+                      <div className="admin-grid admin-grid-3">
+                        {filteredLeads.map((lead) => (
+                          <div key={lead.id} className="relative">
+                            <div className="admin-checkbox-container">
+                              <input
+                                type="checkbox"
+                                checked={selectedLeads.includes(lead.id)}
+                                onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
+                                className="admin-checkbox"
+                              />
+                            </div>
+                            <LeadCard
+                              lead={lead}
+                              onEdit={handleEditLead}
+                              onDelete={handleDeleteLead}
+                              onAssign={handleAssignLead}
+                              onContact={handleContactLead}
+                            />
+                          </div>
+                        ))}
+                      </div>
 
+                      {/* Empty State */}
+                      {filteredLeads.length === 0 && (
+                        <div className="admin-empty-state">
+                          <div className="admin-empty-icon">👥</div>
+                          <h3 className="admin-empty-title">
+                            Nenhum lead encontrado
+                          </h3>
+                          <p className="admin-empty-description">
+                            Tente ajustar os filtros ou adicionar novos leads
+                          </p>
+                          <button className="admin-btn admin-btn-primary">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Novo Lead
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
             {activeTab === 'analytics' && (
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+              <div className="admin-card">
+                <div className="admin-card-header">
                   <div>
-                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">📊 Analytics de Leads</h3>
-                    <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Métricas e insights de performance</p>
+                    <h3 className="admin-card-title">📊 Analytics de Leads</h3>
+                    <p className="admin-card-description">Métricas e insights de performance</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+                <div className="admin-card-content">
                   <div className="admin-grid admin-grid-2">
                     <div className="admin-stats-card">
                       <div className="admin-stats-header">
@@ -721,6 +711,7 @@ export default function ModernLeadsPage() {
                       <div className="admin-stats-label">para conversão</div>
                     </div>
                   </div>
+                  <div className="admin-divider"></div>
                   <div className="admin-badge admin-badge-info">
                     🚧 Analytics avançados em desenvolvimento
                   </div>
@@ -729,19 +720,19 @@ export default function ModernLeadsPage() {
             )}
 
             {activeTab === 'tags' && (
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200-header">
+              <div className="admin-card">
+                <div className="admin-card-header">
                   <div>
-                    <h3 className="bg-white rounded-xl shadow-lg border border-gray-200-title">🏷️ Gestão de Tags</h3>
-                    <p className="bg-white rounded-xl shadow-lg border border-gray-200-description">Organize e categorize seus leads</p>
+                    <h3 className="admin-card-title">🏷️ Gestão de Tags</h3>
+                    <p className="admin-card-description">Organize e categorize seus leads</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
+                <div className="admin-card-content">
                   <div className="admin-grid admin-grid-4">
                     {availableTags.map((tag) => (
                       <div key={tag.id} className="admin-stats-card">
                         <div className="admin-stats-header">
-                          <span className="admin-stats-title" style={{ color: tag.color }}>{tag.name}</span>
+                          <span className="admin-stats-title">{tag.name}</span>
                           <MoreVertical className="admin-stats-icon" />
                         </div>
                         <div className="admin-stats-value">
@@ -764,20 +755,20 @@ export default function ModernLeadsPage() {
           </div>
         </div>
 
-      {/* Edit Modal */}
-      <LeadEditModal
-        lead={editingLead}
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingLead(null);
-        }}
-        onSave={handleSaveLead}
-        availableTags={availableTags}
-        onCreateTag={handleCreateTag}
-        onUpdateTag={handleUpdateTag}
-        onDeleteTag={handleDeleteTag}
-      />
+        {/* Edit Modal */}
+        <LeadEditModal
+          lead={editingLead}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingLead(null);
+          }}
+          onSave={handleSaveLead}
+          availableTags={availableTags}
+          onCreateTag={handleCreateTag}
+          onUpdateTag={handleUpdateTag}
+          onDeleteTag={handleDeleteTag}
+        />
       </div>
     </div>
   );

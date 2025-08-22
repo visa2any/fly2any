@@ -23,17 +23,25 @@ export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/admin';
 
-  // Check if user is already logged in
+  // Check if user is already logged in with timeout
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const session = await getSession();
-        if (session?.user) {
+        // Add timeout to prevent hanging
+        const sessionPromise = getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        );
+        
+        const session = await Promise.race([sessionPromise, timeoutPromise]);
+        if (session && typeof session === 'object' && session !== null && 'user' in session && session.user) {
+          console.log('✅ [LOGIN] User already logged in, redirecting...');
           router.replace(callbackUrl);
           return;
         }
       } catch (error) {
-        console.error('Error checking session:', error);
+        console.warn('⚠️ [LOGIN] Session check failed or timed out:', error instanceof Error ? error.message : 'Unknown error');
+        // Continue to show login form even if session check fails
       } finally {
         setIsChecking(false);
       }
@@ -103,7 +111,10 @@ export default function AdminLoginPage() {
       console.error('❌ Erro no processo de login:', error);
       setError('Erro de conexão. Tente novamente.');
     } finally {
-      setIsLoading(false);
+      // Ensure loading state is always cleared
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 100);
     }
   };
 

@@ -1,0 +1,15 @@
+{
+  "name": "fly2any-minimal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx next@15.4.7 dev",
+    "build": "npx next@15.4.7 build",
+    "start": "npx next@15.4.7 start"
+  },
+  "dependencies": {
+    "next": "15.4.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

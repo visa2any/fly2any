@@ -115,12 +115,16 @@ export default function AirportAutocomplete({
 
   // Update query when value changes externally
   useEffect(() => {
-    if (value.iataCode) {
-      setQuery(`${value.iataCode} - ${value.city}`);
-    } else {
-      setQuery('');
+    if (value.iataCode && value.city) {
+      const expectedQuery = `${value.iataCode} - ${value.city}`;
+      if (query !== expectedQuery) {
+        setQuery(expectedQuery);
+      }
+    } else if (!value.iataCode && query && !query.includes(' - ')) {
+      // Don't clear the query if user is actively typing
+      // Only clear if it's not a user-typed search term
     }
-  }, [value]);
+  }, [value, query]);
 
   // Search airports
   useEffect(() => {
@@ -141,12 +145,20 @@ export default function AirportAutocomplete({
 
     const searchTerm = query.toLowerCase().trim();
     const matches = AIRPORTS_DATABASE.filter(airport => {
-      return (
+      const basicMatch = (
         airport.iataCode.toLowerCase().includes(searchTerm) ||
         airport.name.toLowerCase().includes(searchTerm) ||
         airport.city.toLowerCase().includes(searchTerm) ||
         airport.country.toLowerCase().includes(searchTerm)
       );
+      
+      // Check searchKeywords if they exist (for enhanced search)
+      const keywordMatch = (airport as any).searchKeywords && 
+        (airport as any).searchKeywords.some((keyword: string) => 
+          keyword.toLowerCase().includes(searchTerm)
+        );
+      
+      return basicMatch || keywordMatch;
     });
 
     // Sort by relevance

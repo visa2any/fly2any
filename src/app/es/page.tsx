@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics';
+import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
   FlightIcon, 
   HotelIcon, 

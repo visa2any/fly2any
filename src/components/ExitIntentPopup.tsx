@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { MailIcon, PhoneIcon } from '@/components/Icons';
+import { XIcon, CheckIcon, MailIcon, PhoneIcon } from '@/components/Icons';
 
 // Países principais para o seletor
 const countries = [
@@ -320,7 +319,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
           }}
         >
-          <XMarkIcon style={{ width: '18px', height: '18px' }} />
+          <XIcon style={{ width: '18px', height: '18px' }} />
         </button>
         
         <div style={{ padding: '24px' }}>

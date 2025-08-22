@@ -15,13 +15,13 @@ interface EmailProvider {
 
 const emailProviders: EmailProvider[] = [
   {
-    name: 'Mailgun (RECOMENDADO)',
-    free: 'Pague por uso',
+    name: 'Mailgun (PRIMARY PROVIDER)',
+    free: '1,000 emails grátis/mês',
     pricing: '$0.80 por 1.000 emails',
-    features: ['Sem limite de contatos', 'Setup simples', 'API confiável'],
+    features: ['Sem limite de contatos', 'Setup simples', 'API confiável', 'Webhooks avançados', 'Tracking completo'],
     setup: 'Simples (2 minutos)',
-    pros: ['Sem limites', 'Muito simples', 'Pague só o que usar'],
-    cons: ['Sem plano grátis generoso'],
+    pros: ['Sem limites de contatos', 'Muito simples', 'Pague só o que usar', 'Melhor deliverability', 'Webhooks para tracking', 'Suporte 24/7'],
+    cons: ['Após 1k emails grátis, pago por uso'],
     apiEndpoint: '/api/email-mailgun'
   },
   {
@@ -340,13 +340,15 @@ export default function EmailProvidersPage() {
         <div className="bg-white rounded-xl shadow-lg border border-gray-200-content">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-purple-50 p-6 rounded-xl border border-purple-200">
-              <h3 className="font-semibold text-lg mb-2 text-purple-800">🔥 MELHOR ESCOLHA</h3>
-              <p className="text-purple-700 mb-4"><strong>Mailgun</strong></p>
+              <h3 className="font-semibold text-lg mb-2 text-purple-800">🔥 PRIMARY PROVIDER</h3>
+              <p className="text-purple-700 mb-4"><strong>Mailgun (CONFIGURADO)</strong></p>
               <ul className="space-y-2 text-sm text-purple-600">
                 <li>✅ Sem limite de contatos</li>
-                <li>✅ $0.80 por 1.000 emails</li>
-                <li>✅ Setup em 2 minutos</li>
-                <li>✅ Pague só o que usar</li>
+                <li>✅ 1,000 emails grátis/mês</li>
+                <li>✅ $0.80 por 1.000 emails depois</li>
+                <li>✅ Webhooks para tracking avançado</li>
+                <li>✅ 99%+ deliverability garantida</li>
+                <li>✅ Setup completo e funcionando</li>
               </ul>
             </div>
             

@@ -152,123 +152,148 @@ function AdminLayoutContent({
     <div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Sidebar */}
       <aside 
-        className={`fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300 ${sidebarExpanded ? 'expanded' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}
+        className={`fixed top-0 left-0 h-screen z-40 transition-all duration-300 bg-white/95 backdrop-blur-lg border-r border-slate-200 ${
+          sidebarExpanded ? 'w-64' : 'w-16'
+        } ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         onMouseEnter={() => setSidebarExpanded(true)}
         onMouseLeave={() => setSidebarExpanded(false)}
       >
         {/* Logo/Header */}
-        <div className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-header">
-          <div className="admin-logo">
-            <Image
-              src="/fly2any-logo.png"
-              alt="Fly2Any"
-              width={64}
-              height={26}
-              className="object-contain"
-            />
+        <div className="h-16 flex items-center justify-center border-b border-slate-200 px-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+              F2A
+            </div>
+            {sidebarExpanded && (
+              <span className="font-bold text-gray-800 text-lg">Fly2Any</span>
+            )}
           </div>
-          <div className="admin-logo-text">Fly2Any</div>
         </div>
 
         {/* Navigation */}
-        <nav className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-nav">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`admin-nav-item ${isActive(item.href, item.exact) ? 'active' : ''}`}
-            >
-              <span className="admin-nav-icon">{item.icon}</span>
-              <span className="admin-nav-label">{item.name}</span>
-              {item.badge && (
-                <span className="admin-nav-badge">{item.badge}</span>
-              )}
-            </Link>
-          ))}
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-1 px-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  isActive(item.href, item.exact)
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="text-lg mr-3 flex-shrink-0">{item.icon}</span>
+                {sidebarExpanded && (
+                  <div className="flex-1 flex items-center justify-between">
+                    <span className="truncate">{item.name}</span>
+                    {item.badge && (
+                      <span className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full ${
+                        isActive(item.href, item.exact)
+                          ? 'bg-white/20 text-white'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {!sidebarExpanded && item.badge && (
+                  <span className="absolute left-10 top-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
+              </Link>
+            ))}
+          </div>
         </nav>
 
         {/* User Menu */}
-        <div className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-footer">
-          <div className="admin-user-menu">
-            <div className="admin-user-avatar">
+        <div className="border-t border-slate-200 p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
               {session?.user?.name?.[0]?.toUpperCase() || 'A'}
             </div>
-            <div className="admin-user-info">
-              <div className="admin-user-name">
-                {session?.user?.name || 'Admin'}
+            {sidebarExpanded && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {session?.user?.name || 'Admin'}
+                </p>
+                <p className="text-xs text-gray-500 truncate">Administrador</p>
               </div>
-              <div className="admin-user-role">Administrador</div>
-            </div>
-            {/* Logout Button */}
+            )}
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="admin-logout-btn"
+              className={`p-1.5 rounded-lg transition-colors ${
+                sidebarExpanded ? 'hover:bg-gray-100' : 'hover:bg-gray-100'
+              }`}
               title="Sair"
             >
               {isLoggingOut ? (
-                <span className="animate-spin">⏳</span>
+                <span className="animate-spin text-lg">⏳</span>
               ) : (
-                '🚪'
+                <span className="text-lg">🚪</span>
               )}
             </button>
           </div>
         </div>
-
-        {/* Toggle Button */}
-        <button
-          className="fixed top-0 left-0 h-screen w-16 bg-white/95 backdrop-blur-lg border-r border-slate-200 transition-all duration-300-toggle"
-          onClick={() => setSidebarExpanded(!sidebarExpanded)}
-          aria-label="Toggle sidebar"
-        >
-          <span>{sidebarExpanded ? '←' : '→'}</span>
-        </button>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-16 transition-all duration-300 flex flex-col">
+      <main className={`flex-1 flex flex-col transition-all duration-300 ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
         {/* Header */}
-        <header className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6">
-          <div className="admin-breadcrumb">
-            <span>Admin</span>
-            {pathname !== '/admin' && (
-              <>
-                <span className="admin-breadcrumb-separator">/</span>
-                <span className="admin-breadcrumb-current">
-                  {navigation.find(item => pathname.startsWith(item.href))?.name || 'Página'}
-                </span>
-              </>
-            )}
-          </div>
-
-          <div className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6-actions">
+        <header className="h-16 bg-white/95 backdrop-blur-lg border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
             {/* Mobile Menu Toggle */}
             <button
-              className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg md:hidden border-0"
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle mobile menu"
             >
-              ☰
+              <span className="text-xl">☰</span>
             </button>
             
-            {/* Quick Actions */}
-            <button className="bg-gradient-to-r from-orange-400 to-pink-500 text-white p-2 rounded-lg hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl border-0 relative overflow-hidden group">
-              <span className="relative z-10">🔔</span>
-              <div className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            {/* Breadcrumb */}
+            <nav className="flex items-center space-x-2 text-sm">
+              <span className="font-medium text-gray-500">Admin</span>
+              {pathname !== '/admin' && (
+                <>
+                  <span className="text-gray-400">/</span>
+                  <span className="font-medium text-gray-900">
+                    {navigation.find(item => pathname.startsWith(item.href))?.name || 'Página'}
+                  </span>
+                </>
+              )}
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <span className="text-xl">🔔</span>
+              <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
             </button>
+            
+            {/* Quick Settings */}
+            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <span className="text-xl">⚙️</span>
+            </button>
+            
+            {/* Logout Button */}
             <button 
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border-0 font-semibold disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-sm disabled:opacity-50"
             >
               {isLoggingOut ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
-                  Saindo...
+                  <span className="animate-spin">⏳</span>
+                  <span>Saindo...</span>
                 </>
               ) : (
                 <>
-                  🚪 Sair
+                  <span>🚪</span>
+                  <span className="hidden sm:inline">Sair</span>
                 </>
               )}
             </button>
@@ -276,7 +301,7 @@ function AdminLayoutContent({
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </main>
