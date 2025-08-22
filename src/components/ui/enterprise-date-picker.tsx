@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * 🚀 ENTERPRISE DATE PICKER - Best-in-class component
  * 
@@ -18,19 +19,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Popover, Transition } from '@headlessui/react';
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import format from 'date-fns/format';
-import startOfMonth from 'date-fns/startOfMonth';
-import endOfMonth from 'date-fns/endOfMonth';
-import eachDayOfInterval from 'date-fns/eachDayOfInterval';
-import isSameMonth from 'date-fns/isSameMonth';
-import isToday from 'date-fns/isToday';
-import isSameDay from 'date-fns/isSameDay';
-import addMonths from 'date-fns/addMonths';
-import subMonths from 'date-fns/subMonths';
-import isAfter from 'date-fns/isAfter';
-import isBefore from 'date-fns/isBefore';
-import parse from 'date-fns/parse';
-import isValid from 'date-fns/isValid';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDay,
+  isSameMonth,
+  isToday,
+  isSameDay,
+  addMonths,
+  subMonths,
+  isAfter,
+  isBefore,
+  parse,
+  isValid
+} from 'date-fns';
 
 interface EnterpriseDatePickerProps {
   value?: string;
@@ -165,7 +168,8 @@ export default function EnterpriseDatePicker({
   // Generate calendar days
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
-  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Use eachDay for compatibility with @types/date-fns v2.5.1
+  const calendarDays = eachDay(monthStart, monthEnd);
   
   // Add empty cells for proper calendar layout
   const startPadding = Array(monthStart.getDay()).fill(null);

@@ -12,10 +12,25 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "incremental": false,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/app/test-simple/page.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "backups/**/*",
+    "railway-baileys-setup/**/*",
+    "node_modules_corrupted*/**/*",
+    "**/node_modules_corrupted*",
+    ".next",
+    "dist",
+    "build"
+  ]
 }
