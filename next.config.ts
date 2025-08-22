@@ -1,19 +1,69 @@
 import type { NextConfig } from "next";
 
-// ULTRA-MINIMAL Next.js configuration to eliminate webpack factory errors
+// Enhanced Next.js configuration to resolve TypeScript compilation issues
 const nextConfig: NextConfig = {
-  // Absolutely minimal configuration
-  reactStrictMode: false, // Disable strict mode temporarily
+  // Basic configuration for React 19 compatibility
+  reactStrictMode: true, // Enable strict mode for React 19
   poweredByHeader: false,
-  compress: false, // Disable compression to avoid conflicts
+  compress: true, // Enable compression
   
-  // Disable all experimental features
+  // TypeScript configuration
+  typescript: {
+    ignoreBuildErrors: false, // Enable to catch TS errors
+    tsconfigPath: './tsconfig.json'
+  },
+  
+  // Webpack configuration to handle module resolution and React 19 JSX runtime
+  webpack: (config, { dev, isServer }) => {
+    // Fix for React 19 JSX runtime resolution and prevent duplicate React
+    const path = require('path');
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "react$": path.resolve(__dirname, "node_modules/react"),
+      "react-dom$": path.resolve(__dirname, "node_modules/react-dom"),
+      "react/jsx-runtime$": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+      "react/jsx-dev-runtime$": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime")
+    };
+
+    // Ensure proper module resolution for AWS SDK and other packages
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      crypto: false,
+    };
+
+    // Handle external dependencies for server-side rendering
+    if (isServer) {
+      config.externals = [...(config.externals || [])];
+    }
+
+    // Ensure proper JSX runtime configuration
+    config.resolve.extensions = [...(config.resolve.extensions || []), '.js', '.jsx', '.ts', '.tsx'];
+
+    return config;
+  },
+  
+  // Disable all experimental features to avoid conflicts
   experimental: {},
   
-  // Remove all webpack customizations
-  // Remove all turbopack configurations
-  // Remove all redirects and headers
-  // Remove all server external packages
+  // Ensure proper ESM handling and React 19 compatibility
+  transpilePackages: [
+    '@headlessui/react',
+    '@aws-sdk/client-ses',
+    '@radix-ui/react-avatar',
+    '@radix-ui/react-checkbox',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-dropdown-menu',
+    '@radix-ui/react-label',
+    '@radix-ui/react-popover',
+    '@radix-ui/react-select',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-switch',
+    '@radix-ui/react-tabs',
+    '@radix-ui/react-tooltip'
+  ]
 };
 
 export default nextConfig;

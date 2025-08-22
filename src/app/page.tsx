@@ -159,11 +159,11 @@ export default function Home() {
 
   // Social proof notifications data
   const socialProofNotifications = [
-    { name: "Maria S.", location: "Orlando", route: "São Paulo", price: "R$ 1.847", time: "2 min" },
-    { name: "João M.", location: "Miami", route: "Rio de Janeiro", price: "R$ 2.156", time: "5 min" },
-    { name: "Ana P.", location: "Boston", route: "Brasília", price: "R$ 2.387", time: "8 min" },
-    { name: "Carlos R.", location: "New York", route: "Salvador", price: "R$ 2.443", time: "12 min" },
-    { name: "Lucia F.", location: "Los Angeles", route: "Fortaleza", price: "R$ 2.678", time: "18 min" }
+    { name: "Maria S.", location: "Orlando", route: "São Paulo", price: "$347", time: "2 min" },
+    { name: "João M.", location: "Miami", route: "Rio de Janeiro", price: "$456", time: "5 min" },
+    { name: "Ana P.", location: "Boston", route: "Brasília", price: "$487", time: "8 min" },
+    { name: "Carlos R.", location: "New York", route: "Salvador", price: "$543", time: "12 min" },
+    { name: "Lucia F.", location: "Los Angeles", route: "Fortaleza", price: "$578", time: "18 min" }
   ];
 
   // Social proof cycling effect
@@ -1026,7 +1026,7 @@ export default function Home() {
                 textAlign: isMobile ? 'center' : 'left',
                 color: colors.secondary.gray900
               }} className="mobile-title">
-                Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
+                Fly2Any, your air bridge between USA, Brazil and the World!
               </h1>
               <p style={{
                 fontSize: isMobile ? '18px' : '20px',
@@ -1037,7 +1037,7 @@ export default function Home() {
                 fontWeight: '400',
                 textAlign: isMobile ? 'center' : 'left'
               }} className="mobile-subtitle">
-                Conectamos brasileiros, americanos e outras nacionalidades ao Brasil e ao mundo 
+                Connecting Americans, Brazilians and other nationalities to Brazil and the world 
                 com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
               
@@ -1139,7 +1139,7 @@ export default function Home() {
                   }}
                 >
                   <FlightIcon style={{ width: '20px', height: '20px' }} />
-                  Economize até R$ 1.200 - Cotação Grátis
+                  Save up to $250 - Free Quote
                 </button>
                 
                 <a
@@ -1267,7 +1267,7 @@ export default function Home() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
-                    🔥 OFERTA LIMITADA: Economize até R$ 1.200 • Válida até Sexta-feira
+                    🔥 LIMITED OFFER: Save up to $250 • Valid until Friday
                   </span>
                 </div>
                 
@@ -2885,7 +2885,7 @@ export default function Home() {
                 margin: '0 auto 32px auto',
                 lineHeight: '1.6'
               }}>
-                Descubra os diferenciais que fazem da Fly2Any a escolha número 1 para viagens Brasil-EUA
+                Discover what makes Fly2Any the #1 choice for USA-Brazil travel
               </p>
               
               {/* Price Anchoring Widget */}
@@ -2919,7 +2919,7 @@ export default function Home() {
                       fontWeight: '700',
                       color: colors.secondary.gray400
                     }}>
-                      R$ 3.200
+                      $950
                     </div>
                   </div>
                   
@@ -2944,7 +2944,7 @@ export default function Home() {
                       fontWeight: '800',
                       color: colors.accent.orange
                     }}>
-                      R$ 1.850
+                      $675
                     </div>
                   </div>
                   
@@ -2962,7 +2962,7 @@ export default function Home() {
                       fontWeight: '800',
                       color: colors.accent.green
                     }}>
-                      R$ 1.350
+                      $275
                     </div>
                   </div>
                 </div>
@@ -2977,7 +2977,7 @@ export default function Home() {
                   fontWeight: '600',
                   display: 'inline-block'
                 }}>
-                  💰 Economia média em voos Brasil-EUA
+                  💰 Average savings on USA-Brazil flights
                 </div>
               </div>
             </div>
@@ -3011,7 +3011,7 @@ export default function Home() {
                 {
                   icon: '✈️',
                   title: 'Experiência Comprovada',
-                  description: 'Mais de 10 anos especializados em viagens Brasil-EUA',
+                  description: 'Over 10 years specialized in USA-Brazil travel',
                   highlight: '+10.000 viagens realizadas'
                 },
                 {

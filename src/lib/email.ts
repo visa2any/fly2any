@@ -1,5 +1,6 @@
 import { Lead, ServiceData } from './database';
 import { Resend } from 'resend';
+import * as mailersend from './email-mailersend';
 
 interface EmailData {
   to: string;
@@ -21,10 +22,30 @@ class EmailService {
   async sendEmail(emailData: EmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       // Check email service configurations
+      const hasMailerSendConfig = process.env.MAILERSEND_API_KEY;
       const hasMailgunConfig = process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN;
       const hasGmailConfig = process.env.GMAIL_EMAIL && process.env.GMAIL_APP_PASSWORD;
       
-      // Prioridade 1: Gmail via API email-gmail (Currently working)
+      // Priority 1: MailerSend (New primary provider)
+      if (hasMailerSendConfig) {
+        try {
+          const result = await mailersend.sendEmail({
+            to: emailData.to,
+            subject: emailData.subject,
+            html: emailData.html,
+            text: emailData.text
+          });
+          
+          if (result.success) {
+            console.log('📧 Email sent via MailerSend successfully');
+            return result;
+          }
+        } catch (mailersendError) {
+          console.error('MailerSend error, trying fallback:', mailersendError);
+        }
+      }
+      
+      // Priority 2: Gmail via API email-gmail (Fallback)
       if (hasGmailConfig) {
         try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.fly2any.com'}/api/email-gmail`, {
