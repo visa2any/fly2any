@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Get detailed performance for each campaign
     const campaignPerformance: CampaignPerformance[] = await Promise.all(
-      campaigns.map(async (campaign) => {
+      campaigns.map(async (campaign: any) => {
         // Get email statistics for this campaign
         const emailStats = await prisma.campaignEmail.groupBy({
           by: ['status'],
