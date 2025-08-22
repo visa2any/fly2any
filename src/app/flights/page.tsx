@@ -419,7 +419,6 @@ function VoosAdvancedContent() {
       setTimeout(() => {
         updateState({ 
           searchResults: validFlightData,
-          filteredResults: validFlightData,
           priceInsights: insights,
           isLoading: false,
           view: 'results' // Now change to results view
@@ -465,23 +464,22 @@ function VoosAdvancedContent() {
   };
 
   // Raw search results for FlightResultsList to process (maintains all robustness)
-  const filteredResults = useMemo(() => {
-    console.log('🔍 Preparing flight data for advanced processing:', {
-      searchResults: state.searchResults?.length || 0,
-      hasAdvancedFilters: !!state.filters,
-      stateDebug: {
-        hasSearchResults: !!state.searchResults,
-        isArray: Array.isArray(state.searchResults),
-        actualLength: state.searchResults?.length
-      }
-    });
+  const searchResults = useMemo(() => {
+    // console.log('🔍 Preparing flight data for FlightResultsList:', {
+    //   searchResults: state.searchResults?.length || 0,
+    //   hasFilters: !!state.filters && Object.keys(state.filters).length > 0,
+    //   stateDebug: {
+    //     hasSearchResults: !!state.searchResults,
+    //     isArray: Array.isArray(state.searchResults),
+    //     actualLength: state.searchResults?.length
+    //   }
+    // });
     
-    // Return raw search results - FlightResultsList will handle all filtering intelligently
-    // This maintains the system's robustness while fixing the double-filter issue
+    // Return raw search results - FlightResultsList will handle all filtering internally
     if (!state.searchResults || !Array.isArray(state.searchResults)) return [];
     
     // Validate that searchResults contains valid data
-    console.log('🔍 Raw searchResults data sample:', state.searchResults[0]);
+    // console.log('🔍 Raw searchResults data sample:', state.searchResults[0]);
     
     const validResults = state.searchResults.filter((result, index) => {
       const isValid = result && 
@@ -495,15 +493,15 @@ function VoosAdvancedContent() {
       return isValid;
     });
     
-    console.log('✅ Passing', validResults.length, 'valid flights to advanced processing layer');
-    console.log('🔍 Sample valid result:', validResults[0]);
-    console.log('🐛 DEBUG Flight Duration Data:', {
-      sampleFlight: validResults[0]?.id,
-      outboundDuration: validResults[0]?.outbound?.duration,
-      outboundDurationMinutes: validResults[0]?.outbound?.durationMinutes,
-      inboundDuration: validResults[0]?.inbound?.duration,
-      inboundDurationMinutes: validResults[0]?.inbound?.durationMinutes
-    });
+    // console.log('✅ Passing', validResults.length, 'valid flights to FlightResultsList for processing');
+    // console.log('🔍 Sample valid result:', validResults[0]);
+    // console.log('🐛 DEBUG Flight Duration Data:', {
+    //   sampleFlight: validResults[0]?.id,
+    //   outboundDuration: validResults[0]?.outbound?.duration,
+    //   outboundDurationMinutes: validResults[0]?.outbound?.durationMinutes,
+    //   inboundDuration: validResults[0]?.inbound?.duration,
+    //   inboundDurationMinutes: validResults[0]?.inbound?.durationMinutes
+    // });
     
     // TEMPORARY FIX: Correct duration data on front-end
     validResults.forEach(flight => {
@@ -589,7 +587,7 @@ function VoosAdvancedContent() {
 
   // Enhanced filters handler
   const handleFiltersChange = useCallback((filters: FlightFiltersType) => {
-    console.log('🔧 Filters changed:', filters);
+    // console.log('🔧 Filters changed:', filters);
     updateState({ 
       filters,
       currentPage: 1 // Reset to first page when filters change
@@ -1730,8 +1728,8 @@ function VoosAdvancedContent() {
                 <div className="mb-5">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                      🌍 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-black">{filteredResults?.length || 0}</span> 
-                      {(filteredResults?.length || 0) === 1 ? ' flight found' : ' flights found'}
+                      🌍 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-black">{searchResults?.length || 0}</span> 
+                      {(searchResults?.length || 0) === 1 ? ' flight found' : ' flights found'}
                     </h2>
                     <button
                       onClick={() => setShowChangeSearch(!showChangeSearch)}
@@ -1828,7 +1826,7 @@ function VoosAdvancedContent() {
                               value={changeSearchData.departureDate.toISOString().split('T')[0]}
                               onChange={(e) => setChangeSearchData(prev => ({
                                 ...prev,
-                                departureDate: new Date(e.target.value)
+                                departureDate: parseLocalDateFromISO(e.target.value)
                               }))}
                               min={new Date().toISOString().split('T')[0]}
                               className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 min-h-[72px]"
@@ -1846,7 +1844,7 @@ function VoosAdvancedContent() {
                                 value={changeSearchData.returnDate?.toISOString().split('T')[0] || ''}
                                 onChange={(e) => setChangeSearchData(prev => ({
                                   ...prev,
-                                  returnDate: e.target.value ? new Date(e.target.value) : undefined
+                                  returnDate: e.target.value ? parseLocalDateFromISO(e.target.value) : undefined
                                 }))}
                                 min={changeSearchData.departureDate.toISOString().split('T')[0]}
                                 className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 min-h-[72px]"
@@ -2004,7 +2002,7 @@ function VoosAdvancedContent() {
                   {/* Advanced International Toolbar */}
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between pt-3 border-t border-gray-100 gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
-                      <span className="truncate">💰 Average international fare: <strong className="text-blue-600">${Math.round((filteredResults?.reduce((sum, f) => sum + parseFloat(f.totalPrice.replace(/[^\d.]/g, '')), 0) || 0) / (filteredResults?.length || 1))}</strong></span>
+                      <span className="truncate">💰 Average international fare: <strong className="text-blue-600">${Math.round((searchResults?.reduce((sum, f) => sum + parseFloat(f.totalPrice.replace(/[^\d.]/g, '')), 0) || 0) / (searchResults?.length || 1))}</strong></span>
                       <span className="truncate">📊 vs Market avg: <strong className="text-green-600">-23%</strong></span>
                       <span className="truncate">🎯 Best booking window: <strong className="text-purple-600">6-8 weeks</strong></span>
                     </div>
@@ -2120,7 +2118,7 @@ function VoosAdvancedContent() {
                     {/* AI Insights Panel */}
                     <div className="mt-8 pt-6 border-t border-gray-200">
                       <SafeFlightInsights
-                        searchResults={filteredResults || []}
+                        searchResults={searchResults || []}
                         searchData={state.searchData}
                         className="space-y-4"
                       />
@@ -2193,10 +2191,10 @@ function VoosAdvancedContent() {
 
                 {/* Results List */}
                 <div className="lg:flex-1 lg:min-w-0">
-                  {filteredResults && filteredResults.length > 0 ? (
+                  {searchResults && searchResults.length > 0 ? (
                     <FlightResultsList
-                      key={`flight-results-${filteredResults.length}-${filteredResults[0]?.id || 'no-id'}`}
-                      offers={filteredResults}
+                      key={`flight-results-${searchResults.length}-${searchResults[0]?.id || 'no-id'}`}
+                      offers={searchResults}
                       onOfferSelect={handleFlightSelect}
                       onAddToComparison={handleAddToComparison}
                       comparedFlights={state.comparedFlights}
@@ -2218,7 +2216,7 @@ function VoosAdvancedContent() {
                   {/* Advanced Pagination */}
                   <div className="mt-8 flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                      Showing {((state.currentPage - 1) * state.itemsPerPage) + 1}-{Math.min(state.currentPage * state.itemsPerPage, filteredResults?.length || 0)} of {filteredResults?.length || 0} flights
+                      Showing {((state.currentPage - 1) * state.itemsPerPage) + 1}-{Math.min(state.currentPage * state.itemsPerPage, searchResults?.length || 0)} of {searchResults?.length || 0} flights
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -2229,7 +2227,7 @@ function VoosAdvancedContent() {
                         Previous
                       </button>
                       <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, Math.ceil((filteredResults?.length || 0) / state.itemsPerPage)) }, (_, i) => (
+                        {Array.from({ length: Math.min(5, Math.ceil((searchResults?.length || 0) / state.itemsPerPage)) }, (_, i) => (
                           <button
                             key={i + 1}
                             onClick={() => handlePageChange(i + 1)}
@@ -2244,8 +2242,8 @@ function VoosAdvancedContent() {
                         ))}
                       </div>
                       <button
-                        onClick={() => handlePageChange(Math.min(Math.ceil((filteredResults?.length || 0) / state.itemsPerPage), state.currentPage + 1))}
-                        disabled={state.currentPage >= Math.ceil((filteredResults?.length || 0) / state.itemsPerPage)}
+                        onClick={() => handlePageChange(Math.min(Math.ceil((searchResults?.length || 0) / state.itemsPerPage), state.currentPage + 1))}
+                        disabled={state.currentPage >= Math.ceil((searchResults?.length || 0) / state.itemsPerPage)}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Next
@@ -2256,10 +2254,10 @@ function VoosAdvancedContent() {
                   {/* Load More Results */}
                   <div className="mt-8 text-center">
                     <div className="text-sm text-gray-600 mb-4">
-                      Total pages: {Math.ceil((filteredResults?.length || 0) / state.itemsPerPage)} • 
-                      Total offers: {filteredResults?.length || 0} • 
+                      Total pages: {Math.ceil((searchResults?.length || 0) / state.itemsPerPage)} • 
+                      Total offers: {searchResults?.length || 0} • 
                       Items per page: {state.itemsPerPage} • 
-                      Has more offers: {(filteredResults?.length || 0) > state.itemsPerPage ? 'Yes' : 'No'}
+                      Has more offers: {(searchResults?.length || 0) > state.itemsPerPage ? 'Yes' : 'No'}
                     </div>
                     <button
                       onClick={() => updateState({ itemsPerPage: state.itemsPerPage + 10 })}
@@ -2535,7 +2533,7 @@ function VoosAdvancedContent() {
         <Footer />
         
         {/* Mobile Filters Button */}
-        {state.view === 'results' && filteredResults && isMobile && (
+        {state.view === 'results' && searchResults && isMobile && (
           <button
             onClick={() => {
               // Open mobile filters modal

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics';
+import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
   FlightIcon, 
   HotelIcon, 
@@ -22,8 +22,13 @@ import {
 import Logo from '@/components/Logo';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import Footer from '@/components/Footer';
+// Import new header and footer ONLY for home page
+import LiveSiteHeader from '@/components/home/LiveSiteHeader';
+import LiveSiteFooter from '@/components/home/LiveSiteFooter';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
+import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
 import CityAutocomplete from '@/components/CityAutocomplete';
+import { AirportSelection } from '@/types/flights';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
 import ChatAgent from '@/components/ChatAgent';
@@ -37,8 +42,8 @@ interface ServiceFormData {
   serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
   completed: boolean;
   // Dados de viagem
-  origem: string;
-  destino: string;
+  origem: AirportSelection | null;
+  destino: AirportSelection | null;
   dataIda: string;
   dataVolta: string;
   tipoViagem: 'ida-volta' | 'somente-ida' | 'multiplas-cidades';
@@ -79,8 +84,8 @@ interface FormData {
   selectedServices: ServiceFormData[];
   currentServiceIndex: number;
   // Dados de viagem
-  origem: string;
-  destino: string;
+  origem: AirportSelection | null;
+  destino: AirportSelection | null;
   dataIda: string;
   dataVolta: string;
   tipoViagem: 'ida-volta' | 'somente-ida' | 'multiplas-cidades';
@@ -114,8 +119,8 @@ export default function Home() {
     selectedServices: [],
     currentServiceIndex: 0,
     // Dados de viagem
-    origem: '',
-    destino: '',
+    origem: null,
+    destino: null,
     dataIda: '',
     dataVolta: '',
     tipoViagem: 'ida-volta',
@@ -145,6 +150,59 @@ export default function Home() {
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSocialProof, setShowSocialProof] = useState(false);
+  const [socialProofIndex, setSocialProofIndex] = useState(0);
+  const [showExitIntent, setShowExitIntent] = useState(false);
+  const [exitIntentEmail, setExitIntentEmail] = useState('');
+  const [showMobileSuccess, setShowMobileSuccess] = useState(false);
+  const [mobileInteractionCount, setMobileInteractionCount] = useState(0);
+
+  // Social proof notifications data
+  const socialProofNotifications = [
+    { name: "Maria S.", location: "Orlando", route: "São Paulo", price: "R$ 1.847", time: "2 min" },
+    { name: "João M.", location: "Miami", route: "Rio de Janeiro", price: "R$ 2.156", time: "5 min" },
+    { name: "Ana P.", location: "Boston", route: "Brasília", price: "R$ 2.387", time: "8 min" },
+    { name: "Carlos R.", location: "New York", route: "Salvador", price: "R$ 2.443", time: "12 min" },
+    { name: "Lucia F.", location: "Los Angeles", route: "Fortaleza", price: "R$ 2.678", time: "18 min" }
+  ];
+
+  // Social proof cycling effect
+  useEffect(() => {
+    const startSocialProof = setTimeout(() => {
+      setShowSocialProof(true);
+    }, 3000); // Show after 3 seconds
+
+    const cycleSocialProof = setInterval(() => {
+      setSocialProofIndex((prev) => (prev + 1) % socialProofNotifications.length);
+      setShowSocialProof(true);
+      
+      // Hide after 4 seconds, show next after 8 seconds
+      setTimeout(() => setShowSocialProof(false), 4000);
+    }, 12000); // Show every 12 seconds
+
+    return () => {
+      clearTimeout(startSocialProof);
+      clearInterval(cycleSocialProof);
+    };
+  }, []);
+
+  // Exit intent detection
+  useEffect(() => {
+    let hasShownExitIntent = false;
+    
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0 && !hasShownExitIntent && !showExitIntent) {
+        hasShownExitIntent = true;
+        setShowExitIntent(true);
+      }
+    };
+
+    document.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [showExitIntent]);
 
   // Real-time validation function
   const validateField = (name: string, value: string): string => {
@@ -307,8 +365,8 @@ export default function Home() {
     const newService: ServiceFormData = {
       serviceType,
       completed: false,
-      origem: '',
-      destino: '',
+      origem: null,
+      destino: null,
       dataIda: '',
       dataVolta: '',
       tipoViagem: 'ida-volta',
@@ -352,8 +410,8 @@ export default function Home() {
       selectedServices: [],
       currentServiceIndex: 0,
       // Dados de viagem
-      origem: '',
-      destino: '',
+      origem: null,
+      destino: null,
       dataIda: '',
       dataVolta: '',
       tipoViagem: 'ida-volta',
@@ -478,9 +536,38 @@ export default function Home() {
     }
   };
 
+  // UI/UX Best Practice Color System (60-30-10 Rule)
+  const colors = {
+    // Primary (60%) - Base/Neutral
+    primary: {
+      white: '#FFFFFF',
+      gray50: '#F9FAFB',
+      gray100: '#F3F4F6',
+      gray200: '#E5E7EB'
+    },
+    // Secondary (30%) - Supporting
+    secondary: {
+      gray400: '#9CA3AF',
+      gray500: '#6B7280',
+      gray600: '#4B5563',
+      gray700: '#374151',
+      gray800: '#1F2937',
+      gray900: '#111827',
+      blue: '#3B82F6',
+      blueDark: '#1E40AF'
+    },
+    // Accent (10%) - Brand highlights only
+    accent: {
+      orange: '#FF6B35',
+      orangeLight: '#FF8C42',
+      yellow: '#FFB000',
+      green: '#10B981'
+    }
+  };
+
   const containerStyle = {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)',
+    background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)',
     position: 'relative' as const,
     overflow: 'visible' as const,
     fontFamily: 'Inter, sans-serif'
@@ -488,35 +575,38 @@ export default function Home() {
 
   const floatingElement1Style = {
     position: 'absolute' as const,
-    top: '80px',
-    left: '40px',
-    width: '300px',
-    height: '300px',
-    background: 'rgba(96, 165, 250, 0.2)',
+    top: '120px',
+    left: '60px',
+    width: '200px',
+    height: '200px',
+    background: 'rgba(59, 130, 246, 0.08)', // Subtle blue
     borderRadius: '50%',
-    filter: 'blur(60px)'
+    filter: 'blur(40px)',
+    animation: 'float 8s ease-in-out infinite'
   };
 
   const floatingElement2Style = {
     position: 'absolute' as const,
-    top: '160px',
-    right: '40px',
-    width: '400px',
-    height: '400px',
-    background: 'rgba(232, 121, 249, 0.2)',
+    top: '200px',
+    right: '60px',
+    width: '150px',
+    height: '150px',
+    background: 'rgba(255, 107, 53, 0.06)', // Very subtle orange accent
     borderRadius: '50%',
-    filter: 'blur(60px)'
+    filter: 'blur(30px)',
+    animation: 'float 10s ease-in-out infinite 3s'
   };
 
   const floatingElement3Style = {
     position: 'absolute' as const,
-    bottom: '-32px',
-    left: '80px',
-    width: '350px',
-    height: '350px',
-    background: 'rgba(250, 204, 21, 0.2)',
+    bottom: '100px',
+    left: '50%',
+    width: '180px',
+    height: '180px',
+    background: 'rgba(243, 244, 246, 0.8)', // Light gray
     borderRadius: '50%',
-    filter: 'blur(60px)'
+    filter: 'blur(35px)',
+    animation: 'float 12s ease-in-out infinite 6s'
   };
 
   const headerStyle = {
@@ -530,14 +620,359 @@ export default function Home() {
   return (
     <>
       <GlobalMobileStyles />
+      {/* Using live site header ONLY for home page - temporary */}
+      <LiveSiteHeader />
+      
+      {/* Enhanced Mobile Action Buttons */}
+      {isMobile && (
+        <>
+          {/* Primary WhatsApp Button */}
+          <a
+            href="https://wa.me/551151944717?text=Olá! Gostaria de uma cotação para viagem ao Brasil"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+              color: 'white',
+              borderRadius: '50%',
+              width: '70px',
+              height: '70px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 8px 25px rgba(37, 211, 102, 0.5)',
+              zIndex: 1001,
+              animation: 'pulse 2s infinite',
+              border: '3px solid rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(10px)'
+            }}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'mobile_whatsapp_click', {
+                  event_category: 'engagement',
+                  event_label: 'mobile_primary_whatsapp'
+                });
+              }
+            }}
+          >
+            <span style={{ fontSize: '28px' }}>💬</span>
+          </a>
+
+          {/* Emergency Call Button */}
+          <a
+            href="tel:+551151944717"
+            style={{
+              position: 'fixed',
+              bottom: '110px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)',
+              color: 'white',
+              borderRadius: '50%',
+              width: '60px',
+              height: '60px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
+              zIndex: 1000,
+              animation: 'bounce 2s infinite 0.5s',
+              border: '2px solid rgba(255, 255, 255, 0.2)'
+            }}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'mobile_call_click', {
+                  event_category: 'engagement',
+                  event_label: 'mobile_emergency_call'
+                });
+              }
+            }}
+          >
+            <span style={{ fontSize: '24px' }}>📞</span>
+          </a>
+
+          {/* Quick Quote Button */}
+          <button
+            onClick={() => {
+              const quoteSection = document.getElementById('quote-form');
+              if (quoteSection) {
+                quoteSection.scrollIntoView({ behavior: 'smooth' });
+                // Add visual feedback
+                quoteSection.style.animation = 'highlight 1s ease-in-out';
+                setTimeout(() => {
+                  if (quoteSection) quoteSection.style.animation = '';
+                }, 1000);
+              }
+              if (typeof window !== 'undefined' && window.gtag) {
+                window.gtag('event', 'mobile_quick_quote', {
+                  event_category: 'engagement',
+                  event_label: 'mobile_scroll_to_form'
+                });
+              }
+            }}
+            style={{
+              position: 'fixed',
+              bottom: '190px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)',
+              color: 'white',
+              borderRadius: '50%',
+              width: '55px',
+              height: '55px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',
+              boxShadow: '0 4px 15px rgba(255, 107, 53, 0.4)',
+              zIndex: 999,
+              animation: 'float 3s ease-in-out infinite',
+              cursor: 'pointer'
+            }}
+          >
+            <span style={{ fontSize: '20px' }}>✈️</span>
+          </button>
+        </>
+      )}
+
+      {/* Mobile Success Notification */}
+      {isMobile && showMobileSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'linear-gradient(135deg, #10B981, #059669)',
+          color: 'white',
+          padding: '20px',
+          borderRadius: '20px',
+          zIndex: 1002,
+          textAlign: 'center',
+          animation: 'bounceIn 0.6s ease-out',
+          boxShadow: '0 20px 40px rgba(16, 185, 129, 0.4)',
+          border: '2px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
+          <div style={{ 
+            fontSize: '16px', 
+            fontWeight: '700', 
+            marginBottom: '4px' 
+          }}>
+            Ótima escolha!
+          </div>
+          <div style={{ fontSize: '14px', opacity: 0.9 }}>
+            Mais {Math.floor(Math.random() * 15) + 5} pessoas fizeram isso hoje
+          </div>
+        </div>
+      )}
+
+      {/* Exit Intent Modal */}
+      {showExitIntent && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: colors.primary.white,
+            borderRadius: '16px',
+            padding: '40px',
+            maxWidth: '500px',
+            margin: '20px',
+            textAlign: 'center',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+            animation: 'slideInUp 0.4s ease-out'
+          }}>
+            <div style={{
+              fontSize: '48px',
+              marginBottom: '16px'
+            }}>
+              ✈️
+            </div>
+            
+            <h3 style={{
+              fontSize: '24px',
+              fontWeight: '700',
+              color: colors.secondary.gray900,
+              marginBottom: '12px',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
+              Espere! Não perca essa oportunidade
+            </h3>
+            
+            <p style={{
+              color: colors.secondary.gray600,
+              marginBottom: '24px',
+              fontSize: '16px',
+              lineHeight: '1.5'
+            }}>
+              Receba um <strong>desconto exclusivo de 10%</strong> na sua próxima viagem ao Brasil + 
+              nosso guia gratuito com dicas de viagem!
+            </p>
+            
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              marginBottom: '20px'
+            }}>
+              <input
+                type="email"
+                placeholder="Seu melhor email"
+                value={exitIntentEmail}
+                onChange={(e) => setExitIntentEmail(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  border: `2px solid ${colors.primary.gray200}`,
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (exitIntentEmail) {
+                    console.log('Exit intent email captured:', exitIntentEmail);
+                    setShowExitIntent(false);
+                  }
+                }}
+                style={{
+                  background: colors.accent.orange,
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Quero!
+              </button>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={() => setShowExitIntent(false)}
+                style={{
+                  background: 'none',
+                  border: `1px solid ${colors.primary.gray200}`,
+                  color: colors.secondary.gray600,
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Não, obrigado
+              </button>
+              
+              <a
+                href="https://wa.me/551151944717?text=Vi a oferta especial! Gostaria de mais informações"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: '#25D366',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontSize: '12px',
+                  fontWeight: '600'
+                }}
+                onClick={() => setShowExitIntent(false)}
+              >
+                💬 WhatsApp Direto
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Social Proof Notification Widget */}
+      {showSocialProof && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          background: colors.primary.white,
+          border: `2px solid ${colors.accent.orange}`,
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          maxWidth: '320px',
+          animation: 'slideInLeft 0.5s ease-out',
+          display: isMobile ? 'none' : 'block' // Hide on mobile to avoid obstruction
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              background: colors.accent.green,
+              borderRadius: '50%',
+              animation: 'pulse 2s infinite'
+            }}></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: colors.secondary.gray900,
+                marginBottom: '4px'
+              }}>
+                {socialProofNotifications[socialProofIndex].name} de {socialProofNotifications[socialProofIndex].location}
+              </div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: colors.secondary.gray600 
+              }}>
+                Reservou {socialProofNotifications[socialProofIndex].route} • {socialProofNotifications[socialProofIndex].price}
+              </div>
+              <div style={{ 
+                fontSize: '11px', 
+                color: colors.accent.orange,
+                marginTop: '2px'
+              }}>
+                há {socialProofNotifications[socialProofIndex].time} atrás
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowSocialProof(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: colors.secondary.gray400,
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: '4px'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div style={containerStyle} className="mobile-overflow-hidden">
         {/* Floating Background Elements */}
         <div style={floatingElement1Style}></div>
         <div style={floatingElement2Style}></div>
         <div style={floatingElement3Style}></div>
-
-        {/* Responsive Header */}
-        <ResponsiveHeader style={headerStyle} />
 
         {/* Main Content */}
         <main>
@@ -557,7 +992,7 @@ export default function Home() {
           }} className="mobile-container mobile-grid-single">
             {/* Left Side - Content */}
             <div style={{
-              color: 'white',
+              color: colors.secondary.gray900,
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
               transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
@@ -566,35 +1001,36 @@ export default function Home() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 padding: '8px 16px',
-                background: 'rgba(234, 179, 8, 0.2)',
+                background: colors.primary.white,
                 backdropFilter: 'blur(10px)',
                 borderRadius: '50px',
-                border: '1px solid rgba(250, 204, 21, 0.3)',
+                border: `1px solid ${colors.primary.gray200}`,
                 marginBottom: '32px',
-                marginTop: '20px'
+                marginTop: '20px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
                 <span style={{
-                  color: '#fde047',
-                  fontWeight: '500',
+                  color: colors.accent.orange,
+                  fontWeight: '600',
                   fontSize: '14px'
-                }}>🌎 Conectando você ao mundo há 21 anos</span>
+                }}>✈️ Especialistas em viagens há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '32px' : '64px',
-                fontWeight: '700',
+                fontSize: isMobile ? '32px' : '56px',
+                fontWeight: '800',
                 fontFamily: 'Poppins, sans-serif',
                 lineHeight: '1.2',
                 margin: '0 0 24px 0',
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.02em',
                 maxWidth: '100%',
                 textAlign: isMobile ? 'center' : 'left',
-                color: 'white'
+                color: colors.secondary.gray900
               }} className="mobile-title">
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: isMobile ? '18px' : '22px',
-                color: 'rgba(219, 234, 254, 0.95)',
+                fontSize: isMobile ? '18px' : '20px',
+                color: colors.secondary.gray600,
                 lineHeight: '1.7',
                 maxWidth: isMobile ? '100%' : '520px',
                 marginBottom: isMobile ? '32px' : '40px',
@@ -615,28 +1051,28 @@ export default function Home() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.2)',
+                    background: colors.primary.gray50,
                     padding: '8px',
                     borderRadius: '8px',
-                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                    border: `1px solid ${colors.accent.green}20`
                   }}>
-                    <CheckIcon style={{ width: '16px', height: '16px', color: '#22c55e' }} />
+                    <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: 'rgba(219, 234, 254, 0.9)', fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
                     Garantia Melhor Preço
                   </span>
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.2)',
+                    background: colors.primary.gray50,
                     padding: '8px',
                     borderRadius: '8px',
-                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                    border: `1px solid ${colors.accent.yellow}20`
                   }}>
-                    <StarIcon style={{ width: '16px', height: '16px', color: '#fbbf24' }} />
+                    <StarIcon style={{ width: '16px', height: '16px', color: colors.accent.yellow }} />
                   </div>
-                  <span style={{ color: 'rgba(219, 234, 254, 0.9)', fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
                     4.9/5 estrelas
                   </span>
                 </div>
@@ -648,9 +1084,9 @@ export default function Home() {
                     borderRadius: '8px',
                     border: '1px solid rgba(34, 197, 94, 0.3)'
                   }}>
-                    <UsersIcon style={{ width: '16px', height: '16px', color: '#22c55e' }} />
+                    <UsersIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: 'rgba(219, 234, 254, 0.9)', fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
                     +5.000 clientes
                   </span>
                 </div>
@@ -675,32 +1111,35 @@ export default function Home() {
                     }
                   }}
                   style={{
-                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                    background: colors.accent.orange,
                     color: 'white',
-                    padding: isMobile ? '16px 24px' : '16px 32px',
+                    padding: isMobile ? '16px 24px' : '18px 36px',
                     borderRadius: '12px',
                     border: 'none',
                     fontSize: '16px',
                     fontWeight: '600',
                     cursor: 'pointer',
                     width: isMobile ? '100%' : 'auto',
-                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)',
+                    boxShadow: `0 4px 14px ${colors.accent.orange}25`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    transform: 'scale(1)'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 15px 35px rgba(37, 99, 235, 0.4)';
+                    e.currentTarget.style.boxShadow = `0 8px 20px ${colors.accent.orange}35`;
+                    e.currentTarget.style.background = colors.accent.orangeLight;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 10px 25px rgba(37, 99, 235, 0.3)';
+                    e.currentTarget.style.boxShadow = `0 4px 14px ${colors.accent.orange}25`;
+                    e.currentTarget.style.background = colors.accent.orange;
                   }}
                 >
                   <FlightIcon style={{ width: '20px', height: '20px' }} />
-                  Cotar Voos Agora
+                  Economize até R$ 1.200 - Cotação Grátis
                 </button>
                 
                 <a
@@ -731,11 +1170,14 @@ export default function Home() {
             </div>
 
             {/* Right Side - Form */}
-            <div style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? 'translateY(0)' : 'translateY(-30px)',
-              transition: 'opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s'
-            }}>
+            <div 
+              id="quote-form"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(-30px)',
+                transition: 'opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s'
+              }}
+            >
               <div style={{
                 background: 'rgba(255, 255, 255, 0.98)',
                 backdropFilter: 'blur(20px)',
@@ -743,15 +1185,60 @@ export default function Home() {
                 padding: isMobile ? '28px' : '40px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                maxHeight: isMobile ? '80vh' : 'auto',
+                maxHeight: isMobile ? '90vh' : 'auto',
                 overflowY: isMobile ? 'auto' : 'visible',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch',
                 position: 'relative' as const
               }}>
+                {/* Mobile Progress Indicator - Sticky */}
+                {isMobile && currentStep > 1 && (
+                  <div style={{
+                    position: 'fixed',
+                    top: '70px',
+                    left: '0',
+                    right: '0',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '12px 20px',
+                    borderBottom: '1px solid rgba(255, 107, 53, 0.2)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    animation: 'mobileSlideUp 0.3s ease-out'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ 
+                        fontSize: '20px',
+                        animation: 'pulse 2s infinite'
+                      }}>🚀</span>
+                      <span style={{ 
+                        fontSize: '14px', 
+                        fontWeight: '600', 
+                        color: colors.secondary.gray700 
+                      }}>
+                        Cotação em andamento
+                      </span>
+                    </div>
+                    <div style={{
+                      background: colors.accent.orange,
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {Math.round((currentStep / 4) * 100)}%
+                    </div>
+                  </div>
+                )}
+
                 {/* Form Header with Badge */}
                 <div style={{
                   position: 'absolute',
                   top: '-12px',
-                  left: '40px',
+                  left: isMobile ? '20px' : '40px',
                   background: 'linear-gradient(135deg, #059669, #10b981)',
                   color: 'white',
                   padding: '6px 16px',
@@ -765,10 +1252,29 @@ export default function Home() {
                   ✨ GRATUITO
                 </div>
                 
+                <div style={{
+                  background: 'linear-gradient(135deg, #FFE4B5, #FFF8DC)',
+                  border: `1px solid ${colors.accent.yellow}`,
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  marginBottom: '16px',
+                  textAlign: 'center'
+                }}>
+                  <span style={{
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    color: colors.accent.orange,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    🔥 OFERTA LIMITADA: Economize até R$ 1.200 • Válida até Sexta-feira
+                  </span>
+                </div>
+                
                 <h3 style={{
                   fontSize: '26px',
                   fontWeight: '800',
-                  color: '#111827',
+                  color: colors.secondary.gray900,
                   fontFamily: 'Poppins, sans-serif',
                   margin: '0 0 8px 0',
                   letterSpacing: '-0.02em',
@@ -777,7 +1283,7 @@ export default function Home() {
                   Sua Cotação em até 2 horas, menor preço garantido!
                 </h3>
                 <p style={{
-                  color: '#6b7280',
+                  color: colors.secondary.gray600,
                   margin: '0 0 24px 0',
                   fontSize: '16px',
                   lineHeight: '1.5'
@@ -789,7 +1295,7 @@ export default function Home() {
                 <div style={{
                   marginBottom: '24px',
                   padding: '16px',
-                  background: '#f8fafc',
+                  background: colors.primary.gray50,
                   borderRadius: '12px',
                   border: '1px solid #e2e8f0'
                 }}>
@@ -802,14 +1308,14 @@ export default function Home() {
                     <span style={{
                       fontSize: '14px',
                       fontWeight: '600',
-                      color: '#475569'
+                      color: colors.secondary.gray600
                     }}>
                       Progresso da Cotação
                     </span>
                     <span style={{
                       fontSize: '14px',
                       fontWeight: '600',
-                      color: '#3b82f6'
+                      color: colors.secondary.blue
                     }}>
                       {Math.round(getProgressPercentage())}%
                     </span>
@@ -817,14 +1323,14 @@ export default function Home() {
                   <div style={{
                     width: '100%',
                     height: '8px',
-                    background: '#e2e8f0',
+                    background: colors.primary.gray200,
                     borderRadius: '4px',
                     overflow: 'hidden'
                   }}>
                     <div style={{
                       width: `${getProgressPercentage()}%`,
                       height: '100%',
-                      background: 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)',
+                      background: colors.accent.orange,
                       borderRadius: '4px',
                       transition: 'width 0.3s ease'
                     }}></div>
@@ -843,11 +1349,11 @@ export default function Home() {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        background: currentStep >= 1 ? '#10b981' : '#d1d5db'
+                        background: currentStep >= 1 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
                         fontSize: '12px',
-                        color: currentStep >= 1 ? '#059669' : '#6b7280'
+                        color: currentStep >= 1 ? colors.accent.green : '#6b7280'
                       }}>
                         Serviços
                       </span>
@@ -861,11 +1367,11 @@ export default function Home() {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        background: currentStep >= 2 ? '#10b981' : '#d1d5db'
+                        background: currentStep >= 2 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
                         fontSize: '12px',
-                        color: currentStep >= 2 ? '#059669' : '#6b7280'
+                        color: currentStep >= 2 ? colors.accent.green : '#6b7280'
                       }}>
                         Detalhes
                       </span>
@@ -879,11 +1385,11 @@ export default function Home() {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        background: currentStep >= 3 ? '#10b981' : '#d1d5db'
+                        background: currentStep >= 3 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
                         fontSize: '12px',
-                        color: currentStep >= 3 ? '#059669' : '#6b7280'
+                        color: currentStep >= 3 ? colors.accent.green : '#6b7280'
                       }}>
                         Contato
                       </span>
@@ -898,7 +1404,7 @@ export default function Home() {
 
                       {/* Service Selection */}
                       <div>
-                          <label style={{ fontWeight: 600, marginBottom: '16px', display: 'block', color: '#1f2937' }}>
+                          <label style={{ fontWeight: 600, marginBottom: '16px', display: 'block', color: colors.secondary.gray800 }}>
                             {isAddingService 
                               ? 'Selecione outro serviço para adicionar:' 
                               : 'Selecione os serviços desejados:'
@@ -908,7 +1414,7 @@ export default function Home() {
                           {/* Selected Services Display */}
                           {formData.selectedServices.length > 0 && (
                             <div style={{ marginBottom: '20px' }}>
-                              <div style={{ fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 600, color: colors.secondary.gray700, marginBottom: '8px' }}>
                                 Serviços Selecionados ({formData.selectedServices.length})
                               </div>
                               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -930,11 +1436,11 @@ export default function Home() {
                                       {service.serviceType === 'passeios' && '🎯'}
                                       {service.serviceType === 'seguro' && '🛡️'}
                                     </span>
-                                    <span style={{ fontWeight: 500, color: '#374151' }}>
+                                    <span style={{ fontWeight: 500, color: colors.secondary.gray700 }}>
                                       {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)}
                                     </span>
                                     {service.completed && (
-                                      <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                                      <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />
                                     )}
                                     <button
                                       type="button"
@@ -944,7 +1450,7 @@ export default function Home() {
                                         border: 'none',
                                         cursor: 'pointer',
                                         padding: '2px',
-                                        color: '#6b7280',
+                                        color: colors.secondary.gray600,
                                         fontSize: '16px'
                                       }}
                                     >
@@ -971,37 +1477,58 @@ export default function Home() {
                                 <button 
                                   key={serviceType}
                                   type="button" 
-                                  onClick={() => addNewService(serviceType)} 
+                                  onClick={() => {
+                                    addNewService(serviceType);
+                                    
+                                    // Mobile interaction tracking and feedback
+                                    if (isMobile) {
+                                      setMobileInteractionCount(prev => prev + 1);
+                                      setShowMobileSuccess(true);
+                                      setTimeout(() => setShowMobileSuccess(false), 1500);
+                                      
+                                      // Track mobile engagement
+                                      if (typeof window !== 'undefined' && window.gtag) {
+                                        window.gtag('event', 'mobile_service_selection', {
+                                          event_category: 'engagement',
+                                          event_label: serviceType,
+                                          value: mobileInteractionCount + 1
+                                        });
+                                      }
+                                    }
+                                  }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
                                   style={{ 
-                                    padding: '12px 16px', 
+                                    padding: '16px 20px', 
                                     borderRadius: '12px', 
-                                    border: isSelected ? '2px solid #10b981' : '2px solid #e5e7eb', 
-                                    background: isSelected ? '#f0fdf4' : (isMaxServices ? '#f9fafb' : '#ffffff'), 
+                                    border: isSelected ? `2px solid ${colors.accent.orange}` : `1px solid ${colors.primary.gray200}`, 
+                                    background: isSelected ? `${colors.accent.orange}05` : colors.primary.white, 
                                     cursor: isSelected || isMaxServices ? 'not-allowed' : 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px',
-                                    opacity: isSelected || isMaxServices ? 0.6 : 1,
+                                    opacity: isSelected || isMaxServices ? 0.7 : 1,
                                     position: 'relative',
                                     fontSize: '14px',
                                     fontWeight: '600',
-                                    transition: 'all 0.3s ease',
+                                    transition: 'all 0.2s ease',
                                     transform: 'scale(1)',
-                                    boxShadow: isSelected ? '0 4px 12px rgba(16, 185, 129, 0.2)' : '0 2px 4px rgba(0, 0, 0, 0.05)'
+                                    boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                    color: colors.secondary.gray800
                                   }}
                                   onMouseEnter={(e) => {
                                     if (!isSelected && !isMaxServices) {
-                                      e.currentTarget.style.transform = 'scale(1.05)';
-                                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.25)';
-                                      e.currentTarget.style.borderColor = '#3b82f6';
+                                      e.currentTarget.style.transform = 'translateY(-2px)';
+                                      e.currentTarget.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.15)`;
+                                      e.currentTarget.style.borderColor = colors.secondary.blue;
+                                      e.currentTarget.style.background = colors.primary.gray50;
                                     }
                                   }}
                                   onMouseLeave={(e) => {
                                     if (!isSelected && !isMaxServices) {
-                                      e.currentTarget.style.transform = 'scale(1)';
-                                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
-                                      e.currentTarget.style.borderColor = '#e5e7eb';
+                                      e.currentTarget.style.transform = 'translateY(0)';
+                                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                                      e.currentTarget.style.borderColor = colors.primary.gray200;
+                                      e.currentTarget.style.background = colors.primary.white;
                                     }
                                   }}
                                 >
@@ -1011,16 +1538,17 @@ export default function Home() {
                                       Voos
                                       <span style={{
                                         position: 'absolute',
-                                        top: '-8px',
-                                        right: '-8px',
-                                        background: '#f59e0b',
+                                        top: '-6px',
+                                        right: '-6px',
+                                        background: colors.accent.orange,
                                         color: 'white',
-                                        fontSize: '10px',
-                                        padding: '2px 4px',
-                                        borderRadius: '4px',
-                                        fontWeight: '600'
+                                        fontSize: '9px',
+                                        padding: '2px 6px',
+                                        borderRadius: '8px',
+                                        fontWeight: '600',
+                                        boxShadow: `0 2px 4px ${colors.accent.orange}40`
                                       }}>
-                                        Mais Procurado
+                                        Popular
                                       </span>
                                     </>
                                   )}
@@ -1044,7 +1572,7 @@ export default function Home() {
                                       <InsuranceIcon style={{ width: '18px', height: '18px' }} /> Seguro
                                     </>
                                   )}
-                                  {isSelected && <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />}
+                                  {isSelected && <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />}
                                 </button>
                               );
                             })}
@@ -1062,7 +1590,7 @@ export default function Home() {
                                   }}
                                   style={{
                                     flex: 1,
-                                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                    background: colors.accent.orange,
                                     color: 'white',
                                     border: 'none',
                                     padding: '12px 20px',
@@ -1155,30 +1683,26 @@ export default function Home() {
                           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <LocationIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <LocationIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Origem
                               </label>
-                              <CityAutocomplete
-                                value={getCurrentService()?.origem || ''}
-                                onChange={value => updateCurrentService({ origem: value })}
-                                cities={cities}
-                                placeholder="Cidade de origem"
-                                label=""
-                                iconColor="#3b82f6"
+                              <AirportAutocomplete
+                                value={getCurrentService()?.origem || { iataCode: '', name: '', city: '', country: '' }}
+                                onChange={(airport) => updateCurrentService({ origem: airport })}
+                                placeholder="Aeroporto de origem"
+                                className="w-full"
                               />
                             </div>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <LocationIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <LocationIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Destino
                               </label>
-                              <CityAutocomplete
-                                value={getCurrentService()?.destino || ''}
-                                onChange={value => updateCurrentService({ destino: value })}
-                                cities={cities}
-                                placeholder="Cidade de destino"
-                                label=""
-                                iconColor="#3b82f6"
+                              <AirportAutocomplete
+                                value={getCurrentService()?.destino || { iataCode: '', name: '', city: '', country: '' }}
+                                onChange={(airport) => updateCurrentService({ destino: airport })}
+                                placeholder="Aeroporto de destino"
+                                className="w-full"
                               />
                             </div>
                           </div>
@@ -1190,12 +1714,19 @@ export default function Home() {
                           {/* Destino */}
                           <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                              <LocationIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                              <LocationIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                               Destino
                             </label>
                             <CityAutocomplete
-                              value={getCurrentService()?.destino || ''}
-                              onChange={value => updateCurrentService({ destino: value })}
+                              value={
+                                (() => {
+                                  const destino = getCurrentService()?.destino;
+                                  if (!destino) return '';
+                                  if (typeof destino === 'string') return destino;
+                                  return destino.city || '';
+                                })()
+                              }
+                              onChange={(value: any) => updateCurrentService({ destino: value })}
                               cities={cities}
                               placeholder="Cidade do hotel"
                               label=""
@@ -1207,7 +1738,7 @@ export default function Home() {
                           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <CalendarIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <CalendarIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Check-in
                               </label>
                               <DatePicker
@@ -1220,7 +1751,7 @@ export default function Home() {
                             </div>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <CalendarIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <CalendarIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Check-out
                               </label>
                               <DatePicker
@@ -1237,7 +1768,7 @@ export default function Home() {
                           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <BedIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <BedIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Quartos
                               </label>
                               <select
@@ -1265,7 +1796,7 @@ export default function Home() {
                             </div>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
-                                <StarIcon style={{ width: '14px', height: '14px', color: '#6b7280' }} />
+                                <StarIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                                 Categoria
                               </label>
                               <select
@@ -1304,7 +1835,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Local de Retirada</label>
                               <CityAutocomplete
                                 value={getCurrentService()?.localRetirada || ''}
-                                onChange={value => updateCurrentService({ localRetirada: value })}
+                                onChange={(value: any) => updateCurrentService({ localRetirada: value })}
                                 cities={cities}
                                 placeholder="Onde retirar o carro"
                                 label=""
@@ -1314,8 +1845,15 @@ export default function Home() {
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Local de Entrega</label>
                               <CityAutocomplete
-                                value={getCurrentService()?.destino || ''}
-                                onChange={value => updateCurrentService({ destino: value })}
+                                value={
+                                  (() => {
+                                    const destino = getCurrentService()?.destino;
+                                    if (!destino) return '';
+                                    if (typeof destino === 'string') return destino;
+                                    return destino.city || '';
+                                  })()
+                                }
+                                onChange={(value: any) => updateCurrentService({ destino: value })}
                                 cities={cities}
                                 placeholder="Onde entregar o carro"
                                 label=""
@@ -1440,8 +1978,15 @@ export default function Home() {
                           <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Destino</label>
                             <CityAutocomplete
-                              value={getCurrentService()?.destino || ''}
-                              onChange={value => updateCurrentService({ destino: value })}
+                              value={
+                                (() => {
+                                  const destino = getCurrentService()?.destino;
+                                  if (!destino) return '';
+                                  if (typeof destino === 'string') return destino;
+                                  return destino.city || '';
+                                })()
+                              }
+                              onChange={(value: any) => updateCurrentService({ destino: value })}
                               cities={cities}
                               placeholder="Cidade dos passeios"
                               label=""
@@ -1529,8 +2074,15 @@ export default function Home() {
                           <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Destino da Viagem</label>
                             <CityAutocomplete
-                              value={getCurrentService()?.destino || ''}
-                              onChange={value => updateCurrentService({ destino: value })}
+                              value={
+                                (() => {
+                                  const destino = getCurrentService()?.destino;
+                                  if (!destino) return '';
+                                  if (typeof destino === 'string') return destino;
+                                  return destino.city || '';
+                                })()
+                              }
+                              onChange={(value: any) => updateCurrentService({ destino: value })}
                               cities={cities}
                               placeholder="Para onde está viajando"
                               label=""
@@ -1718,7 +2270,7 @@ export default function Home() {
                               {(getCurrentService()?.criancas || 0) > 0 && `, ${getCurrentService()?.criancas} Criança${getCurrentService()?.criancas > 1 ? 's' : ''}`}
                               {(getCurrentService()?.bebes || 0) > 0 && `, ${getCurrentService()?.bebes} Bebê${getCurrentService()?.bebes > 1 ? 's' : ''}`}
                             </span>
-                            <span style={{ fontSize: '12px', color: '#6b7280' }}>▼</span>
+                            <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>▼</span>
                           </div>
                           
                           {/* Dropdown Panel */}
@@ -1741,7 +2293,7 @@ export default function Home() {
                           >
                             {/* Adultos */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontWeight: '500', color: '#374151' }}>Adultos</span>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Adultos</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
@@ -1754,13 +2306,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   −
                                 </button>
@@ -1778,13 +2330,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   +
                                 </button>
@@ -1793,7 +2345,7 @@ export default function Home() {
                             
                             {/* Crianças */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontWeight: '500', color: '#374151' }}>Crianças <span style={{ fontSize: '12px', color: '#6b7280' }}>(2-11 anos)</span></span>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Crianças <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>(2-11 anos)</span></span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
@@ -1806,13 +2358,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   −
                                 </button>
@@ -1830,13 +2382,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   +
                                 </button>
@@ -1845,7 +2397,7 @@ export default function Home() {
                             
                             {/* Bebês */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontWeight: '500', color: '#374151' }}>Bebês <span style={{ fontSize: '12px', color: '#6b7280' }}>(até 2 anos)</span></span>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Bebês <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>(até 2 anos)</span></span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
@@ -1858,13 +2410,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   −
                                 </button>
@@ -1882,13 +2434,13 @@ export default function Home() {
                                   }}
                                   style={{
                                     width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: '#f9fafb',
+                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
                                     cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = '#f9fafb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
                                 >
                                   +
                                 </button>
@@ -1987,7 +2539,7 @@ export default function Home() {
                           
                           <button type="button" onClick={completeCurrentService} style={{ 
                             padding: '8px 16px',
-                            background: '#10b981',
+                            background: colors.accent.green,
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
@@ -2005,12 +2557,12 @@ export default function Home() {
                   {/* Step 3: Personal Information */}
                   {currentStep === 3 && (
                     <div>
-                      <h4 style={{ margin: '0 0 16px 0', color: '#1f2937' }}>Seus Dados</h4>
+                      <h4 style={{ margin: '0 0 16px 0', color: colors.secondary.gray800 }}>Seus Dados</h4>
                       
                       {/* Services Summary */}
                       {formData.selectedServices.length > 0 && (
                         <div style={{
-                          background: '#f8fafc',
+                          background: colors.primary.gray50,
                           borderRadius: '12px',
                           padding: '16px',
                           marginBottom: '24px',
@@ -2018,7 +2570,7 @@ export default function Home() {
                         }}>
                           <h5 style={{ 
                             margin: '0 0 12px 0', 
-                            color: '#374151', 
+                            color: colors.secondary.gray700, 
                             fontSize: '14px', 
                             fontWeight: '600' 
                           }}>
@@ -2043,15 +2595,15 @@ export default function Home() {
                                   {service.serviceType === 'passeios' && '🎯'}
                                   {service.serviceType === 'seguro' && '🛡️'}
                                 </span>
-                                <span style={{ fontWeight: 500, color: '#374151' }}>
+                                <span style={{ fontWeight: 500, color: colors.secondary.gray700 }}>
                                   {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)}
                                 </span>
                                 {service.origem && service.destino && (
-                                  <span style={{ fontSize: '12px', color: '#6b7280' }}>
-                                    {service.origem} → {service.destino}
+                                  <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>
+                                    {service.origem ? (typeof service.origem === 'string' ? service.origem : service.origem.name || service.origem.iataCode) : ''} → {service.destino ? (typeof service.destino === 'string' ? service.destino : service.destino.name || service.destino.iataCode) : ''}
                                   </span>
                                 )}
-                                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                                <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />
                               </div>
                             ))}
                           </div>
@@ -2124,7 +2676,18 @@ export default function Home() {
                         <div style={{ flex: 1 }}>
                           <PhoneInput
                             value={formData.whatsapp}
-                            onChange={(value) => handleInputChange('whatsapp', value)}
+                            onChange={(value) => {
+                              handleInputChange('whatsapp', value);
+                              
+                              // Mobile feedback on phone input
+                              if (isMobile && value.length > 8) {
+                                setMobileInteractionCount(prev => prev + 1);
+                                if (mobileInteractionCount > 0 && mobileInteractionCount % 3 === 0) {
+                                  setShowMobileSuccess(true);
+                                  setTimeout(() => setShowMobileSuccess(false), 1000);
+                                }
+                              }
+                            }}
                             onBlur={() => handleFieldBlur('whatsapp')}
                             placeholder="Seu WhatsApp"
                             label="WhatsApp"
@@ -2185,7 +2748,7 @@ export default function Home() {
                   {/* Step 4: Trip Details */}
                   {currentStep === 4 && (
                     <div>
-                      <h4 style={{ margin: '0 0 16px 0', color: '#1f2937' }}>Detalhes da Viagem</h4>
+                      <h4 style={{ margin: '0 0 16px 0', color: colors.secondary.gray800 }}>Detalhes da Viagem</h4>
                       
                       <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>
@@ -2277,7 +2840,7 @@ export default function Home() {
                             transform: isSubmitting ? 'scale(0.98)' : 'scale(1)'
                           }}
                         >
-                          {isSubmitting ? '🔄 Enviando...' : '🚀 Enviar Cotação'}
+                          {isSubmitting ? '🔄 Enviando...' : isMobile ? '🚀 Enviar Cotação Grátis' : '🚀 Enviar Cotação'}
                         </button>
                       </div>
                     </div>
@@ -2293,7 +2856,7 @@ export default function Home() {
           position: 'relative',
           zIndex: 10,
           padding: '100px 0',
-          background: 'rgba(0, 0, 0, 0.1)'
+          background: colors.primary.gray50
         }}>
           <div style={{
             maxWidth: '1400px',
@@ -2304,29 +2867,119 @@ export default function Home() {
               <h2 style={{
                 fontSize: isMobile ? '36px' : '56px',
                 fontWeight: '800',
-                color: 'white',
+                color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
                 margin: '0 0 24px 0',
                 letterSpacing: '-0.02em'
               }}>
                 Por que 
                 <span style={{
-                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  color: colors.accent.orange
                 }}> 5.000+ Brasileiros </span>
                 Confiam na Fly2Any?
               </h2>
               <p style={{
                 fontSize: '20px',
-                color: 'rgba(219, 234, 254, 0.9)',
+                color: colors.secondary.gray600,
                 maxWidth: '600px',
-                margin: '0 auto',
+                margin: '0 auto 32px auto',
                 lineHeight: '1.6'
               }}>
                 Descubra os diferenciais que fazem da Fly2Any a escolha número 1 para viagens Brasil-EUA
               </p>
+              
+              {/* Price Anchoring Widget */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(255, 176, 0, 0.05))',
+                border: `2px solid ${colors.accent.orange}`,
+                borderRadius: '16px',
+                padding: '24px',
+                maxWidth: '500px',
+                margin: '0 auto',
+                textAlign: 'center'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-around',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '16px'
+                }}>
+                  <div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: colors.secondary.gray500,
+                      textDecoration: 'line-through',
+                      marginBottom: '4px'
+                    }}>
+                      Outras Agências
+                    </div>
+                    <div style={{
+                      fontSize: '20px',
+                      fontWeight: '700',
+                      color: colors.secondary.gray400
+                    }}>
+                      R$ 3.200
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    fontSize: '24px',
+                    color: colors.accent.orange
+                  }}>
+                    →
+                  </div>
+                  
+                  <div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: colors.accent.orange,
+                      fontWeight: '600',
+                      marginBottom: '4px'
+                    }}>
+                      Com a Fly2Any
+                    </div>
+                    <div style={{
+                      fontSize: '24px',
+                      fontWeight: '800',
+                      color: colors.accent.orange
+                    }}>
+                      R$ 1.850
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: colors.accent.green,
+                      fontWeight: '600',
+                      marginBottom: '4px'
+                    }}>
+                      Sua Economia
+                    </div>
+                    <div style={{
+                      fontSize: '24px',
+                      fontWeight: '800',
+                      color: colors.accent.green
+                    }}>
+                      R$ 1.350
+                    </div>
+                  </div>
+                </div>
+                
+                <div style={{
+                  marginTop: '16px',
+                  padding: '8px 16px',
+                  background: colors.accent.orange,
+                  color: 'white',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  display: 'inline-block'
+                }}>
+                  💰 Economia média em voos Brasil-EUA
+                </div>
+              </div>
             </div>
 
             {/* Features Grid */}
@@ -2375,26 +3028,23 @@ export default function Home() {
                 }
               ].map((feature, index) => (
                 <div key={index} style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '24px',
+                  background: colors.primary.white,
+                  border: `1px solid ${colors.primary.gray200}`,
+                  borderRadius: '16px',
                   padding: '40px 32px',
                   textAlign: 'center',
-                  transition: 'all 0.4s ease',
+                  transition: 'all 0.3s ease',
                   cursor: 'pointer',
                   position: 'relative' as const,
-                  overflow: 'hidden' as const
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
                 }}>
                   <div style={{
                     fontSize: '48px',
@@ -2406,14 +3056,14 @@ export default function Home() {
                   <h3 style={{
                     fontSize: '24px',
                     fontWeight: '700',
-                    color: 'white',
+                    color: colors.secondary.gray900,
                     marginBottom: '16px',
                     fontFamily: 'Poppins, sans-serif'
                   }}>
                     {feature.title}
                   </h3>
                   <p style={{
-                    color: 'rgba(219, 234, 254, 0.8)',
+                    color: colors.secondary.gray600,
                     fontSize: '16px',
                     lineHeight: '1.6',
                     marginBottom: '16px'
@@ -2421,8 +3071,8 @@ export default function Home() {
                     {feature.description}
                   </p>
                   <div style={{
-                    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                    color: '#1f2937',
+                    background: colors.accent.orange,
+                    color: colors.primary.white,
                     padding: '8px 16px',
                     borderRadius: '20px',
                     fontSize: '14px',
@@ -2450,18 +3100,18 @@ export default function Home() {
             padding: '0 24px'
           }}>
             <h3 style={{
-              fontSize: isMobile ? '36px' : '48px',
-              fontWeight: '800',
-              color: 'white',
+              fontSize: isMobile ? '28px' : '36px',
+              fontWeight: '700',
+              color: colors.secondary.gray900,
               fontFamily: 'Poppins, sans-serif',
-              margin: '0 0 24px 0',
+              margin: '0 0 16px 0',
               letterSpacing: '-0.02em'
             }}>
               Mais de 5.000 Brasileiros Já Voaram Conosco
             </h3>
             <p style={{
               fontSize: '20px',
-              color: 'rgba(219, 234, 254, 0.8)',
+              color: colors.secondary.gray600,
               marginBottom: '48px',
               maxWidth: '600px',
               margin: '0 auto 48px auto'
@@ -2485,39 +3135,41 @@ export default function Home() {
                 { number: '10+', label: 'Anos de Experiência', icon: '🏆' }
               ].map((stat, index) => (
                 <div key={index} style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '20px',
+                  background: colors.primary.white,
+                  border: `1px solid ${colors.primary.gray200}`,
+                  borderRadius: '16px',
                   padding: '32px 24px',
                   textAlign: 'center',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = `0 8px 16px rgba(0, 0, 0, 0.1)`;
+                  e.currentTarget.style.borderColor = colors.primary.gray200;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                  e.currentTarget.style.borderColor = colors.primary.gray200;
                 }}>
                   <div style={{
-                    fontSize: '32px',
-                    marginBottom: '8px'
+                    fontSize: '28px',
+                    marginBottom: '12px'
                   }}>
                     {stat.icon}
                   </div>
                   <div style={{
-                    fontSize: isMobile ? '28px' : '36px',
-                    fontWeight: '800',
-                    color: '#fbbf24',
+                    fontSize: isMobile ? '24px' : '32px',
+                    fontWeight: '700',
+                    color: colors.secondary.gray900,
                     fontFamily: 'Poppins, sans-serif',
                     marginBottom: '8px'
                   }}>
                     {stat.number}
                   </div>
                   <div style={{
-                    color: 'rgba(219, 234, 254, 0.9)',
+                    color: colors.secondary.gray600,
                     fontSize: '14px',
                     fontWeight: '500'
                   }}>
@@ -2533,23 +3185,23 @@ export default function Home() {
               marginBottom: '48px'
             }}>
               <h4 style={{
-                fontSize: isMobile ? '28px' : '36px',
-                fontWeight: '800',
-                color: 'white',
+                fontSize: isMobile ? '24px' : '32px',
+                fontWeight: '700',
+                color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
-                marginBottom: '16px',
+                marginBottom: '12px',
                 letterSpacing: '-0.02em'
               }}>
                 O que nossos clientes dizem
               </h4>
               <p style={{
-                fontSize: '18px',
-                color: 'rgba(219, 234, 254, 0.8)',
-                marginBottom: '48px',
+                fontSize: '16px',
+                color: colors.secondary.gray600,
+                marginBottom: '40px',
                 maxWidth: '500px',
-                margin: '0 auto 48px auto'
+                margin: '0 auto 40px auto'
               }}>
-                Histórias reais de brasileiros que realizaram o sonho de voltar para casa
+                Histórias reais de clientes satisfeitos com nossos serviços
               </p>
               
               <div style={{
@@ -2583,51 +3235,47 @@ export default function Home() {
                   }
                 ].map((testimonial, index) => (
                   <div key={index} style={{
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '24px',
-                    padding: '32px',
+                    background: colors.primary.white,
+                    border: `1px solid ${colors.primary.gray200}`,
+                    borderRadius: '16px',
+                    padding: '24px',
                     textAlign: 'left',
-                    transition: 'all 0.4s ease',
+                    transition: 'all 0.3s ease',
                     cursor: 'pointer',
                     position: 'relative' as const,
-                    overflow: 'hidden' as const
+                    overflow: 'hidden' as const,
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                    e.currentTarget.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.25)';
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 8px 16px rgba(0, 0, 0, 0.1)`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
                   }}>
                     <div style={{
                       display: 'flex',
-                      marginBottom: '12px'
+                      marginBottom: '16px'
                     }}>
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <span key={i} style={{
-                          color: '#facc15',
-                          fontSize: '18px'
+                          color: colors.accent.yellow,
+                          fontSize: '16px'
                         }}>★</span>
                       ))}
                     </div>
                     <p style={{
-                      color: 'rgba(219, 234, 254, 0.9)',
-                      fontSize: '16px',
+                      color: colors.secondary.gray700,
+                      fontSize: '15px',
                       lineHeight: '1.6',
-                      marginBottom: '16px',
+                      marginBottom: '20px',
                       fontStyle: 'italic'
                     }}>
                       &quot;{testimonial.text}&quot;
                     </p>
                     <div style={{
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderTop: `1px solid ${colors.primary.gray200}`,
                       paddingTop: '16px'
                     }}>
                       <div style={{
@@ -2636,29 +3284,29 @@ export default function Home() {
                         gap: '12px'
                       }}>
                         <div style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '36px',
+                          height: '36px',
                           borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #60a5fa, #e879f9)',
+                          background: colors.primary.gray100,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '16px',
+                          fontSize: '14px',
                           fontWeight: '600',
-                          color: 'white'
+                          color: colors.secondary.gray600
                         }}>
                           {testimonial.name.charAt(0)}
                         </div>
                         <div>
                           <div style={{
-                            color: 'white',
+                            color: colors.secondary.gray900,
                             fontSize: '14px',
                             fontWeight: '600'
                           }}>
                             {testimonial.name}
                           </div>
                           <div style={{
-                            color: 'rgba(219, 234, 254, 0.7)',
+                            color: colors.secondary.gray500,
                             fontSize: '12px'
                           }}>
                             {testimonial.location} • {testimonial.service}
@@ -2699,7 +3347,7 @@ export default function Home() {
                 ))}
               </div>
               <div style={{
-                color: 'rgba(219, 234, 254, 0.9)',
+                color: colors.secondary.gray600,
                 fontSize: '16px',
                 fontWeight: '500'
               }}>
@@ -2760,7 +3408,7 @@ export default function Home() {
             </h2>
             <p style={{
               fontSize: '20px',
-              color: 'rgba(219, 234, 254, 0.9)',
+              color: colors.secondary.gray600,
               marginBottom: '48px',
               lineHeight: '1.6'
             }}>
@@ -2847,25 +3495,23 @@ export default function Home() {
               gap: '24px',
               flexWrap: 'wrap',
               fontSize: '14px',
-              color: 'rgba(219, 234, 254, 0.7)'
+              color: colors.secondary.gray500
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
+                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                 Cotação 100% gratuita
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
+                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                 Resposta em até 2 horas
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: '#10b981' }} />
+                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                 Sem compromisso
               </div>
             </div>
           </div>
         </section>
-
-        <Footer isMobile={isMobile} />
 
         {/* Success Toast */}
         {showSuccessToast && (
@@ -2939,6 +3585,9 @@ export default function Home() {
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={45} />
       </div>
+      
+      {/* Using live site footer ONLY for home page - temporary */}
+      <LiveSiteFooter />
     </>
   );
 }

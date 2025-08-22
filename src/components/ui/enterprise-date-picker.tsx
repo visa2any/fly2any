@@ -18,8 +18,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Popover, Transition } from '@headlessui/react';
 import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths, isAfter, isBefore, parse, isValid } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import format from 'date-fns/format';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
+import eachDayOfInterval from 'date-fns/eachDayOfInterval';
+import isSameMonth from 'date-fns/isSameMonth';
+import isToday from 'date-fns/isToday';
+import isSameDay from 'date-fns/isSameDay';
+import addMonths from 'date-fns/addMonths';
+import subMonths from 'date-fns/subMonths';
+import isAfter from 'date-fns/isAfter';
+import isBefore from 'date-fns/isBefore';
+import parse from 'date-fns/parse';
+import isValid from 'date-fns/isValid';
 
 interface EnterpriseDatePickerProps {
   value?: string;
@@ -279,7 +290,7 @@ export default function EnterpriseDatePicker({
                 </button>
                 
                 <h2 className="text-lg font-black text-slate-800 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                  {format(currentMonth, 'MMMM yyyy', { locale: enUS })}
+                  {format(currentMonth, 'MMMM yyyy')}
                 </h2>
                 
                 <button
@@ -339,7 +350,7 @@ export default function EnterpriseDatePicker({
                           : 'cursor-pointer'
                         }
                       `}
-                      aria-label={format(date, 'MMMM d, yyyy', { locale: enUS })}
+                      aria-label={format(date, 'MMMM d, yyyy')}
                     >
                       {format(date, 'd')}
                     </button>

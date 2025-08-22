@@ -9,12 +9,20 @@ import { useSearchParams } from 'next/navigation';
 import FlightResultsList from '@/components/flights/FlightResultsList';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import Footer from '@/components/Footer';
+import { FlightFilters } from '@/types/flights';
 
 function FlightResultsContent() {
   const searchParams = useSearchParams();
   const [flights, setFlights] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FlightFilters>({});
+
+  // Handle filter changes
+  const handleFiltersChange = (newFilters: FlightFilters) => {
+    console.log('🔍 FILTERS CHANGED:', newFilters);
+    setFilters(newFilters);
+  };
 
   const searchData = {
     from: searchParams.get('from') || '',
@@ -161,7 +169,9 @@ function FlightResultsContent() {
             window.open(`/flights/${flight.id}`, '_blank');
           }}
           isLoading={false}
-          searchParams={{
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          searchData={{
             origin: searchData.from,
             destination: searchData.to,
             departureDate: searchData.departure,

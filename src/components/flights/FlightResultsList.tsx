@@ -66,6 +66,7 @@ import {
 import SafeFareCustomizer from '@/components/flights/SafeFareCustomizer';
 import { CabinClassDisplay } from './CabinClassDisplay';
 import { BaggageTransparencyDisplay } from './BaggageTransparencyDisplay';
+import FlightFiltersComponent from './FlightFilters';
 import {
   filterFlightOffers,
   sortFlightOffers,
@@ -194,7 +195,6 @@ export default function FlightResultsList({
   const [priceAlerts, setPriceAlerts] = useState<Map<string, any>>(new Map());
   const [personalizedRecommendations, setPersonalizedRecommendations] = useState<FlightRecommendation[]>([]);
   const [socialActivity, setSocialActivity] = useState<Map<string, any>>(new Map());
-  const [showFilters, setShowFilters] = useState(false);
   const [gamificationState, setGamificationState] = useState({
     points: 0,
     level: 1,
@@ -514,6 +514,7 @@ export default function FlightResultsList({
       let result = [...offers];
       
       // 🅰️ Apply AI-enhanced filters
+      // Apply filters if any are set
       if (Object.keys(filters).length > 0) {
         result = filterFlightOffers(result, filters);
       }
@@ -548,7 +549,11 @@ export default function FlightResultsList({
   const paginatedOffers = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return processedOffers.slice(startIndex, endIndex);
+    const paginated = processedOffers.slice(startIndex, endIndex);
+    if (processedOffers.length > 0) {
+      console.log('✈️ RENDERING:', paginated.length, 'flights on page', currentPage, '/', Math.ceil(processedOffers.length / itemsPerPage));
+    }
+    return paginated;
   }, [processedOffers, currentPage, itemsPerPage]);
 
   // ========================================================================
@@ -1081,11 +1086,16 @@ export default function FlightResultsList({
   // Helper function para formatar datas de forma robusta - FIXED TIMEZONE ISSUES
   const formatFlightDate = useCallback((dateString: string | undefined, context?: string) => {
     if (!dateString) {
-      console.log(`No date string provided for ${context || 'unknown'}`);
+      // console.log(`No date string provided for ${context || 'unknown'}`);
       return '';
     }
     
     try {
+      // If already in "Aug 31" format, return as-is
+      if (/^[A-Za-z]{3}\s+\d{1,2}$/.test(dateString)) {
+        return dateString;
+      }
+      
       // Tentar diferentes formatos de data possíveis
       let date;
       
@@ -1113,7 +1123,7 @@ export default function FlightResultsList({
       }
       
       if (isNaN(date.getTime())) {
-        console.warn(`Invalid date format for ${context || 'unknown'}:`, dateString);
+        // console.warn(`Invalid date format for ${context || 'unknown'}:`, dateString);
         return '';
       }
       
@@ -1124,7 +1134,7 @@ export default function FlightResultsList({
       
       return formatted;
     } catch (error) {
-      console.warn(`Date parsing error for ${context || 'unknown'}:`, error, dateString);
+      // console.warn(`Date parsing error for ${context || 'unknown'}:`, error, dateString);
       return '';
     }
   }, []);
@@ -2464,36 +2474,42 @@ export default function FlightResultsList({
 
   return (
     <div className={`flight-results-list ${className}`}>
-      {/* 🔝 Results Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            {(offers || []).length} flight{(offers || []).length !== 1 ? 's' : ''} found
-          </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>Sorted by</span>
-            {onSortChange ? (
-              <select 
-                value={sortOptions.sortBy}
-                onChange={(e) => onSortChange({ ...sortOptions, sortBy: e.target.value as any })}
-                className="bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="price">Price</option>
-                <option value="duration">Duration</option>
-                <option value="quality">Quality Score</option>
-              </select>
-            ) : (
-              <span className="font-medium">
-                {sortOptions.sortBy === 'price' ? 'Price' : sortOptions.sortBy === 'duration' ? 'Duration' : 'Quality Score'}
-              </span>
-            )}
+      <div className="flex gap-6">
+        
+        {/* 🎯 Main Content */}
+        <div className="flex-1 min-w-0">
+          {/* 🔝 Results Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {(processedOffers || []).length} flight{(processedOffers || []).length !== 1 ? 's' : ''} found
+              </h2>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>Sorted by</span>
+                {onSortChange ? (
+                  <select 
+                    value={sortOptions.sortBy}
+                    onChange={(e) => onSortChange({ ...sortOptions, sortBy: e.target.value as any })}
+                    className="bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="price">Price</option>
+                    <option value="duration">Duration</option>
+                    <option value="quality">Quality Score</option>
+                  </select>
+                ) : (
+                  <span className="font-medium">
+                    {sortOptions.sortBy === 'price' ? 'Price' : sortOptions.sortBy === 'duration' ? 'Duration' : 'Quality Score'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 🎯 Flight Cards */}
+          <div className="space-y-3">
+            {(paginatedOffers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))}
           </div>
         </div>
-      </div>
-
-      {/* 🎯 Flight Cards */}
-      <div className="space-y-3">
-        {(offers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))}
       </div>
 
       {/* 🎮 Gamification Summary */}

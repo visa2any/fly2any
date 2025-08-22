@@ -16,6 +16,45 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 
+// Função para enviar email via Mailgun
+async function sendEmailViaMailgun(credentials: any, emailData: {
+  to: string;
+  subject: string;
+  html: string;
+  fromName?: string;
+}) {
+  const formData = new FormData();
+  formData.append('from', `${emailData.fromName || 'Fly2Any'} <${credentials.mailgunFromEmail}>`);
+  formData.append('to', emailData.to);
+  formData.append('subject', emailData.subject);
+  formData.append('html', emailData.html);
+  
+  // Add tracking
+  formData.append('o:tracking', 'yes');
+  formData.append('o:tracking-clicks', 'yes');
+  formData.append('o:tracking-opens', 'yes');
+
+  const authHeader = Buffer.from(`api:${credentials.mailgunApiKey}`).toString('base64');
+  const response = await fetch(`https://api.mailgun.net/v3/${credentials.mailgunDomain}/messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${authHeader}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Mailgun error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  return {
+    messageId: result.id,
+    provider: 'Mailgun'
+  };
+}
+
 // Inicializar tabelas na primeira execução
 let tablesInitialized = false;
 async function ensureTablesExist() {
@@ -34,10 +73,24 @@ async function ensureTablesExist() {
 
 // Função para obter credenciais Gmail
 function getGmailCredentials() {
-  let email = process.env.GMAIL_EMAIL;
-  let password = process.env.GMAIL_APP_PASSWORD;
+  const email = process.env.GMAIL_EMAIL;
+  const password = process.env.GMAIL_APP_PASSWORD;
   
   if (!email || !password) {
+    console.log('⚠️ Gmail credentials not configured');
+    return null;
+  }
+  
+  return { email, password };
+}
+
+// Função para obter credenciais Mailgun (APENAS MAILGUN PARA MARKETING)
+function getMailgunCredentials() {
+  let mailgunApiKey = process.env.MAILGUN_API_KEY;
+  let mailgunDomain = process.env.MAILGUN_DOMAIN;
+  let mailgunFromEmail = process.env.MAILGUN_FROM_EMAIL;
+  
+  if (!mailgunApiKey || !mailgunDomain) {
     const envFiles = ['.env.local', '.env', '.env.production.local'];
     
     for (const fileName of envFiles) {
@@ -55,26 +108,32 @@ function getGmailCredentials() {
                 const key = trimmedLine.substring(0, equalIndex).trim();
                 const value = trimmedLine.substring(equalIndex + 1).trim().replace(/["']/g, '');
                 
-                if (key === 'GMAIL_EMAIL' && !email) email = value;
-                if (key === 'GMAIL_APP_PASSWORD' && !password) password = value;
+                if (key === 'MAILGUN_API_KEY' && !mailgunApiKey) mailgunApiKey = value;
+                if (key === 'MAILGUN_DOMAIN' && !mailgunDomain) mailgunDomain = value;
+                if (key === 'MAILGUN_FROM_EMAIL' && !mailgunFromEmail) mailgunFromEmail = value;
               }
             }
-          }
-          
-          if (email && password) {
-            console.log(`✅ Credenciais Gmail carregadas de: ${fileName}`);
-            break;
           }
         }
       } catch (error) {
         console.error(`❌ Erro ao carregar ${fileName}:`, error);
       }
     }
-  } else {
-    console.log('✅ Credenciais Gmail carregadas de variáveis de ambiente');
   }
   
-  return { email, password };
+  const hasMailgun = mailgunApiKey && mailgunDomain;
+  
+  if (hasMailgun) {
+    console.log('✅ Credenciais Mailgun carregadas - Email Marketing exclusivo via Mailgun');
+    return { 
+      mailgunApiKey, 
+      mailgunDomain, 
+      mailgunFromEmail: mailgunFromEmail || 'noreply@mail.fly2any.com'
+    };
+  }
+  
+  console.log('❌ Credenciais Mailgun não encontradas');
+  return null;
 }
 
 // Função para carregar templates da API (corrigida para produção)
@@ -681,46 +740,36 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
 
-        const credentials = getGmailCredentials();
+        const credentials = getMailgunCredentials();
         
-        if (!credentials.email || !credentials.password) {
+        if (!credentials) {
           return NextResponse.json({
             success: false,
-            error: 'Credenciais Gmail não configuradas'
+            error: 'Credenciais Mailgun não configuradas. Configure MAILGUN_API_KEY e MAILGUN_DOMAIN.'
           }, { status: 500 });
         }
-        
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: credentials.email,
-            pass: credentials.password,
-          },
-          tls: {
-            rejectUnauthorized: false
-          }
-        });
         
         // Personalizar template usando o HTML exato selecionado
         const personalizedHtml = htmlContent
           .replace(/{{nome}}/g, 'Teste')
           .replace(/{{unsubscribe_url}}/g, 'https://www.fly2any.com/unsubscribe');
         
-        const result = await transporter.sendMail({
-          from: `"Fly2Any" <${credentials.email}>`,
+        // Usar APENAS Mailgun para marketing
+        const result = await sendEmailViaMailgun(credentials, {
           to: email,
           subject: `[TESTE] ${subject}`,
-          html: personalizedHtml
+          html: personalizedHtml,
+          fromName: 'Fly2Any'
         });
-
-        console.log(`✅ Email teste enviado usando template: ${templateName}`);
+        
+        console.log(`✅ Email teste enviado via Mailgun usando template: ${templateName}`);
 
         return NextResponse.json({
           success: true,
-          message: `Email teste "${templateName}" enviado para ${email}`,
-          messageId: result.messageId
+          message: `Email teste "${templateName}" enviado para ${email} via Mailgun`,
+          messageId: result.messageId,
+          provider: 'Mailgun',
+          domain: credentials.mailgunDomain
         });
       }
 
@@ -735,27 +784,14 @@ export async function POST(request: NextRequest) {
           }, { status: 400 });
         }
 
-        const credentials = getGmailCredentials();
+        const credentials = getMailgunCredentials();
         
-        if (!credentials.email || !credentials.password) {
+        if (!credentials) {
           return NextResponse.json({
             success: false,
-            error: 'Credenciais Gmail não configuradas'
+            error: 'Credenciais Mailgun não configuradas. Configure MAILGUN_API_KEY e MAILGUN_DOMAIN.'
           }, { status: 500 });
         }
-        
-        const transporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: credentials.email,
-            pass: credentials.password,
-          },
-          tls: {
-            rejectUnauthorized: false
-          }
-        });
         
         // Carregar templates salvos dinamicamente
         const EMAIL_TEMPLATES = await loadSavedTemplates();
@@ -766,17 +802,23 @@ export async function POST(request: NextRequest) {
           .replace(/{{nome}}/g, 'Teste')
           .replace(/{{unsubscribe_url}}/g, 'https://www.fly2any.com/unsubscribe');
         
-        const result = await transporter.sendMail({
-          from: `"Fly2Any" <${credentials.email}>`,
+        // Usar APENAS Mailgun para marketing
+        const result = await sendEmailViaMailgun(credentials, {
           to: email,
           subject: `[TESTE] ${template.subject}`,
-          html: personalizedHtml
+          html: personalizedHtml,
+          fromName: 'Fly2Any'
         });
+        
+        console.log(`✅ Email teste enviado via Mailgun - Tipo: ${campaignType}`);
 
         return NextResponse.json({
           success: true,
-          message: `Email teste enviado para ${email}`,
-          messageId: result.messageId
+          message: `Email teste enviado para ${email} via Mailgun`,
+          messageId: result.messageId,
+          provider: 'Mailgun',
+          template: campaignType,
+          domain: credentials.mailgunDomain
         });
       }
 
@@ -1700,7 +1742,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   
   const credentials = getGmailCredentials();
   
-  if (!credentials.email || !credentials.password) {
+  if (!credentials || !credentials.email || !credentials.password) {
     emailMarketingLogger.critical(
       EmailEvent.CREDENTIALS_LOADED,
       'Gmail credentials not configured - campaign paused',
@@ -1715,7 +1757,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   emailMarketingLogger.info(
     EmailEvent.CREDENTIALS_LOADED,
     'Gmail credentials loaded successfully',
-    { campaignId: campaign.id, metadata: { email: credentials.email } }
+    { campaignId: campaign.id, metadata: { email: credentials?.email || 'unknown' } }
   );
 
   // 🚨 SISTEMA DE HEARTBEAT para auto-recovery
@@ -1772,7 +1814,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     await transporter.verify();
     emailMarketingLogger.logCampaignStart(campaign.id, {
       message: 'SMTP transporter verificado com sucesso',
-      credentials: credentials.email
+      credentials: credentials?.email || 'unknown'
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -1855,23 +1897,10 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         
         // Enviar email com envelope e headers customizados para melhor tracking
         const result = await transporter.sendMail({
-          from: `"Fly2Any" <${credentials.email}>`,
+          from: `"Fly2Any" <${credentials?.email || 'noreply@fly2any.com'}>`,
           to: contact.email,
           subject: campaign.subject,
-          html: personalizedHtml,
-          // Envelope customizado para bounce tracking
-          envelope: {
-            from: `bounce+${emailSend.id}@fly2any.com`,
-            to: contact.email
-          },
-          // Headers adicionais para melhor tracking
-          headers: {
-            'X-Campaign-ID': campaign.id,
-            'X-Send-ID': emailSend.id,
-            'X-Contact-Email': contact.email,
-            'List-Unsubscribe': `<https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}>`,
-            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
-          }
+          html: personalizedHtml
         });
         
         // Atualizar status do envio

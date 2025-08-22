@@ -25,7 +25,8 @@ export function filterFlightOffers(
   offers: ProcessedFlightOffer[], 
   filters: FlightFilters
 ): ProcessedFlightOffer[] {
-  return offers.filter(offer => {
+  
+  const results = offers.filter(offer => {
     // Price range filter
     if (filters.priceRange) {
       const price = parseFloat(offer.totalPrice.replace(/[^\d.,]/g, '').replace(',', '.'));
@@ -42,23 +43,65 @@ export function filterFlightOffers(
       }
     }
 
-    // Stops filter
-    if (filters.stops && Array.isArray(filters.stops) && filters.stops.length > 0) {
-      const outboundStops = getStopsCategory(offer.outbound.stops);
-      const inboundStops = offer.inbound ? getStopsCategory(offer.inbound.stops) : null;
+    // Stops filter - handle both numeric and string values
+    if (filters.stops !== undefined && filters.stops !== null) {
+      const stopsArray = Array.isArray(filters.stops) ? filters.stops : [filters.stops];
       
-      const matchesOutbound = (filters.stops as any[]).includes(outboundStops);
-      const matchesInbound = !inboundStops || (filters.stops as any[]).includes(inboundStops);
-      
-      if (!matchesOutbound || !matchesInbound) {
-        return false;
+      // Skip filtering if empty array (means no filter selected)
+      if (stopsArray.length > 0) {
+        const outboundStops = offer.outbound?.stops;
+        const inboundStops = offer.inbound?.stops || 0;
+        
+        // Check if outbound matches filter criteria
+        const matchesOutbound = stopsArray.some(filterValue => {
+          if (typeof filterValue === 'number') {
+            return outboundStops <= filterValue;
+          } else {
+            const category = getStopsCategory(outboundStops);
+            return filterValue === category;
+          }
+        });
+        
+        // Both outbound AND inbound must meet the filter criteria
+        let matchesInbound = true; // Default to true for one-way flights
+        
+        if (offer.inbound) {
+          matchesInbound = stopsArray.some(filterValue => {
+            if (typeof filterValue === 'number') {
+              return inboundStops <= filterValue;
+            } else {
+              const category = getStopsCategory(inboundStops);
+              return filterValue === category;
+            }
+          });
+        }
+        
+        // Both legs must meet the criteria
+        const shouldPass = matchesOutbound && matchesInbound;
+        
+        if (!shouldPass) {
+          return false;
+        }
       }
     }
 
     // Departure time filter
-    if (filters.departureTime) {
+    if (filters.departureTime && Object.values(filters.departureTime).some(val => val === true)) {
       const departureTime = offer.outbound.departure.time;
-      if (!matchesTimePreference(departureTime, filters.departureTime)) {
+      
+      // Handle both array format (from UI) and object format (legacy)
+      let timePreference = filters.departureTime;
+      if (Array.isArray(filters.departureTime)) {
+        // Convert array to object format
+        timePreference = {
+          early: filters.departureTime.includes('early') || filters.departureTime.includes('morning'),
+          afternoon: filters.departureTime.includes('afternoon'),
+          evening: filters.departureTime.includes('evening'),
+          night: filters.departureTime.includes('night')
+        };
+      }
+      
+      if (!matchesTimePreference(departureTime, timePreference)) {
         return false;
       }
     }
@@ -66,17 +109,33 @@ export function filterFlightOffers(
     // Arrival time filter
     if (filters.arrivalTime) {
       const arrivalTime = offer.outbound.arrival.time;
-      if (!matchesTimePreference(arrivalTime, filters.arrivalTime)) {
+      
+      // Handle both array format (from UI) and object format (legacy)
+      let timePreference = filters.arrivalTime;
+      if (Array.isArray(filters.arrivalTime)) {
+        // Convert array to object format
+        timePreference = {
+          early: filters.arrivalTime.includes('early') || filters.arrivalTime.includes('morning'),
+          afternoon: filters.arrivalTime.includes('afternoon'),
+          evening: filters.arrivalTime.includes('evening'),
+          night: filters.arrivalTime.includes('night')
+        };
+      }
+      
+      if (!matchesTimePreference(arrivalTime, timePreference)) {
         return false;
       }
     }
 
     // Duration filter
     if (filters.duration?.max) {
-      if (offer.outbound.durationMinutes > filters.duration.max) {
+      // Convert hours to minutes (filter UI sends hours, flight data is in minutes)
+      const maxMinutes = filters.duration.max * 60;
+      
+      if (offer.outbound.durationMinutes > maxMinutes) {
         return false;
       }
-      if (offer.inbound && offer.inbound.durationMinutes > filters.duration.max) {
+      if (offer.inbound && offer.inbound.durationMinutes > maxMinutes) {
         return false;
       }
     }
@@ -96,6 +155,9 @@ export function filterFlightOffers(
 
     return true;
   });
+  
+  // Force recompilation - filters work strictly now
+  return results;
 }
 
 /**
@@ -179,16 +241,26 @@ export function getStopsCategory(stops: number): 'direct' | '1-stop' | '2-plus-s
  */
 export function matchesTimePreference(time: string, preference: any): boolean {
   // If no time preferences are set, allow all times
-  if (!preference || (!preference.early && !preference.afternoon && !preference.evening && !preference.night)) {
+  if (!preference || (!preference.early && !preference.morning && !preference.afternoon && !preference.evening && !preference.night)) {
     return true;
   }
   
   const hour = parseInt(time.split(':')[0], 10);
   
-  if (preference.early && hour >= 6 && hour < 12) return true;
+  // Early morning (00:00 - 06:00)
+  if (preference.early && hour >= 0 && hour < 6) return true;
+  
+  // Morning (06:00 - 12:00)
+  if ((preference.morning || preference.early) && hour >= 6 && hour < 12) return true;
+  
+  // Afternoon (12:00 - 18:00)
   if (preference.afternoon && hour >= 12 && hour < 18) return true;
+  
+  // Evening (18:00 - 24:00)
   if (preference.evening && hour >= 18 && hour < 24) return true;
-  if (preference.night && (hour >= 0 && hour < 6)) return true;
+  
+  // Night (same as early morning for backward compatibility)
+  if (preference.night && hour >= 0 && hour < 6) return true;
   
   return false;
 }

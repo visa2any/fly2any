@@ -136,6 +136,7 @@ export default function FlightFilters({
 
   const updateFilter = useCallback((filterType: keyof FlightFiltersType, value: any) => {
     const newFilters = { ...localFilters, [filterType]: value };
+    console.log('🎛️ FILTER UPDATE:', filterType, '=', value, 'newFilters:', newFilters);
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   }, [localFilters, onFiltersChange]);
