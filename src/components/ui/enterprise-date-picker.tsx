@@ -23,7 +23,7 @@ import {
   format,
   startOfMonth,
   endOfMonth,
-  eachDay,
+  eachDayOfInterval,
   isSameMonth,
   isToday,
   isSameDay,
@@ -168,8 +168,8 @@ export default function EnterpriseDatePicker({
   // Generate calendar days
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
-  // Use eachDay for compatibility with @types/date-fns v2.5.1
-  const calendarDays = eachDay(monthStart, monthEnd);
+  // Use eachDayOfInterval for date-fns v4+ compatibility
+  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
   // Add empty cells for proper calendar layout
   const startPadding = Array(monthStart.getDay()).fill(null);

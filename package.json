@@ -63,7 +63,12 @@
     "@types/qrcode": "^1.5.0",
     "@whiskeysockets/baileys": "^6.7.2",
     "pino": "^9.2.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "date-fns": "^4.1.0",
+    "@sendgrid/mail": "^8.1.4",
+    "mailgun.js": "^10.2.3",
+    "twilio": "^5.3.5",
+    "aws-sdk": "^2.1691.0"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
