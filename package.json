@@ -7,10 +7,11 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
@@ -74,6 +75,9 @@
     "@types/ws": "^8.5.10",
     "@types/qrcode-terminal": "^0.12.2",
     "eslint": "^8.57.1",
-    "eslint-config-next": "15.4.7"
+    "eslint-config-next": "15.4.7",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "prisma": "^5.16.1"
   }
 }
