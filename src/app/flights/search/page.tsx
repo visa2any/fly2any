@@ -4,7 +4,7 @@
  * Advanced Flight Search Page
  */
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -18,7 +18,8 @@ import FlightSearchForm from '@/components/flights/FlightSearchForm';
 import FlightFilters from '@/components/flights/FlightFilters';
 import type { FlightSearchFormData, TravelClass } from '@/types/flights';
 
-export default function FlightSearchPage() {
+// Component that uses useSearchParams - needs to be wrapped in Suspense
+function FlightSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -238,5 +239,35 @@ export default function FlightSearchPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function FlightSearchLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="bg-white/70 backdrop-blur-sm border border-white/60 rounded-3xl p-8 shadow-lg">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-200 rounded w-1/3 mx-auto mb-4"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto mb-8"></div>
+            <div className="space-y-4">
+              <div className="h-12 bg-slate-200 rounded"></div>
+              <div className="h-12 bg-slate-200 rounded"></div>
+              <div className="h-12 bg-slate-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Default export with Suspense boundary
+export default function FlightSearchPage() {
+  return (
+    <Suspense fallback={<FlightSearchLoading />}>
+      <FlightSearchContent />
+    </Suspense>
   );
 }
