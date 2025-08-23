@@ -5,7 +5,7 @@
  * Advanced airport search with global database integration
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AirportSelection } from '@/types/flights';
 import { FlightIcon, ClockIcon } from '@/components/Icons';
@@ -28,6 +28,8 @@ interface AirportAutocompleteProps {
   error?: string;
   className?: string;
   inputClassName?: string;
+  isMobile?: boolean;
+  maxResults?: number;
 }
 
 interface EnhancedAirport extends AirportSelection {
@@ -92,16 +94,36 @@ export default function AirportAutocomplete({
   disabled = false,
   error,
   className = '',
-  inputClassName = ''
+  inputClassName = '',
+  isMobile = false,
+  maxResults = 8
 }: AirportAutocompleteProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EnhancedAirport[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<AirportSelection[]>([]);
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
+  const [isMobileDetected, setIsMobileDetected] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile environment
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileViewport = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isMobileUserAgent = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+      
+      setIsMobileDetected(isMobileViewport || isTouchDevice || isMobileUserAgent || isMobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [isMobile]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -114,6 +136,58 @@ export default function AirportAutocomplete({
       }
     }
   }, []);
+
+  // Calculate dropdown position to prevent viewport overflow
+  const calculateDropdownPosition = useCallback(() => {
+    if (!containerRef.current || !isMobileDetected) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = Math.min(320, results.length * 72 + 40); // Estimated height
+    
+    const spaceBelow = viewportHeight - containerRect.bottom;
+    const spaceAbove = containerRect.top;
+
+    // On mobile, prefer bottom unless there's significantly more space above
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow + 100) {
+      setDropdownPosition('top');
+    } else {
+      setDropdownPosition('bottom');
+    }
+  }, [results.length, isMobileDetected]);
+
+  // Recalculate position when dropdown opens or results change
+  useEffect(() => {
+    if (isOpen) {
+      calculateDropdownPosition();
+    }
+  }, [isOpen, calculateDropdownPosition]);
+
+  // Handle virtual keyboard on mobile
+  useEffect(() => {
+    if (!isMobileDetected) return;
+
+    const handleResize = () => {
+      if (isOpen) {
+        // Recalculate position when virtual keyboard opens/closes
+        setTimeout(calculateDropdownPosition, 100);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isOpen) {
+        calculateDropdownPosition();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isOpen, calculateDropdownPosition, isMobileDetected]);
 
   // Update query when value changes externally
   useEffect(() => {
@@ -181,7 +255,8 @@ export default function AirportAutocomplete({
       return (b.popularity || 0) - (a.popularity || 0);
     });
 
-    setResults(sortedMatches.slice(0, 8));
+    const maxResultsToShow = isMobileDetected ? Math.min(maxResults, 6) : maxResults;
+    setResults(sortedMatches.slice(0, maxResultsToShow));
     setSelectedIndex(-1);
   }, [query, recentSearches]);
 
@@ -193,6 +268,13 @@ export default function AirportAutocomplete({
     // Clear selection if user is typing
     if (newQuery !== `${value.iataCode} - ${value.city}`) {
       onChange({ iataCode: '', name: '', city: '', country: '' });
+    }
+
+    // On mobile, scroll input into view when focused
+    if (isMobileDetected && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     }
   };
 
@@ -226,10 +308,24 @@ export default function AirportAutocomplete({
       case 'ArrowDown':
         e.preventDefault();
         setSelectedIndex(prev => (prev + 1) % results.length);
+        // Scroll selected item into view on mobile
+        if (isMobileDetected) {
+          setTimeout(() => {
+            const selectedItem = resultsRef.current?.children[selectedIndex + 1];
+            selectedItem?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 10);
+        }
         break;
       case 'ArrowUp':
         e.preventDefault();
         setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+        // Scroll selected item into view on mobile
+        if (isMobileDetected) {
+          setTimeout(() => {
+            const selectedItem = resultsRef.current?.children[selectedIndex + 1];
+            selectedItem?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 10);
+        }
         break;
       case 'Enter':
         e.preventDefault();
@@ -240,7 +336,15 @@ export default function AirportAutocomplete({
       case 'Escape':
         setIsOpen(false);
         setSelectedIndex(-1);
-        inputRef.current?.blur();
+        if (isMobileDetected) {
+          // On mobile, blur the input to hide virtual keyboard
+          inputRef.current?.blur();
+        }
+        break;
+      case 'Tab':
+        // Allow normal tab behavior but close dropdown
+        setIsOpen(false);
+        setSelectedIndex(-1);
         break;
     }
   };
@@ -266,17 +370,25 @@ export default function AirportAutocomplete({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
         <input
           ref={inputRef}
           type="text"
           value={query}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsOpen(true);
+            // On mobile, add extra delay to ensure dropdown positioning
+            if (isMobileDetected) {
+              setTimeout(calculateDropdownPosition, 150);
+            }
+          }}
           onBlur={() => {
             // Delay closing to allow clicks on results
-            setTimeout(() => setIsOpen(false), 150);
+            // Longer delay on mobile for better touch interaction
+            const delay = isMobileDetected ? 300 : 150;
+            setTimeout(() => setIsOpen(false), delay);
           }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -285,8 +397,13 @@ export default function AirportAutocomplete({
             w-full px-4 py-3 pl-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
             ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
             ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+            ${isMobileDetected ? 'min-h-[48px] text-base' : 'min-h-[44px]'}
+            ${isMobileDetected ? 'focus:ring-4 focus:ring-blue-100' : ''}
+            ${isMobileDetected ? 'touch-manipulation -webkit-appearance-none' : ''}
             ${inputClassName}
           `}
+          // Prevent zoom on mobile when focusing input
+          style={isMobileDetected ? { fontSize: '16px' } : undefined}
         />
         <FlightIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
         
@@ -297,7 +414,10 @@ export default function AirportAutocomplete({
               onChange(null);
               inputRef.current?.focus();
             }}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className={`
+              absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600
+              ${isMobileDetected ? 'min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2' : ''}
+            `}
           >
             ✕
           </button>
@@ -312,10 +432,18 @@ export default function AirportAutocomplete({
         {isOpen && results.length > 0 && (
           <motion.div
             ref={resultsRef}
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: dropdownPosition === 'bottom' ? -10 : 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+            exit={{ opacity: 0, y: dropdownPosition === 'bottom' ? -10 : 10 }}
+            className={`
+              absolute left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-y-auto
+              ${dropdownPosition === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'}
+              ${isMobileDetected 
+                ? 'max-h-[60vh] shadow-2xl border-2 rounded-xl' 
+                : 'max-h-80'
+              }
+              ${isMobileDetected && dropdownPosition === 'bottom' ? 'max-h-[calc(100vh-120px)]' : ''}
+            `}
           >
             {/* Header for recent searches */}
             {!query.trim() && recentSearches.length > 0 && (
@@ -332,35 +460,63 @@ export default function AirportAutocomplete({
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleAirportSelect(airport)}
+                onTouchStart={(e) => {
+                  // Prevent scrolling on touch start for better mobile experience
+                  if (isMobileDetected) {
+                    e.preventDefault();
+                  }
+                }}
                 className={`
-                  w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-gray-100 last:border-b-0
+                  w-full text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-gray-100 last:border-b-0
                   ${selectedIndex === index ? 'bg-blue-50' : ''}
+                  ${isMobileDetected 
+                    ? 'px-4 py-4 min-h-[60px] active:bg-blue-100 touch-manipulation' 
+                    : 'px-4 py-3'
+                  }
                 `}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{getAirportIcon(airport)}</span>
-                    <div>
-                      <div className="font-semibold text-gray-900">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className={`${isMobileDetected ? 'text-xl' : 'text-lg'} flex-shrink-0`}>
+                      {getAirportIcon(airport)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-semibold text-gray-900 truncate ${
+                        isMobileDetected ? 'text-base' : 'text-sm'
+                      }`}>
                         {airport.iataCode} - {airport.city}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className={`text-gray-600 truncate ${
+                        isMobileDetected ? 'text-sm' : 'text-xs'
+                      }`}>
                         {airport.name}
                       </div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1">
-                        <span>{getRegionFlag(airport.region)}</span>
-                        <span>{airport.country}</span>
-                        {airport.region !== 'Recent' && (
-                          <span className="ml-2 bg-gray-200 px-2 py-0.5 rounded text-xs">
+                      <div className={`text-gray-500 flex items-center gap-1 ${
+                        isMobileDetected ? 'text-xs' : 'text-xs'
+                      }`}>
+                        <span className="flex-shrink-0">{getRegionFlag(airport.region)}</span>
+                        <span className="truncate">{airport.country}</span>
+                        {airport.region !== 'Recent' && !isMobileDetected && (
+                          <span className="ml-2 bg-gray-200 px-2 py-0.5 rounded text-xs flex-shrink-0">
                             {airport.region}
                           </span>
                         )}
                       </div>
+                      {/* Show region on mobile in separate line for better readability */}
+                      {airport.region !== 'Recent' && isMobileDetected && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          <span className="bg-gray-200 px-2 py-0.5 rounded text-xs">
+                            {airport.region}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
                   {(airport.popularity ?? 0) >= 4 && airport.region !== 'Recent' && (
-                    <div className="text-yellow-500 text-sm">⭐</div>
+                    <div className={`text-yellow-500 flex-shrink-0 ${
+                      isMobileDetected ? 'text-base' : 'text-sm'
+                    }`}>⭐</div>
                   )}
                 </div>
               </motion.button>
@@ -368,10 +524,16 @@ export default function AirportAutocomplete({
 
             {/* No results message */}
             {query.trim() && results.length === 0 && (
-              <div className="px-4 py-8 text-center text-gray-500">
-                <div className="text-2xl mb-2">🔍</div>
-                <div className="font-medium">No airports found</div>
-                <div className="text-sm">Try searching by city name or IATA code</div>
+              <div className={`text-center text-gray-500 ${
+                isMobileDetected ? 'px-6 py-12' : 'px-4 py-8'
+              }`}>
+                <div className={`mb-2 ${isMobileDetected ? 'text-3xl' : 'text-2xl'}`}>🔍</div>
+                <div className={`font-medium ${isMobileDetected ? 'text-base' : 'text-sm'}`}>
+                  No airports found
+                </div>
+                <div className={`${isMobileDetected ? 'text-sm' : 'text-xs'} mt-2`}>
+                  Try searching by city name or IATA code
+                </div>
               </div>
             )}
           </motion.div>

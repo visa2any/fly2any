@@ -1563,8 +1563,13 @@ export default function Home() {
                       {/* Service-specific forms */}
                       {getCurrentService()?.serviceType === 'voos' && (
                         <>
-                          {/* Origem e Destino na mesma linha */}
-                          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          {/* Origem e Destino - Mobile Responsive */}
+                          <div style={{ 
+                            display: 'flex', 
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '16px' : '12px', 
+                            marginBottom: '16px' 
+                          }}>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
                                 <LocationIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
@@ -1618,8 +1623,13 @@ export default function Home() {
                             />
                           </div>
                           
-                          {/* Check-in e Check-out */}
-                          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          {/* Check-in e Check-out - Mobile Responsive */}
+                          <div style={{ 
+                            display: 'flex', 
+                            flexDirection: isMobile ? 'column' : 'row',
+                            gap: isMobile ? '16px' : '12px', 
+                            marginBottom: '16px' 
+                          }}>
                             <div style={{ flex: 1 }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
                                 <CalendarIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
