@@ -58,8 +58,8 @@ function FlightSearchContent() {
   const handleSearch = (searchData: any) => {
     // Build search URL with all parameters
     const params = new URLSearchParams({
-      origin: searchData.origin.iataCode,
-      destination: searchData.destination.iataCode,
+      origin: searchData.origin?.iataCode || '',
+      destination: searchData.destination?.iataCode || '',
       departure: searchData.departureDate.toISOString().split('T')[0],
       passengers: searchData.passengers.adults.toString(),
       class: searchData.travelClass

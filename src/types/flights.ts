@@ -181,15 +181,15 @@ export interface Location {
 // =============================================================================
 
 export interface FlightSegment {
-  origin: AirportSelection;
-  destination: AirportSelection;
+  origin: AirportSelection | null;
+  destination: AirportSelection | null;
   departureDate: Date;
 }
 
 export interface FlightSearchFormData {
   tripType: 'round-trip' | 'one-way' | 'multi-city';
-  origin: AirportSelection;
-  destination: AirportSelection;
+  origin: AirportSelection | null;
+  destination: AirportSelection | null;
   departureDate: Date;
   returnDate?: Date;
   segments?: FlightSegment[]; // For multi-city trips

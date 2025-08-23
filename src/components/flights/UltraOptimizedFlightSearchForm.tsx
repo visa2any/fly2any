@@ -103,8 +103,8 @@ export default function UltraOptimizedFlightSearchForm({
 
     // Create search URL and navigate
     const searchParams = new URLSearchParams({
-      from: formData.origin.iataCode,
-      to: formData.destination.iataCode,
+      from: formData.origin?.iataCode || '',
+      to: formData.destination?.iataCode || '',
       departure: formData.departureDate.toISOString().split('T')[0],
       return: formData.tripType === 'round-trip' ? formData.returnDate?.toISOString().split('T')[0] || '' : '',
       adults: formData.passengers.adults.toString(),
@@ -178,10 +178,10 @@ export default function UltraOptimizedFlightSearchForm({
               <input
                 ref={originRef}
                 type="text"
-                value={formData.origin.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : searchTerms.origin}
+                value={formData.origin?.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : searchTerms.origin}
                 onChange={(e) => {
                   setSearchTerms(prev => ({ ...prev, origin: e.target.value }));
-                  if (formData.origin.iataCode) {
+                  if (formData.origin?.iataCode) {
                     setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
                   }
                   setActiveDropdown('origin');
@@ -223,10 +223,10 @@ export default function UltraOptimizedFlightSearchForm({
               <input
                 ref={destinationRef}
                 type="text"
-                value={formData.destination.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : searchTerms.destination}
+                value={formData.destination?.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : searchTerms.destination}
                 onChange={(e) => {
                   setSearchTerms(prev => ({ ...prev, destination: e.target.value }));
-                  if (formData.destination.iataCode) {
+                  if (formData.destination?.iataCode) {
                     setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
                   }
                   setActiveDropdown('destination');
@@ -358,7 +358,7 @@ export default function UltraOptimizedFlightSearchForm({
           <div className="w-full md:flex-1 md:max-w-[8%]">
             <button
               type="submit"
-              disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
+              disabled={isLoading || !formData.origin?.iataCode || !formData.destination?.iataCode}
               className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-black py-5 px-6 rounded-2xl text-lg transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105 disabled:transform-none min-h-[68px]"
             >
               {isLoading ? (

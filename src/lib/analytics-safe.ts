@@ -23,10 +23,10 @@ const getFBPixelId = (): string => {
 };
 
 // Safe window access to prevent RSC conflicts
-const safeGtag = (...args: unknown[]): void => {
+const safeGtag = (...args: Parameters<typeof gtag>): void => {
   try {
     if (typeof window !== 'undefined' && 'gtag' in window && typeof window.gtag === 'function') {
-      window.gtag(...args);
+      (window.gtag as any)(...args);
     }
   } catch (error) {
     console.warn('Analytics gtag error:', error);

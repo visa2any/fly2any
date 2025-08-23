@@ -29,7 +29,7 @@ export interface InstallPromptStrategy {
 }
 
 export interface BackgroundSyncData {
-  type: 'lead-form' | 'quote-request' | 'newsletter' | 'analytics';
+  type: 'lead-form' | 'quote-request' | 'newsletter' | 'analytics' | 'contact-form';
   data: any;
   timestamp: number;
   attempts: number;

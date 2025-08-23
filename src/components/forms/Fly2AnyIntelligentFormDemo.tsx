@@ -176,8 +176,8 @@ export default function Fly2AnyIntelligentFormDemo() {
           </h2>
           <p className="text-lg text-green-700 mb-6">
             Recebemos sua solicitação para viajar de{' '}
-            <strong>{submissionData.origem?.name || submissionData.origem?.code}</strong> para{' '}
-            <strong>{submissionData.destino?.name || submissionData.destino?.code}</strong>
+            <strong>{submissionData.origem?.name || submissionData.origem?.iataCode}</strong> para{' '}
+            <strong>{submissionData.destino?.name || submissionData.destino?.iataCode}</strong>
           </p>
           
           <div className="bg-white rounded-lg p-6 mb-6 border border-green-200">
