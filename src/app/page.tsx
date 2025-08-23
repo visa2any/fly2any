@@ -205,8 +205,17 @@ export default function Home() {
   }, [showExitIntent]);
 
   // Real-time validation function
-  const validateField = (name: string, value: string): string => {
-    if (!value || typeof value !== 'string') {
+  const validateField = (name: string, value: any): string => {
+    // Handle AirportSelection objects for origem/destino
+    if (name === 'origem' || name === 'destino') {
+      if (!value || (typeof value === 'object' && (!value.iataCode || !value.name))) {
+        return `${name} é obrigatório`;
+      }
+      return ''; // Valid airport selection
+    }
+    
+    // Handle string values for other fields
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
       return `${name} é obrigatório`;
     }
 
@@ -472,8 +481,8 @@ export default function Home() {
       
       // Validate current service data
       if (currentService) {
-        const origemError = validateField('origem', currentService.origem || '');
-        const destinoError = validateField('destino', currentService.destino || '');
+        const origemError = validateField('origem', currentService.origem);
+        const destinoError = validateField('destino', currentService.destino);
         const dataIdaError = validateField('dataIda', currentService.dataIda || '');
         
         if (origemError) errors.origem = origemError;
