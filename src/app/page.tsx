@@ -875,7 +875,7 @@ export default function Home() {
             padding: isMobile ? '0' : '0 32px',
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: isMobile ? '40px' : '64px',
+            gap: isMobile ? '10px' : '64px',
             alignItems: 'center'
           }} className="mobile-container mobile-grid-single">
             {/* Left Side - Content */}
@@ -884,7 +884,7 @@ export default function Home() {
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
               transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
-              padding: isMobile ? '20px 16px' : '0'
+              padding: isMobile ? '60px 16px 10px 16px' : '0'
             }} className={isMobile ? 'app-content-padding' : ''}>
               <div style={{
                 display: 'inline-flex',
@@ -894,8 +894,8 @@ export default function Home() {
                 backdropFilter: 'blur(10px)',
                 borderRadius: '50px',
                 border: `1px solid ${colors.primary.gray200}`,
-                marginBottom: '32px',
-                marginTop: '20px',
+                marginBottom: isMobile ? '16px' : '32px',
+                marginTop: isMobile ? '0' : '20px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
                 <span style={{
@@ -905,11 +905,11 @@ export default function Home() {
                 }}>✈️ Especialistas em viagens há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '32px' : '56px',
+                fontSize: isMobile ? '24px' : '56px',
                 fontWeight: '800',
                 fontFamily: 'Poppins, sans-serif',
                 lineHeight: '1.2',
-                margin: '0 0 24px 0',
+                margin: isMobile ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
                 textAlign: isMobile ? 'center' : 'left',
@@ -918,18 +918,19 @@ export default function Home() {
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: isMobile ? '18px' : '20px',
+                fontSize: isMobile ? '14px' : '20px',
                 color: colors.secondary.gray600,
-                lineHeight: '1.7',
+                lineHeight: isMobile ? '1.4' : '1.7',
                 maxWidth: isMobile ? '100%' : '520px',
-                marginBottom: isMobile ? '32px' : '40px',
+                marginBottom: isMobile ? '16px' : '40px',
                 fontWeight: '400',
                 textAlign: isMobile ? 'center' : 'left'
               }} className="mobile-subtitle">
                 Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
               
-              {/* Trust Indicators */}
+              {/* Trust Indicators - Hidden on Mobile */}
+              {!isMobile && (
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -979,8 +980,10 @@ export default function Home() {
                   </span>
                 </div>
               </div>
+              )}
               
-              {/* Quick Action Buttons */}
+              {/* Quick Action Buttons - Hidden on Mobile */}
+              {!isMobile && (
               <div style={{
                 display: 'flex',
                 gap: isMobile ? '12px' : '16px',
@@ -1055,6 +1058,7 @@ export default function Home() {
                   WhatsApp
                 </a>
               </div>
+              )}
             </div>
 
             {/* Right Side - Form */}
@@ -1069,14 +1073,14 @@ export default function Home() {
               className={isMobile ? 'app-form-container' : ''}
             >
               <div style={{
-                background: 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(20px)',
+                background: isMobile ? 'transparent' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: isMobile ? 'none' : 'blur(20px)',
                 borderRadius: isMobile ? '0' : '32px',
-                padding: isMobile ? '20px 0' : '40px',
+                padding: isMobile ? '20px 16px' : '40px',
                 border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: isMobile ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                maxHeight: isMobile ? '100vh' : 'auto',
-                overflowY: isMobile ? 'auto' : 'visible',
+                maxHeight: isMobile ? 'auto' : 'auto',
+                overflowY: 'visible',
                 margin: isMobile ? '0' : 'auto',
                 scrollBehavior: 'smooth',
                 WebkitOverflowScrolling: 'touch',
@@ -1125,11 +1129,12 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Form Header with Badge */}
+                {/* Form Header with Badge - Hidden on Mobile */}
+                {!isMobile && (
                 <div style={{
                   position: 'absolute',
                   top: '-12px',
-                  left: isMobile ? '16px' : '40px',
+                  left: '40px',
                   background: 'linear-gradient(135deg, #059669, #10b981)',
                   color: 'white',
                   padding: '6px 16px',
@@ -1142,7 +1147,9 @@ export default function Home() {
                 }}>
                   ✨ GRATUITO
                 </div>
+                )}
                 
+                {!isMobile && (
                 <div style={{
                   background: 'linear-gradient(135deg, #FFE4B5, #FFF8DC)',
                   border: `1px solid ${colors.accent.yellow}`,
@@ -1161,9 +1168,10 @@ export default function Home() {
                     🏆 21 ANOS DE EXPERIÊNCIA: Especialistas em viagens EUA-Brasil
                   </span>
                 </div>
+                )}
                 
                 <h3 style={{
-                  fontSize: '26px',
+                  fontSize: isMobile ? '20px' : '26px',
                   fontWeight: '800',
                   color: colors.secondary.gray900,
                   fontFamily: 'Poppins, sans-serif',
@@ -1171,7 +1179,7 @@ export default function Home() {
                   letterSpacing: '-0.02em',
                   lineHeight: '1.2'
                 }}>
-                  Sua Cotação em até 2 horas, menor preço garantido!
+                  {isMobile ? 'Cotação Rápida' : 'Sua Cotação em até 2 horas, menor preço garantido!'}
                 </h3>
                 <p style={{
                   color: colors.secondary.gray600,
