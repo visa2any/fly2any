@@ -41,19 +41,19 @@ export default function FloatingChat() {
       )}
 
       {/* Widget de Chat */}
-      <div className="floating-chat fixed bottom-6 right-32 z-[50]">
+      <div className="floating-chat fixed bottom-4 right-4 z-[50] md:bottom-6 md:right-6">
         {/* Chat expandido */}
         {isExpanded && (
-          <div className="mb-4 bg-white rounded-2xl shadow-2xl w-96 animate-fade-in-up">
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-t-2xl">
+          <div className="mb-3 bg-white rounded-2xl shadow-2xl w-80 md:w-96 animate-fade-in-up max-w-[calc(100vw-2rem)]">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 md:p-4 rounded-t-2xl">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">💬</span>
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-base md:text-lg">💬</span>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold">Atendimento Fly2Any</h3>
-                    <p className="text-green-100 text-sm">Online agora</p>
+                    <h3 className="text-white font-semibold text-sm md:text-base">Atendimento Fly2Any</h3>
+                    <p className="text-green-100 text-xs md:text-sm">Online agora</p>
                   </div>
                 </div>
                 <button 
@@ -65,14 +65,14 @@ export default function FloatingChat() {
               </div>
             </div>
             
-            <div className="p-4">
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+            <div className="p-3 md:p-4">
+              <div className="space-y-2 md:space-y-3">
+                <div className="flex gap-2 md:gap-3">
+                  <div className="w-7 h-7 md:w-8 md:h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs md:text-sm font-bold">
                     F
                   </div>
-                  <div className="bg-gray-100 rounded-lg p-3 flex-1">
-                    <p className="text-gray-800 text-sm">
+                  <div className="bg-gray-100 rounded-lg p-2 md:p-3 flex-1">
+                    <p className="text-gray-800 text-xs md:text-sm">
                       Olá! 👋 Sou da equipe Fly2Any. 
                       Como posso ajudar com sua viagem hoje?
                     </p>
@@ -82,29 +82,29 @@ export default function FloatingChat() {
                 <div className="space-y-2">
                   <button 
                     onClick={handleWhatsAppClick}
-                    className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
+                    className="w-full text-left p-2 md:p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
                   >
-                    <span className="text-green-700 text-sm">✈️ Solicitar cotação de voos</span>
+                    <span className="text-green-700 text-xs md:text-sm">✈️ Solicitar cotação de voos</span>
                   </button>
                   
                   <button 
                     onClick={handleWhatsAppClick}
-                    className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
+                    className="w-full text-left p-2 md:p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
                   >
-                    <span className="text-green-700 text-sm">🏨 Reservar hotéis</span>
+                    <span className="text-green-700 text-xs md:text-sm">🏨 Reservar hotéis</span>
                   </button>
                   
                   <button 
                     onClick={handleWhatsAppClick}
-                    className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
+                    className="w-full text-left p-2 md:p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
                   >
-                    <span className="text-green-700 text-sm">❓ Outras dúvidas</span>
+                    <span className="text-green-700 text-xs md:text-sm">❓ Outras dúvidas</span>
                   </button>
                 </div>
                 
                 <button
                   onClick={handleWhatsAppClick}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all"
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 md:py-3 px-3 md:px-4 rounded-lg font-semibold text-xs md:text-sm hover:from-green-600 hover:to-green-700 transition-all"
                 >
                   💬 Continuar no WhatsApp
                 </button>
@@ -124,12 +124,12 @@ export default function FloatingChat() {
           
           <button
             onClick={toggleExpanded}
-            className="group relative w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center transform hover:scale-110"
+            className="group relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full shadow-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center transform hover:scale-110"
             style={{
               animation: 'float 6s ease-in-out infinite',
             }}
           >
-            <span className="text-white text-3xl group-hover:scale-110 transition-transform">
+            <span className="text-white text-2xl md:text-2xl group-hover:scale-110 transition-transform">
               {isExpanded ? '✕' : '💬'}
             </span>
             
@@ -138,9 +138,9 @@ export default function FloatingChat() {
           </button>
         </div>
 
-        {/* Tooltip */}
+        {/* Tooltip - only show on desktop */}
         {!isExpanded && (
-          <div className="absolute bottom-20 right-0 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="hidden md:block absolute bottom-16 right-0 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
             Precisa de ajuda? Clique aqui!
             <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
           </div>
