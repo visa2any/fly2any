@@ -564,6 +564,97 @@ export default function Home() {
     }
   };
 
+  // Mobile-First Typography System (2024 Best Practices)
+  const typography = {
+    // Hero Section
+    hero: {
+      title: {
+        mobile: '22px',    // Reduced from 24px
+        desktop: '56px',
+        lineHeight: '1.3',
+        fontWeight: '800'
+      },
+      subtitle: {
+        mobile: '16px',    // Increased from 14px for better readability
+        desktop: '20px', 
+        lineHeight: isMobile ? '1.4' : '1.6',
+        fontWeight: '400'
+      }
+    },
+    // Section Headers
+    section: {
+      title: {
+        mobile: '20px',    // Reduced from various sizes
+        desktop: '32px',
+        lineHeight: '1.3',
+        fontWeight: '700'
+      },
+      subtitle: {
+        mobile: '16px',
+        desktop: '18px',
+        lineHeight: '1.5',
+        fontWeight: '500'
+      }
+    },
+    // Form Elements
+    form: {
+      title: {
+        mobile: '18px',    // Reduced from 20px
+        desktop: '26px',
+        lineHeight: '1.3',
+        fontWeight: '700'
+      },
+      label: {
+        mobile: '14px',
+        desktop: '14px',
+        lineHeight: '1.4',
+        fontWeight: '600'
+      },
+      input: {
+        mobile: '16px',    // Keeps 16px minimum for accessibility
+        desktop: '16px',
+        lineHeight: '1.5',
+        fontWeight: '400'
+      }
+    },
+    // Body Text
+    body: {
+      large: {
+        mobile: '16px',
+        desktop: '18px',
+        lineHeight: '1.6',
+        fontWeight: '400'
+      },
+      regular: {
+        mobile: '14px',
+        desktop: '16px',
+        lineHeight: '1.5',
+        fontWeight: '400'
+      },
+      small: {
+        mobile: '12px',
+        desktop: '14px',
+        lineHeight: '1.4',
+        fontWeight: '400'
+      }
+    },
+    // Buttons & Interactive
+    button: {
+      large: {
+        mobile: '16px',
+        desktop: '18px',
+        lineHeight: '1.2',
+        fontWeight: '600'
+      },
+      regular: {
+        mobile: '14px',
+        desktop: '16px',
+        lineHeight: '1.2',
+        fontWeight: '600'
+      }
+    }
+  };
+
   const containerStyle = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)',
@@ -648,7 +739,7 @@ export default function Home() {
           }}>
             Ótima escolha!
           </div>
-          <div style={{ fontSize: '14px', opacity: 0.9 }}>
+          <div style={{ fontSize: isMobile ? typography.body.regular.mobile : typography.body.regular.desktop, opacity: 0.9 }}>
             Mais {Math.floor(Math.random() * 15) + 5} pessoas fizeram isso hoje
           </div>
         </div>
@@ -905,10 +996,10 @@ export default function Home() {
                 }}>✈️ Especialistas em viagens há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '24px' : '56px',
-                fontWeight: '800',
+                fontSize: isMobile ? typography.hero.title.mobile : typography.hero.title.desktop,
+                fontWeight: typography.hero.title.fontWeight,
                 fontFamily: 'Poppins, sans-serif',
-                lineHeight: '1.2',
+                lineHeight: typography.hero.title.lineHeight,
                 margin: isMobile ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
@@ -918,15 +1009,15 @@ export default function Home() {
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: isMobile ? '14px' : '20px',
+                fontSize: isMobile ? typography.hero.subtitle.mobile : typography.hero.subtitle.desktop,
                 color: colors.secondary.gray600,
-                lineHeight: isMobile ? '1.4' : '1.7',
+                lineHeight: typography.hero.subtitle.lineHeight,
                 maxWidth: isMobile ? '100%' : '520px',
                 marginBottom: isMobile ? '16px' : '40px',
-                fontWeight: '400',
+                fontWeight: typography.hero.subtitle.fontWeight,
                 textAlign: isMobile ? 'center' : 'left'
               }} className="mobile-subtitle">
-                Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
+                {isMobile ? 'Atendimento personalizado, preços exclusivos e 21 anos de experiência.' : 'Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.'}
               </p>
               
               {/* Trust Indicators - Hidden on Mobile */}
@@ -947,7 +1038,7 @@ export default function Home() {
                   }}>
                     <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: isMobile ? typography.form.label.mobile : typography.form.label.desktop, fontWeight: typography.form.label.fontWeight }}>
                     Garantia Melhor Preço
                   </span>
                 </div>
@@ -961,7 +1052,7 @@ export default function Home() {
                   }}>
                     <StarIcon style={{ width: '16px', height: '16px', color: colors.accent.yellow }} />
                   </div>
-                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: isMobile ? typography.form.label.mobile : typography.form.label.desktop, fontWeight: typography.form.label.fontWeight }}>
                     4.9/5 estrelas
                   </span>
                 </div>
@@ -975,7 +1066,7 @@ export default function Home() {
                   }}>
                     <UsersIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: isMobile ? typography.form.label.mobile : typography.form.label.desktop, fontWeight: typography.form.label.fontWeight }}>
                     +5.000 clientes
                   </span>
                 </div>
@@ -1007,8 +1098,8 @@ export default function Home() {
                     padding: isMobile ? '16px 24px' : '18px 36px',
                     borderRadius: '12px',
                     border: 'none',
-                    fontSize: '16px',
-                    fontWeight: '600',
+                    fontSize: isMobile ? typography.button.regular.mobile : typography.button.regular.desktop,
+                    fontWeight: typography.button.regular.fontWeight,
                     cursor: 'pointer',
                     width: isMobile ? '100%' : 'auto',
                     boxShadow: `0 4px 14px ${colors.accent.orange}25`,
@@ -1044,8 +1135,8 @@ export default function Home() {
                     padding: '16px 32px',
                     borderRadius: '12px',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
-                    fontSize: '16px',
-                    fontWeight: '600',
+                    fontSize: isMobile ? typography.button.regular.mobile : typography.button.regular.desktop,
+                    fontWeight: typography.button.regular.fontWeight,
                     textDecoration: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
@@ -1121,7 +1212,7 @@ export default function Home() {
                       color: 'white',
                       padding: '4px 12px',
                       borderRadius: '12px',
-                      fontSize: '12px',
+                      fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                       fontWeight: '600'
                     }}>
                       {Math.round((currentStep / 4) * 100)}%
@@ -1171,21 +1262,21 @@ export default function Home() {
                 )}
                 
                 <h3 style={{
-                  fontSize: isMobile ? '20px' : '26px',
-                  fontWeight: '800',
+                  fontSize: isMobile ? typography.form.title.mobile : typography.form.title.desktop,
+                  fontWeight: typography.form.title.fontWeight,
                   color: colors.secondary.gray900,
                   fontFamily: 'Poppins, sans-serif',
                   margin: '0 0 8px 0',
                   letterSpacing: '-0.02em',
-                  lineHeight: '1.2'
+                  lineHeight: typography.form.title.lineHeight
                 }}>
                   {isMobile ? 'Cotação Rápida' : 'Sua Cotação em até 2 horas, menor preço garantido!'}
                 </h3>
                 <p style={{
                   color: colors.secondary.gray600,
                   margin: '0 0 24px 0',
-                  fontSize: '16px',
-                  lineHeight: '1.5'
+                  fontSize: isMobile ? typography.body.regular.mobile : typography.body.regular.desktop,
+                  lineHeight: typography.body.regular.lineHeight
                 }}>
                   Preencha os dados e receba as <strong>melhores ofertas</strong> do mercado com preço imbatível
                 </p>
@@ -1251,7 +1342,7 @@ export default function Home() {
                         background: currentStep >= 1 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
-                        fontSize: '12px',
+                        fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                         color: currentStep >= 1 ? colors.accent.green : '#6b7280'
                       }}>
                         Serviços
@@ -1269,7 +1360,7 @@ export default function Home() {
                         background: currentStep >= 2 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
-                        fontSize: '12px',
+                        fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                         color: currentStep >= 2 ? colors.accent.green : '#6b7280'
                       }}>
                         Detalhes
@@ -1287,7 +1378,7 @@ export default function Home() {
                         background: currentStep >= 3 ? '#10b981' : colors.primary.gray200
                       }}></div>
                       <span style={{
-                        fontSize: '12px',
+                        fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                         color: currentStep >= 3 ? colors.accent.green : '#6b7280'
                       }}>
                         Contato
@@ -1566,7 +1657,7 @@ export default function Home() {
                             }
                           </h3>
                           <p style={{
-                            fontSize: '12px',
+                            fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                             color: '#64748b',
                             margin: 0
                           }}>
@@ -2764,8 +2855,8 @@ export default function Home() {
           }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
               <h2 style={{
-                fontSize: isMobile ? '36px' : '56px',
-                fontWeight: '800',
+                fontSize: isMobile ? typography.section.title.mobile : typography.section.title.desktop,
+                fontWeight: typography.section.title.fontWeight,
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
                 margin: '0 0 24px 0',
@@ -2806,7 +2897,7 @@ export default function Home() {
                 }}>
                   <div>
                     <div style={{
-                      fontSize: '12px',
+                      fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                       color: colors.secondary.gray500,
                       textDecoration: 'line-through',
                       marginBottom: '4px'
@@ -2831,7 +2922,7 @@ export default function Home() {
                   
                   <div>
                     <div style={{
-                      fontSize: '12px',
+                      fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                       color: colors.accent.orange,
                       fontWeight: '600',
                       marginBottom: '4px'
@@ -2849,7 +2940,7 @@ export default function Home() {
                   
                   <div>
                     <div style={{
-                      fontSize: '12px',
+                      fontSize: isMobile ? typography.body.small.mobile : typography.body.small.desktop,
                       color: colors.accent.green,
                       fontWeight: '600',
                       marginBottom: '4px'
@@ -2999,8 +3090,8 @@ export default function Home() {
             padding: '0 24px'
           }}>
             <h3 style={{
-              fontSize: isMobile ? '28px' : '36px',
-              fontWeight: '700',
+              fontSize: isMobile ? typography.section.title.mobile : typography.section.title.desktop,
+              fontWeight: typography.section.title.fontWeight,
               color: colors.secondary.gray900,
               fontFamily: 'Poppins, sans-serif',
               margin: '0 0 16px 0',
@@ -3059,8 +3150,8 @@ export default function Home() {
                     {stat.icon}
                   </div>
                   <div style={{
-                    fontSize: isMobile ? '24px' : '32px',
-                    fontWeight: '700',
+                    fontSize: isMobile ? typography.section.subtitle.mobile : typography.section.subtitle.desktop,
+                    fontWeight: typography.section.subtitle.fontWeight,
                     color: colors.secondary.gray900,
                     fontFamily: 'Poppins, sans-serif',
                     marginBottom: '8px'
@@ -3084,8 +3175,8 @@ export default function Home() {
               marginBottom: '48px'
             }}>
               <h4 style={{
-                fontSize: isMobile ? '24px' : '32px',
-                fontWeight: '700',
+                fontSize: isMobile ? typography.section.subtitle.mobile : typography.section.subtitle.desktop,
+                fontWeight: typography.section.subtitle.fontWeight,
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
                 marginBottom: '12px',
@@ -3290,8 +3381,8 @@ export default function Home() {
             textAlign: 'center'
           }}>
             <h2 style={{
-              fontSize: isMobile ? '32px' : '48px',
-              fontWeight: '800',
+              fontSize: isMobile ? typography.section.title.mobile : typography.section.title.desktop,
+              fontWeight: typography.section.title.fontWeight,
               color: 'white',
               fontFamily: 'Poppins, sans-serif',
               margin: '0 0 24px 0',
@@ -3443,7 +3534,7 @@ export default function Home() {
               <div style={{ fontWeight: '700', marginBottom: '4px' }}>
                 Cotação enviada com sucesso!
               </div>
-              <div style={{ fontSize: '14px', opacity: 0.9 }}>
+              <div style={{ fontSize: isMobile ? typography.body.regular.mobile : typography.body.regular.desktop, opacity: 0.9 }}>
                 Nossa equipe entrará em contato em até 2 horas.
               </div>
               <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>
