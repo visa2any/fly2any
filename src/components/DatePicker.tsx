@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { CalendarIcon, ArrowLeftIcon, ArrowRightIcon } from './Icons';
 
 interface DatePickerProps {
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
   placeholder: string;
   label?: string;

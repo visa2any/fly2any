@@ -21,8 +21,8 @@ import { AFRICA_AIRPORTS_DATABASE } from '@/lib/airports/africa-airports-databas
 import { OCEANIA_AIRPORTS_DATABASE } from '@/lib/airports/oceania-airports-database';
 
 interface AirportAutocompleteProps {
-  value: AirportSelection;
-  onChange: (airport: AirportSelection) => void;
+  value: AirportSelection | null;
+  onChange: (airport: AirportSelection | null) => void;
   placeholder?: string;
   disabled?: boolean;
   error?: string;
@@ -117,12 +117,12 @@ export default function AirportAutocomplete({
 
   // Update query when value changes externally
   useEffect(() => {
-    if (value.iataCode && value.city) {
+    if (value?.iataCode && value?.city) {
       const expectedQuery = `${value.iataCode} - ${value.city}`;
       if (query !== expectedQuery) {
         setQuery(expectedQuery);
       }
-    } else if (!value.iataCode && query && !query.includes(' - ')) {
+    } else if (!value?.iataCode && query && !query.includes(' - ')) {
       // Don't clear the query if user is actively typing
       // Only clear if it's not a user-typed search term
     }
@@ -191,8 +191,8 @@ export default function AirportAutocomplete({
     setIsOpen(true);
     
     // Clear selection if user is typing
-    if (newQuery !== `${value.iataCode} - ${value.city}`) {
-      onChange({ iataCode: '', name: '', city: '', country: '' });
+    if (newQuery !== `${value?.iataCode || ''} - ${value?.city || ''}`) {
+      onChange(null);
     }
   };
 

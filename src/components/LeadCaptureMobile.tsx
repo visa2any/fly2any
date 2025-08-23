@@ -577,7 +577,7 @@ export default function LeadCaptureMobile({ isOpen, onClose, context = 'form', i
                       Data de volta *
                     </label>
                     <DatePicker
-                      value={formData.dataRetorno}
+                      value={formData.dataRetorno || ''}
                       onChange={(value) => updateFormData('dataRetorno', value)}
                       placeholder="Selecione a data"
                       className="w-full"
