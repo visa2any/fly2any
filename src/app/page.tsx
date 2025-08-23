@@ -853,7 +853,10 @@ export default function Home() {
         </div>
       )}
       
-      <div style={containerStyle} className="mobile-overflow-hidden">
+      <div style={{
+        ...containerStyle,
+        ...(isMobile ? { padding: 0, margin: 0, width: '100vw' } : {})
+      }} className="mobile-overflow-hidden mobile-full-width">
         {/* Floating Background Elements */}
         <div style={floatingElement1Style}></div>
         <div style={floatingElement2Style}></div>
@@ -864,12 +867,12 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: isMobile ? '40px 0 60px 0' : '60px 0 80px 0'
-        }} className="mobile-section">
+          padding: isMobile ? '0' : '60px 0 80px 0'
+        }} className="mobile-section mobile-full-width">
           <div style={{
-            maxWidth: '1400px',
+            maxWidth: isMobile ? '100%' : '1400px',
             margin: '0 auto',
-            padding: isMobile ? '0 16px' : '0 32px',
+            padding: isMobile ? '0' : '0 32px',
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
             gap: isMobile ? '40px' : '64px',
@@ -880,8 +883,9 @@ export default function Home() {
               color: colors.secondary.gray900,
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
-              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out'
-            }}>
+              transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+              padding: isMobile ? '20px 16px' : '0'
+            }} className={isMobile ? 'app-content-padding' : ''}>
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1059,18 +1063,21 @@ export default function Home() {
               style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'translateY(0)' : 'translateY(-30px)',
-                transition: 'opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s'
+                transition: 'opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s',
+                padding: isMobile ? '0 16px' : '0'
               }}
+              className={isMobile ? 'app-form-container' : ''}
             >
               <div style={{
                 background: 'rgba(255, 255, 255, 0.98)',
                 backdropFilter: 'blur(20px)',
-                borderRadius: isMobile ? '24px' : '32px',
-                padding: isMobile ? '28px' : '40px',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                maxHeight: isMobile ? '90vh' : 'auto',
+                borderRadius: isMobile ? '0' : '32px',
+                padding: isMobile ? '20px 0' : '40px',
+                border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: isMobile ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                maxHeight: isMobile ? '100vh' : 'auto',
                 overflowY: isMobile ? 'auto' : 'visible',
+                margin: isMobile ? '0' : 'auto',
                 scrollBehavior: 'smooth',
                 WebkitOverflowScrolling: 'touch',
                 position: 'relative' as const
@@ -1079,7 +1086,7 @@ export default function Home() {
                 {isMobile && currentStep > 1 && (
                   <div style={{
                     position: 'fixed',
-                    top: '70px',
+                    top: '50px',
                     left: '0',
                     right: '0',
                     background: 'rgba(255, 255, 255, 0.95)',
@@ -1122,7 +1129,7 @@ export default function Home() {
                 <div style={{
                   position: 'absolute',
                   top: '-12px',
-                  left: isMobile ? '20px' : '40px',
+                  left: isMobile ? '16px' : '40px',
                   background: 'linear-gradient(135deg, #059669, #10b981)',
                   color: 'white',
                   padding: '6px 16px',
@@ -3401,13 +3408,13 @@ export default function Home() {
         {showSuccessToast && (
           <div style={{
             position: 'fixed',
-            top: isMobile ? '16px' : '24px',
-            right: isMobile ? '16px' : '24px',
-            left: isMobile ? '16px' : 'auto',
+            top: isMobile ? '0' : '24px',
+            right: isMobile ? '0' : '24px',
+            left: isMobile ? '0' : 'auto',
             zIndex: 9999,
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white',
-            padding: isMobile ? '16px' : '16px 24px',
+            padding: isMobile ? '16px 16px' : '16px 24px',
             borderRadius: '12px',
             boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
             display: 'flex',

@@ -11,9 +11,9 @@ export default function LiveSiteHeader() {
   }, []);
 
   return (
-    <header role="banner" className="site-header bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white">
-      <div className="container max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+    <header role="banner" className="site-header bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white mobile-header-fixed">
+      <div className="container max-w-7xl mx-auto px-0 py-2 md:px-6 md:py-4 mobile-safe-area">
+        <div className="flex items-center justify-between px-4 md:px-0">
           {/* Logo Section */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">

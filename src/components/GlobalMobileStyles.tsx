@@ -3,18 +3,23 @@
 export default function GlobalMobileStyles() {
   return (
     <style jsx global>{`
-      /* Mobile-first responsive styles */
+      /* Mobile-first responsive styles - Native App Experience */
       @media (max-width: 768px) {
-        /* Body and typography adjustments */
+        /* Body and typography adjustments - ZERO PADDING */
         body {
-          padding-top: 70px !important;
+          padding: 0 !important;
+          margin: 0 !important;
           font-size: 16px;
+          width: 100vw !important;
+          overflow-x: hidden !important;
         }
         
-        /* Container padding adjustments */
+        /* Container padding adjustments - FULL WIDTH */
         .mobile-container {
-          padding: 16px !important;
-          margin: 0 auto;
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
         }
         
         /* Grid responsiveness */
@@ -62,8 +67,15 @@ export default function GlobalMobileStyles() {
           width: 100% !important;
         }
         
-        /* Form mobile adjustments */
+        /* Form mobile adjustments - Edge cards */
         .mobile-form {
+          padding: 24px 16px !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+          width: 100% !important;
+        }
+        
+        .mobile-form-rounded {
           padding: 24px 16px !important;
           margin: 16px !important;
           border-radius: 16px !important;
@@ -81,15 +93,32 @@ export default function GlobalMobileStyles() {
           border-radius: 8px !important;
         }
         
-        /* Section spacing mobile */
+        /* Section spacing mobile - EDGE TO EDGE */
         .mobile-section {
-          padding: 40px 16px !important;
+          padding: 0 !important;
           margin: 0 !important;
+          width: 100% !important;
         }
         
         .mobile-section-content {
           max-width: 100% !important;
           padding: 0 !important;
+          width: 100% !important;
+        }
+        
+        /* Safe area support for modern devices */
+        .mobile-safe-area {
+          padding-left: env(safe-area-inset-left) !important;
+          padding-right: env(safe-area-inset-right) !important;
+        }
+        
+        .mobile-safe-area-bottom {
+          padding-bottom: env(safe-area-inset-bottom) !important;
+        }
+        
+        /* Content that needs internal padding */
+        .mobile-content-padding {
+          padding: 0 16px !important;
         }
         
         /* Card mobile adjustments */
@@ -99,9 +128,22 @@ export default function GlobalMobileStyles() {
           border-radius: 12px !important;
         }
         
-        /* Navigation spacing for mobile header */
+        /* Navigation spacing for mobile header - NO TOP MARGIN */
         .mobile-main-content {
-          margin-top: 70px !important;
+          margin-top: 0 !important;
+          padding-top: 0 !important;
+        }
+        
+        /* Full height sections */
+        .mobile-full-height {
+          min-height: 100vh !important;
+          height: 100vh !important;
+        }
+        
+        .mobile-full-width {
+          width: 100vw !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
         }
         
         /* Hide desktop-only elements */
@@ -192,7 +234,36 @@ export default function GlobalMobileStyles() {
         }
         
         body {
-          padding-top: 60px !important;
+          padding: 0 !important;
+        }
+      }
+      
+      /* App-like header styles */
+      @media (max-width: 768px) {
+        .mobile-header-fixed {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          z-index: 1000 !important;
+          width: 100% !important;
+        }
+        
+        .mobile-header-transparent {
+          background: rgba(255, 255, 255, 0.95) !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+        }
+        
+        /* Remove all default spacing */
+        * {
+          -webkit-tap-highlight-color: transparent !important;
+        }
+        
+        /* Ensure images are full width */
+        .mobile-image-full {
+          width: 100vw !important;
+          margin-left: calc(-50vw + 50%) !important;
         }
       }
     `}</style>
