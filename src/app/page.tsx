@@ -1509,9 +1509,12 @@ export default function Home() {
                                     fontSize: '14px',
                                     fontWeight: '600',
                                     transition: 'all 0.2s ease',
-                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     transform: 'scale(1)',
-                                    boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                                    boxShadow: isSelected 
+                                      ? `0 4px 12px ${colors.accent.orange}15` 
+                                      : isMobile 
+                                        ? '0 2px 4px rgba(0, 0, 0, 0.1)' 
+                                        : '0 1px 3px rgba(0, 0, 0, 0.1)',
                                     color: colors.secondary.gray800
                                   }}
                                   onMouseEnter={(e) => {
