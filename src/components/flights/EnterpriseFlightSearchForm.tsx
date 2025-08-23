@@ -35,21 +35,21 @@ export default function EnterpriseFlightSearchForm({
 }: EnterpriseFlightSearchFormProps) {
   const [formData, setFormData] = useState<FlightSearchFormData>({
     tripType: 'round-trip',
-    origin: { iataCode: '', name: '', city: '', country: '' },
-    destination: { iataCode: '', name: '', city: '', country: '' },
+    origin: null,
+    destination: null,
     departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     passengers: { adults: 1, children: 0, infants: 0 },
     travelClass: 'ECONOMY' as TravelClass,
     segments: [
       {
-        origin: { iataCode: '', name: '', city: '', country: '' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: null,
+        destination: null,
         departureDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       },
       {
-        origin: { iataCode: '', name: '', city: '', country: '' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: null,
+        destination: null,
         departureDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000)
       }
     ],
@@ -96,8 +96,8 @@ export default function EnterpriseFlightSearchForm({
     if (formData.segments && formData.segments.length < 6) {
       const lastSegment = formData.segments[formData.segments.length - 1];
       const newSegment: FlightSegment = {
-        origin: lastSegment?.destination || { iataCode: '', name: '', city: '', country: '' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: lastSegment?.destination || null,
+        destination: null,
         departureDate: new Date(Date.now() + (formData.segments.length + 7) * 24 * 60 * 60 * 1000)
       };
       
@@ -647,7 +647,7 @@ export default function EnterpriseFlightSearchForm({
               <div className="p-6 pt-0">
                 <motion.button
                   type="submit"
-                  disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
+                  disabled={isLoading || !formData.origin?.iataCode || !formData.destination?.iataCode}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-800 text-white font-bold py-6 px-8 rounded-xl text-xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-2xl hover:shadow-3xl relative overflow-hidden group"
@@ -680,7 +680,7 @@ export default function EnterpriseFlightSearchForm({
                 </motion.button>
 
                 {/* Search confidence indicator */}
-                {(formData.origin.iataCode && formData.destination.iataCode) && (
+                {(formData.origin?.iataCode && formData.destination?.iataCode) && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}

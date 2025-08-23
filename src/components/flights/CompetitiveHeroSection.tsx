@@ -284,7 +284,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                       <input
                         ref={originRef}
                         type="text"
-                        value={formData.origin.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : originSearch}
+                        value={formData.origin?.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : originSearch}
                         onChange={(e) => handleOriginSearch(e.target.value)}
                         onFocus={() => setShowOriginDropdown(true)}
                         placeholder="City or airport"
@@ -342,7 +342,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                       <input
                         ref={destinationRef}
                         type="text"
-                        value={formData.destination.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : destinationSearch}
+                        value={formData.destination?.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : destinationSearch}
                         onChange={(e) => handleDestinationSearch(e.target.value)}
                         onFocus={() => setShowDestinationDropdown(true)}
                         placeholder="City or airport"

@@ -100,13 +100,13 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
       errors.push('Multi-city trips require at least 2 segments');
     } else {
       formData.segments.forEach((segment, index) => {
-        if (!segment.origin.iataCode && !segment.origin.city) {
+        if (!segment.origin?.iataCode && !segment.origin?.city) {
           errors.push(`Flight ${index + 1}: Select origin airport`);
         }
-        if (!segment.destination.iataCode && !segment.destination.city) {
+        if (!segment.destination?.iataCode && !segment.destination?.city) {
           errors.push(`Flight ${index + 1}: Select destination airport`);
         }
-        if (segment.origin.iataCode === segment.destination.iataCode && segment.origin.iataCode) {
+        if (segment.origin?.iataCode === segment.destination?.iataCode && segment.origin?.iataCode) {
           errors.push(`Flight ${index + 1}: Origin and destination must be different`);
         }
         if (!segment.departureDate) {
@@ -186,8 +186,8 @@ export function validateFlightSearchForm(formData: FlightSearchFormData): string
  */
 export function convertFormToSearchParams(formData: FlightSearchFormData): FlightSearchParams {
   return {
-    originLocationCode: formData.origin.iataCode,
-    destinationLocationCode: formData.destination.iataCode,
+    originLocationCode: formData.origin?.iataCode || '',
+    destinationLocationCode: formData.destination?.iataCode || '',
     departureDate: formatDateForAPI(formData.departureDate),
     returnDate: formData.returnDate ? formatDateForAPI(formData.returnDate) : undefined,
     adults: formData.passengers.adults,
@@ -227,7 +227,7 @@ export function validateIATACode(code: string): boolean {
 /**
  * Validate airport selection
  */
-export function validateAirportSelection(airport: AirportSelection): boolean {
+export function validateAirportSelection(airport: AirportSelection | null): boolean {
   return !!(
     airport &&
     airport.iataCode &&

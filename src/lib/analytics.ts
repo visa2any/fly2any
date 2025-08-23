@@ -1,9 +1,4 @@
-declare global {
-  interface Window {
-    gtag: (...args: unknown[]) => void;
-    fbq: (...args: unknown[]) => void;
-  }
-}
+// Global types are defined in src/types/gtag.d.ts
 
 // Google Analytics 4
 export const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX';

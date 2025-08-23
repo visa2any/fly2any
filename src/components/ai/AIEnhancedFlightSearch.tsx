@@ -120,8 +120,8 @@ export default function AIEnhancedFlightSearch({
   const handleTraditionalSearch = useCallback(async (searchFormData: FlightSearchFormData) => {
     // Convert FlightSearchFormData to FlightSearchParams
     const searchParams: FlightSearchParams = {
-      originLocationCode: searchFormData.origin.iataCode,
-      destinationLocationCode: searchFormData.destination.iataCode,
+      originLocationCode: searchFormData.origin?.iataCode || '',
+      destinationLocationCode: searchFormData.destination?.iataCode || '',
       departureDate: searchFormData.departureDate.toISOString().split('T')[0],
       returnDate: searchFormData.returnDate?.toISOString().split('T')[0],
       adults: searchFormData.passengers.adults,

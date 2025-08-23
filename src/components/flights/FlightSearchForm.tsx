@@ -147,8 +147,8 @@ export default function FlightSearchForm({
       const highPriceCountries = ['United States', 'United Kingdom', 'Switzerland', 'Norway', 'Japan', 'Australia'];
       const lowPriceCountries = ['India', 'Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Egypt', 'Morocco', 'Brazil', 'Mexico'];
       
-      if (highPriceCountries.includes(airport.country)) priceIndex = 'high';
-      else if (lowPriceCountries.includes(airport.country)) priceIndex = 'low';
+      if (airport.country && highPriceCountries.includes(airport.country)) priceIndex = 'high';
+      else if (airport.country && lowPriceCountries.includes(airport.country)) priceIndex = 'low';
 
       // Generate weather emoji based on region/location
       const getWeatherEmoji = (country: string, city: string): string => {
@@ -181,7 +181,7 @@ export default function FlightSearchForm({
         weather: {
           temp: 72, // Default temp
           condition: 'Clear',
-          emoji: getWeatherEmoji(airport.country, airport.city)
+          emoji: getWeatherEmoji(airport.country || '', airport.city || '')
         },
         priceIndex,
         imageUrl: defaultImageUrl
@@ -236,7 +236,7 @@ export default function FlightSearchForm({
       // Sort by popularity first, then by passenger count (implied by category)
       if (a.popularity !== b.popularity) return b.popularity - a.popularity;
       if (a.isHub !== b.isHub) return a.isHub ? -1 : 1;
-      return a.city.localeCompare(b.city);
+      return (a.city || '').localeCompare(b.city || '');
     });
   }, []);
 
@@ -277,7 +277,7 @@ export default function FlightSearchForm({
     const regions = {
       'europe': enhancedAirports.filter(a => a.region === 'Europe'),
       'asia': enhancedAirports.filter(a => a.region === 'Asia'),
-      'caribbean': enhancedAirports.filter(a => a.country.includes('Caribbean')),
+      'caribbean': enhancedAirports.filter(a => a.country?.includes('Caribbean')),
       'south america': enhancedAirports.filter(a => a.region === 'South America'),
     };
 
@@ -300,27 +300,27 @@ export default function FlightSearchForm({
     // Search through all airports with enhanced matching
     const results = enhancedAirports.filter(airport => {
       return expandedSearch.some(term => 
-        airport.city.toLowerCase().includes(term) ||
-        airport.name.toLowerCase().includes(term) ||
-        airport.iataCode.toLowerCase().includes(term) ||
-        airport.country.toLowerCase().includes(term) ||
-        airport.region.toLowerCase().includes(term)
+        airport.city?.toLowerCase().includes(term) ||
+        airport.name?.toLowerCase().includes(term) ||
+        airport.iataCode?.toLowerCase().includes(term) ||
+        airport.country?.toLowerCase().includes(term) ||
+        airport.region?.toLowerCase().includes(term)
       );
     });
     
     // ULTRA-INTELLIGENT SORTING ALGORITHM
     return results.sort((a, b) => {
       // Exact IATA code match gets highest priority
-      if (a.iataCode.toLowerCase() === searchTerm) return -1;
-      if (b.iataCode.toLowerCase() === searchTerm) return 1;
+      if (a.iataCode?.toLowerCase() === searchTerm) return -1;
+      if (b.iataCode?.toLowerCase() === searchTerm) return 1;
       
       // City name exact match
-      if (a.city.toLowerCase() === searchTerm) return -1;
-      if (b.city.toLowerCase() === searchTerm) return 1;
+      if (a.city?.toLowerCase() === searchTerm) return -1;
+      if (b.city?.toLowerCase() === searchTerm) return 1;
       
       // Starts with query
-      if (a.city.toLowerCase().startsWith(searchTerm) && !b.city.toLowerCase().startsWith(searchTerm)) return -1;
-      if (b.city.toLowerCase().startsWith(searchTerm) && !a.city.toLowerCase().startsWith(searchTerm)) return 1;
+      if (a.city?.toLowerCase().startsWith(searchTerm) && !b.city?.toLowerCase().startsWith(searchTerm)) return -1;
+      if (b.city?.toLowerCase().startsWith(searchTerm) && !a.city?.toLowerCase().startsWith(searchTerm)) return 1;
       
       // US airports prioritized for US-based service
       if (a.country === 'United States' && b.country !== 'United States') return -1;
@@ -334,7 +334,7 @@ export default function FlightSearchForm({
       if (a.popularity > b.popularity) return -1;
       if (b.popularity > a.popularity) return 1;
       
-      return a.city.localeCompare(b.city);
+      return (a.city || '').localeCompare(b.city || '');
     }).slice(0, 8);
   }, []);
 
@@ -477,7 +477,7 @@ export default function FlightSearchForm({
         // Advanced analytics tracking
         if (typeof window !== 'undefined' && (window as any).gtag) {
           (window as any).gtag('event', 'ultra_search_initiated', {
-            route: `${formData.origin.iataCode}-${formData.destination.iataCode}`,
+            route: `${formData.origin?.iataCode || 'UNK'}-${formData.destination?.iataCode || 'UNK'}`,
             trip_type: formData.tripType,
             passengers: formData.passengers.adults,
             class: formData.travelClass
@@ -558,14 +558,14 @@ export default function FlightSearchForm({
       );
       
       // 🧠 SMART AUTO-CONNECTION: When destination of a flight is set, auto-fill origin of next flight
-      if (field === 'destination' && value.iataCode && newSegments && index < newSegments.length - 1) {
+      if (field === 'destination' && value?.iataCode && newSegments && index < newSegments.length - 1) {
         const nextSegment = newSegments[index + 1];
-        if (!nextSegment.origin.iataCode) {
+        if (!nextSegment.origin?.iataCode) {
           newSegments[index + 1] = {
             ...nextSegment,
             origin: value // Auto-connect destination → next origin
           };
-          console.log(`🔗 Auto-connected Flight ${index + 1} → Flight ${index + 2}: ${value.city}`);
+          console.log(`🔗 Auto-connected Flight ${index + 1} → Flight ${index + 2}: ${value.city || 'Unknown'}`);
         }
       }
       
@@ -701,11 +701,11 @@ export default function FlightSearchForm({
                     <input
                       ref={originRef}
                       type="text"
-                      value={formData.origin.iataCode ? formData.origin.city : originSearch}
+                      value={formData.origin?.iataCode ? formData.origin.city : originSearch}
                       onChange={(e) => {
                         const value = e.target.value;
                         setOriginSearch(value);
-                        if (formData.origin.iataCode && value !== formData.origin.city) {
+                        if (formData.origin?.iataCode && value !== formData.origin?.city) {
                           setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
                         }
                       }}
@@ -717,7 +717,7 @@ export default function FlightSearchForm({
                       placeholder="City, airport, or even nickname..."
                       className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-blue-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
                     />
-                    {formData.origin.iataCode && (
+                    {formData.origin?.iataCode && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-blue-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
                         {formData.origin.iataCode}
                       </div>
@@ -750,11 +750,11 @@ export default function FlightSearchForm({
                     <input
                       ref={destinationRef}
                       type="text"
-                      value={formData.destination.iataCode ? formData.destination.city : destinationSearch}
+                      value={formData.destination?.iataCode ? formData.destination.city : destinationSearch}
                       onChange={(e) => {
                         const value = e.target.value;
                         setDestinationSearch(value);
-                        if (formData.destination.iataCode && value !== formData.destination.city) {
+                        if (formData.destination?.iataCode && value !== formData.destination?.city) {
                           setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
                         }
                       }}
@@ -766,7 +766,7 @@ export default function FlightSearchForm({
                       placeholder="Anywhere in the world..."
                       className="w-full pl-14 pr-6 py-5 bg-transparent border-2 border-white/20 rounded-2xl focus:border-purple-400/80 focus:ring-0 text-xl font-semibold text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
                     />
-                    {formData.destination.iataCode && (
+                    {formData.destination?.iataCode && (
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 bg-purple-500/80 text-white text-sm font-bold px-3 py-2 rounded-xl backdrop-blur-sm">
                         {formData.destination.iataCode}
                       </div>
@@ -1127,7 +1127,7 @@ export default function FlightSearchForm({
                   </label>
                   <button
                     type="submit"
-                    disabled={isLoading || !formData.origin.iataCode || !formData.destination.iataCode}
+                    disabled={isLoading || !formData.origin?.iataCode || !formData.destination?.iataCode}
                     className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-500/50 disabled:via-gray-600/50 disabled:to-gray-500/50 text-white font-black text-xl rounded-2xl shadow-2xl hover:shadow-blue-500/25 disabled:shadow-lg transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed relative overflow-hidden group backdrop-blur-lg"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -1186,14 +1186,14 @@ export default function FlightSearchForm({
                           {/* Origin */}
                           <div className="text-center">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
-                              segment.origin.iataCode 
+                              segment.origin?.iataCode 
                                 ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white' 
                                 : 'bg-gray-500/30 text-gray-400 border-2 border-dashed border-gray-400'
                             }`}>
-                              {segment.origin.iataCode || '?'}
+                              {segment.origin?.iataCode || '?'}
                             </div>
                             <div className="text-xs text-white/70 mt-1 max-w-20 truncate">
-                              {segment.origin.city || 'Select'}
+                              {segment.origin?.city || 'Select'}
                             </div>
                           </div>
                           
@@ -1209,14 +1209,14 @@ export default function FlightSearchForm({
                           {index === (formData.segments?.length || 0) - 1 && (
                             <div className="text-center">
                               <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
-                                segment.destination.iataCode 
+                                segment.destination?.iataCode 
                                   ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' 
                                   : 'bg-gray-500/30 text-gray-400 border-2 border-dashed border-gray-400'
                               }`}>
-                                {segment.destination.iataCode || '?'}
+                                {segment.destination?.iataCode || '?'}
                               </div>
                               <div className="text-xs text-white/70 mt-1 max-w-20 truncate">
-                                {segment.destination.city || 'Select'}
+                                {segment.destination?.city || 'Select'}
                               </div>
                             </div>
                           )}
@@ -1228,7 +1228,7 @@ export default function FlightSearchForm({
                     <div className="mt-4 pt-4 border-t border-white/20">
                       <div className="flex items-center justify-between text-sm text-white/70">
                         <span>
-                          {formData.segments.filter(s => s.origin.iataCode && s.destination.iataCode).length} / {formData.segments.length} flights configured
+                          {formData.segments?.filter(s => s.origin?.iataCode && s.destination?.iataCode).length || 0} / {formData.segments?.length || 0} flights configured
                         </span>
                         <span>
                           {formData.segments.length > 1 
@@ -1251,8 +1251,8 @@ export default function FlightSearchForm({
                           <div className="flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                             <span className="text-sm text-white/80 font-medium">
-                              {segment.origin.iataCode && formData.segments && formData.segments[index - 1]?.destination.iataCode === segment.origin.iataCode
-                                ? `✅ Connected from ${formData.segments[index - 1].destination.city}`
+                              {segment.origin?.iataCode && formData.segments && formData.segments[index - 1]?.destination?.iataCode === segment.origin.iataCode
+                                ? `✅ Connected from ${formData.segments[index - 1]?.destination?.city || 'Previous flight'}`
                                 : `⚠️ Connection required`
                               }
                             </span>
@@ -1333,11 +1333,11 @@ export default function FlightSearchForm({
                           <div className="relative">
                             <input
                               type="text"
-                              value={segment.origin.iataCode ? segment.origin.city : segmentSearches[index]?.origin || ''}
+                              value={segment.origin?.iataCode ? segment.origin.city : segmentSearches[index]?.origin || ''}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 updateSegmentSearch(index, 'origin', value);
-                                if (segment.origin.iataCode && value !== segment.origin.city) {
+                                if (segment.origin?.iataCode && value !== segment.origin?.city) {
                                   updateSegment(index, 'origin', { iataCode: '', name: '', city: '', country: '' });
                                 }
                               }}
@@ -1348,7 +1348,7 @@ export default function FlightSearchForm({
                               placeholder="City or airport..."
                               className="w-full px-4 py-3 bg-transparent border-2 border-white/20 rounded-xl focus:border-blue-400/80 focus:ring-0 text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
                             />
-                            {segment.origin.iataCode && (
+                            {segment.origin?.iataCode && (
                               <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-500/80 text-white text-xs font-bold px-2 py-1 rounded">
                                 {segment.origin.iataCode}
                               </div>
@@ -1365,11 +1365,11 @@ export default function FlightSearchForm({
                           <div className="relative">
                             <input
                               type="text"
-                              value={segment.destination.iataCode ? segment.destination.city : segmentSearches[index]?.destination || ''}
+                              value={segment.destination?.iataCode ? segment.destination.city : segmentSearches[index]?.destination || ''}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 updateSegmentSearch(index, 'destination', value);
-                                if (segment.destination.iataCode && value !== segment.destination.city) {
+                                if (segment.destination?.iataCode && value !== segment.destination?.city) {
                                   updateSegment(index, 'destination', { iataCode: '', name: '', city: '', country: '' });
                                 }
                               }}
@@ -1380,7 +1380,7 @@ export default function FlightSearchForm({
                               placeholder="City or airport..."
                               className="w-full px-4 py-3 bg-transparent border-2 border-white/20 rounded-xl focus:border-purple-400/80 focus:ring-0 text-white placeholder-white/70 transition-all duration-300 hover:border-white/40"
                             />
-                            {segment.destination.iataCode && (
+                            {segment.destination?.iataCode && (
                               <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-purple-500/80 text-white text-xs font-bold px-2 py-1 rounded">
                                 {segment.destination.iataCode}
                               </div>
@@ -1621,7 +1621,7 @@ export default function FlightSearchForm({
                   <div className="flex items-end">
                     <button
                       type="submit"
-                      disabled={isLoading || !formData.segments?.every(s => s.origin.iataCode && s.destination.iataCode)}
+                      disabled={isLoading || !formData.segments?.every(s => s.origin?.iataCode && s.destination?.iataCode)}
                       className="w-full px-8 py-5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 disabled:from-gray-500/50 disabled:via-gray-600/50 disabled:to-gray-500/50 text-white font-black text-xl rounded-2xl shadow-2xl hover:shadow-green-500/25 disabled:shadow-lg transition-all duration-300 hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed relative overflow-hidden group backdrop-blur-lg"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-1000"></div>

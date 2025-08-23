@@ -1,10 +1,9 @@
 // Comprehensive Tracking System for Paid Ads
+// Global types are defined in src/types/gtag.d.ts
 declare global {
   interface Window {
-    gtag: (...args: unknown[]) => void;
     fbq: (...args: unknown[]) => void;
     uetq: any; // Bing UET
-    dataLayer: any[];
   }
 }
 

@@ -252,8 +252,8 @@ function FlightsPageContent() {
       // Track successful search for analytics
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'flight_search', {
-          origin: searchData.origin.iataCode,
-          destination: searchData.destination.iataCode,
+          origin: searchData.origin?.iataCode || 'UNK',
+          destination: searchData.destination?.iataCode || 'UNK',
           trip_type: searchData.tripType,
           results_count: offers.length
         });

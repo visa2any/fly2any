@@ -31,13 +31,13 @@ export default function MultiCitySearchForm({
   const [segments, setSegments] = useState<FlightSegment[]>(
     initialData?.segments || [
       {
-        origin: { iataCode: '', name: '', city: '', country: '' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: null,
+        destination: null,
         departureDate: new Date()
       },
       {
-        origin: { iataCode: '', name: '', city: '', country: '' },
-        destination: { iataCode: '', name: '', city: '', country: '' },
+        origin: null,
+        destination: null,
         departureDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000) // Next day
       }
     ]
@@ -60,7 +60,7 @@ export default function MultiCitySearchForm({
     const lastSegment = segments[segments.length - 1];
     const newSegment: FlightSegment = {
       origin: lastSegment.destination, // Start from last destination
-      destination: { iataCode: '', name: '', city: '', country: '' },
+      destination: null,
       departureDate: new Date(lastSegment.departureDate.getTime() + 24 * 60 * 60 * 1000) // Next day
     };
 
@@ -99,13 +99,13 @@ export default function MultiCitySearchForm({
     const newErrors: Record<string, string> = {};
 
     segments.forEach((segment, index) => {
-      if (!segment.origin.iataCode) {
+      if (!segment.origin?.iataCode) {
         newErrors[`segment-${index}-origin`] = 'Origin airport is required';
       }
-      if (!segment.destination.iataCode) {
+      if (!segment.destination?.iataCode) {
         newErrors[`segment-${index}-destination`] = 'Destination airport is required';
       }
-      if (segment.origin.iataCode === segment.destination.iataCode) {
+      if (segment.origin?.iataCode === segment.destination?.iataCode && segment.origin?.iataCode) {
         newErrors[`segment-${index}-destination`] = 'Origin and destination must be different';
       }
       if (!segment.departureDate || segment.departureDate < new Date(new Date().setHours(0, 0, 0, 0))) {
