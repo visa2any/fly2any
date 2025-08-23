@@ -1026,7 +1026,7 @@ export default function Home() {
                 textAlign: isMobile ? 'center' : 'left',
                 color: colors.secondary.gray900
               }} className="mobile-title">
-                Fly2Any, your air bridge between USA, Brazil and the World!
+                Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
                 fontSize: isMobile ? '18px' : '20px',
@@ -1037,8 +1037,7 @@ export default function Home() {
                 fontWeight: '400',
                 textAlign: isMobile ? 'center' : 'left'
               }} className="mobile-subtitle">
-                Connecting Americans, Brazilians and other nationalities to Brazil and the world 
-                com atendimento personalizado, preços exclusivos e 21 anos de experiência.
+                Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
               
               {/* Trust Indicators */}
