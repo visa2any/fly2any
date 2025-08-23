@@ -33,6 +33,7 @@ import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
 import FloatingChat from '@/components/FloatingChat';
 import LeadCaptureSimple from '@/components/LeadCaptureSimple';
+import LeadCaptureSimpleMobile from '@/components/LeadCaptureSimpleMobile';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
@@ -3566,11 +3567,19 @@ export default function Home() {
         <FloatingChat />
 
         {/* Lead Capture Modal */}
-        <LeadCaptureSimple
-          isOpen={showLeadCapture}
-          onClose={() => setShowLeadCapture(false)}
-          context="popup"
-        />
+        {isMobile ? (
+          <LeadCaptureSimpleMobile
+            isOpen={showLeadCapture}
+            onClose={() => setShowLeadCapture(false)}
+            context="popup"
+          />
+        ) : (
+          <LeadCaptureSimple
+            isOpen={showLeadCapture}
+            onClose={() => setShowLeadCapture(false)}
+            context="popup"
+          />
+        )}
 
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={45} />

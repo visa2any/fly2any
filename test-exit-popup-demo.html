@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exit Popup Behavior Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .feature {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .danger {
+            background: #ef4444;
+        }
+        .danger:hover {
+            background: #dc2626;
+        }
+        .success {
+            background: #10b981;
+        }
+        .success:hover {
+            background: #059669;
+        }
+        pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .improvements {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Exit Popup - Improved Behavior Demo</h1>
+        <p style="color: #6b7280;">Test the new intelligent popup behavior with persistence and frequency control</p>
+        
+        <div class="status">
+            <h3>📊 Current Status</h3>
+            <div id="status">Loading...</div>
+        </div>
+
+        <div class="improvements">
+            <h2>✨ New Improvements</h2>
+            
+            <div class="feature">
+                <strong>🔒 Persistent User Preference</strong>
+                <p>When users close the modal or click "Don't show again", their preference is saved permanently</p>
+            </div>
+            
+            <div class="feature">
+                <strong>📅 7-Day Cooldown Period</strong>
+                <p>If the popup was shown, it won't appear again for 7 days to avoid annoying users</p>
+            </div>
+            
+            <div class="feature">
+                <strong>✅ Subscription Detection</strong>
+                <p>Once a user subscribes, the popup never shows again for that email</p>
+            </div>
+            
+            <div class="feature">
+                <strong>🎯 Smart Triggers</strong>
+                <p>Multiple trigger points: exit intent, 70% scroll, or after 45 seconds - whichever comes first</p>
+            </div>
+            
+            <div class="feature">
+                <strong>💾 Cross-Session Memory</strong>
+                <p>All preferences persist across browser sessions using localStorage</p>
+            </div>
+        </div>
+
+        <h2>🧪 Test Controls</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0;">
+            <button onclick="clearPreferences()">🗑️ Clear All Preferences</button>
+            <button onclick="simulateClose()" class="danger">❌ Simulate "Don't Show Again"</button>
+            <button onclick="simulateSubscription()" class="success">✉️ Simulate Subscription</button>
+            <button onclick="simulateOldVisit()">⏰ Simulate 8 Days Ago Visit</button>
+            <button onclick="simulateRecentVisit()">🕐 Simulate 3 Days Ago Visit</button>
+        </div>
+
+        <h2>📝 LocalStorage Data</h2>
+        <pre id="localStorage">No data yet</pre>
+
+        <h2>🎯 How It Works</h2>
+        <ol style="line-height: 1.8; color: #4b5563;">
+            <li><strong>First Visit:</strong> Popup appears after delay or exit intent</li>
+            <li><strong>User Closes:</strong> Preference saved, won't show again</li>
+            <li><strong>User Subscribes:</strong> Marked as converted, never shows again</li>
+            <li><strong>Time-Based:</strong> 7-day cooldown between displays</li>
+            <li><strong>"Don't Show Again":</strong> Permanently disabled for that user</li>
+        </ol>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const prefs = JSON.parse(localStorage.getItem('exitPopupPreferences') || '{}');
+            const statusEl = document.getElementById('status');
+            const localStorageEl = document.getElementById('localStorage');
+            
+            let statusHTML = '';
+            
+            if (prefs.permanentlyClosed) {
+                statusHTML += '<p>🚫 <strong>Permanently Closed:</strong> User opted out</p>';
+                statusHTML += '<p>📅 Closed at: ' + new Date(prefs.closedAt).toLocaleString() + '</p>';
+            } else if (prefs.hasSubscribed) {
+                statusHTML += '<p>✅ <strong>Subscribed:</strong> User converted!</p>';
+                statusHTML += '<p>📧 Email: ' + prefs.subscribedEmail + '</p>';
+                statusHTML += '<p>📅 Subscribed at: ' + new Date(prefs.subscribedAt).toLocaleString() + '</p>';
+            } else if (prefs.lastShown) {
+                const daysSince = (Date.now() - new Date(prefs.lastShown).getTime()) / (1000 * 60 * 60 * 24);
+                statusHTML += '<p>👁️ <strong>Last Shown:</strong> ' + Math.floor(daysSince) + ' days ago</p>';
+                statusHTML += '<p>🔢 Show Count: ' + (prefs.showCount || 0) + ' times</p>';
+                if (daysSince < 7) {
+                    statusHTML += '<p>⏳ <strong>Cooldown Active:</strong> ' + (7 - Math.floor(daysSince)) + ' days remaining</p>';
+                } else {
+                    statusHTML += '<p>✅ <strong>Can Show Again:</strong> Cooldown expired</p>';
+                }
+            } else {
+                statusHTML = '<p>🆕 <strong>New Visitor:</strong> No popup history</p>';
+            }
+            
+            statusEl.innerHTML = statusHTML;
+            localStorageEl.textContent = JSON.stringify(prefs, null, 2);
+        }
+        
+        function clearPreferences() {
+            localStorage.removeItem('exitPopupPreferences');
+            updateStatus();
+            alert('✅ Preferences cleared! Popup will show on next visit.');
+        }
+        
+        function simulateClose() {
+            const prefs = {
+                permanentlyClosed: true,
+                closedAt: new Date().toISOString()
+            };
+            localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
+            updateStatus();
+            alert('✅ Simulated "Don\'t show again" click');
+        }
+        
+        function simulateSubscription() {
+            const prefs = {
+                hasSubscribed: true,
+                subscribedAt: new Date().toISOString(),
+                subscribedEmail: 'user@example.com'
+            };
+            localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
+            updateStatus();
+            alert('✅ Simulated successful subscription');
+        }
+        
+        function simulateOldVisit() {
+            const prefs = {
+                lastShown: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+                showCount: 1
+            };
+            localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
+            updateStatus();
+            alert('✅ Simulated visit from 8 days ago (popup can show again)');
+        }
+        
+        function simulateRecentVisit() {
+            const prefs = {
+                lastShown: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                showCount: 1
+            };
+            localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
+            updateStatus();
+            alert('✅ Simulated visit from 3 days ago (cooldown active)');
+        }
+        
+        // Initial load
+        updateStatus();
+        
+        // Auto-update every second
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html>

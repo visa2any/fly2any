@@ -35,6 +35,36 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   const [hasShown, setHasShown] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
 
+  // Check localStorage for user preferences
+  useEffect(() => {
+    const storedPreferences = localStorage.getItem('exitPopupPreferences');
+    if (storedPreferences) {
+      const prefs = JSON.parse(storedPreferences);
+      
+      // Check if user closed the modal before
+      if (prefs.permanentlyClosed) {
+        setHasShown(true);
+        return;
+      }
+      
+      // Check if shown recently (within 7 days)
+      const lastShown = prefs.lastShown ? new Date(prefs.lastShown) : null;
+      if (lastShown) {
+        const daysSinceShown = (Date.now() - lastShown.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceShown < 7) {
+          setHasShown(true);
+          return;
+        }
+      }
+      
+      // Check if user already subscribed
+      if (prefs.hasSubscribed) {
+        setHasShown(true);
+        return;
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!enabled || hasShown) return;
 
@@ -42,19 +72,17 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
 
     // Show after delay
     const delayTimeout = setTimeout(() => {
-      if (!hasTriggered) {
-        setIsVisible(true);
-        setHasShown(true);
+      if (!hasTriggered && shouldShowPopup()) {
+        showPopup();
         hasTriggered = true;
       }
     }, delay * 1000);
 
     // Exit intent detection
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !hasTriggered) {
+      if (e.clientY <= 0 && !hasTriggered && shouldShowPopup()) {
         clearTimeout(delayTimeout);
-        setIsVisible(true);
-        setHasShown(true);
+        showPopup();
         hasTriggered = true;
       }
     };
@@ -62,12 +90,34 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     // Scroll detection - show when user scrolls 70% of page
     const handleScroll = () => {
       const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-      if (scrolled > 70 && !hasTriggered) {
+      if (scrolled > 70 && !hasTriggered && shouldShowPopup()) {
         clearTimeout(delayTimeout);
-        setIsVisible(true);
-        setHasShown(true);
+        showPopup();
         hasTriggered = true;
       }
+    };
+
+    // Helper function to check if popup should be shown
+    const shouldShowPopup = () => {
+      const storedPreferences = localStorage.getItem('exitPopupPreferences');
+      if (storedPreferences) {
+        const prefs = JSON.parse(storedPreferences);
+        if (prefs.permanentlyClosed || prefs.hasSubscribed) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    // Helper function to show popup and update localStorage
+    const showPopup = () => {
+      setIsVisible(true);
+      setHasShown(true);
+      
+      const prefs = JSON.parse(localStorage.getItem('exitPopupPreferences') || '{}');
+      prefs.lastShown = new Date().toISOString();
+      prefs.showCount = (prefs.showCount || 0) + 1;
+      localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
     };
 
     document.addEventListener('mouseleave', handleMouseLeave);
@@ -161,6 +211,14 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       
       if (response.ok && result.success) {
         setIsSuccess(true);
+        
+        // Mark user as subscribed in localStorage
+        const prefs = JSON.parse(localStorage.getItem('exitPopupPreferences') || '{}');
+        prefs.hasSubscribed = true;
+        prefs.subscribedAt = new Date().toISOString();
+        prefs.subscribedEmail = email.toLowerCase().trim();
+        localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
+        
         // Fechar popup após 4 segundos
         setTimeout(() => {
           setIsVisible(false);
@@ -180,6 +238,12 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
 
   const handleClose = () => {
     setIsVisible(false);
+    
+    // Save user preference to not show again for a while
+    const prefs = JSON.parse(localStorage.getItem('exitPopupPreferences') || '{}');
+    prefs.permanentlyClosed = true;
+    prefs.closedAt = new Date().toISOString();
+    localStorage.setItem('exitPopupPreferences', JSON.stringify(prefs));
   };
 
   if (!isVisible) return null;
@@ -619,10 +683,33 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             <p style={{
               fontSize: '11px',
               color: '#9ca3af',
-              lineHeight: '1.4'
+              lineHeight: '1.4',
+              marginBottom: '8px'
             }}>
               🔒 Dados protegidos pela LGPD
             </p>
+            <button
+              type="button"
+              onClick={handleClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#9ca3af',
+                fontSize: '11px',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: '4px 8px',
+                transition: 'color 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#6b7280';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#9ca3af';
+              }}
+            >
+              Não mostrar novamente
+            </button>
           </div>
         </div>
       </div>
