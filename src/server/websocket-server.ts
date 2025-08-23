@@ -86,7 +86,7 @@ class TravelWebSocketServer {
    * Initialize WebSocket server with event handlers
    */
   private initialize() {
-    this.wss.on('connection', (ws, request) => {
+    this.wss.on('connection', (ws: any, request: any) => {
       this.handleConnection(ws, request);
     });
 
@@ -105,7 +105,7 @@ class TravelWebSocketServer {
   /**
    * Handle new WebSocket connection
    */
-  private handleConnection(ws: WebSocket, request: any) {
+  private handleConnection(ws: any, request: any) {
     const url = parse(request.url!, true);
     const sessionId = url.query.sessionId as string || this.generateSessionId();
     const token = url.query.token as string;
@@ -151,7 +151,7 @@ class TravelWebSocketServer {
     });
 
     // Set up message handler
-    ws.on('message', (data) => {
+    ws.on('message', (data: any) => {
       try {
         const message: WebSocketMessage = JSON.parse(data.toString());
         this.handleMessage(sessionId, message);
@@ -166,7 +166,7 @@ class TravelWebSocketServer {
     });
 
     // Handle connection errors
-    ws.on('error', (error) => {
+    ws.on('error', (error: any) => {
       console.error(`WebSocket error for ${sessionId}:`, error);
       this.handleDisconnection(sessionId);
     });

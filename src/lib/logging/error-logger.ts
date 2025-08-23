@@ -506,7 +506,7 @@ ${JSON.stringify(errorData.metadata, null, 2)}
       };
 
       // Count by level
-      errors.forEach(error => {
+      errors.forEach((error: any) => {
         stats.byLevel[error.level] = (stats.byLevel[error.level] || 0) + 1;
       });
 

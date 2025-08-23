@@ -43,12 +43,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate metrics
-    const stats = emailStats.reduce((acc, stat) => {
+    const stats = emailStats.reduce((acc: Record<string, number>, stat: any) => {
       acc[stat.status] = stat._count;
       return acc;
     }, {} as Record<string, number>);
 
-    const webhookCounts = webhookStats.reduce((acc, stat) => {
+    const webhookCounts = webhookStats.reduce((acc: Record<string, number>, stat: any) => {
       acc[stat.eventType] = stat._count;
       return acc;
     }, {} as Record<string, number>);

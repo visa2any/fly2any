@@ -546,7 +546,7 @@ export class CampaignManager {
         _count: true
       });
 
-      const stats = emailStats.reduce((acc, stat) => {
+      const stats = emailStats.reduce((acc: Record<string, number>, stat: any) => {
         acc[stat.status] = stat._count;
         return acc;
       }, {} as Record<string, number>);

@@ -28,15 +28,21 @@
         "./src/*"
       ]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "next-env.d.ts",
+    "src/types/modules.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "node_modules_backup_*",
+    "node_modules_backup_2",
+    "node_modules_backup_3",
+    "backups"
   ]
 }

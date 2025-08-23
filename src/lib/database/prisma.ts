@@ -7,7 +7,7 @@ import { PrismaClient } from '@prisma/client';
 import { MockPrismaModels } from './mock-models';
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma: InstanceType<typeof PrismaClient> | undefined;
 };
 
 // Create base Prisma client

@@ -71,6 +71,8 @@
     "aws-sdk": "^2.1691.0"
   },
   "devDependencies": {
+    "@types/ws": "^8.5.10",
+    "@types/qrcode-terminal": "^0.12.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.4.7"
   }

@@ -513,7 +513,7 @@ class EmailMonitoringSystem {
         }
       });
 
-      const priorityCounts = pendingEmails.reduce((acc, email) => {
+      const priorityCounts = pendingEmails.reduce((acc: Record<string, number>, email: any) => {
         const priority = (email as any).priority || 'standard';
         acc[priority] = (acc[priority] || 0) + 1;
         return acc;
@@ -534,7 +534,7 @@ class EmailMonitoringSystem {
 
       // Calculate average wait time
       const averageWaitTime = pendingEmails.length > 0 
-        ? pendingEmails.reduce((sum, email) => 
+        ? pendingEmails.reduce((sum: number, email: any) => 
             sum + (Date.now() - email.createdAt.getTime()), 0) / pendingEmails.length
         : 0;
 
@@ -580,12 +580,12 @@ class EmailMonitoringSystem {
         _count: true
       });
 
-      const stats = emailStats.reduce((acc, stat) => {
+      const stats = emailStats.reduce((acc: Record<string, number>, stat: any) => {
         acc[stat.status] = stat._count;
         return acc;
       }, {} as Record<string, number>);
 
-      const webhookCounts = webhookStats.reduce((acc, stat) => {
+      const webhookCounts = webhookStats.reduce((acc: Record<string, number>, stat: any) => {
         acc[stat.eventType] = stat._count;
         return acc;
       }, {} as Record<string, number>);

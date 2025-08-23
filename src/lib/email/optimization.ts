@@ -202,7 +202,7 @@ class EmailOptimizationEngine {
       }>();
 
       // Group by time slots
-      emailData.forEach(email => {
+      emailData.forEach((email: any) => {
         if (!email.sentAt) return;
         
         const date = new Date(email.sentAt);

@@ -10,7 +10,7 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import P from 'pino';
-import QRCode from 'qrcode-terminal';
+import * as QRCode from 'qrcode-terminal';
 
 export interface BaileysMessage {
   id: string;

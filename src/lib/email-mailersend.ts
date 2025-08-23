@@ -72,9 +72,14 @@ export async function sendEmail(data: EmailData): Promise<{ success: boolean; me
 
     // Add variables for personalization
     if (data.variables) {
-      Object.entries(data.variables).forEach(([email, vars]) => {
-        emailParams.setVariables([{ email, substitutions: vars }]);
-      });
+      // Note: setVariables might not be available in all MailerSend SDK versions
+      // This is a workaround until the SDK is updated
+      const paramsWithVariables = emailParams as any;
+      if (typeof paramsWithVariables.setVariables === 'function') {
+        Object.entries(data.variables).forEach(([email, vars]) => {
+          paramsWithVariables.setVariables([{ email, substitutions: vars }]);
+        });
+      }
     }
 
     // Send the email

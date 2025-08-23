@@ -74,8 +74,7 @@ export async function POST(request: NextRequest) {
     if (result.success) {
       return NextResponse.json({
         success: true,
-        message: `${type} email sent successfully!`,
-        messageId: result.messageId
+        message: `${type} email sent successfully!`
       });
     } else {
       return NextResponse.json(
