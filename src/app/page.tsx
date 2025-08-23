@@ -223,9 +223,15 @@ export default function Home() {
         const cleanWhatsapp = value.replace(/\D/g, '');
         return cleanWhatsapp.length < 10 ? 'WhatsApp é obrigatório e deve ter pelo menos 10 dígitos' : '';
       case 'origem':
-        return value.trim().length < 2 ? 'Origem é obrigatória' : '';
+        if (typeof value === 'object' && value) {
+          return (value as any).iataCode ? '' : 'Origem é obrigatória';
+        }
+        return value && value.toString().trim().length >= 2 ? '' : 'Origem é obrigatória';
       case 'destino':
-        return value.trim().length < 2 ? 'Destino é obrigatório' : '';
+        if (typeof value === 'object' && value) {
+          return (value as any).iataCode ? '' : 'Destino é obrigatório';
+        }
+        return value && value.toString().trim().length >= 2 ? '' : 'Destino é obrigatório';
       case 'dataIda':
         return !value.trim() ? 'Data de ida é obrigatória' : '';
       default:
@@ -451,6 +457,44 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
+      // Comprehensive validation before submission
+      const currentService = getCurrentService();
+      const errors: Record<string, string> = {};
+      
+      // Validate required fields
+      const nomeError = validateField('nome', formData.nome || '');
+      const emailError = validateField('email', formData.email || '');
+      const whatsappError = validateField('whatsapp', formData.whatsapp || '');
+      
+      if (nomeError) errors.nome = nomeError;
+      if (emailError) errors.email = emailError;
+      if (whatsappError) errors.whatsapp = whatsappError;
+      
+      // Validate current service data
+      if (currentService) {
+        const origemError = validateField('origem', currentService.origem || '');
+        const destinoError = validateField('destino', currentService.destino || '');
+        const dataIdaError = validateField('dataIda', currentService.dataIda || '');
+        
+        if (origemError) errors.origem = origemError;
+        if (destinoError) errors.destino = destinoError;
+        if (dataIdaError) errors.dataIda = dataIdaError;
+      }
+      
+      // Check if there are validation errors
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        // Mark all error fields as touched
+        const touchedUpdate: Record<string, boolean> = {};
+        Object.keys(errors).forEach(field => {
+          touchedUpdate[field] = true;
+        });
+        setTouchedFields(prev => ({ ...prev, ...touchedUpdate }));
+        
+        setIsSubmitting(false);
+        alert('❌ Por favor, corrija os erros no formulário antes de enviar.');
+        return;
+      }
       // Convert form data to plain object
       const formDataObj = {
         selectedServices: formData.selectedServices,
@@ -485,6 +529,9 @@ export default function Home() {
         trackQuoteRequest(formDataObj);
       }
 
+      // Log form data for debugging (remove in production)
+      console.log('Sending form data:', formDataObj);
+      
       // Send to API
       const response = await fetch('/api/leads', {
         method: 'POST',
@@ -495,6 +542,7 @@ export default function Home() {
       });
 
       const result = await response.json();
+      console.log('API Response:', { status: response.status, result });
 
       if (!response.ok) {
         throw new Error(result.message || 'Erro ao enviar formulário');
@@ -525,19 +573,28 @@ export default function Home() {
       console.error('Erro ao enviar formulário:', error);
       
       // Show user-friendly error based on error type
+      let errorMessage = '❌ Erro ao enviar formulário. Tente novamente ou entre em contato via WhatsApp.';
+      
       if (error instanceof Error) {
-        if (error.message.includes('Failed to fetch')) {
-          alert('❌ Erro de conexão. Verifique sua internet e tente novamente.');
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage = '❌ Erro de conexão. Verifique sua internet e tente novamente.';
         } else if (error.message.includes('500')) {
-          alert('❌ Erro interno do servidor. Nossa equipe foi notificada. Tente novamente em alguns minutos.');
+          errorMessage = '❌ Erro interno do servidor. Nossa equipe foi notificada. Tente novamente em alguns minutos.';
         } else if (error.message.includes('400')) {
-          alert('❌ Dados inválidos. Verifique se todos os campos estão preenchidos corretamente.');
-        } else {
-          alert('❌ Erro ao enviar formulário. Tente novamente ou entre em contato via WhatsApp.');
+          errorMessage = '❌ Dados inválidos. Verifique se todos os campos estão preenchidos corretamente.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = '❌ Tempo esgotado. Verifique sua conexão e tente novamente.';
         }
-      } else {
-        alert('❌ Erro inesperado. Tente novamente ou entre em contato via WhatsApp.');
+        
+        // Log specific error for debugging
+        console.error('Detailed error info:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
       }
+      
+      alert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -2288,9 +2345,13 @@ export default function Home() {
                             }}
                           >
                             <span>
-                              {getCurrentService()?.adultos || 1} Adulto{(getCurrentService()?.adultos || 1) > 1 ? 's' : ''}
-                              {(getCurrentService()?.criancas || 0) > 0 && `, ${getCurrentService()?.criancas} Criança${getCurrentService()?.criancas > 1 ? 's' : ''}`}
-                              {(getCurrentService()?.bebes || 0) > 0 && `, ${getCurrentService()?.bebes} Bebê${getCurrentService()?.bebes > 1 ? 's' : ''}`}
+                              {(() => {
+                                const adultos = getCurrentService()?.adultos || 1;
+                                const criancas = getCurrentService()?.criancas || 0;
+                                const bebes = getCurrentService()?.bebes || 0;
+                                const total = adultos + criancas + bebes;
+                                return `${total} Passageiro${total > 1 ? 's' : ''}`;
+                              })()}
                             </span>
                             <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>▼</span>
                           </div>
@@ -2875,7 +2936,7 @@ export default function Home() {
                             required={true}
                             error={validationErrors.whatsapp}
                             touched={touchedFields.whatsapp}
-                            defaultCountry="US"
+                            defaultCountry="BR"
                           />
                         </div>
                         {!isMobile && (
@@ -2889,7 +2950,7 @@ export default function Home() {
                               required={false}
                               error={validationErrors.telefone}
                               touched={touchedFields.telefone}
-                              defaultCountry="US"
+                              defaultCountry="BR"
                             />
                           </div>
                         )}

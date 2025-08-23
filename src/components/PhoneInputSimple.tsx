@@ -64,6 +64,19 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
     countries.find(c => c.code === defaultCountry) || countries[0]
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isDropdownOpen && !target.closest('[data-phone-input-container]')) {
+        setIsDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -84,7 +97,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
   const phoneNumber = value.replace(/^\+\d+\s?/, '');
 
   return (
-    <div className={className} style={{ position: 'relative' }}>
+    <div className={className} style={{ position: 'relative' }} data-phone-input-container>
       {label && (
         <label style={{
           display: 'block',
@@ -110,7 +123,11 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
         <div style={{ position: 'relative' }}>
           <button
             type="button"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDropdownOpen(!isDropdownOpen);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -154,7 +171,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
               border: '1px solid #d1d5db',
               borderRadius: '8px',
               boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              zIndex: 1000,
+              zIndex: 10000,
               maxHeight: '240px',
               overflowY: 'auto',
               marginTop: '4px'
