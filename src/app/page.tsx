@@ -1266,7 +1266,7 @@ export default function Home() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
-                    🔥 LIMITED OFFER: Save up to $250 • Valid until Friday
+                    🏆 21 ANOS DE EXPERIÊNCIA: Especialistas em viagens EUA-Brasil
                   </span>
                 </div>
                 
