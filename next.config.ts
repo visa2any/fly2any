@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
     tsconfigPath: './tsconfig.json'
   },
   
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
+    dirs: ['src'],
+  },
+  
   // Webpack configuration to handle module resolution and React 19 JSX runtime
   webpack: (config, { dev, isServer }) => {
     // Fix for React 19 JSX runtime resolution and prevent duplicate React
