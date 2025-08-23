@@ -134,15 +134,15 @@ export async function GET(request: NextRequest) {
       topPerformers,
       summary: {
         totalCampaigns: campaigns.length,
-        activeCampaigns: campaigns.filter(c => c.status === 'running').length,
-        totalEmailsSent: campaignPerformance.reduce((sum, c) => sum + c.sent, 0),
+        activeCampaigns: campaigns.filter((c: any) => c.status === 'running').length,
+        totalEmailsSent: campaignPerformance.reduce((sum: number, c: CampaignPerformance) => sum + c.sent, 0),
         averageOpenRate: campaignPerformance.length > 0 
-          ? campaignPerformance.reduce((sum, c) => sum + c.openRate, 0) / campaignPerformance.length 
+          ? campaignPerformance.reduce((sum: number, c: CampaignPerformance) => sum + c.openRate, 0) / campaignPerformance.length 
           : 0,
         averageClickRate: campaignPerformance.length > 0 
-          ? campaignPerformance.reduce((sum, c) => sum + c.clickRate, 0) / campaignPerformance.length 
+          ? campaignPerformance.reduce((sum: number, c: CampaignPerformance) => sum + c.clickRate, 0) / campaignPerformance.length 
           : 0,
-        totalRevenue: campaignPerformance.reduce((sum, c) => sum + c.revenue, 0)
+        totalRevenue: campaignPerformance.reduce((sum: number, c: CampaignPerformance) => sum + c.revenue, 0)
       }
     };
 
