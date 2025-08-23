@@ -41,7 +41,7 @@ export default function FloatingChat() {
       )}
 
       {/* Widget de Chat */}
-      <div className="fixed bottom-6 right-32 z-[50]">
+      <div className="floating-chat fixed bottom-6 right-32 z-[50]">
         {/* Chat expandido */}
         {isExpanded && (
           <div className="mb-4 bg-white rounded-2xl shadow-2xl w-96 animate-fade-in-up">

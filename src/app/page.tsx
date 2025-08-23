@@ -31,7 +31,6 @@ import CityAutocomplete from '@/components/CityAutocomplete';
 import { AirportSelection } from '@/types/flights';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
-import ChatAgent from '@/components/ChatAgent';
 import FloatingChat from '@/components/FloatingChat';
 import LeadCaptureSimple from '@/components/LeadCaptureSimple';
 import NewsletterCapture from '@/components/NewsletterCapture';

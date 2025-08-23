@@ -2,10 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 
 import Image from "next/image";
-import ChatAgent from "@/components/ChatAgent";
-import FloatingChat from "@/components/FloatingChat";
-import TestChat from "@/components/TestChat";
-import SimpleChatAgent from "@/components/SimpleChatAgent";
 import SessionWrapper from "@/components/SessionWrapper";
 import "./globals.css";
 
@@ -689,7 +685,7 @@ export default function RootLayout({
             // Criar botões com verificação para evitar duplicação
             function createButtonsIfNeeded() {
               // Só criar se não existir nenhum botão de chat ainda
-              if (!document.querySelector('.fly2any-chat-button') && !document.querySelector('[class*="ChatAgent"]')) {
+              if (!document.querySelector('.fly2any-chat-button') && !document.querySelector('.floating-chat')) {
                 createChatButtons();
               }
             }
