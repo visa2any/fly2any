@@ -14,6 +14,7 @@ interface DatePickerProps {
   minDate?: string;
   maxDate?: string;
   className?: string;
+  inputClassName?: string;
 }
 
 interface CalendarDay {
@@ -34,7 +35,8 @@ export default function DatePicker({
   error,
   minDate,
   maxDate,
-  className = ''
+  className = '',
+  inputClassName = ''
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -268,7 +270,7 @@ export default function DatePicker({
       
       <div
         onClick={handleToggleOpen}
-        className={`w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4 bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl sm:rounded-2xl focus:ring-2 sm:focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 text-sm sm:text-base font-bold text-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/80 cursor-pointer flex items-center justify-between group ${className} ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}`}
+        className={`w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4 bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl sm:rounded-2xl focus:ring-2 sm:focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 text-sm sm:text-base font-bold text-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/80 cursor-pointer flex items-center justify-between group ${className} ${inputClassName} ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}`}
       >
         <span className={`${displayValue ? 'text-gray-900' : 'text-gray-500'} text-sm sm:text-base font-bold`}>
           {displayValue || placeholder}
