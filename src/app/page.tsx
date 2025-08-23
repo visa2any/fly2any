@@ -295,6 +295,9 @@ export default function Home() {
              !validateField('nome', formData.nome) &&
              !validateField('email', formData.email) &&
              !validateField('whatsapp', formData.whatsapp);
+    } else if (currentStep === 4) {
+      // Step 4 is always valid since it's just the final review/submit step
+      return true;
     }
     return false;
   };
@@ -2725,7 +2728,12 @@ export default function Home() {
                       </div>
 
                       {/* Telefones na mesma linha */}
-                      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '12px', 
+                        marginBottom: '16px',
+                        flexDirection: isMobile ? 'column' : 'row'
+                      }}>
                         <div style={{ flex: 1 }}>
                           <PhoneInput
                             value={formData.whatsapp}
@@ -2750,19 +2758,21 @@ export default function Home() {
                             defaultCountry="US"
                           />
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <PhoneInput
-                            value={formData.telefone}
-                            onChange={(value) => handleInputChange('telefone', value)}
-                            onBlur={() => handleFieldBlur('telefone')}
-                            placeholder="Telefone alternativo"
-                            label="Telefone Alternativo"
-                            required={false}
-                            error={validationErrors.telefone}
-                            touched={touchedFields.telefone}
-                            defaultCountry="US"
-                          />
-                        </div>
+                        {!isMobile && (
+                          <div style={{ flex: 1 }}>
+                            <PhoneInput
+                              value={formData.telefone}
+                              onChange={(value) => handleInputChange('telefone', value)}
+                              onBlur={() => handleFieldBlur('telefone')}
+                              placeholder="Telefone alternativo"
+                              label="Telefone Alternativo"
+                              required={false}
+                              error={validationErrors.telefone}
+                              touched={touchedFields.telefone}
+                              defaultCountry="US"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
