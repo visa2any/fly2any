@@ -27,6 +27,7 @@ interface AirportAutocompleteProps {
   disabled?: boolean;
   error?: string;
   className?: string;
+  inputClassName?: string;
 }
 
 interface EnhancedAirport extends AirportSelection {
@@ -90,7 +91,8 @@ export default function AirportAutocomplete({
   placeholder = "Search airports...",
   disabled = false,
   error,
-  className = ''
+  className = '',
+  inputClassName = ''
 }: AirportAutocompleteProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EnhancedAirport[]>([]);
@@ -283,6 +285,7 @@ export default function AirportAutocomplete({
             w-full px-4 py-3 pl-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
             ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
             ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+            ${inputClassName}
           `}
         />
         <FlightIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />

@@ -43,6 +43,8 @@ interface PhoneInputSimpleProps {
   required?: boolean;
   label?: string;
   defaultCountry?: string;
+  className?: string;
+  inputClassName?: string;
 }
 
 const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
@@ -54,7 +56,9 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
   touched,
   required = false,
   label,
-  defaultCountry = 'BR'
+  defaultCountry = 'BR',
+  className,
+  inputClassName
 }) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(
     countries.find(c => c.code === defaultCountry) || countries[0]
@@ -80,7 +84,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
   const phoneNumber = value.replace(/^\+\d+\s?/, '');
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={className} style={{ position: 'relative' }}>
       {label && (
         <label style={{
           display: 'block',
@@ -200,6 +204,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
             onChange={handlePhoneChange}
             onBlur={onBlur}
             placeholder={placeholder}
+            className={inputClassName}
             style={{
               width: '100%',
               padding: '10px 40px 10px 12px',
