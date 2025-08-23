@@ -409,6 +409,7 @@ export default function AirportAutocomplete({
         
         {query && !disabled && (
           <button
+            type="button"
             onClick={() => {
               setQuery('');
               onChange(null);
@@ -460,12 +461,6 @@ export default function AirportAutocomplete({
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleAirportSelect(airport)}
-                onTouchStart={(e) => {
-                  // Prevent scrolling on touch start for better mobile experience
-                  if (isMobileDetected) {
-                    e.preventDefault();
-                  }
-                }}
                 className={`
                   w-full text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-gray-100 last:border-b-0
                   ${selectedIndex === index ? 'bg-blue-50' : ''}
