@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   const challenge = searchParams.get('hub.challenge');
 
   // Verificar token (usar variável de ambiente)
-  const VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN || 'fly2any_facebook_verify';
+  const VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN;
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('✅ Facebook webhook verified');

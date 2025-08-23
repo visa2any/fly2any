@@ -2,12 +2,12 @@ import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 
 // Initialize MailerSend client
 const mailerSend = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_KEY || 'mlsn.ec479149fa82385db9f243869ff65ead519498c3e2de85810e24c77f61c6fa75',
+  apiKey: process.env.MAILERSEND_API_KEY || '',
 });
 
 // Default sender configuration
 const DEFAULT_SENDER: Sender = {
-  email: process.env.MAILERSEND_FROM_EMAIL || 'noreply@trial-jy7zpl9ddj6g5vx6.mlsender.net',
+  email: process.env.MAILERSEND_FROM_EMAIL || '',
   name: process.env.MAILERSEND_FROM_NAME || 'Fly2Any'
 };
 
@@ -30,6 +30,23 @@ export interface EmailData {
 
 export async function sendEmail(data: EmailData): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
+    // Check if API key is configured
+    if (!process.env.MAILERSEND_API_KEY) {
+      console.error('❌ MailerSend API key not configured');
+      return { 
+        success: false, 
+        error: 'Email service not configured. Please set MAILERSEND_API_KEY environment variable.' 
+      };
+    }
+
+    // Check if sender email is configured
+    if (!process.env.MAILERSEND_FROM_EMAIL) {
+      console.error('❌ MailerSend sender email not configured');
+      return { 
+        success: false, 
+        error: 'Email sender not configured. Please set MAILERSEND_FROM_EMAIL environment variable.' 
+      };
+    }
     // Convert recipients to array
     const toAddresses = Array.isArray(data.to) ? data.to : [data.to];
     const recipients: Recipient[] = toAddresses.map(email => ({ email }));
