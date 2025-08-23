@@ -307,7 +307,11 @@ export default function Home() {
     
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
-        setIsMobile(window.innerWidth < 1024);
+        const isMobileDevice = window.innerWidth <= 768 || 
+                          'ontouchstart' in window || 
+                          navigator.maxTouchPoints > 0 ||
+                          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        setIsMobile(isMobileDevice);
       }
     };
     checkMobile();
@@ -1505,6 +1509,7 @@ export default function Home() {
                                     fontSize: '14px',
                                     fontWeight: '600',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     transform: 'scale(1)',
                                     boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
                                     color: colors.secondary.gray800
@@ -2243,23 +2248,31 @@ export default function Home() {
                             data-passengers-trigger
                             style={{
                               width: '100%',
-                              padding: '10px 12px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
+                              padding: isMobile ? '14px 16px' : '10px 12px',
+                              border: isMobile ? '2px solid #d1d5db' : '2px solid #e5e7eb',
+                              borderRadius: isMobile ? '10px' : '8px',
                               background: '#ffffff',
-                              fontSize: '14px',
+                              fontSize: isMobile ? '16px' : '14px',
                               cursor: 'pointer',
                               fontWeight: '500',
                               transition: 'all 0.2s ease',
                               outline: 'none',
                               display: 'flex',
                               justifyContent: 'space-between',
-                              alignItems: 'center'
+                              alignItems: 'center',
+                              minHeight: isMobile ? '50px' : 'auto',
+                              boxShadow: isMobile ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none',
+                              touchAction: 'manipulation'
                             }}
                             onClick={() => {
                               const dropdown = document.getElementById('passengers-dropdown');
+                              const overlay = document.getElementById('passengers-overlay');
                               if (dropdown) {
-                                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                                const isVisible = dropdown.style.display === 'block';
+                                dropdown.style.display = isVisible ? 'none' : 'block';
+                                if (overlay) {
+                                  overlay.style.display = isVisible ? 'none' : 'block';
+                                }
                               }
                             }}
                             onFocus={() => {
@@ -2279,26 +2292,97 @@ export default function Home() {
                             <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>▼</span>
                           </div>
                           
+                          {/* Mobile Overlay */}
+                          {isMobile && (
+                            <div
+                              id="passengers-overlay"
+                              style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'rgba(0, 0, 0, 0.5)',
+                                zIndex: 9998,
+                                display: 'none'
+                              }}
+                              onClick={() => {
+                                const dropdown = document.getElementById('passengers-dropdown');
+                                const overlay = document.getElementById('passengers-overlay');
+                                if (dropdown) dropdown.style.display = 'none';
+                                if (overlay) overlay.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          
                           {/* Dropdown Panel */}
                           <div
                             id="passengers-dropdown"
                             style={{
-                              position: 'absolute',
-                              top: '100%',
-                              left: 0,
-                              right: 0,
-                              background: '#ffffff',
-                              border: '2px solid #e5e7eb',
-                              borderTop: 'none',
-                              borderRadius: '0 0 8px 8px',
-                              padding: isMobile ? '16px' : '12px',
+                              position: isMobile ? 'fixed' : 'absolute',
+                              top: isMobile ? '50%' : '100%',
+                              left: isMobile ? '50%' : 0,
+                              right: isMobile ? 'auto' : 0,
+                              transform: isMobile ? 'translate(-50%, -50%)' : 'none',
+                              width: isMobile ? '90vw' : 'auto',
+                              maxWidth: isMobile ? '400px' : 'none',
+                              background: isMobile ? 'rgba(255, 255, 255, 0.98)' : '#ffffff',
+                              border: isMobile ? '2px solid #d1d5db' : '2px solid #e5e7eb',
+                              borderTop: isMobile ? '2px solid #d1d5db' : 'none',
+                              borderRadius: isMobile ? '16px' : '0 0 8px 8px',
+                              padding: isMobile ? '24px' : '12px',
                               display: 'none',
-                              zIndex: 1000,
-                              boxShadow: isMobile ? '0 8px 25px rgba(0, 0, 0, 0.2)' : '0 4px 6px rgba(0, 0, 0, 0.1)',
-                              backdropFilter: 'blur(10px)',
-                              WebkitBackdropFilter: 'blur(10px)'
+                              zIndex: isMobile ? 9999 : 1001,
+                              boxShadow: isMobile ? '0 20px 60px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.1)',
+                              backdropFilter: isMobile ? 'blur(20px) saturate(180%)' : 'none',
+                              WebkitBackdropFilter: isMobile ? 'blur(20px) saturate(180%)' : 'none'
                             }}
                           >
+                            {/* Mobile Close Button */}
+                            {isMobile && (
+                              <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center', 
+                                marginBottom: '20px',
+                                paddingBottom: '16px',
+                                borderBottom: '1px solid #e2e8f0'
+                              }}>
+                                <h3 style={{ 
+                                  margin: 0, 
+                                  fontSize: '18px', 
+                                  fontWeight: '600', 
+                                  color: colors.secondary.gray700 
+                                }}>
+                                  Selecionar Passageiros
+                                </h3>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const dropdown = document.getElementById('passengers-dropdown');
+                                    const overlay = document.getElementById('passengers-overlay');
+                                    if (dropdown) dropdown.style.display = 'none';
+                                    if (overlay) overlay.style.display = 'none';
+                                  }}
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '16px',
+                                    border: '1px solid #d1d5db',
+                                    background: '#f8fafc',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '18px',
+                                    color: colors.secondary.gray600
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            )}
+                            
                             {/* Adultos */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '12px' }}>
                               <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Adultos</span>
@@ -2315,9 +2399,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2325,14 +2409,24 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: isMobile ? '30px' : '20px', textAlign: 'center', fontWeight: '600', fontSize: isMobile ? '18px' : '16px' }}>
+                                <span style={{ 
+                                  minWidth: isMobile ? '40px' : '20px', 
+                                  textAlign: 'center', 
+                                  fontWeight: '600', 
+                                  fontSize: isMobile ? '20px' : '16px',
+                                  padding: isMobile ? '8px' : '0',
+                                  background: isMobile ? '#f8fafc' : 'transparent',
+                                  borderRadius: isMobile ? '6px' : '0',
+                                  border: isMobile ? '1px solid #e2e8f0' : 'none'
+                                }}>
                                   {getCurrentService()?.adultos || 1}
                                 </span>
                                 <button
@@ -2347,9 +2441,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2357,10 +2451,11 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   +
                                 </button>
@@ -2383,9 +2478,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2393,14 +2488,24 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: isMobile ? '30px' : '20px', textAlign: 'center', fontWeight: '600', fontSize: isMobile ? '18px' : '16px' }}>
+                                <span style={{ 
+                                  minWidth: isMobile ? '40px' : '20px', 
+                                  textAlign: 'center', 
+                                  fontWeight: '600', 
+                                  fontSize: isMobile ? '20px' : '16px',
+                                  padding: isMobile ? '8px' : '0',
+                                  background: isMobile ? '#f8fafc' : 'transparent',
+                                  borderRadius: isMobile ? '6px' : '0',
+                                  border: isMobile ? '1px solid #e2e8f0' : 'none'
+                                }}>
                                   {getCurrentService()?.criancas || 0}
                                 </span>
                                 <button
@@ -2415,9 +2520,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2425,10 +2530,11 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   +
                                 </button>
@@ -2451,9 +2557,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2461,14 +2567,24 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: isMobile ? '30px' : '20px', textAlign: 'center', fontWeight: '600', fontSize: isMobile ? '18px' : '16px' }}>
+                                <span style={{ 
+                                  minWidth: isMobile ? '40px' : '20px', 
+                                  textAlign: 'center', 
+                                  fontWeight: '600', 
+                                  fontSize: isMobile ? '20px' : '16px',
+                                  padding: isMobile ? '8px' : '0',
+                                  background: isMobile ? '#f8fafc' : 'transparent',
+                                  borderRadius: isMobile ? '6px' : '0',
+                                  border: isMobile ? '1px solid #e2e8f0' : 'none'
+                                }}>
                                   {getCurrentService()?.bebes || 0}
                                 </span>
                                 <button
@@ -2483,9 +2599,9 @@ export default function Home() {
                                   style={{
                                     width: isMobile ? '36px' : '24px', 
                                     height: isMobile ? '36px' : '24px', 
-                                    borderRadius: '4px',
-                                    border: '1px solid #d1d5db', 
-                                    background: colors.primary.gray50,
+                                    borderRadius: isMobile ? '8px' : '4px',
+                                    border: isMobile ? '2px solid #d1d5db' : '1px solid #d1d5db', 
+                                    background: isMobile ? '#ffffff' : colors.primary.gray50,
                                     cursor: 'pointer', 
                                     fontSize: isMobile ? '18px' : '14px', 
                                     fontWeight: 'bold',
@@ -2493,10 +2609,11 @@ export default function Home() {
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
+                                    boxShadow: isMobile ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none',
                                     touchAction: 'manipulation'
                                   }}
-                                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                                  onMouseLeave={(e) => e.currentTarget.style.background = colors.primary.gray50}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = isMobile ? '#f3f4f6' : '#e5e7eb'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = isMobile ? '#ffffff' : colors.primary.gray50}
                                 >
                                   +
                                 </button>
