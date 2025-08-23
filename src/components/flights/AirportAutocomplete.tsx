@@ -329,8 +329,11 @@ export default function AirportAutocomplete({
         break;
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation();
+        // Prevent form submission by blurring the input after selection
         if (selectedIndex >= 0 && selectedIndex < results.length) {
           handleAirportSelect(results[selectedIndex]);
+          inputRef.current?.blur();
         }
         break;
       case 'Escape':
@@ -460,7 +463,11 @@ export default function AirportAutocomplete({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.05 }}
-                onClick={() => handleAirportSelect(airport)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAirportSelect(airport);
+                }}
                 className={`
                   w-full text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-gray-100 last:border-b-0
                   ${selectedIndex === index ? 'bg-blue-50' : ''}
