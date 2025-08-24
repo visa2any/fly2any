@@ -205,17 +205,8 @@ export default function Home() {
   }, [showExitIntent]);
 
   // Real-time validation function
-  const validateField = (name: string, value: any): string => {
-    // Handle AirportSelection objects for origem/destino
-    if (name === 'origem' || name === 'destino') {
-      if (!value || (typeof value === 'object' && (!value.iataCode || !value.name))) {
-        return `${name} é obrigatório`;
-      }
-      return ''; // Valid airport selection
-    }
-    
-    // Handle string values for other fields
-    if (!value || (typeof value === 'string' && value.trim() === '')) {
+  const validateField = (name: string, value: string): string => {
+    if (!value || typeof value !== 'string') {
       return `${name} é obrigatório`;
     }
 
@@ -232,15 +223,9 @@ export default function Home() {
         const cleanWhatsapp = value.replace(/\D/g, '');
         return cleanWhatsapp.length < 10 ? 'WhatsApp é obrigatório e deve ter pelo menos 10 dígitos' : '';
       case 'origem':
-        if (typeof value === 'object' && value) {
-          return (value as any).iataCode ? '' : 'Origem é obrigatória';
-        }
-        return value && value.toString().trim().length >= 2 ? '' : 'Origem é obrigatória';
+        return value.trim().length < 2 ? 'Origem é obrigatória' : '';
       case 'destino':
-        if (typeof value === 'object' && value) {
-          return (value as any).iataCode ? '' : 'Destino é obrigatório';
-        }
-        return value && value.toString().trim().length >= 2 ? '' : 'Destino é obrigatório';
+        return value.trim().length < 2 ? 'Destino é obrigatório' : '';
       case 'dataIda':
         return !value.trim() ? 'Data de ida é obrigatória' : '';
       default:
@@ -310,10 +295,6 @@ export default function Home() {
              !validateField('nome', formData.nome) &&
              !validateField('email', formData.email) &&
              !validateField('whatsapp', formData.whatsapp);
-    } else if (currentStep === 4) {
-      // Step 4 is always valid since it's just the final review/submit step
-      return true;
-    }
     return false;
   };
 
@@ -322,11 +303,7 @@ export default function Home() {
     
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
-        const isMobileDevice = window.innerWidth <= 768 || 
-                          'ontouchstart' in window || 
-                          navigator.maxTouchPoints > 0 ||
-                          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        setIsMobile(isMobileDevice);
+        setIsMobile(window.innerWidth < 1024);
       }
     };
     checkMobile();
@@ -1068,35 +1045,29 @@ export default function Home() {
               padding: isMobile ? '60px 16px 10px 16px' : '0'
             }} className={isMobile ? 'app-content-padding' : ''}>
               <div style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: isMobile ? 'center' : 'flex-start', // Left align on desktop, center on mobile
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                background: colors.primary.white,
+                backdropFilter: 'blur(10px)',
+                borderRadius: '50px',
+                border: `1px solid ${colors.primary.gray200}`,
                 marginBottom: isMobile ? '16px' : '32px',
                 marginTop: isMobile ? '0' : '20px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '8px 16px',
-                  background: colors.primary.white,
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: '50px',
-                  border: `1px solid ${colors.primary.gray200}`,
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}>
-                  <span style={{
-                    color: colors.accent.orange,
-                    fontWeight: '600',
-                    fontSize: isMobile ? typography.body.regular.mobile : typography.body.regular.desktop
-                  }}>✈️ Especialistas em viagem há 21 anos</span>
-                </div>
+                <span style={{
+                  color: colors.accent.orange,
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}>✈️ Especialistas em viagens há 21 anos</span>
               </div>
               <h1 style={{
                 fontSize: isMobile ? typography.hero.title.mobile : typography.hero.title.desktop, // RESTORED: Use typography system
                 fontWeight: typography.hero.title.fontWeight,
                 fontFamily: 'Poppins, sans-serif',
-                lineHeight: isMobile ? '1.2' : typography.hero.title.lineHeight, // Mobile-only line height adjustment
-                margin: isMobile ? '0 0 16px 0' : '0 0 24px 0', // Mobile-only margin adjustment
+                lineHeight: typography.hero.title.lineHeight
+                margin: isMobile ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
                 textAlign: isMobile ? 'center' : 'left',
@@ -1104,19 +1075,18 @@ export default function Home() {
               }} className="mobile-title">
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
-              {!isMobile && (
-                <p style={{
-                  fontSize: typography.hero.subtitle.desktop,
-                  color: colors.secondary.gray600,
-                  lineHeight: typography.hero.subtitle.lineHeight.desktop,
-                  maxWidth: '520px',
-                  marginBottom: '40px',
-                  fontWeight: typography.hero.subtitle.fontWeight,
-                  textAlign: 'left'
-                }} className="hero-subtitle">
-                  Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
-                </p>
-              )}
+              {/* Desktop gets full subtitle, mobile gets shorter version */}
+              <p style={{
+                fontSize: isMobile ? typography.hero.subtitle.mobile : typography.hero.subtitle.desktop,
+                color: colors.secondary.gray600,
+                lineHeight: isMobile ? typography.hero.subtitle.lineHeight.mobile : typography.hero.subtitle.lineHeight.desktop,
+                maxWidth: isMobile ? '100%' : '520px',
+                marginBottom: isMobile ? '16px' : '40px',
+                fontWeight: typography.hero.subtitle.fontWeight,
+                textAlign: isMobile ? 'center' : 'left'
+              }} className="hero-subtitle">
+                {isMobile ? 'Atendimento personalizado, preços exclusivos e 21 anos de experiência.' : 'Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.'}
+              </p>
               
               {/* Trust Indicators - Hidden on Mobile */}
               {!isMobile && (
