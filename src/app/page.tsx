@@ -464,10 +464,13 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    // Get current service data outside try block for scope access
+    const currentService = getCurrentService();
+    let formDataObj: any = null;
 
     try {
       // Comprehensive validation before submission
-      const currentService = getCurrentService();
       const errors: Record<string, string> = {};
       
       // Validate required fields
@@ -504,8 +507,9 @@ export default function Home() {
         alert('❌ Por favor, corrija os erros no formulário antes de enviar.');
         return;
       }
+      
       // Convert form data to plain object (reuse currentService from validation)
-      const formDataObj = {
+      formDataObj = {
         selectedServices: formData.selectedServices,
         currentServiceIndex: formData.currentServiceIndex,
         origem: currentService?.origem ? 
