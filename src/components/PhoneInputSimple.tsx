@@ -56,7 +56,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
   touched,
   required = false,
   label,
-  defaultCountry = 'BR',
+  defaultCountry = 'US',
   className,
   inputClassName
 }) => {
@@ -114,13 +114,19 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
         display: 'flex',
         border: touched && error ? '2px solid #ef4444' : '1px solid #d1d5db',
         borderRadius: '8px',
-        overflow: 'hidden',
+        overflow: 'visible',
         backgroundColor: 'white',
         transition: 'all 0.2s ease-in-out',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        position: 'relative',
+        zIndex: 1
       }}>
         {/* Country Selector */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ 
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1000
+        }}>
           <button
             type="button"
             onClick={(e) => {
@@ -168,13 +174,18 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
               left: 0,
               right: 0,
               backgroundColor: 'white',
-              border: '1px solid #d1d5db',
+              border: '2px solid #3b82f6',
               borderRadius: '8px',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              zIndex: 10000,
+              boxShadow: '0 20px 60px -5px rgba(0, 0, 0, 0.3), 0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+              zIndex: 99999,
               maxHeight: '240px',
               overflowY: 'auto',
-              marginTop: '4px'
+              marginTop: '4px',
+              minWidth: '200px',
+              transform: 'translateZ(0)',
+              WebkitTransform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden'
             }}>
               {countries.map((country) => (
                 <button
@@ -186,27 +197,50 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    padding: '10px 12px',
+                    padding: '12px 16px',
                     textAlign: 'left',
-                    backgroundColor: selectedCountry.code === country.code ? '#dbeafe' : 'transparent',
+                    backgroundColor: selectedCountry.code === country.code ? '#3b82f6' : 'white',
+                    color: selectedCountry.code === country.code ? 'white' : '#374151',
                     border: 'none',
                     cursor: 'pointer',
-                    transition: 'background-color 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    minHeight: '44px',
+                    borderBottom: '1px solid #e5e7eb'
                   }}
                   onMouseEnter={(e) => {
                     if (selectedCountry.code !== country.code) {
-                      e.currentTarget.style.backgroundColor = '#f0f9ff';
+                      e.currentTarget.style.backgroundColor = '#dbeafe';
+                      e.currentTarget.style.color = '#1e40af';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (selectedCountry.code !== country.code) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.backgroundColor = 'white';
+                      e.currentTarget.style.color = '#374151';
                     }
                   }}
                 >
-                  <span style={{ fontSize: '16px' }}>{country.flag}</span>
-                  <span style={{ fontSize: '14px', color: '#6b7280' }}>{country.dialCode}</span>
-                  <span style={{ fontSize: '14px', color: '#111827' }}>{country.name}</span>
+                  <span style={{ 
+                    fontSize: '18px',
+                    minWidth: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>{country.flag}</span>
+                  <span style={{ 
+                    fontSize: '14px', 
+                    color: selectedCountry.code === country.code ? 'white' : '#6b7280',
+                    fontWeight: '600',
+                    minWidth: '50px'
+                  }}>{country.dialCode}</span>
+                  <span style={{ 
+                    fontSize: '14px', 
+                    color: selectedCountry.code === country.code ? 'white' : '#111827',
+                    fontWeight: '500',
+                    flex: 1
+                  }}>{country.name}</span>
                 </button>
               ))}
             </div>
