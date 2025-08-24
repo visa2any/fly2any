@@ -64,6 +64,36 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
     countries.find(c => c.code === defaultCountry) || countries[0]
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  
+  // Mobile detection
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const isMobileDevice = window.innerWidth <= 768 || 
+                           'ontouchstart' in window || 
+                           navigator.maxTouchPoints > 0 ||
+                           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Calculate dropdown position for mobile fixed positioning
+  const calculateDropdownPosition = () => {
+    if (!buttonRef.current || !isMobile) return;
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    setDropdownPosition({
+      top: buttonRect.bottom + window.scrollY + 4,
+      left: buttonRect.left + window.scrollX,
+      width: Math.max(buttonRect.width, 200)
+    });
+  };
   
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -74,9 +104,28 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
       }
     };
     
+    const handleScroll = () => {
+      if (isDropdownOpen && isMobile) {
+        calculateDropdownPosition();
+      }
+    };
+    
+    const handleResize = () => {
+      if (isDropdownOpen && isMobile) {
+        calculateDropdownPosition();
+      }
+    };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isDropdownOpen, isMobile]);
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -128,10 +177,14 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
           zIndex: 1000
         }}>
           <button
+            ref={buttonRef}
             type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (!isDropdownOpen) {
+                calculateDropdownPosition();
+              }
               setIsDropdownOpen(!isDropdownOpen);
             }}
             style={{
@@ -169,10 +222,11 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
           {/* Dropdown */}
           {isDropdownOpen && (
             <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
+              position: isMobile ? 'fixed' : 'absolute',
+              top: isMobile ? `${dropdownPosition.top}px` : '100%',
+              left: isMobile ? `${dropdownPosition.left}px` : 0,
+              right: isMobile ? 'auto' : 0,
+              width: isMobile ? `${dropdownPosition.width}px` : 'auto',
               backgroundColor: 'white',
               border: '2px solid #3b82f6',
               borderRadius: '8px',
@@ -180,7 +234,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
               zIndex: 99999,
               maxHeight: '240px',
               overflowY: 'auto',
-              marginTop: '4px',
+              marginTop: isMobile ? '0' : '4px',
               minWidth: '200px',
               transform: 'translateZ(0)',
               WebkitTransform: 'translateZ(0)',
