@@ -209,15 +209,39 @@ export default function DatePicker({
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       const calendarHeight = 400; // approximate height
+      const calendarWidth = Math.max(rect.width, 320);
+      
+      // Check if we're on mobile
+      const isMobile = window.innerWidth <= 768 || 
+                      'ontouchstart' in window || 
+                      navigator.maxTouchPoints > 0;
       
       // Determine if calendar should appear above or below
       const showAbove = spaceBelow < calendarHeight && spaceAbove > spaceBelow;
+      
+      let leftPosition = rect.left + window.scrollX;
+      
+      // Mobile-specific positioning to prevent off-screen rendering
+      if (isMobile) {
+        const viewportWidth = window.innerWidth;
+        const rightEdge = leftPosition + calendarWidth;
+        
+        // If calendar would go off the right edge, adjust position
+        if (rightEdge > viewportWidth) {
+          leftPosition = viewportWidth - calendarWidth - 16; // 16px padding from edge
+        }
+        
+        // Ensure minimum left margin
+        if (leftPosition < 16) {
+          leftPosition = 16;
+        }
+      }
       
       setCalendarPosition({
         top: showAbove 
           ? rect.top + window.scrollY - calendarHeight - 4
           : rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
+        left: leftPosition,
         width: rect.width
       });
     }
