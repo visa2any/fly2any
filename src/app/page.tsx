@@ -3822,6 +3822,8 @@ export default function Home() {
         {/* Floating Chat Buttons */}
         <FloatingChat />
 
+        }
+
         {/* Lead Capture Modal */}
         {isMobile ? (
           <LeadCaptureSimpleMobile
