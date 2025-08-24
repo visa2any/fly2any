@@ -505,11 +505,16 @@ export default function Home() {
         return;
       }
       // Convert form data to plain object
+      const currentService = getCurrentService();
       const formDataObj = {
         selectedServices: formData.selectedServices,
         currentServiceIndex: formData.currentServiceIndex,
-        origem: formData.origem,
-        destino: formData.destino,
+        origem: currentService?.origem ? 
+          `${currentService.origem.iataCode} - ${currentService.origem.city}` : 
+          (typeof formData.origem === 'string' ? formData.origem : ''),
+        destino: currentService?.destino ? 
+          `${currentService.destino.iataCode} - ${currentService.destino.city}` : 
+          (typeof formData.destino === 'string' ? formData.destino : ''),
         dataIda: formData.dataIda,
         dataVolta: formData.dataVolta,
         tipoViagem: formData.tipoViagem,
@@ -580,6 +585,11 @@ export default function Home() {
       
     } catch (error) {
       console.error('Erro ao enviar formulário:', error);
+      
+      // Enhanced logging for debugging
+      console.log('Form data being sent:', formDataObj);
+      console.log('Current service data:', getCurrentService());
+      console.log('Form validation state:', { validationErrors, touchedFields });
       
       // Show user-friendly error based on error type
       let errorMessage = '❌ Erro ao enviar formulário. Tente novamente ou entre em contato via WhatsApp.';
@@ -2359,7 +2369,7 @@ export default function Home() {
                                 const criancas = getCurrentService()?.criancas || 0;
                                 const bebes = getCurrentService()?.bebes || 0;
                                 const total = adultos + criancas + bebes;
-                                return `${total} Passageiro${total > 1 ? 's' : ''}`;
+                                return `${total}`;
                               })()}
                             </span>
                             <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>▼</span>
@@ -2945,7 +2955,7 @@ export default function Home() {
                             required={true}
                             error={validationErrors.whatsapp}
                             touched={touchedFields.whatsapp}
-                            defaultCountry="BR"
+                            defaultCountry="US"
                           />
                         </div>
                         {!isMobile && (
@@ -2959,7 +2969,7 @@ export default function Home() {
                               required={false}
                               error={validationErrors.telefone}
                               touched={touchedFields.telefone}
-                              defaultCountry="BR"
+                              defaultCountry="US"
                             />
                           </div>
                         )}
