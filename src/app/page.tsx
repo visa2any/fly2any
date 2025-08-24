@@ -3839,7 +3839,9 @@ export default function Home() {
 
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={45} />
-      }
+      </div>
+      {/* Close main container div from line 1014 */}
+      </div>
       
       {/* Using live site footer ONLY for home page - temporary */}
       <LiveSiteFooter />
