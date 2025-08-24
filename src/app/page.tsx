@@ -1066,7 +1066,7 @@ export default function Home() {
                 fontSize: isMobile ? typography.hero.title.mobile : typography.hero.title.desktop, // RESTORED: Use typography system
                 fontWeight: typography.hero.title.fontWeight,
                 fontFamily: 'Poppins, sans-serif',
-                lineHeight: typography.hero.title.lineHeight
+                lineHeight: typography.hero.title.lineHeight,
                 margin: isMobile ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
