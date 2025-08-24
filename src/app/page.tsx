@@ -504,8 +504,7 @@ export default function Home() {
         alert('❌ Por favor, corrija os erros no formulário antes de enviar.');
         return;
       }
-      // Convert form data to plain object
-      const currentService = getCurrentService();
+      // Convert form data to plain object (reuse currentService from validation)
       const formDataObj = {
         selectedServices: formData.selectedServices,
         currentServiceIndex: formData.currentServiceIndex,
