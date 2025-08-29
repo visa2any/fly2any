@@ -22,7 +22,7 @@ import MobileFlightForm from '@/components/mobile/MobileFlightForm';
 import MobileHotelForm from '@/components/mobile/MobileHotelForm';
 import MobileCarForm from '@/components/mobile/MobileCarForm';
 import MobilePackageForm from '@/components/mobile/MobilePackageForm';
-import { ChevronLeftIcon } from '@/heroicons/react/24/outline';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 interface MobileAppLayoutProps {
   children: React.ReactNode;
