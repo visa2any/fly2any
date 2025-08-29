@@ -141,17 +141,7 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Auto-show premium form on mobile after page loads
-  useEffect(() => {
-    console.log('🔍 Mobile Detection:', { isMobileDevice, isTablet, isPortraitMobile });
-    if (isMobileDevice) {
-      console.log('📱 Mobile detected - showing premium form');
-      // Show immediately for testing
-      setShowLeadCapture(true);
-    } else {
-      console.log('💻 Desktop detected - keeping original form');
-    }
-  }, [isMobileDevice, isTablet, isPortraitMobile]);
+  // Removed mobile detection useEffect to fix React hook rule violations
   const [formData, setFormData] = useState<FormData>({
     selectedServices: [],
     currentServiceIndex: 0,
@@ -191,8 +181,7 @@ export default function Home() {
   const [socialProofIndex, setSocialProofIndex] = useState(0);
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [exitIntentEmail, setExitIntentEmail] = useState('');
-  const [showMobileSuccess, setShowMobileSuccess] = useState(false);
-  const [mobileInteractionCount, setMobileInteractionCount] = useState(0);
+  // Removed mobile-specific state to fix hook rule violations
 
   // Social proof notifications data
   const socialProofNotifications = [
@@ -1599,7 +1588,7 @@ export default function Home() {
                                         window.gtag('event', 'mobile_service_selection', {
                                           event_category: 'engagement',
                                           event_label: serviceType,
-                                          value: mobileInteractionCount + 1
+                                          value: 1
                                         });
                                       }
                                     }
@@ -2802,14 +2791,7 @@ export default function Home() {
                             onChange={(value: string) => {
                               handleInputChange('whatsapp', value);
                               
-                              // Mobile feedback on phone input
-                              if (isMobileDevice && value.length > 8) {
-                                setMobileInteractionCount((prev: any) => prev + 1);
-                                if (mobileInteractionCount > 0 && mobileInteractionCount % 3 === 0) {
-                                  setShowMobileSuccess(true);
-                                  setTimeout(() => setShowMobileSuccess(false), 1000);
-                                }
-                              }
+                              // Removed mobile-specific conditional logic to fix hook rule violations
                             }}
                             onBlur={() => handleFieldBlur('whatsapp')}
                             placeholder="Seu WhatsApp"

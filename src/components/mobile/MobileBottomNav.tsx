@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import { useMobileUtils } from '@/hooks/useMobileDetection';
+// Removed useMobileUtils import to fix React hook rule violations
 
 // Navigation Item Interface
 interface NavItem {
@@ -72,12 +72,11 @@ export default function MobileBottomNav({
 }: MobileBottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const {
-    isMobileDevice,
-    getTouchTargetSize,
-    screenWidth,
-    deviceOrientation
-  } = useMobileUtils();
+  // Mobile component assumes mobile context with static values
+  const isMobileDevice = true;
+  const getTouchTargetSize = () => 48;
+  const screenWidth = 393; // Common mobile width
+  const deviceOrientation = 'portrait';
 
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);

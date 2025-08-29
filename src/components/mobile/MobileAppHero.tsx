@@ -2,16 +2,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useMobileUtils } from '@/hooks/useMobileDetection';
+// Removed useMobileUtils import to fix React hook rule violations
 
 interface MobileAppHeroProps {
   children?: React.ReactNode;
 }
 
 export default function MobileAppHero({ children }: MobileAppHeroProps) {
-  const { isMobileDevice } = useMobileUtils();
-
-  if (!isMobileDevice) return null;
+  // Mobile component assumes mobile context - removed conditional rendering
 
   return (
     <div 

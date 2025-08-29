@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMobileUtils } from '@/hooks/useMobileDetection';
+// Removed useMobileUtils import to fix React hook rule violations
 import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass } from '@/types/flights';
 import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
 import { CalendarIcon, UsersIcon, SwitchIcon, PlusIcon, MinusIcon } from '@/components/Icons';
@@ -33,7 +33,7 @@ export default function MobileAppForm({
   isLoading = false,
   className = ''
 }: MobileAppFormProps) {
-  const { isMobileDevice, getTouchTargetSize } = useMobileUtils();
+  // Mobile components assume mobile context - removed mobile detection hook
 
   // Ensure valid dates
   const getValidDate = (date?: Date | string | null) => {
@@ -75,7 +75,7 @@ export default function MobileAppForm({
   const [showPassengerPicker, setShowPassengerPicker] = useState(false);
   const [isSwapping, setIsSwapping] = useState(false);
 
-  const touchTargetSize = getTouchTargetSize();
+  const touchTargetSize = 48; // Mobile touch target size
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return 'Data';

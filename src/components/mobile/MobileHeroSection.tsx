@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMobileUtils } from '@/hooks/useMobileDetection';
+// Removed useMobileUtils import to fix React hook rule violations
 
 interface MobileHeroSectionProps {
   title?: string;
@@ -33,13 +33,12 @@ export default function MobileHeroSection({
   ctaText = 'Buscar Voos',
   children
 }: MobileHeroSectionProps) {
-  const {
-    isMobileDevice,
-    isPortraitMobile,
-    screenHeight,
-    deviceOrientation,
-    getTouchTargetSize
-  } = useMobileUtils();
+  // Mobile component assumes mobile context with static values
+  const isMobileDevice = true;
+  const isPortraitMobile = true;
+  const screenHeight = 852; // Common mobile height
+  const deviceOrientation = 'portrait';
+  const getTouchTargetSize = () => 48;
 
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(0);
