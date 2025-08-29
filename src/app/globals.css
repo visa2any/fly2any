@@ -5,6 +5,103 @@
 /* React Day Picker CSS */
 @import 'react-day-picker/dist/style.css';
 
+/* Mobile/Desktop Content Control */
+.mobile-layout-visible {
+  display: block !important;
+}
+
+.mobile-layout-hidden {
+  display: none !important;
+}
+
+.desktop-content-visible {
+  display: block !important;
+}
+
+.desktop-content-hidden {
+  display: none !important;
+}
+
+.mobile-form-hidden {
+  display: none !important;
+}
+
+.desktop-form-visible {
+  display: block !important;
+}
+
+.desktop-footer-visible {
+  display: block !important;
+}
+
+.desktop-footer-hidden {
+  display: none !important;
+}
+
+.mobile-success-visible {
+  display: block !important;
+}
+
+.mobile-success-hidden {
+  display: none !important;
+}
+
+.features-section-visible {
+  display: block !important;
+}
+
+.features-section-hidden {
+  display: none !important;
+}
+
+.social-proof-visible {
+  display: block !important;
+}
+
+.social-proof-hidden {
+  display: none !important;
+}
+
+.lead-capture-mobile-visible {
+  display: block !important;
+}
+
+.lead-capture-mobile-hidden {
+  display: none !important;
+}
+
+.success-toast-visible {
+  display: block !important;
+}
+
+.success-toast-hidden {
+  display: none !important;
+}
+
+.exit-intent-visible {
+  display: flex !important;
+}
+
+.exit-intent-hidden {
+  display: none !important;
+}
+
+.mobile-test-button-visible {
+  display: block !important;
+}
+
+.mobile-test-button-hidden {
+  display: none !important;
+}
+
+.mobile-progress-visible {
+  display: block !important;
+}
+
+.mobile-progress-hidden {
+  display: none !important;
+}
+
 /* UI/UX Best Practice Color System - 60-30-10 Rule */
 :root {
   /* Primary Colors (60%) - Base/Neutral */
