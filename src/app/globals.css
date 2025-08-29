@@ -5,109 +5,188 @@
 /* React Day Picker CSS */
 @import 'react-day-picker/dist/style.css';
 
-/* Mobile/Desktop Content Control */
+/* Mobile/Desktop Content Control - Media Query Based */
 .mobile-layout-visible {
-  display: block !important;
+  display: none;
 }
 
 .mobile-layout-hidden {
-  display: none !important;
+  display: block;
 }
 
 .desktop-content-visible {
-  display: block !important;
+  display: block;
 }
 
 .desktop-content-hidden {
-  display: none !important;
+  display: none;
 }
 
+/* Responsive behavior using media queries */
+@media (max-width: 768px) {
+  .mobile-layout-visible {
+    display: block !important;
+  }
+  
+  .mobile-layout-hidden {
+    display: none !important;
+  }
+  
+  .desktop-content-visible {
+    display: none !important;
+  }
+  
+  .desktop-content-hidden {
+    display: block !important;
+  }
+}
+
+/* All form and content visibility - CSS only */
 .mobile-form-hidden {
-  display: none !important;
+  display: block;
 }
 
 .desktop-form-visible {
-  display: block !important;
+  display: block;
 }
 
 .desktop-footer-visible {
-  display: block !important;
+  display: block;
 }
 
 .desktop-footer-hidden {
-  display: none !important;
+  display: none;
 }
 
 .mobile-success-visible {
-  display: block !important;
+  display: none;
 }
 
 .mobile-success-hidden {
-  display: none !important;
+  display: none;
 }
 
 .features-section-visible {
-  display: block !important;
+  display: block;
 }
 
 .features-section-hidden {
-  display: none !important;
+  display: none;
 }
 
 .social-proof-visible {
-  display: block !important;
+  display: block;
 }
 
 .social-proof-hidden {
-  display: none !important;
+  display: none;
 }
 
 .lead-capture-mobile-visible {
-  display: block !important;
+  display: none;
 }
 
 .lead-capture-mobile-hidden {
-  display: none !important;
+  display: none;
 }
 
 .success-toast-visible {
-  display: block !important;
+  display: block;
 }
 
 .success-toast-hidden {
-  display: none !important;
+  display: none;
 }
 
 .exit-intent-visible {
-  display: flex !important;
+  display: flex;
 }
 
 .exit-intent-hidden {
-  display: none !important;
+  display: none;
 }
 
 .mobile-test-button-visible {
-  display: block !important;
+  display: none;
 }
 
 .mobile-test-button-hidden {
-  display: none !important;
+  display: none;
 }
 
 .mobile-progress-visible {
-  display: block !important;
+  display: none;
 }
 
 .mobile-progress-hidden {
-  display: none !important;
+  display: none;
 }
 
 .social-proof-widget-visible {
-  display: block !important;
+  display: block;
 }
 
 .social-proof-widget-hidden {
-  display: none !important;
+  display: none;
+}
+
+/* Mobile-specific overrides */
+@media (max-width: 768px) {
+  .mobile-form-hidden {
+    display: none !important;
+  }
+  
+  .desktop-form-visible {
+    display: none !important;
+  }
+  
+  .desktop-footer-visible {
+    display: none !important;
+  }
+  
+  .desktop-footer-hidden {
+    display: block !important;
+  }
+  
+  .mobile-test-button-visible {
+    display: block !important;
+  }
+  
+  .mobile-progress-visible {
+    display: block !important;
+  }
+  
+  .lead-capture-mobile-visible {
+    display: block !important;
+  }
+  
+  .features-section-visible {
+    display: none !important;
+  }
+  
+  .social-proof-visible {
+    display: none !important;
+  }
+}
+
+/* Responsive utilities */
+.responsive-main {
+  display: block;
+}
+
+.success-toast-content {
+  /* Mobile responsive adjustments */
+}
+
+@media (max-width: 768px) {
+  .success-toast-content {
+    top: 16px !important;
+    left: 16px !important;
+    right: 16px !important;
+    padding: 16px !important;
+    font-size: 14px !important;
+    max-width: none !important;
+  }
 }
 
 /* UI/UX Best Practice Color System - 60-30-10 Rule */

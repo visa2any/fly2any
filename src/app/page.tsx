@@ -37,7 +37,6 @@ import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
-import { useMobileUtils } from '@/hooks/useMobileDetection';
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
 
 interface ServiceFormData {
@@ -116,11 +115,31 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
   
-  // Use unified mobile detection
-  const { isMobileDevice, isTablet, isPortraitMobile } = useMobileUtils();
+  // Safe mobile detection - no SSR/hydration issues
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
   
   // Show premium app form automatically on mobile only
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+
+  // Safe mobile detection after hydration
+  useEffect(() => {
+    const checkMobile = () => {
+      const width = window.innerWidth;
+      const isMobile = width <= 768;
+      const isTabletSize = width > 768 && width <= 1024;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      setIsMobileDevice(isMobile);
+      setIsTablet(isTabletSize);
+      setIsPortraitMobile(isMobile && isPortrait);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Auto-show premium form on mobile after page loads
   useEffect(() => {
@@ -730,39 +749,39 @@ export default function Home() {
     position: 'absolute' as const,
     top: '120px',
     left: '60px',
-    width: isMobileDevice ? '100px' : '200px',
-    height: isMobileDevice ? '100px' : '200px',
+    width: '200px',
+    height: '200px',
     background: 'rgba(59, 130, 246, 0.08)', // Subtle blue
     borderRadius: '50%',
     filter: 'blur(40px)',
     animation: 'float 8s ease-in-out infinite',
-    display: isMobileDevice ? 'none' : 'block'
+    display: 'block'
   };
 
   const floatingElement2Style = {
     position: 'absolute' as const,
     top: '200px',
     right: '60px',
-    width: isMobileDevice ? '75px' : '150px',
-    height: isMobileDevice ? '75px' : '150px',
+    width: '150px',
+    height: '150px',
     background: 'rgba(255, 107, 53, 0.06)', // Very subtle orange accent
     borderRadius: '50%',
     filter: 'blur(30px)',
     animation: 'float 10s ease-in-out infinite 3s',
-    display: isMobileDevice ? 'none' : 'block'
+    display: 'block'
   };
 
   const floatingElement3Style = {
     position: 'absolute' as const,
     bottom: '100px',
     left: '50%',
-    width: isMobileDevice ? '90px' : '180px',
-    height: isMobileDevice ? '90px' : '180px',
+    width: '180px',
+    height: '180px',
     background: 'rgba(243, 244, 246, 0.8)', // Light gray
     borderRadius: '50%',
     filter: 'blur(35px)',
     animation: 'float 12s ease-in-out infinite 6s',
-    display: isMobileDevice ? 'none' : 'block'
+    display: 'block'
   };
 
   const headerStyle = {
@@ -779,7 +798,7 @@ export default function Home() {
       <LiveSiteHeader />
 
       {/* Mobile Success Notification */}
-      <div className={isMobileDevice && showMobileSuccess ? 'mobile-success-visible' : 'mobile-success-hidden'}>
+      <div className="mobile-success-hidden">
         <div style={{
           position: 'fixed',
           top: '50%',
@@ -960,7 +979,7 @@ export default function Home() {
           zIndex: 1000,
           maxWidth: '320px',
           animation: 'slideInLeft 0.5s ease-out',
-          display: isMobileDevice ? 'none' : 'block' // Hide on mobile to avoid obstruction
+          display: 'block' // CSS media queries handle mobile hiding
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -1011,22 +1030,22 @@ export default function Home() {
       </div> {/* Close social-proof-widget div */}
       
       <div style={containerStyle} className="mobile-overflow-hidden">
-        {/* Mobile App Experience - Always render but conditionally show */}
-        <div className={isMobileDevice ? 'mobile-layout-visible' : 'mobile-layout-hidden'}>
+        {/* Mobile App Experience - CSS media query controlled */}
+        <div className="mobile-layout-visible">
           <MobileAppLayout>
             <div>Mobile App Content</div>
           </MobileAppLayout>
         </div>
 
-        {/* Desktop Content - Always render but conditionally show */}
-        <div className={!isMobileDevice ? 'desktop-content-visible' : 'desktop-content-hidden'}>
+        {/* Desktop Content - CSS media query controlled */}
+        <div className="desktop-content-visible">
             {/* Floating Background Elements */}
             <div style={floatingElement1Style}></div>
             <div style={floatingElement2Style}></div>
             <div style={floatingElement3Style}></div>
 
         {/* Main Content - Always render to avoid hook inconsistency */}
-        <main className={isMobileDevice ? 'mobile-view' : 'desktop-view'}>
+        <main className="responsive-main">
         <section style={{
           position: 'relative',
           zIndex: 10,
@@ -1245,7 +1264,7 @@ export default function Home() {
                 maxWidth: isMobileDevice ? 'none' : '100%'
               }}>
                 {/* Mobile Progress Indicator - Sticky */}
-                <div className={isMobileDevice && currentStep > 1 ? 'mobile-progress-visible' : 'mobile-progress-hidden'}>
+                <div className="mobile-progress-hidden">
                   <div style={{
                     position: 'fixed',
                     top: '70px',
@@ -1451,7 +1470,7 @@ export default function Home() {
                 </div>
 
                 {/* Mobile: Add a button to test premium form manually */}
-                <div className={isMobileDevice ? 'mobile-test-button-visible' : 'mobile-test-button-hidden'}>
+                <div className="mobile-test-button-visible">
                   <div style={{ marginBottom: '40px', textAlign: 'center' }}>
                     <h2 style={{ color: 'red', fontSize: '20px', marginBottom: '20px' }}>MOBILE DETECTED</h2>
                     <button
@@ -1482,9 +1501,9 @@ export default function Home() {
                 </div> {/* Close mobile-test-button div */}
                 {/* Desktop: Keep the original form below */}
 
-                <form onSubmit={handleSubmit} className={isMobileDevice ? 'mobile-form-hidden' : 'desktop-form-visible'} style={{ 
-                  border: isMobileDevice ? 'none' : '2px solid green',
-                  padding: isMobileDevice ? '0' : '20px',
+                <form onSubmit={handleSubmit} className="desktop-form-visible" style={{ 
+                  border: '2px solid green',
+                  padding: '20px',
                   borderRadius: '8px'
                 }}>
                   {/* Step 1: Quotation Mode & Service Selection */}
@@ -2958,7 +2977,7 @@ export default function Home() {
         </section>
 
         {/* Features Section - Hidden on Mobile for Better Conversion */}
-        <div className={!isMobileDevice ? 'features-section-visible' : 'features-section-hidden'}>
+        <div className="features-section-visible">
         <section style={{
           position: 'relative',
           zIndex: 10,
@@ -3199,7 +3218,7 @@ export default function Home() {
         </div> {/* Close features-section div */}
 
         {/* Social Proof Section - Hidden on Mobile for Better Conversion */}
-        <div className={!isMobileDevice ? 'social-proof-visible' : 'social-proof-hidden'}>
+        <div className="social-proof-visible">
         <section style={{
           position: 'relative',
           zIndex: 10,
@@ -3475,24 +3494,24 @@ export default function Home() {
         </main>
 
         {/* Success Toast */}
-        <div className={showSuccessToast ? 'success-toast-visible' : 'success-toast-hidden'}>
-          <div style={{
+        <div className="success-toast-hidden">
+          <div className="success-toast-content"
+            style={{
             position: 'fixed',
-            top: isMobileDevice ? '16px' : '24px',
-            right: isMobileDevice ? '16px' : '24px',
-            left: isMobileDevice ? '16px' : 'auto',
+            top: '24px',
+            right: '24px',
             zIndex: 9999,
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white',
-            padding: isMobileDevice ? '16px' : '16px 24px',
+            padding: '16px 24px',
             borderRadius: '12px',
             boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            fontSize: isMobileDevice ? '14px' : '16px',
+            fontSize: '16px',
             fontWeight: '600',
-            maxWidth: isMobileDevice ? 'none' : '400px',
+            maxWidth: '400px',
             transform: 'translateX(0)',
             transition: 'all 0.5s ease-out'
           }}>
@@ -3538,7 +3557,7 @@ export default function Home() {
         </div> {/* Close desktop-content div */}
 
         {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
-        <div className={isMobileDevice ? 'lead-capture-mobile-visible' : 'lead-capture-mobile-hidden'}>
+        <div className="lead-capture-mobile-visible">
           <LeadCaptureSimple
             isOpen={showLeadCapture}
             onClose={() => {
@@ -3554,7 +3573,7 @@ export default function Home() {
       </div>
       
       {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
-      <div className={!isMobileDevice ? 'desktop-footer-visible' : 'desktop-footer-hidden'}>
+      <div className="desktop-footer-visible">
         <LiveSiteFooter />
       </div>
     </>
