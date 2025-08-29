@@ -102,6 +102,14 @@
   display: none !important;
 }
 
+.social-proof-widget-visible {
+  display: block !important;
+}
+
+.social-proof-widget-hidden {
+  display: none !important;
+}
+
 /* UI/UX Best Practice Color System - 60-30-10 Rule */
 :root {
   /* Primary Colors (60%) - Base/Neutral */

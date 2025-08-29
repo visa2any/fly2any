@@ -944,10 +944,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}
+      </div> {/* Close exit-intent div */}
 
       {/* Social Proof Notification Widget */}
-      {showSocialProof && (
+      <div className={showSocialProof ? 'social-proof-widget-visible' : 'social-proof-widget-hidden'}>
         <div style={{
           position: 'fixed',
           bottom: '20px',
@@ -1008,7 +1008,7 @@ export default function Home() {
             </button>
           </div>
         </div>
-      </div> {/* Close exit-intent div */}
+      </div> {/* Close social-proof-widget div */}
       
       <div style={containerStyle} className="mobile-overflow-hidden">
         {/* Mobile App Experience - Always render but conditionally show */}
