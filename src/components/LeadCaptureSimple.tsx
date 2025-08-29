@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import DatePicker from './DatePicker';
 import AirportAutocomplete from './flights/AirportAutocomplete';
@@ -66,8 +66,10 @@ interface LeadCaptureSimpleProps {
   context?: string;
 }
 
-export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }: LeadCaptureSimpleProps) {
-  console.log('🚀 LeadCaptureSimple rendering!', { isOpen, context });
+const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }: LeadCaptureSimpleProps) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🚀 LeadCaptureSimple rendering!', { isOpen, context });
+  }
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     selectedServices: [] as ServiceFormData[],
@@ -94,7 +96,7 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
   const [isAddingService, setIsAddingService] = useState(true);
 
   // Service management functions
-  const addNewService = (serviceType: ServiceFormData['serviceType']) => {
+  const addNewService = useCallback((serviceType: ServiceFormData['serviceType']) => {
     const newService: ServiceFormData = {
       serviceType,
       completed: false,
@@ -122,9 +124,9 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
     }));
     setIsAddingService(false);
     setCurrentStep(2);
-  };
+  }, [formData.origem, formData.destino, formData.dataIda, formData.dataVolta, formData.tipoViagem, formData.adultos, formData.criancas, formData.bebes, formData.observacoes, formData.orcamentoAproximado]);
 
-  const removeService = (index: number) => {
+  const removeService = useCallback((index: number) => {
     setFormData((prev: any) => ({
       ...prev,
       selectedServices: prev.selectedServices.filter((_: any, i: number) => i !== index)
@@ -133,13 +135,13 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
       setIsAddingService(true);
       setCurrentStep(1);
     }
-  }
+  }, [formData.selectedServices.length]);
 
-  const getCurrentService = () => {
+  const getCurrentService = useCallback(() => {
     return formData.selectedServices[formData.currentServiceIndex] || null;
-  };
+  }, [formData.selectedServices, formData.currentServiceIndex]);
 
-  const updateCurrentService = (updates: Partial<ServiceFormData>) => {
+  const updateCurrentService = useCallback((updates: Partial<ServiceFormData>) => {
     setFormData((prev: any) => {
       const updatedServices = [...prev.selectedServices];
       if (updatedServices[prev.currentServiceIndex]) {
@@ -153,9 +155,9 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
         selectedServices: updatedServices
       };
     });
-  };
+  }, [formData.selectedServices, formData.currentServiceIndex]);
 
-  const handleSubmit = async (): Promise<void> => {
+  const handleSubmit = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/leads', {
@@ -203,17 +205,21 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
     } finally {
       setIsSubmitting(false);
     }
-  }
+  }, [formData, context, onClose]);
 
   if (!isOpen) {
-    console.log('❌ LeadCaptureSimple not open, returning null');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('❌ LeadCaptureSimple not open, returning null');
+    }
     return null;
   }
   
-  console.log('✅ LeadCaptureSimple is open and rendering!');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ LeadCaptureSimple is open and rendering!');
+  }
 
-  // Get service icons and names
-  const getServiceIcon = (serviceType: string) => {
+  // Get service icons and names (memoized)
+  const getServiceIcon = useMemo(() => (serviceType: string) => {
     switch (serviceType) {
       case 'voos': return <FlightIcon className="w-6 h-6" />;
       case 'hoteis': return <HotelIcon className="w-6 h-6" />;
@@ -222,9 +228,9 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
       case 'seguro': return <InsuranceIcon className="w-6 h-6" />;
       default: return <FlightIcon className="w-6 h-6" />;
     }
-  }
+  }, []);
 
-  const getServiceName = (serviceType: string) => {
+  const getServiceName = useMemo(() => (serviceType: string) => {
     switch (serviceType) {
       case 'voos': return 'Voos';
       case 'hoteis': return 'Hotéis';
@@ -233,7 +239,7 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
       case 'seguro': return 'Seguro';
       default: return 'Serviço';
     }
-  }
+  }, []);
 
   if (submitSuccess) {
     return (
@@ -250,7 +256,9 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
     );
   }
 
-  console.log('🎨 Rendering premium app design!');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎨 Rendering premium app design!');
+  }
   
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col overflow-hidden" style={{
@@ -783,4 +791,9 @@ export default function LeadCaptureSimple({ isOpen, onClose, context = 'popup' }
       </div>
     </div>
   );
-}
+});
+
+// Add display name for better debugging
+LeadCaptureSimple.displayName = 'LeadCaptureSimple';
+
+export default LeadCaptureSimple;
