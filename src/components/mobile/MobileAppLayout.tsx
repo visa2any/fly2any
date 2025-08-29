@@ -18,21 +18,71 @@ import {
   ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid
 } from '@heroicons/react/24/solid';
 import PremiumMobileLeadForm from '@/components/mobile/PremiumMobileLeadForm';
+import MobileFlightForm from '@/components/mobile/MobileFlightForm';
+import MobileHotelForm from '@/components/mobile/MobileHotelForm';
+import MobileCarForm from '@/components/mobile/MobileCarForm';
+import MobilePackageForm from '@/components/mobile/MobilePackageForm';
+import { ChevronLeftIcon } from '@/heroicons/react/24/outline';
 
 interface MobileAppLayoutProps {
   children: React.ReactNode;
 }
 
 type TabType = 'home' | 'search' | 'favorites' | 'profile' | 'chat';
+type ServiceType = 'flights' | 'hotels' | 'cars' | 'packages' | null;
 
 export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [currentService, setCurrentService] = useState<ServiceType>(null);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  // Service context configuration
+  const serviceContext = {
+    flights: { title: 'Busca de Voos', icon: '✈️', color: 'from-blue-500 via-blue-600 to-cyan-600' },
+    hotels: { title: 'Busca de Hotéis', icon: '🏨', color: 'from-emerald-500 via-green-600 to-teal-600' },
+    cars: { title: 'Aluguel de Carros', icon: '🚗', color: 'from-purple-500 via-violet-600 to-indigo-600' },
+    packages: { title: 'Pacotes Completos', icon: '🌟', color: 'from-rose-500 via-pink-600 to-fuchsia-600' }
+  };
+
+  // Handle service selection - no more modals!
+  const handleServiceSelection = (service: ServiceType) => {
+    setCurrentService(service);
+    setActiveTab('search');
+  };
+
+  // Handle back navigation
+  const handleBackToHome = () => {
+    setCurrentService(null);
+    setActiveTab('home');
+  };
+
+  // Handle search completions for all services
+  const handleFlightSearch = (searchData: any) => {
+    console.log('Flight search:', searchData);
+    // Here we would typically navigate to results or handle the search
+    // For now, let's show the lead form as a fallback
+    setShowLeadForm(true);
+  };
+
+  const handleHotelSearch = (searchData: any) => {
+    console.log('Hotel search:', searchData);
+    setShowLeadForm(true);
+  };
+
+  const handleCarSearch = (searchData: any) => {
+    console.log('Car search:', searchData);
+    setShowLeadForm(true);
+  };
+
+  const handlePackageSearch = (searchData: any) => {
+    console.log('Package search:', searchData);
+    setShowLeadForm(true);
+  };
 
   const tabs = [
     {
@@ -168,17 +218,17 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     {/* Quick Services Grid - Premium Cards */}
                     <div className="grid grid-cols-2 gap-3 flex-1 max-h-40">
                       {[
-                        { icon: '✈️', label: 'Voos', color: 'from-blue-500 via-blue-600 to-cyan-600', glow: 'shadow-blue-500/20' },
-                        { icon: '🏨', label: 'Hotéis', color: 'from-emerald-500 via-green-600 to-teal-600', glow: 'shadow-green-500/20' },
-                        { icon: '🚗', label: 'Carros', color: 'from-purple-500 via-violet-600 to-indigo-600', glow: 'shadow-purple-500/20' },
-                        { icon: '🌟', label: 'Pacotes', color: 'from-rose-500 via-pink-600 to-fuchsia-600', glow: 'shadow-rose-500/20' }
+                        { key: 'flights', icon: '✈️', label: 'Voos', color: 'from-blue-500 via-blue-600 to-cyan-600', glow: 'shadow-blue-500/20' },
+                        { key: 'hotels', icon: '🏨', label: 'Hotéis', color: 'from-emerald-500 via-green-600 to-teal-600', glow: 'shadow-green-500/20' },
+                        { key: 'cars', icon: '🚗', label: 'Carros', color: 'from-purple-500 via-violet-600 to-indigo-600', glow: 'shadow-purple-500/20' },
+                        { key: 'packages', icon: '🌟', label: 'Pacotes', color: 'from-rose-500 via-pink-600 to-fuchsia-600', glow: 'shadow-rose-500/20' }
                       ].map((service, index) => (
                         <motion.button
                           key={service.label}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.3 + index * 0.1 }}
-                          onClick={() => setShowLeadForm(true)}
+                          onClick={() => handleServiceSelection(service.key as ServiceType)}
                           className={`bg-gradient-to-br ${service.color} rounded-2xl p-4 text-white shadow-lg ${service.glow} backdrop-blur-sm border border-white/10`}
                           whileTap={{ scale: 0.95 }}
                           whileHover={{ scale: 1.02, y: -2 }}
@@ -213,17 +263,71 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
               )}
 
               {activeTab === 'search' && (
-                <div className="h-full flex items-center justify-center bg-purple-50">
-                  <div className="text-center p-6">
-                    <MagnifyingGlassIcon className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Buscar Viagens</h2>
-                    <p className="text-gray-600 mb-4">Em breve: busca inteligente de destinos</p>
-                    <button
-                      onClick={() => setShowLeadForm(true)}
-                      className="bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold"
-                    >
-                      Solicitar Cotação
-                    </button>
+                <div className="h-full bg-gray-50">
+                  {/* Service Header with Back Navigation */}
+                  {currentService && (
+                    <div className="flex items-center gap-3 p-4 bg-white border-b shadow-sm sticky top-0 z-10">
+                      <button 
+                        onClick={handleBackToHome}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <ChevronLeftIcon className="w-6 h-6 text-gray-600" />
+                      </button>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{serviceContext[currentService]?.icon}</span>
+                        <h2 className="text-lg font-semibold text-gray-800">
+                          {serviceContext[currentService]?.title}
+                        </h2>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Service-Specific Forms */}
+                  <div className="h-full">
+                    {currentService === 'flights' && (
+                      <MobileFlightForm 
+                        onSearch={handleFlightSearch}
+                        className="h-full"
+                      />
+                    )}
+                    
+                    {currentService === 'hotels' && (
+                      <MobileHotelForm 
+                        onSearch={handleHotelSearch}
+                        className="h-full"
+                      />
+                    )}
+                    
+                    {currentService === 'cars' && (
+                      <MobileCarForm 
+                        onSearch={handleCarSearch}
+                        className="h-full"
+                      />
+                    )}
+                    
+                    {currentService === 'packages' && (
+                      <MobilePackageForm 
+                        onSearch={handlePackageSearch}
+                        className="h-full"
+                      />
+                    )}
+
+                    {/* Default search state */}
+                    {!currentService && (
+                      <div className="h-full flex items-center justify-center p-6">
+                        <div className="text-center">
+                          <MagnifyingGlassIcon className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                          <h3 className="text-xl font-semibold mb-2">Escolha um Serviço</h3>
+                          <p className="text-gray-600">Volte ao início e selecione o serviço desejado</p>
+                          <button
+                            onClick={handleBackToHome}
+                            className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+                          >
+                            Voltar ao Início
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
