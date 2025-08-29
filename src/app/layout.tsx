@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 
 import Image from "next/image";
-import SessionWrapper from "@/components/SessionWrapper";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -449,9 +449,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-inter antialiased">
-        <SessionWrapper>
+        <Providers>
           {children}
-        </SessionWrapper>
+        </Providers>
       </body>
     </html>
   );
