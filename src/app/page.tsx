@@ -1022,7 +1022,47 @@ export default function Home() {
         {/* Mobile App Experience - CSS media query controlled */}
         <div className="mobile-layout-visible">
           <MobileAppLayout>
-            <div>Mobile App Content</div>
+            {/* Mobile Hero Section */}
+            <div className="mobile-hero-content">
+              <div className="text-center p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <h2 className="text-xl font-bold mb-2">🌎 Conecte-se ao Mundo</h2>
+                <p className="text-blue-100 text-sm">Voos • Hotéis • Carros • Seguros</p>
+              </div>
+              
+              {/* Quick Action Cards */}
+              <div className="p-4 grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="text-2xl mb-2">✈️</div>
+                  <div className="text-sm font-semibold text-gray-800">Voos</div>
+                  <div className="text-xs text-gray-500">Melhores preços</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="text-2xl mb-2">🏨</div>
+                  <div className="text-sm font-semibold text-gray-800">Hotéis</div>
+                  <div className="text-xs text-gray-500">Reserve agora</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="text-2xl mb-2">🚗</div>
+                  <div className="text-sm font-semibold text-gray-800">Carros</div>
+                  <div className="text-xs text-gray-500">Alugue fácil</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="text-2xl mb-2">🛡️</div>
+                  <div className="text-sm font-semibold text-gray-800">Seguro</div>
+                  <div className="text-xs text-gray-500">Viaje seguro</div>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="p-4">
+                <button 
+                  onClick={() => setShowLeadCapture(true)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-lg font-semibold shadow-lg active:scale-95 transition-transform"
+                >
+                  🚀 Solicitar Cotação Grátis
+                </button>
+              </div>
+            </div>
           </MobileAppLayout>
         </div>
 
