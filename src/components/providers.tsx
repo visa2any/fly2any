@@ -8,10 +8,14 @@ interface ProvidersProps {
   children: React.ReactNode;
 }
 
+// Development wrapper component for StrictMode (build-safe)
+function DevelopmentWrapper({ children }: { children: React.ReactNode }) {
+  // Use React Fragment to avoid any SSR/SSG issues
+  // StrictMode can be added back after deployment is stable
+  return <React.Fragment>{children}</React.Fragment>;
+}
+
 export function Providers({ children }: ProvidersProps) {
-  // Wrap with StrictMode only in development for better debugging
-  const ProviderWrapper = process.env.NODE_ENV === 'development' ? StrictMode : React.Fragment;
-  
   return (
     <ErrorBoundary 
       level="page" 
@@ -30,7 +34,7 @@ export function Providers({ children }: ProvidersProps) {
         // }
       }}
     >
-      <ProviderWrapper>
+      <DevelopmentWrapper>
         <SessionProvider refetchOnWindowFocus={false}>
           <Suspense 
             fallback={
@@ -46,7 +50,7 @@ export function Providers({ children }: ProvidersProps) {
             {children}
           </Suspense>
         </SessionProvider>
-      </ProviderWrapper>
+      </DevelopmentWrapper>
     </ErrorBoundary>
   );
 }

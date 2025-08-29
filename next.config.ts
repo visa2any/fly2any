@@ -9,10 +9,9 @@ const nextConfig: NextConfig = {
   compress: true,
   
   // Performance optimizations
-  swcMinify: true, // Use SWC for faster minification (includes console log removal in production)
   trailingSlash: false,
   productionBrowserSourceMaps: false, // Security: Disable source maps in production
-  optimizeFonts: true,
+  // Note: swcMinify and optimizeFonts are now enabled by default in Next.js 15
   
   // Advanced image optimization
   images: {
