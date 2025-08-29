@@ -1577,20 +1577,13 @@ export default function Home() {
                                   onClick={() => {
                                     addNewService(serviceType);
                                     
-                                    // Mobile interaction tracking and feedback
-                                    if (isMobileDevice) {
-                                      setMobileInteractionCount((prev: any) => prev + 1);
-                                      setShowMobileSuccess(true);
-                                      setTimeout(() => setShowMobileSuccess(false), 1500);
-                                      
-                                      // Track mobile engagement
-                                      if (typeof window !== 'undefined' && window.gtag) {
-                                        window.gtag('event', 'mobile_service_selection', {
-                                          event_category: 'engagement',
-                                          event_label: serviceType,
-                                          value: 1
-                                        });
-                                      }
+                                    // Simple analytics tracking without mobile state dependencies
+                                    if (typeof window !== 'undefined' && window.gtag) {
+                                      window.gtag('event', 'service_selection', {
+                                        event_category: 'engagement',
+                                        event_label: serviceType,
+                                        value: 1
+                                      });
                                     }
                                   }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
