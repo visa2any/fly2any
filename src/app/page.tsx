@@ -1491,11 +1491,6 @@ export default function Home() {
                   padding: isMobileDevice ? '0' : '20px',
                   borderRadius: '8px'
                 }}> {/* Hide on mobile, show on desktop */}
-                  {!isMobileDevice && (
-                    <div style={{ background: 'green', color: 'white', padding: '10px', marginBottom: '20px', borderRadius: '8px' }}>
-                      DESKTOP ORIGINAL FORM ACTIVE
-                    </div>
-                  )}
                   {/* Step 1: Quotation Mode & Service Selection */}
                   {currentStep === 1 && (
                     <div>
@@ -3546,7 +3541,7 @@ export default function Home() {
         <FloatingChat />
 
         {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
-        {isMobileDevice ? (
+        {isMobileDevice && (
           <LeadCaptureSimple
             isOpen={showLeadCapture}
             onClose={() => {
@@ -3555,19 +3550,6 @@ export default function Home() {
             }}
             context="mobile-app"
           />
-        ) : (
-          <div style={{
-            position: 'fixed',
-            top: '10px',
-            right: '10px',
-            background: 'blue',
-            color: 'white',
-            padding: '10px',
-            borderRadius: '8px',
-            zIndex: 9999
-          }}>
-            DESKTOP MODE - NO PREMIUM FORM
-          </div>
         )}
 
         {/* Exit Intent Popup */}
