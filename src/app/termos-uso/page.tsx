@@ -1,5 +1,5 @@
-import React from 'react';
 'use client';
+import React from 'react';
 
 import ResponsiveHeader from "@/components/ResponsiveHeader";
 import Footer from "@/components/Footer";
