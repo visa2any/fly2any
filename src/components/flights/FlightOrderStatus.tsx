@@ -50,7 +50,7 @@ export default function FlightOrderStatus({
     }
   }, [orderId, realTimeUpdates]);
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/flights/order-management?orderId=${orderId}`);
       const data = await response.json();
@@ -65,7 +65,7 @@ export default function FlightOrderStatus({
     }
   };
 
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = async (): Promise<void> => {
     if (!cancelReason) return;
     
     try {
@@ -210,7 +210,7 @@ export default function FlightOrderStatus({
             { id: 'details', label: '📋 Detalhes', icon: '📋' },
             { id: 'timeline', label: '⏰ Timeline', icon: '⏰' },
             { id: 'support', label: '🎧 Suporte', icon: '🎧' }
-          ].map((tab) => (
+          ].map((tab: any) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -310,7 +310,7 @@ export default function FlightOrderStatus({
               </label>
               <select
                 value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCancelReason(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
@@ -360,7 +360,7 @@ function DetailsTab({ order }: { order: FlightOrder }) {
       <div className="travelers-section bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 Passageiros</h3>
         <div className="space-y-4">
-          {order.travelers.map((traveler, index) => (
+          {order.travelers.map((traveler: any, index: number) => (
             <div key={traveler.id} className="traveler-info border-l-4 border-blue-200 pl-4">
               <div className="font-semibold text-gray-900">
                 {traveler.name.firstName} {traveler.name.lastName}
@@ -381,7 +381,7 @@ function DetailsTab({ order }: { order: FlightOrder }) {
       {/* Flight Details */}
       <div className="flight-details bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">✈️ Detalhes do Voo</h3>
-        {order.flightOffers.map((offer, index) => (
+        {order.flightOffers.map((offer: any, index: number) => (
           <div key={offer.id || index} className="flight-info">
             {offer.itineraries?.map((itinerary: any, itinIndex: number) => (
               <div key={itinIndex} className="itinerary mb-4">
@@ -472,7 +472,7 @@ function TimelineTab({ order }: { order: FlightOrder }) {
       <div className="timeline bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">⏰ Timeline da Viagem</h3>
         <div className="space-y-6">
-          {timelineEvents.map((event, index) => (
+          {timelineEvents.map((event: any, index: number) => (
             <div key={index} className="timeline-event flex items-start gap-4">
               <div className={`timeline-marker w-10 h-10 rounded-full flex items-center justify-center border-2 ${
                 event.status === 'completed' 

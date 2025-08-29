@@ -156,7 +156,7 @@ const PricingDisplay: React.FC<PricingDisplayProps> = ({
     // Simulate price monitoring
     const checkPriceChanges = () => {
       if (comparison?.priceAlert) {
-        setPriceAlerts(prev => [...prev, {
+        setPriceAlerts((prev: any) => [...prev, {
           id: Date.now(),
           ...comparison.priceAlert,
           timestamp: new Date().toISOString()
@@ -176,7 +176,7 @@ const PricingDisplay: React.FC<PricingDisplayProps> = ({
     if (!isPriceLocked) return;
 
     const timer = setInterval(() => {
-      setLockTimeRemaining(prev => {
+      setLockTimeRemaining((prev: any) => {
         if (prev <= 0) {
           setIsPriceLocked(false);
           return 0;

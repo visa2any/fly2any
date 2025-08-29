@@ -57,7 +57,7 @@ export default function USAirportFeatures({
             🛡️ Security Programs Available
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {securityPrograms.map((program) => (
+            {securityPrograms.map((program: any) => (
               <div key={program} className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm font-medium text-green-800">{program}</span>
@@ -87,7 +87,7 @@ export default function USAirportFeatures({
               ✈️ Major Loyalty Programs
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {majorLoyaltyPrograms.map((program) => {
+              {majorLoyaltyPrograms.map((program: any) => {
                 const airlineData = US_AIRLINES[program.airline];
                 return (
                   <div key={program.airline} className="bg-white rounded-lg p-3 border border-purple-200">
@@ -100,7 +100,7 @@ export default function USAirportFeatures({
                       </span>
                     </div>
                     <div className="text-xs text-purple-600 space-y-1">
-                      {program.benefits.slice(0, 2).map((benefit, idx) => (
+                      {program.benefits.slice(0, 2).map((benefit: any, idx: number) => (
                         <div key={idx} className="flex items-center space-x-1">
                           <div className="w-1 h-1 bg-purple-400 rounded-full"></div>
                           <span>{benefit}</span>
@@ -123,7 +123,7 @@ export default function USAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-amber-800 mb-2">Free Checked Bags</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms?.creditCardBenefits?.freeCheckedBags?.slice(0, 3)?.map((card) => (
+                {airport.loyaltyPrograms?.creditCardBenefits?.freeCheckedBags?.slice(0, 3)?.map((card: any) => (
                   <div key={card} className="text-xs text-amber-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-amber-500 rounded-full"></div>
                     <span>{card}</span>
@@ -134,7 +134,7 @@ export default function USAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-amber-800 mb-2">Priority Boarding</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms?.creditCardBenefits?.priorityBoarding?.slice(0, 3)?.map((card) => (
+                {airport.loyaltyPrograms?.creditCardBenefits?.priorityBoarding?.slice(0, 3)?.map((card: any) => (
                   <div key={card} className="text-xs text-amber-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-amber-500 rounded-full"></div>
                     <span>{card}</span>
@@ -145,7 +145,7 @@ export default function USAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-amber-800 mb-2">Lounge Access</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms?.creditCardBenefits?.loungeAccess?.slice(0, 3)?.map((card) => (
+                {airport.loyaltyPrograms?.creditCardBenefits?.loungeAccess?.slice(0, 3)?.map((card: any) => (
                   <div key={card} className="text-xs text-amber-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-amber-500 rounded-full"></div>
                     <span>{card}</span>
@@ -163,7 +163,7 @@ export default function USAirportFeatures({
               🏛️ Premium Lounges
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {airport.usAmenities?.lounges?.creditCard?.map((lounge, idx) => (
+              {airport.usAmenities?.lounges?.creditCard?.map((lounge: any, idx: number) => (
                 <div key={idx} className="bg-white rounded-lg p-3 border border-indigo-200">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-indigo-900 text-sm">{lounge.name}</span>
@@ -176,7 +176,7 @@ export default function USAirportFeatures({
                   </div>
                 </div>
               ))}
-              {airport.usAmenities?.lounges?.airline?.map((lounge, idx) => (
+              {airport.usAmenities?.lounges?.airline?.map((lounge: any, idx: number) => (
                 <div key={`airline-${idx}`} className="bg-white rounded-lg p-3 border border-indigo-200">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-indigo-900 text-sm">{lounge.name}</span>

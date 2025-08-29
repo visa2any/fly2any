@@ -279,7 +279,7 @@ export default function SeatMapVisualization({
 
           {/* Seat Rows */}
           <div className="space-y-2">
-            {seatMap.map((row, rowIndex) => (
+            {seatMap.map((row: SeatInfo[], rowIndex: number) => (
               <div key={rowIndex} className="flex items-center justify-center gap-1">
                 {/* Row Number */}
                 <div className="w-8 text-center text-sm font-medium text-gray-600">
@@ -288,7 +288,7 @@ export default function SeatMapVisualization({
 
                 {/* Seats */}
                 <div className="flex gap-1">
-                  {row.map((seat, seatIndex) => (
+                  {row.map((seat: SeatInfo, seatIndex: number) => (
                     <React.Fragment key={seat.seatNumber}>
                       <motion.button
                         whileHover={{ scale: 1.1 }}
@@ -367,7 +367,7 @@ export default function SeatMapVisualization({
               <div>
                 <div className="text-gray-600 mb-1">Features:</div>
                 <div className="flex flex-wrap gap-1">
-                  {hoveredSeat.features.map((feature, i) => (
+                  {hoveredSeat.features.map((feature: string, i: number) => (
                     <span
                       key={i}
                       className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs"

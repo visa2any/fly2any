@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ChatBubbleLeftRightIcon,
   XMarkIcon,
@@ -118,7 +118,7 @@ export default function ChatAgent() {
       type: 'text'
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: Message[]) => [...prev, userMessage]);
     setCurrentMessage('');
     setIsTyping(true);
 
@@ -153,7 +153,7 @@ export default function ChatAgent() {
           metadata: data.response.metadata
         };
 
-        setMessages(prev => [...prev, agentMessage]);
+        setMessages((prev: Message[]) => [...prev, agentMessage]);
 
         // Handle special actions
         if (data.response.action) {
@@ -175,7 +175,7 @@ export default function ChatAgent() {
           ]
         }
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev: Message[]) => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
@@ -209,7 +209,7 @@ export default function ChatAgent() {
         setLanguage(data.language);
         break;
       case 'toggle_mode':
-        setChatMode(prev => prev === 'basic' ? 'premium' : 'basic');
+        setChatMode((prev: 'basic' | 'premium') => prev === 'basic' ? 'premium' : 'basic');
         break;
       case 'new_conversation':
         startNewConversation();
@@ -220,7 +220,7 @@ export default function ChatAgent() {
     }
   };
 
-  const handleTransferToHuman = async () => {
+  const handleTransferToHuman = async (): Promise<void> => {
     try {
       // Create support ticket
       await fetch('/api/support/tickets', {
@@ -266,7 +266,7 @@ export default function ChatAgent() {
         }
       };
       
-      setMessages(prev => [...prev, transferMessage]);
+      setMessages((prev: Message[]) => [...prev, transferMessage]);
     } catch (error) {
       console.error('Transfer error:', error);
     }
@@ -286,17 +286,17 @@ export default function ChatAgent() {
   const startNewConversation = () => {
     // Save current conversation
     if (messages.length > 1) {
-      setChatHistory(prev => [...prev, messages]);
+      setChatHistory((prev: Message[][]) => [...prev, messages]);
     }
     
     // Start new conversation
     setMessages(INITIAL_MESSAGES);
-    setCurrentConversation(prev => prev + 1);
+    setCurrentConversation((prev: number) => prev + 1);
   };
 
   const saveCurrentConversation = () => {
     if (messages.length > 1) {
-      setChatHistory(prev => [...prev, messages]);
+      setChatHistory((prev: Message[][]) => [...prev, messages]);
       
       // Save to localStorage
       localStorage.setItem(`chat_history_${sessionId}`, JSON.stringify(chatHistory));
@@ -571,7 +571,7 @@ export default function ChatAgent() {
                   ref={inputRef}
                   type="text"
                   value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentMessage(e.target.value)}
                   placeholder={getLanguageText('placeholder')}
                   className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isTyping}
@@ -619,7 +619,7 @@ export default function ChatAgent() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000]">
           <div className="bg-white p-6 rounded-lg shadow-xl w-96">
             <h3 className="text-lg font-semibold mb-4">Seus Dados para Contato</h3>
-            <form onSubmit={(e) => {
+            <form onSubmit={(e: React.FormEvent) => {
               e.preventDefault();
               const formData = new FormData(e.target as HTMLFormElement);
               handleContactFormSubmit({

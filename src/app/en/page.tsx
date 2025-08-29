@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
@@ -180,7 +180,7 @@ export default function EnglishHomePage() {
       stops: formData.stops
     };
 
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       selectedServices: [...prev.selectedServices, newService],
       currentServiceIndex: prev.selectedServices.length
@@ -195,7 +195,7 @@ export default function EnglishHomePage() {
   };
 
   const updateCurrentService = (updates: Partial<ServiceFormData>) => {
-    setFormData(prev => {
+    setFormData((prev: any) => {
       const newServices = [...prev.selectedServices];
       newServices[prev.currentServiceIndex] = {
         ...newServices[prev.currentServiceIndex],
@@ -523,11 +523,11 @@ export default function EnglishHomePage() {
                     width: isMobile ? '100%' : 'auto',
                     justifyContent: 'center'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 15px 35px rgba(37, 211, 102, 0.4)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(37, 211, 102, 0.3)';
                   }}
@@ -555,11 +555,11 @@ export default function EnglishHomePage() {
                     width: isMobile ? '100%' : 'auto',
                     justifyContent: 'center'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 15px 35px rgba(59, 130, 246, 0.4)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.3)';
                   }}
@@ -772,9 +772,9 @@ export default function EnglishHomePage() {
                               onClick={() => {
                                 if (isSelected) {
                                   // Remove service
-                                  setFormData(prev => ({
+                                  setFormData((prev: any) => ({
                                     ...prev,
-                                    selectedServices: prev.selectedServices.filter(s => s.serviceType !== serviceType)
+                                    selectedServices: prev.selectedServices.filter((s: any) => s.serviceType !== serviceType)
                                   }));
                                 } else if (!isMaxServices) {
                                   // Add service
@@ -1058,7 +1058,7 @@ export default function EnglishHomePage() {
                             <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Adults</label>
                             <select
                               value={getCurrentService()?.adults || 1}
-                              onChange={(e) => updateCurrentService({ adults: parseInt(e.target.value) })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ adults: parseInt(e.target.value) })}
                               style={{
                                 width: '100%',
                                 padding: '8px 12px',
@@ -1077,7 +1077,7 @@ export default function EnglishHomePage() {
                             <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Children</label>
                             <select
                               value={getCurrentService()?.children || 0}
-                              onChange={(e) => updateCurrentService({ children: parseInt(e.target.value) })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ children: parseInt(e.target.value) })}
                               style={{
                                 width: '100%',
                                 padding: '8px 12px',
@@ -1097,7 +1097,7 @@ export default function EnglishHomePage() {
                               <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Infants</label>
                               <select
                                 value={getCurrentService()?.infants || 0}
-                                onChange={(e) => updateCurrentService({ infants: parseInt(e.target.value) })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ infants: parseInt(e.target.value) })}
                                 style={{
                                   width: '100%',
                                   padding: '8px 12px',
@@ -1131,7 +1131,7 @@ export default function EnglishHomePage() {
                             
                             if (nextIncompleteIndex !== -1) {
                               // Go to next incomplete service
-                              setFormData(prev => ({ ...prev, currentServiceIndex: nextIncompleteIndex }));
+                              setFormData((prev: any) => ({ ...prev, currentServiceIndex: nextIncompleteIndex }));
                             } else {
                               // All services completed, go to personal info
                               setCurrentStep(3);
@@ -1217,7 +1217,7 @@ export default function EnglishHomePage() {
                             type="text"
                             required
                             value={formData.firstName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, firstName: e.target.value }))}
                             placeholder="John"
                             style={{
                               width: '100%',
@@ -1240,7 +1240,7 @@ export default function EnglishHomePage() {
                             type="text"
                             required
                             value={formData.lastName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, lastName: e.target.value }))}
                             placeholder="Smith"
                             style={{
                               width: '100%',
@@ -1267,7 +1267,7 @@ export default function EnglishHomePage() {
                           type="email"
                           required
                           value={formData.email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                           placeholder="john@example.com"
                           style={{
                             width: '100%',
@@ -1291,7 +1291,7 @@ export default function EnglishHomePage() {
                         </label>
                         <PhoneInput
                           value={formData.phone}
-                          onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                          onChange={(value: string) => setFormData((prev: any) => ({ ...prev, phone: value }))}
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
@@ -1303,7 +1303,7 @@ export default function EnglishHomePage() {
                         </label>
                         <select
                           value={formData.nationality}
-                          onChange={(e) => setFormData(prev => ({ ...prev, nationality: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, nationality: e.target.value }))}
                           style={{
                             width: '100%',
                             padding: '12px',
@@ -1328,7 +1328,7 @@ export default function EnglishHomePage() {
                         </label>
                         <textarea
                           value={formData.specialRequests}
-                          onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: any) => ({ ...prev, specialRequests: e.target.value }))}
                           placeholder="Any special requirements, preferences, or questions..."
                           rows={3}
                           style={{
@@ -1395,7 +1395,7 @@ export default function EnglishHomePage() {
                             // Go back to service details or service selection
                             const lastIncompleteService = formData.selectedServices.findIndex(service => !service.completed);
                             if (lastIncompleteService !== -1) {
-                              setFormData(prev => ({ ...prev, currentServiceIndex: lastIncompleteService }));
+                              setFormData((prev: any) => ({ ...prev, currentServiceIndex: lastIncompleteService }));
                               setCurrentStep(2);
                             } else {
                               setCurrentStep(1);
@@ -1751,11 +1751,11 @@ export default function EnglishHomePage() {
                   boxSizing: 'border-box',
                   textAlign: 'center'
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.currentTarget.style.background = 'transparent';
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                 }}

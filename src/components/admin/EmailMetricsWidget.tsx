@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   EnvelopeIcon,
   EyeIcon,
@@ -30,7 +30,7 @@ export default function EmailMetricsWidget() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/admin/email-analytics/metrics?timeRange=${timeRange}`);
       if (response.ok) {
@@ -98,7 +98,7 @@ export default function EmailMetricsWidget() {
           
           <select
             value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTimeRange(e.target.value)}
             className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="24h">24h</option>

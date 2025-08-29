@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { FlightIcon, CalendarIcon, UsersIcon, SwitchIcon, MagnifyingGlassIcon } from '@/components/Icons';
 import { FlightSearchFormData, TravelClass } from '@/types/flights';
 import { validateFlightSearchForm } from '@/lib/flights/validators';
@@ -124,7 +125,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
 
   // Handle airport selection
   const selectOrigin = useCallback((airport: AirportOption) => {
-    setFormData(prev => ({ ...prev, origin: airport }));
+    setFormData((prev: any) => ({ ...prev, origin: airport }));
     setOriginSearch('');
     setShowOriginDropdown(false);
     // Auto-focus to destination
@@ -132,14 +133,14 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
   }, []);
 
   const selectDestination = useCallback((airport: AirportOption) => {
-    setFormData(prev => ({ ...prev, destination: airport }));
+    setFormData((prev: any) => ({ ...prev, destination: airport }));
     setDestinationSearch('');
     setShowDestinationDropdown(false);
   }, []);
 
   // Switch origin and destination
   const switchAirports = useCallback(() => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
@@ -147,7 +148,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
   }, []);
 
   // Handle form submission
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault();
     
     const errors = validateFlightSearchForm(formData);
@@ -211,7 +212,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
         <div className="bg-black/20 backdrop-blur-sm border-b border-white/10 py-3">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-8 text-sm font-medium">
-              {TRUST_SIGNALS.map((signal, index) => (
+              {TRUST_SIGNALS.map((signal: any, index: number) => (
                 <div key={index} className={`flex items-center gap-2 ${signal.color}`}>
                   <span className="text-base">{signal.icon}</span>
                   <span>{signal.text}</span>
@@ -257,11 +258,11 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                   {[
                     { value: 'round-trip', label: 'Round Trip', icon: '↔️' },
                     { value: 'one-way', label: 'One Way', icon: '➡️' }
-                  ].map((option) => (
+                  ].map((option: any) => (
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, tripType: option.value as any }))}
+                      onClick={() => setFormData((prev: any) => ({ ...prev, tripType: option.value as any }))}
                       className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                         formData.tripType === option.value
                           ? 'bg-blue-600 text-white shadow-lg'
@@ -285,7 +286,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                         ref={originRef}
                         type="text"
                         value={formData.origin?.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : originSearch}
-                        onChange={(e) => handleOriginSearch(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleOriginSearch(e.target.value)}
                         onFocus={() => setShowOriginDropdown(true)}
                         placeholder="City or airport"
                         className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 text-lg font-semibold text-gray-800 placeholder-gray-400 transition-all"
@@ -296,7 +297,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                     {/* Origin Dropdown */}
                     {showOriginDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
-                        {originSuggestions.map((airport, index) => (
+                        {originSuggestions.map((airport: any, index: number) => (
                           <button
                             key={airport.iataCode}
                             type="button"
@@ -343,7 +344,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                         ref={destinationRef}
                         type="text"
                         value={formData.destination?.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : destinationSearch}
-                        onChange={(e) => handleDestinationSearch(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleDestinationSearch(e.target.value)}
                         onFocus={() => setShowDestinationDropdown(true)}
                         placeholder="City or airport"
                         className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 text-lg font-semibold text-gray-800 placeholder-gray-400 transition-all"
@@ -354,7 +355,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                     {/* Destination Dropdown */}
                     {showDestinationDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto">
-                        {destinationSuggestions.map((airport, index) => (
+                        {destinationSuggestions.map((airport: any, index: number) => (
                           <button
                             key={airport.iataCode}
                             type="button"
@@ -379,7 +380,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                       <input
                         type="date"
                         value={formData.departureDate.toISOString().split('T')[0]}
-                        onChange={(e) => setFormData(prev => ({ 
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ 
                           ...prev, 
                           departureDate: new Date(e.target.value) 
                         }))}
@@ -390,7 +391,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                         <input
                           type="date"
                           value={formData.returnDate?.toISOString().split('T')[0] || ''}
-                          onChange={(e) => setFormData(prev => ({ 
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ 
                             ...prev, 
                             returnDate: new Date(e.target.value) 
                           }))}
@@ -421,7 +422,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, adults: Math.max(1, prev.passengers.adults - 1) }
                                 }))}
@@ -432,7 +433,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                               <span className="w-8 text-center font-bold">{formData.passengers.adults}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, adults: prev.passengers.adults + 1 }
                                 }))}
@@ -447,7 +448,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, children: Math.max(0, prev.passengers.children - 1) }
                                 }))}
@@ -458,7 +459,7 @@ export default function CompetitiveHeroSection({ onSearch, isLoading = false }: 
                               <span className="w-8 text-center font-bold">{formData.passengers.children}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, children: prev.passengers.children + 1 }
                                 }))}

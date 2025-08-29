@@ -202,7 +202,7 @@ function FlightsPageContent() {
   // Handle flight search with US market optimizations
   const handleFlightSearch = useCallback(async (searchData: FlightSearchFormData) => {
     try {
-      setState(prev => ({ ...prev, isLoading: true, error: null, searchData }));
+      setState((prev: any) => ({ ...prev, isLoading: true, error: null, searchData }));
       
       // Scroll to results area for better UX
       if (resultsRef.current) {
@@ -240,7 +240,7 @@ function FlightsPageContent() {
 
       const offers = result.data || [];
       
-      setState(prev => ({
+      setState((prev: any) => ({
         ...prev,
         view: 'results',
         searchResults: offers,
@@ -261,7 +261,7 @@ function FlightsPageContent() {
 
     } catch (error) {
       console.error('❌ Flight search error:', error);
-      setState(prev => ({
+      setState((prev: any) => ({
         ...prev,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Search failed. Please try again.'
@@ -271,7 +271,7 @@ function FlightsPageContent() {
 
   // Handle filter changes
   const handleFiltersChange = useCallback((newFilters: FlightFiltersType) => {
-    setState(prev => {
+    setState((prev: any) => {
       const filtered = applyFilters(prev.searchResults || [], newFilters);
       return {
         ...prev,
@@ -322,7 +322,7 @@ function FlightsPageContent() {
 
   // Handle sort changes
   const handleSortChange = useCallback((sortOptions: FlightSortOptions) => {
-    setState(prev => {
+    setState((prev: any) => {
       const sorted = [...(prev.filteredResults || [])].sort((a, b) => {
         let comparison = 0;
         
@@ -364,7 +364,7 @@ function FlightsPageContent() {
 
   // Handle flight selection
   const handleFlightSelect = useCallback((flight: ProcessedFlightOffer) => {
-    setState(prev => ({
+    setState((prev: any) => ({
       ...prev,
       selectedFlight: flight,
       view: 'details'
@@ -373,7 +373,7 @@ function FlightsPageContent() {
 
   // Handle back navigation
   const handleBackToResults = useCallback(() => {
-    setState(prev => ({
+    setState((prev: any) => ({
       ...prev,
       view: 'results',
       selectedFlight: null
@@ -382,7 +382,7 @@ function FlightsPageContent() {
 
   // Handle back to search
   const handleBackToSearch = useCallback(() => {
-    setState(prev => ({
+    setState((prev: any) => ({
       ...prev,
       view: 'search',
       searchResults: null,
@@ -517,7 +517,7 @@ function FlightsPageContent() {
             flight={state.selectedFlight}
             onBooking={(flight, services) => {
               // Handle booking flow
-              setState(prev => ({ ...prev, view: 'booking' }));
+              setState((prev: any) => ({ ...prev, view: 'booking' }));
             }}
             onBack={handleBackToResults}
           />
@@ -548,7 +548,7 @@ function FlightsPageContent() {
       {state.error && (
         <ErrorMessage
           message={state.error}
-          onClose={() => setState(prev => ({ ...prev, error: null }))}
+          onClose={() => setState((prev: any) => ({ ...prev, error: null }))}
         />
       )}
 

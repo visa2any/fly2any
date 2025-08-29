@@ -30,7 +30,7 @@ export default function PhoneManagementDashboard() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (): Promise<void> => {
     try {
       setLoading(true);
 

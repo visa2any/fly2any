@@ -71,7 +71,7 @@ export default function PremiumFlightTransition({
       return;
     }
 
-    const performRealSearch = async () => {
+    const performRealSearch = async (): Promise<void> => {
       try {
         // Build search parameters
         const queryParams = new URLSearchParams({
@@ -231,7 +231,7 @@ export default function PremiumFlightTransition({
     
     // Smooth progress animation (slower, more realistic)
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev: any) => {
         if (isSearchComplete || phase === 'opening') {
           return 100; // Stop animation when complete
         }
@@ -246,7 +246,7 @@ export default function PremiumFlightTransition({
 
     // Airlines counter (more accurate than "sites")
     const sitesInterval = setInterval(() => {
-      setSitesSearched(prev => {
+      setSitesSearched((prev: any) => {
         if (isSearchComplete || phase === 'opening') return 500; // Stop animation when complete
         const increment = Math.floor(Math.random() * 20) + 10;
         return Math.min(prev + increment, 480);
@@ -256,7 +256,7 @@ export default function PremiumFlightTransition({
 
     // Real-time price updates (based on actual search progress)
     const priceInterval = setInterval(() => {
-      setCurrentPrice(prev => {
+      setCurrentPrice((prev: any) => {
         if (isSearchComplete && searchResults?.length > 0) {
           // Use real price from results - stop animation
           const realPrice = Math.min(...searchResults.map((f: any) => parseFloat(f.price?.total || f.grandTotal || '999')));

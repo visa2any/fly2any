@@ -55,7 +55,9 @@ function SelectContent({
   children,
   position = "popper",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  position?: "item-aligned" | "popper";
+}) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content

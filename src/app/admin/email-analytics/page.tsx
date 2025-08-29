@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -276,7 +276,7 @@ export default function EmailAnalyticsDashboard() {
             <div className="flex items-center space-x-4">
               <select
                 value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTimeRange(e.target.value)}
                 className="bg-white border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="24h">Last 24 Hours</option>
@@ -286,7 +286,7 @@ export default function EmailAnalyticsDashboard() {
               </select>
               <select
                 value={selectedCampaignType}
-                onChange={(e) => setSelectedCampaignType(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCampaignType(e.target.value)}
                 className="bg-white border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="all">All Campaigns</option>

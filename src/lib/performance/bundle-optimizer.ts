@@ -202,12 +202,13 @@ export class BundleOptimizer {
     const resources = performance.getEntriesByType('resource');
     
     const jsResources = resources.filter(resource => 
-      resource.name.includes('.js') && resource.transferSize > 0
+      resource.name.includes('.js') && (resource as PerformanceResourceTiming).transferSize > 0
     );
 
     console.group('Bundle Analysis');
     jsResources.forEach(resource => {
-      console.log(`${resource.name}: ${resource.transferSize} bytes`);
+      const resourceTiming = resource as PerformanceResourceTiming;
+      console.log(`${resource.name}: ${resourceTiming.transferSize} bytes`);
     });
     console.groupEnd();
   }
@@ -231,7 +232,7 @@ export class BundleOptimizer {
     const resources = performance.getEntriesByType('resource');
     return resources
       .filter(r => r.name.includes('.js'))
-      .reduce((total, r) => total + (r.transferSize || 0), 0);
+      .reduce((total, r) => total + ((r as PerformanceResourceTiming).transferSize || 0), 0);
   }
 
   private reportBundleMetrics(metrics: any) {

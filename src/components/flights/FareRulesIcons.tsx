@@ -18,7 +18,7 @@ interface TooltipProps {
   children: React.ReactNode;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ data, children }) => {
+const Tooltip: React.FC<TooltipProps> = ({ data, children  }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   const colorClasses = {
@@ -60,12 +60,11 @@ const Tooltip: React.FC<TooltipProps> = ({ data, children }) => {
   );
 };
 
-const FareRulesIcons: React.FC<FareRulesIconsProps> = ({ 
-  fareRules, 
+const FareRulesIcons: React.FC<FareRulesIconsProps> = ({ fareRules, 
   onDetailsClick, 
   compact = false,
   showTooltips = true 
-}) => {
+ }: FareRulesIconsProps) => {
   // Get first fare rule from array for display
   const fareRule = Array.isArray(fareRules) ? fareRules[0] : fareRules;
   

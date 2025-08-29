@@ -109,7 +109,7 @@ function AdminLayoutContent({
     }
   }, [session, status, pathname, router]);
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       setIsLoggingOut(true);
       await signOut({

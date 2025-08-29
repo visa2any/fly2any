@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import CoreWebVitalsOptimizer from '@/lib/seo/core-web-vitals';
 import AdvancedSchemaGenerator from '@/lib/seo/advanced-schema';
@@ -49,7 +49,7 @@ export default function SEOOptimizer({
     }
   }, [pathname, language, autoOptimize]);
 
-  const initializeOptimization = async () => {
+  const initializeOptimization = async (): Promise<void> => {
     setIsOptimizing(true);
     
     try {

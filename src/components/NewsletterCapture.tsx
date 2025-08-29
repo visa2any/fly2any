@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { MailIcon, PhoneIcon } from '@/components/Icons';
 
@@ -184,7 +184,7 @@ export default function NewsletterCapture({
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                   placeholder="Seu melhor email"
                   style={{
                     width: '100%',
@@ -242,7 +242,7 @@ export default function NewsletterCapture({
                 <input
                   type="tel"
                   value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsapp(e.target.value)}
                   placeholder="WhatsApp (opcional - para ofertas VIP)"
                   style={{
                     width: '100%',
@@ -342,7 +342,7 @@ export default function NewsletterCapture({
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             placeholder="Digite seu email"
             style={{
               width: '100%',
@@ -381,7 +381,7 @@ export default function NewsletterCapture({
             <input
               type="tel"
               value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatsapp(e.target.value)}
               placeholder="WhatsApp (para ofertas VIP instantâneas)"
               style={{
                 width: '100%',

@@ -91,7 +91,7 @@ export default function AIEnhancedFlightSearch({
     }
   }, [userId]);
 
-  const initializeUserSession = async () => {
+  const initializeUserSession = async (): Promise<void> => {
     try {
       // Initialize session with AI orchestrator
       await unifiedAIOrchestrator.orchestrateAIResponse(
@@ -107,7 +107,7 @@ export default function AIEnhancedFlightSearch({
           'general'
         );
         
-        setSearchState(prev => ({
+        setSearchState((prev: any) => ({
           ...prev,
           insights: transformToInsights(proactiveRecommendations.recommendations)
         }));
@@ -115,7 +115,7 @@ export default function AIEnhancedFlightSearch({
     } catch (error) {
       console.error('Failed to initialize AI session:', error);
     }
-  };
+  }
 
   const handleTraditionalSearch = useCallback(async (searchFormData: FlightSearchFormData) => {
     // Convert FlightSearchFormData to FlightSearchParams
@@ -132,7 +132,7 @@ export default function AIEnhancedFlightSearch({
       maxPrice: searchFormData.preferences.maxPrice,
       currencyCode: 'BRL'
     };
-    setSearchState(prev => ({ ...prev, loading: true }));
+    setSearchState((prev: any) => ({ ...prev, loading: true }));
     setAiProcessing(true);
 
     try {
@@ -150,7 +150,7 @@ export default function AIEnhancedFlightSearch({
       // Transform results into insights
       const insights = generateSearchInsights(searchResult, searchParams);
 
-      setSearchState(prev => ({
+      setSearchState((prev: any) => ({
         ...prev,
         flights: searchResult.flights || [],
         insights: insights,
@@ -169,7 +169,7 @@ export default function AIEnhancedFlightSearch({
 
     } catch (error) {
       console.error('AI-enhanced search failed:', error);
-      setSearchState(prev => ({ ...prev, loading: false }));
+      setSearchState((prev: any) => ({ ...prev, loading: false }));
     } finally {
       setAiProcessing(false);
     }
@@ -187,7 +187,7 @@ export default function AIEnhancedFlightSearch({
 
       // If response includes flight suggestions, update state
       if (response.response.flightSuggestions?.length > 0) {
-        setSearchState(prev => ({
+        setSearchState((prev: any) => ({
           ...prev,
           flights: response.response.flightSuggestions,
           insights: transformToInsights(response.response.personalizedInsights || [])
@@ -220,7 +220,7 @@ export default function AIEnhancedFlightSearch({
 
       // Update state based on automation result
       if (result.automationOpportunities?.length > 0) {
-        setSearchState(prev => ({
+        setSearchState((prev: any) => ({
           ...prev,
           automationSuggestions: result.automationOpportunities
         }));
@@ -328,7 +328,7 @@ export default function AIEnhancedFlightSearch({
   const renderModeToggle = () => (
     <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
       <button
-        onClick={() => setSearchState(prev => ({ ...prev, mode: 'traditional' }))}
+        onClick={() => setSearchState((prev: any) => ({ ...prev, mode: 'traditional' }))}
         className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           searchState.mode === 'traditional'
             ? 'bg-white text-blue-600 shadow-sm'
@@ -341,7 +341,7 @@ export default function AIEnhancedFlightSearch({
       
       {enableConversationalMode && (
         <button
-          onClick={() => setSearchState(prev => ({ ...prev, mode: 'conversational' }))}
+          onClick={() => setSearchState((prev: any) => ({ ...prev, mode: 'conversational' }))}
           className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             searchState.mode === 'conversational'
               ? 'bg-white text-blue-600 shadow-sm'
@@ -354,7 +354,7 @@ export default function AIEnhancedFlightSearch({
       )}
       
       <button
-        onClick={() => setSearchState(prev => ({ ...prev, mode: 'ai_assisted' }))}
+        onClick={() => setSearchState((prev: any) => ({ ...prev, mode: 'ai_assisted' }))}
         className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           searchState.mode === 'ai_assisted'
             ? 'bg-white text-blue-600 shadow-sm'
@@ -471,8 +471,8 @@ export default function AIEnhancedFlightSearch({
           </span>
         )}
       </div>
-    )
-  );
+    
+  ));
 
   return (
     <div className={`ai-enhanced-flight-search ${className}`}>
@@ -491,7 +491,7 @@ export default function AIEnhancedFlightSearch({
             onFlightSelect={onFlightSelect}
             onSearchUpdate={(data: any) => {
               if (data.hasResults) {
-                setSearchState(prev => ({
+                setSearchState((prev: any) => ({
                   ...prev,
                   flights: data.flights || []
                 }));

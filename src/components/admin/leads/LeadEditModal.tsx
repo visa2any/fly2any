@@ -154,7 +154,7 @@ export function LeadEditModal({
                     <Input
                       id="nome"
                       value={formData.nome || ''}
-                      onChange={(e) => handleInputChange('nome', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('nome', e.target.value)}
                       placeholder="Digite o nome completo"
                     />
                   </div>
@@ -165,7 +165,7 @@ export function LeadEditModal({
                       id="email"
                       type="email"
                       value={formData.email || ''}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
                       placeholder="Digite o email"
                     />
                   </div>
@@ -175,7 +175,7 @@ export function LeadEditModal({
                     <Input
                       id="whatsapp"
                       value={formData.whatsapp || ''}
-                      onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('whatsapp', e.target.value)}
                       placeholder="Digite o WhatsApp"
                     />
                   </div>
@@ -185,7 +185,7 @@ export function LeadEditModal({
                     <Input
                       id="telefone"
                       value={formData.telefone || ''}
-                      onChange={(e) => handleInputChange('telefone', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('telefone', e.target.value)}
                       placeholder="Digite o telefone"
                     />
                   </div>
@@ -249,7 +249,7 @@ export function LeadEditModal({
                     <Input
                       id="assignedTo"
                       value={formData.assignedTo || ''}
-                      onChange={(e) => handleInputChange('assignedTo', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('assignedTo', e.target.value)}
                       placeholder="Nome do responsável"
                     />
                   </div>
@@ -260,7 +260,7 @@ export function LeadEditModal({
                       id="orcamentoTotal"
                       type="number"
                       value={formData.orcamentoTotal || ''}
-                      onChange={(e) => handleInputChange('orcamentoTotal', parseFloat(e.target.value) || 0)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('orcamentoTotal', parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
                     />
                   </div>
@@ -284,7 +284,7 @@ export function LeadEditModal({
                     <Input
                       id="origem"
                       value={formData.origem || ''}
-                      onChange={(e) => handleInputChange('origem', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('origem', e.target.value)}
                       placeholder="Cidade de origem"
                     />
                   </div>
@@ -294,7 +294,7 @@ export function LeadEditModal({
                     <Input
                       id="destino"
                       value={formData.destino || ''}
-                      onChange={(e) => handleInputChange('destino', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('destino', e.target.value)}
                       placeholder="Cidade de destino"
                     />
                   </div>
@@ -305,7 +305,7 @@ export function LeadEditModal({
                       id="dataPartida"
                       type="date"
                       value={formData.dataPartida || ''}
-                      onChange={(e) => handleInputChange('dataPartida', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('dataPartida', e.target.value)}
                     />
                   </div>
                   
@@ -315,7 +315,7 @@ export function LeadEditModal({
                       id="dataRetorno"
                       type="date"
                       value={formData.dataRetorno || ''}
-                      onChange={(e) => handleInputChange('dataRetorno', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('dataRetorno', e.target.value)}
                     />
                   </div>
                   
@@ -326,7 +326,7 @@ export function LeadEditModal({
                       type="number"
                       min="1"
                       value={formData.numeroPassageiros || 1}
-                      onChange={(e) => handleInputChange('numeroPassageiros', parseInt(e.target.value) || 1)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('numeroPassageiros', parseInt(e.target.value) || 1)}
                     />
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export function LeadEditModal({
                   <Textarea
                     id="notes"
                     value={formData.notes || ''}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('notes', e.target.value)}
                     placeholder="Adicione notas sobre este lead..."
                     rows={6}
                   />

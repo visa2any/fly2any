@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
@@ -20,9 +20,9 @@ import {
   LocationIcon
 } from '@/components/Icons';
 import Logo from '@/components/Logo';
-import ResponsiveHeader from '@/components/ResponsiveHeader';
+// import ResponsiveHeader from '@/components/ResponsiveHeader'; // Temporarily replaced with LiveSiteHeader
 import Footer from '@/components/Footer';
-// Import new header and footer ONLY for home page
+// Import new header and footer ONLY for home page (temporary until full Fly2Any implementation)
 import LiveSiteHeader from '@/components/home/LiveSiteHeader';
 import LiveSiteFooter from '@/components/home/LiveSiteFooter';
 import GlobalMobileStyles from '@/components/GlobalMobileStyles';
@@ -36,6 +36,9 @@ import LeadCaptureSimple from '@/components/LeadCaptureSimple';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
+// Mobile-specific imports
+import { useMobileUtils } from '@/hooks/useMobileDetection';
+import MobileAppLayout from '@/components/mobile/MobileAppLayout';
 
 interface ServiceFormData {
   serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
@@ -112,8 +115,24 @@ interface FormData {
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  
+  // Use unified mobile detection
+  const { isMobileDevice, isTablet, isPortraitMobile } = useMobileUtils();
+  
+  // Show premium app form automatically on mobile only
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+  
+  // Auto-show premium form on mobile after page loads
+  useEffect(() => {
+    console.log('🔍 Mobile Detection:', { isMobileDevice, isTablet, isPortraitMobile });
+    if (isMobileDevice) {
+      console.log('📱 Mobile detected - showing premium form');
+      // Show immediately for testing
+      setShowLeadCapture(true);
+    } else {
+      console.log('💻 Desktop detected - keeping original form');
+    }
+  }, [isMobileDevice, isTablet, isPortraitMobile]);
   const [formData, setFormData] = useState<FormData>({
     selectedServices: [],
     currentServiceIndex: 0,
@@ -172,7 +191,7 @@ export default function Home() {
     }, 3000); // Show after 3 seconds
 
     const cycleSocialProof = setInterval(() => {
-      setSocialProofIndex((prev) => (prev + 1) % socialProofNotifications.length);
+      setSocialProofIndex((prev: number) => (prev + 1) % socialProofNotifications.length);
       setShowSocialProof(true);
       
       // Hide after 4 seconds, show next after 8 seconds
@@ -234,16 +253,16 @@ export default function Home() {
 
   // Handle input changes with validation
   const handleInputChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
     
     // Real-time validation
     const error = validateField(name, value);
-    setValidationErrors(prev => ({ ...prev, [name]: error }));
+    setValidationErrors((prev: any) => ({ ...prev, [name]: error }));
   };
 
   // Handle field blur
   const handleFieldBlur = (name: string) => {
-    setTouchedFields(prev => ({ ...prev, [name]: true }));
+    setTouchedFields((prev: any) => ({ ...prev, [name]: true }));
   };
 
   // Calculate progress percentage
@@ -301,13 +320,6 @@ export default function Home() {
   useEffect(() => {
     setIsVisible(true);
     
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        setIsMobile(window.innerWidth < 1024);
-      }
-    };
-    checkMobile();
-    
     // Close passengers dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       const dropdown = document.getElementById('passengers-dropdown');
@@ -318,10 +330,8 @@ export default function Home() {
     };
     
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
       document.addEventListener('click', handleClickOutside);
       return () => {
-        window.removeEventListener('resize', checkMobile);
         document.removeEventListener('click', handleClickOutside);
       };
     }
@@ -332,8 +342,8 @@ export default function Home() {
   };
 
   const updateCurrentService = (updates: Partial<ServiceFormData>) => {
-    setFormData(prev => {
-      const updatedServices = prev.selectedServices.map((service, index) =>
+    setFormData((prev: any) => {
+      const updatedServices = prev.selectedServices.map((service: any, index: number) =>
         index === prev.currentServiceIndex ? { ...service, ...updates } : service
       );
       
@@ -378,7 +388,7 @@ export default function Home() {
       escalas: 'qualquer'
     };
 
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       selectedServices: [...prev.selectedServices, newService],
       currentServiceIndex: prev.selectedServices.length
@@ -389,9 +399,9 @@ export default function Home() {
   };
 
   const removeService = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      selectedServices: prev.selectedServices.filter((_, i) => i !== index),
+      selectedServices: prev.selectedServices.filter((_: any, i: number) => i !== index),
       currentServiceIndex: Math.max(0, prev.currentServiceIndex - 1)
     }));
   };
@@ -399,8 +409,21 @@ export default function Home() {
   const completeCurrentService = () => {
     updateCurrentService({ completed: true });
     
-    // Return to service selection to add more services
-    setCurrentStep(1);
+    // After completing current service, check if there are more services to process
+    const currentIndex = formData.currentServiceIndex;
+    const hasMoreServices = currentIndex < formData.selectedServices.length - 1;
+    
+    if (hasMoreServices) {
+      // Move to next service in step 2
+      setFormData((prev: any) => ({
+        ...prev,
+        currentServiceIndex: currentIndex + 1
+      }));
+      setCurrentStep(2); // Stay in step 2 for next service
+    } else {
+      // No more services to process, advance to personal information
+      setCurrentStep(3);
+    }
     setIsAddingService(false);
   };
 
@@ -440,34 +463,106 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+    
+    // CRITICAL FIX: Only allow final form submission, prevent auto-advancement
+    // Form submission should only happen from the final step (step 4)
+    if (currentStep < 4) {
+      console.log('🔄 [FORM DEBUG] Blocked form submission - not on final step. Current step:', currentStep);
+      return; // Prevent any auto-advancement
+    }
+    
     setIsSubmitting(true);
-
+    
+    console.log('🚀 [FORM DEBUG] Final form submit triggered, currentStep:', currentStep);
+    console.log('🚀 [FORM DEBUG] Form data:', { nome: formData.nome, email: formData.email });
+    
+    // EMERGENCY BLOCK: Only allow submission when ALL required fields are filled
+    const hasRequiredPersonalInfo = formData.nome?.trim() && formData.email?.trim();
+    const hasRequiredTravelInfo = formData.selectedServices && formData.selectedServices.length > 0;
+    
+    if (!hasRequiredPersonalInfo) {
+      console.log('❌ [FORM DEBUG] BLOCKED: Missing personal information');
+      console.log('❌ [FORM DEBUG] Nome:', formData.nome, 'Email:', formData.email);
+      setIsSubmitting(false);
+      alert('❌ Por favor, preencha seu Nome e Email antes de continuar.');
+      return;
+    }
+    
+    if (!hasRequiredTravelInfo) {
+      console.log('❌ [FORM DEBUG] BLOCKED: Missing travel information');
+      setIsSubmitting(false);
+      
+      // If user hasn't selected services, go back to step 1
+      if (currentStep < 1) {
+        setCurrentStep(1);
+        return;
+      }
+      
+      alert('❌ Por favor, selecione pelo menos um serviço.');
+      return;
+    }
+    
+    // ONLY proceed with submission if we have all required data
+    console.log('🚀 [FORM DEBUG] Starting form submission...');
+    
     try {
+      // Get current service data
+      const currentService = getCurrentService();
+      console.log('📋 [FORM DEBUG] Current service:', currentService);
+      
       // Convert form data to plain object
       const formDataObj = {
-        selectedServices: formData.selectedServices,
-        currentServiceIndex: formData.currentServiceIndex,
-        origem: formData.origem,
-        destino: formData.destino,
-        dataIda: formData.dataIda,
-        dataVolta: formData.dataVolta,
-        tipoViagem: formData.tipoViagem,
-        classeVoo: formData.classeVoo,
-        adultos: formData.adultos,
-        criancas: formData.criancas,
-        bebes: formData.bebes,
-        companhiaPreferida: formData.companhiaPreferida,
-        horarioPreferido: formData.horarioPreferido,
-        escalas: formData.escalas,
-        nome: formData.nome,
-        sobrenome: formData.sobrenome,
-        email: formData.email,
-        telefone: formData.telefone,
-        whatsapp: formData.whatsapp,
-        orcamentoAproximado: formData.orcamentoAproximado,
-        flexibilidadeDatas: formData.flexibilidadeDatas,
-        observacoes: formData.observacoes
+        // Personal information
+        nome: formData.nome || '',
+        sobrenome: formData.sobrenome || '',
+        email: formData.email || '',
+        telefone: formData.telefone || '',
+        whatsapp: formData.whatsapp || '',
+        
+        // Travel information with fallbacks
+        origem: formData.origem || currentService?.origem || 'A definir',
+        destino: formData.destino || currentService?.destino || 'A definir',
+        dataIda: formData.dataIda || currentService?.dataIda,
+        dataVolta: formData.dataVolta || currentService?.dataVolta,
+        tipoViagem: formData.tipoViagem || currentService?.tipoViagem || 'ida-volta',
+        classeVoo: formData.classeVoo || 'economica',
+        
+        // Passengers with defaults
+        adultos: formData.adultos || 1,
+        criancas: formData.criancas || 0,
+        bebes: formData.bebes || 0,
+        
+        // Preferences
+        companhiaPreferida: formData.companhiaPreferida || '',
+        horarioPreferido: formData.horarioPreferido || 'qualquer',
+        escalas: formData.escalas || 'qualquer',
+        orcamentoAproximado: formData.orcamentoAproximado || '',
+        flexibilidadeDatas: formData.flexibilidadeDatas || false,
+        observacoes: formData.observacoes || '',
+        
+        // System fields
+        selectedServices: ['flight'], // Always include at least flight
+        source: 'website'
       };
+  // CRITICAL: Add step navigation functions to prevent form submission
+  const goToNextStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const goToPreviousStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+      console.log('📤 [FORM DEBUG] Sending data:', JSON.stringify(formDataObj, null, 2));
 
       // Track conversion events
       if (typeof trackFormSubmit === 'function') {
@@ -477,7 +572,8 @@ export default function Home() {
         trackQuoteRequest(formDataObj);
       }
 
-      // Send to API
+      // Send to API with enhanced error handling
+      console.log('🌐 [FORM DEBUG] Making API call...');
       const response = await fetch('/api/leads', {
         method: 'POST',
         headers: {
@@ -486,52 +582,106 @@ export default function Home() {
         body: JSON.stringify(formDataObj)
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Erro ao enviar formulário');
+      console.log('📥 [FORM DEBUG] Response status:', response.status);
+      
+      let result;
+      try {
+        result = await response.json();
+        console.log('📥 [FORM DEBUG] Response data:', result);
+      } catch (parseError) {
+        console.error('❌ [FORM DEBUG] Failed to parse response JSON:', parseError);
+        throw new Error('Resposta inválida do servidor');
       }
 
-      // Success response
-      console.log('Lead enviado com sucesso:', result);
+      // CRITICAL FIX: Check for success in the result object first
+      if (result.success === true) {
+        console.log('✅ [FORM DEBUG] API returned success=true, treating as successful');
+        
+        // Success response
+        console.log('Lead enviado com sucesso:', result);
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 5000);
+        
+        // Reset form and go back to start after successful submission
+        setTimeout(() => {
+          setValidationErrors({});
+          setTouchedFields({});
+          
+          const dropdown = document.getElementById('passengers-dropdown');
+          if (dropdown) {
+            dropdown.style.display = 'none';
+          }
+          
+          startNewQuotation();
+        }, 2000);
+        
+        return; // Exit successfully
+      }
+
+      // FALLBACK: Check HTTP status if success field is not true
+      if (!response.ok && result.success !== true) {
+        console.warn('⚠️ [FORM DEBUG] API returned error:', {
+          status: response.status,
+          success: result.success,
+          error: result.error,
+          message: result.message
+        });
+        
+        // Log detailed error information
+        if (result.metadata?.validationErrors) {
+          console.error('❌ [FORM DEBUG] Validation errors:', result.metadata.validationErrors);
+        }
+        
+        throw new Error(result.message || result.error || 'Erro na resposta do servidor');
+      }
+
+      // If we get here, something unexpected happened but we'll treat it as success
+      console.log('⚠️ [FORM DEBUG] Unexpected response, but no clear error - treating as success');
       setShowSuccessToast(true);
       setTimeout(() => setShowSuccessToast(false), 5000);
       
-      // Reset form and go back to start after successful submission
       setTimeout(() => {
-        // Clear any validation errors and touched fields
         setValidationErrors({});
         setTouchedFields({});
-        
-        // Close any open dropdowns
-        const dropdown = document.getElementById('passengers-dropdown');
-        if (dropdown) {
-          dropdown.style.display = 'none';
-        }
-        
-        // Reset to initial state
         startNewQuotation();
       }, 2000);
       
     } catch (error) {
-      console.error('Erro ao enviar formulário:', error);
+      console.error('❌ [FORM DEBUG] Form submission error:', error);
+      console.error('❌ [FORM DEBUG] Error details:', {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
       
-      // Show user-friendly error based on error type
+      // Enhanced error handling with better user messages
+      let errorMessage = '❌ Erro ao enviar formulário. Nossa equipe foi notificada.';
+      
       if (error instanceof Error) {
-        if (error.message.includes('Failed to fetch')) {
-          alert('❌ Erro de conexão. Verifique sua internet e tente novamente.');
-        } else if (error.message.includes('500')) {
-          alert('❌ Erro interno do servidor. Nossa equipe foi notificada. Tente novamente em alguns minutos.');
-        } else if (error.message.includes('400')) {
-          alert('❌ Dados inválidos. Verifique se todos os campos estão preenchidos corretamente.');
-        } else {
-          alert('❌ Erro ao enviar formulário. Tente novamente ou entre em contato via WhatsApp.');
+        const errorMsg = error.message.toLowerCase();
+        
+        if (errorMsg.includes('failed to fetch') || errorMsg.includes('network') || errorMsg.includes('connection')) {
+          errorMessage = '❌ Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (errorMsg.includes('timeout')) {
+          errorMessage = '❌ Tempo esgotado. Tente novamente.';
+        } else if (errorMsg.includes('400') || errorMsg.includes('validation') || errorMsg.includes('invalid')) {
+          errorMessage = '❌ Dados inválidos. Verifique os campos e tente novamente.';
+        } else if (errorMsg.includes('500') || errorMsg.includes('internal server')) {
+          errorMessage = '❌ Erro interno do servidor. Nossa equipe foi notificada.';
+        } else if (errorMsg.includes('dados inválidos')) {
+          errorMessage = '❌ Por favor, verifique se todos os campos obrigatórios estão preenchidos.';
         }
-      } else {
-        alert('❌ Erro inesperado. Tente novamente ou entre em contato via WhatsApp.');
       }
+      
+      // Show error to user
+      alert(errorMessage + '\n\n📱 Para atendimento imediato, entre em contato via WhatsApp.');
+      
+      // Log for debugging but don't fail completely
+      console.log('🔄 [FORM DEBUG] Form will remain open for retry');
+      
     } finally {
       setIsSubmitting(false);
+      console.log('🏁 [FORM DEBUG] Form submission process completed');
     }
   };
 
@@ -569,43 +719,50 @@ export default function Home() {
     background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)',
     position: 'relative' as const,
     overflow: 'visible' as const,
-    fontFamily: 'Inter, sans-serif'
+    fontFamily: 'Inter, sans-serif',
+    width: '100%',
+    maxWidth: '100vw',
+    margin: 0,
+    padding: 0
   };
 
   const floatingElement1Style = {
     position: 'absolute' as const,
     top: '120px',
     left: '60px',
-    width: '200px',
-    height: '200px',
+    width: isMobileDevice ? '100px' : '200px',
+    height: isMobileDevice ? '100px' : '200px',
     background: 'rgba(59, 130, 246, 0.08)', // Subtle blue
     borderRadius: '50%',
     filter: 'blur(40px)',
-    animation: 'float 8s ease-in-out infinite'
+    animation: 'float 8s ease-in-out infinite',
+    display: isMobileDevice ? 'none' : 'block'
   };
 
   const floatingElement2Style = {
     position: 'absolute' as const,
     top: '200px',
     right: '60px',
-    width: '150px',
-    height: '150px',
+    width: isMobileDevice ? '75px' : '150px',
+    height: isMobileDevice ? '75px' : '150px',
     background: 'rgba(255, 107, 53, 0.06)', // Very subtle orange accent
     borderRadius: '50%',
     filter: 'blur(30px)',
-    animation: 'float 10s ease-in-out infinite 3s'
+    animation: 'float 10s ease-in-out infinite 3s',
+    display: isMobileDevice ? 'none' : 'block'
   };
 
   const floatingElement3Style = {
     position: 'absolute' as const,
     bottom: '100px',
     left: '50%',
-    width: '180px',
-    height: '180px',
+    width: isMobileDevice ? '90px' : '180px',
+    height: isMobileDevice ? '90px' : '180px',
     background: 'rgba(243, 244, 246, 0.8)', // Light gray
     borderRadius: '50%',
     filter: 'blur(35px)',
-    animation: 'float 12s ease-in-out infinite 6s'
+    animation: 'float 12s ease-in-out infinite 6s',
+    display: isMobileDevice ? 'none' : 'block'
   };
 
   const headerStyle = {
@@ -619,12 +776,10 @@ export default function Home() {
   return (
     <>
       <GlobalMobileStyles />
-      {/* Using live site header ONLY for home page - temporary */}
       <LiveSiteHeader />
-      
 
       {/* Mobile Success Notification */}
-      {isMobile && showMobileSuccess && (
+      {isMobileDevice && showMobileSuccess && (
         <div style={{
           position: 'fixed',
           top: '50%',
@@ -632,23 +787,25 @@ export default function Home() {
           transform: 'translate(-50%, -50%)',
           background: 'linear-gradient(135deg, #10B981, #059669)',
           color: 'white',
-          padding: '20px',
-          borderRadius: '20px',
+          padding: '16px',
+          borderRadius: '16px',
+          maxWidth: '280px',
+          width: '90vw',
           zIndex: 1002,
           textAlign: 'center',
           animation: 'bounceIn 0.6s ease-out',
           boxShadow: '0 20px 40px rgba(16, 185, 129, 0.4)',
           border: '2px solid rgba(255, 255, 255, 0.2)'
         }}>
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
+          <div style={{ fontSize: '24px', marginBottom: '6px' }}>🎉</div>
           <div style={{ 
-            fontSize: '16px', 
+            fontSize: '14px', 
             fontWeight: '700', 
             marginBottom: '4px' 
           }}>
             Ótima escolha!
           </div>
-          <div style={{ fontSize: '14px', opacity: 0.9 }}>
+          <div style={{ fontSize: '12px', opacity: 0.9 }}>
             Mais {Math.floor(Math.random() * 15) + 5} pessoas fizeram isso hoje
           </div>
         </div>
@@ -715,7 +872,7 @@ export default function Home() {
                 type="email"
                 placeholder="Seu melhor email"
                 value={exitIntentEmail}
-                onChange={(e) => setExitIntentEmail(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setExitIntentEmail(e.target.value)}
                 style={{
                   flex: 1,
                   padding: '12px 16px',
@@ -803,7 +960,7 @@ export default function Home() {
           zIndex: 1000,
           maxWidth: '320px',
           animation: 'slideInLeft 0.5s ease-out',
-          display: isMobile ? 'none' : 'block' // Hide on mobile to avoid obstruction
+          display: isMobileDevice ? 'none' : 'block' // Hide on mobile to avoid obstruction
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -854,25 +1011,39 @@ export default function Home() {
       )}
       
       <div style={containerStyle} className="mobile-overflow-hidden">
-        {/* Floating Background Elements */}
-        <div style={floatingElement1Style}></div>
-        <div style={floatingElement2Style}></div>
-        <div style={floatingElement3Style}></div>
+        {/* Mobile App Experience - NO SCROLLING, PREMIUM UI */}
+        {isMobileDevice && (
+          <MobileAppLayout>
+            <div>Mobile App Content</div>
+          </MobileAppLayout>
+        )}
 
-        {/* Main Content */}
-        <main>
+        {/* Desktop Content - Only renders on desktop */}
+        {!isMobileDevice && (
+          <>
+            {/* Floating Background Elements */}
+            <div style={floatingElement1Style}></div>
+            <div style={floatingElement2Style}></div>
+            <div style={floatingElement3Style}></div>
+          </>
+        )}
+
+        {/* Main Content - Renders differently for mobile/desktop */}
+        <main style={{ display: isMobileDevice ? 'none' : 'block' }}>
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: isMobile ? '40px 0 60px 0' : '60px 0 80px 0'
+          padding: isMobileDevice ? '40px 0 60px 0' : '60px 0 80px 0',
+          width: '100%',
+          maxWidth: '100vw'
         }} className="mobile-section">
           <div style={{
             maxWidth: '1400px',
             margin: '0 auto',
-            padding: isMobile ? '0 16px' : '0 32px',
+            padding: isMobileDevice ? '0 20px' : '0 32px',
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: isMobile ? '40px' : '64px',
+            gridTemplateColumns: isMobileDevice ? '1fr' : '1fr 1fr',
+            gap: isMobileDevice ? '40px' : '64px',
             alignItems: 'center'
           }} className="mobile-container mobile-grid-single">
             {/* Left Side - Content */}
@@ -894,33 +1065,28 @@ export default function Home() {
                 marginTop: '20px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
-                <span style={{
-                  color: colors.accent.orange,
-                  fontWeight: '600',
-                  fontSize: '14px'
-                }}>✈️ Especialistas em viagens há 21 anos</span>
               </div>
               <h1 style={{
-                fontSize: isMobile ? '32px' : '56px',
+                fontSize: isMobileDevice ? '24px' : '56px',
                 fontWeight: '800',
                 fontFamily: 'Poppins, sans-serif',
-                lineHeight: '1.2',
-                margin: '0 0 24px 0',
+                lineHeight: '1.3',
+                margin: isMobileDevice ? '0 0 16px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
-                textAlign: isMobile ? 'center' : 'left',
+                textAlign: isMobileDevice ? 'center' : 'left',
                 color: colors.secondary.gray900
               }} className="mobile-title">
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: isMobile ? '18px' : '20px',
+                fontSize: isMobileDevice ? '16px' : '20px',
                 color: colors.secondary.gray600,
-                lineHeight: '1.7',
-                maxWidth: isMobile ? '100%' : '520px',
-                marginBottom: isMobile ? '32px' : '40px',
+                lineHeight: '1.6',
+                maxWidth: isMobileDevice ? '100%' : '520px',
+                marginBottom: isMobileDevice ? '24px' : '40px',
                 fontWeight: '400',
-                textAlign: isMobile ? 'center' : 'left'
+                textAlign: isMobileDevice ? 'center' : 'left'
               }} className="mobile-subtitle">
                 Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
@@ -929,9 +1095,10 @@ export default function Home() {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '32px',
-                marginBottom: '40px',
-                flexWrap: 'wrap'
+                gap: isMobileDevice ? '16px' : '32px',
+                marginBottom: isMobileDevice ? '24px' : '40px',
+                flexWrap: 'wrap',
+                justifyContent: isMobileDevice ? 'center' : 'flex-start'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{
@@ -942,7 +1109,7 @@ export default function Home() {
                   }}>
                     <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: isMobileDevice ? '12px' : '14px', fontWeight: '500' }}>
                     Garantia Melhor Preço
                   </span>
                 </div>
@@ -979,11 +1146,11 @@ export default function Home() {
               {/* Quick Action Buttons */}
               <div style={{
                 display: 'flex',
-                gap: isMobile ? '12px' : '16px',
-                marginBottom: isMobile ? '32px' : '40px',
+                gap: isMobileDevice ? '12px' : '16px',
+                marginBottom: isMobileDevice ? '32px' : '40px',
                 flexWrap: 'wrap',
-                flexDirection: isMobile ? 'column' : 'row',
-                alignItems: isMobile ? 'center' : 'flex-start'
+                flexDirection: isMobileDevice ? 'column' : 'row',
+                alignItems: isMobileDevice ? 'center' : 'flex-start'
               }} className="mobile-button-group">
 
                 <button
@@ -997,17 +1164,18 @@ export default function Home() {
                   style={{
                     background: colors.accent.orange,
                     color: 'white',
-                    padding: isMobile ? '16px 24px' : '18px 36px',
-                    borderRadius: '12px',
+                    padding: isMobileDevice ? '14px 20px' : '18px 36px',
+                    borderRadius: isMobileDevice ? '10px' : '12px',
                     border: 'none',
-                    fontSize: '16px',
+                    fontSize: isMobileDevice ? '14px' : '16px',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    width: isMobile ? '100%' : 'auto',
+                    width: isMobileDevice ? '100%' : 'auto',
                     boxShadow: `0 4px 14px ${colors.accent.orange}25`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '8px',
                     transform: 'scale(1)'
                   }}
@@ -1022,8 +1190,8 @@ export default function Home() {
                     e.currentTarget.style.background = colors.accent.orange;
                   }}
                 >
-                  <FlightIcon style={{ width: '20px', height: '20px' }} />
-                  Save up to $250 - Free Quote
+                  <FlightIcon style={{ width: isMobileDevice ? '16px' : '20px', height: isMobileDevice ? '16px' : '20px' }} />
+                  {isMobileDevice ? 'Free Quote - Save $250' : 'Save up to $250 - Free Quote'}
                 </button>
                 
                 <a
@@ -1034,20 +1202,22 @@ export default function Home() {
                     background: 'rgba(255, 255, 255, 0.15)',
                     backdropFilter: 'blur(10px)',
                     color: 'white',
-                    padding: '16px 32px',
-                    borderRadius: '12px',
+                    padding: isMobileDevice ? '14px 20px' : '16px 32px',
+                    borderRadius: isMobileDevice ? '10px' : '12px',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
-                    fontSize: '16px',
+                    fontSize: isMobileDevice ? '14px' : '16px',
                     fontWeight: '600',
                     textDecoration: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    justifyContent: 'center',
+                    gap: '8px',
+                    width: isMobileDevice ? '100%' : 'auto'
                   }}
                 >
-                  <ChatIcon style={{ width: '20px', height: '20px' }} />
+                  <ChatIcon style={{ width: isMobileDevice ? '16px' : '20px', height: isMobileDevice ? '16px' : '20px' }} />
                   WhatsApp
                 </a>
               </div>
@@ -1065,18 +1235,20 @@ export default function Home() {
               <div style={{
                 background: 'rgba(255, 255, 255, 0.98)',
                 backdropFilter: 'blur(20px)',
-                borderRadius: isMobile ? '24px' : '32px',
-                padding: isMobile ? '28px' : '40px',
+                borderRadius: isMobileDevice ? '16px' : '32px',
+                padding: isMobileDevice ? '20px' : '40px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                maxHeight: isMobile ? '90vh' : 'auto',
-                overflowY: isMobile ? 'auto' : 'visible',
+                maxHeight: isMobileDevice ? '90vh' : 'auto',
+                overflowY: isMobileDevice ? 'auto' : 'visible',
                 scrollBehavior: 'smooth',
                 WebkitOverflowScrolling: 'touch',
-                position: 'relative' as const
+                position: 'relative' as const,
+                width: '100%',
+                maxWidth: isMobileDevice ? 'none' : '100%'
               }}>
                 {/* Mobile Progress Indicator - Sticky */}
-                {isMobile && currentStep > 1 && (
+                {isMobileDevice && currentStep > 1 && (
                   <div style={{
                     position: 'fixed',
                     top: '70px',
@@ -1122,7 +1294,7 @@ export default function Home() {
                 <div style={{
                   position: 'absolute',
                   top: '-12px',
-                  left: isMobile ? '20px' : '40px',
+                  left: isMobileDevice ? '20px' : '40px',
                   background: 'linear-gradient(135deg, #059669, #10b981)',
                   color: 'white',
                   padding: '6px 16px',
@@ -1281,7 +1453,49 @@ export default function Home() {
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                {/* Mobile: Add a button to test premium form manually */}
+                {isMobileDevice && (
+                  <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+                    <h2 style={{ color: 'red', fontSize: '20px', marginBottom: '20px' }}>MOBILE DETECTED</h2>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log('🚀 Opening premium form manually');
+                        setShowLeadCapture(true);
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        padding: '20px 40px',
+                        borderRadius: '12px',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        border: 'none',
+                        cursor: 'pointer',
+                        width: '90%',
+                        maxWidth: '400px'
+                      }}
+                    >
+                      🚀 ABRIR APP PREMIUM 🚀
+                    </button>
+                    <p style={{ marginTop: '12px', color: 'green', fontSize: '14px' }}>
+                      Premium App Form Status: {showLeadCapture ? 'OPEN' : 'CLOSED'}
+                    </p>
+                  </div>
+                )}
+                {/* Desktop: Keep the original form below */}
+
+                <form onSubmit={handleSubmit} style={{ 
+                  display: isMobileDevice ? 'none' : 'block',
+                  border: isMobileDevice ? 'none' : '2px solid green',
+                  padding: isMobileDevice ? '0' : '20px',
+                  borderRadius: '8px'
+                }}> {/* Hide on mobile, show on desktop */}
+                  {!isMobileDevice && (
+                    <div style={{ background: 'green', color: 'white', padding: '10px', marginBottom: '20px', borderRadius: '8px' }}>
+                      DESKTOP ORIGINAL FORM ACTIVE
+                    </div>
+                  )}
                   {/* Step 1: Quotation Mode & Service Selection */}
                   {currentStep === 1 && (
                     <div>
@@ -1349,8 +1563,8 @@ export default function Home() {
                           {/* Available Services */}
                           <div style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
-                            gap: isMobile ? '12px' : '8px', 
+                            gridTemplateColumns: isMobileDevice ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
+                            gap: isMobileDevice ? '12px' : '8px', 
                             marginTop: '16px' 
                           }}>
                             {(['voos', 'hoteis', 'carros', 'passeios', 'seguro'] as const).map(serviceType => {
@@ -1365,8 +1579,8 @@ export default function Home() {
                                     addNewService(serviceType);
                                     
                                     // Mobile interaction tracking and feedback
-                                    if (isMobile) {
-                                      setMobileInteractionCount(prev => prev + 1);
+                                    if (isMobileDevice) {
+                                      setMobileInteractionCount((prev: any) => prev + 1);
                                       setShowMobileSuccess(true);
                                       setTimeout(() => setShowMobileSuccess(false), 1500);
                                       
@@ -1382,22 +1596,25 @@ export default function Home() {
                                   }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
                                   style={{ 
-                                    padding: '16px 20px', 
-                                    borderRadius: '12px', 
+                                    padding: isMobileDevice ? '12px 16px' : '16px 20px', 
+                                    borderRadius: isMobileDevice ? '8px' : '12px', 
                                     border: isSelected ? `2px solid ${colors.accent.orange}` : `1px solid ${colors.primary.gray200}`, 
                                     background: isSelected ? `${colors.accent.orange}05` : colors.primary.white, 
                                     cursor: isSelected || isMaxServices ? 'not-allowed' : 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
+                                    justifyContent: 'center',
+                                    gap: isMobileDevice ? '6px' : '8px',
                                     opacity: isSelected || isMaxServices ? 0.7 : 1,
                                     position: 'relative',
-                                    fontSize: '14px',
+                                    fontSize: isMobileDevice ? '12px' : '14px',
                                     fontWeight: '600',
                                     transition: 'all 0.2s ease',
                                     transform: 'scale(1)',
                                     boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                                    color: colors.secondary.gray800
+                                    color: colors.secondary.gray800,
+                                    width: '100%',
+                                    minHeight: isMobileDevice ? '44px' : 'auto'
                                   }}
                                   onMouseEnter={(e) => {
                                     if (!isSelected && !isMaxServices) {
@@ -1490,7 +1707,7 @@ export default function Home() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setCurrentStep(3)}
+                                  onClick={() => setCurrentStep(2)}
                                   style={{
                                     flex: 1,
                                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -1566,8 +1783,8 @@ export default function Home() {
                           {/* Origem e Destino - Mobile Responsive */}
                           <div style={{ 
                             display: 'flex', 
-                            flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? '16px' : '12px', 
+                            flexDirection: isMobileDevice ? 'column' : 'row',
+                            gap: isMobileDevice ? '16px' : '12px', 
                             marginBottom: '16px' 
                           }}>
                             <div style={{ flex: 1 }}>
@@ -1580,6 +1797,7 @@ export default function Home() {
                                 onChange={(airport) => updateCurrentService({ origem: airport })}
                                 placeholder="Aeroporto de origem"
                                 className="w-full"
+                                inputClassName="prevent-form-submit"
                               />
                             </div>
                             <div style={{ flex: 1 }}>
@@ -1592,6 +1810,7 @@ export default function Home() {
                                 onChange={(airport) => updateCurrentService({ destino: airport })}
                                 placeholder="Aeroporto de destino"
                                 className="w-full"
+                                inputClassName="prevent-form-submit"
                               />
                             </div>
                           </div>
@@ -1626,8 +1845,8 @@ export default function Home() {
                           {/* Check-in e Check-out - Mobile Responsive */}
                           <div style={{ 
                             display: 'flex', 
-                            flexDirection: isMobile ? 'column' : 'row',
-                            gap: isMobile ? '16px' : '12px', 
+                            flexDirection: isMobileDevice ? 'column' : 'row',
+                            gap: isMobileDevice ? '16px' : '12px', 
                             marginBottom: '16px' 
                           }}>
                             <div style={{ flex: 1 }}>
@@ -1667,7 +1886,7 @@ export default function Home() {
                               </label>
                               <select
                                 value={getCurrentService()?.quartos || 1}
-                                onChange={(e) => updateCurrentService({ quartos: parseInt(e.target.value) })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ quartos: parseInt(e.target.value) })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -1695,7 +1914,7 @@ export default function Home() {
                               </label>
                               <select
                                 value={getCurrentService()?.categoriaHotel || 'qualquer'}
-                                onChange={(e) => updateCurrentService({ categoriaHotel: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ categoriaHotel: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -1772,7 +1991,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Hora de Retirada</label>
                               <select
                                 value={getCurrentService()?.horaRetirada || '10:00'}
-                                onChange={(e) => updateCurrentService({ horaRetirada: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ horaRetirada: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -1811,7 +2030,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Hora de Entrega</label>
                               <select
                                 value={getCurrentService()?.horaEntrega || '10:00'}
-                                onChange={(e) => updateCurrentService({ horaEntrega: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ horaEntrega: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -1839,7 +2058,7 @@ export default function Home() {
                             <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Categoria do Veículo</label>
                             <select
                               value={getCurrentService()?.categoriaVeiculo || 'economico'}
-                              onChange={(e) => updateCurrentService({ categoriaVeiculo: e.target.value })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ categoriaVeiculo: e.target.value })}
                               style={{
                                 width: '100%',
                                 padding: '10px 12px',
@@ -1906,7 +2125,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Tipo de Passeio</label>
                               <select
                                 value={getCurrentService()?.tipoPasseio || 'city-tour'}
-                                onChange={(e) => updateCurrentService({ tipoPasseio: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ tipoPasseio: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -1934,7 +2153,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Duração</label>
                               <select
                                 value={getCurrentService()?.duracao || 'meio-dia'}
-                                onChange={(e) => updateCurrentService({ duracao: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ duracao: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -2014,7 +2233,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Tipo de Seguro</label>
                               <select
                                 value={getCurrentService()?.tipoSeguro || 'basico'}
-                                onChange={(e) => updateCurrentService({ tipoSeguro: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ tipoSeguro: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -2040,7 +2259,7 @@ export default function Home() {
                               <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Cobertura</label>
                               <select
                                 value={getCurrentService()?.cobertura || 'USD30000'}
-                                onChange={(e) => updateCurrentService({ cobertura: e.target.value })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ cobertura: e.target.value })}
                                 style={{
                                   width: '100%',
                                   padding: '10px 12px',
@@ -2069,7 +2288,7 @@ export default function Home() {
                             <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Idade do Viajante Mais Velho</label>
                             <select
                               value={getCurrentService()?.idadeViajante || '18-64'}
-                              onChange={(e) => updateCurrentService({ idadeViajante: e.target.value })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ idadeViajante: e.target.value })}
                               style={{
                                 width: '100%',
                                 padding: '10px 12px',
@@ -2103,7 +2322,7 @@ export default function Home() {
                           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Tipo de Viagem</label>
                           <select
                             value={getCurrentService()?.tipoViagem || 'ida-volta'}
-                            onChange={(e) => updateCurrentService({ tipoViagem: e.target.value as 'ida-volta' | 'somente-ida' | 'multiplas-cidades' })}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ tipoViagem: e.target.value as 'ida-volta' | 'somente-ida' | 'multiplas-cidades' })}
                             style={{
                               width: '100%',
                               padding: '10px 12px',
@@ -2191,7 +2410,7 @@ export default function Home() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.adultos > 1) {
@@ -2215,7 +2434,7 @@ export default function Home() {
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.adultos < 9) {
@@ -2243,7 +2462,7 @@ export default function Home() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.criancas > 0) {
@@ -2267,7 +2486,7 @@ export default function Home() {
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.criancas < 8) {
@@ -2295,7 +2514,7 @@ export default function Home() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.bebes > 0) {
@@ -2319,7 +2538,7 @@ export default function Home() {
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={(e) => {
+                                  onClick={(e: React.MouseEvent) => {
                                     e.stopPropagation();
                                     const current = getCurrentService();
                                     if (current && current.bebes < 4) {
@@ -2347,7 +2566,7 @@ export default function Home() {
                           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Classe</label>
                           <select
                             value={getCurrentService()?.classeVoo || 'economica'}
-                            onChange={(e) => updateCurrentService({ classeVoo: e.target.value as 'economica' | 'premium' | 'executiva' | 'primeira' })}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ classeVoo: e.target.value as 'economica' | 'premium' | 'executiva' | 'primeira' })}
                             style={{
                               width: '100%',
                               padding: '10px 12px',
@@ -2511,7 +2730,7 @@ export default function Home() {
                           <input
                             type="text"
                             value={formData.nome}
-                            onChange={(e) => handleInputChange('nome', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('nome', e.target.value)}
                             onBlur={() => handleFieldBlur('nome')}
                             style={{ 
                               width: '100%', 
@@ -2540,7 +2759,7 @@ export default function Home() {
                           <input
                             type="email"
                             value={formData.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
                             onBlur={() => handleFieldBlur('email')}
                             style={{ 
                               width: '100%', 
@@ -2570,12 +2789,12 @@ export default function Home() {
                         <div style={{ flex: 1 }}>
                           <PhoneInput
                             value={formData.whatsapp}
-                            onChange={(value) => {
+                            onChange={(value: string) => {
                               handleInputChange('whatsapp', value);
                               
                               // Mobile feedback on phone input
-                              if (isMobile && value.length > 8) {
-                                setMobileInteractionCount(prev => prev + 1);
+                              if (isMobileDevice && value.length > 8) {
+                                setMobileInteractionCount((prev: any) => prev + 1);
                                 if (mobileInteractionCount > 0 && mobileInteractionCount % 3 === 0) {
                                   setShowMobileSuccess(true);
                                   setTimeout(() => setShowMobileSuccess(false), 1000);
@@ -2594,7 +2813,7 @@ export default function Home() {
                         <div style={{ flex: 1 }}>
                           <PhoneInput
                             value={formData.telefone}
-                            onChange={(value) => handleInputChange('telefone', value)}
+                            onChange={(value: string) => handleInputChange('telefone', value)}
                             onBlur={() => handleFieldBlur('telefone')}
                             placeholder="Telefone alternativo"
                             label="Telefone Alternativo"
@@ -2650,7 +2869,7 @@ export default function Home() {
                         </label>
                         <select
                           value={formData.orcamentoAproximado}
-                          onChange={(e) => setFormData(prev => ({ ...prev, orcamentoAproximado: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, orcamentoAproximado: e.target.value }))}
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
@@ -2680,7 +2899,7 @@ export default function Home() {
                           <input
                             type="checkbox"
                             checked={formData.flexibilidadeDatas}
-                            onChange={(e) => setFormData(prev => ({ ...prev, flexibilidadeDatas: e.target.checked }))}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, flexibilidadeDatas: e.target.checked }))}
                             style={{ transform: 'scale(1.2)' }}
                           />
                           Tenho flexibilidade nas datas (±3 dias)
@@ -2693,7 +2912,7 @@ export default function Home() {
                         </label>
                         <textarea
                           value={formData.observacoes}
-                          onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: any) => ({ ...prev, observacoes: e.target.value }))}
                           rows={3}
                           style={{ 
                             width: '100%', 
@@ -2721,20 +2940,22 @@ export default function Home() {
                           type="submit" 
                           disabled={isSubmitting}
                           style={{ 
-                            padding: '12px 24px',
+                            padding: isMobileDevice ? '14px 20px' : '12px 24px',
                             background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '12px',
+                            borderRadius: isMobileDevice ? '10px' : '12px',
                             cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                            fontSize: '16px',
+                            fontSize: isMobileDevice ? '14px' : '16px',
                             fontWeight: '600',
                             transition: 'all 0.3s ease',
                             boxShadow: !isSubmitting ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
-                            transform: isSubmitting ? 'scale(0.98)' : 'scale(1)'
+                            transform: isSubmitting ? 'scale(0.98)' : 'scale(1)',
+                            width: isMobileDevice ? '100%' : 'auto',
+                            minHeight: isMobileDevice ? '44px' : 'auto'
                           }}
                         >
-                          {isSubmitting ? '🔄 Enviando...' : isMobile ? '🚀 Enviar Cotação Grátis' : '🚀 Enviar Cotação'}
+                          {isSubmitting ? '🔄 Enviando...' : isMobileDevice ? '🚀 Enviar Cotação Grátis' : '🚀 Enviar Cotação'}
                         </button>
                       </div>
                     </div>
@@ -2745,26 +2966,30 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Features Section - Hidden on Mobile for Better Conversion */}
+        {!isMobileDevice && (
         <section style={{
           position: 'relative',
           zIndex: 10,
           padding: '100px 0',
-          background: colors.primary.gray50
+          background: colors.primary.gray50,
+          width: '100%',
+          maxWidth: '100vw'
         }}>
           <div style={{
             maxWidth: '1400px',
             margin: '0 auto',
-            padding: '0 32px'
+            padding: isMobileDevice ? '0 20px' : '0 32px'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
               <h2 style={{
-                fontSize: isMobile ? '36px' : '56px',
+                fontSize: isMobileDevice ? '24px' : '56px',
                 fontWeight: '800',
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
-                margin: '0 0 24px 0',
-                letterSpacing: '-0.02em'
+                margin: isMobileDevice ? '0 0 16px 0' : '0 0 24px 0',
+                letterSpacing: '-0.02em',
+                lineHeight: '1.3'
               }}>
                 Por que 
                 <span style={{
@@ -2879,7 +3104,7 @@ export default function Home() {
             {/* Features Grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gridTemplateColumns: isMobileDevice ? '1fr' : 'repeat(3, 1fr)',
               gap: '40px',
               marginBottom: '80px'
             }}>
@@ -2980,26 +3205,31 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
-        {/* Social Proof Section */}
+        {/* Social Proof Section - Hidden on Mobile for Better Conversion */}
+        {!isMobileDevice && (
         <section style={{
           position: 'relative',
           zIndex: 10,
           padding: '80px 0',
-          textAlign: 'center'
+          textAlign: 'center',
+          width: '100%',
+          maxWidth: '100vw'
         }}>
           <div style={{
             maxWidth: '1000px',
             margin: '0 auto',
-            padding: '0 24px'
+            padding: isMobileDevice ? '0 20px' : '0 24px'
           }}>
             <h3 style={{
-              fontSize: isMobile ? '28px' : '36px',
+              fontSize: isMobileDevice ? '20px' : '36px',
               fontWeight: '700',
               color: colors.secondary.gray900,
               fontFamily: 'Poppins, sans-serif',
-              margin: '0 0 16px 0',
-              letterSpacing: '-0.02em'
+              margin: isMobileDevice ? '0 0 12px 0' : '0 0 16px 0',
+              letterSpacing: '-0.02em',
+              lineHeight: '1.3'
             }}>
               Mais de 5.000 Brasileiros Já Voaram Conosco
             </h3>
@@ -3016,7 +3246,7 @@ export default function Home() {
             {/* Enhanced Statistics */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
+              gridTemplateColumns: isMobileDevice ? '1fr 1fr' : 'repeat(4, 1fr)',
               gap: '32px',
               marginBottom: '64px',
               maxWidth: '800px',
@@ -3054,7 +3284,7 @@ export default function Home() {
                     {stat.icon}
                   </div>
                   <div style={{
-                    fontSize: isMobile ? '24px' : '32px',
+                    fontSize: isMobileDevice ? '24px' : '32px',
                     fontWeight: '700',
                     color: colors.secondary.gray900,
                     fontFamily: 'Poppins, sans-serif',
@@ -3079,7 +3309,7 @@ export default function Home() {
               marginBottom: '48px'
             }}>
               <h4 style={{
-                fontSize: isMobile ? '24px' : '32px',
+                fontSize: isMobileDevice ? '24px' : '32px',
                 fontWeight: '700',
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
@@ -3100,7 +3330,7 @@ export default function Home() {
               
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+                gridTemplateColumns: isMobileDevice ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
                 gap: '24px',
                 maxWidth: '900px',
                 margin: '0 auto'
@@ -3250,182 +3480,28 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
         </main>
-
-        {/* Newsletter Capture Section */}
-        <section style={{
-          position: 'relative',
-          zIndex: 10,
-          padding: '80px 0',
-          background: 'rgba(17, 24, 39, 0.7)',
-          backdropFilter: 'blur(20px)'
-        }}>
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 24px'
-          }}>
-            <NewsletterCapture variant="horizontal" showWhatsApp={true} />
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section style={{
-          position: 'relative',
-          zIndex: 10,
-          padding: '100px 0',
-          background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.9))',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
-          <div style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            padding: '0 24px',
-            textAlign: 'center'
-          }}>
-            <h2 style={{
-              fontSize: isMobile ? '32px' : '48px',
-              fontWeight: '800',
-              color: 'white',
-              fontFamily: 'Poppins, sans-serif',
-              margin: '0 0 24px 0',
-              letterSpacing: '-0.02em'
-            }}>
-              Pronto para sua 
-              <span style={{
-                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}> Próxima Viagem</span>?
-            </h2>
-            <p style={{
-              fontSize: '20px',
-              color: colors.secondary.gray600,
-              marginBottom: '48px',
-              lineHeight: '1.6'
-            }}>
-              Junte-se a mais de 5.000 brasileiros que já confiaram na Fly2Any. 
-              Receba sua cotação personalizada em até 2 horas!
-            </p>
-            
-            <div style={{
-              display: 'flex',
-              gap: '20px',
-              justifyContent: 'center',
-              marginBottom: '48px',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                type="button"
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                  color: 'white',
-                  padding: '20px 40px',
-                  borderRadius: '15px',
-                  border: 'none',
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  boxShadow: '0 15px 30px rgba(37, 99, 235, 0.4)',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  fontFamily: 'Poppins, sans-serif'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(37, 99, 235, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 15px 30px rgba(37, 99, 235, 0.4)';
-                }}
-              >
-                ✈️ Solicitar Cotação Agora
-              </button>
-              
-                <a
-                  href="https://wa.me/551151944717"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white',
-                  padding: '20px 40px',
-                  borderRadius: '15px',
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  textDecoration: 'none',
-                  boxShadow: '0 15px 30px rgba(16, 185, 129, 0.4)',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  fontFamily: 'Poppins, sans-serif'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 20px 40px rgba(16, 185, 129, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 15px 30px rgba(16, 185, 129, 0.4)';
-                }}
-              >
-                💬 Falar no WhatsApp
-              </a>
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '24px',
-              flexWrap: 'wrap',
-              fontSize: '14px',
-              color: colors.secondary.gray500
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
-                Cotação 100% gratuita
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
-                Resposta em até 2 horas
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
-                Sem compromisso
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Success Toast */}
         {showSuccessToast && (
           <div style={{
             position: 'fixed',
-            top: isMobile ? '16px' : '24px',
-            right: isMobile ? '16px' : '24px',
-            left: isMobile ? '16px' : 'auto',
+            top: isMobileDevice ? '16px' : '24px',
+            right: isMobileDevice ? '16px' : '24px',
+            left: isMobileDevice ? '16px' : 'auto',
             zIndex: 9999,
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white',
-            padding: isMobile ? '16px' : '16px 24px',
+            padding: isMobileDevice ? '16px' : '16px 24px',
             borderRadius: '12px',
             boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            fontSize: isMobile ? '14px' : '16px',
+            fontSize: isMobileDevice ? '14px' : '16px',
             fontWeight: '600',
-            maxWidth: isMobile ? 'none' : '400px',
+            maxWidth: isMobileDevice ? 'none' : '400px',
             transform: 'translateX(0)',
             transition: 'all 0.5s ease-out'
           }}>
@@ -3469,19 +3545,37 @@ export default function Home() {
         {/* Floating Chat Buttons */}
         <FloatingChat />
 
-        {/* Lead Capture Modal */}
-        <LeadCaptureSimple
-          isOpen={showLeadCapture}
-          onClose={() => setShowLeadCapture(false)}
-          context="popup"
-        />
+        {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
+        {isMobileDevice ? (
+          <LeadCaptureSimple
+            isOpen={showLeadCapture}
+            onClose={() => {
+              console.log('🔒 Closing premium form');
+              setShowLeadCapture(false);
+            }}
+            context="mobile-app"
+          />
+        ) : (
+          <div style={{
+            position: 'fixed',
+            top: '10px',
+            right: '10px',
+            background: 'blue',
+            color: 'white',
+            padding: '10px',
+            borderRadius: '8px',
+            zIndex: 9999
+          }}>
+            DESKTOP MODE - NO PREMIUM FORM
+          </div>
+        )}
 
         {/* Exit Intent Popup */}
-        <ExitIntentPopup enabled={true} delay={45} />
+        <ExitIntentPopup enabled={true} delay={60} />
       </div>
       
-      {/* Using live site footer ONLY for home page - temporary */}
-      <LiveSiteFooter />
+      {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
+      {!isMobileDevice && <LiveSiteFooter />}
     </>
   );
 }

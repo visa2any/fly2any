@@ -501,7 +501,7 @@ export class EmailMarketingLogger {
       }).filter(Boolean);
 
       // Filter by time range
-      const recentEntries = entries.filter(entry => 
+      const recentEntries = entries.filter((entry: any) => 
         new Date(entry.timestamp) >= since
       );
 
@@ -510,8 +510,8 @@ export class EmailMarketingLogger {
         byLevel: {} as Record<string, number>,
         byEvent: {} as Record<string, number>,
         byCampaign: {} as Record<string, number>,
-        errors: recentEntries.filter(entry => entry.level >= LogLevel.ERROR),
-        criticalIssues: recentEntries.filter(entry => entry.level === LogLevel.CRITICAL)
+        errors: recentEntries.filter((entry: any) => entry.level >= LogLevel.ERROR),
+        criticalIssues: recentEntries.filter((entry: any) => entry.level === LogLevel.CRITICAL)
       };
 
       // Aggregate statistics

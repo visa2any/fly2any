@@ -130,14 +130,14 @@ export default function SeatSelectionPage() {
     
     if (isSelected) {
       // Deselect seat
-      setSelectedSeats(prev => prev.filter(s => s.id !== seat.id));
-      setSeats(prev => prev.map(s => 
+      setSelectedSeats((prev: any) => prev.filter((s: any) => s.id !== seat.id));
+      setSeats((prev: any) => prev.map((s: any) => 
         s.id === seat.id ? { ...s, status: 'available' } : s
       ));
     } else {
       // Select seat (limit to 1 for now)
       setSelectedSeats([seat]);
-      setSeats(prev => prev.map(s => ({
+      setSeats((prev: any) => prev.map((s: any) => ({
         ...s,
         status: s.id === seat.id ? 'selected' : s.status === 'selected' ? 'available' : s.status
       })));

@@ -106,7 +106,7 @@ export default function EmailMarketingMonitoringPage() {
     }
   }, [autoRefresh, refreshInterval, selectedTimeRange]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (): Promise<void> => {
     try {
       const [logsResponse, alertsResponse] = await Promise.all([
         fetch(`/api/email-marketing/logs?action=dashboard&hours=${selectedTimeRange}`),
@@ -133,7 +133,7 @@ export default function EmailMarketingMonitoringPage() {
     }
   };
 
-  const fetchRealtimeLogs = async () => {
+  const fetchRealtimeLogs = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing/logs?action=realtime');
       if (response.ok) {
@@ -237,7 +237,7 @@ export default function EmailMarketingMonitoringPage() {
               <label className="text-sm font-medium">Time Range:</label>
               <select
                 value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTimeRange(e.target.value)}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm"
               >
                 <option value="1">Last Hour</option>

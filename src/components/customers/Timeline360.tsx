@@ -46,7 +46,7 @@ const Timeline360: React.FC<Timeline360Props> = ({ customerId }) => {
   const [filter, setFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
 
-  const fetchCustomer360Data = async () => {
+  const fetchCustomer360Data = async (): Promise<void> => {
     try {
       setLoading(true);
       
@@ -278,7 +278,7 @@ const Timeline360: React.FC<Timeline360Props> = ({ customerId }) => {
             <label className="text-sm font-medium text-gray-700 mr-2">Filtrar por tipo:</label>
             <select 
               value={filter} 
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilter(e.target.value)}
               className="px-3 py-1 border border-gray-300 rounded-md text-sm"
             >
               <option value="all">Todos</option>

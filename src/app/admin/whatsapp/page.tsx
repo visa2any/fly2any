@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function WhatsAppAdmin() {
   const [status, setStatus] = useState<any>(null);
@@ -8,7 +8,7 @@ export default function WhatsAppAdmin() {
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const checkStatus = async () => {
+  const checkStatus = async (): Promise<void> => {
     try {
       const response = await fetch('/api/whatsapp/status');
       const data = await response.json();
@@ -31,7 +31,7 @@ export default function WhatsAppAdmin() {
     }
   };
 
-  const initializeWhatsApp = async () => {
+  const initializeWhatsApp = async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await fetch('/api/whatsapp/init', {

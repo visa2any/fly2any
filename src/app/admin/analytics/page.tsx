@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedPeriod(e.target.value)}
               >
                 {periodOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -174,7 +174,7 @@ export default function AnalyticsPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 value={selectedChart}
-                onChange={(e) => setSelectedChart(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedChart(e.target.value)}
               >
                 {chartOptions.map(option => (
                   <option key={option.value} value={option.value}>

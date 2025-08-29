@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect, ReactNode } from 'react';
+import React, { useState, useRef, useEffect, ReactNode } from 'react';
 import { ArrowRightIcon } from './Icons';
 
 interface FormDropdownProps {
   title: string;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
   isOpen?: boolean;
   defaultOpen?: boolean;
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
   required?: boolean;
 }

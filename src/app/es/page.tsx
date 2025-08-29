@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
@@ -180,7 +180,7 @@ export default function SpanishHomePage() {
       escalas: formData.escalas
     };
 
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       selectedServices: [...prev.selectedServices, newService],
       currentServiceIndex: prev.selectedServices.length
@@ -195,7 +195,7 @@ export default function SpanishHomePage() {
   };
 
   const updateCurrentService = (updates: Partial<ServiceFormData>) => {
-    setFormData(prev => {
+    setFormData((prev: any) => {
       const newServices = [...prev.selectedServices];
       newServices[prev.currentServiceIndex] = {
         ...newServices[prev.currentServiceIndex],
@@ -491,11 +491,11 @@ export default function SpanishHomePage() {
                     alignItems: 'center',
                     gap: '8px'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 15px 35px rgba(37, 99, 235, 0.4)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(37, 99, 235, 0.3)';
                   }}
@@ -523,11 +523,11 @@ export default function SpanishHomePage() {
                     width: isMobile ? '100%' : 'auto',
                     justifyContent: 'center'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 15px 35px rgba(37, 211, 102, 0.4)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(37, 211, 102, 0.3)';
                   }}
@@ -555,11 +555,11 @@ export default function SpanishHomePage() {
                     width: isMobile ? '100%' : 'auto',
                     justifyContent: 'center'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 15px 35px rgba(59, 130, 246, 0.4)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 10px 25px rgba(59, 130, 246, 0.3)';
                   }}
@@ -772,9 +772,9 @@ export default function SpanishHomePage() {
                               onClick={() => {
                                 if (isSelected) {
                                   // Remove service
-                                  setFormData(prev => ({
+                                  setFormData((prev: any) => ({
                                     ...prev,
-                                    selectedServices: prev.selectedServices.filter(s => s.serviceType !== serviceType)
+                                    selectedServices: prev.selectedServices.filter((s: any) => s.serviceType !== serviceType)
                                   }));
                                 } else if (!isMaxServices) {
                                   // Add service
@@ -800,14 +800,14 @@ export default function SpanishHomePage() {
                                 gap: '8px',
                                 boxShadow: isSelected ? '0 4px 12px rgba(16, 185, 129, 0.2)' : '0 2px 4px rgba(0, 0, 0, 0.05)'
                               }}
-                              onMouseEnter={(e) => {
+                              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                                 if (!isSelected && !isMaxServices) {
                                   e.currentTarget.style.transform = 'scale(1.02)';
                                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                                   e.currentTarget.style.borderColor = '#3b82f6';
                                 }
                               }}
-                              onMouseLeave={(e) => {
+                              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                                 if (!isSelected && !isMaxServices) {
                                   e.currentTarget.style.transform = 'scale(1)';
                                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
@@ -1058,7 +1058,7 @@ export default function SpanishHomePage() {
                             <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Adultos</label>
                             <select
                               value={getCurrentService()?.adultos || 1}
-                              onChange={(e) => updateCurrentService({ adultos: parseInt(e.target.value) })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ adultos: parseInt(e.target.value) })}
                               style={{
                                 width: '100%',
                                 padding: '8px 12px',
@@ -1077,7 +1077,7 @@ export default function SpanishHomePage() {
                             <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Niños</label>
                             <select
                               value={getCurrentService()?.ninos || 0}
-                              onChange={(e) => updateCurrentService({ ninos: parseInt(e.target.value) })}
+                              onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ ninos: parseInt(e.target.value) })}
                               style={{
                                 width: '100%',
                                 padding: '8px 12px',
@@ -1097,7 +1097,7 @@ export default function SpanishHomePage() {
                               <label style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', display: 'block' }}>Bebés</label>
                               <select
                                 value={getCurrentService()?.bebes || 0}
-                                onChange={(e) => updateCurrentService({ bebes: parseInt(e.target.value) })}
+                                onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCurrentService({ bebes: parseInt(e.target.value) })}
                                 style={{
                                   width: '100%',
                                   padding: '8px 12px',
@@ -1131,7 +1131,7 @@ export default function SpanishHomePage() {
                             
                             if (nextIncompleteIndex !== -1) {
                               // Go to next incomplete service
-                              setFormData(prev => ({ ...prev, currentServiceIndex: nextIncompleteIndex }));
+                              setFormData((prev: any) => ({ ...prev, currentServiceIndex: nextIncompleteIndex }));
                             } else {
                               // All services completed, go to personal info
                               setCurrentStep(3);
@@ -1217,7 +1217,7 @@ export default function SpanishHomePage() {
                             type="text"
                             required
                             value={formData.nombre}
-                            onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, nombre: e.target.value }))}
                             placeholder="Juan"
                             style={{
                               width: '100%',
@@ -1240,7 +1240,7 @@ export default function SpanishHomePage() {
                             type="text"
                             required
                             value={formData.apellido}
-                            onChange={(e) => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, apellido: e.target.value }))}
                             placeholder="Pérez"
                             style={{
                               width: '100%',
@@ -1267,7 +1267,7 @@ export default function SpanishHomePage() {
                           type="email"
                           required
                           value={formData.email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                           placeholder="juan@ejemplo.com"
                           style={{
                             width: '100%',
@@ -1291,7 +1291,7 @@ export default function SpanishHomePage() {
                         </label>
                         <PhoneInput
                           value={formData.telefono}
-                          onChange={(value) => setFormData(prev => ({ ...prev, telefono: value }))}
+                          onChange={(value: string) => setFormData((prev: any) => ({ ...prev, telefono: value }))}
                           placeholder="+54 11 1234-5678"
                         />
                       </div>
@@ -1303,7 +1303,7 @@ export default function SpanishHomePage() {
                         </label>
                         <select
                           value={formData.nacionalidad}
-                          onChange={(e) => setFormData(prev => ({ ...prev, nacionalidad: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, nacionalidad: e.target.value }))}
                           style={{
                             width: '100%',
                             padding: '12px',
@@ -1335,7 +1335,7 @@ export default function SpanishHomePage() {
                         </label>
                         <textarea
                           value={formData.solicitudesEspeciales}
-                          onChange={(e) => setFormData(prev => ({ ...prev, solicitudesEspeciales: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: any) => ({ ...prev, solicitudesEspeciales: e.target.value }))}
                           placeholder="Cualquier requerimiento especial, preferencias o preguntas..."
                           rows={3}
                           style={{
@@ -1402,7 +1402,7 @@ export default function SpanishHomePage() {
                             // Go back to service details or service selection
                             const lastIncompleteService = formData.selectedServices.findIndex(service => !service.completed);
                             if (lastIncompleteService !== -1) {
-                              setFormData(prev => ({ ...prev, currentServiceIndex: lastIncompleteService }));
+                              setFormData((prev: any) => ({ ...prev, currentServiceIndex: lastIncompleteService }));
                               setCurrentStep(2);
                             } else {
                               setCurrentStep(1);
@@ -1515,11 +1515,11 @@ export default function SpanishHomePage() {
                     transition: 'all 0.3s ease',
                     cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
                     e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = 'none';
                   }}
@@ -1637,11 +1637,11 @@ export default function SpanishHomePage() {
                     textAlign: 'center',
                     transition: 'all 0.3s ease'
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                   }}
@@ -1729,11 +1729,11 @@ export default function SpanishHomePage() {
                   boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                   width: isMobile ? '100%' : 'auto'
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
                   e.currentTarget.style.boxShadow = '0 8px 15px rgba(0, 0, 0, 0.2)';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
                 }}
@@ -1758,11 +1758,11 @@ export default function SpanishHomePage() {
                   boxSizing: 'border-box',
                   textAlign: 'center'
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.5)';
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                   e.currentTarget.style.background = 'transparent';
                   e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                 }}

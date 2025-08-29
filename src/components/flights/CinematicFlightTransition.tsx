@@ -169,7 +169,7 @@ export default function CinematicFlightTransition({
   useEffect(() => {
     if (!isVisible) return;
 
-    const loadLocationData = async () => {
+    const loadLocationData = async (): Promise<void> => {
       try {
         const [originData, destinationData] = await Promise.all([
           getMockLocationData(searchData.origin, searchData.originCity),
@@ -196,7 +196,7 @@ export default function CinematicFlightTransition({
     
     // Progress animation
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev: any) => {
         const targetProgress = ((currentPhase + 1) / storyPhases.length) * 100;
         const increment = Math.random() * 2 + 0.5;
         const newProgress = Math.min(prev + increment, targetProgress);
@@ -212,7 +212,7 @@ export default function CinematicFlightTransition({
 
     // Phase progression
     const phaseInterval = setInterval(() => {
-      setCurrentPhase(prev => {
+      setCurrentPhase((prev: any) => {
         if (prev >= storyPhases.length - 1) {
           clearInterval(phaseInterval);
           
@@ -385,7 +385,7 @@ export default function CinematicFlightTransition({
           {/* Animated Background */}
           <div className="absolute inset-0">
             {/* Floating particles */}
-            {[...Array(20)].map((_, i) => (
+            {[...Array(20)].map((_: any, i: number) => (
               <motion.div
                 key={i}
                 className="absolute w-2 h-2 bg-white/30 rounded-full"
@@ -515,7 +515,7 @@ export default function CinematicFlightTransition({
 
               {/* Phase Indicators */}
               <div className="flex justify-between items-center">
-                {storyPhases.map((phase, index) => (
+                {storyPhases.map((phase: any, index: number) => (
                   <div key={phase.id} className="flex items-center">
                     <div className={`
                       w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold

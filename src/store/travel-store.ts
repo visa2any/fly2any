@@ -387,7 +387,7 @@ export const useTravelStore = create<TravelState & TravelActions>()(
 
         removeFromCart: (itemId) => {
           set((state) => {
-            const updatedItems = state.cart.items.filter(item => item.id !== itemId);
+            const updatedItems = state.cart.items.filter((item: any) => item.id !== itemId);
             const newCart = { ...state.cart, items: updatedItems };
             get().calculateCartTotal();
             
@@ -397,7 +397,7 @@ export const useTravelStore = create<TravelState & TravelActions>()(
 
         updateCartItem: (itemId, updates) => {
           set((state) => {
-            const updatedItems = state.cart.items.map(item =>
+            const updatedItems = state.cart.items.map((item: any) =>
               item.id === itemId ? { ...item, ...updates } : item
             );
             const newCart = { ...state.cart, items: updatedItems };

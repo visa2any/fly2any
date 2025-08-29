@@ -12,7 +12,7 @@ export default function LiveSiteFooter() {
 
   return (
     <footer role="contentinfo" className="site-footer bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white py-16">
-      <div className="container max-w-7xl mx-auto px-6">
+      <div className="container max-w-7xl mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           
           {/* Company Info Column */}

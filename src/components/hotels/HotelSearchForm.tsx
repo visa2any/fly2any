@@ -5,7 +5,7 @@
  * Main search interface for hotel booking system
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Plus, Minus, Search, Loader2 } from 'lucide-react';
 import type { HotelSearchParams } from '@/types/hotels';
 
@@ -101,7 +101,7 @@ export default function HotelSearchForm({
       const newAges = Array(formData.children).fill(0).map((_, index) => 
         formData.childrenAges[index] || 8
       );
-      setFormData(prev => ({ ...prev, childrenAges: newAges }));
+      setFormData((prev: any) => ({ ...prev, childrenAges: newAges }));
     }
   }, [formData.children, formData.childrenAges.length]);
 
@@ -176,21 +176,21 @@ export default function HotelSearchForm({
   };
 
   const handleDestinationSelect = (destination: typeof POPULAR_DESTINATIONS[0]) => {
-    setFormData(prev => ({ ...prev, destination: destination.name }));
+    setFormData((prev: any) => ({ ...prev, destination: destination.name }));
     setShowDestinationSuggestions(false);
   };
 
   const updateGuests = (type: 'adults' | 'children' | 'rooms', increment: boolean) => {
-    setFormData(prev => {
+    setFormData((prev: any) => {
       const newValue = increment ? prev[type] + 1 : Math.max(type === 'adults' ? 1 : 0, prev[type] - 1);
       return { ...prev, [type]: newValue };
     });
   };
 
   const updateChildAge = (index: number, age: number) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      childrenAges: prev.childrenAges.map((currentAge, i) => i === index ? age : currentAge)
+      childrenAges: prev.childrenAges.map((currentAge: number, i: number) => i === index ? age : currentAge)
     }));
   };
 
@@ -207,7 +207,7 @@ export default function HotelSearchForm({
               type="text"
               placeholder="Para onde?"
               value={formData.destination}
-              onChange={(e) => setFormData(prev => ({ ...prev, destination: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, destination: e.target.value }))}
               className={`search-input ${errors.destination ? 'error' : ''}`}
             />
           </div>
@@ -216,7 +216,7 @@ export default function HotelSearchForm({
             <input
               type="date"
               value={formData.checkIn}
-              onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, checkIn: e.target.value }))}
               className={`search-input ${errors.checkIn ? 'error' : ''}`}
             />
           </div>
@@ -225,7 +225,7 @@ export default function HotelSearchForm({
             <input
               type="date"
               value={formData.checkOut}
-              onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, checkOut: e.target.value }))}
               className={`search-input ${errors.checkOut ? 'error' : ''}`}
             />
           </div>
@@ -239,7 +239,7 @@ export default function HotelSearchForm({
           </button>
         </div>
         
-        <style jsx>{`
+        <style jsx={true}>{`
           .search-form-compact {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -343,8 +343,8 @@ export default function HotelSearchForm({
               type="text"
               placeholder="Para onde você vai?"
               value={formData.destination}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, destination: e.target.value }));
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setFormData((prev: any) => ({ ...prev, destination: e.target.value }));
                 setShowDestinationSuggestions(true);
               }}
               onFocus={() => setShowDestinationSuggestions(true)}
@@ -382,7 +382,7 @@ export default function HotelSearchForm({
           <input
             type="date"
             value={formData.checkIn}
-            onChange={(e) => setFormData(prev => ({ ...prev, checkIn: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, checkIn: e.target.value }))}
             className={`form-input ${errors.checkIn ? 'error' : ''}`}
             min={new Date().toISOString().split('T')[0]}
           />
@@ -400,7 +400,7 @@ export default function HotelSearchForm({
           <input
             type="date"
             value={formData.checkOut}
-            onChange={(e) => setFormData(prev => ({ ...prev, checkOut: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, checkOut: e.target.value }))}
             className={`form-input ${errors.checkOut ? 'error' : ''}`}
             min={formData.checkIn}
           />
@@ -489,7 +489,7 @@ export default function HotelSearchForm({
                         <select
                           key={index}
                           value={age}
-                          onChange={(e) => updateChildAge(index, parseInt(e.target.value))}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateChildAge(index, parseInt(e.target.value))}
                           className="age-select"
                         >
                           {Array.from({ length: 18 }, (_, i) => (
@@ -571,7 +571,7 @@ export default function HotelSearchForm({
         />
       )}
 
-      <style jsx>{`
+      <style jsx={true}>{`
         .hotel-search-form {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);

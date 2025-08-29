@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PhoneInputSimple from '@/components/PhoneInputSimple';
@@ -48,9 +48,9 @@ export default function CotacaoVoos() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
@@ -485,7 +485,7 @@ export default function CotacaoVoos() {
                       </label>
                       <PhoneInputSimple
                         value={formData.telefone}
-                        onChange={(value) => setFormData(prev => ({ ...prev, telefone: value }))}
+                        onChange={(value: string) => setFormData((prev: any) => ({ ...prev, telefone: value }))}
                       />
                     </div>
 

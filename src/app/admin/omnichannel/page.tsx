@@ -60,7 +60,7 @@ export default function OmnichannelPage() {
 
   return (
     <>
-      <style jsx>{`
+      <style jsx={true}>{`
         .premium-stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

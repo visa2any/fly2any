@@ -136,7 +136,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   }, [autoRefresh]);
 
-  const loadInitialData = async () => {
+  const loadInitialData = async (): Promise<void> => {
     setLoading(true);
     try {
       await Promise.all([
@@ -153,7 +153,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing?action=campaigns');
       const data = await response.json();
@@ -173,7 +173,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const loadContactStats = async () => {
+  const loadContactStats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing?action=contacts&limit=1');
       const data = await response.json();
@@ -212,7 +212,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const loadTemplates = async () => {
+  const loadTemplates = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-templates?action=list');
       const data = await response.json();
@@ -225,7 +225,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const loadContacts = async () => {
+  const loadContacts = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing?action=contacts&limit=50');
       const data = await response.json();
@@ -238,7 +238,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing/analytics');
       const data = await response.json();
@@ -251,7 +251,7 @@ export default function UnifiedEmailMarketingPage() {
     }
   };
 
-  const refreshData = async () => {
+  const refreshData = async (): Promise<void> => {
     setRefreshing(true);
     try {
       await Promise.all([

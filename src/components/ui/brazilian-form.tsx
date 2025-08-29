@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect } from 'react';
 import { User, MapPin, Calendar, Plane, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 
 interface BrazilianFormProps {
@@ -83,12 +83,12 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
     flexibleDates: false,
     newsletter: true,
     urgency: 'normal'
-  })
-  const [errors, setErrors] = useState<Partial<FormData>>({})
+  });
+  const [errors, setErrors] = useState<Partial<FormData>>({});
   const [suggestions, setSuggestions] = useState<{ origin: any[], destination: any[] }>({
     origin: [],
     destination: []
-  })
+  });
 
   const validateCPF = (cpf: string): boolean => {
     const cleaned = cpf.replace(/\D/g, '')
@@ -166,17 +166,17 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
   }
 
   const updateFormData = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev: any) => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }))
+      setErrors((prev: any) => ({ ...prev, [field]: undefined }));
     }
-  }
+  };
 
   const getCitySuggestions = useCallback((input: string, type: 'origin' | 'destination') => {
     if (!input || input.length < 2) {
-      setSuggestions(prev => ({ ...prev, [type]: [] }))
-      return
+      setSuggestions((prev: any) => ({ ...prev, [type]: [] }));
+      return;
     }
 
     const cities = type === 'origin' ? americanCities : brazilianCities
@@ -188,12 +188,12 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
       .sort((a, b) => {
         if (a.popular && !b.popular) return -1
         if (!a.popular && b.popular) return 1
-        return 0
+        return 0;
       })
-      .slice(0, 5)
+      .slice(0, 5);
 
-    setSuggestions(prev => ({ ...prev, [type]: filtered }))
-  }, [])
+    setSuggestions((prev: any) => ({ ...prev, [type]: filtered }));
+  }, []);
 
   const renderStep1 = () => (
     <div className="space-y-6">
@@ -205,7 +205,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => updateFormData('name', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('name', e.target.value)}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
               errors.name ? 'border-red-500' : 'border-gray-300'
             }`}
@@ -221,7 +221,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => updateFormData('email', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('email', e.target.value)}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
               errors.email ? 'border-red-500' : 'border-gray-300'
             }`}
@@ -238,7 +238,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           </label>
           <select
             value={formData.documentType}
-            onChange={(e) => updateFormData('documentType', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateFormData('documentType', e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="cpf">CPF</option>
@@ -254,7 +254,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="text"
             value={formData.documentType === 'cpf' ? formatCPF(formData.document) : formData.document}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const value = formData.documentType === 'cpf' 
                 ? e.target.value.replace(/\D/g, '') 
                 : e.target.value
@@ -280,7 +280,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         <input
           type="tel"
           value={formData.phone}
-          onChange={(e) => updateFormData('phone', e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('phone', e.target.value)}
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
             errors.phone ? 'border-red-500' : 'border-gray-300'
           }`}
@@ -292,7 +292,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         </p>
       </div>
     </div>
-  )
+  );
 
   const renderStep2 = () => (
     <div className="space-y-6">
@@ -304,7 +304,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="text"
             value={formData.origin}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               updateFormData('origin', e.target.value)
               getCitySuggestions(e.target.value, 'origin')
             }}
@@ -323,7 +323,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
                   type="button"
                   onClick={() => {
                     updateFormData('origin', `${city.name}, ${city.state}`)
-                    setSuggestions(prev => ({ ...prev, origin: [] }))
+                    setSuggestions((prev: any) => ({ ...prev, origin: [] }))
                   }}
                   className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b last:border-b-0"
                 >
@@ -344,7 +344,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="text"
             value={formData.destination}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               updateFormData('destination', e.target.value)
               getCitySuggestions(e.target.value, 'destination')
             }}
@@ -363,7 +363,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
                   type="button"
                   onClick={() => {
                     updateFormData('destination', `${city.name}, ${city.state}`)
-                    setSuggestions(prev => ({ ...prev, destination: [] }))
+                    setSuggestions((prev: any) => ({ ...prev, destination: [] }))
                   }}
                   className="w-full px-4 py-3 text-left hover:bg-blue-50 border-b last:border-b-0"
                 >
@@ -410,7 +410,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         </div>
       </div>
     </div>
-  )
+  );
 
   const renderStep3 = () => (
     <div className="space-y-6">
@@ -422,7 +422,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="date"
             value={formData.departureDate}
-            onChange={(e) => updateFormData('departureDate', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('departureDate', e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
               errors.departureDate ? 'border-red-500' : 'border-gray-300'
@@ -438,7 +438,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           <input
             type="date"
             value={formData.returnDate}
-            onChange={(e) => updateFormData('returnDate', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('returnDate', e.target.value)}
             min={formData.departureDate || new Date().toISOString().split('T')[0]}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
               errors.returnDate ? 'border-red-500' : 'border-gray-300'
@@ -453,7 +453,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           type="checkbox"
           id="flexibleDates"
           checked={formData.flexibleDates}
-          onChange={(e) => updateFormData('flexibleDates', e.target.checked)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('flexibleDates', e.target.checked)}
           className="w-4 h-4 text-blue-600"
         />
         <label htmlFor="flexibleDates" className="text-sm text-gray-700">
@@ -475,7 +475,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
                 name="urgency"
                 value={option.value}
                 checked={formData.urgency === option.value}
-                onChange={(e) => updateFormData('urgency', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('urgency', e.target.value)}
                 className="w-4 h-4 text-blue-600"
               />
               <span className="text-sm">{option.icon} {option.label}</span>
@@ -484,7 +484,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         </div>
       </div>
     </div>
-  )
+  );
 
   const renderStep4 = () => (
     <div className="space-y-6">
@@ -495,7 +495,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           </label>
           <select
             value={formData.passengers}
-            onChange={(e) => updateFormData('passengers', parseInt(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateFormData('passengers', parseInt(e.target.value))}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {[1,2,3,4,5,6,7,8,9].map(num => (
@@ -512,7 +512,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
           </label>
           <select
             value={formData.travelClass}
-            onChange={(e) => updateFormData('travelClass', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateFormData('travelClass', e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="economy">Econômica</option>
@@ -528,7 +528,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
             type="checkbox"
             id="newsletter"
             checked={formData.newsletter}
-            onChange={(e) => updateFormData('newsletter', e.target.checked)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFormData('newsletter', e.target.checked)}
             className="w-4 h-4 text-blue-600"
           />
           <label htmlFor="newsletter" className="text-sm text-gray-700">
@@ -549,7 +549,7 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -639,5 +639,5 @@ export default function BrazilianForm({ onSubmit, initialStep = 1, showProgress 
         </div>
       )}
     </div>
-  )
+  );
 }

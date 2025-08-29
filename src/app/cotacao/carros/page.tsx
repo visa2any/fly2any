@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PhoneInputSimple from '@/components/PhoneInputSimple';
@@ -20,9 +20,9 @@ export default function CotacaoCarros() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -247,7 +247,7 @@ export default function CotacaoCarros() {
                   </label>
                   <PhoneInputSimple
                     value={formData.telefone}
-                    onChange={(value) => setFormData(prev => ({ ...prev, telefone: value }))}
+                    onChange={(value: string) => setFormData((prev: any) => ({ ...prev, telefone: value }))}
                   />
                 </div>
                 <div>

@@ -41,7 +41,7 @@ export default function SimpleHeroSection({ onSearch, isLoading = false }: Simpl
         <div className="bg-black/20 backdrop-blur-sm border-b border-white/10 py-3">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-8 text-sm font-medium">
-              {TRUST_SIGNALS.map((signal, index) => (
+              {TRUST_SIGNALS.map((signal: any, index: number) => (
                 <div key={index} className={`flex items-center gap-2 ${signal.color}`}>
                   <span className="text-base">{signal.icon}</span>
                   <span>{signal.text}</span>

@@ -56,7 +56,7 @@ export default function ExploreMoreModal({
     }
   }, [isOpen, searchData]);
 
-  const loadAlternatives = async () => {
+  const loadAlternatives = async (): Promise<void> => {
     setIsLoading(true);
     
     // Mock data - in real implementation, fetch from API

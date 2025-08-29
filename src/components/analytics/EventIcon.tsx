@@ -11,7 +11,7 @@ interface EventIconProps {
   className?: string;
 }
 
-export const EventIcon: React.FC<EventIconProps> = ({ eventName, className = "w-5 h-5" }) => {
+export const EventIcon = ({ eventName, className = "w-5 h-5" }: EventIconProps) => {
   const getIcon = (name: string) => {
     switch (name) {
       case 'form_submission':

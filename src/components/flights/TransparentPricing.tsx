@@ -432,7 +432,7 @@ export default function TransparentPricing({
       </div>
 
       {/* Inline Styles */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .transparent-pricing {
           background: white;
           border-radius: 16px;

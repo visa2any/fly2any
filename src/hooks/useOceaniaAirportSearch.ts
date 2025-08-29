@@ -3,7 +3,7 @@
  * React hook for Oceania airport search with caching and performance optimization
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { oceaniaAirportSearch, OceaniaAirportSearchResult, OceaniaAirportSearchOptions } from '@/lib/airports/oceania-airport-search';
 import { OceaniaAirport } from '@/lib/airports/oceania-airports-database';
 

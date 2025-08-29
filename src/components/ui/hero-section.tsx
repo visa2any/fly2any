@@ -1,7 +1,6 @@
 'use client';
 
-import * as React from "react";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FeatureItem {
   icon: string;

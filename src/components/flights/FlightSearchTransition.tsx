@@ -81,7 +81,7 @@ export default function FlightSearchTransition({
     
     // Progress animation
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev: any) => {
         if (prev >= 100) {
           clearInterval(progressInterval);
           return 100;
@@ -93,7 +93,7 @@ export default function FlightSearchTransition({
 
     // Step progression
     const stepInterval = setInterval(() => {
-      setCurrentStep(prev => {
+      setCurrentStep((prev: any) => {
         if (prev >= searchSteps.length - 1) {
           clearInterval(stepInterval);
           // Simulate completion and open results in new tab
@@ -241,7 +241,7 @@ export default function FlightSearchTransition({
 
               {/* Steps Indicator */}
               <div className="flex justify-between">
-                {searchSteps.map((step, index) => (
+                {searchSteps.map((step: any, index: number) => (
                   <div
                     key={step.id}
                     className={`flex items-center ${index < searchSteps.length - 1 ? 'flex-1' : ''}`}

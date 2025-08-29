@@ -37,7 +37,7 @@ export default function BookingsPage() {
 
   // Load user bookings
   useEffect(() => {
-    const loadBookings = async () => {
+    const loadBookings = async (): Promise<void> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -182,14 +182,14 @@ export default function BookingsPage() {
                   type="text"
                   placeholder="Search by booking reference or airport codes..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterStatus(e.target.value)}
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Bookings</option>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calculator, TrendingDown, TrendingUp, DollarSign, AlertCircle, CheckCircle, Zap } from 'lucide-react'
 
 interface Route {
@@ -189,7 +189,7 @@ export default function PriceCalculator() {
           </label>
           <select
             value={selectedFrom}
-            onChange={(e) => setSelectedFrom(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedFrom(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Escolher cidade</option>
@@ -205,7 +205,7 @@ export default function PriceCalculator() {
           </label>
           <select
             value={selectedTo}
-            onChange={(e) => setSelectedTo(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTo(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Escolher cidade</option>
@@ -221,7 +221,7 @@ export default function PriceCalculator() {
           </label>
           <select
             value={departureMonth}
-            onChange={(e) => setDepartureMonth(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDepartureMonth(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Escolher mês</option>
@@ -237,7 +237,7 @@ export default function PriceCalculator() {
           </label>
           <select
             value={passengers}
-            onChange={(e) => setPassengers(parseInt(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPassengers(parseInt(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             {[1,2,3,4,5,6].map(num => (

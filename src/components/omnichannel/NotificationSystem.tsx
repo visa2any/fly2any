@@ -67,7 +67,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
     setUnreadCount(count);
   }, [notifications]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (): Promise<void> => {
     try {
       // Simular busca de notificações - em produção viria da API
       const mockNotifications: Notification[] = [
@@ -136,7 +136,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
-  };
+  }
 
   const setupWebSocket = () => {
     // Implementar WebSocket para notificações em tempo real
@@ -153,15 +153,15 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
         console.log('Could not play notification sound:', e);
       });
     }
-  };
+  }
 
   const handleNotificationClick = (notification: Notification) => {
     // Marcar como lida
-    setNotifications(prev => 
-      prev.map(n => 
+    setNotifications((prev: any) => 
+      prev.map((n: any) => 
         n.id === notification.id ? { ...n, read: true } : n
-      )
-    );
+      
+    ));
 
     // Callback para o componente pai
     if (onNotificationClick) {
@@ -178,8 +178,8 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
+    setNotifications((prev: any) => 
+      prev.map((n: any) => ({ ...n, read: true }))
     );
   };
 
@@ -196,7 +196,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       case 'system': return '⚙️';
       default: return '📋';
     }
-  };
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -206,7 +206,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       case 'low': return 'bg-blue-500';
       default: return 'bg-gray-500';
     }
-  };
+  }
 
   const getChannelIcon = (channel: string) => {
     switch (channel) {
@@ -218,7 +218,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
       case 'facebook': return '👥';
       default: return '🌐';
     }
-  };
+  }
 
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -296,7 +296,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
             <div className="flex space-x-2 mt-3">
               <select 
                 value={filter}
-                onChange={(e) => setFilter(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilter(e.target.value)}
                 className="px-2 py-1 border border-gray-300 rounded text-xs"
               >
                 <option value="all">Todas</option>
@@ -369,7 +369,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
                           {notification.actions.map((action) => (
                             <Button
                               key={action.id}
-                              onClick={(e) => {
+                              onClick={(e: React.MouseEvent) => {
                                 e.stopPropagation();
                                 action.onClick();
                               }}

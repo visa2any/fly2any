@@ -67,7 +67,7 @@ export default function NorthAmericaAirportFeatures({
         </h4>
         {availablePrograms.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availablePrograms.map((program) => {
+            {availablePrograms.map((program: any) => {
               const programData = NORTH_AMERICA_SECURITY_PROGRAMS[program.replace(' ', '_').toUpperCase()];
               return (
                 <div key={program} className="bg-white rounded-lg p-4 border border-green-200">
@@ -138,7 +138,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="font-medium text-purple-800 mb-2">Required Documents</h5>
               <div className="space-y-1">
-                {airport.crossBorderTravel.documentsRequired.map((doc, idx) => (
+                {airport.crossBorderTravel.documentsRequired.map((doc: any, idx: number) => (
                   <div key={idx} className="flex items-center space-x-2 text-sm text-purple-700">
                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
                     <span>{doc}</span>
@@ -150,7 +150,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="font-medium text-purple-800 mb-2">Expedited Programs</h5>
               <div className="space-y-1">
-                {airport.crossBorderTravel.programs.map((program, idx) => (
+                {airport.crossBorderTravel.programs.map((program: any, idx: number) => (
                   <div key={idx} className="flex items-center space-x-2 text-sm text-purple-700">
                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
                     <span>{program}</span>
@@ -164,7 +164,7 @@ export default function NorthAmericaAirportFeatures({
             <div className="mt-4 pt-4 border-t border-purple-200">
               <h5 className="font-medium text-purple-800 mb-2">💡 Traveler Tips</h5>
               <div className="space-y-1">
-                {airport.crossBorderTravel.tips.map((tip, idx) => (
+                {airport.crossBorderTravel.tips.map((tip: any, idx: number) => (
                   <div key={idx} className="flex items-start space-x-2 text-sm text-purple-700">
                     <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2"></div>
                     <span>{tip}</span>
@@ -233,7 +233,7 @@ export default function NorthAmericaAirportFeatures({
             ✈️ Major Loyalty Programs
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {airport.loyaltyPrograms.primaryAirlines.map((program, idx) => {
+            {airport.loyaltyPrograms.primaryAirlines.map((program: any, idx: number) => {
               const airlineData = NORTH_AMERICA_AIRLINES[program.airline];
               return (
                 <div key={idx} className="bg-white rounded-lg p-4 border border-amber-200">
@@ -246,7 +246,7 @@ export default function NorthAmericaAirportFeatures({
                     </span>
                   </div>
                   <div className="text-xs text-amber-600 space-y-1">
-                    {program.benefits.slice(0, 3).map((benefit, benefitIdx) => (
+                    {program.benefits.slice(0, 3).map((benefit: any, benefitIdx: number) => (
                       <div key={benefitIdx} className="flex items-center space-x-1">
                         <div className="w-1 h-1 bg-amber-400 rounded-full"></div>
                         <span>{benefit}</span>
@@ -272,7 +272,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-green-800 mb-2">Free Checked Bags</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms.creditCardBenefits.freeCheckedBags?.slice(0, 3).map((card, idx) => (
+                {airport.loyaltyPrograms.creditCardBenefits.freeCheckedBags?.slice(0, 3).map((card: any, idx: number) => (
                   <div key={idx} className="text-xs text-green-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                     <span>{card}</span>
@@ -283,7 +283,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-green-800 mb-2">Priority Boarding</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms.creditCardBenefits.priorityBoarding?.slice(0, 3).map((card, idx) => (
+                {airport.loyaltyPrograms.creditCardBenefits.priorityBoarding?.slice(0, 3).map((card: any, idx: number) => (
                   <div key={idx} className="text-xs text-green-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                     <span>{card}</span>
@@ -294,7 +294,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-green-800 mb-2">Lounge Access</h5>
               <div className="space-y-1">
-                {airport.loyaltyPrograms.creditCardBenefits.loungeAccess?.slice(0, 3).map((card, idx) => (
+                {airport.loyaltyPrograms.creditCardBenefits.loungeAccess?.slice(0, 3).map((card: any, idx: number) => (
                   <div key={idx} className="text-xs text-green-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                     <span>{card}</span>
@@ -317,7 +317,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-orange-800 mb-2">Local Specialties</h5>
               <div className="space-y-1">
-                {airport.regionalAmenities.dining.localSpecialties.slice(0, 5).map((item, idx) => (
+                {airport.regionalAmenities.dining.localSpecialties.slice(0, 5).map((item: any, idx: number) => (
                   <div key={idx} className="text-xs text-orange-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
                     <span>{item}</span>
@@ -328,7 +328,7 @@ export default function NorthAmericaAirportFeatures({
             <div>
               <h5 className="text-sm font-medium text-orange-800 mb-2">Quick Options</h5>
               <div className="space-y-1">
-                {airport.regionalAmenities.dining.fastFood.slice(0, 5).map((item, idx) => (
+                {airport.regionalAmenities.dining.fastFood.slice(0, 5).map((item: any, idx: number) => (
                   <div key={idx} className="text-xs text-orange-700 flex items-center space-x-1">
                     <div className="w-1 h-1 bg-orange-500 rounded-full"></div>
                     <span>{item}</span>
@@ -422,7 +422,7 @@ export default function NorthAmericaAirportFeatures({
 
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}

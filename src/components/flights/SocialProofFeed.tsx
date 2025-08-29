@@ -171,7 +171,7 @@ export default function SocialProofFeed() {
         setCurrentActivity(activities[nextIndex]);
         
         // Update timestamp to make it feel real-time
-        setActivities(prev => prev.map((activity, index) => 
+        setActivities((prev: any) => prev.map((activity: any, index: number) => 
           index === nextIndex 
             ? { ...activity, timestamp: new Date() }
             : activity
@@ -185,7 +185,7 @@ export default function SocialProofFeed() {
   // Update live stats
   useEffect(() => {
     const interval = setInterval(() => {
-      setLiveStats(prev => ({
+      setLiveStats((prev: any) => ({
         ...prev,
         activeUsers: prev.activeUsers + Math.floor(Math.random() * 10 - 5),
         bookingsToday: prev.bookingsToday + (Math.random() > 0.7 ? 1 : 0),
@@ -351,7 +351,7 @@ export default function SocialProofFeed() {
           </div>
           
           <div className="trust-signals-grid">
-            {TRUST_SIGNALS.map((signal, index) => (
+            {TRUST_SIGNALS.map((signal: any, index: number) => (
               <motion.div
                 key={signal.id}
                 className="trust-signal"
@@ -419,7 +419,7 @@ export default function SocialProofFeed() {
       </div>
 
       {/* Inline Styles */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .social-proof-container {
           position: fixed;
           top: 80px;

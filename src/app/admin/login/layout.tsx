@@ -1,3 +1,4 @@
+import React from 'react';
 import SessionWrapper from '@/components/SessionWrapper';
 
 export default function LoginLayout({

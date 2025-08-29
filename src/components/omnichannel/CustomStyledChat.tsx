@@ -23,7 +23,7 @@ const CustomStyledChat: React.FC<CustomStyledChatProps> = ({
 
   useEffect(() => {
     if (conversationId) {
-      const fetchData = async () => {
+      const fetchData = async (): Promise<void> => {
         await fetchConversation();
       };
       
@@ -38,7 +38,7 @@ const CustomStyledChat: React.FC<CustomStyledChatProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  const fetchConversation = async () => {
+  const fetchConversation = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/omnichannel/conversations/${conversationId}`);
       const data = await response.json();
@@ -62,7 +62,7 @@ const CustomStyledChat: React.FC<CustomStyledChatProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || !conversation || sending) return;
 
     setSending(true);
@@ -182,7 +182,7 @@ const CustomStyledChat: React.FC<CustomStyledChatProps> = ({
 
   return (
     <>
-      <style jsx>{`
+      <style jsx={true}>{`
         .chat-container {
           height: 100%;
           display: flex;
@@ -567,7 +567,7 @@ const CustomStyledChat: React.FC<CustomStyledChatProps> = ({
             <textarea
               className="message-input"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Digite sua mensagem..."
               disabled={conversation.status === 'closed'}

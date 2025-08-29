@@ -202,7 +202,7 @@ export default function CentralAmericaAirportFeatures({
         
         {airport.airlines && airport.airlines.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {airport.airlines.map((airlineCode) => {
+            {airport.airlines.map((airlineCode: any) => {
               const airlineData = CENTRAL_AMERICAN_AIRLINES[airlineCode];
               return (
                 <div key={airlineCode} className="bg-white rounded-lg p-4 border border-orange-200">
@@ -296,7 +296,7 @@ export default function CentralAmericaAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-cyan-800 mb-2">From North America</h5>
             <div className="space-y-1">
-              {CENTRAL_AMERICA_TRAVEL_PATTERNS.popularRoutes.fromUSA.slice(0, 3).map((route, idx) => (
+              {CENTRAL_AMERICA_TRAVEL_PATTERNS.popularRoutes.fromUSA.slice(0, 3).map((route: any, idx: number) => (
                 <div key={idx} className="text-xs text-cyan-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
                   <span>{route}</span>
@@ -307,7 +307,7 @@ export default function CentralAmericaAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-cyan-800 mb-2">Regional Routes</h5>
             <div className="space-y-1">
-              {CENTRAL_AMERICA_TRAVEL_PATTERNS.popularRoutes.regional.slice(0, 3).map((route, idx) => (
+              {CENTRAL_AMERICA_TRAVEL_PATTERNS.popularRoutes.regional.slice(0, 3).map((route: any, idx: number) => (
                 <div key={idx} className="text-xs text-cyan-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
                   <span>{route}</span>
@@ -373,7 +373,7 @@ export default function CentralAmericaAirportFeatures({
             💡 Local Travel Tips
           </h4>
           <div className="space-y-2">
-            {visaInfo.tips.map((tip, idx) => (
+            {visaInfo.tips.map((tip: any, idx: number) => (
               <div key={idx} className="flex items-start space-x-2 text-sm text-amber-700">
                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2"></div>
                 <span>{tip}</span>
@@ -463,7 +463,7 @@ export default function CentralAmericaAirportFeatures({
 
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}

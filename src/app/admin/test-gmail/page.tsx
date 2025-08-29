@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 interface DiagnosticResult {
   step: string;
@@ -28,7 +28,7 @@ export default function TestGmailPage() {
   const [results, setResults] = useState<DiagnosticResponse | null>(null);
   const [testEmail, setTestEmail] = useState('');
 
-  const runDiagnostics = async () => {
+  const runDiagnostics = async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await fetch('/api/test-gmail');
@@ -41,7 +41,7 @@ export default function TestGmailPage() {
     }
   };
 
-  const testSpecificEmail = async () => {
+  const testSpecificEmail = async (): Promise<void> => {
     if (!testEmail) {
       alert('Digite um email para teste');
       return;
@@ -121,7 +121,7 @@ export default function TestGmailPage() {
             <input
               type="email"
               value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setTestEmail(e.target.value)}
               placeholder="Digite um email para teste..."
               className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent flex-1"
             />

@@ -55,7 +55,7 @@ export default function PhoneContactsPage() {
     fetchLists();
   }, [filters, pagination.page]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (): Promise<void> => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -69,7 +69,7 @@ export default function PhoneContactsPage() {
       const data = await response.json();
       
       setContacts(data.contacts || []);
-      setPagination(prev => ({ ...prev, total: data.total || 0 }));
+      setPagination((prev: any) => ({ ...prev, total: data.total || 0 }));
     } catch (error) {
       console.error('Error fetching contacts:', error);
     } finally {
@@ -77,7 +77,7 @@ export default function PhoneContactsPage() {
     }
   };
 
-  const fetchLists = async () => {
+  const fetchLists = async (): Promise<void> => {
     try {
       const response = await fetch('/api/phone-management?action=lists');
       const data = await response.json();
@@ -105,7 +105,7 @@ export default function PhoneContactsPage() {
     }
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = async (): Promise<void> => {
     if (selectedContacts.size === 0) return;
     
     if (!confirm(`Are you sure you want to delete ${selectedContacts.size} contacts?`)) return;
@@ -127,7 +127,7 @@ export default function PhoneContactsPage() {
     }
   };
 
-  const handleCreateList = async () => {
+  const handleCreateList = async (): Promise<void> => {
     if (!newListName.trim() || selectedContacts.size === 0) return;
 
     try {
@@ -208,166 +208,167 @@ export default function PhoneContactsPage() {
         {/* Enhanced Header */}
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
           <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">📞 Phone Contacts</h1>
-          <p className="text-gray-600">
-            Showing {contacts.length} of {pagination.total.toLocaleString()} contacts
-            {selectedContacts.size > 0 && ` • ${selectedContacts.size} selected`}
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <Button 
-            onClick={() => window.location.href = '/admin/phone-management'}
-            variant="outline"
-          >
-            ← Back to Dashboard
-          </Button>
-          <Button 
-            onClick={() => window.location.href = '/admin/phone-management/import'}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            📤 Import
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <Input
-              placeholder="🔍 Search name or phone..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <select
-              value={filters.state}
-              onChange={(e) => setFilters(prev => ({ ...prev, state: e.target.value }))}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">All States</option>
-              <option value="Connecticut">🔵 Connecticut</option>
-              <option value="Florida">🌴 Florida</option>
-              <option value="Massachusetts">🦞 Massachusetts</option>
-              <option value="New Jersey">🏙️ New Jersey</option>
-              <option value="New York">🗽 New York</option>
-              <option value="California">☀️ California</option>
-            </select>
-          </div>
-          <div>
-            <select
-              value={filters.segment}
-              onChange={(e) => setFilters(prev => ({ ...prev, segment: e.target.value }))}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">All Segments</option>
-              <option value="brasileiros-eua">🇧🇷 Brasileiros EUA</option>
-              <option value="familias">👨‍👩‍👧‍👦 Famílias</option>
-              <option value="executivos">💼 Executivos</option>
-              <option value="geral">📱 Geral</option>
-            </select>
-          </div>
-          <div>
-            <select
-              value={filters.is_active}
-              onChange={(e) => setFilters(prev => ({ ...prev, is_active: e.target.value }))}
-              className="w-full p-2 border rounded-md"
-            >
-              <option value="">All Status</option>
-              <option value="true">✅ Active</option>
-              <option value="false">❌ Inactive</option>
-            </select>
-          </div>
-          <div>
-            <Button 
-              onClick={() => setFilters({ search: '', state: '', segment: '', is_active: '', opted_out: '' })}
-              variant="outline"
-              className="w-full"
-            >
-              🔄 Clear Filters
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Bulk Actions */}
-      {selectedContacts.size > 0 && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-blue-800">
-              {selectedContacts.size} contacts selected
-            </span>
-            <div className="flex space-x-2">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">📞 Phone Contacts</h1>
+              <p className="text-gray-600">
+                Showing {contacts.length} of {pagination.total.toLocaleString()} contacts
+                {selectedContacts.size > 0 && ` • ${selectedContacts.size} selected`}
+              </p>
+            </div>
+            <div className="flex space-x-3">
               <Button 
-                onClick={() => setShowListModal(true)}
-                className="bg-green-600 hover:bg-green-700"
-                size="sm"
-              >
-                📋 Create List
-              </Button>
-              <div className="relative group">
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  className="bg-white"
-                >
-                  ➕ Add to List ▼
-                </Button>
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg hidden group-hover:block z-10">
-                  {lists.map(list => (
-                    <button
-                      key={list.id}
-                      onClick={() => handleAddToExistingList(list.id)}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-50"
-                    >
-                      {list.name} ({list.total_contacts})
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button 
-                onClick={handleDeleteSelected}
+                onClick={() => window.location.href = '/admin/phone-management'}
                 variant="outline"
-                size="sm"
-                className="text-red-600 border-red-300 hover:bg-red-50"
               >
-                🗑️ Delete
+                ← Back to Dashboard
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/admin/phone-management/import'}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                📤 Import
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <Input
+                placeholder="🔍 Search name or phone..."
+                value={filters.search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters((prev: any) => ({ ...prev, search: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <select
+                value={filters.state}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters((prev: any) => ({ ...prev, state: e.target.value }))}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">All States</option>
+                <option value="Connecticut">🔵 Connecticut</option>
+                <option value="Florida">🌴 Florida</option>
+                <option value="Massachusetts">🦞 Massachusetts</option>
+                <option value="New Jersey">🏙️ New Jersey</option>
+                <option value="New York">🗽 New York</option>
+                <option value="California">☀️ California</option>
+              </select>
+            </div>
+            <div>
+              <select
+                value={filters.segment}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters((prev: any) => ({ ...prev, segment: e.target.value }))}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">All Segments</option>
+                <option value="brasileiros-eua">🇧🇷 Brasileiros EUA</option>
+                <option value="familias">👨‍👩‍👧‍👦 Famílias</option>
+                <option value="executivos">💼 Executivos</option>
+                <option value="geral">📱 Geral</option>
+              </select>
+            </div>
+            <div>
+              <select
+                value={filters.is_active}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilters((prev: any) => ({ ...prev, is_active: e.target.value }))}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">All Status</option>
+                <option value="true">✅ Active</option>
+                <option value="false">❌ Inactive</option>
+              </select>
+            </div>
+            <div>
+              <Button 
+                onClick={() => setFilters({ search: '', state: '', segment: '', is_active: '', opted_out: '' })}
+                variant="outline"
+                className="w-full"
+              >
+                🔄 Clear Filters
               </Button>
             </div>
           </div>
         </Card>
-      )}
 
-      {/* Contacts Table */}
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={selectedContacts.size === contacts.length && contacts.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded"
-                  />
-                </th>
-                <th className="p-3 text-left font-medium text-gray-900">Name</th>
-                <th className="p-3 text-left font-medium text-gray-900">Phone</th>
-                <th className="p-3 text-left font-medium text-gray-900">State</th>
-                <th className="p-3 text-left font-medium text-gray-900">Status</th>
-                <th className="p-3 text-left font-medium text-gray-900">Segment</th>
-                <th className="p-3 text-left font-medium text-gray-900">Score</th>
-                <th className="p-3 text-left font-medium text-gray-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        {/* Bulk Actions */}
+        {selectedContacts.size > 0 && (
+          <Card className="p-4 bg-blue-50 border-blue-200">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-blue-800">
+                {selectedContacts.size} contacts selected
+              </span>
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={() => setShowListModal(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                  size="sm"
+                >
+                  📋 Create List
+                </Button>
+                <div className="relative group">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="bg-white"
+                  >
+                    ➕ Add to List ▼
+                  </Button>
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg hidden group-hover:block z-10">
+                    {lists.map(list => (
+                      <button
+                        key={list.id}
+                        onClick={() => handleAddToExistingList(list.id)}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-50"
+                      >
+                        {list.name} ({list.total_contacts})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleDeleteSelected}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  🗑️ Delete
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Contacts Table */}
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={8} className="p-16 text-center">
+                  <th className="p-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedContacts.size === contacts.length && contacts.length > 0}
+                      onChange={handleSelectAll}
+                      className="rounded"
+                    />
+                  </th>
+                  <th className="p-3 text-left font-medium text-gray-900">Name</th>
+                  <th className="p-3 text-left font-medium text-gray-900">Phone</th>
+                  <th className="p-3 text-left font-medium text-gray-900">State</th>
+                  <th className="p-3 text-left font-medium text-gray-900">Status</th>
+                  <th className="p-3 text-left font-medium text-gray-900">Segment</th>
+                  <th className="p-3 text-left font-medium text-gray-900">Score</th>
+                  <th className="p-3 text-left font-medium text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="p-16 text-center">
                     <div className="relative mb-6">
                       <div className="absolute inset-0 animate-ping">
                         <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full opacity-75 mx-auto"></div>
@@ -486,79 +487,78 @@ export default function PhoneContactsPage() {
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+              </tbody>
+            </table>
+          </div>
+        </Card>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} contacts
+        {/* Pagination */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} contacts
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => setPagination((prev: any) => ({ ...prev, page: prev.page - 1 }))}
+              disabled={pagination.page === 1}
+              variant="outline"
+              size="sm"
+            >
+              ← Previous
+            </Button>
+            <span className="px-3 py-2 text-sm">
+              Page {pagination.page} of {totalPages}
+            </span>
+            <Button
+              onClick={() => setPagination((prev: any) => ({ ...prev, page: prev.page + 1 }))}
+              disabled={pagination.page === totalPages}
+              variant="outline"
+              size="sm"
+            >
+              Next →
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-            disabled={pagination.page === 1}
-            variant="outline"
-            size="sm"
-          >
-            ← Previous
-          </Button>
-          <span className="px-3 py-2 text-sm">
-            Page {pagination.page} of {totalPages}
-          </span>
-          <Button
-            onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-            disabled={pagination.page === totalPages}
-            variant="outline"
-            size="sm"
-          >
-            Next →
-          </Button>
-        </div>
-      </div>
 
-      {/* Create List Modal */}
-      {showListModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">Create New List</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  List Name
-                </label>
-                <Input
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="Enter list name..."
-                  className="w-full"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                This list will contain {selectedContacts.size} selected contacts.
-              </div>
-              <div className="flex space-x-3">
-                <Button
-                  onClick={handleCreateList}
-                  disabled={!newListName.trim()}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Create List
-                </Button>
-                <Button
-                  onClick={() => setShowListModal(false)}
-                  variant="outline"
-                >
-                  Cancel
-                </Button>
+        {/* Create List Modal */}
+        {showListModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <h3 className="text-lg font-semibold mb-4">Create New List</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    List Name
+                  </label>
+                  <Input
+                    value={newListName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
+                    placeholder="Enter list name..."
+                    className="w-full"
+                  />
+                </div>
+                <div className="text-sm text-gray-600">
+                  This list will contain {selectedContacts.size} selected contacts.
+                </div>
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={handleCreateList}
+                    disabled={!newListName.trim()}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Create List
+                  </Button>
+                  <Button
+                    onClick={() => setShowListModal(false)}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        )}
-        </div>
+      )}
       </div>
     </div>
   );

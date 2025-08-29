@@ -89,7 +89,7 @@ export const MobileLayoutProvider: React.FC<MobileLayoutProviderProps> = ({ chil
     return routeMap[currentPath] || '/flights';
   };
 
-  const handleInstallApp = async () => {
+  const handleInstallApp = async (): Promise<void> => {
     if (installPrompt) {
       hapticFeedback.success();
       installPrompt.prompt();
@@ -104,7 +104,7 @@ export const MobileLayoutProvider: React.FC<MobileLayoutProviderProps> = ({ chil
     }
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (): Promise<void> => {
     // Clear cache and reload
     if ('caches' in window) {
       const cacheNames = await caches.keys();
@@ -241,7 +241,7 @@ export const MobileLayoutProvider: React.FC<MobileLayoutProviderProps> = ({ chil
       </div>
 
       {/* Mobile-specific styles */}
-      <style jsx global>{`
+      <style jsx={true} global={true}>{`
         @media (max-width: 768px) {
           /* Disable zoom on form inputs */
           input[type="color"],

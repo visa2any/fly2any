@@ -122,13 +122,13 @@ export default function PaymentForm({
       formattedValue = value.replace(/[^0-9]/g, '').substring(0, 4);
     }
 
-    setCardForm(prev => ({
+    setCardForm((prev: any) => ({
       ...prev,
       [field]: formattedValue
     }));
   };
 
-  const handleAccountCreditCardPayment = async () => {
+  const handleAccountCreditCardPayment = async (): Promise<void> => {
     setIsProcessing(true);
     try {
       const response = await fetch('/api/hotels/booking/finalize', {
@@ -164,7 +164,7 @@ export default function PaymentForm({
     }
   };
 
-  const handleWalletPayment = async () => {
+  const handleWalletPayment = async (): Promise<void> => {
     setIsProcessing(true);
     try {
       const response = await fetch('/api/hotels/booking/finalize', {
@@ -246,7 +246,7 @@ export default function PaymentForm({
                   name="paymentMethod"
                   value={method.id}
                   checked={selectedMethod === method.id}
-                  onChange={(e) => setSelectedMethod(e.target.value as PaymentMethod)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedMethod(e.target.value as PaymentMethod)}
                   className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <div className="flex items-center gap-3 flex-1">

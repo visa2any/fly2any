@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 
 // Analytics types
@@ -121,7 +121,7 @@ export const useConversionTracking = (formId: string, userId?: string, abVariant
       }
     };
 
-    setEvents(prev => [...prev, event]);
+    setEvents((prev: any) => [...prev, event]);
 
     // Send to analytics service
     sendAnalyticsEvent(event);
@@ -215,7 +215,7 @@ export const useRealTimeAnalytics = (formId: string) => {
       
       // Generate mock real-time data
       const interval = setInterval(() => {
-        setAnalytics(prev => ({
+        setAnalytics((prev: any) => ({
           ...prev,
           activeUsers: Math.floor(Math.random() * 50) + 10,
           currentConversions: Math.floor(Math.random() * 5) + 1,
@@ -244,7 +244,7 @@ export const useABTestPerformance = (variants: string[]) => {
   }>>({});
 
   const updateVariantPerformance = useCallback((variant: string, eventType: 'view' | 'conversion') => {
-    setPerformance(prev => {
+    setPerformance((prev: any) => {
       const current = prev[variant] || { views: 0, conversions: 0, conversionRate: 0, confidence: 0, isWinner: false };
       
       const updated = {
@@ -268,7 +268,7 @@ export const useABTestPerformance = (variants: string[]) => {
     const sorted = entries.sort(([,a], [,b]) => b.conversionRate - a.conversionRate);
     const winner = sorted[0];
     
-    setPerformance(prev => {
+    setPerformance((prev: any) => {
       const updated = { ...prev };
       Object.keys(updated).forEach(variant => {
         updated[variant].isWinner = variant === winner[0] && winner[1].confidence > 95;
@@ -355,8 +355,8 @@ function calculateMetrics(events: ConversionEvent[]): ConversionMetrics {
 
 function sendAnalyticsEvent(event: ConversionEvent) {
   // Send to analytics service (Google Analytics, Mixpanel, etc.)
-  if (typeof gtag !== 'undefined') {
-    gtag('event', event.eventType, {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', event.eventType, {
       custom_parameter_1: event.formId,
       custom_parameter_2: event.fieldId,
       custom_parameter_3: event.metadata.abVariant

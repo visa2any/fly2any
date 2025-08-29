@@ -20,12 +20,11 @@ import {
   InformationCircleIcon
 } from '@/components/Icons';
 
-const FareRulesModal: React.FC<FareRulesModalProps> = ({ 
-  isOpen, 
+const FareRulesModal: React.FC<FareRulesModalProps> = ({ isOpen, 
   onClose, 
   fareRules, 
   flightOffer 
-}) => {
+ }: FareRulesModalProps) => {
   if (!isOpen) return null;
 
   // Get first fare rule from array for display

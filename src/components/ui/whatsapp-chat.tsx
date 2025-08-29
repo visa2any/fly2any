@@ -34,7 +34,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
     }
   }, [isOpen, messages.length]);
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!inputMessage.trim()) return;
 
     const userMessage: ChatMessage = {
@@ -44,7 +44,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: any) => [...prev, userMessage]);
     setInputMessage('');
     setIsTyping(true);
 
@@ -56,7 +56,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, botResponse]);
+      setMessages((prev: any) => [...prev, botResponse]);
       setIsTyping(false);
     }, 1500);
   };
@@ -156,7 +156,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
               <input
                 type="text"
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Digite sua mensagem..."
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-green-500"

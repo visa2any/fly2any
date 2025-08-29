@@ -123,7 +123,7 @@ export default function CaribbeanAirportFeatures({
                 <div>
                   <h5 className="text-sm font-medium text-green-800 mb-2">For US Citizens</h5>
                   <div className="space-y-1">
-                    {visaInfo.specialFeatures.map((feature, idx) => (
+                    {visaInfo.specialFeatures.map((feature: any, idx: number) => (
                       <div key={idx} className="flex items-center space-x-2 text-sm text-green-700">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                         <span>{feature}</span>
@@ -218,7 +218,7 @@ export default function CaribbeanAirportFeatures({
         
         {airport.airlines && airport.airlines.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {airport.airlines.map((airlineCode) => {
+            {airport.airlines.map((airlineCode: any) => {
               const airlineData = CARIBBEAN_AIRLINES[airlineCode];
               return (
                 <div key={airlineCode} className="bg-white rounded-lg p-4 border border-orange-200">
@@ -265,7 +265,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-indigo-800 mb-2">From USA</h5>
             <div className="space-y-1">
-              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.fromUSA.slice(0, 4).map((route, idx) => (
+              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.fromUSA.slice(0, 4).map((route: any, idx: number) => (
                 <div key={idx} className="text-xs text-indigo-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-indigo-500 rounded-full"></div>
                   <span>{route}</span>
@@ -276,7 +276,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-indigo-800 mb-2">From Canada</h5>
             <div className="space-y-1">
-              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.fromCanada.map((route, idx) => (
+              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.fromCanada.map((route: any, idx: number) => (
                 <div key={idx} className="text-xs text-indigo-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-indigo-500 rounded-full"></div>
                   <span>{route}</span>
@@ -287,7 +287,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-indigo-800 mb-2">Inter-Island</h5>
             <div className="space-y-1">
-              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.interIsland.slice(0, 4).map((route, idx) => (
+              {CARIBBEAN_TRAVEL_PATTERNS.popularRoutes.interIsland.slice(0, 4).map((route: any, idx: number) => (
                 <div key={idx} className="text-xs text-indigo-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-indigo-500 rounded-full"></div>
                   <span>{route}</span>
@@ -357,13 +357,13 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-cyan-800 mb-2">Transportation</h5>
             <div className="space-y-1">
-              {CARIBBEAN_ISLAND_FEATURES.transportation.publicTransit.map((info, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.transportation.publicTransit.map((info: any, idx: number) => (
                 <div key={idx} className="text-xs text-cyan-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
                   <span>{info}</span>
                 </div>
               ))}
-              {CARIBBEAN_ISLAND_FEATURES.transportation.specialConsiderations.map((info, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.transportation.specialConsiderations.map((info: any, idx: number) => (
                 <div key={idx} className="text-xs text-cyan-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
                   <span>{info}</span>
@@ -385,7 +385,7 @@ export default function CaribbeanAirportFeatures({
                   <span>Limited accessibility - check with airport</span>
                 </div>
               )}
-              {CARIBBEAN_ISLAND_FEATURES.accessibility.considerations.map((info, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.accessibility.considerations.map((info: any, idx: number) => (
                 <div key={idx} className="text-xs text-cyan-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-cyan-500 rounded-full"></div>
                   <span>{info}</span>
@@ -436,7 +436,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-pink-800 mb-2">Languages</h5>
             <div className="space-y-1">
-              {CARIBBEAN_ISLAND_FEATURES.cultural.languages.map((lang, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.cultural.languages.map((lang: any, idx: number) => (
                 <div key={idx} className="text-xs text-pink-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-pink-500 rounded-full"></div>
                   <span>{lang}</span>
@@ -447,7 +447,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-pink-800 mb-2">Currency Tips</h5>
             <div className="space-y-1">
-              {CARIBBEAN_ISLAND_FEATURES.cultural.currencies.map((tip, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.cultural.currencies.map((tip: any, idx: number) => (
                 <div key={idx} className="text-xs text-pink-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-pink-500 rounded-full"></div>
                   <span>{tip}</span>
@@ -458,7 +458,7 @@ export default function CaribbeanAirportFeatures({
           <div>
             <h5 className="text-sm font-medium text-pink-800 mb-2">Local Etiquette</h5>
             <div className="space-y-1">
-              {CARIBBEAN_ISLAND_FEATURES.cultural.etiquette.map((tip, idx) => (
+              {CARIBBEAN_ISLAND_FEATURES.cultural.etiquette.map((tip: any, idx: number) => (
                 <div key={idx} className="text-xs text-pink-700 flex items-center space-x-1">
                   <div className="w-1 h-1 bg-pink-500 rounded-full"></div>
                   <span>{tip}</span>
@@ -479,7 +479,7 @@ export default function CaribbeanAirportFeatures({
             💡 Local Travel Tips
           </h4>
           <div className="space-y-2">
-            {visaInfo.tips.map((tip, idx) => (
+            {visaInfo.tips.map((tip: any, idx: number) => (
               <div key={idx} className="flex items-start space-x-2 text-sm text-amber-700">
                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2"></div>
                 <span>{tip}</span>
@@ -639,7 +639,7 @@ export default function CaribbeanAirportFeatures({
 
       {/* Tab Navigation */}
       <div className="flex border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {tabs.map((tab: any) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}

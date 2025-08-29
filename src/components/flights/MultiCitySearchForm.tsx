@@ -64,21 +64,21 @@ export default function MultiCitySearchForm({
       departureDate: new Date(lastSegment.departureDate.getTime() + 24 * 60 * 60 * 1000) // Next day
     };
 
-    setSegments(prev => [...prev, newSegment]);
+    setSegments((prev: any) => [...prev, newSegment]);
   }, [segments]);
 
   const removeSegment = useCallback((index: number) => {
     if (segments.length <= MIN_SEGMENTS) return;
-    setSegments(prev => prev.filter((_, i) => i !== index));
+    setSegments((prev: any) => prev.filter((_: any, i: number) => i !== index));
   }, [segments.length]);
 
   const updateSegment = useCallback((index: number, updates: Partial<FlightSegment>) => {
-    setSegments(prev => prev.map((segment, i) => 
+    setSegments((prev: any) => prev.map((segment: FlightSegment, i: number) => 
       i === index ? { ...segment, ...updates } : segment
     ));
 
     // Clear related errors
-    setErrors(prev => {
+    setErrors((prev: any) => {
       const newErrors = { ...prev };
       delete newErrors[`segment-${index}-origin`];
       delete newErrors[`segment-${index}-destination`];
@@ -88,7 +88,7 @@ export default function MultiCitySearchForm({
   }, []);
 
   const swapSegmentCities = useCallback((index: number) => {
-    setSegments(prev => prev.map((segment, i) => 
+    setSegments((prev: any) => prev.map((segment: FlightSegment, i: number) => 
       i === index 
         ? { ...segment, origin: segment.destination, destination: segment.origin }
         : segment
@@ -98,7 +98,7 @@ export default function MultiCitySearchForm({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    segments.forEach((segment, index) => {
+    segments.forEach((segment: FlightSegment, index: number) => {
       if (!segment.origin?.iataCode) {
         newErrors[`segment-${index}-origin`] = 'Origin airport is required';
       }
@@ -147,7 +147,7 @@ export default function MultiCitySearchForm({
   };
 
   const updatePassengerCount = (type: keyof PassengerCounts, increment: boolean) => {
-    setPassengers(prev => {
+    setPassengers((prev: PassengerCounts) => {
       const newCount = increment 
         ? prev[type] + 1 
         : Math.max(0, prev[type] - 1);
@@ -177,7 +177,7 @@ export default function MultiCitySearchForm({
       {/* Flight Segments */}
       <div className="space-y-4 mb-6">
         <AnimatePresence>
-          {segments.map((segment, index) => (
+          {segments.map((segment: FlightSegment, index: number) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -399,7 +399,7 @@ export default function MultiCitySearchForm({
           </label>
           <select
             value={travelClass}
-            onChange={(e) => setTravelClass(e.target.value as TravelClass)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTravelClass(e.target.value as TravelClass)}
             className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="ECONOMY">Economy</option>

@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { FlightIcon, CalendarIcon, UsersIcon, SwitchIcon, PlusIcon, MinusIcon } from '@/components/Icons';
 import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass } from '@/types/flights';
@@ -145,11 +146,11 @@ export default function FlightSearchForm({
     };
 
     if (type === 'origin') {
-      setFormData(prev => ({ ...prev, origin: airportSelection }));
+      setFormData((prev: any) => ({ ...prev, origin: airportSelection }));
       setOriginSearch(`${airport.city} (${airport.iataCode})`);
       setShowOriginDropdown(false);
     } else {
-      setFormData(prev => ({ ...prev, destination: airportSelection }));
+      setFormData((prev: any) => ({ ...prev, destination: airportSelection }));
       setDestinationSearch(`${airport.city} (${airport.iataCode})`);
       setShowDestinationDropdown(false);
     }
@@ -157,7 +158,7 @@ export default function FlightSearchForm({
 
   // Handle trip type change
   const handleTripTypeChange = useCallback((tripType: 'one-way' | 'round-trip') => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       tripType,
       returnDate: tripType === 'one-way' ? undefined : prev.returnDate
@@ -166,7 +167,7 @@ export default function FlightSearchForm({
 
   // Handle passenger count changes
   const updatePassengerCount = useCallback((type: keyof PassengerCounts, change: number) => {
-    setFormData(prev => {
+    setFormData((prev: any) => {
       const newCount = Math.max(0, prev.passengers[type] + change);
       
       let finalCount = newCount;
@@ -192,7 +193,7 @@ export default function FlightSearchForm({
 
   // Swap origin and destination
   const swapAirports = useCallback(() => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
@@ -204,7 +205,7 @@ export default function FlightSearchForm({
   }, [originSearch, destinationSearch]);
 
   // Handle form submission
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     
     const validationErrors = validateFlightSearchForm(formData);
@@ -237,7 +238,7 @@ export default function FlightSearchForm({
             {[
               { value: 'round-trip', label: 'Round Trip' },
               { value: 'one-way', label: 'One Way' }
-            ].map((type) => (
+            ].map((type: any) => (
               <button
                 key={type.value}
                 type="button"
@@ -266,7 +267,7 @@ export default function FlightSearchForm({
               ref={originInputRef}
               type="text"
               value={originSearch}
-              onChange={(e) => handleOriginSearch(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleOriginSearch(e.target.value)}
               onFocus={() => setShowOriginDropdown(true)}
               placeholder="Where from?"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
@@ -293,7 +294,7 @@ export default function FlightSearchForm({
               ref={destinationInputRef}
               type="text"
               value={destinationSearch}
-              onChange={(e) => handleDestinationSearch(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleDestinationSearch(e.target.value)}
               onFocus={() => setShowDestinationDropdown(true)}
               placeholder="Where to?"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
@@ -327,7 +328,7 @@ export default function FlightSearchForm({
             <input
               type="date"
               value={formData.departureDate.toISOString().split('T')[0]}
-              onChange={(e) => setFormData(prev => ({
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({
                 ...prev,
                 departureDate: new Date(e.target.value)
               }))}
@@ -345,7 +346,7 @@ export default function FlightSearchForm({
               <input
                 type="date"
                 value={formData.returnDate?.toISOString().split('T')[0] || ''}
-                onChange={(e) => setFormData(prev => ({
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({
                   ...prev,
                   returnDate: new Date(e.target.value)
                 }))}
@@ -362,7 +363,7 @@ export default function FlightSearchForm({
             </label>
             <select
               value={formData.travelClass}
-              onChange={(e) => setFormData(prev => ({
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({
                 ...prev,
                 travelClass: e.target.value as TravelClass
               }))}
@@ -382,7 +383,7 @@ export default function FlightSearchForm({
             type="checkbox"
             id="nonStop"
             checked={formData.preferences.nonStop}
-            onChange={(e) => setFormData(prev => ({
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({
               ...prev,
               preferences: {
                 ...prev.preferences,
@@ -400,7 +401,7 @@ export default function FlightSearchForm({
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <ul className="text-sm text-red-700 space-y-1">
-              {errors.map((error, index) => (
+              {errors.map((error: string, index: number) => (
                 <li key={index}>• {error}</li>
               ))}
             </ul>

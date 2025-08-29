@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AirportSelection } from '@/types/flights';
 import { FlightIcon, ClockIcon } from '@/components/Icons';
@@ -21,8 +22,8 @@ import { AFRICA_AIRPORTS_DATABASE } from '@/lib/airports/africa-airports-databas
 import { OCEANIA_AIRPORTS_DATABASE } from '@/lib/airports/oceania-airports-database';
 
 interface AirportAutocompleteProps {
-  value: AirportSelection;
-  onChange: (airport: AirportSelection) => void;
+  value: AirportSelection | null;
+  onChange: (airport: AirportSelection | null) => void;
   placeholder?: string;
   disabled?: boolean;
   error?: string;
@@ -143,7 +144,7 @@ export default function AirportAutocomplete({
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
-    const dropdownHeight = Math.min(320, results.length * 72 + 40); // Estimated height
+    const dropdownHeight = Math.min(320, Math.max(results.length, 1) * 72 + 40); // Estimated height
     
     const spaceBelow = viewportHeight - containerRect.bottom;
     const spaceAbove = containerRect.top;
@@ -154,14 +155,14 @@ export default function AirportAutocomplete({
     } else {
       setDropdownPosition('bottom');
     }
-  }, [results.length, isMobileDetected]);
+  }, [isMobileDetected]); // Remove results.length to prevent infinite loop
 
   // Recalculate position when dropdown opens or results change
   useEffect(() => {
     if (isOpen) {
       calculateDropdownPosition();
     }
-  }, [isOpen, calculateDropdownPosition]);
+  }, [isOpen, results.length, calculateDropdownPosition]); // Add results.length here instead
 
   // Handle virtual keyboard on mobile
   useEffect(() => {
@@ -191,22 +192,24 @@ export default function AirportAutocomplete({
 
   // Update query when value changes externally
   useEffect(() => {
-    if (value.iataCode && value.city) {
+    if (value?.iataCode && value?.city) {
       const expectedQuery = `${value.iataCode} - ${value.city}`;
       if (query !== expectedQuery) {
         setQuery(expectedQuery);
       }
-    } else if (!value.iataCode && query && !query.includes(' - ')) {
+    } else if (!value?.iataCode && query && !query.includes(' - ')) {
       // Don't clear the query if user is actively typing
       // Only clear if it's not a user-typed search term
     }
   }, [value, query]);
 
-  // Search airports
+  // Search airports - optimized to prevent infinite loops
   useEffect(() => {
     if (!query.trim()) {
-      setResults(recentSearches.length > 0 
-        ? recentSearches.slice(0, 5).map(airport => ({
+      // Use current recentSearches from state without making it a dependency
+      const currentRecentSearches = recentSearches;
+      setResults(currentRecentSearches.length > 0 
+        ? currentRecentSearches.slice(0, 5).map((airport: any) => ({
             ...airport,
             region: 'Recent',
             popularity: 5,
@@ -216,6 +219,7 @@ export default function AirportAutocomplete({
             .filter(airport => (airport.popularity ?? 0) >= 4)
             .slice(0, 10)
       );
+      setSelectedIndex(-1);
       return;
     }
 
@@ -258,16 +262,33 @@ export default function AirportAutocomplete({
     const maxResultsToShow = isMobileDetected ? Math.min(maxResults, 6) : maxResults;
     setResults(sortedMatches.slice(0, maxResultsToShow));
     setSelectedIndex(-1);
-  }, [query, recentSearches]);
+  }, [query, maxResults, isMobileDetected]); // Remove recentSearches to prevent loops
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Update results when recent searches change (only when query is empty)
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults(recentSearches.length > 0 
+        ? recentSearches.slice(0, 5).map((airport: any) => ({
+            ...airport,
+            region: 'Recent',
+            popularity: 5,
+            type: 'major' as const
+          }))
+        : AIRPORTS_DATABASE
+            .filter(airport => (airport.popularity ?? 0) >= 4)
+            .slice(0, 10)
+      );
+    }
+  }, [recentSearches]); // This effect only runs when recent searches change
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
     setIsOpen(true);
     
     // Clear selection if user is typing
-    if (newQuery !== `${value.iataCode} - ${value.city}`) {
-      onChange({ iataCode: '', name: '', city: '', country: '' });
+    if (newQuery !== `${value?.iataCode || ''} - ${value?.city || ''}`) {
+      onChange(null);
     }
 
     // On mobile, scroll input into view when focused
@@ -294,20 +315,32 @@ export default function AirportAutocomplete({
     // Save to recent searches
     const updatedRecent = [
       selectedAirport,
-      ...recentSearches.filter(a => a.iataCode !== airport.iataCode)
+      ...recentSearches.filter((a: any) => a.iataCode !== airport.iataCode)
     ].slice(0, 5);
     
     setRecentSearches(updatedRecent);
     localStorage.setItem('recentAirportSearches', JSON.stringify(updatedRecent));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // CRITICAL FIX: Always prevent Enter key form submission in multi-step forms
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Only handle selection if dropdown is open and has results
+      if (isOpen && results.length > 0 && selectedIndex >= 0 && selectedIndex < results.length) {
+        handleAirportSelect(results[selectedIndex]);
+      }
+      return;
+    }
+
     if (!isOpen || results.length === 0) return;
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % results.length);
+        setSelectedIndex((prev: any) => (prev + 1) % results.length);
         // Scroll selected item into view on mobile
         if (isMobileDetected) {
           setTimeout(() => {
@@ -318,19 +351,13 @@ export default function AirportAutocomplete({
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+        setSelectedIndex((prev: any) => (prev - 1 + results.length) % results.length);
         // Scroll selected item into view on mobile
         if (isMobileDetected) {
           setTimeout(() => {
             const selectedItem = resultsRef.current?.children[selectedIndex + 1];
             selectedItem?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 10);
-        }
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < results.length) {
-          handleAirportSelect(results[selectedIndex]);
         }
         break;
       case 'Escape':
@@ -453,14 +480,14 @@ export default function AirportAutocomplete({
               </div>
             )}
 
-            {results.map((airport, index) => (
+            {results.map((airport: any, index: number) => (
               <motion.button
                 key={`${airport.iataCode}-${index}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleAirportSelect(airport)}
-                onTouchStart={(e) => {
+                onTouchStart={(e: any) => {
                   // Prevent scrolling on touch start for better mobile experience
                   if (isMobileDetected) {
                     e.preventDefault();

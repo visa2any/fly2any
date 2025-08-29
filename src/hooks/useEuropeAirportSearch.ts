@@ -3,7 +3,7 @@
  * React hook for European airport search with caching and performance optimization
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { europeAirportSearch, EuropeAirportSearchResult, EuropeAirportSearchOptions } from '@/lib/airports/europe-airport-search';
 import { EuropeAirport } from '@/lib/airports/europe-airports-database';
 

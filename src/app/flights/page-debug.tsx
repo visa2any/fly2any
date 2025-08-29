@@ -55,11 +55,11 @@ function FlightsPageDebugContent() {
   // Handle flight search
   const handleFlightSearch = useCallback(async (searchData: FlightSearchFormData) => {
     console.log('🔍 Flight search triggered:', searchData);
-    setState(prev => ({ ...prev, isLoading: true, error: null, searchData }));
+    setState((prev: any) => ({ ...prev, isLoading: true, error: null, searchData }));
     
     // Simulate search for now
     setTimeout(() => {
-      setState(prev => ({ 
+      setState((prev: any) => ({ 
         ...prev, 
         view: 'results', 
         isLoading: false,
@@ -89,7 +89,7 @@ function FlightsPageDebugContent() {
               <h1 className="text-3xl font-bold mb-4">Search Results</h1>
               <p className="text-gray-600 mb-8">No results found (debug mode)</p>
               <button
-                onClick={() => setState(prev => ({ ...prev, view: 'search' }))}
+                onClick={() => setState((prev: any) => ({ ...prev, view: 'search' }))}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Back to Search
@@ -104,7 +104,7 @@ function FlightsPageDebugContent() {
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">Debug Mode</h1>
               <button
-                onClick={() => setState(prev => ({ ...prev, view: 'search' }))}
+                onClick={() => setState((prev: any) => ({ ...prev, view: 'search' }))}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Back to Search
@@ -124,7 +124,7 @@ function FlightsPageDebugContent() {
       {state.error && (
         <ErrorMessage
           message={state.error}
-          onClose={() => setState(prev => ({ ...prev, error: null }))}
+          onClose={() => setState((prev: any) => ({ ...prev, error: null }))}
         />
       )}
 

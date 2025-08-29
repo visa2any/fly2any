@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getPWAManager, initializePWA, PWACapabilities } from '@/lib/pwa/pwa-manager';
 
 interface PWAInstallPromptProps {
@@ -18,21 +18,15 @@ export default function PWAInstallPrompt({
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Initialize PWA Manager
-    const pwaManager = initializePWA({
-      trigger: 'manual', // We'll handle the UI manually
-      minEngagementScore: 2,
-      delayMs: 5000,
-      maxPrompts: 3,
-      cooldownDays: 7
-    });
+    // Get PWA Manager
+    const pwaManager = getPWAManager();
 
     // Check capabilities
     const caps = pwaManager.getCapabilities();
     setCapabilities(caps);
 
     // Show prompt if installable and not installed
-    if (caps.isInstallable && !caps.isInstalled && !dismissed) {
+    if (caps?.isInstallable && !caps.isInstalled && !dismissed) {
       // Delay showing the prompt for better UX
       const timer = setTimeout(() => {
         setShowPrompt(true);
@@ -44,7 +38,7 @@ export default function PWAInstallPrompt({
     // Listen for PWA events
     const handlePWAInstalled = () => {
       setShowPrompt(false);
-      setCapabilities(prev => prev ? { ...prev, isInstalled: true } : null);
+      setCapabilities((prev: any) => prev ? { ...prev, isInstalled: true } : null);
     };
 
     window.addEventListener('pwa-installed', handlePWAInstalled);
@@ -54,7 +48,7 @@ export default function PWAInstallPrompt({
     };
   }, [dismissed]);
 
-  const handleInstall = async () => {
+  const handleInstall = async (): Promise<void> => {
     const pwaManager = getPWAManager();
     if (!pwaManager) return;
 

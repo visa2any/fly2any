@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Core intelligent form types
@@ -337,7 +337,7 @@ export default function IntelligentFormSystem({
   };
 
   const handleFieldChange = (fieldId: string, value: any) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    setFormData((prev: any) => ({ ...prev, [fieldId]: value }));
     onFieldChange(fieldId, value);
   };
 

@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { FlightIcon, HotelIcon, CarIcon, TourIcon, InsuranceIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
@@ -115,9 +114,9 @@ export default function Home() {
   };
 
   const updateCurrentService = (updates: Partial<ServiceFormData>) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      selectedServices: prev.selectedServices.map((service, index) =>
+      selectedServices: prev.selectedServices.map((service: any, index: number) =>
         index === prev.currentServiceIndex ? { ...service, ...updates } : service
       )
     }));
@@ -141,7 +140,7 @@ export default function Home() {
       escalas: 'qualquer'
     };
 
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       selectedServices: [...prev.selectedServices, newService],
       currentServiceIndex: prev.selectedServices.length
@@ -545,7 +544,7 @@ export default function Home() {
                         <input
                           type="text"
                           value={formData.nome}
-                          onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, nome: e.target.value }))}
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
@@ -562,7 +561,7 @@ export default function Home() {
                         <input
                           type="email"
                           value={formData.email}
-                          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
                           style={{ 
                             width: '100%', 
                             padding: '8px', 
@@ -579,7 +578,7 @@ export default function Home() {
                         <input
                           type="text"
                           value={formData.telefone}
-                          onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, telefone: e.target.value }))}
                           style={{ 
                             width: '100%', 
                             padding: '8px', 

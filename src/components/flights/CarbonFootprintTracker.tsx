@@ -113,7 +113,7 @@ export default function CarbonFootprintTracker({
     }
   }, [flights, passengers]);
 
-  const calculateCarbonEmissions = async () => {
+  const calculateCarbonEmissions = async (): Promise<void> => {
     setIsCalculating(true);
     
     // Simulate calculation delay
@@ -218,7 +218,7 @@ export default function CarbonFootprintTracker({
   };
 
   const generateOffsetOptions = (emissions: CarbonEmission[]) => {
-    const totalEmissions = emissions.reduce((sum, e) => sum + e.emissions.total, 0);
+    const totalEmissions = emissions.reduce((sum: any, e: any) => sum + e.emissions.total, 0);
     
     const options: CarbonOffset[] = [
       {
@@ -371,7 +371,7 @@ export default function CarbonFootprintTracker({
     );
   }
 
-  const totalEmissions = carbonData.reduce((sum, data) => sum + data.emissions.total, 0);
+  const totalEmissions = carbonData.reduce((sum: number, data: any) => sum + data.emissions.total, 0);
   const emissionLevel = getEmissionLevel(totalEmissions);
 
   return (
@@ -409,7 +409,7 @@ export default function CarbonFootprintTracker({
                   <span className="font-semibold text-blue-900">Total Distance</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {carbonData.reduce((sum, data) => sum + data.distance, 0).toLocaleString()} km
+                  {carbonData.reduce((sum: number, data: any) => sum + data.distance, 0).toLocaleString()} km
                 </div>
               </div>
 
@@ -429,7 +429,7 @@ export default function CarbonFootprintTracker({
                   <span className="font-semibold text-green-900">Trees to Offset</span>
                 </div>
                 <div className="text-2xl font-bold text-green-600">
-                  {carbonData.reduce((sum, data) => sum + data.environmental.treesNeeded, 0)} trees
+                  {carbonData.reduce((sum: number, data: any) => sum + data.environmental.treesNeeded, 0)} trees
                 </div>
               </div>
             </div>
@@ -438,7 +438,7 @@ export default function CarbonFootprintTracker({
             <div className="bg-gray-50 rounded-xl p-6">
               <h4 className="font-semibold text-gray-900 mb-4">Environmental Impact Comparison</h4>
               <div className="space-y-4">
-                {['carTravel', 'trainTravel', 'bus'].map((transport) => {
+                {['carTravel', 'trainTravel', 'bus'].map((transport: any) => {
                   const comparison = carbonData[0]?.comparison[transport as keyof typeof carbonData[0]['comparison']] || 0;
                   const flightEmissions = carbonData[0]?.emissions.perPassenger || 0;
                   const percentage = Math.round((comparison / flightEmissions) * 100);
@@ -478,7 +478,7 @@ export default function CarbonFootprintTracker({
               <div>
                 <h4 className="font-semibold text-gray-900 mb-4">🌍 Eco-Friendly Alternatives</h4>
                 <div className="space-y-3">
-                  {ecoAlternatives.map((alternative, index) => (
+                  {ecoAlternatives.map((alternative: any, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
@@ -530,7 +530,7 @@ export default function CarbonFootprintTracker({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {offsetOptions.map((offset, index) => (
+                {offsetOptions.map((offset: any, index: number) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
@@ -545,7 +545,7 @@ export default function CarbonFootprintTracker({
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
+                            {[...Array(5)].map((_: any, i: number) => (
                               <StarIcon 
                                 key={i} 
                                 className={`w-3 h-3 ${
@@ -653,7 +653,7 @@ export default function CarbonFootprintTracker({
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Additional Benefits</h4>
                       <div className="space-y-1">
-                        {selectedOffset.impact.additionalBenefits.map((benefit, index) => (
+                        {selectedOffset.impact.additionalBenefits.map((benefit: string, index: number) => (
                           <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
                             <CheckCircleIcon className="w-4 h-4 text-green-500" />
                             <span>{benefit}</span>

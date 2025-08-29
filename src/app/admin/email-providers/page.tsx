@@ -171,12 +171,12 @@ export default function EmailProvidersPage() {
               placeholder="Seu email para teste"
               className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestEmail(e.target.value)}
             />
             <select 
               className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedProvider(e.target.value)}
             >
               <option value="">Selecione provedor</option>
               {emailProviders.filter(p => p.apiEndpoint).map(provider => (

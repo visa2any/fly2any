@@ -41,7 +41,7 @@ interface QuickAction {
   id: string;
   label: string;
   action: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{className?: string}>;
   data?: any;
 }
 
@@ -155,7 +155,7 @@ export default function ConversationalSearchInterface({
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: any) => [...prev, userMessage]);
     setCurrentInput('');
     setIsLoading(true);
 
@@ -183,7 +183,7 @@ export default function ConversationalSearchInterface({
         attachments: generateAttachments(response)
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev: any) => [...prev, assistantMessage]);
 
       // Update search parameters if applicable
       if (response.flightSuggestions.length > 0 && onSearchUpdate) {
@@ -207,7 +207,7 @@ export default function ConversationalSearchInterface({
         ]
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev: any) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -488,7 +488,7 @@ export default function ConversationalSearchInterface({
               ref={inputRef}
               type="text"
               value={currentInput}
-              onChange={(e) => setCurrentInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder="Ask me anything about flights... (e.g., 'Find me a cheap flight to Paris next week')"
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

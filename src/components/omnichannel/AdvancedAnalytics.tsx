@@ -102,7 +102,7 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({ agentId }) => {
     fetchAnalytics();
   }, [period, selectedChannel, selectedDepartment, agentId]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (): Promise<void> => {
     setLoading(true);
     try {
       const params = new URLSearchParams({

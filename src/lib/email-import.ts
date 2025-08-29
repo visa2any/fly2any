@@ -300,7 +300,6 @@ class EmailImportService {
     }
   }
 
-
   // Salvar contatos diretamente na API do email-marketing (método principal)
   private async saveContacts(contacts: ImportedContact[]): Promise<void> {
     try {

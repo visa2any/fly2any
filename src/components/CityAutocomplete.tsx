@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LocationIcon } from './Icons';
 import { City } from '@/data/cities';
 
@@ -64,13 +64,13 @@ export default function CityAutocomplete({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex((prev: any) => 
           prev < filteredCities.length - 1 ? prev + 1 : 0
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex((prev: any) => 
           prev > 0 ? prev - 1 : filteredCities.length - 1
         );
         break;

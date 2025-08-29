@@ -739,7 +739,7 @@ export class UnifiedAIAssistant {
     if (!params.adults) missing.push('número de passageiros');
 
     return {
-      message: `Para buscar voos, preciso de mais algumas informações:\n\n${missing.map(item => `• ${item}`).join('\n')}\n\nPode me informar?`,
+      message: `Para buscar voos, preciso de mais algumas informações:\n\n${missing.map((item: any) => `• ${item}`).join('\n')}\n\nPode me informar?`,
       confidence: 0.9,
       actions: [],
       attachments: [],

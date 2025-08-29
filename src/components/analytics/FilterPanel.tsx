@@ -35,7 +35,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </label>
           <select
             value={filters.period}
-            onChange={(e) => handlePeriodChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePeriodChange(e.target.value)}
             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
           >
             <option value="7">Últimos 7 dias</option>
@@ -50,7 +50,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </label>
           <select
             value={filters.event}
-            onChange={(e) => handleEventChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleEventChange(e.target.value)}
             className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-colors"
           >
             <option value="all">Todos os eventos</option>

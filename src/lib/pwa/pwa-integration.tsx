@@ -1,7 +1,8 @@
+import React from 'react';
 'use client';
 
 import { useEffect } from 'react';
-import { initializePWA } from './pwa-manager';
+import { initializePWA, getPWAManager } from './pwa-manager';
 import { offlineFormHandler } from './offline-form-handler';
 
 /**
@@ -13,18 +14,15 @@ export function usePWAIntegration() {
     if (typeof window === 'undefined') return;
 
     // Initialize PWA system
-    const initPWA = async () => {
+    const initPWA = async (): Promise<void> => {
       try {
         console.log('🚀 Initializing PWA integration...');
         
-        // Initialize PWA Manager with travel-optimized settings
-        const pwaManager = initializePWA({
-          trigger: 'engagement',
-          minEngagementScore: 3,
-          delayMs: 30000,
-          maxPrompts: 3,
-          cooldownDays: 7
-        });
+        // Initialize PWA system
+        await initializePWA();
+        
+        // Get PWA Manager
+        const pwaManager = getPWAManager();
 
         // Initialize offline form handler
         offlineFormHandler.initialize();
@@ -152,8 +150,8 @@ export function PWAScript() {
             });
             
             // Track installation
-            if (typeof gtag !== 'undefined') {
-              gtag('event', 'pwa_installed', {
+            if (typeof window !== 'undefined' && window.gtag) {
+              window.gtag('event', 'pwa_installed', {
                 event_category: 'PWA',
                 event_label: 'success'
               });

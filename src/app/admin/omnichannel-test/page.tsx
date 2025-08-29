@@ -88,7 +88,7 @@ export default function OmnichannelRealPage() {
   const [broadcastChannels, setBroadcastChannels] = useState<string[]>([]);
 
   // Fetch real conversations from API
-  const fetchConversations = async () => {
+  const fetchConversations = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/omnichannel/conversations?limit=50');
@@ -114,7 +114,7 @@ export default function OmnichannelRealPage() {
   };
 
   // Fetch real dashboard stats
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/omnichannel/dashboard');
       const data = await response.json();
@@ -142,7 +142,7 @@ export default function OmnichannelRealPage() {
   };
 
   // Send real message via API
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || !selectedConversation) return;
     
     try {
@@ -194,7 +194,7 @@ export default function OmnichannelRealPage() {
   };
 
   // Send broadcast message
-  const sendBroadcast = async () => {
+  const sendBroadcast = async (): Promise<void> => {
     if (!broadcastMessage.trim() || broadcastChannels.length === 0) {
       alert('Por favor, digite uma mensagem e selecione pelo menos um canal.');
       return;
@@ -530,7 +530,7 @@ export default function OmnichannelRealPage() {
                   <input
                     placeholder="🔍 Buscar conversas reais..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                     style={{
                       padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: '8px',
                       fontSize: '14px', width: '300px', outline: 'none'
@@ -538,7 +538,7 @@ export default function OmnichannelRealPage() {
                   />
                   <select
                     value={selectedChannel}
-                    onChange={(e) => setSelectedChannel(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedChannel(e.target.value)}
                     style={{
                       padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: '8px',
                       fontSize: '14px', backgroundColor: 'white', cursor: 'pointer', outline: 'none'
@@ -555,7 +555,7 @@ export default function OmnichannelRealPage() {
                   </select>
                   <select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
                     style={{
                       padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: '8px',
                       fontSize: '14px', backgroundColor: 'white', cursor: 'pointer', outline: 'none'
@@ -672,7 +672,7 @@ export default function OmnichannelRealPage() {
                           </div>
                           <div style={{ display: 'flex', gap: '4px' }}>
                             <button
-                              onClick={(e) => {
+                              onClick={(e: React.MouseEvent) => {
                                 e.stopPropagation();
                                 setSelectedConversation(conversation);
                                 setView('customer360');
@@ -690,7 +690,7 @@ export default function OmnichannelRealPage() {
                               👤 360°
                             </button>
                             <button
-                              onClick={(e) => {
+                              onClick={(e: React.MouseEvent) => {
                                 e.stopPropagation();
                                 updateConversationStatus(conversation.id, 'resolved');
                               }}
@@ -707,7 +707,7 @@ export default function OmnichannelRealPage() {
                               ✅ Resolver
                             </button>
                             <button
-                              onClick={(e) => {
+                              onClick={(e: React.MouseEvent) => {
                                 e.stopPropagation();
                                 handleConversationClick(conversation);
                               }}
@@ -862,7 +862,7 @@ export default function OmnichannelRealPage() {
                 </button>
                 <Textarea
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewMessage(e.target.value)}
                   placeholder="Digite sua mensagem real..."
                   className="flex-1 min-h-[40px] max-h-[100px] resize-none"
                   style={{ flex: 1 }}
@@ -1015,7 +1015,7 @@ export default function OmnichannelRealPage() {
                     </label>
                     <Textarea
                       value={broadcastMessage}
-                      onChange={(e) => setBroadcastMessage(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBroadcastMessage(e.target.value)}
                       placeholder="Digite a mensagem que será enviada para todos os contatos..."
                       style={{ minHeight: '120px', width: '100%' }}
                     />
@@ -1031,7 +1031,7 @@ export default function OmnichannelRealPage() {
                           <input
                             type="checkbox"
                             checked={broadcastChannels.includes(channel)}
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                               if (e.target.checked) {
                                 setBroadcastChannels([...broadcastChannels, channel]);
                               } else {

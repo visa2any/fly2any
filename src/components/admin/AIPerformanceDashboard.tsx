@@ -277,7 +277,7 @@ export default function AIPerformanceDashboard() {
             {/* Timeframe Selector */}
             <select
               value={selectedTimeframe}
-              onChange={(e) => setSelectedTimeframe(e.target.value as any)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTimeframe(e.target.value as any)}
               className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
             >
               <option value="1h">Last Hour</option>
@@ -291,7 +291,7 @@ export default function AIPerformanceDashboard() {
               <input
                 type="checkbox"
                 checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoRefresh(e.target.checked)}
                 className="mr-2"
               />
               <span className="text-sm text-gray-600">Auto-refresh</span>

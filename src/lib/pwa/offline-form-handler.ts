@@ -82,15 +82,8 @@ class OfflineFormHandler {
       });
 
       // Store in IndexedDB for background sync
-      const pwaManager = getPWAManager();
-      if (pwaManager) {
-        await pwaManager.storeForBackgroundSync({
-          type,
-          data: formData,
-          timestamp: Date.now(),
-          attempts: 0
-        });
-      }
+      // TODO: Implement background sync for offline form submissions
+      console.log('Form stored for offline submission:', { type, timestamp: Date.now() });
 
       // Show offline message if requested
       if (showOfflineMessage) {

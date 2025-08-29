@@ -7,7 +7,7 @@ export default function TestEmailPage() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const sendTestEmail = async () => {
+  const sendTestEmail = async (): Promise<void> => {
     setLoading(true);
     setStatus('Enviando...');
     
@@ -44,7 +44,7 @@ export default function TestEmailPage() {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="seu@email.com"
           />

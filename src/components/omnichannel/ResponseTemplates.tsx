@@ -49,7 +49,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
     filterTemplates();
   }, [templates, searchTerm, selectedCategory, currentChannel]);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = async (): Promise<void> => {
     try {
       setLoading(true);
       
@@ -159,7 +159,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
 
   const handleTemplateSelect = (template: ResponseTemplate) => {
     // Incrementar contador de uso
-    setTemplates(prev => prev.map(t => 
+    setTemplates((prev: any) => prev.map((t: any) => 
       t.id === template.id 
         ? { ...t, usage_count: t.usage_count + 1 }
         : t
@@ -183,7 +183,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
       updated_at: new Date()
     };
 
-    setTemplates(prev => [newTemplate, ...prev]);
+    setTemplates((prev: any) => [newTemplate, ...prev]);
     setFormData({
       name: '',
       content: '',
@@ -267,12 +267,12 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
         <Input
           placeholder="Buscar templates..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           className="max-w-xs"
         />
         <select 
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value)}
           className="px-3 py-2 border border-gray-300 rounded-md text-sm"
         >
           {categories.map(category => (
@@ -337,7 +337,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
                 <label className="block text-sm font-medium mb-1">Nome do Template</label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
                   placeholder="Ex: Saudação WhatsApp"
                 />
               </div>
@@ -346,7 +346,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
                 <label className="block text-sm font-medium mb-1">Categoria</label>
                 <select 
                   value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value as ResponseTemplate['category']})}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, category: e.target.value as ResponseTemplate['category']})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="greeting">Saudação</option>
@@ -362,7 +362,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
                 <label className="block text-sm font-medium mb-1">Canal</label>
                 <select 
                   value={formData.channel}
-                  onChange={(e) => setFormData({...formData, channel: e.target.value as ResponseTemplate['channel']})}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, channel: e.target.value as ResponseTemplate['channel']})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="all">Todos os canais</option>
@@ -377,7 +377,7 @@ const ResponseTemplates: React.FC<ResponseTemplatesProps> = ({
                 <label className="block text-sm font-medium mb-1">Conteúdo</label>
                 <Textarea
                   value={formData.content}
-                  onChange={(e) => setFormData({...formData, content: e.target.value})}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, content: e.target.value})}
                   placeholder="Use {variavel} para campos dinâmicos"
                   rows={4}
                 />

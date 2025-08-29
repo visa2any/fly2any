@@ -21,7 +21,7 @@ export default function LoginButton({ variant = 'header', showText = true, login
     signIn(undefined, { callbackUrl: window.location.href });
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (): Promise<void> => {
     await signOut({ callbackUrl: '/' });
   };
 

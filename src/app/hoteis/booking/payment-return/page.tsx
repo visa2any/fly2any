@@ -25,7 +25,7 @@ function PaymentReturnContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const processPaymentReturn = async () => {
+    const processPaymentReturn = async (): Promise<void> => {
       try {
         const transactionId = searchParams.get('transactionId');
         const status = searchParams.get('status');

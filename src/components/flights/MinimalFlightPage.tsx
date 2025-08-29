@@ -160,7 +160,7 @@ export default function MinimalFlightPage() {
                     { icon: '⚡', text: 'Fast search' },
                     { icon: '✅', text: 'Secure booking' },
                     { icon: '🌍', text: 'Global flights' }
-                  ].map((feature, index) => (
+                  ].map((feature: any, index: number) => (
                     <div 
                       key={`feature-${index}`} 
                       className="bg-white rounded-xl p-3 md:p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"

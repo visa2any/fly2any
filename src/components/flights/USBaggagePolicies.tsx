@@ -54,7 +54,7 @@ export default function USBaggagePolicies({
         <div className="mt-4">
           <div className="text-sm font-medium text-green-800 mb-2">Restrictions</div>
           <div className="space-y-1">
-            {airlineData.baggagePolicy.carryOn.restrictions.map((restriction, idx) => (
+            {airlineData.baggagePolicy.carryOn.restrictions.map((restriction: any, idx: number) => (
               <div key={idx} className="flex items-center space-x-2 text-sm text-green-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 <span>{restriction}</span>
@@ -151,7 +151,7 @@ export default function USBaggagePolicies({
           <div>
             <div className="text-sm font-medium text-amber-800 mb-2">Elite Status</div>
             <div className="space-y-1">
-              {airlineData.loyaltyProgram.tiers.slice(0, 3).map((tier) => (
+              {airlineData.loyaltyProgram.tiers.slice(0, 3).map((tier: any) => (
                 <div key={tier} className="flex items-center space-x-2 text-sm text-amber-700">
                   <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
                   <span>{tier}</span>
@@ -162,7 +162,7 @@ export default function USBaggagePolicies({
           <div>
             <div className="text-sm font-medium text-amber-800 mb-2">Credit Cards</div>
             <div className="space-y-1">
-              {airlineData.loyaltyProgram.creditCards.map((card) => (
+              {airlineData.loyaltyProgram.creditCards.map((card: any) => (
                 <div key={card} className="flex items-center space-x-2 text-sm text-amber-700">
                   <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
                   <span>{card}</span>
@@ -224,7 +224,7 @@ export default function USBaggagePolicies({
                   <span className="font-medium">Complimentary:</span>
                 </div>
                 <div className="text-xs text-red-600 space-y-1">
-                  {airlineData.amenities.food.complimentary.map((item, idx) => (
+                  {airlineData.amenities.food.complimentary.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-center space-x-2">
                       <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                       <span>{item}</span>
@@ -235,7 +235,7 @@ export default function USBaggagePolicies({
                   <span className="font-medium">For Purchase:</span>
                 </div>
                 <div className="text-xs text-red-600 space-y-1">
-                  {airlineData.amenities.food.purchase.map((item, idx) => (
+                  {airlineData.amenities.food.purchase.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-center space-x-2">
                       <div className="w-1 h-1 bg-red-500 rounded-full"></div>
                       <span>{item}</span>
@@ -292,7 +292,7 @@ export default function USBaggagePolicies({
 
         {/* Airline Selector */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {airlines.map((airlineCode) => {
+          {airlines.map((airlineCode: any) => {
             const airline = US_AIRLINES[airlineCode];
             if (!airline) return null;
             
@@ -314,7 +314,7 @@ export default function USBaggagePolicies({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
-          {tabs.map((tab) => (
+          {tabs.map((tab: any) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}

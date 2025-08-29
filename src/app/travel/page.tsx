@@ -32,7 +32,7 @@ import {
 // SIMPLE TRAVEL PAGE COMPONENT
 // ========================================
 
-const PremiumTravelPage: React.FC = () => {
+const PremiumTravelPage: React.FC<{}> = () => {
   const router = useRouter();
 
   // ========================================
@@ -314,7 +314,7 @@ const PremiumTravelPage: React.FC = () => {
   }, []);
 
   const handleInputChange = (field: string, value: any) => {
-    setSearchParams(prev => ({ ...prev, [field]: value }));
+    setSearchParams((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const formatPrice = (price: number) => {
@@ -738,9 +738,9 @@ const PremiumTravelPage: React.FC = () => {
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                   <div className="flex items-center space-x-4">
                                     <button
-                                      onClick={(e) => {
+                                      onClick={(e: React.MouseEvent) => {
                                         e.stopPropagation();
-                                        setFavoriteItems(prev => {
+                                        setFavoriteItems((prev: Set<string>) => {
                                           const newSet = new Set(prev);
                                           if (newSet.has(flight.id)) {
                                             newSet.delete(flight.id);
@@ -792,9 +792,9 @@ const PremiumTravelPage: React.FC = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                     <div className="absolute top-4 right-4">
                                       <button
-                                        onClick={(e) => {
+                                        onClick={(e: React.MouseEvent) => {
                                           e.stopPropagation();
-                                          setFavoriteItems(prev => {
+                                          setFavoriteItems((prev: Set<string>) => {
                                             const newSet = new Set(prev);
                                             if (newSet.has(hotel.id)) {
                                               newSet.delete(hotel.id);

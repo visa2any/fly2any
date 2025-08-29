@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 export default function SimpleTestPage() {
   const [email, setEmail] = useState('fly2any.travel@gmail.com');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const sendEmail = async () => {
+  const sendEmail = async (): Promise<void> => {
     setLoading(true);
     setStatus('Enviando...');
     
@@ -40,7 +40,7 @@ export default function SimpleTestPage() {
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
           placeholder="Email para teste"
         />

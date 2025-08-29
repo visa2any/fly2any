@@ -149,7 +149,7 @@ export function TagManager({
             <Input
               placeholder="Buscar tags..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -265,7 +265,7 @@ export function TagManager({
                             <Input
                               id="edit-name"
                               value={editingTag?.id === tag.id ? editingTag.name : tag.name}
-                              onChange={(e) => setEditingTag({
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingTag({
                                 ...tag,
                                 name: e.target.value
                               })}
@@ -276,7 +276,7 @@ export function TagManager({
                             <Label htmlFor="edit-category">Categoria</Label>
                             <Select
                               value={editingTag?.id === tag.id ? editingTag.category : tag.category}
-                              onValueChange={(value) => setEditingTag({
+                              onValueChange={(value: string) => setEditingTag({
                                 ...tag,
                                 category: value
                               })}
@@ -301,7 +301,7 @@ export function TagManager({
                             <Label htmlFor="edit-color">Cor</Label>
                             <Select
                               value={editingTag?.id === tag.id ? editingTag.color : tag.color}
-                              onValueChange={(value) => setEditingTag({
+                              onValueChange={(value: string) => setEditingTag({
                                 ...tag,
                                 color: value
                               })}
@@ -364,7 +364,7 @@ export function TagManager({
                 id="new-name"
                 placeholder="Ex: Cliente Premium"
                 value={newTag.name}
-                onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTag({ ...newTag, name: e.target.value })}
               />
             </div>
             
@@ -372,7 +372,7 @@ export function TagManager({
               <Label htmlFor="new-category">Categoria</Label>
               <Select
                 value={newTag.category}
-                onValueChange={(value) => setNewTag({ ...newTag, category: value })}
+                onValueChange={(value: string) => setNewTag({ ...newTag, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -394,7 +394,7 @@ export function TagManager({
               <Label htmlFor="new-color">Cor</Label>
               <Select
                 value={newTag.color}
-                onValueChange={(value) => setNewTag({ ...newTag, color: value })}
+                onValueChange={(value: string) => setNewTag({ ...newTag, color: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -418,7 +418,7 @@ export function TagManager({
                 id="new-description"
                 placeholder="Breve descrição..."
                 value={newTag.description}
-                onChange={(e) => setNewTag({ ...newTag, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTag({ ...newTag, description: e.target.value })}
               />
             </div>
           </div>

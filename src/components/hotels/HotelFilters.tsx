@@ -170,7 +170,7 @@ export default function HotelFilters({
               <input
                 type="number"
                 value={priceMin}
-                onChange={(e) => setPriceMin(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPriceMin(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                 min="0"
               />
@@ -183,7 +183,7 @@ export default function HotelFilters({
               <input
                 type="number"
                 value={priceMax}
-                onChange={(e) => setPriceMax(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPriceMax(Number(e.target.value))}
                 className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                 min="0"
               />
@@ -198,7 +198,7 @@ export default function HotelFilters({
             min="0"
             max={priceRange?.max || 2000}
             value={priceMin}
-            onChange={(e) => setPriceMin(Number(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPriceMin(Number(e.target.value))}
             className="absolute w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
           <input
@@ -206,7 +206,7 @@ export default function HotelFilters({
             min="0"
             max={priceRange?.max || 2000}
             value={priceMax}
-            onChange={(e) => setPriceMax(Number(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPriceMax(Number(e.target.value))}
             className="absolute w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
         </div>

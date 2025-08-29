@@ -164,7 +164,7 @@ export default function VoiceSearch({
   }, []);
 
   const addToConversation = (type: 'user' | 'system', content: string) => {
-    setConversationHistory(prev => [...prev, {
+    setConversationHistory((prev: any) => [...prev, {
       type,
       content,
       timestamp: new Date()
@@ -588,7 +588,7 @@ export default function VoiceSearch({
           <div className="border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
             <div className="text-sm font-medium text-gray-900 mb-3">Conversation</div>
             <div className="space-y-3">
-              {conversationHistory.map((message, index) => (
+              {conversationHistory.map((message: any, index: number) => (
                 <div
                   key={index}
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}

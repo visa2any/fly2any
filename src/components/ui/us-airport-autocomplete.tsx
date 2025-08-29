@@ -168,14 +168,14 @@ const USAirportAutocomplete: React.FC<USAirportAutocompleteProps> = ({
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        setFocusedIndex(prev => 
+        setFocusedIndex((prev: any) => 
           prev < displayResults.length - 1 ? prev + 1 : prev
         );
         break;
         
       case 'ArrowUp':
         event.preventDefault();
-        setFocusedIndex(prev => prev > 0 ? prev - 1 : -1);
+        setFocusedIndex((prev: any) => prev > 0 ? prev - 1 : -1);
         break;
         
       case 'Enter':

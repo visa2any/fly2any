@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
 
   // Check if user is already logged in with timeout
   useEffect(() => {
-    const checkSession = async () => {
+    const checkSession = async (): Promise<void> => {
       try {
         // Add timeout to prevent hanging
         const sessionPromise = getSession();
@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: value
     }));
@@ -221,7 +221,7 @@ export default function AdminLoginPage() {
                   type="submit"
                   disabled={isLoading || !formData.email || !formData.password}
                   className="admin-btn admin-btn-primary admin-login-button"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     console.log('🖱️ Botão clicado:', {
                       disabled: isLoading || !formData.email || !formData.password,
                       isLoading,

@@ -118,7 +118,7 @@ export default function TravelDocumentsValidator({
     return COUNTRY_MAPPING[iataCode] || 'UNKNOWN';
   };
 
-  const validateDocuments = async () => {
+  const validateDocuments = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -431,7 +431,7 @@ export default function TravelDocumentsValidator({
             Required Documents
           </h4>
           <div className="space-y-3">
-            {requiredDocs.map((doc, index) => (
+            {requiredDocs.map((doc: any, index: number) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -447,7 +447,7 @@ export default function TravelDocumentsValidator({
                     
                     {doc.details && (
                       <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                        {doc.details.map((detail, i) => (
+                        {doc.details.map((detail: any, i: number) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-gray-400 mt-1">•</span>
                             <span>{detail}</span>
@@ -500,7 +500,7 @@ export default function TravelDocumentsValidator({
             Recommended
           </h4>
           <div className="space-y-3">
-            {recommendedDocs.map((doc, index) => (
+            {recommendedDocs.map((doc: any, index: number) => (
               <div
                 key={index}
                 className={`border rounded-lg p-4 ${getStatusColor(doc.status)}`}
@@ -527,7 +527,7 @@ export default function TravelDocumentsValidator({
           </h4>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <ul className="space-y-2">
-              {requirements.warnings.map((warning, index) => (
+              {requirements.warnings.map((warning: any, index: number) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-yellow-800">
                   <span className="text-yellow-600 mt-1">⚠️</span>
                   <span>{warning}</span>
@@ -547,7 +547,7 @@ export default function TravelDocumentsValidator({
           </h4>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <ul className="space-y-2">
-              {requirements.recommendations.map((rec, index) => (
+              {requirements.recommendations.map((rec: any, index: number) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-blue-800">
                   <span className="text-blue-600 mt-1">💡</span>
                   <span>{rec}</span>

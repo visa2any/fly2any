@@ -4,7 +4,7 @@
  * Optimized for Brazilian market with comprehensive fallback support
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { brazilAirportSearch } from '../lib/airports/brazil-airport-search';
 import { POPULAR_BRAZIL_ROUTES } from '../lib/airports/brazil-airports-database';
 

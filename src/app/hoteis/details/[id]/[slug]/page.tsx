@@ -5,7 +5,7 @@
  * Rota: /hoteis/details/[id]/[slug]
  */
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
 import Footer from '@/components/Footer';

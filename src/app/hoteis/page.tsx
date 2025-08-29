@@ -5,7 +5,7 @@
  * Integrates search, results, details, and booking flow
  */
 
-import { useState, useCallback, useEffect, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Metadata } from 'next';
 import ResponsiveHeader from '@/components/ResponsiveHeader';
@@ -83,9 +83,9 @@ function HoteisContent() {
 
   const updateState = useCallback((updates: Partial<PageState> | ((prev: PageState) => Partial<PageState>)) => {
     if (typeof updates === 'function') {
-      setState(prev => ({ ...prev, ...updates(prev) }));
+      setState((prev: any) => ({ ...prev, ...updates(prev) }));
     } else {
-      setState(prev => ({ ...prev, ...updates }));
+      setState((prev: any) => ({ ...prev, ...updates }));
     }
   }, []);
 
@@ -1394,7 +1394,6 @@ function HoteisContent() {
         return null;
     }
   };
-
 
   return (
     <>

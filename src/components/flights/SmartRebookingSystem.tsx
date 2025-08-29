@@ -136,7 +136,7 @@ export default function SmartRebookingSystem({
     analyzeDisruptionAndGenerateStrategy();
   }, [disruption]);
 
-  const analyzeDisruptionAndGenerateStrategy = async () => {
+  const analyzeDisruptionAndGenerateStrategy = async (): Promise<void> => {
     setRebookingStatus('analyzing');
     
     // Simulate AI analysis
@@ -207,7 +207,7 @@ export default function SmartRebookingSystem({
     }
   };
 
-  const handleAutomaticRebooking = async () => {
+  const handleAutomaticRebooking = async (): Promise<void> => {
     if (!disruption.alternativeOptions.length) return;
 
     setIsProcessing(true);
@@ -215,7 +215,7 @@ export default function SmartRebookingSystem({
 
     try {
       // Select best alternative based on AI scoring
-      const bestOption = disruption.alternativeOptions.reduce((best, current) => 
+      const bestOption = disruption.alternativeOptions.reduce((best: any, current: any) => 
         current.aiRecommendation > best.aiRecommendation ? current : best
       );
 
@@ -451,7 +451,7 @@ export default function SmartRebookingSystem({
               <div>
                 <h5 className="font-semibold text-gray-900 mb-4">Alternative Flight Options</h5>
                 <div className="space-y-4">
-                  {disruption.alternativeOptions.map((option, index) => (
+                  {disruption.alternativeOptions.map((option: any, index: number) => (
                     <motion.div
                       key={option.id}
                       initial={{ opacity: 0, x: -20 }}
@@ -497,12 +497,12 @@ export default function SmartRebookingSystem({
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {option.pros.map((pro, i) => (
+                        {option.pros.map((pro: any, i: number) => (
                           <span key={i} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
                             ✓ {pro}
                           </span>
                         ))}
-                        {option.cons.map((con, i) => (
+                        {option.cons.map((con: any, i: number) => (
                           <span key={i} className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
                             ⚠ {con}
                           </span>
@@ -540,7 +540,7 @@ export default function SmartRebookingSystem({
 
               {/* Action Progress */}
               <div className="space-y-3">
-                {rebookingStrategy.actions.map((action, index) => (
+                {rebookingStrategy.actions.map((action: any, index: number) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className={`w-4 h-4 rounded-full ${
                       action.status === 'completed' ? 'bg-green-500' :

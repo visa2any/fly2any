@@ -7,11 +7,11 @@ interface EmptyStateProps {
   actionButton?: React.ReactNode;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ 
+export const EmptyState = ({ 
   title, 
   message, 
   actionButton 
-}) => {
+}: EmptyStateProps) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
       <ExclamationTriangleIcon className="w-12 h-12 text-yellow-500 mx-auto mb-4" />

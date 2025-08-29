@@ -49,7 +49,7 @@ export default function EmailTemplatesPage() {
     loadContactsCount();
   }, []);
 
-  const loadContactsCount = async () => {
+  const loadContactsCount = async (): Promise<void> => {
     try {
       console.log('🔍 Carregando contagens reais de contatos...');
       
@@ -115,7 +115,7 @@ export default function EmailTemplatesPage() {
     }
   };
 
-  const loadTemplates = async () => {
+  const loadTemplates = async (): Promise<void> => {
     try {
       // Carregar templates da API primeiro
       const response = await fetch('/api/email-templates');
@@ -831,7 +831,7 @@ export default function EmailTemplatesPage() {
     setShowEditor(true);
   };
 
-  const saveTemplate = async () => {
+  const saveTemplate = async (): Promise<void> => {
     if (!editingTemplate) return;
     
     setSaving(true);
@@ -1004,7 +1004,7 @@ export default function EmailTemplatesPage() {
     });
   };
 
-  const sendCampaignWithTemplate = async () => {
+  const sendCampaignWithTemplate = async (): Promise<void> => {
     if (!selectedTemplateForUse) return;
     
     setSendingCampaign(true);
@@ -1309,7 +1309,7 @@ export default function EmailTemplatesPage() {
                     <input
                       type="text"
                       value={editingTemplate.name}
-                      onChange={(e) => updateTemplateField('name', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTemplateField('name', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: Super Oferta - Alta Conversão"
                     />
@@ -1323,7 +1323,7 @@ export default function EmailTemplatesPage() {
                     <input
                       type="text"
                       value={editingTemplate.description}
-                      onChange={(e) => updateTemplateField('description', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTemplateField('description', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: Template promocional com gatilhos de urgência"
                     />
@@ -1337,7 +1337,7 @@ export default function EmailTemplatesPage() {
                     <input
                       type="text"
                       value={editingTemplate.subject}
-                      onChange={(e) => updateTemplateField('subject', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateTemplateField('subject', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="Ex: ⚡ ÚLTIMAS 24H: Pacote COMPLETO..."
                     />
@@ -1353,7 +1353,7 @@ export default function EmailTemplatesPage() {
                     </label>
                     <select
                       value={editingTemplate.type}
-                      onChange={(e) => updateTemplateField('type', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateTemplateField('type', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     >
                       <option value="promotional">🎯 Promocional</option>
@@ -1404,7 +1404,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="text"
                             value={editableFields.headerTitle || ''}
-                            onChange={(e) => updateEditableField('headerTitle', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('headerTitle', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: FLY2ANY"
                           />
@@ -1417,7 +1417,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="text"
                             value={editableFields.headerSubtitle || ''}
-                            onChange={(e) => updateEditableField('headerSubtitle', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('headerSubtitle', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: 21 anos conectando brasileiros ao mundo"
                           />
@@ -1435,7 +1435,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="text"
                             value={editableFields.mainTitle || ''}
-                            onChange={(e) => updateEditableField('mainTitle', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('mainTitle', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: PACOTE COMPLETO: TUDO INCLUÍDO!"
                           />
@@ -1456,7 +1456,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="url"
                             value={editableFields.ctaUrl || ''}
-                            onChange={(e) => updateEditableField('ctaUrl', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('ctaUrl', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="https://fly2any.com"
                           />
@@ -1469,7 +1469,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="text"
                             value={editableFields.ctaText || ''}
-                            onChange={(e) => updateEditableField('ctaText', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('ctaText', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="Ex: QUERO MEU PACOTE COMPLETO"
                           />
@@ -1490,7 +1490,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="text"
                             value={editableFields.whatsappNumber || ''}
-                            onChange={(e) => updateEditableField('whatsappNumber', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('whatsappNumber', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="+55 11 99999-9999"
                           />
@@ -1503,7 +1503,7 @@ export default function EmailTemplatesPage() {
                           <input
                             type="email"
                             value={editableFields.email || ''}
-                            onChange={(e) => updateEditableField('email', e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEditableField('email', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                             placeholder="info@fly2any.com"
                           />
@@ -1519,7 +1519,7 @@ export default function EmailTemplatesPage() {
                       </label>
                       <textarea
                         value={editingTemplate.html}
-                        onChange={(e) => updateTemplateField('html', e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateTemplateField('html', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full font-mono text-sm"
                         rows={25}
                         placeholder="Cole seu HTML aqui..."
@@ -1677,7 +1677,7 @@ export default function EmailTemplatesPage() {
                     <input
                       type="email"
                       value={campaignSettings.testEmail}
-                      onChange={(e) => setCampaignSettings({...campaignSettings, testEmail: e.target.value})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCampaignSettings({...campaignSettings, testEmail: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                       placeholder="seu@email.com"
                       required
@@ -1696,7 +1696,7 @@ export default function EmailTemplatesPage() {
                     </label>
                     <select
                       value={campaignSettings.segment}
-                      onChange={(e) => setCampaignSettings({...campaignSettings, segment: e.target.value})}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCampaignSettings({...campaignSettings, segment: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
                     >
                       <option value="">

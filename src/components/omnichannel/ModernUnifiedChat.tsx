@@ -28,7 +28,7 @@ const ModernUnifiedChat: React.FC<ModernUnifiedChatProps> = ({
 
   useEffect(() => {
     if (conversationId) {
-      const fetchData = async () => {
+      const fetchData = async (): Promise<void> => {
         await fetchConversation();
       };
       
@@ -44,7 +44,7 @@ const ModernUnifiedChat: React.FC<ModernUnifiedChatProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  const fetchConversation = async () => {
+  const fetchConversation = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/omnichannel/conversations/${conversationId}`);
       const data = await response.json();
@@ -68,7 +68,7 @@ const ModernUnifiedChat: React.FC<ModernUnifiedChatProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || !conversation || sending) return;
 
     setSending(true);
@@ -323,7 +323,7 @@ const ModernUnifiedChat: React.FC<ModernUnifiedChatProps> = ({
           <div className="flex-1">
             <Textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Digite sua mensagem..."
               className="min-h-[50px] max-h-[120px] resize-none border-slate-300 focus:border-blue-500 focus:ring-blue-500"

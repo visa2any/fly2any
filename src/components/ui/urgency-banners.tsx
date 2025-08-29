@@ -45,7 +45,7 @@ export const UrgencyBanner: React.FC<UrgencyBannerProps> = ({
   useEffect(() => {
     if (type === 'demand') {
       const interval = setInterval(() => {
-        setCurrentViewers(prev => {
+        setCurrentViewers((prev: any) => {
           const change = Math.random() > 0.5 ? 1 : -1;
           return Math.max(3, Math.min(25, prev + change));
         });
@@ -57,7 +57,7 @@ export const UrgencyBanner: React.FC<UrgencyBannerProps> = ({
   useEffect(() => {
     if (type === 'time' || type === 'booking' || type === 'preBooking' || type === 'lastChance') {
       const interval = setInterval(() => {
-        setCurrentTimeLeft(prev => Math.max(0, prev - 1));
+        setCurrentTimeLeft((prev: any) => Math.max(0, prev - 1));
       }, 1000);
       return () => clearInterval(interval);
     }
@@ -66,13 +66,13 @@ export const UrgencyBanner: React.FC<UrgencyBannerProps> = ({
   useEffect(() => {
     if (type === 'lastChance' && currentTimeLeft < 60) {
       const blinkInterval = setInterval(() => {
-        setIsBlinking(prev => !prev);
+        setIsBlinking((prev: any) => !prev);
       }, 500);
       return () => clearInterval(blinkInterval);
     }
   }, [type, currentTimeLeft]);
 
-  const handlePreBooking = async () => {
+  const handlePreBooking = async (): Promise<void> => {
     if (!rateId || isLoading) return;
     
     setIsLoading(true);
@@ -220,7 +220,7 @@ export const MultiUrgencyStack: React.FC<MultiUrgencyStackProps> = ({
   useEffect(() => {
     if (!prebookingActive) {
       const interval = setInterval(() => {
-        setActiveUrgencyIndex(prev => (prev + 1) % urgencyTypes.length);
+        setActiveUrgencyIndex((prev: any) => (prev + 1) % urgencyTypes.length);
       }, 5000);
       return () => clearInterval(interval);
     }

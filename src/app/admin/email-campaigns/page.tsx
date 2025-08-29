@@ -65,7 +65,7 @@ export default function EmailCampaignsPage() {
     loadCampaigns();
   }, []);
 
-  const loadCampaigns = async () => {
+  const loadCampaigns = async (): Promise<void> => {
     try {
       setLoading(true);
       // This would integrate with the CampaignManager
@@ -507,7 +507,7 @@ export default function EmailCampaignsPage() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="e.g., Black Friday Flight Deals"
                     required
@@ -520,7 +520,7 @@ export default function EmailCampaignsPage() {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as CampaignType })}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, type: e.target.value as CampaignType })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {campaignTypes.map((type) => (
@@ -537,7 +537,7 @@ export default function EmailCampaignsPage() {
                   </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                       const template = templateOptions.find(t => t.value === e.target.value);
                       if (template) {
                         setFormData({

@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import type { ChangeEvent } from 'react';
 import { 
   UserIcon, 
   EnvelopeIcon, 
@@ -109,13 +110,13 @@ export default function FlightBookingForm({
       });
     }
     
-    setBookingData(prev => ({ ...prev, passengers: initialPassengers }));
+    setBookingData((prev: any) => ({ ...prev, passengers: initialPassengers }));
   }, [selectedFlight]);
 
   // 🎯 Price lock countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev: any) => {
         if (prev <= 0) {
           clearInterval(timer);
           return 0;
@@ -137,7 +138,7 @@ export default function FlightBookingForm({
   const validateCurrentStep = useMemo(() => {
     switch (bookingState.currentStep) {
       case 'PASSENGER_INFO':
-        return bookingData.passengers.every(p => 
+        return bookingData.passengers.every((p: any) => 
           p.firstName && p.lastName && p.dateOfBirth && p.document?.number
         );
       case 'SPECIAL_REQUESTS':
@@ -162,7 +163,7 @@ export default function FlightBookingForm({
     const currentIndex = steps.indexOf(bookingState.currentStep);
     
     if (currentIndex < steps.length - 1) {
-      setBookingState(prev => ({
+      setBookingState((prev: any) => ({
         ...prev,
         currentStep: steps[currentIndex + 1] as any
       }));
@@ -174,15 +175,15 @@ export default function FlightBookingForm({
     const currentIndex = steps.indexOf(bookingState.currentStep);
     
     if (currentIndex > 0) {
-      setBookingState(prev => ({
+      setBookingState((prev: any) => ({
         ...prev,
         currentStep: steps[currentIndex - 1] as any
       }));
     }
   };
 
-  const handleSubmitBooking = async () => {
-    setBookingState(prev => ({ ...prev, isLoading: true, paymentProcessing: true }));
+  const handleSubmitBooking = async (): Promise<void> => {
+    setBookingState((prev: any) => ({ ...prev, isLoading: true, paymentProcessing: true }));
     
     try {
       const response = await fetch('/api/flights/create-order', {
@@ -194,21 +195,21 @@ export default function FlightBookingForm({
       const result = await response.json();
       
       if (result.success) {
-        setBookingState(prev => ({ ...prev, bookingConfirmed: true }));
+        setBookingState((prev: any) => ({ ...prev, bookingConfirmed: true }));
         onBookingComplete(result.data);
       } else {
-        setBookingState(prev => ({
+        setBookingState((prev: any) => ({
           ...prev,
           errors: [{ field: 'general', message: result.error, type: 'API' }]
         }));
       }
     } catch (error) {
-      setBookingState(prev => ({
+      setBookingState((prev: any) => ({
         ...prev,
         errors: [{ field: 'general', message: 'Erro de conexão', type: 'GENERAL' }]
       }));
     } finally {
-      setBookingState(prev => ({ ...prev, isLoading: false, paymentProcessing: false }));
+      setBookingState((prev: any) => ({ ...prev, isLoading: false, paymentProcessing: false }));
     }
   };
 
@@ -260,7 +261,7 @@ export default function FlightBookingForm({
 
         {/* 🎯 Progress Indicator */}
         <div className="flex items-center justify-between">
-          {['Passageiros', 'Extras', 'Pagamento', 'Confirmação'].map((step, index) => {
+          {['Passageiros', 'Extras', 'Pagamento', 'Confirmação'].map((step: any, index: number) => {
             const steps = ['PASSENGER_INFO', 'SPECIAL_REQUESTS', 'PAYMENT', 'CONFIRMATION'];
             const currentIndex = steps.indexOf(bookingState.currentStep);
             const isActive = index === currentIndex;
@@ -321,14 +322,14 @@ export default function FlightBookingForm({
         {bookingState.currentStep === 'PASSENGER_INFO' && (
           <PassengerInfoStep 
             passengers={bookingData.passengers}
-            onChange={(passengers: PassengerInfo[]) => setBookingData(prev => ({ ...prev, passengers }))}
+            onChange={(passengers: PassengerInfo[]) => setBookingData((prev: any) => ({ ...prev, passengers }))}
           />
         )}
         
         {bookingState.currentStep === 'SPECIAL_REQUESTS' && (
           <SpecialRequestsStep 
             specialRequests={bookingData.specialRequests}
-            onChange={(specialRequests: any) => setBookingData(prev => ({ ...prev, specialRequests }))}
+            onChange={(specialRequests: any) => setBookingData((prev: any) => ({ ...prev, specialRequests }))}
           />
         )}
         
@@ -336,8 +337,8 @@ export default function FlightBookingForm({
           <PaymentStep 
             contactInfo={bookingData.contactInfo}
             payment={bookingData.payment}
-            onContactChange={(contactInfo: any) => setBookingData(prev => ({ ...prev, contactInfo }))}
-            onPaymentChange={(payment: any) => setBookingData(prev => ({ ...prev, payment }))}
+            onContactChange={(contactInfo: any) => setBookingData((prev: any) => ({ ...prev, contactInfo }))}
+            onPaymentChange={(payment: any) => setBookingData((prev: any) => ({ ...prev, payment }))}
           />
         )}
         
@@ -346,7 +347,7 @@ export default function FlightBookingForm({
             bookingData={bookingData}
             selectedFlight={selectedFlight}
             agreements={bookingData.agreements}
-            onChange={(agreements: any) => setBookingData(prev => ({ ...prev, agreements }))}
+            onChange={(agreements: any) => setBookingData((prev: any) => ({ ...prev, agreements }))}
           />
         )}
       </div>
@@ -456,7 +457,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               <input
                 type="text"
                 value={passenger.firstName}
-                onChange={(e) => updatePassenger(index, 'firstName', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updatePassenger(index, 'firstName', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Nome"
                 required
@@ -470,7 +471,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               <input
                 type="text"
                 value={passenger.lastName}
-                onChange={(e) => updatePassenger(index, 'lastName', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updatePassenger(index, 'lastName', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Sobrenome"
                 required
@@ -484,7 +485,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               <input
                 type="date"
                 value={passenger.dateOfBirth}
-                onChange={(e) => updatePassenger(index, 'dateOfBirth', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updatePassenger(index, 'dateOfBirth', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
@@ -496,7 +497,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               </label>
               <select
                 value={passenger.gender}
-                onChange={(e) => updatePassenger(index, 'gender', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => updatePassenger(index, 'gender', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               >
@@ -512,7 +513,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               <input
                 type="text"
                 value={passenger.document?.number || ''}
-                onChange={(e) => updatePassenger(index, 'document.number', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updatePassenger(index, 'document.number', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Passaporte ou RG"
                 required
@@ -526,7 +527,7 @@ function PassengerInfoStep({ passengers, onChange }: any) {
               <input
                 type="date"
                 value={passenger.document?.expiryDate || ''}
-                onChange={(e) => updatePassenger(index, 'document.expiryDate', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updatePassenger(index, 'document.expiryDate', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
@@ -648,7 +649,7 @@ function PaymentStep({ contactInfo, payment, onContactChange, onPaymentChange }:
             <input
               type="email"
               value={contactInfo.email}
-              onChange={(e) => onContactChange({ ...contactInfo, email: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onContactChange({ ...contactInfo, email: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="seu@email.com"
               required
@@ -662,7 +663,7 @@ function PaymentStep({ contactInfo, payment, onContactChange, onPaymentChange }:
             <div className="flex gap-2">
               <select
                 value={contactInfo.phone.countryCode}
-                onChange={(e) => onContactChange({
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => onContactChange({
                   ...contactInfo,
                   phone: { ...contactInfo.phone, countryCode: e.target.value }
                 })}
@@ -675,7 +676,7 @@ function PaymentStep({ contactInfo, payment, onContactChange, onPaymentChange }:
               <input
                 type="tel"
                 value={contactInfo.phone.number}
-                onChange={(e) => onContactChange({
+                onChange={(e: ChangeEvent<HTMLInputElement>) => onContactChange({
                   ...contactInfo,
                   phone: { ...contactInfo.phone, number: e.target.value }
                 })}
@@ -800,7 +801,7 @@ function ConfirmationStep({ bookingData, selectedFlight, agreements, onChange }:
             <input
               type="checkbox"
               checked={agreements.termsAndConditions}
-              onChange={(e) => onChange({ ...agreements, termsAndConditions: e.target.checked })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onChange({ ...agreements, termsAndConditions: e.target.checked })}
               className="w-4 h-4 text-blue-600 mt-1"
               required
             />
@@ -813,7 +814,7 @@ function ConfirmationStep({ bookingData, selectedFlight, agreements, onChange }:
             <input
               type="checkbox"
               checked={agreements.privacyPolicy}
-              onChange={(e) => onChange({ ...agreements, privacyPolicy: e.target.checked })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onChange({ ...agreements, privacyPolicy: e.target.checked })}
               className="w-4 h-4 text-blue-600 mt-1"
               required
             />
@@ -826,7 +827,7 @@ function ConfirmationStep({ bookingData, selectedFlight, agreements, onChange }:
             <input
               type="checkbox"
               checked={agreements.marketingEmails}
-              onChange={(e) => onChange({ ...agreements, marketingEmails: e.target.checked })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => onChange({ ...agreements, marketingEmails: e.target.checked })}
               className="w-4 h-4 text-blue-600 mt-1"
             />
             <span className="text-sm text-gray-700">

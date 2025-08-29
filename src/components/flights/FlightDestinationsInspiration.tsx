@@ -34,7 +34,7 @@ export default function FlightDestinationsInspiration({
     fetchDestinations();
   }, [originCode, sortBy]);
 
-  const fetchDestinations = async () => {
+  const fetchDestinations = async (): Promise<void> => {
     setIsLoading(true);
     try {
       // This would connect to our SuperAmadeusClient
@@ -145,7 +145,7 @@ export default function FlightDestinationsInspiration({
             <label className="text-sm font-medium text-gray-700">Ordenar por:</label>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as any)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="SAVINGS">💰 Best International Deals</option>
@@ -182,7 +182,7 @@ export default function FlightDestinationsInspiration({
           ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
           : 'space-y-4'
       }`}>
-        {sortedDestinations.map((destination, index) => (
+        {sortedDestinations.map((destination: any, index: number) => (
           <div
             key={`${destination.origin}-${destination.destination}-${index}`}
             className={`destination-card group cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
@@ -213,7 +213,7 @@ export default function FlightDestinationsInspiration({
 
                   {/* 🎯 Favorite Button */}
                   <button
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       destination.destination && toggleFavorite(destination.destination);
                     }}
@@ -260,7 +260,7 @@ export default function FlightDestinationsInspiration({
                   {/* 🎯 Persuasion Tags */}
                   {destination.persuasionTags && destination.persuasionTags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {destination.persuasionTags.slice(0, 2).map((tag, tagIndex) => (
+                      {destination.persuasionTags.slice(0, 2).map((tag: any, tagIndex: number) => (
                         <span
                           key={`tag-${tagIndex}`}
                           className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full"
@@ -285,7 +285,7 @@ export default function FlightDestinationsInspiration({
                       Ver Voos
                     </button>
                     <button
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         shareDestination(destination);
                       }}
@@ -322,7 +322,7 @@ export default function FlightDestinationsInspiration({
 
                   {destination.persuasionTags && (
                     <div className="flex flex-wrap gap-1">
-                      {destination.persuasionTags.map((tag, tagIndex) => (
+                      {destination.persuasionTags.map((tag: any, tagIndex: number) => (
                         <span
                           key={`list-tag-${tagIndex}`}
                           className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"

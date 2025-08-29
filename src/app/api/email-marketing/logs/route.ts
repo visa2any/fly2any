@@ -262,7 +262,7 @@ async function getCampaignSpecificLogs(campaignId: string, hours: number) {
     }).filter(Boolean);
 
     // Filter by campaign and time range
-    const campaignEntries = entries.filter(entry => 
+    const campaignEntries = entries.filter((entry: any) => 
       entry.campaignId === campaignId && 
       new Date(entry.timestamp) >= since
     );
@@ -276,8 +276,8 @@ async function getCampaignSpecificLogs(campaignId: string, hours: number) {
       clicked: 0,
       bounced: 0
     };
-    const errors = campaignEntries.filter(entry => entry.level >= LogLevel.ERROR);
-    const timeline = campaignEntries.map(entry => ({
+    const errors = campaignEntries.filter((entry: any) => entry.level >= LogLevel.ERROR);
+    const timeline = campaignEntries.map((entry: any) => ({
       timestamp: entry.timestamp,
       event: entry.event,
       message: entry.message,
@@ -308,7 +308,7 @@ async function getCampaignSpecificLogs(campaignId: string, hours: number) {
     });
 
     // Calculate performance metrics
-    const performanceEntries = campaignEntries.filter(entry => entry.performance);
+    const performanceEntries = campaignEntries.filter((entry: any) => entry.performance);
     const avgMemoryUsage = performanceEntries.length > 0 
       ? performanceEntries.reduce((sum, entry) => sum + (entry.performance?.memoryUsage.heapUsed || 0), 0) / performanceEntries.length
       : 0;
@@ -425,7 +425,7 @@ async function exportLogsAsCSV(hours: number, campaignId?: string): Promise<stri
     }).filter(Boolean);
 
     // Filter by time range and campaign if specified
-    const filteredEntries = entries.filter(entry => {
+    const filteredEntries = entries.filter((entry: any) => {
       const matchesTime = new Date(entry.timestamp) >= since;
       const matchesCampaign = !campaignId || entry.campaignId === campaignId;
       return matchesTime && matchesCampaign;
@@ -433,7 +433,7 @@ async function exportLogsAsCSV(hours: number, campaignId?: string): Promise<stri
 
     // Convert to CSV
     const csvHeader = 'timestamp,level,event,message,campaign_id,contact_id,email,error\n';
-    const csvRows = filteredEntries.map(entry => {
+    const csvRows = filteredEntries.map((entry: any) => {
       const escapeCsv = (str: string) => `"${str?.replace(/"/g, '""') || ''}"`;
       return [
         escapeCsv(entry.timestamp),

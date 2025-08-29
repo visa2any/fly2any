@@ -232,7 +232,7 @@ export default function FlightResultsList({
   }, [cardStates]);
   
   const updateCardState = useCallback((offerId: string, updates: Partial<AdvancedFlightCardState>) => {
-    setCardStates(prev => {
+    setCardStates((prev: Map<string, AdvancedFlightCardState>) => {
       const newMap = new Map(prev);
       const currentState = getCardState(offerId);
       newMap.set(offerId, { ...currentState, ...updates });
@@ -247,7 +247,7 @@ export default function FlightResultsList({
     }
     
     // Update view tracking
-    setViewedOffers(prev => new Set([...prev, offerId]));
+    setViewedOffers((prev: any) => new Set([...prev, offerId]));
   }, [enablePersonalization]);
   
   const trackOfferView = useCallback((offerId: string) => {
@@ -564,7 +564,7 @@ export default function FlightResultsList({
   
   // 📱 Advanced offer details toggle with analytics
   const toggleOfferDetails = useCallback((offerId: string) => {
-    setExpandedOffers(prev => {
+    setExpandedOffers((prev: Set<string>) => {
       const newSet = new Set(prev);
       const isExpanding = !newSet.has(offerId);
       
@@ -592,7 +592,7 @@ export default function FlightResultsList({
   
   // 📦 Smart price tracking with ML predictions
   const togglePriceTracking = useCallback(async (offerId: string) => {
-    setTrackedOffers(prev => {
+    setTrackedOffers((prev: any) => {
       const newSet = new Set(prev);
       const offer = (offers || []).find(o => o.id === offerId);
       
@@ -632,7 +632,7 @@ export default function FlightResultsList({
   
   // ❤️ Advanced favoriting with personalization learning
   const toggleFavorite = useCallback((offerId: string) => {
-    setFavoritedOffers(prev => {
+    setFavoritedOffers((prev: any) => {
       const newSet = new Set(prev);
       const offer = (offers || []).find(o => o.id === offerId);
       
@@ -871,7 +871,7 @@ export default function FlightResultsList({
             </div>
             {segmentInsights.features && segmentInsights.features.length > 0 && (
               <div className="space-y-1">
-                {segmentInsights.features.slice(0, 2).map((feature, idx) => (
+                {segmentInsights.features.slice(0, 2).map((feature: any, idx: number) => (
                   <span key={idx} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     <CheckIcon className="w-3 h-3 mr-1" />
                     {feature}
@@ -966,7 +966,7 @@ export default function FlightResultsList({
           {offerInsights && offerInsights.length > 0 && (
             <div className="absolute top-2 right-2">
               <div className="flex space-x-1">
-                {offerInsights.slice(0, 2).map((insight, idx) => (
+                {offerInsights.slice(0, 2).map((insight: any, idx: number) => (
                   <div key={idx} className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
                     insight.urgency === 'HIGH' ? 'bg-red-100 text-red-800' :
                     insight.urgency === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
@@ -993,7 +993,7 @@ export default function FlightResultsList({
               <ClockIcon className="w-4 h-4 text-orange-500" />
               Conexões ({journey.layovers.length})
             </h5>
-            {journey.layovers.map((layover, index) => {
+            {journey.layovers.map((layover: any, index: number) => {
               const layoverInsight = layoverInsights[index];
               return (
                 <div key={index} className={`relative p-3 rounded-lg border-l-4 ${
@@ -1033,7 +1033,7 @@ export default function FlightResultsList({
                   
                   {layoverInsight?.tips && layoverInsight.tips.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      {layoverInsight.tips.map((tip, tipIdx) => (
+                      {layoverInsight.tips.map((tip: any, tipIdx: number) => (
                         <div key={tipIdx} className="flex items-center space-x-2 text-xs text-gray-600">
                           <InfoIcon className="w-3 h-3" />
                           <span>{tip}</span>
@@ -1055,7 +1055,7 @@ export default function FlightResultsList({
   // ========================================================================
 
   const toggleDetails = useCallback((offerId: string) => {
-    setExpandedOffers(prev => {
+    setExpandedOffers((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (newSet.has(offerId)) {
         newSet.delete(offerId);
@@ -1890,7 +1890,7 @@ export default function FlightResultsList({
                     </div>
                     
                     {/* Flight Segments */}
-                    {offer.outbound.segments.map((segment, idx) => (
+                    {offer.outbound.segments.map((segment: any, idx: number) => (
                       <div key={idx} className="mb-4 last:mb-0">
                         <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-100">
                           {/* Airline & Flight Info */}
@@ -1995,7 +1995,7 @@ export default function FlightResultsList({
                         </div>
                       </div>
                       
-                      {offer.inbound.segments.map((segment, idx) => (
+                      {offer.inbound.segments.map((segment: any, idx: number) => (
                         <div key={idx} className="mb-4 last:mb-0">
                           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-100">
                             {/* Same detailed structure as outbound */}
@@ -2424,7 +2424,7 @@ export default function FlightResultsList({
                       </h4>
                       
                       <div className="grid grid-cols-1 gap-2">
-                        {features.map((feature, index) => (
+                        {features.map((feature: any, index: number) => (
                           <div key={index} className="flex items-center space-x-3 p-2 bg-green-50 rounded-lg">
                             <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0" />
                             <span className="text-sm font-medium text-gray-900">{feature}</span>
@@ -2447,7 +2447,7 @@ export default function FlightResultsList({
     return (
       <div className={`flight-results-loading ${className}`}>
         <div className="space-y-4">
-          {[...Array(3)].map((_, index) => (
+          {[...Array(3)].map((_: any, index: number) => (
             <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 animate-pulse">
               <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-3 space-y-2">
@@ -2491,7 +2491,7 @@ export default function FlightResultsList({
                 {onSortChange ? (
                   <select 
                     value={sortOptions.sortBy}
-                    onChange={(e) => onSortChange({ ...sortOptions, sortBy: e.target.value as any })}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onSortChange({ ...sortOptions, sortBy: e.target.value as any })}
                     className="bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="price">Price</option>
@@ -2552,7 +2552,7 @@ export default function FlightResultsList({
                 </div>
               </div>
             ) : (
-              (paginatedOffers || []).map((offer, index) => renderUltraAdvancedFlightOffer(offer, index))
+              (paginatedOffers || []).map((offer: any, index: number) => renderUltraAdvancedFlightOffer(offer, index))
             )}
           </div>
         </div>

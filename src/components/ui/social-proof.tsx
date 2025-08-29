@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { Star, MapPin, Clock, CheckCircle } from 'lucide-react'
 
 interface Testimonial {

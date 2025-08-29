@@ -11,6 +11,7 @@
  */
 
 import React, { useState } from 'react';
+import type { FC } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -80,7 +81,7 @@ const CLASS_NAMES = {
   FIRST: 'First Class'
 };
 
-export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
+export const CabinClassDisplay: FC<CabinClassDisplayProps> = ({
   detectedClass,
   confidence,
   definition,
@@ -322,7 +323,7 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                 <span className="font-medium">Fonte Primária:</span> 
                 <Badge variant="outline" className="ml-2">
                   {sources && sources.length > 0 
-                    ? sources[0]?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                    ? sources[0]?.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
                     : 'Amadeus API'
                   }
                 </Badge>
@@ -332,9 +333,9 @@ export const CabinClassDisplay: React.FC<CabinClassDisplayProps> = ({
                 <div className="text-sm">
                   <span className="font-medium">Fontes Secundárias:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {sources.slice(1).map((source, index) => (
+                    {sources.slice(1).map((source: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
-                        {source.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {source.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                       </Badge>
                     ))}
                   </div>

@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import AirportAutocomplete from './AirportAutocomplete';
@@ -84,7 +85,7 @@ export default function EnterpriseFlightSearchForm({
   }, []);
 
   const swapAirports = () => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
@@ -101,7 +102,7 @@ export default function EnterpriseFlightSearchForm({
         departureDate: new Date(Date.now() + (formData.segments.length + 7) * 24 * 60 * 60 * 1000)
       };
       
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         segments: [...(prev.segments || []), newSegment]
       }));
@@ -110,23 +111,23 @@ export default function EnterpriseFlightSearchForm({
 
   const removeSegment = (index: number) => {
     if (formData.segments && formData.segments.length > 2) {
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
-        segments: prev.segments?.filter((_, i) => i !== index) || []
+        segments: prev.segments?.filter((_: any, i: number) => i !== index) || []
       }));
     }
   };
 
   const updateSegment = (index: number, updates: Partial<FlightSegment>) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
-      segments: prev.segments?.map((segment, i) => 
+      segments: prev.segments?.map((segment: any, i: number) => 
         i === index ? { ...segment, ...updates } : segment
       ) || []
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSearch(formData);
   };
@@ -200,11 +201,11 @@ export default function EnterpriseFlightSearchForm({
                 { value: 'round-trip', label: 'Round Trip', icon: '↔️' },
                 { value: 'one-way', label: 'One Way', icon: '→' },
                 { value: 'multi-city', label: 'Multi-City', icon: '🌐' }
-              ].map((type) => (
+              ].map((type: any) => (
                 <button
                   key={type.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, tripType: type.value as any }))}
+                  onClick={() => setFormData((prev: any) => ({ ...prev, tripType: type.value as any }))}
                   className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                     formData.tripType === type.value
                       ? 'bg-white text-blue-700 shadow-lg'
@@ -240,7 +241,7 @@ export default function EnterpriseFlightSearchForm({
                   </label>
                   <AirportAutocomplete
                     value={formData.origin}
-                    onChange={(airport) => setFormData(prev => ({ ...prev, origin: airport }))}
+                    onChange={(airport) => setFormData((prev: any) => ({ ...prev, origin: airport }))}
                     placeholder="Departure city or airport"
                     className="text-lg"
                   />
@@ -265,7 +266,7 @@ export default function EnterpriseFlightSearchForm({
                   </label>
                   <AirportAutocomplete
                     value={formData.destination}
-                    onChange={(airport) => setFormData(prev => ({ ...prev, destination: airport }))}
+                    onChange={(airport) => setFormData((prev: any) => ({ ...prev, destination: airport }))}
                     placeholder="Destination city or airport"
                     className="text-lg"
                   />
@@ -278,7 +279,7 @@ export default function EnterpriseFlightSearchForm({
                   </label>
                   <DatePicker
                     value={formData.departureDate.toISOString().split('T')[0]}
-                    onChange={(date) => setFormData(prev => ({ ...prev, departureDate: new Date(date) }))}
+                    onChange={(date) => setFormData((prev: any) => ({ ...prev, departureDate: new Date(date) }))}
                     placeholder="Select date"
                     className="text-base"
                   />
@@ -289,7 +290,7 @@ export default function EnterpriseFlightSearchForm({
                       </label>
                       <DatePicker
                         value={formData.returnDate?.toISOString().split('T')[0] || ''}
-                        onChange={(date) => setFormData(prev => ({ ...prev, returnDate: new Date(date) }))}
+                        onChange={(date) => setFormData((prev: any) => ({ ...prev, returnDate: new Date(date) }))}
                         placeholder="Select date"
                         className="text-base"
                         minDate={formData.departureDate.toISOString().split('T')[0]}
@@ -331,7 +332,7 @@ export default function EnterpriseFlightSearchForm({
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, adults: Math.max(1, prev.passengers.adults - 1) }
                                 }))}
@@ -342,7 +343,7 @@ export default function EnterpriseFlightSearchForm({
                               <span className="w-8 text-center">{formData.passengers.adults}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, adults: Math.min(9, prev.passengers.adults + 1) }
                                 }))}
@@ -359,7 +360,7 @@ export default function EnterpriseFlightSearchForm({
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, children: Math.max(0, prev.passengers.children - 1) }
                                 }))}
@@ -370,7 +371,7 @@ export default function EnterpriseFlightSearchForm({
                               <span className="w-8 text-center">{formData.passengers.children}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, children: Math.min(9, prev.passengers.children + 1) }
                                 }))}
@@ -387,7 +388,7 @@ export default function EnterpriseFlightSearchForm({
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, infants: Math.max(0, prev.passengers.infants - 1) }
                                 }))}
@@ -398,7 +399,7 @@ export default function EnterpriseFlightSearchForm({
                               <span className="w-8 text-center">{formData.passengers.infants}</span>
                               <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({
+                                onClick={() => setFormData((prev: any) => ({
                                   ...prev,
                                   passengers: { ...prev.passengers, infants: Math.min(9, prev.passengers.infants + 1) }
                                 }))}
@@ -438,12 +439,12 @@ export default function EnterpriseFlightSearchForm({
                           exit={{ opacity: 0, y: -10 }}
                           className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
                         >
-                          {TRAVEL_CLASSES.map((travelClass) => (
+                          {TRAVEL_CLASSES.map((travelClass: any) => (
                             <button
                               key={travelClass.value}
                               type="button"
                               onClick={() => {
-                                setFormData(prev => ({ ...prev, travelClass: travelClass.value }));
+                                setFormData((prev: any) => ({ ...prev, travelClass: travelClass.value }));
                                 setShowClassDropdown(false);
                               }}
                               className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
@@ -484,7 +485,7 @@ export default function EnterpriseFlightSearchForm({
                   </div>
 
                   <div className="space-y-4">
-                    {formData.segments?.map((segment, index) => (
+                    {formData.segments?.map((segment: any, index: number) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, y: -10 }}
@@ -582,7 +583,7 @@ export default function EnterpriseFlightSearchForm({
                           <input
                             type="checkbox"
                             checked={formData.preferences.nonStop}
-                            onChange={(e) => setFormData(prev => ({
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({
                               ...prev,
                               preferences: { ...prev.preferences, nonStop: e.target.checked }
                             }))}
@@ -596,7 +597,7 @@ export default function EnterpriseFlightSearchForm({
                           <input
                             type="checkbox"
                             checked={(formData.preferences.flexibleDates && 'enabled' in formData.preferences.flexibleDates) ? formData.preferences.flexibleDates.enabled : (formData.preferences.flexibleDates && 'departure' in formData.preferences.flexibleDates) ? formData.preferences.flexibleDates.departure.enabled : false}
-                            onChange={(e) => setFormData(prev => ({
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({
                               ...prev,
                               preferences: {
                                 ...prev.preferences,

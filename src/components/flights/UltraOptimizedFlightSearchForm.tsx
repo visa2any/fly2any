@@ -83,11 +83,11 @@ export default function UltraOptimizedFlightSearchForm({
 
   // Handle airport selection
   const selectAirport = (airport: SimplifiedAirport, type: 'origin' | 'destination') => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [type]: airport
     }));
-    setSearchTerms(prev => ({ ...prev, [type]: '' }));
+    setSearchTerms((prev: any) => ({ ...prev, [type]: '' }));
     setActiveDropdown(null);
   };
 
@@ -120,7 +120,7 @@ export default function UltraOptimizedFlightSearchForm({
 
   // Handle airport swap
   const swapAirports = () => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
@@ -151,11 +151,11 @@ export default function UltraOptimizedFlightSearchForm({
           { value: 'round-trip', label: 'Round-trip' },
           { value: 'one-way', label: 'One-way' },
           { value: 'multi-city', label: 'Multi-city' }
-        ].map((option) => (
+        ].map((option: any) => (
           <button
             key={option.value}
             type="button"
-            onClick={() => setFormData(prev => ({ ...prev, tripType: option.value as any }))}
+            onClick={() => setFormData((prev: any) => ({ ...prev, tripType: option.value as any }))}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               formData.tripType === option.value
                 ? 'bg-white/25 backdrop-blur-md text-white shadow-md border border-white/40'
@@ -179,10 +179,10 @@ export default function UltraOptimizedFlightSearchForm({
                 ref={originRef}
                 type="text"
                 value={formData.origin?.iataCode ? `${formData.origin.city} (${formData.origin.iataCode})` : searchTerms.origin}
-                onChange={(e) => {
-                  setSearchTerms(prev => ({ ...prev, origin: e.target.value }));
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setSearchTerms((prev: any) => ({ ...prev, origin: e.target.value }));
                   if (formData.origin?.iataCode) {
-                    setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
+                    setFormData((prev: any) => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
                   }
                   setActiveDropdown('origin');
                 }}
@@ -195,7 +195,7 @@ export default function UltraOptimizedFlightSearchForm({
               {/* Origin Dropdown */}
               {activeDropdown === 'origin' && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto">
-                  {searchAirports(searchTerms.origin).map((airport) => (
+                  {searchAirports(searchTerms.origin).map((airport: any) => (
                     <button
                       key={airport.iataCode}
                       type="button"
@@ -224,10 +224,10 @@ export default function UltraOptimizedFlightSearchForm({
                 ref={destinationRef}
                 type="text"
                 value={formData.destination?.iataCode ? `${formData.destination.city} (${formData.destination.iataCode})` : searchTerms.destination}
-                onChange={(e) => {
-                  setSearchTerms(prev => ({ ...prev, destination: e.target.value }));
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setSearchTerms((prev: any) => ({ ...prev, destination: e.target.value }));
                   if (formData.destination?.iataCode) {
-                    setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
+                    setFormData((prev: any) => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
                   }
                   setActiveDropdown('destination');
                 }}
@@ -240,7 +240,7 @@ export default function UltraOptimizedFlightSearchForm({
               {/* Destination Dropdown */}
               {activeDropdown === 'destination' && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto">
-                  {searchAirports(searchTerms.destination).map((airport) => (
+                  {searchAirports(searchTerms.destination).map((airport: any) => (
                     <button
                       key={airport.iataCode}
                       type="button"
@@ -268,7 +268,7 @@ export default function UltraOptimizedFlightSearchForm({
               <input
                 type="date"
                 value={formData.departureDate.toISOString().split('T')[0]}
-                onChange={(e) => setFormData(prev => ({ ...prev, departureDate: new Date(e.target.value) }))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, departureDate: new Date(e.target.value) }))}
                 min={new Date().toISOString().split('T')[0]}
                 className="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white shadow-lg hover:bg-white/20"
               />
@@ -284,7 +284,7 @@ export default function UltraOptimizedFlightSearchForm({
                 <input
                   type="date"
                   value={formData.returnDate?.toISOString().split('T')[0] || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, returnDate: new Date(e.target.value) }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, returnDate: new Date(e.target.value) }))}
                   min={formData.departureDate.toISOString().split('T')[0]}
                   className="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white shadow-lg hover:bg-white/20"
                 />
@@ -319,7 +319,7 @@ export default function UltraOptimizedFlightSearchForm({
                       <div className="flex items-center gap-4">
                         <button
                           type="button"
-                          onClick={() => setFormData(prev => ({
+                          onClick={() => setFormData((prev: any) => ({
                             ...prev,
                             passengers: {
                               ...prev.passengers,
@@ -334,7 +334,7 @@ export default function UltraOptimizedFlightSearchForm({
                         <span className="w-10 text-center font-bold text-lg">{formData.passengers[key as keyof PassengerCounts]}</span>
                         <button
                           type="button"
-                          onClick={() => setFormData(prev => ({
+                          onClick={() => setFormData((prev: any) => ({
                             ...prev,
                             passengers: {
                               ...prev.passengers,
@@ -382,7 +382,7 @@ export default function UltraOptimizedFlightSearchForm({
                 <label className="block text-xs font-semibold text-white/90 mb-1">Class</label>
                 <select
                   value={formData.travelClass}
-                  onChange={(e) => setFormData(prev => ({ ...prev, travelClass: e.target.value as TravelClass }))}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, travelClass: e.target.value as TravelClass }))}
                   className="w-full px-3 py-2 text-sm bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-xl focus:border-white/50 focus:outline-none transition-colors text-white"
                 >
                   <option value="ECONOMY">Economy</option>
@@ -398,7 +398,7 @@ export default function UltraOptimizedFlightSearchForm({
                   <input
                     type="checkbox"
                     checked={formData.preferences.nonStop}
-                    onChange={(e) => setFormData(prev => ({ 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ 
                       ...prev, 
                       preferences: { ...prev.preferences, nonStop: e.target.checked }
                     }))}

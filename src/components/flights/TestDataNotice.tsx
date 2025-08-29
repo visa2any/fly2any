@@ -12,10 +12,9 @@ interface TestDataNoticeProps {
   route: string;
 }
 
-const TestDataNotice: React.FC<TestDataNoticeProps> = ({
-  flightsCount,
+const TestDataNotice: React.FC<TestDataNoticeProps> = ({ flightsCount,
   route
-}) => {
+ }: TestDataNoticeProps) => {
   return (
     <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-xl p-4 mb-6">
       <div className="flex items-start gap-3">

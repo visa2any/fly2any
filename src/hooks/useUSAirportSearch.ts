@@ -4,7 +4,7 @@
  * Optimized for US market with comprehensive fallback support
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { usAirportSearch } from '../lib/airports/us-airport-search';
 import { POPULAR_US_ROUTES } from '../lib/airports/us-airports-database';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { initializePWA, getPWAManager, PWACapabilities } from '@/lib/pwa/pwa-manager';
 import { offlineFormHandler } from '@/lib/pwa/offline-form-handler';
 import PWAInstallPrompt from './PWAInstallPrompt';
@@ -31,31 +31,31 @@ export default function PWAProvider({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const initializePWASystem = async () => {
+    // Set up event listeners for PWA events
+    const handlePWAUpdateAvailable = () => {
+      setUpdateAvailable(true);
+    };
+
+    const handlePWAInstalled = () => {
+      setCapabilities((prev: any) => prev ? { ...prev, isInstalled: true } : null);
+    };
+
+    window.addEventListener('pwa-update-available', handlePWAUpdateAvailable);
+    window.addEventListener('pwa-installed', handlePWAInstalled);
+
+    const initializePWASystem = async (): Promise<void> => {
       try {
         console.log('🚀 Initializing PWA system...');
         
-        // Initialize PWA Manager
-        const pwaManager = initializePWA(installPromptConfig);
+        // Initialize PWA system
+        await initializePWA();
         
-        // Wait for initialization
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Get PWA Manager
+        const pwaManager = getPWAManager();
         
         // Get capabilities
         const caps = pwaManager.getCapabilities();
         setCapabilities(caps);
-        
-        // Set up event listeners for PWA events
-        const handlePWAUpdateAvailable = () => {
-          setUpdateAvailable(true);
-        };
-
-        const handlePWAInstalled = () => {
-          setCapabilities(prev => prev ? { ...prev, isInstalled: true } : null);
-        };
-
-        window.addEventListener('pwa-update-available', handlePWAUpdateAvailable);
-        window.addEventListener('pwa-installed', handlePWAInstalled);
 
         // Initialize badge API if supported
         if ('setAppBadge' in navigator) {
@@ -63,7 +63,7 @@ export default function PWAProvider({
         }
 
         // Request notification permission if PWA is installed
-        if (caps.isInstalled && !caps.hasNotificationPermission) {
+        if (caps?.isInstalled && !caps.hasNotificationPermission) {
           // Delay request to avoid overwhelming user on first install
           setTimeout(async () => {
             await pwaManager.requestNotificationPermission();
@@ -78,11 +78,6 @@ export default function PWAProvider({
         setIsInitialized(true);
         console.log('✅ PWA system initialized successfully');
         
-        return () => {
-          window.removeEventListener('pwa-update-available', handlePWAUpdateAvailable);
-          window.removeEventListener('pwa-installed', handlePWAInstalled);
-        };
-        
       } catch (error) {
         console.error('Failed to initialize PWA system:', error);
         setIsInitialized(true); // Still set to true to not block the app
@@ -90,9 +85,15 @@ export default function PWAProvider({
     };
 
     initializePWASystem();
-  }, [installPromptConfig]);
 
-  const handleUpdateApp = async () => {
+    // Cleanup function
+    return () => {
+      window.removeEventListener('pwa-update-available', handlePWAUpdateAvailable);
+      window.removeEventListener('pwa-installed', handlePWAInstalled);
+    };
+  }, []);
+
+  const handleUpdateApp = async (): Promise<void> => {
     try {
       // Reload to get the new service worker
       window.location.reload();

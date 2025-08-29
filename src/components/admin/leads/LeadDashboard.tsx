@@ -665,7 +665,7 @@ export function LeadDashboard({ className = '' }: LeadDashboardProps) {
               <input
                 type="checkbox"
                 checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-                onChange={(e) => handleSelectAll(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectAll(e.target.checked)}
                 className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-600">

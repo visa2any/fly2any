@@ -188,7 +188,7 @@ export default function FlightFilters({
       {activeChips.length > 0 && (
         <div className="p-3 lg:p-4 border-b border-gray-200 bg-blue-50">
           <div className="flex flex-wrap gap-2">
-            {activeChips.map((chip) => (
+            {activeChips.map((chip: any) => (
               <span
                 key={chip.id}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
@@ -226,7 +226,7 @@ export default function FlightFilters({
                 min={priceRange.min}
                 max={priceRange.max}
                 value={localFilters.priceRange?.min || priceRange.min}
-                onChange={(e) => updateFilter('priceRange', {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('priceRange', {
                   min: parseInt(e.target.value),
                   max: localFilters.priceRange?.max || priceRange.max
                 })}
@@ -238,7 +238,7 @@ export default function FlightFilters({
                 type="number"
                 placeholder="Min"
                 value={localFilters.priceRange?.min || ''}
-                onChange={(e) => updateFilter('priceRange', {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('priceRange', {
                   min: parseInt(e.target.value) || priceRange.min,
                   max: localFilters.priceRange?.max || priceRange.max
                 })}
@@ -249,7 +249,7 @@ export default function FlightFilters({
                 type="number"
                 placeholder="Max"
                 value={localFilters.priceRange?.max || ''}
-                onChange={(e) => updateFilter('priceRange', {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('priceRange', {
                   min: localFilters.priceRange?.min || priceRange.min,
                   max: parseInt(e.target.value) || priceRange.max
                 })}
@@ -270,7 +270,7 @@ export default function FlightFilters({
               { value: 0, label: 'Direct flights only', popular: true },
               { value: 1, label: 'Up to 1 stop', popular: false },
               { value: 2, label: 'Up to 2 stops', popular: false }
-            ].map((option) => (
+            ].map((option: any) => (
               <label key={option.value} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="radio"
@@ -279,7 +279,7 @@ export default function FlightFilters({
                   checked={Array.isArray(localFilters.stops) 
                     ? localFilters.stops.includes(option.value as any)
                     : localFilters.stops === option.value}
-                  onChange={(e) => updateFilter('stops', parseInt(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('stops', parseInt(e.target.value))}
                   className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900 flex-1">{option.label}</span>
@@ -300,14 +300,14 @@ export default function FlightFilters({
             Departure Time
           </h3>
           <div className="space-y-2">
-            {timeOptions.map((time) => (
+            {timeOptions.map((time: any) => (
               <label key={time.id} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={Array.isArray(localFilters.departureTime) 
                     ? localFilters.departureTime.includes(time.id) 
                     : false}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const current = Array.isArray(localFilters.departureTime) 
                       ? localFilters.departureTime 
                       : [];
@@ -335,12 +335,12 @@ export default function FlightFilters({
             Airlines
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {popularAirlines.map((airline) => (
+            {popularAirlines.map((airline: any) => (
               <label key={airline.code} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={localFilters.airlines?.includes(airline.code) || false}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const current = localFilters.airlines || [];
                     const newAirlines = e.target.checked
                       ? [...current, airline.code]
@@ -371,7 +371,7 @@ export default function FlightFilters({
               min="1"
               max="24"
               value={localFilters.duration?.max || 24}
-              onChange={(e) => updateFilter('duration', { max: parseInt(e.target.value) })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('duration', { max: parseInt(e.target.value) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
             />
             <div className="flex justify-between text-xs text-gray-500">
@@ -393,7 +393,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.flexible?.dates || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.flexible || {};
                   updateFilter('flexible', { ...current, dates: e.target.checked });
                 }}
@@ -408,7 +408,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.flexible?.airports || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.flexible || {};
                   updateFilter('flexible', { ...current, airports: e.target.checked });
                 }}
@@ -421,7 +421,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.flexible?.refundable || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.flexible || {};
                   updateFilter('flexible', { ...current, refundable: e.target.checked });
                 }}
@@ -443,7 +443,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.baggage?.carryOn || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.baggage || {};
                   updateFilter('baggage', { ...current, carryOn: e.target.checked });
                 }}
@@ -456,7 +456,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.baggage?.checked || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.baggage || {};
                   updateFilter('baggage', { ...current, checked: e.target.checked });
                 }}
@@ -478,7 +478,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.amenities?.includes('wifi') || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.amenities || [];
                   const newAmenities = e.target.checked
                     ? [...current, 'wifi']
@@ -495,7 +495,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.amenities?.includes('meals') || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.amenities || [];
                   const newAmenities = e.target.checked
                     ? [...current, 'meals']
@@ -512,7 +512,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.amenities?.includes('entertainment') || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.amenities || [];
                   const newAmenities = e.target.checked
                     ? [...current, 'entertainment']
@@ -529,7 +529,7 @@ export default function FlightFilters({
               <input
                 type="checkbox"
                 checked={localFilters.amenities?.includes('power') || false}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const current = localFilters.amenities || [];
                   const newAmenities = e.target.checked
                     ? [...current, 'power']

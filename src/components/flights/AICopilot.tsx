@@ -231,7 +231,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
       timestamp: new Date()
     };
 
-    setChatMessages(prev => [...prev, userMessage]);
+    setChatMessages((prev: any[]) => [...prev, userMessage]);
     setUserInput('');
     setIsLoading(true);
 
@@ -254,7 +254,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
         timestamp: new Date()
       };
 
-      setChatMessages(prev => [...prev, aiMessage]);
+      setChatMessages((prev: any[]) => [...prev, aiMessage]);
       setIsLoading(false);
     }, 1000 + Math.random() * 2000);
   }, []);
@@ -373,7 +373,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
                     </div>
                   ) : (
                     <div className="predictions-list">
-                      {predictions.map((prediction, index) => (
+                      {predictions.map((prediction: AiPrediction, index: number) => (
                         <div key={index} className="prediction-card">
                           <div className="prediction-header">
                             <div className="route-info">
@@ -423,7 +423,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
                           <div className="reasoning-section">
                             <h4>AI Analysis</h4>
                             <ul className="reasoning-list">
-                              {prediction.reasoning.map((reason, i) => (
+                              {prediction.reasoning.map((reason: string, i: number) => (
                                 <li key={i}>{reason}</li>
                               ))}
                             </ul>
@@ -461,7 +461,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
               {activeTab === 'insights' && (
                 <div className="insights-tab">
                   <div className="insights-list">
-                    {insights.map((insight) => (
+                    {insights.map((insight: AiInsight) => (
                       <div key={insight.id} className={`insight-card priority-${insight.priority}`}>
                         <div className="insight-header">
                           <span className="insight-icon">{getPriorityIcon(insight.priority)}</span>
@@ -485,7 +485,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
                 <div className="assistant-tab">
                   <div className="chat-container">
                     <div className="chat-messages">
-                      {chatMessages.map((message) => (
+                      {chatMessages.map((message: any) => (
                         <div key={message.id} className={`chat-message ${message.type}`}>
                           {message.type === 'ai' && (
                             <div className="message-avatar">🤖</div>
@@ -535,7 +535,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
                         <input
                           type="text"
                           value={userInput}
-                          onChange={(e) => setUserInput(e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUserInput(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(userInput)}
                           placeholder="Ask me anything about your trip..."
                           className="input-field"
@@ -558,7 +558,7 @@ export default function AICopilot({ isVisible, onClose, searchData }: AiCopilotP
       </motion.div>
 
       {/* Inline Styles */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .ai-copilot-container {
           position: fixed;
           bottom: 24px;

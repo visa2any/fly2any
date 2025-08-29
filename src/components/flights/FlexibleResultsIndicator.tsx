@@ -21,8 +21,7 @@ interface FlexibleResultsIndicatorProps {
   compact?: boolean;
 }
 
-const FlexibleResultsIndicator: React.FC<FlexibleResultsIndicatorProps> = ({
-  metadata,
+const FlexibleResultsIndicator: React.FC<FlexibleResultsIndicatorProps> = ({ metadata,
   isFlexibleResult,
   originalPrice,
   flexiblePrice,
@@ -31,7 +30,7 @@ const FlexibleResultsIndicator: React.FC<FlexibleResultsIndicatorProps> = ({
   originalDepartureDate,
   originalReturnDate,
   compact = false
-}) => {
+ }: FlexibleResultsIndicatorProps) => {
   // Don't show indicator if this is not a flexible search result
   if (!metadata?.isFlexibleSearch && !isFlexibleResult) {
     return null;
@@ -161,7 +160,7 @@ export const FlexibilityRecommendations: React.FC<{
       </div>
       
       <div className="space-y-3">
-        {recommendations.map((rec, index) => (
+        {recommendations.map((rec: any, index: number) => (
           <div key={index} className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2">

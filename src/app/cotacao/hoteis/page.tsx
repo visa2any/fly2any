@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import PhoneInputSimple from '@/components/PhoneInputSimple';
@@ -47,16 +47,16 @@ export default function CotacaoHoteis() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleServiceChange = (service: string) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       servicos: prev.servicos.includes(service)
-        ? prev.servicos.filter(s => s !== service)
+        ? prev.servicos.filter((s: string) => s !== service)
         : [...prev.servicos, service]
     }));
   };
@@ -453,7 +453,7 @@ export default function CotacaoHoteis() {
                       </label>
                       <PhoneInputSimple
                         value={formData.telefone}
-                        onChange={(value) => setFormData(prev => ({ ...prev, telefone: value }))}
+                        onChange={(value: string) => setFormData((prev: any) => ({ ...prev, telefone: value }))}
                       />
                     </div>
 

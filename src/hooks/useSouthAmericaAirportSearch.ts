@@ -4,7 +4,7 @@
  * Optimized for South American market with comprehensive multi-language support
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { southAmericaAirportSearch } from '../lib/airports/south-america-airport-search';
 import { POPULAR_SOUTH_AMERICA_ROUTES } from '../lib/airports/south-america-airports-database';
 

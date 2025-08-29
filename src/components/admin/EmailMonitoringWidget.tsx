@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   EnvelopeIcon,
   ExclamationTriangleIcon,
@@ -46,7 +46,7 @@ export default function EmailMonitoringWidget() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   // Fetch monitoring data
-  const fetchMonitoringData = async () => {
+  const fetchMonitoringData = async (): Promise<void> => {
     try {
       const [monitoringRes, alertsRes] = await Promise.all([
         fetch('/api/admin/email-analytics/realtime'),

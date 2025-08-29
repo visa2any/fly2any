@@ -48,7 +48,7 @@ export default function SettingsPage() {
   ];
 
   const updateSetting = (section: string, key: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev: any) => ({
       ...prev,
       [section]: {
         ...prev[section as keyof typeof prev],
@@ -74,7 +74,7 @@ export default function SettingsPage() {
             type="text"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.companyName}
-            onChange={(e) => updateSetting('general', 'companyName', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'companyName', e.target.value)}
           />
         </div>
         <div>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
             type="email"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.email}
-            onChange={(e) => updateSetting('general', 'email', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'email', e.target.value)}
           />
         </div>
         <div>
@@ -92,7 +92,7 @@ export default function SettingsPage() {
             type="tel"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.phone}
-            onChange={(e) => updateSetting('general', 'phone', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'phone', e.target.value)}
           />
         </div>
         <div>
@@ -101,7 +101,7 @@ export default function SettingsPage() {
             type="url"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.website}
-            onChange={(e) => updateSetting('general', 'website', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'website', e.target.value)}
           />
         </div>
         <div className="md:col-span-2">
@@ -110,7 +110,7 @@ export default function SettingsPage() {
             type="text"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.address}
-            onChange={(e) => updateSetting('general', 'address', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('general', 'address', e.target.value)}
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           <select
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.general.timezone}
-            onChange={(e) => updateSetting('general', 'timezone', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateSetting('general', 'timezone', e.target.value)}
           >
             <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
             <option value="America/Rio_Branco">Rio Branco (GMT-5)</option>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.emailNewLead}
-              onChange={(e) => updateSetting('notifications', 'emailNewLead', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'emailNewLead', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Notificar por email sobre novos leads</span>
@@ -147,7 +147,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.emailConversion}
-              onChange={(e) => updateSetting('notifications', 'emailConversion', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'emailConversion', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Notificar por email sobre conversões</span>
@@ -156,7 +156,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.emailTicket}
-              onChange={(e) => updateSetting('notifications', 'emailTicket', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'emailTicket', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Notificar por email sobre tickets de suporte</span>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.whatsappNotifications}
-              onChange={(e) => updateSetting('notifications', 'whatsappNotifications', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'whatsappNotifications', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Ativar notificações via WhatsApp</span>
@@ -186,7 +186,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.dailyReport}
-              onChange={(e) => updateSetting('notifications', 'dailyReport', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'dailyReport', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Relatório diário de performance</span>
@@ -195,7 +195,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.notifications.weeklyReport}
-              onChange={(e) => updateSetting('notifications', 'weeklyReport', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('notifications', 'weeklyReport', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Relatório semanal detalhado</span>
@@ -214,7 +214,7 @@ export default function SettingsPage() {
             type="password"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.whatsappToken}
-            onChange={(e) => updateSetting('integrations', 'whatsappToken', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('integrations', 'whatsappToken', e.target.value)}
             placeholder="Insira o token do WhatsApp"
           />
           <p className="text-sm text-admin-text-secondary mt-1">
@@ -227,7 +227,7 @@ export default function SettingsPage() {
             type="text"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.googleAnalytics}
-            onChange={(e) => updateSetting('integrations', 'googleAnalytics', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('integrations', 'googleAnalytics', e.target.value)}
             placeholder="GA-XXXXXXXXX"
           />
         </div>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
             type="text"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.facebookPixel}
-            onChange={(e) => updateSetting('integrations', 'facebookPixel', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('integrations', 'facebookPixel', e.target.value)}
             placeholder="123456789012345"
           />
         </div>
@@ -247,7 +247,7 @@ export default function SettingsPage() {
             type="password"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.mailchimp}
-            onChange={(e) => updateSetting('integrations', 'mailchimp', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('integrations', 'mailchimp', e.target.value)}
             placeholder="API Key do Mailchimp"
           />
         </div>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
             type="password"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={settings.integrations.stripe}
-            onChange={(e) => updateSetting('integrations', 'stripe', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('integrations', 'stripe', e.target.value)}
             placeholder="sk_live_..."
           />
         </div>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.automation.autoAssignLeads}
-              onChange={(e) => updateSetting('automation', 'autoAssignLeads', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('automation', 'autoAssignLeads', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Atribuir leads automaticamente aos agentes</span>
@@ -305,7 +305,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.automation.autoFollowUp}
-              onChange={(e) => updateSetting('automation', 'autoFollowUp', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('automation', 'autoFollowUp', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Follow-up automático de leads</span>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
               type="number"
               className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={settings.automation.followUpDelay}
-              onChange={(e) => updateSetting('automation', 'followUpDelay', parseInt(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('automation', 'followUpDelay', parseInt(e.target.value))}
               min="1"
               max="168"
             />
@@ -330,7 +330,7 @@ export default function SettingsPage() {
               type="number"
               className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={settings.automation.reminderDays}
-              onChange={(e) => updateSetting('automation', 'reminderDays', parseInt(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('automation', 'reminderDays', parseInt(e.target.value))}
               min="1"
               max="30"
             />
@@ -345,7 +345,7 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.automation.autoTicketPriority}
-              onChange={(e) => updateSetting('automation', 'autoTicketPriority', e.target.checked)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSetting('automation', 'autoTicketPriority', e.target.checked)}
               className="w-4 h-4 text-admin-accent-primary"
             />
             <span className="text-admin-text-primary">Definir prioridade automática dos tickets</span>

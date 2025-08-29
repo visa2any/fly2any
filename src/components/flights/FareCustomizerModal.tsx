@@ -311,7 +311,7 @@ export default function FareCustomizerModal({
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <span>Includes:</span>
           <div className="flex space-x-1">
-            {bundle.options.map((optId, idx) => {
+            {bundle.options.map((optId: any, idx: number) => {
               const option = availableOptions.find(opt => opt.id === optId);
               return option ? (
                 <span key={optId} className="px-2 py-1 bg-gray-100 rounded">

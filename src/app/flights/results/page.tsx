@@ -61,7 +61,7 @@ function FlightResultsContent() {
   };
 
   useEffect(() => {
-    const fetchFlights = async () => {
+    const fetchFlights = async (): Promise<void> => {
       if (!searchData.from || !searchData.to || !searchData.departure) {
         setError('Missing search parameters');
         setIsLoading(false);

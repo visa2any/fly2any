@@ -131,7 +131,7 @@ export default function PredictiveAnalytics({
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Simulate AI predictions (in production, this would call ML APIs)
-  const generatePredictions = async () => {
+  const generatePredictions = async (): Promise<void> => {
     setIsLoading(true);
 
     // Simulate API delay
@@ -394,7 +394,7 @@ export default function PredictiveAnalytics({
       {/* Tabs */}
       <div className="px-6 pt-6">
         <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-          {tabs.map((tab) => (
+          {tabs.map((tab: any) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
@@ -544,7 +544,7 @@ export default function PredictiveAnalytics({
               {/* Insights */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900">Market Insights</h4>
-                {predictions.demand.insights.map((insight, index) => (
+                {predictions.demand.insights.map((insight: string, index: number) => (
                   <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <EyeIcon className="w-4 h-4 text-gray-500 mt-0.5" />
                     <span className="text-sm text-gray-700">{insight}</span>
@@ -627,7 +627,7 @@ export default function PredictiveAnalytics({
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">Upcoming Events</h4>
                   <div className="space-y-2">
-                    {predictions.seasonal.events.map((event, index) => (
+                    {predictions.seasonal.events.map((event: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                         <div>
                           <div className="font-medium text-purple-900">{event.name}</div>

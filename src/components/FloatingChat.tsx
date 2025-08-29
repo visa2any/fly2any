@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { trackWhatsAppClick, trackButtonClick } from '@/lib/analytics-safe';
 
 export default function FloatingChat() {
@@ -147,7 +147,7 @@ export default function FloatingChat() {
         )}
       </div>
 
-      <style jsx>{`
+      <style jsx={true}>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }

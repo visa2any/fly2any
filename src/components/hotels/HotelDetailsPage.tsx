@@ -5,7 +5,7 @@
  * Comprehensive hotel information display with booking capabilities
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Star, 
@@ -106,7 +106,7 @@ function ImageViewer({ images, currentIndex, onClose }: ImageViewerProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+      <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <button 
           className="absolute -top-12 right-0 bg-white bg-opacity-10 hover:bg-opacity-20 border-0 text-white rounded-full w-10 h-10 flex items-center justify-center cursor-pointer z-10 transition-all"
           onClick={onClose}
@@ -234,7 +234,7 @@ export default function HotelDetailsPage({
     }, {} as Record<string, typeof amenities>);
   };
 
-  const handleShare = async () => {
+  const handleShare = async (): Promise<void> => {
     if (!hotel) return;
     
     const shareData = {
@@ -257,7 +257,7 @@ export default function HotelDetailsPage({
     }
   };
 
-  const fallbackToClipboard = async () => {
+  const fallbackToClipboard = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       // TODO: Adicionar toast notification

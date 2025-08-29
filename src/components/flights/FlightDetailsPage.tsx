@@ -68,7 +68,7 @@ export default function FlightDetailsPage({
   // Countdown timer for urgency
   useEffect(() => {
     const timer = setInterval(() => {
-      setUrgencyTimer(prev => prev > 0 ? prev - 1 : 0);
+      setUrgencyTimer((prev: any) => prev > 0 ? prev - 1 : 0);
     }, 1000);
 
     return () => clearInterval(timer);
@@ -132,10 +132,10 @@ export default function FlightDetailsPage({
   };
 
   const handleServiceToggle = (service: AdditionalService) => {
-    setSelectedServices(prev => {
-      const exists = prev.find(s => s.type === service.type);
+    setSelectedServices((prev: AdditionalService[]) => {
+      const exists = prev.find((s: AdditionalService) => s.type === service.type);
       if (exists) {
-        return prev.filter(s => s.type !== service.type);
+        return prev.filter((s: AdditionalService) => s.type !== service.type);
       } else {
         return [...prev, { ...service, selected: true }];
       }
@@ -150,7 +150,7 @@ export default function FlightDetailsPage({
       basePrice = parseFloat(cleanPrice) || 0;
     }
     
-    const servicesPrice = selectedServices.reduce((sum, service) => {
+    const servicesPrice = selectedServices.reduce((sum: any, service: any) => {
       const cleanServicePrice = service.price.replace(/[^\\d,.]/g, '').replace(',', '.');
       return sum + (parseFloat(cleanServicePrice) || 0);
     }, 0);
@@ -214,7 +214,7 @@ export default function FlightDetailsPage({
 
       {/* Segments Details */}
       <div className="space-y-4">
-        {journey.segments.map((segment, index) => (
+        {journey.segments.map((segment: any, index: number) => (
           <div key={segment.id} className="border border-gray-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export default function FlightDetailsPage({
       {journey.layovers && journey.layovers.length > 0 && (
         <div className="mt-4 space-y-2">
           <h4 className="font-semibold text-gray-900">Connections</h4>
-          {journey.layovers.map((layover, index) => (
+          {journey.layovers.map((layover: any, index: number) => (
             <div key={index} className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
               <ClockIcon className="w-4 h-4 text-yellow-600" />
               <span className="text-sm text-yellow-800">
@@ -336,7 +336,7 @@ export default function FlightDetailsPage({
             <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">✨ Por que este voo é especial</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {flight.enhanced?.recommendations?.slice(0, 4).map((rec, index) => (
+                {flight.enhanced?.recommendations?.slice(0, 4).map((rec: any, index: number) => (
                   <div key={index} className="text-center p-3 bg-white rounded-xl shadow-sm">
                     <div className="text-2xl mb-2">
                       {rec.includes('popular') && '🏆'}
@@ -355,7 +355,7 @@ export default function FlightDetailsPage({
               <div className="bg-white rounded-2xl shadow-lg p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">👥 O que outros viajantes dizem</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {flight.enhanced.socialProof.slice(0, 2).map((proof, index) => {
+                  {flight.enhanced.socialProof.slice(0, 2).map((proof: any, index: number) => {
                     const message = typeof proof === 'string' ? proof : proof.message;
                     return (
                     <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -394,7 +394,7 @@ export default function FlightDetailsPage({
                   <div className="text-2xl font-bold text-gray-900">{airlineReviews.overall}</div>
                   <div className="text-sm text-gray-600">Geral</div>
                   <div className="flex justify-center mt-1">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(5)].map((_: any, i: number) => (
                       <StarIcon key={i} className={`w-3 h-3 ${i < Math.floor(airlineReviews.overall) ? 'text-yellow-400' : 'text-gray-300'}`} />
                     ))}
                   </div>
@@ -431,7 +431,7 @@ export default function FlightDetailsPage({
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {additionalServices.map((service) => (
+                {additionalServices.map((service: any) => (
                   <div 
                     key={service.type}
                     className={`border rounded-xl p-4 cursor-pointer transition-all ${
@@ -490,7 +490,7 @@ export default function FlightDetailsPage({
                     <span className="font-medium">{flight.totalPrice}</span>
                   </div>
                   
-                  {selectedServices.map((service) => (
+                  {selectedServices.map((service: any) => (
                     <div key={service.type} className="flex justify-between text-sm">
                       <span className="text-gray-600">{service.name}</span>
                       <span className="font-medium">{service.price}</span>

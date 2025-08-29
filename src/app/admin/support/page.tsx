@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 
 const ticketsData = [
   {
@@ -259,7 +259,7 @@ export default function SupportPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Assunto, cliente ou email..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
             <div>
@@ -267,7 +267,7 @@ export default function SupportPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>{status}</option>
@@ -279,7 +279,7 @@ export default function SupportPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedPriority(e.target.value)}
               >
                 {priorityOptions.map(priority => (
                   <option key={priority} value={priority}>{priority}</option>
@@ -291,7 +291,7 @@ export default function SupportPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value)}
               >
                 {categoryOptions.map(category => (
                   <option key={category} value={category}>{category}</option>
@@ -363,7 +363,7 @@ export default function SupportPage() {
                         </button>
                         <select 
                           value={ticket.status}
-                          onChange={(e) => handleUpdateTicketStatus(ticket.id, e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateTicketStatus(ticket.id, e.target.value)}
                           className="text-xs border rounded px-2 py-1"
                         >
                           <option value="Aberto">Aberto</option>
@@ -463,7 +463,7 @@ export default function SupportPage() {
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                   placeholder="Digite sua resposta..."
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewMessage(e.target.value)}
                 />
                 <div className="flex gap-2 mt-4">
                   <button 
@@ -517,7 +517,7 @@ export default function SupportPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.customer}
-                    onChange={(e) => setTicketForm({...ticketForm, customer: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTicketForm({...ticketForm, customer: e.target.value})}
                     required
                   />
                 </div>
@@ -527,7 +527,7 @@ export default function SupportPage() {
                     type="email"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.email}
-                    onChange={(e) => setTicketForm({...ticketForm, email: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTicketForm({...ticketForm, email: e.target.value})}
                     required
                   />
                 </div>
@@ -537,7 +537,7 @@ export default function SupportPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.subject}
-                    onChange={(e) => setTicketForm({...ticketForm, subject: e.target.value})}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setTicketForm({...ticketForm, subject: e.target.value})}
                     required
                   />
                 </div>
@@ -546,7 +546,7 @@ export default function SupportPage() {
                   <select 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.priority}
-                    onChange={(e) => setTicketForm({...ticketForm, priority: e.target.value})}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setTicketForm({...ticketForm, priority: e.target.value})}
                   >
                     <option value="Baixa">Baixa</option>
                     <option value="Média">Média</option>
@@ -558,7 +558,7 @@ export default function SupportPage() {
                   <select 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={ticketForm.category}
-                    onChange={(e) => setTicketForm({...ticketForm, category: e.target.value})}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setTicketForm({...ticketForm, category: e.target.value})}
                   >
                     <option value="Reservas">Reservas</option>
                     <option value="Cancelamentos">Cancelamentos</option>
@@ -572,7 +572,7 @@ export default function SupportPage() {
                   <textarea
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-32 resize-none"
                     value={ticketForm.description}
-                    onChange={(e) => setTicketForm({...ticketForm, description: e.target.value})}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setTicketForm({...ticketForm, description: e.target.value})}
                     required
                   />
                 </div>

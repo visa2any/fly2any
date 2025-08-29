@@ -6,7 +6,7 @@
  * Implements Figma-style modern UI with advanced filtering
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   MapPin, 
   Star, 
@@ -166,7 +166,7 @@ export default function HotelResultsList({
   // Initialize filter ranges from search results
   useEffect(() => {
     if (searchResults?.filters) {
-      setFilters(prev => ({
+      setFilters((prev: any) => ({
         ...prev,
         priceRange: [
           searchResults.filters.priceRange.min,
@@ -209,7 +209,7 @@ export default function HotelResultsList({
       // Amenities filter
       if (filters.amenities.length > 0) {
         const hotelAmenityIds = hotel.amenities.map(a => a.id);
-        if (!filters.amenities.every(amenityId => hotelAmenityIds.includes(amenityId))) {
+        if (!filters.amenities.every((amenityId: string) => hotelAmenityIds.includes(amenityId))) {
           return false;
         }
       }
@@ -217,7 +217,7 @@ export default function HotelResultsList({
       // Board types filter
       if (filters.boardTypes.length > 0) {
         const hotelBoardTypes = hotel.rates?.map(r => r.boardType) || [];
-        if (!filters.boardTypes.some(boardType => hotelBoardTypes.includes(boardType as any))) {
+        if (!filters.boardTypes.some((boardType: string) => hotelBoardTypes.includes(boardType as any))) {
           return false;
         }
       }
@@ -290,7 +290,7 @@ export default function HotelResultsList({
   }, [searchResults, filters, sortBy, filterSearch]);
 
   const toggleFavorite = (hotelId: string) => {
-    setFavorites(prev => {
+    setFavorites((prev: Set<string>) => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(hotelId)) {
         newFavorites.delete(hotelId);
@@ -302,7 +302,7 @@ export default function HotelResultsList({
   };
 
   const toggleHotelExpansion = (hotelId: string) => {
-    setExpandedHotels(prev => {
+    setExpandedHotels((prev: Set<string>) => {
       const newExpanded = new Set(prev);
       if (newExpanded.has(hotelId)) {
         newExpanded.delete(hotelId);
@@ -490,11 +490,11 @@ export default function HotelResultsList({
       {/* Hotels List - Layout simplificado */}
       <div className="space-y-3">
         <div className="flex flex-col gap-4">
-          {filteredAndSortedHotels.map(hotel => {
+          {filteredAndSortedHotels.map((hotel: any) => {
             const isExpanded = expandedHotels.has(hotel.id);
             const isFavorite = favorites.has(hotel.id);
-            const mainImage = hotel.images.find(img => img.isMain) || hotel.images[0];
-            const lowestRate = hotel.rates?.reduce((min, rate) => 
+            const mainImage = hotel.images.find((img: any) => img.isMain) || hotel.images[0];
+            const lowestRate = hotel.rates?.reduce((min: any, rate: any) => 
               !min || rate.price.amount < min.price.amount ? rate : min
             );
 
@@ -506,7 +506,7 @@ export default function HotelResultsList({
                   rateId={lowestRate?.id}
                   roomsLeft={Math.floor(Math.random() * 5) + 1}
                   className="mb-2"
-                  onPreBooking={(prebookId) => {
+                  onPreBooking={(prebookId: string) => {
                     console.log(`Pre-booking iniciado para hotel ${hotel.id}: ${prebookId}`);
                   }}
                 />
@@ -598,7 +598,7 @@ export default function HotelResultsList({
 
                     {/* Linha 3: Amenities mais compactas */}
                     <div className="flex flex-wrap gap-1.5 items-center">
-                      {hotel.amenities.slice(0, isCompactLayout ? 8 : 4).map(amenity => (
+                      {hotel.amenities.slice(0, isCompactLayout ? 8 : 4).map((amenity: any) => (
                         <div key={amenity.id} className="flex items-center gap-1 text-xs text-gray-600 bg-slate-50 px-1.5 py-0.5 rounded" title={amenity.name}>
                           {renderAmenityIcon(amenity.id)}
                           <span className={isCompactLayout ? 'hidden lg:inline' : ''}>{amenity.name}</span>
@@ -681,7 +681,7 @@ export default function HotelResultsList({
                   <div className="border-t border-gray-200 p-5 bg-gray-50">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Quartos Disponíveis</h4>
                     <div className="flex flex-col gap-3">
-                      {hotel.rates.slice(0, 3).map(rate => (
+                      {hotel.rates.slice(0, 3).map((rate: any) => (
                         <div key={rate.id} className="flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-white transition-all hover:border-blue-600 hover:shadow-sm">
                           <div>
                             <h5 className="text-base font-semibold text-gray-900 mb-2">{rate.roomType.name}</h5>
@@ -700,7 +700,7 @@ export default function HotelResultsList({
                               {/* Comodidades do quarto */}
                               {rate.roomType.amenities && rate.roomType.amenities.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
-                                  {rate.roomType.amenities.slice(0, 4).map((amenity, idx) => (
+                                  {rate.roomType.amenities.slice(0, 4).map((amenity: any, idx: number) => (
                                     <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
                                       {amenity}
                                     </span>

@@ -3,7 +3,8 @@
  * Provides error boundaries and graceful degradation for real data features
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
+import type { Component, ErrorInfo, ReactNode } from 'react';
 import FareCustomizer from './FareCustomizer';
 import { ProcessedFlightOffer } from '@/types/flights';
 
@@ -24,7 +25,7 @@ interface State {
 /**
  * Error Boundary for Fare Customizer
  */
-class SafeFareCustomizerErrorBoundary extends Component<Props, State> {
+class SafeFareCustomizerErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

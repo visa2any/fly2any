@@ -156,7 +156,7 @@ export default function AmericasTravelDashboard({
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Routes</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {airport.popularDestinations.slice(0, 12).map((destination) => (
+            {airport.popularDestinations.slice(0, 12).map((destination: any) => (
               <div key={destination} className={`text-center p-3 bg-${regionInfo.color}-50 rounded-lg border border-${regionInfo.color}-200`}>
                 <div className={`font-semibold text-${regionInfo.color}-900`}>{destination}</div>
               </div>
@@ -169,7 +169,7 @@ export default function AmericasTravelDashboard({
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Ground Transportation</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {airport.groundTransport.map((transport) => (
+          {airport.groundTransport.map((transport: any) => (
             <div key={transport} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
               <span className="text-xl">
                 {transport === 'metro' && '🚇'}
@@ -191,7 +191,7 @@ export default function AmericasTravelDashboard({
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Airport Amenities</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          {airport.amenities.map((amenity) => (
+          {airport.amenities.map((amenity: any) => (
             <div key={amenity} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
               <span className="text-xl">
                 {amenity === 'wifi' && '📶'}
@@ -388,7 +388,7 @@ export default function AmericasTravelDashboard({
 
         {/* View Navigation */}
         <div className="flex border-b border-gray-200">
-          {views.map((view) => (
+          {views.map((view: any) => (
             <button
               key={view.id}
               onClick={() => setActiveView(view.id as any)}

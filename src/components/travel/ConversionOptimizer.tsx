@@ -216,7 +216,7 @@ const ConversionOptimizer: React.FC<ConversionOptimizerProps> = ({
     const timeTracker = setInterval(() => {
       const timeOnPage = (Date.now() - pageStartTime.current) / 1000;
       
-      setConversionState(prev => {
+      setConversionState((prev: any) => {
         const newState = { ...prev, time_on_page: timeOnPage };
         
         // Update abandonment risk based on behavior
@@ -238,7 +238,7 @@ const ConversionOptimizer: React.FC<ConversionOptimizerProps> = ({
   useEffect(() => {
     const handleScroll = () => {
       const scrollDepth = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-      setConversionState(prev => ({ ...prev, scroll_depth: Math.min(scrollDepth, 100) }));
+      setConversionState((prev: any) => ({ ...prev, scroll_depth: Math.min(scrollDepth, 100) }));
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -248,7 +248,7 @@ const ConversionOptimizer: React.FC<ConversionOptimizerProps> = ({
   // Interaction tracking
   const trackInteraction = useCallback((interaction: string) => {
     interactionCount.current += 1;
-    setConversionState(prev => ({ 
+    setConversionState((prev: any) => ({ 
       ...prev, 
       interactions: interactionCount.current 
     }));
@@ -383,7 +383,7 @@ const ConversionOptimizer: React.FC<ConversionOptimizerProps> = ({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent) => {
           if (e.target === e.currentTarget) {
             setShowInterceptor(false);
           }

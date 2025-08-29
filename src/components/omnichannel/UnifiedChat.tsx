@@ -30,7 +30,7 @@ const UnifiedChat: React.FC<UnifiedChatProps> = ({
 
   useEffect(() => {
     if (conversationId) {
-      const fetchData = async () => {
+      const fetchData = async (): Promise<void> => {
         await fetchConversation();
       };
       
@@ -46,7 +46,7 @@ const UnifiedChat: React.FC<UnifiedChatProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  const fetchConversation = async () => {
+  const fetchConversation = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/omnichannel/conversations/${conversationId}`);
       const data = await response.json();
@@ -70,7 +70,7 @@ const UnifiedChat: React.FC<UnifiedChatProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || !conversation || sending) return;
 
     setSending(true);
@@ -321,7 +321,7 @@ const UnifiedChat: React.FC<UnifiedChatProps> = ({
           </Button>
           <Textarea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Digite sua mensagem..."
             className="flex-1 min-h-[40px] max-h-[100px] resize-none"

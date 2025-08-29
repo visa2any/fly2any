@@ -5,7 +5,7 @@
  * Exibe avaliações reais e simuladas dos hotéis
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, User, Calendar } from 'lucide-react';
 import type { Hotel } from '@/types/hotels';
 

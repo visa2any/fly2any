@@ -141,11 +141,11 @@ export function LeadTableView({
   };
 
   const handleAction = async (leadId: string, action: string, callback: () => void) => {
-    setActionLoading(prev => ({ ...prev, [`${leadId}_${action}`]: action }));
+    setActionLoading((prev: any) => ({ ...prev, [`${leadId}_${action}`]: action }));
     try {
       await callback();
     } finally {
-      setActionLoading(prev => {
+      setActionLoading((prev: any) => {
         const newState = { ...prev };
         delete newState[`${leadId}_${action}`];
         return newState;
@@ -223,7 +223,7 @@ export function LeadTableView({
                 ref={input => {
                   if (input) input.indeterminate = someSelected;
                 }}
-                onChange={(e) => onSelectAll(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSelectAll(e.target.checked)}
                 className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 aria-label="Selecionar todos os leads"
               />
@@ -301,7 +301,7 @@ export function LeadTableView({
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={(e) => onSelectLead(lead.id, e.target.checked)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSelectLead(lead.id, e.target.checked)}
                         className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                         aria-label={`Selecionar ${lead.nome}`}
                       />

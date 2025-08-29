@@ -15,7 +15,7 @@ function ErrorMessage({ message, onClose }: ErrorMessageProps) {
         <button onClick={onClose} type="button">×</button>
       </div>
 
-      <style jsx>{`
+      <style jsx={true}>{`
         .error-message {
           display: flex;
           align-items: center;

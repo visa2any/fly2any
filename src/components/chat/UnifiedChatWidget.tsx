@@ -141,7 +141,7 @@ How can I help you today?`,
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
 
     try {
       // Simulate API call to AI assistant
@@ -165,13 +165,13 @@ How can I help you today?`,
       
       // Simulate typing delay
       setTimeout(() => {
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages((prev: ChatMessage[]) => [...prev, assistantMessage]);
         setIsTyping(false);
         setIsLoading(false);
         
         // Add to unread count if chat is closed
         if (!isOpen) {
-          setUnreadCount(prev => prev + 1);
+          setUnreadCount((prev: number) => prev + 1);
         }
       }, 1000 + Math.random() * 1000); // 1-2 seconds
 
@@ -200,7 +200,7 @@ How can I help you today?`,
         ]
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev: ChatMessage[]) => [...prev, errorMessage]);
       setIsTyping(false);
       setIsLoading(false);
     }
@@ -225,14 +225,14 @@ How can I help you today?`,
 
       if (response.ok) {
         const assistantMessage: ChatMessage = await response.json();
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages((prev: ChatMessage[]) => [...prev, assistantMessage]);
       }
     } catch (error) {
       console.error('Action error:', error);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -527,7 +527,7 @@ How can I help you today?`,
               ref={inputRef}
               type="text"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Digite sua mensagem..."
               className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"

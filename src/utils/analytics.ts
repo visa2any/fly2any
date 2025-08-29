@@ -3,7 +3,7 @@ import { AnalyticsData, CampaignStats } from '@/types';
 export const calculateStats = (data: AnalyticsData[]): CampaignStats => {
   const totalEvents = data.reduce((sum, item) => sum + item.event_count, 0);
   const totalConversions = data
-    .filter(item => ['form_submission', 'phone_click', 'whatsapp_click'].includes(item.event_name))
+    .filter((item: any) => ['form_submission', 'phone_click', 'whatsapp_click'].includes(item.event_name))
     .reduce((sum, item) => sum + item.event_count, 0);
   const totalValue = data.reduce((sum, item) => sum + (item.total_value || 0), 0);
   const avgCPA = totalConversions > 0 ? totalValue / totalConversions : 0;

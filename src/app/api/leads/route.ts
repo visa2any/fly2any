@@ -6,9 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { LeadService } from '@/lib/services/lead-service';
+import { LeadServiceFixed as LeadService } from '@/lib/services/lead-service-fixed';
 import { CreateLeadInput } from '@/lib/schemas/lead';
-import { sendLeadNotification } from '@/lib/lead-notifications';
+import { sendLeadNotification } from '@/lib/lead-notifications-fixed';
 
 // Types for the API
 interface APIResponse<T = unknown> {
@@ -105,7 +105,7 @@ async function processLeadAsync(leadData: any, requestId: string) {
         selectedServices: lead.selectedServices || [],
         source: lead.source || 'website',
         createdAt: lead.createdAt || new Date().toISOString(),
-        orcamentoTotal: lead.orcamentoTotal || lead.orcamentoAproximado,
+        orcamentoTotal: lead.orcamentoTotal || (lead as any).orcamentoAproximado,
         dataPartida: lead.dataPartida || lead.dataIda,
         dataRetorno: lead.dataRetorno || lead.dataVolta,
         tipoViagem: lead.tipoViagem,

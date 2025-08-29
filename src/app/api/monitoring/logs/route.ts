@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for critical logs that need immediate attention
-    const criticalLogs = processedEntries.filter(entry => 
+    const criticalLogs = processedEntries.filter((entry: any) => 
       entry.level === 'critical' || 
       (entry.level === 'error' && entry.category === 'EMAIL') ||
       (entry.level === 'error' && entry.category === 'API' && entry.context?.status >= 500)
@@ -301,8 +301,8 @@ async function updateLogMetrics(entries: LogEntry[]): Promise<void> {
 
     // Extract performance metrics
     const performanceMetrics = entries
-      .filter(entry => entry.performance?.duration)
-      .map(entry => ({
+      .filter((entry: any) => entry.performance?.duration)
+      .map((entry: any) => ({
         category: entry.category,
         duration: entry.performance!.duration!,
         timestamp: entry.timestamp

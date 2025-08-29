@@ -3,7 +3,7 @@
  * React hook for African airport search with caching and performance optimization
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { africaAirportSearch, AfricaAirportSearchResult, AfricaAirportSearchOptions } from '@/lib/airports/africa-airport-search';
 import { AfricaAirport } from '@/lib/airports/africa-airports-database';
 

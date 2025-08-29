@@ -77,7 +77,7 @@ export const ReviewsIntegration: React.FC<ReviewsIntegrationProps> = ({ hotelId,
     loadReviews();
   }, [hotelId]);
 
-  const loadReviews = async () => {
+  const loadReviews = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await liteApiClient.getHotelReviews(hotelId, 20);

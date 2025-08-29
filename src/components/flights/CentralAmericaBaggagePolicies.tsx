@@ -65,7 +65,7 @@ export default function CentralAmericaBaggagePolicies({
         <div className="mt-4">
           <div className="text-sm font-medium text-green-800 mb-2">Restrictions</div>
           <div className="space-y-1">
-            {airlineData.baggagePolicy.carryOn.restrictions.map((restriction, idx) => (
+            {airlineData.baggagePolicy.carryOn.restrictions.map((restriction: any, idx: number) => (
               <div key={idx} className="flex items-center space-x-2 text-sm text-green-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                 <span>{restriction}</span>
@@ -183,7 +183,7 @@ export default function CentralAmericaBaggagePolicies({
             <div>
               <div className="text-sm font-medium text-amber-800 mb-2">Elite Status Tiers</div>
               <div className="space-y-1">
-                {airlineData.loyaltyProgram.tiers.map((tier) => (
+                {airlineData.loyaltyProgram.tiers.map((tier: any) => (
                   <div key={tier} className="flex items-center space-x-2 text-sm text-amber-700">
                     <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
                     <span>{tier}</span>
@@ -194,7 +194,7 @@ export default function CentralAmericaBaggagePolicies({
             <div>
               <div className="text-sm font-medium text-amber-800 mb-2">Member Benefits</div>
               <div className="space-y-1">
-                {airlineData.loyaltyProgram.benefits.slice(0, 4).map((benefit) => (
+                {airlineData.loyaltyProgram.benefits.slice(0, 4).map((benefit: any) => (
                   <div key={benefit} className="flex items-center space-x-2 text-sm text-amber-700">
                     <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
                     <span>{benefit}</span>
@@ -208,7 +208,7 @@ export default function CentralAmericaBaggagePolicies({
             <div className="mt-4 pt-4 border-t border-amber-200">
               <div className="text-sm font-medium text-amber-800 mb-2">Credit Cards Available</div>
               <div className="flex flex-wrap gap-2">
-                {airlineData.loyaltyProgram.creditCards.map((card) => (
+                {airlineData.loyaltyProgram.creditCards.map((card: any) => (
                   <span key={card} className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
                     {card}
                   </span>
@@ -303,7 +303,7 @@ export default function CentralAmericaBaggagePolicies({
                       <span className="font-medium">Complimentary:</span>
                     </div>
                     <div className="text-xs text-red-600 space-y-1">
-                      {airlineData.amenities.food.complimentary.map((item, idx) => (
+                      {airlineData.amenities.food.complimentary.map((item: any, idx: number) => (
                         <div key={idx} className="flex items-center space-x-2">
                           <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                           <span>{item}</span>
@@ -318,7 +318,7 @@ export default function CentralAmericaBaggagePolicies({
                       <span className="font-medium">For Purchase:</span>
                     </div>
                     <div className="text-xs text-red-600 space-y-1">
-                      {airlineData.amenities.food.purchase.map((item, idx) => (
+                      {airlineData.amenities.food.purchase.map((item: any, idx: number) => (
                         <div key={idx} className="flex items-center space-x-2">
                           <div className="w-1 h-1 bg-red-500 rounded-full"></div>
                           <span>{item}</span>
@@ -373,7 +373,7 @@ export default function CentralAmericaBaggagePolicies({
               </tr>
             </thead>
             <tbody>
-              {airlines.map((code) => {
+              {airlines.map((code: any) => {
                 const airline = CENTRAL_AMERICAN_AIRLINES[code];
                 if (!airline) return null;
                 return (
@@ -414,7 +414,7 @@ export default function CentralAmericaBaggagePolicies({
 
         {/* Airline Selector */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {airlines.map((airlineCode) => {
+          {airlines.map((airlineCode: any) => {
             const airline = CENTRAL_AMERICAN_AIRLINES[airlineCode];
             if (!airline) return null;
             
@@ -437,7 +437,7 @@ export default function CentralAmericaBaggagePolicies({
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-200">
-          {tabs.map((tab) => (
+          {tabs.map((tab: any) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}

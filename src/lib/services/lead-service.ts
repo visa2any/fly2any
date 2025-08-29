@@ -210,14 +210,24 @@ export class LeadService {
         return String(service);
       }) : [],
       origem: (() => {
-        const direct = input.origem?.trim();
+        const direct = (() => {
+          if (!input.origem) return null;
+          if (typeof input.origem === 'string') return input.origem.trim();
+          // Handle airport object
+          return `${input.origem.city}, ${input.origem.country} (${input.origem.iataCode})`;
+        })();
         const extracted = this.extractFirstServiceData(input.selectedServices, 'origem');
         const result = direct || extracted || undefined;
         console.log(`[DEBUG] origem - direct: "${direct}", extracted: "${extracted}", final: "${result}"`);
         return result;
       })(),
       destino: (() => {
-        const direct = input.destino?.trim();
+        const direct = (() => {
+          if (!input.destino) return null;
+          if (typeof input.destino === 'string') return input.destino.trim();
+          // Handle airport object
+          return `${input.destino.city}, ${input.destino.country} (${input.destino.iataCode})`;
+        })();
         const extracted = this.extractFirstServiceData(input.selectedServices, 'destino');
         const result = direct || extracted || undefined;
         console.log(`[DEBUG] destino - direct: "${direct}", extracted: "${extracted}", final: "${result}"`);
@@ -232,7 +242,7 @@ export class LeadService {
       dataVolta: input.dataVolta,
       
       // Passengers
-      numeroPassageiros: input.numeroPassageiros || getTotalPassengers(input),
+      numeroPassageiros: input.numeroPassageiros || ((input.adultos || 1) + (input.criancas || 0) + (input.bebes || 0)),
       adultos: input.adultos || 1,
       criancas: input.criancas || 0,
       bebes: input.bebes || 0,

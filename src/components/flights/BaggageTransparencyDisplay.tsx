@@ -52,15 +52,14 @@ interface BaggageTransparencyDisplayProps {
   onUpgradeClick?: () => void;
 }
 
-export const BaggageTransparencyDisplay: React.FC<BaggageTransparencyDisplayProps> = ({
-  baggageAnalysis,
+export const BaggageTransparencyDisplay: React.FC<BaggageTransparencyDisplayProps> = ({ baggageAnalysis,
   cabinClass,
   airline,
   compact = false,
   showCompetitorComparison = true,
   showDetailedBreakdown = false,
   onUpgradeClick
-}) => {
+ }: BaggageTransparencyDisplayProps) => {
   const [showDetails, setShowDetails] = useState(showDetailedBreakdown);
 
   // 🎯 COMPACT FORMAT - For results list
@@ -310,7 +309,7 @@ export const BaggageTransparencyDisplay: React.FC<BaggageTransparencyDisplayProp
                   <span className="font-semibold text-amber-800">Important Warnings</span>
                 </div>
                 <ul className="space-y-1">
-                  {baggageAnalysis.warnings.map((warning, index) => (
+                  {baggageAnalysis.warnings.map((warning: any, index: number) => (
                     <li key={index} className="text-sm text-amber-700">• {warning}</li>
                   ))}
                 </ul>
@@ -324,7 +323,7 @@ export const BaggageTransparencyDisplay: React.FC<BaggageTransparencyDisplayProp
                   <span className="font-semibold text-blue-800">Recommendations</span>
                 </div>
                 <ul className="space-y-1">
-                  {baggageAnalysis.recommendations.map((rec, index) => (
+                  {baggageAnalysis.recommendations.map((rec: any, index: number) => (
                     <li key={index} className="text-sm text-blue-700">• {rec}</li>
                   ))}
                 </ul>

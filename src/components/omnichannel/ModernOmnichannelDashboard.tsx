@@ -26,7 +26,7 @@ const ModernOmnichannelDashboard: React.FC<ModernOmnichannelDashboardProps> = ({
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithDetails | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       await fetchDashboardData();
       await fetchConversations();
     };
@@ -41,7 +41,7 @@ const ModernOmnichannelDashboard: React.FC<ModernOmnichannelDashboardProps> = ({
     return () => clearInterval(interval);
   }, [agentId]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/omnichannel/dashboard${agentId ? `?agent_id=${agentId}` : ''}`);
       const data = await response.json();
@@ -53,7 +53,7 @@ const ModernOmnichannelDashboard: React.FC<ModernOmnichannelDashboardProps> = ({
     }
   };
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/omnichannel/conversations${agentId ? `?agent_id=${agentId}` : ''}`);
       const data = await response.json();

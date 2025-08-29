@@ -5,7 +5,7 @@
  * Exibe mapa interativo com localização do hotel e pontos de interesse
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { MapPin, Navigation, Clock, Star, ExternalLink } from 'lucide-react';
 import type { Hotel } from '@/types/hotels';
 

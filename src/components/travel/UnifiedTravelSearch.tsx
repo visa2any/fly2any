@@ -369,7 +369,7 @@ const UnifiedTravelSearch: React.FC<UnifiedTravelSearchProps> = ({
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={placeholder}
                   className="w-full text-base md:text-lg py-3 md:py-4 px-4 md:px-6 pr-12 md:pr-16 bg-gray-50 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 placeholder-gray-400 min-h-[48px] touch-manipulation"
@@ -482,28 +482,28 @@ const UnifiedTravelSearch: React.FC<UnifiedTravelSearchProps> = ({
               icon={<Plane className="w-4 h-4" />}
               label="Flights"
               active={selectedServices.flights}
-              onChange={(active) => setSelectedServices(prev => ({ ...prev, flights: active }))}
+              onChange={(active) => setSelectedServices((prev: any) => ({ ...prev, flights: active }))}
               priority={currentIntent?.suggested_services.includes('flights')}
             />
             <ServiceToggle 
               icon={<Building className="w-4 h-4" />}
               label="Hotels"
               active={selectedServices.hotels}
-              onChange={(active) => setSelectedServices(prev => ({ ...prev, hotels: active }))}
+              onChange={(active) => setSelectedServices((prev: any) => ({ ...prev, hotels: active }))}
               priority={currentIntent?.suggested_services.includes('hotels')}
             />
             <ServiceToggle 
               icon={<Car className="w-4 h-4" />}
               label="Cars"
               active={selectedServices.cars}
-              onChange={(active) => setSelectedServices(prev => ({ ...prev, cars: active }))}
+              onChange={(active) => setSelectedServices((prev: any) => ({ ...prev, cars: active }))}
               priority={currentIntent?.suggested_services.includes('cars')}
             />
             <ServiceToggle 
               icon={<Activity className="w-4 h-4" />}
               label="Activities"
               active={selectedServices.activities}
-              onChange={(active) => setSelectedServices(prev => ({ ...prev, activities: active }))}
+              onChange={(active) => setSelectedServices((prev: any) => ({ ...prev, activities: active }))}
               priority={currentIntent?.suggested_services.includes('activities')}
             />
           </div>
@@ -526,12 +526,12 @@ const UnifiedTravelSearch: React.FC<UnifiedTravelSearchProps> = ({
                     <input
                       type="date"
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => setSearchParams(prev => ({ ...prev, departureDate: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchParams((prev: any) => ({ ...prev, departureDate: e.target.value }))}
                     />
                     <input
                       type="date"
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => setSearchParams(prev => ({ ...prev, returnDate: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchParams((prev: any) => ({ ...prev, returnDate: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -541,9 +541,9 @@ const UnifiedTravelSearch: React.FC<UnifiedTravelSearchProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                       const adults = parseInt(e.target.value);
-                      setSearchParams(prev => ({ 
+                      setSearchParams((prev: any) => ({ 
                         ...prev, 
                         passengers: { ...prev.passengers, adults } 
                       }));
@@ -560,7 +560,7 @@ const UnifiedTravelSearch: React.FC<UnifiedTravelSearchProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Travel Class</label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setSearchParams(prev => ({ 
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSearchParams((prev: any) => ({ 
                       ...prev, 
                       travelClass: e.target.value as any 
                     }))}

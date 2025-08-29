@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * Simple test page to verify basic Next.js functionality
  */

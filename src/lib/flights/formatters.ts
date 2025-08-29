@@ -341,7 +341,6 @@ export function formatDurationFromMinutes(minutes: number): string {
   return `${hours}h ${remainingMinutes}min`;
 }
 
-
 /**
  * Format price with currency in USD
  */

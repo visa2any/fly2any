@@ -354,7 +354,6 @@ export default function FlightGrid({ type = 'both', limit = 6, className = '' }:
     return () => clearInterval(interval);
   }, [routes, isClient]);
 
-
   // Load routes based on active tab
   useEffect(() => {
     setLoading(true);
@@ -493,7 +492,7 @@ export default function FlightGrid({ type = 'both', limit = 6, className = '' }:
       <AnimatePresence mode="wait">
         {loading ? (
           <div className="loading-skeleton">
-            {[...Array(6)].map((_, i) => (
+            {[...Array(6)].map((_: any, i: number) => (
               <div key={i} className="skeleton-card">
                 <div className="skeleton-image"></div>
                 <div className="skeleton-content">
@@ -523,7 +522,7 @@ export default function FlightGrid({ type = 'both', limit = 6, className = '' }:
               boxSizing: 'border-box'
             }}
           >
-            {routes.map((route, index) => {
+            {routes.map((route: any, index: number) => {
               const priceChange = getPriceChangeIndicator(route.price.trend);
               const dealBadge = getDealBadge(route.dealScore);
 
@@ -649,7 +648,7 @@ export default function FlightGrid({ type = 'both', limit = 6, className = '' }:
 
                     {/* Tags */}
                     <div className="route-tags">
-                      {route.tags.map((tag, i) => (
+                      {route.tags.map((tag: any, i: number) => (
                         <span key={i} className="tag">{tag}</span>
                       ))}
                     </div>
@@ -684,7 +683,7 @@ export default function FlightGrid({ type = 'both', limit = 6, className = '' }:
       </div>
 
       {/* Inline Styles */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .flight-grid-container {
           padding: 48px 0;
           background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);

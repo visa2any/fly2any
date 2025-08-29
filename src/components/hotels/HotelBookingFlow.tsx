@@ -5,7 +5,7 @@
  * Complete booking process: Rate Selection → Guest Info → Payment → Confirmation
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -105,7 +105,7 @@ export default function HotelBookingFlow({
   });
 
   const updateState = (updates: Partial<BookingState>) => {
-    setBookingState(prev => ({ ...prev, ...updates }));
+    setBookingState((prev: any) => ({ ...prev, ...updates }));
   };
 
   const updateGuest = (index: number, guestData: Partial<Guest>) => {
@@ -138,7 +138,7 @@ export default function HotelBookingFlow({
     }
   };
 
-  const handlePreBooking = async () => {
+  const handlePreBooking = async (): Promise<void> => {
     updateState({ isLoading: true, error: null });
 
     try {
@@ -281,7 +281,7 @@ export default function HotelBookingFlow({
     });
   };
 
-  const handleConfirmBooking = async () => {
+  const handleConfirmBooking = async (): Promise<void> => {
     if (!bookingState.prebooking) return;
 
     updateState({ isLoading: true, error: null });
@@ -599,7 +599,7 @@ export default function HotelBookingFlow({
                           <label className="block text-sm font-medium text-gray-700 mb-1">Tratamento</label>
                           <select
                             value={guest.title}
-                            onChange={(e) => updateGuest(index, { title: e.target.value as any })}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateGuest(index, { title: e.target.value as any })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
                             {TITLE_OPTIONS.map(title => (
@@ -613,7 +613,7 @@ export default function HotelBookingFlow({
                           <input
                             type="text"
                             value={guest.firstName}
-                            onChange={(e) => updateGuest(index, { firstName: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGuest(index, { firstName: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Primeiro nome"
                           />
@@ -624,7 +624,7 @@ export default function HotelBookingFlow({
                           <input
                             type="text"
                             value={guest.lastName}
-                            onChange={(e) => updateGuest(index, { lastName: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGuest(index, { lastName: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Último nome"
                           />
@@ -642,7 +642,7 @@ export default function HotelBookingFlow({
                         <input
                           type="email"
                           value={bookingState.contact.email}
-                          onChange={(e) => updateContact({ email: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateContact({ email: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="seu@email.com"
                         />
@@ -653,7 +653,7 @@ export default function HotelBookingFlow({
                         <input
                           type="tel"
                           value={bookingState.contact.phone}
-                          onChange={(e) => updateContact({ phone: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateContact({ phone: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="+55 11 99999-9999"
                         />
@@ -664,7 +664,7 @@ export default function HotelBookingFlow({
                         <input
                           type="tel"
                           value={bookingState.contact.whatsapp}
-                          onChange={(e) => updateContact({ whatsapp: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateContact({ whatsapp: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="+55 11 99999-9999"
                         />
@@ -680,7 +680,7 @@ export default function HotelBookingFlow({
                         <label className="block text-sm font-medium text-gray-700 mb-1">Horário previsto de chegada</label>
                         <select
                           value={bookingState.arrivalTime}
-                          onChange={(e) => updateState({ arrivalTime: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateState({ arrivalTime: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                           {ARRIVAL_TIME_OPTIONS.map(option => (
@@ -695,7 +695,7 @@ export default function HotelBookingFlow({
                         <label className="block text-sm font-medium text-gray-700 mb-1">Solicitações especiais</label>
                         <textarea
                           value={bookingState.specialRequests}
-                          onChange={(e) => updateState({ specialRequests: e.target.value })}
+                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateState({ specialRequests: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
                           placeholder="Ex: quarto no andar alto, berço para bebê, etc."
                           rows={3}
@@ -782,7 +782,7 @@ export default function HotelBookingFlow({
                         <input
                           type="checkbox"
                           checked={bookingState.marketingConsent}
-                          onChange={(e) => updateState({ marketingConsent: e.target.checked })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateState({ marketingConsent: e.target.checked })}
                           className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">
@@ -794,7 +794,7 @@ export default function HotelBookingFlow({
                         <input
                           type="checkbox"
                           checked={bookingState.termsAccepted}
-                          onChange={(e) => updateState({ termsAccepted: e.target.checked })}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateState({ termsAccepted: e.target.checked })}
                           className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700">

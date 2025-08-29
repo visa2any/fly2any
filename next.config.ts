@@ -23,12 +23,14 @@ const nextConfig: NextConfig = {
   webpack: (config, { dev, isServer }) => {
     // Fix for React 19 JSX runtime resolution and prevent duplicate React
     const path = require('path');
+    
+    // Configure aliases for React consistency
     config.resolve.alias = {
       ...config.resolve.alias,
-      "react$": path.resolve(__dirname, "node_modules/react"),
-      "react-dom$": path.resolve(__dirname, "node_modules/react-dom"),
-      "react/jsx-runtime$": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
-      "react/jsx-dev-runtime$": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime")
+      "react": path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+      "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime")
     };
 
     // Ensure proper module resolution for AWS SDK and other packages
@@ -45,8 +47,14 @@ const nextConfig: NextConfig = {
       config.externals = [...(config.externals || [])];
     }
 
-    // Ensure proper JSX runtime configuration
-    config.resolve.extensions = [...(config.resolve.extensions || []), '.js', '.jsx', '.ts', '.tsx'];
+    // Ensure proper JSX runtime configuration and module resolution
+    config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
+    
+    // Force consistent module resolution
+    config.resolve.modules = [
+      path.resolve(__dirname, 'node_modules'),
+      'node_modules'
+    ];
 
     return config;
   },

@@ -13,11 +13,10 @@ interface SimpleFareRulesProps {
   onDetailsClick: () => void;
 }
 
-const FareRulesSimple: React.FC<SimpleFareRulesProps> = ({ 
-  flightId, 
+const FareRulesSimple: React.FC<SimpleFareRulesProps> = ({ flightId, 
   airline, 
   onDetailsClick 
-}) => {
+ }: SimpleFareRulesProps) => {
   // Lógica simples baseada na companhia aérea
   const getAirlineRules = (airline: string) => {
     if (airline.includes('LATAM')) {

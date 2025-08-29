@@ -30,7 +30,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   useEffect(() => {
     // Conectar ao serviço de notificações
-    const initializeNotifications = async () => {
+    const initializeNotifications = async (): Promise<void> => {
       const success = await notificationService.connect(agentId);
       if (success) {
         setConnectionStatus('connected');
@@ -45,8 +45,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
     // Callback para novas notificações
     const handleNotification = (notification: NotificationData) => {
-      setNotifications(prev => [notification, ...prev.slice(0, 49)]); // Máximo 50 notificações
-      setUnreadCount(prev => prev + 1);
+      setNotifications((prev: any) => [notification, ...prev.slice(0, 49)]); // Máximo 50 notificações
+      setUnreadCount((prev: any) => prev + 1);
     };
 
     notificationService.onNotification(handleNotification);
@@ -69,7 +69,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     }
     
     // Marcar como lida (remover da lista de não lidas)
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setUnreadCount((prev: any) => Math.max(0, prev - 1));
   };
 
   const clearAllNotifications = () => {

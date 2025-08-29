@@ -22,7 +22,7 @@ export default function UnsubscribePage() {
     }
   }, []);
 
-  const handleUnsubscribe = async () => {
+  const handleUnsubscribe = async (): Promise<void> => {
     if (!email) return;
     
     setIsProcessing(true);

@@ -11,6 +11,8 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -29,10 +31,12 @@
       ]
     },
     "baseUrl": ".",
-    "types": ["node", "react", "react-dom"]
+    "types": ["node", "react", "react-dom"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "next-env.d.ts",
+    "src/types/react-helpers.d.ts",
     "src/types/modules.d.ts",
     "**/*.ts",
     "**/*.tsx",
@@ -41,8 +45,9 @@
   "exclude": [
     "node_modules",
     "node_modules_backup_*",
-    "node_modules_backup_2",
+    "node_modules_backup_2", 
     "node_modules_backup_3",
-    "backups"
+    "backups",
+    "node_modules/@types/nodemailer/lib/ses-transport"
   ]
 }

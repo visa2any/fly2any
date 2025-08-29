@@ -139,7 +139,7 @@ export default function ModernLeadsPage() {
     return shuffled.slice(0, numTags);
   };
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/leads?page=1&limit=1000');
@@ -166,7 +166,7 @@ export default function ModernLeadsPage() {
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/admin/leads?stats=true');
       if (!response.ok) throw new Error('Failed to fetch stats');
@@ -365,7 +365,7 @@ export default function ModernLeadsPage() {
     });
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = async (): Promise<void> => {
     if (!confirm(`Tem certeza que deseja excluir ${selectedLeads.length} leads?`)) return;
     
     toast({
@@ -595,7 +595,7 @@ export default function ModernLeadsPage() {
                           <input
                             type="checkbox"
                             checked={selectedLeads.length === filteredLeads.length && filteredLeads.length > 0}
-                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectAll(e.target.checked)}
                             className="admin-checkbox"
                           />
                           <span className="admin-label-inline admin-text-secondary">
@@ -647,7 +647,7 @@ export default function ModernLeadsPage() {
                               <input
                                 type="checkbox"
                                 checked={selectedLeads.includes(lead.id)}
-                                onChange={(e) => handleSelectLead(lead.id, e.target.checked)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectLead(lead.id, e.target.checked)}
                                 className="admin-checkbox"
                               />
                             </div>

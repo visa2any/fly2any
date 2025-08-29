@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarIcon, ArrowLeftIcon, ArrowRightIcon } from './Icons';
 
@@ -192,7 +192,7 @@ export default function DatePicker({
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => {
+    setCurrentMonth((prev: any) => {
       const newMonth = new Date(prev);
       if (direction === 'prev') {
         newMonth.setMonth(prev.getMonth() - 1);

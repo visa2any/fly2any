@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
@@ -223,7 +223,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
                     <a
                       key={language.code}
                       href={getLanguageUrl(language.code)}
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
                         e.stopPropagation();
                         const url = getLanguageUrl(language.code);
@@ -466,7 +466,7 @@ export default function MobileHeader({ currentPath = '/' }: MobileHeaderProps) {
       </nav>
 
       {/* Body spacing when menu is open */}
-      <style jsx>{`
+      <style jsx={true}>{`
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }

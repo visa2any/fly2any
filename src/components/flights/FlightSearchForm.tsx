@@ -3,6 +3,7 @@
  * Revolutionary UX with AI-powered search and glassmorphism design
  */
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { FlightIcon, CalendarIcon, UsersIcon, SwitchIcon, PlusIcon, MinusIcon } from '@/components/Icons';
 import { FlightSearchFormData, AirportSelection, PassengerCounts, TravelClass, FlightSegment } from '@/types/flights';
@@ -244,10 +245,10 @@ export default function FlightSearchForm({
   const enhancedAirports = useMemo(() => createEnhancedAirportsDatabase(), [createEnhancedAirportsDatabase]);
 
   // Popular US-focused suggestions
-  const popularOrigins = enhancedAirports.filter(a => a.country === 'United States' && a.isHub).slice(0, 6);
+  const popularOrigins = enhancedAirports.filter((a: any) => a.country === 'United States' && a.isHub).slice(0, 6);
   const popularDestinations = [
-    ...enhancedAirports.filter(a => a.country !== 'United States' && a.popularity === 5).slice(0, 4),
-    ...enhancedAirports.filter(a => a.country === 'United States' && a.city !== 'New York').slice(0, 4)
+    ...enhancedAirports.filter((a: any) => a.country !== 'United States' && a.popularity === 5).slice(0, 4),
+    ...enhancedAirports.filter((a: any) => a.country === 'United States' && a.city !== 'New York').slice(0, 4)
   ];
 
   // AI-POWERED SMART SEARCH - Understanding natural language
@@ -275,10 +276,10 @@ export default function FlightSearchForm({
 
     // Regional searches
     const regions = {
-      'europe': enhancedAirports.filter(a => a.region === 'Europe'),
-      'asia': enhancedAirports.filter(a => a.region === 'Asia'),
-      'caribbean': enhancedAirports.filter(a => a.country?.includes('Caribbean')),
-      'south america': enhancedAirports.filter(a => a.region === 'South America'),
+      'europe': enhancedAirports.filter((a: any) => a.region === 'Europe'),
+      'asia': enhancedAirports.filter((a: any) => a.region === 'Asia'),
+      'caribbean': enhancedAirports.filter((a: any) => a.country?.includes('Caribbean')),
+      'south america': enhancedAirports.filter((a: any) => a.region === 'South America'),
     };
 
     const expandedSearch = [searchTerm];
@@ -298,7 +299,7 @@ export default function FlightSearchForm({
     }
 
     // Search through all airports with enhanced matching
-    const results = enhancedAirports.filter(airport => {
+    const results = enhancedAirports.filter((airport: any) => {
       return expandedSearch.some(term => 
         airport.city?.toLowerCase().includes(term) ||
         airport.name?.toLowerCase().includes(term) ||
@@ -309,7 +310,7 @@ export default function FlightSearchForm({
     });
     
     // ULTRA-INTELLIGENT SORTING ALGORITHM
-    return results.sort((a, b) => {
+    return results.sort((a: any, b: any) => {
       // Exact IATA code match gets highest priority
       if (a.iataCode?.toLowerCase() === searchTerm) return -1;
       if (b.iataCode?.toLowerCase() === searchTerm) return 1;
@@ -365,11 +366,11 @@ export default function FlightSearchForm({
 
   // Multi-city segment search effects
   useEffect(() => {
-    segmentSearches.forEach((search, index) => {
+    segmentSearches.forEach((search: any, index: number) => {
       if (search.origin.trim().length >= 1) {
         const timeoutId = setTimeout(() => {
           aiSmartSearch(search.origin).then(results => {
-            setSegmentResults(prev => prev.map((result, i) => 
+            setSegmentResults((prev: any) => prev.map((result: any, i: number) => 
               i === index ? { ...result, origin: results } : result
             ));
           });
@@ -380,7 +381,7 @@ export default function FlightSearchForm({
       if (search.destination.trim().length >= 1) {
         const timeoutId = setTimeout(() => {
           aiSmartSearch(search.destination).then(results => {
-            setSegmentResults(prev => prev.map((result, i) => 
+            setSegmentResults((prev: any) => prev.map((result: any, i: number) => 
               i === index ? { ...result, destination: results } : result
             ));
           });
@@ -396,7 +397,7 @@ export default function FlightSearchForm({
       const rect = element.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
-      setDropdownPositions(prev => ({
+      setDropdownPositions((prev: any) => ({
         ...prev,
         [key]: {
           top: rect.bottom + scrollTop + 8, // 8px gap below input
@@ -408,7 +409,7 @@ export default function FlightSearchForm({
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     
     const errors = validateFlightSearchForm(formData);
@@ -498,10 +499,9 @@ export default function FlightSearchForm({
     }
   };
 
-
   // Handle swap origin/destination with smooth animation
   const handleSwapAirports = () => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       origin: prev.destination,
       destination: prev.origin
@@ -529,31 +529,31 @@ export default function FlightSearchForm({
         departureDate: new Date(lastSegment.departureDate.getTime() + 24 * 60 * 60 * 1000) // Next day
       };
       
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         segments: [...(prev.segments || []), newSegment]
       }));
       
-      setSegmentSearches(prev => [...prev, { origin: '', destination: '' }]);
-      setSegmentResults(prev => [...prev, { origin: [], destination: [] }]);
+      setSegmentSearches((prev: any) => [...prev, { origin: '', destination: '' }]);
+      setSegmentResults((prev: any) => [...prev, { origin: [], destination: [] }]);
     }
   };
 
   const removeSegment = (index: number) => {
     if (formData.segments && formData.segments.length > 2) {
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
-        segments: prev.segments?.filter((_, i) => i !== index)
+        segments: prev.segments?.filter((_: any, i: number) => i !== index)
       }));
       
-      setSegmentSearches(prev => prev.filter((_, i) => i !== index));
-      setSegmentResults(prev => prev.filter((_, i) => i !== index));
+      setSegmentSearches((prev: any) => prev.filter((_: any, i: number) => i !== index));
+      setSegmentResults((prev: any) => prev.filter((_: any, i: number) => i !== index));
     }
   };
 
   const updateSegment = (index: number, field: keyof FlightSegment, value: any) => {
-    setFormData(prev => {
-      const newSegments = prev.segments?.map((segment, i) => 
+    setFormData((prev: any) => {
+      const newSegments = prev.segments?.map((segment: any, i: number) => 
         i === index ? { ...segment, [field]: value } : segment
       );
       
@@ -577,7 +577,7 @@ export default function FlightSearchForm({
   };
 
   const updateSegmentSearch = (index: number, field: 'origin' | 'destination', value: string) => {
-    setSegmentSearches(prev => prev.map((search, i) => 
+    setSegmentSearches((prev: any) => prev.map((search: any, i: number) => 
       i === index ? { ...search, [field]: value } : search
     ));
   };
@@ -648,11 +648,11 @@ export default function FlightSearchForm({
                 { value: 'round-trip', label: 'Round trip', icon: '⇄', color: 'from-blue-500 to-cyan-500' },
                 { value: 'one-way', label: 'One way', icon: '→', color: 'from-purple-500 to-pink-500' },
                 { value: 'multi-city', label: 'Multi-city', icon: '⚬⚬⚬', color: 'from-green-500 to-emerald-500' }
-              ].map((option) => (
+              ].map((option: any) => (
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, tripType: option.value as any }))}
+                  onClick={() => setFormData((prev: any) => ({ ...prev, tripType: option.value as any }))}
                   className={`px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
                     formData.tripType === option.value
                       ? `bg-gradient-to-r ${option.color} text-white shadow-lg transform scale-105`
@@ -672,7 +672,7 @@ export default function FlightSearchForm({
                 <input
                   type="checkbox"
                   checked={formData.preferences.nonStop}
-                  onChange={(e) => setFormData(prev => ({ 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ 
                     ...prev, 
                     preferences: { ...prev.preferences, nonStop: e.target.checked }
                   }))}
@@ -683,7 +683,6 @@ export default function FlightSearchForm({
               
             </div>
           </div>
-
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* REVOLUTIONARY MAIN SEARCH - AI-Powered (Hidden for Multi-City) */}
@@ -702,11 +701,11 @@ export default function FlightSearchForm({
                       ref={originRef}
                       type="text"
                       value={formData.origin?.iataCode ? formData.origin.city : originSearch}
-                      onChange={(e) => {
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setOriginSearch(value);
                         if (formData.origin?.iataCode && value !== formData.origin?.city) {
-                          setFormData(prev => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
+                          setFormData((prev: any) => ({ ...prev, origin: { iataCode: '', name: '', city: '', country: '' } }));
                         }
                       }}
                       onFocus={() => {
@@ -751,11 +750,11 @@ export default function FlightSearchForm({
                       ref={destinationRef}
                       type="text"
                       value={formData.destination?.iataCode ? formData.destination.city : destinationSearch}
-                      onChange={(e) => {
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         setDestinationSearch(value);
                         if (formData.destination?.iataCode && value !== formData.destination?.city) {
-                          setFormData(prev => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
+                          setFormData((prev: any) => ({ ...prev, destination: { iataCode: '', name: '', city: '', country: '' } }));
                         }
                       }}
                       onFocus={() => {
@@ -823,7 +822,7 @@ export default function FlightSearchForm({
                       onChange={(value) => {
                         const [year, month, day] = value.split('-').map(Number);
                         const localDate = new Date(year, month - 1, day);
-                        setFormData(prev => {
+                        setFormData((prev: any) => {
                           // If return date is same or before new departure date, set it to next day
                           const newReturnDate = prev.returnDate && prev.returnDate <= localDate 
                             ? new Date(localDate.getTime() + 24 * 60 * 60 * 1000)
@@ -848,8 +847,8 @@ export default function FlightSearchForm({
                       type="checkbox"
                       id="flexible-departure"
                       checked={formData.preferences.enhancedFlexibility?.departure?.enabled || ('enabled' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).enabled : false) || false}
-                      onChange={(e) => {
-                        setFormData(prev => {
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => {
                           const currentEnhanced = prev.preferences.enhancedFlexibility;
                           const legacyDays = ('days' in (prev.preferences.flexibleDates || {}) ? (prev.preferences.flexibleDates as any).days : 2) || 2;
                           
@@ -887,7 +886,7 @@ export default function FlightSearchForm({
                           onClick={() => {
                             const currentDays = formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2;
                             const newDays = Math.max(1, currentDays - 1);
-                            setFormData(prev => {
+                            setFormData((prev: any) => {
                               const currentEnhanced = prev.preferences.enhancedFlexibility;
                               return {
                                 ...prev,
@@ -920,7 +919,7 @@ export default function FlightSearchForm({
                           onClick={() => {
                             const currentDays = formData.preferences.enhancedFlexibility?.departure?.days || ('days' in (formData.preferences.flexibleDates || {}) ? (formData.preferences.flexibleDates as any).days : 2) || 2;
                             const newDays = Math.min(7, currentDays + 1);
-                            setFormData(prev => {
+                            setFormData((prev: any) => {
                               const currentEnhanced = prev.preferences.enhancedFlexibility;
                               return {
                                 ...prev,
@@ -964,7 +963,7 @@ export default function FlightSearchForm({
                         onChange={(value) => {
                           const [year, month, day] = value.split('-').map(Number);
                           const localDate = new Date(year, month - 1, day);
-                          setFormData(prev => ({ ...prev, returnDate: localDate }));
+                          setFormData((prev: any) => ({ ...prev, returnDate: localDate }));
                         }}
                         placeholder="MM/DD/YYYY"
                         minDate={new Date(formData.departureDate.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE')}
@@ -977,8 +976,8 @@ export default function FlightSearchForm({
                         type="checkbox"
                         id="flexible-return"
                         checked={formData.preferences.enhancedFlexibility?.return?.enabled || false}
-                        onChange={(e) => {
-                          setFormData(prev => {
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                          setFormData((prev: any) => {
                             const currentEnhanced = prev.preferences.enhancedFlexibility;
                             const departureDays = currentEnhanced?.departure?.days || ('days' in (prev.preferences.flexibleDates || {}) ? (prev.preferences.flexibleDates as any).days : 2) || 2;
                             
@@ -1017,7 +1016,7 @@ export default function FlightSearchForm({
                             onClick={() => {
                               const currentDays = formData.preferences.enhancedFlexibility?.return?.days || 2;
                               const newDays = Math.max(1, currentDays - 1);
-                              setFormData(prev => {
+                              setFormData((prev: any) => {
                                 const currentEnhanced = prev.preferences.enhancedFlexibility;
                                 return {
                                   ...prev,
@@ -1056,7 +1055,7 @@ export default function FlightSearchForm({
                             onClick={() => {
                               const currentDays = formData.preferences.enhancedFlexibility?.return?.days || 2;
                               const newDays = Math.min(7, currentDays + 1);
-                              setFormData(prev => {
+                              setFormData((prev: any) => {
                                 const currentEnhanced = prev.preferences.enhancedFlexibility;
                                 return {
                                   ...prev,
@@ -1093,7 +1092,6 @@ export default function FlightSearchForm({
                     </div>
                   </div>
                 )}
-
 
                 {/* Travel Class */}
                 <div className="space-y-3">
@@ -1181,7 +1179,7 @@ export default function FlightSearchForm({
                     </div>
                     
                     <div className="flex items-center justify-between overflow-x-auto pb-2 gap-2">
-                      {formData.segments.map((segment, index) => (
+                      {formData.segments.map((segment: any, index: number) => (
                         <div key={`route-${index}`} className="flex items-center gap-2 flex-shrink-0">
                           {/* Origin */}
                           <div className="text-center">
@@ -1243,7 +1241,7 @@ export default function FlightSearchForm({
 
                 {/* Dynamic Flight Segments */}
                 <div className="space-y-4">
-                  {formData.segments?.map((segment, index) => (
+                  {formData.segments?.map((segment: any, index: number) => (
                     <div key={`segment-${index}`} className="relative">
                       {/* Connection Line for segments after the first */}
                       {index > 0 && (
@@ -1334,7 +1332,7 @@ export default function FlightSearchForm({
                             <input
                               type="text"
                               value={segment.origin?.iataCode ? segment.origin.city : segmentSearches[index]?.origin || ''}
-                              onChange={(e) => {
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 const value = e.target.value;
                                 updateSegmentSearch(index, 'origin', value);
                                 if (segment.origin?.iataCode && value !== segment.origin?.city) {
@@ -1366,7 +1364,7 @@ export default function FlightSearchForm({
                             <input
                               type="text"
                               value={segment.destination?.iataCode ? segment.destination.city : segmentSearches[index]?.destination || ''}
-                              onChange={(e) => {
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 const value = e.target.value;
                                 updateSegmentSearch(index, 'destination', value);
                                 if (segment.destination?.iataCode && value !== segment.destination?.city) {
@@ -1415,11 +1413,11 @@ export default function FlightSearchForm({
                               checked={
                                 formData.preferences.multiCityFlexibility?.segments?.find(s => s.segmentIndex === index)?.departure?.enabled || false
                               }
-                              onChange={(e) => {
-                                setFormData(prev => {
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                setFormData((prev: any) => {
                                   const currentMultiCity = prev.preferences.multiCityFlexibility;
                                   const currentSegments = currentMultiCity?.segments || [];
-                                  const existingSegmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                  const existingSegmentIndex = currentSegments.findIndex((s: any) => s.segmentIndex === index);
                                   
                                   let updatedSegments;
                                   if (existingSegmentIndex >= 0) {
@@ -1474,10 +1472,10 @@ export default function FlightSearchForm({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setFormData(prev => {
+                                    setFormData((prev: any) => {
                                       const currentMultiCity = prev.preferences.multiCityFlexibility;
                                       const currentSegments = currentMultiCity?.segments || [];
-                                      const segmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                      const segmentIndex = currentSegments.findIndex((s: any) => s.segmentIndex === index);
                                       
                                       if (segmentIndex >= 0) {
                                         const currentDays = currentSegments[segmentIndex].departure.days;
@@ -1516,10 +1514,10 @@ export default function FlightSearchForm({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setFormData(prev => {
+                                    setFormData((prev: any) => {
                                       const currentMultiCity = prev.preferences.multiCityFlexibility;
                                       const currentSegments = currentMultiCity?.segments || [];
-                                      const segmentIndex = currentSegments.findIndex(s => s.segmentIndex === index);
+                                      const segmentIndex = currentSegments.findIndex((s: any) => s.segmentIndex === index);
                                       
                                       if (segmentIndex >= 0) {
                                         const currentDays = currentSegments[segmentIndex].departure.days;
@@ -1668,13 +1666,13 @@ export default function FlightSearchForm({
                     {!originSearch ? 'Popular US Departures' : 'Try these popular airports'}
                   </div>
                   <div className="space-y-1">
-                    {popularOrigins.map((airport) => (
+                    {popularOrigins.map((airport: any) => (
                       <button
                         key={`popular-origin-${airport.iataCode}`}
                         type="button"
                         className="w-full text-left p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30 hover:border-white/50"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, origin: {
+                          setFormData((prev: any) => ({ ...prev, origin: {
                             iataCode: airport.iataCode,
                             name: airport.name,
                             city: airport.city,
@@ -1724,13 +1722,13 @@ export default function FlightSearchForm({
                     AI found {originResults.length} result{originResults.length !== 1 ? 's' : ''}
                   </div>
                   <div className="space-y-1">
-                    {originResults.map((airport, index) => (
+                    {originResults.map((airport: any, index: number) => (
                       <button
                         key={`origin-${airport.iataCode}-${index}`}
                         type="button"
                         className="w-full text-left p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30 hover:border-blue-400/60"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, origin: {
+                          setFormData((prev: any) => ({ ...prev, origin: {
                             iataCode: airport.iataCode,
                             name: airport.name,
                             city: airport.city,
@@ -1808,13 +1806,13 @@ export default function FlightSearchForm({
                     {!destinationSearch ? 'Trending Destinations' : 'Try these amazing destinations'}
                   </div>
                   <div className="space-y-1">
-                    {popularDestinations.map((airport) => (
+                    {popularDestinations.map((airport: any) => (
                       <button
                         key={`popular-dest-${airport.iataCode}`}
                         type="button"
                         className="w-full text-left p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30 hover:border-purple-400/60"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, destination: {
+                          setFormData((prev: any) => ({ ...prev, destination: {
                             iataCode: airport.iataCode,
                             name: airport.name,
                             city: airport.city,
@@ -1878,13 +1876,13 @@ export default function FlightSearchForm({
                     AI found {destinationResults.length} destination{destinationResults.length !== 1 ? 's' : ''}
                   </div>
                   <div className="space-y-1">
-                    {destinationResults.map((airport, index) => (
+                    {destinationResults.map((airport: any, index: number) => (
                       <button
                         key={`destination-${airport.iataCode}-${index}`}
                         type="button"
                         className="w-full text-left p-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/60 transition-all duration-300 group border border-white/30 hover:border-purple-400/60"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, destination: {
+                          setFormData((prev: any) => ({ ...prev, destination: {
                             iataCode: airport.iataCode,
                             name: airport.name,
                             city: airport.city,
@@ -1970,7 +1968,7 @@ export default function FlightSearchForm({
                   <div className="flex items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, adults: Math.max(1, prev.passengers.adults - 1) }
                       }))}
@@ -1982,7 +1980,7 @@ export default function FlightSearchForm({
                     <span className="w-12 text-center font-bold text-white text-xl">{formData.passengers.adults}</span>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, adults: Math.min(9, prev.passengers.adults + 1) }
                       }))}
@@ -2003,7 +2001,7 @@ export default function FlightSearchForm({
                   <div className="flex items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, children: Math.max(0, prev.passengers.children - 1) }
                       }))}
@@ -2015,7 +2013,7 @@ export default function FlightSearchForm({
                     <span className="w-12 text-center font-bold text-white text-xl">{formData.passengers.children}</span>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, children: Math.min(8, prev.passengers.children + 1) }
                       }))}
@@ -2036,7 +2034,7 @@ export default function FlightSearchForm({
                   <div className="flex items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, infants: Math.max(0, prev.passengers.infants - 1) }
                       }))}
@@ -2048,7 +2046,7 @@ export default function FlightSearchForm({
                     <span className="w-12 text-center font-bold text-white text-xl">{formData.passengers.infants}</span>
                     <button
                       type="button"
-                      onClick={() => setFormData(prev => ({
+                      onClick={() => setFormData((prev: any) => ({
                         ...prev,
                         passengers: { ...prev.passengers, infants: Math.min(formData.passengers.adults, prev.passengers.infants + 1) }
                       }))}
@@ -2086,12 +2084,12 @@ export default function FlightSearchForm({
               className="backdrop-blur-xl bg-slate-900/80 border border-white/30 rounded-2xl shadow-2xl p-6"
             >
               <div className="space-y-4">
-                {travelClasses.map((travelClass) => (
+                {travelClasses.map((travelClass: any) => (
                   <button
                     key={travelClass.value}
                     type="button"
                     onClick={() => {
-                      setFormData(prev => ({ ...prev, travelClass: travelClass.value as TravelClass }));
+                      setFormData((prev: any) => ({ ...prev, travelClass: travelClass.value as TravelClass }));
                       setShowClassDropdown(false);
                     }}
                     className={`w-full text-left p-4 rounded-xl transition-all duration-300 border-2 ${
@@ -2153,7 +2151,7 @@ export default function FlightSearchForm({
                       AI found {results.length} result{results.length !== 1 ? 's' : ''}
                     </div>
                     <div className="space-y-2">
-                      {results.map((airport, airportIndex) => (
+                      {results.map((airport: any, airportIndex: number) => (
                         <button
                           key={`${key}-${airport.iataCode}-${airportIndex}`}
                           type="button"
@@ -2215,7 +2213,7 @@ export default function FlightSearchForm({
                       {isOrigin ? 'Popular Departures' : 'Popular Destinations'}
                     </div>
                     <div className="space-y-2">
-                      {(isOrigin ? popularOrigins : popularDestinations).slice(0, 6).map((airport) => (
+                      {(isOrigin ? popularOrigins : popularDestinations).slice(0, 6).map((airport: any) => (
                         <button
                           key={`${key}-popular-${airport.iataCode}`}
                           type="button"

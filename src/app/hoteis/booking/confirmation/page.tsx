@@ -37,7 +37,7 @@ function BookingConfirmationContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadBookingDetails = async () => {
+    const loadBookingDetails = async (): Promise<void> => {
       try {
         const bookingRef = searchParams.get('ref');
         
@@ -116,7 +116,7 @@ function BookingConfirmationContent() {
     console.log('Download voucher for booking:', booking?.bookingReference);
   };
 
-  const handleShareBooking = async () => {
+  const handleShareBooking = async (): Promise<void> => {
     if (navigator.share && booking) {
       try {
         await navigator.share({

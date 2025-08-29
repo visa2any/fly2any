@@ -6,6 +6,8 @@
  * while maintaining backward compatibility.
  */
 
+import { AirportSelection } from '@/types/flights';
+
 // Base types for reusability
 export type TripType = 'ida' | 'ida_volta' | 'multiplas_cidades' | 'ida-volta' | 'somente-ida' | 'multiplas-cidades';
 export type FlightClass = 'economica' | 'premium' | 'executiva' | 'primeira';
@@ -140,8 +142,8 @@ export interface CreateLeadInput {
   cidade?: string;
   estado?: string;
   pais?: string;
-  origem?: string;
-  destino?: string;
+  origem?: string | AirportSelection | null;
+  destino?: string | AirportSelection | null;
   tipoViagem?: TripType;
   dataPartida?: string;
   dataRetorno?: string;

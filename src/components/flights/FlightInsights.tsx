@@ -46,7 +46,6 @@ interface FlightInsightsProps {
   className?: string;
 }
 
-
 export default function FlightInsights({
   searchResults = [],
   searchData,
@@ -70,7 +69,7 @@ export default function FlightInsights({
       
       if (validPrices.length === 0) return [];
       
-      const avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+      const avgPrice = validPrices.reduce((a: any, b: any) => a + b, 0) / validPrices.length;
       const minPrice = Math.min(...validPrices);
       const insights: PriceInsight[] = [];
 
@@ -204,7 +203,7 @@ export default function FlightInsights({
             </h3>
           </div>
           <div className="p-4 space-y-4">
-            {priceInsights.map((insight, index) => (
+            {priceInsights.map((insight: any, index: number) => (
               <div key={index} className={`p-3 rounded-lg border-l-4 ${
                 insight.type === 'good_deal' ? 'bg-green-50 border-green-500' :
                 insight.type === 'price_decrease' ? 'bg-blue-50 border-blue-500' :
@@ -273,7 +272,7 @@ export default function FlightInsights({
           </h3>
         </div>
         <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
-          {travelTips.map((tip) => (
+          {travelTips.map((tip: any) => (
             <div key={tip.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
               <div className="flex items-start gap-3">
                 <span className="text-lg">{tip.icon}</span>

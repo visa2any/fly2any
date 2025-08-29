@@ -89,7 +89,7 @@ const PhoneInputInline: React.FC<PhoneInputInlineProps> = ({
         <input
           type="tel"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           onBlur={onBlur}
           placeholder={placeholder}
           style={{

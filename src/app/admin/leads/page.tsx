@@ -128,7 +128,7 @@ export default function LeadsPage() {
   };
 
   // Fetch leads stats
-  const fetchLeadsStats = async () => {
+  const fetchLeadsStats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/admin/leads?stats=true');
       if (!response.ok) {
@@ -194,7 +194,7 @@ export default function LeadsPage() {
 
   // Handle filter changes
   const handleFilterChange = (filterType: string, value: string) => {
-    setFilters(prev => ({
+    setFilters((prev: any) => ({
       ...prev,
       [filterType]: value
     }));
@@ -202,7 +202,7 @@ export default function LeadsPage() {
 
   // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({
+    setFilters((prev: any) => ({
       ...prev,
       search: e.target.value
     }));
@@ -364,7 +364,7 @@ export default function LeadsPage() {
               <label className="admin-label">Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('status', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {statusOptions.map(status => (
@@ -385,7 +385,7 @@ export default function LeadsPage() {
               <label className="admin-label">Origem</label>
               <select
                 value={filters.source}
-                onChange={(e) => handleFilterChange('source', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleFilterChange('source', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {sourceOptions.map(source => (

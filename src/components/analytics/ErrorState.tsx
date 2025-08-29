@@ -6,7 +6,7 @@ interface ErrorStateProps {
   onRetry?: () => void;
 }
 
-export const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
+export const ErrorState = ({ error, onRetry }: ErrorStateProps) => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-red-200 p-8 text-center">
       <XCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface PerformanceMetric {
   name: string;
@@ -79,7 +79,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
           if (lastEntry) {
             const lcp = lastEntry.startTime;
             recordMetric('LCP', lcp);
-            setMetrics(prev => ({ ...prev, lcp }));
+            setMetrics((prev: any) => ({ ...prev, lcp }));
           }
         });
         
@@ -99,7 +99,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
             if (entry.entryType === 'first-input') {
               const fid = entry.processingStart - entry.startTime;
               recordMetric('FID', fid);
-              setMetrics(prev => ({ ...prev, fid }));
+              setMetrics((prev: any) => ({ ...prev, fid }));
             }
           });
         });
@@ -124,7 +124,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
           });
           
           recordMetric('CLS', clsValue);
-          setMetrics(prev => ({ ...prev, cls: clsValue }));
+          setMetrics((prev: any) => ({ ...prev, cls: clsValue }));
         });
         
         clsObserver.observe({ entryTypes: ['layout-shift'] });
@@ -144,7 +144,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
           if (fcpEntry) {
             const fcp = fcpEntry.startTime;
             recordMetric('FCP', fcp);
-            setMetrics(prev => ({ ...prev, fcp }));
+            setMetrics((prev: any) => ({ ...prev, fcp }));
           }
         });
         
@@ -164,7 +164,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
           const navEntry = navigationEntries[0];
           const ttfb = navEntry.responseStart - navEntry.requestStart;
           recordMetric('TTFB', ttfb);
-          setMetrics(prev => ({ ...prev, ttfb }));
+          setMetrics((prev: any) => ({ ...prev, ttfb }));
         }
       } catch (e) {
         console.debug('TTFB measurement failed:', e);
@@ -180,7 +180,7 @@ export function usePerformanceMonitoring(config: PerformanceConfig = {}) {
             if (entry.entryType === 'event' && entry.duration) {
               const inp = entry.duration;
               recordMetric('INP', inp);
-              setMetrics(prev => ({ ...prev, inp: Math.max(prev.inp || 0, inp) }));
+              setMetrics((prev: any) => ({ ...prev, inp: Math.max(prev.inp || 0, inp) }));
             }
           });
         });

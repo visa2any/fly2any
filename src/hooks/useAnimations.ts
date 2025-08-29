@@ -1,7 +1,7 @@
 'use client';
 
 import { useAnimation, useInView } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimationUtils, springConfigs } from '@/lib/mobile/animation-utils';
 
 // Hook for scroll-triggered animations
@@ -32,7 +32,17 @@ export function useStaggeredAnimation(itemCount: number, delay: number = 0.1) {
     controls.start('animate');
   };
 
-  const containerVariants = AnimationUtils.createStaggeredList(itemCount, delay);
+  // Fix: AnimationUtils is a type-only import, use direct animation config
+  const containerVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: delay || 0.1,
+        delayChildren: 0.1
+      }
+    }
+  };
 
   return {
     controls,
@@ -220,7 +230,7 @@ export function usePageTransition() {
     callback?.();
   };
 
-  const enterPage = async () => {
+  const enterPage = async (): Promise<void> => {
     setIsExiting(false);
     await controls.start('animate');
   };
@@ -270,7 +280,7 @@ export function useGestureAnimation() {
       x: 0,
       opacity: 1,
       scale: 1,
-      transition: springConfigs.elastic,
+      transition: { type: "spring", damping: 15, stiffness: 300 },
     });
   };
 

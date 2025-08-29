@@ -146,7 +146,7 @@ export default function PriceAlertsModal({
                       name="alertType"
                       value="any_drop"
                       checked={settings.alertType === 'any_drop'}
-                      onChange={(e) => setSettings(prev => ({ ...prev, alertType: e.target.value as any }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, alertType: e.target.value as any }))}
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <div>
@@ -161,7 +161,7 @@ export default function PriceAlertsModal({
                       name="alertType"
                       value="specific_price"
                       checked={settings.alertType === 'specific_price'}
-                      onChange={(e) => setSettings(prev => ({ ...prev, alertType: e.target.value as any }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, alertType: e.target.value as any }))}
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <div className="flex-1">
@@ -173,7 +173,7 @@ export default function PriceAlertsModal({
                       <input
                         type="number"
                         value={settings.priceThreshold}
-                        onChange={(e) => setSettings(prev => ({ ...prev, priceThreshold: parseInt(e.target.value) || 0 }))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, priceThreshold: parseInt(e.target.value) || 0 }))}
                         className="w-20 px-2 py-1 border border-gray-300 rounded-lg text-center"
                         disabled={settings.alertType !== 'specific_price'}
                       />
@@ -186,7 +186,7 @@ export default function PriceAlertsModal({
                       name="alertType"
                       value="percentage_drop"
                       checked={settings.alertType === 'percentage_drop'}
-                      onChange={(e) => setSettings(prev => ({ ...prev, alertType: e.target.value as any }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, alertType: e.target.value as any }))}
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <div className="flex-1">
@@ -197,7 +197,7 @@ export default function PriceAlertsModal({
                       <input
                         type="number"
                         value={settings.percentageThreshold || 10}
-                        onChange={(e) => setSettings(prev => ({ ...prev, percentageThreshold: parseInt(e.target.value) || 10 }))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, percentageThreshold: parseInt(e.target.value) || 10 }))}
                         className="w-16 px-2 py-1 border border-gray-300 rounded-lg text-center"
                         disabled={settings.alertType !== 'percentage_drop'}
                         min="1"
@@ -220,7 +220,7 @@ export default function PriceAlertsModal({
                       type="email"
                       placeholder="Your email address"
                       value={settings.email}
-                      onChange={(e) => setSettings(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, email: e.target.value }))}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -230,7 +230,7 @@ export default function PriceAlertsModal({
                       type="tel"
                       placeholder="SMS number (optional)"
                       value={settings.sms || ''}
-                      onChange={(e) => setSettings(prev => ({ ...prev, sms: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSettings((prev: any) => ({ ...prev, sms: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

@@ -42,7 +42,7 @@ export default function FlightCompareBar({
         </div>
 
         <div className="flex items-center gap-4 mb-4">
-          {(compareFlights || []).map((flight, index) => (
+          {(compareFlights || []).map((flight: any, index: number) => (
             <div key={flight.id} className="flex-1 min-w-0">
               <div className="bg-gray-50 rounded-lg p-3 relative">
                 <button
@@ -83,7 +83,7 @@ export default function FlightCompareBar({
           ))}
           
           {/* Add more slots */}
-          {Array.from({ length: 3 - (compareFlights?.length || 0) }).map((_, index) => (
+          {Array.from({ length: 3 - (compareFlights?.length || 0) }).map((_: any, index: number) => (
             <div key={`empty-${index}`} className="flex-1 min-w-0">
               <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-3 h-24 flex items-center justify-center">
                 <span className="text-sm text-gray-500">Add flight to compare</span>

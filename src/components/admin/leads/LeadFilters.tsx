@@ -102,7 +102,7 @@ export function LeadFilters({
   const toggleArrayFilter = (key: 'status' | 'priority' | 'source' | 'tags', value: string) => {
     const currentArray = filters[key];
     const newArray = currentArray.includes(value)
-      ? currentArray.filter(item => item !== value)
+      ? currentArray.filter((item: any) => item !== value)
       : [...currentArray, value];
     
     updateFilter(key, newArray);
@@ -176,7 +176,7 @@ export function LeadFilters({
             className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
             placeholder="Buscar por nome, email, telefone..."
             value={filters.search}
-            onChange={(e) => updateFilter('search', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('search', e.target.value)}
           />
           {filters.search && (
             <button
@@ -264,7 +264,7 @@ export function LeadFilters({
                   type="number"
                   placeholder="Mín"
                   value={filters.budgetRange.min || ''}
-                  onChange={(e) => updateFilter('budgetRange', {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('budgetRange', {
                     ...filters.budgetRange,
                     min: parseFloat(e.target.value) || undefined
                   })}
@@ -274,7 +274,7 @@ export function LeadFilters({
                   type="number"
                   placeholder="Máx"
                   value={filters.budgetRange.max || ''}
-                  onChange={(e) => updateFilter('budgetRange', {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('budgetRange', {
                     ...filters.budgetRange,
                     max: parseFloat(e.target.value) || undefined
                   })}
@@ -289,7 +289,7 @@ export function LeadFilters({
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Cidade de origem"
                 value={filters.origem}
-                onChange={(e) => updateFilter('origem', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('origem', e.target.value)}
               />
             </div>
 
@@ -299,7 +299,7 @@ export function LeadFilters({
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Cidade de destino"
                 value={filters.destino}
-                onChange={(e) => updateFilter('destino', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('destino', e.target.value)}
               />
             </div>
 
@@ -310,7 +310,7 @@ export function LeadFilters({
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nome do responsável"
                 value={filters.assignedTo}
-                onChange={(e) => updateFilter('assignedTo', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFilter('assignedTo', e.target.value)}
               />
             </div>
 
@@ -364,7 +364,7 @@ export function LeadFilters({
               <select
                 className="admin-select"
                 value={filters.hasNotes === undefined ? '' : filters.hasNotes.toString()}
-                onChange={(e) => 
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
                   updateFilter('hasNotes', e.target.value === '' ? undefined : e.target.value === 'true')
                 }
               >

@@ -1,3 +1,4 @@
+import React from 'react';
 import Link from "next/link";
 import OptimizedImage from "@/components/OptimizedImage";
 import { FlightIcon, PhoneIcon } from '@/components/Icons';
@@ -98,7 +99,6 @@ export default function VoosBrasilEUA() {
     minHeight: '100vh',
     fontFamily: 'Inter, sans-serif'
   };
-
 
   const cardStyle = {
     background: 'rgba(255, 255, 255, 0.08)',

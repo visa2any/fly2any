@@ -42,7 +42,7 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
 
   // Initialize enhanced mobile features
   useEffect(() => {
-    const initMobileFeatures = async () => {
+    const initMobileFeatures = async (): Promise<void> => {
       // Initialize performance optimizer
       mobileOptimizer.inlineCriticalCSS();
       mobileOptimizer.addResourceHints();
@@ -76,7 +76,7 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
   }, [enableHapticFeedback, measurePerformance]);
 
   // Handle pull to refresh
-  const handleRefresh = async () => {
+  const handleRefresh = async (): Promise<void> => {
     if (onRefresh) {
       await measurePerformance('pull-to-refresh', onRefresh);
     }
@@ -248,7 +248,7 @@ export const EnhancedFlightSearchForm: React.FC<{
           <TouchInput
             label="De onde?"
             value={formData.from}
-            onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, from: e.target.value })}
             placeholder="Cidade ou aeroporto de origem"
             suggestions={airportSuggestions}
             haptic={true}
@@ -259,7 +259,7 @@ export const EnhancedFlightSearchForm: React.FC<{
           <TouchInput
             label="Para onde?"
             value={formData.to}
-            onChange={(e) => setFormData({ ...formData, to: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, to: e.target.value })}
             placeholder="Cidade ou aeroporto de destino"
             suggestions={airportSuggestions}
             haptic={true}
@@ -274,14 +274,14 @@ export const EnhancedFlightSearchForm: React.FC<{
             label="Ida"
             type="date"
             value={formData.departure}
-            onChange={(e) => setFormData({ ...formData, departure: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, departure: e.target.value })}
             haptic={true}
           />
           <TouchInput
             label="Volta"
             type="date"
             value={formData.return}
-            onChange={(e) => setFormData({ ...formData, return: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, return: e.target.value })}
             haptic={true}
           />
         </motion.div>
@@ -291,7 +291,7 @@ export const EnhancedFlightSearchForm: React.FC<{
             label="Passageiros"
             type="number"
             value={formData.passengers}
-            onChange={(e) => setFormData({ ...formData, passengers: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, passengers: e.target.value })}
             inputMode="numeric"
             min="1"
             max="9"

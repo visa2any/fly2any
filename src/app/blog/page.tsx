@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarIcon, UsersIcon, ArrowRightIcon, FlightIcon, PhoneIcon, MailIcon, ChatIcon } from '@/components/Icons';

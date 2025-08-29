@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Logo from './Logo';
 import MobileHeader from './MobileHeader';
@@ -26,8 +26,8 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
   // Update live stats every few seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setLiveBookings(prev => prev + (Math.random() > 0.7 ? 1 : 0));
-      setFlashDealTimer(prev => Math.max(0, prev - 1));
+      setLiveBookings((prev: any) => prev + (Math.random() > 0.7 ? 1 : 0));
+      setFlashDealTimer((prev: any) => Math.max(0, prev - 1));
     }, 3000);
 
     return () => clearInterval(interval);
@@ -334,9 +334,8 @@ export default function ResponsiveHeader({ style, className }: ResponsiveHeaderP
         </header>
       </div>
 
-
       {/* CSS for responsive behavior and animations */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .mobile-header-container {
           display: none;
         }

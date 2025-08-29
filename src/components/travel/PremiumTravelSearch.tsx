@@ -347,7 +347,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
     label: string;
   }) => (
     <button
-      onClick={() => setSearchParams(prev => ({
+      onClick={() => setSearchParams((prev: any) => ({
         ...prev,
         services: {
           ...prev.services,
@@ -389,8 +389,8 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
         <span className="text-gray-500">•</span>
         <span className="text-gray-600">{priceData.prediction}</span>
       </motion.div>
-    )
-  );
+    
+  ));
 
   // ========================================
   // MAIN RENDER
@@ -420,7 +420,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                 ref={inputRef}
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 placeholder={placeholder}
                 className="w-full text-xl py-6 px-6 pr-16 bg-gray-50 border-0 rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all duration-300 placeholder-gray-400"
                 onFocus={() => setShowDestinations(true)}
@@ -455,7 +455,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                     <button
                       key={`${dest.code}-${index}`}
                       onClick={() => {
-                        setSearchParams(prev => ({
+                        setSearchParams((prev: any) => ({
                           ...prev,
                           destination: dest
                         }));
@@ -526,7 +526,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                         <button
                           key={index}
                           onClick={() => {
-                            setSearchParams(prev => ({
+                            setSearchParams((prev: any) => ({
                               ...prev,
                               dates: {
                                 ...prev.dates,
@@ -593,7 +593,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                         </div>
                         <div className="flex items-center space-x-3">
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -606,7 +606,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                           </button>
                           <span className="w-8 text-center font-medium">{searchParams.travelers.adults}</span>
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -628,7 +628,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                         </div>
                         <div className="flex items-center space-x-3">
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -641,7 +641,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                           </button>
                           <span className="w-8 text-center font-medium">{searchParams.travelers.children}</span>
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -662,7 +662,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                         </div>
                         <div className="flex items-center space-x-3">
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -675,7 +675,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                           </button>
                           <span className="w-8 text-center font-medium">{searchParams.travelers.rooms}</span>
                           <button
-                            onClick={() => setSearchParams(prev => ({
+                            onClick={() => setSearchParams((prev: any) => ({
                               ...prev,
                               travelers: {
                                 ...prev.travelers,
@@ -741,7 +741,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                     {(['economy', 'premium', 'business', 'first'] as const).map((classType) => (
                       <button
                         key={classType}
-                        onClick={() => setSearchParams(prev => ({
+                        onClick={() => setSearchParams((prev: any) => ({
                           ...prev,
                           filters: { ...prev.filters, flightClass: classType }
                         }))}
@@ -766,12 +766,12 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                     {[1, 2, 3, 4, 5].map((stars) => (
                       <button
                         key={stars}
-                        onClick={() => setSearchParams(prev => ({
+                        onClick={() => setSearchParams((prev: any) => ({
                           ...prev,
                           filters: {
                             ...prev.filters,
                             hotelStars: prev.filters.hotelStars.includes(stars)
-                              ? prev.filters.hotelStars.filter(s => s !== stars)
+                              ? prev.filters.hotelStars.filter((s: number) => s !== stars)
                               : [...prev.filters.hotelStars, stars]
                           }
                         }))}
@@ -795,7 +795,7 @@ const PremiumTravelSearch: React.FC<PremiumTravelSearchProps> = ({
                   </label>
                   <select
                     value={searchParams.filters.sortBy}
-                    onChange={(e) => setSearchParams(prev => ({
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSearchParams((prev: any) => ({
                       ...prev,
                       filters: { 
                         ...prev.filters, 

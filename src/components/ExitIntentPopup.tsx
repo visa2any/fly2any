@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { XIcon, CheckIcon, MailIcon, PhoneIcon } from '@/components/Icons';
 
 // Países principais para o seletor
@@ -32,53 +32,129 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   const [isSuccess, setIsSuccess] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [hasShown, setHasShown] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [hasInteracted, setHasInteracted] = useState(false);
 
+  // Check if popup was already shown/closed in this session
   useEffect(() => {
-    if (!enabled || hasShown) return;
-
-    let hasTriggered = false;
-
-    // Show after delay
-    const delayTimeout = setTimeout(() => {
-      if (!hasTriggered) {
-        setIsVisible(true);
-        setHasShown(true);
-        hasTriggered = true;
+    if (typeof window !== 'undefined') {
+      const sessionData = sessionStorage.getItem('exitIntentPopup');
+      if (sessionData) {
+        const { closed, filled, timestamp } = JSON.parse(sessionData);
+        // Don't show if closed or filled in the last 24 hours
+        const hoursSinceAction = (Date.now() - timestamp) / (1000 * 60 * 60);
+        if ((closed || filled) && hoursSinceAction < 24) {
+          return; // Don't set up any listeners
+        }
       }
-    }, delay * 1000);
+    }
+  }, []);
 
-    // Exit intent detection
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !hasTriggered) {
-        clearTimeout(delayTimeout);
-        setIsVisible(true);
-        setHasShown(true);
-        hasTriggered = true;
-      }
+  // Track user interaction
+  useEffect(() => {
+    if (!enabled) return;
+
+    const handleInteraction = () => {
+      setHasInteracted(true);
     };
 
-    // Scroll detection - show when user scrolls 70% of page
-    const handleScroll = () => {
-      const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-      if (scrolled > 70 && !hasTriggered) {
-        clearTimeout(delayTimeout);
-        setIsVisible(true);
-        setHasShown(true);
-        hasTriggered = true;
-      }
-    };
-
-    document.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('scroll', handleScroll);
+    // Track clicks, scrolls, and mouse movements as interaction
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('scroll', handleInteraction);
+    document.addEventListener('mousemove', handleInteraction);
 
     return () => {
-      clearTimeout(delayTimeout);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('scroll', handleInteraction);
+      document.removeEventListener('mousemove', handleInteraction);
     };
-  }, [enabled, delay, hasShown]);
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    // Check session storage first
+    if (typeof window !== 'undefined') {
+      const sessionData = sessionStorage.getItem('exitIntentPopup');
+      if (sessionData) {
+        const { closed, filled, timestamp } = JSON.parse(sessionData);
+        const hoursSinceAction = (Date.now() - timestamp) / (1000 * 60 * 60);
+        if ((closed || filled) && hoursSinceAction < 24) {
+          return; // Don't show popup
+        }
+      }
+    }
+
+    let hasTriggered = false;
+    let delayTimeout: NodeJS.Timeout;
+
+    // Only set delay timer if user has interacted with the page
+    if (hasInteracted) {
+      delayTimeout = setTimeout(() => {
+        if (!hasTriggered && !isVisible) {
+          const sessionData = sessionStorage.getItem('exitIntentPopup');
+          if (!sessionData || !JSON.parse(sessionData).closed) {
+            setIsVisible(true);
+            hasTriggered = true;
+          }
+        }
+      }, delay * 1000);
+    }
+
+    // Exit intent detection - only on desktop and after interaction
+    const handleMouseLeave = (e: MouseEvent) => {
+      // Only trigger on real exit intent (mouse leaving from top)
+      if (e.clientY <= 10 && hasInteracted && !hasTriggered && !isVisible) {
+        // Check if forms have data
+        const inputs = document.querySelectorAll('input, textarea, select');
+        let hasFormData = false;
+        inputs.forEach((input: any) => {
+          if (input.value && input.value.trim() !== '') {
+            hasFormData = true;
+          }
+        });
+
+        // Don't show if user has filled forms
+        if (hasFormData) {
+          sessionStorage.setItem('exitIntentPopup', JSON.stringify({
+            filled: true,
+            timestamp: Date.now()
+          }));
+          return;
+        }
+
+        const sessionData = sessionStorage.getItem('exitIntentPopup');
+        if (!sessionData || !JSON.parse(sessionData).closed) {
+          clearTimeout(delayTimeout);
+          setIsVisible(true);
+          hasTriggered = true;
+        }
+      }
+    };
+
+    // Back button detection
+    const handlePopState = () => {
+      if (hasInteracted && !hasTriggered && !isVisible) {
+        const sessionData = sessionStorage.getItem('exitIntentPopup');
+        if (!sessionData || !JSON.parse(sessionData).closed) {
+          setIsVisible(true);
+          hasTriggered = true;
+        }
+      }
+    };
+
+    // Only add mouseleave listener on desktop
+    if (window.innerWidth > 768) {
+      document.addEventListener('mouseleave', handleMouseLeave);
+    }
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      if (delayTimeout) clearTimeout(delayTimeout);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [enabled, delay, hasInteracted, isVisible]);
 
   // Funções de validação
   const validateEmail = (email: string): string | null => {
@@ -161,6 +237,13 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       
       if (response.ok && result.success) {
         setIsSuccess(true);
+        // Save to session storage that form was filled
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('exitIntentPopup', JSON.stringify({
+            filled: true,
+            timestamp: Date.now()
+          }));
+        }
         // Fechar popup após 4 segundos
         setTimeout(() => {
           setIsVisible(false);
@@ -180,6 +263,13 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
 
   const handleClose = () => {
     setIsVisible(false);
+    // Save to session storage that popup was closed
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('exitIntentPopup', JSON.stringify({
+        closed: true,
+        timestamp: Date.now()
+      }));
+    }
   };
 
   if (!isVisible) return null;
@@ -375,10 +465,10 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
               <input
                 type="text"
                 value={nome}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setNome(e.target.value);
                   if (validationErrors.nome) {
-                    setValidationErrors(prev => ({ ...prev, nome: '' }));
+                    setValidationErrors((prev: any) => ({ ...prev, nome: '' }));
                   }
                 }}
                 placeholder="Seu nome completo"
@@ -428,10 +518,10 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
               <input
                 type="email"
                 value={email}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setEmail(e.target.value);
                   if (validationErrors.email) {
-                    setValidationErrors(prev => ({ ...prev, email: '' }));
+                    setValidationErrors((prev: any) => ({ ...prev, email: '' }));
                   }
                 }}
                 placeholder="seu@email.com"
@@ -482,7 +572,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
               <div style={{ display: 'flex', gap: '6px' }}>
                 <select
                   value={selectedCountry.code}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                     const country = countries.find(c => c.code === e.target.value) || countries[0];
                     setSelectedCountry(country);
                   }}
@@ -507,10 +597,10 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                 <input
                   type="tel"
                   value={whatsapp}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setWhatsapp(e.target.value);
                     if (validationErrors.whatsapp) {
-                      setValidationErrors(prev => ({ ...prev, whatsapp: '' }));
+                      setValidationErrors((prev: any) => ({ ...prev, whatsapp: '' }));
                     }
                   }}
                   placeholder={selectedCountry.code === '+55' ? '11 99999-9999' : selectedCountry.code === '+1' ? '555-123-4567' : '123456789'}

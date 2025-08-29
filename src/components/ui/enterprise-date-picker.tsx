@@ -1,6 +1,5 @@
 'use client';
 
-
 /**
  * 🚀 ENTERPRISE DATE PICKER - Best-in-class component
  * 
@@ -220,7 +219,7 @@ export default function EnterpriseDatePicker({
                 ref={inputRef}
                 type="text"
                 value={displayValue}
-                onChange={(e) => handleInputChange(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e.target.value)}
                 onFocus={() => {
                   updateCalendarPosition();
                   !open && (document.querySelector(`[data-headlessui-state]`) as HTMLElement)?.click();

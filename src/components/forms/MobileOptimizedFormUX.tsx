@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Mobile UX optimization types
@@ -210,7 +210,7 @@ export const useBiometricAuth = () => {
 
   useEffect(() => {
     // Check for biometric authentication support
-    const checkBiometricSupport = async () => {
+    const checkBiometricSupport = async (): Promise<void> => {
       if ('credentials' in navigator && 'create' in navigator.credentials) {
         try {
           // Check if WebAuthn is supported
@@ -334,7 +334,7 @@ export default function MobileOptimizedFormUX({
 
   // Handle field changes with haptic feedback
   const handleFieldChange = useCallback((fieldId: string, value: any) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
+    setFormData((prev: any) => ({ ...prev, [fieldId]: value }));
     onFieldChange(fieldId, value);
     
     // Trigger success haptic feedback
@@ -370,10 +370,10 @@ export default function MobileOptimizedFormUX({
   // Swipe navigation between steps
   useEffect(() => {
     if (swipeDirection === 'left' && currentStep < fields.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev: any) => prev + 1);
       triggerFeedback('swipe');
     } else if (swipeDirection === 'right' && currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev: any) => prev - 1);
       triggerFeedback('swipe');
     }
   }, [swipeDirection, currentStep, fields.length, triggerFeedback]);

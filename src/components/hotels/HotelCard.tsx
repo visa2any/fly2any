@@ -97,7 +97,8 @@ export default function HotelCard({
   // Variante compacta
   if (variant === 'compact') {
     return (
-      <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={handleSelect}>
+      <div className="cursor-pointer" onClick={handleSelect}>
+        <Card className="p-4 hover:shadow-md transition-shadow">
         <div className="flex gap-3">
           {/* Imagem */}
           <div className="relative w-20 h-20 flex-shrink-0">
@@ -138,14 +139,16 @@ export default function HotelCard({
             </div>
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
     );
   }
 
   // Variante detalhada
   if (variant === 'detailed') {
     return (
-      <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300" onClick={handleSelect}>
+      <div className="cursor-pointer" onClick={handleSelect}>
+        <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
         {/* Imagem */}
         <div className="relative h-64">
           <Image
@@ -255,13 +258,15 @@ export default function HotelCard({
             </div>
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
     );
   }
 
   // Variante padrão
   return (
-    <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={handleSelect}>
+    <div className="cursor-pointer" onClick={handleSelect}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="flex">
         {/* Imagem */}
         <div className="relative w-48 h-32 flex-shrink-0">
@@ -343,6 +348,7 @@ export default function HotelCard({
           </div>
         </div>
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 }

@@ -59,7 +59,7 @@ export default function EmailMarketingPage() {
     fetchCampaigns();
   }, []);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing?action=campaigns');
       const data = await response.json();
@@ -107,7 +107,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-marketing?action=stats');
       const data = await response.json();
@@ -174,7 +174,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const restartPausedCampaigns = async () => {
+  const restartPausedCampaigns = async (): Promise<void> => {
     setLoading(true);
     setMessage('🔄 Verificando campanhas pausadas...');
     
@@ -225,7 +225,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const deleteAllCampaigns = async () => {
+  const deleteAllCampaigns = async (): Promise<void> => {
     if (!confirm('⚠️ ATENÇÃO: Isso irá excluir TODAS as campanhas e seus dados. Tem certeza?')) {
       return;
     }
@@ -276,7 +276,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const sendTestEmail = async () => {
+  const sendTestEmail = async (): Promise<void> => {
     if (!testEmail) {
       setMessage('❌ Digite um email para teste');
       return;
@@ -312,7 +312,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const scheduleWeeklyCampaigns = async () => {
+  const scheduleWeeklyCampaigns = async (): Promise<void> => {
     setLoading(true);
     try {
       const response = await fetch('/api/email-marketing', {
@@ -362,7 +362,7 @@ export default function EmailMarketingPage() {
     }
   };
 
-  const downloadSampleCSV = async () => {
+  const downloadSampleCSV = async (): Promise<void> => {
     try {
       const response = await fetch('/api/email-import?action=sample');
       const blob = await response.blob();
@@ -512,7 +512,7 @@ export default function EmailMarketingPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedSegment}
-                onChange={(e) => setSelectedSegment(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedSegment(e.target.value)}
               >
                 <option value="">Todos os contatos ({stats?.totalContacts || 0})</option>
                 {stats?.segmentStats && Object.entries(stats.segmentStats).map(([segment, count]) => (
@@ -922,7 +922,7 @@ export default function EmailMarketingPage() {
                         type="file" 
                         accept=".csv" 
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           if (e.target.files && e.target.files[0]) {
                             handleFileUpload(e.target.files[0]);
                           }
@@ -1020,7 +1020,7 @@ export default function EmailMarketingPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="seu@email.com"
                 value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestEmail(e.target.value)}
               />
             </div>
 
@@ -1029,7 +1029,7 @@ export default function EmailMarketingPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={testCampaignType}
-                onChange={(e) => setTestCampaignType(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTestCampaignType(e.target.value)}
               >
                 <option value="promotional">🎯 Promocional</option>
                 <option value="newsletter">📰 Newsletter</option>

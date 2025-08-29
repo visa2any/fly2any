@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 
@@ -17,10 +18,6 @@ const poppins = Poppins({
   display: "swap",
   variable: "--font-poppins",
 });
-
-
-
-
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fly2any.com'),

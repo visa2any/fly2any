@@ -15,13 +15,12 @@ interface FallbackDateNoticeProps {
   flightsFound: number;
 }
 
-const FallbackDateNotice: React.FC<FallbackDateNoticeProps> = ({
-  originalDeparture,
+const FallbackDateNotice: React.FC<FallbackDateNoticeProps> = ({ originalDeparture,
   originalReturn,
   actualDeparture,
   actualReturn,
   flightsFound
-}) => {
+ }: FallbackDateNoticeProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', { 
       weekday: 'short', 

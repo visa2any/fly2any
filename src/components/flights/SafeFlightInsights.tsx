@@ -54,7 +54,7 @@ export default function SafeFlightInsights({
       }
 
       const averagePrice = validPrices.length > 0 
-        ? Math.round(validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length)
+        ? Math.round(validPrices.reduce((sum: any, price: any) => sum + price, 0) / validPrices.length)
         : 0;
       
       const multiStopFlights = Math.max(0, searchResults.length - directFlights - oneStopFlights);
@@ -164,7 +164,7 @@ export default function SafeFlightInsights({
             </h3>
           </div>
           <div className="p-4 space-y-4">
-            {insights.map((insight, index) => (
+            {insights.map((insight: { type: string; message: string; recommendation: string }, index: number) => (
               <div key={index} className="p-3 rounded-lg border-l-4 bg-green-50 border-green-500">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5">

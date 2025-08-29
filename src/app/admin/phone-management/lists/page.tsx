@@ -32,7 +32,7 @@ export default function PhoneListsPage() {
     fetchLists();
   }, []);
 
-  const fetchLists = async () => {
+  const fetchLists = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/phone-management?action=lists');
@@ -45,7 +45,7 @@ export default function PhoneListsPage() {
     }
   };
 
-  const handleCreateList = async () => {
+  const handleCreateList = async (): Promise<void> => {
     if (!newList.name.trim()) return;
 
     try {
@@ -258,7 +258,7 @@ export default function PhoneListsPage() {
                 <Button 
                   size="sm" 
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     window.location.href = `/admin/phone-management/lists/${list.id}`;
                   }}
@@ -269,7 +269,7 @@ export default function PhoneListsPage() {
                   size="sm" 
                   variant="outline" 
                   className="flex-1 text-xs"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     // Export list logic here
                   }}
@@ -294,7 +294,7 @@ export default function PhoneListsPage() {
                 </label>
                 <Input
                   value={newList.name}
-                  onChange={(e) => setNewList(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewList((prev: any) => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter list name..."
                   className="w-full"
                 />
@@ -306,7 +306,7 @@ export default function PhoneListsPage() {
                 </label>
                 <textarea
                   value={newList.description}
-                  onChange={(e) => setNewList(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewList((prev: any) => ({ ...prev, description: e.target.value }))}
                   placeholder="Optional description..."
                   className="w-full p-2 border rounded-md"
                   rows={3}
@@ -321,7 +321,7 @@ export default function PhoneListsPage() {
                   {presetColors.map(color => (
                     <button
                       key={color}
-                      onClick={() => setNewList(prev => ({ ...prev, color }))}
+                      onClick={() => setNewList((prev: any) => ({ ...prev, color }))}
                       className={`w-8 h-8 rounded-full border-2 ${
                         newList.color === color ? 'border-gray-400' : 'border-gray-200'
                       }`}
@@ -332,7 +332,7 @@ export default function PhoneListsPage() {
                 <input
                   type="color"
                   value={newList.color}
-                  onChange={(e) => setNewList(prev => ({ ...prev, color: e.target.value }))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewList((prev: any) => ({ ...prev, color: e.target.value }))}
                   className="w-full h-10 border rounded"
                 />
               </div>

@@ -311,8 +311,8 @@ export default function FareCustomizer({
   const customization = useMemo(() => {
     try {
       const selectedOpts = safeUpsellOptions.filter(opt => selectedOptions.has(opt.id));
-      const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
-      const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
+      const totalUpgrade = selectedOpts.reduce((sum: any, opt: any) => sum + opt.price, 0);
+      const totalSavings = selectedOpts.reduce((sum: any, opt: any) => sum + (opt.savings || 0), 0);
       const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, '')) || 0;
       
       return {
@@ -338,7 +338,7 @@ export default function FareCustomizer({
   // ========================================================================
   
   const toggleOption = useCallback((optionId: string) => {
-    setSelectedOptions(prev => {
+    setSelectedOptions((prev: Set<string>) => {
       const newSet = new Set(prev);
       if (newSet.has(optionId)) {
         newSet.delete(optionId);
@@ -357,8 +357,8 @@ export default function FareCustomizer({
         try {
           // Calculate new customization
           const selectedOpts = safeUpsellOptions.filter(opt => newSet.has(opt.id));
-          const totalUpgrade = selectedOpts.reduce((sum, opt) => sum + opt.price, 0);
-          const totalSavings = selectedOpts.reduce((sum, opt) => sum + (opt.savings || 0), 0);
+          const totalUpgrade = selectedOpts.reduce((sum: any, opt: any) => sum + opt.price, 0);
+          const totalSavings = selectedOpts.reduce((sum: any, opt: any) => sum + (opt.savings || 0), 0);
           const basePrice = parseFloat(offer.totalPrice.replace(/[^0-9.]/g, '')) || 0;
         
           onCustomizationChange({

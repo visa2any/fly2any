@@ -77,7 +77,7 @@ export default function CampaignsPage() {
     fetchCampaigns();
   }, []);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/campaigns');
@@ -111,7 +111,7 @@ export default function CampaignsPage() {
     totalConversions: campaigns.reduce((sum, c) => sum + c.conversions, 0)
   };
 
-  const handleCreateCampaign = async () => {
+  const handleCreateCampaign = async (): Promise<void> => {
     try {
       const response = await fetch('/api/campaigns', {
         method: 'POST',
@@ -136,7 +136,7 @@ export default function CampaignsPage() {
     }
   };
 
-  const handleEditCampaign = async () => {
+  const handleEditCampaign = async (): Promise<void> => {
     if (selectedCampaign) {
       try {
         const response = await fetch('/api/campaigns', {
@@ -339,7 +339,7 @@ export default function CampaignsPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Nome da campanha ou destino..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
             <div>
@@ -347,7 +347,7 @@ export default function CampaignsPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>{status}</option>
@@ -359,7 +359,7 @@ export default function CampaignsPage() {
               <select 
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedType(e.target.value)}
               >
                 {typeOptions.map(type => (
                   <option key={type} value={type}>{type}</option>
@@ -445,7 +445,7 @@ export default function CampaignsPage() {
                         </button>
                         <select 
                           value={campaign.status}
-                          onChange={(e) => handleUpdateStatus(campaign.id, e.target.value)}
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateStatus(campaign.id, e.target.value)}
                           className="text-xs border rounded px-1 py-1"
                         >
                           <option value="Rascunho">Rascunho</option>
@@ -596,7 +596,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
@@ -605,7 +605,7 @@ export default function CampaignsPage() {
                   <select 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, type: e.target.value})}
                   >
                     {typeOptions.slice(1).map(type => (
                       <option key={type} value={type}>{type}</option>
@@ -618,7 +618,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.destination}
-                    onChange={(e) => setFormData({...formData, destination: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, destination: e.target.value})}
                     required
                   />
                 </div>
@@ -628,7 +628,7 @@ export default function CampaignsPage() {
                     type="number"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.budget}
-                    onChange={(e) => setFormData({...formData, budget: parseInt(e.target.value)})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, budget: parseInt(e.target.value)})}
                     required
                   />
                 </div>
@@ -638,7 +638,7 @@ export default function CampaignsPage() {
                     type="date"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.startDate}
-                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, startDate: e.target.value})}
                     required
                   />
                 </div>
@@ -648,7 +648,7 @@ export default function CampaignsPage() {
                     type="date"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, endDate: e.target.value})}
                     required
                   />
                 </div>
@@ -660,7 +660,7 @@ export default function CampaignsPage() {
                         <input
                           type="checkbox"
                           checked={formData.channels.includes(channel)}
-                          onChange={(e) => handleChannelChange(channel, e.target.checked)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChannelChange(channel, e.target.checked)}
                           className="w-4 h-4"
                         />
                         <span className="text-sm">{channel}</span>
@@ -674,7 +674,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.targetAudience}
-                    onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, targetAudience: e.target.value})}
                     placeholder="Ex: Casais, 25-45 anos, alta renda"
                   />
                 </div>
@@ -683,7 +683,7 @@ export default function CampaignsPage() {
                   <textarea
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
                   />
                 </div>
               </div>
@@ -730,7 +730,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
                     required
                   />
                 </div>
@@ -739,7 +739,7 @@ export default function CampaignsPage() {
                   <select 
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, type: e.target.value})}
                   >
                     {typeOptions.slice(1).map(type => (
                       <option key={type} value={type}>{type}</option>
@@ -752,7 +752,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.destination}
-                    onChange={(e) => setFormData({...formData, destination: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, destination: e.target.value})}
                     required
                   />
                 </div>
@@ -762,7 +762,7 @@ export default function CampaignsPage() {
                     type="number"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.budget}
-                    onChange={(e) => setFormData({...formData, budget: parseInt(e.target.value)})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, budget: parseInt(e.target.value)})}
                     required
                   />
                 </div>
@@ -772,7 +772,7 @@ export default function CampaignsPage() {
                     type="date"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.startDate}
-                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, startDate: e.target.value})}
                     required
                   />
                 </div>
@@ -782,7 +782,7 @@ export default function CampaignsPage() {
                     type="date"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, endDate: e.target.value})}
                     required
                   />
                 </div>
@@ -794,7 +794,7 @@ export default function CampaignsPage() {
                         <input
                           type="checkbox"
                           checked={formData.channels.includes(channel)}
-                          onChange={(e) => handleChannelChange(channel, e.target.checked)}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChannelChange(channel, e.target.checked)}
                           className="w-4 h-4"
                         />
                         <span className="text-sm">{channel}</span>
@@ -808,7 +808,7 @@ export default function CampaignsPage() {
                     type="text"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={formData.targetAudience}
-                    onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, targetAudience: e.target.value})}
                     placeholder="Ex: Casais, 25-45 anos, alta renda"
                   />
                 </div>
@@ -817,7 +817,7 @@ export default function CampaignsPage() {
                   <textarea
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24 resize-none"
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, description: e.target.value})}
                   />
                 </div>
               </div>

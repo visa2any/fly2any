@@ -504,7 +504,7 @@ export default function TravelRewards({
       </AnimatePresence>
 
       {/* Inline Styles */}
-      <style jsx>{`
+      <style jsx={true}>{`
         .travel-rewards-overlay {
           position: fixed;
           top: 0;

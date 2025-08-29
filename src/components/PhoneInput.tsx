@@ -212,7 +212,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                   placeholder="Buscar país..."
                   style={{
                     width: '100%',

@@ -35,7 +35,7 @@ export default function FlightCheapestDates({
     fetchCheapestDates();
   }, [origin, destination]);
 
-  const fetchCheapestDates = async () => {
+  const fetchCheapestDates = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/flights/cheapest-dates`, {
@@ -67,7 +67,7 @@ export default function FlightCheapestDates({
     const prices = dates.map(d => typeof d.price === 'object' ? parseFloat(d.price.total) : d.price);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
-    const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const avgPrice = prices.reduce((a: any, b: any) => a + b, 0) / prices.length;
     const maxSavings = maxPrice - minPrice;
 
     return {
@@ -214,7 +214,7 @@ export default function FlightCheapestDates({
         // 📅 CALENDAR VIEW - Visual Price Comparison
         <div className="dates-calendar">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {dates.map((date, index) => {
+            {dates.map((date: any, index: number) => {
               const formatted = formatDate(date.departureDate || date.date || '');
               const price = typeof date.price === 'object' ? parseFloat(date.price.total) : date.price;
               const isLowest = priceAnalysis && price === priceAnalysis.minPrice;
@@ -319,7 +319,7 @@ export default function FlightCheapestDates({
 
                   {/* 🎯 Price Alert Toggle */}
                   <button
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       togglePriceAlert(date.departureDate || date.date || '');
                     }}
@@ -339,7 +339,7 @@ export default function FlightCheapestDates({
       ) : (
         // 📋 LIST VIEW - Detailed Information
         <div className="dates-list space-y-4">
-          {dates.map((date, index) => {
+          {dates.map((date: any, index: number) => {
             const formatted = formatDate(date.departureDate || date.date || '');
             const price = typeof date.price === 'object' ? parseFloat(date.price.total) : date.price;
             const isLowest = priceAnalysis && price === priceAnalysis.minPrice;
@@ -432,7 +432,7 @@ export default function FlightCheapestDates({
                     {/* 🎯 Action Buttons */}
                     <div className="flex gap-2">
                       <button
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           togglePriceAlert(date.departureDate || date.date || '');
                         }}

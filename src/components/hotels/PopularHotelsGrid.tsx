@@ -41,7 +41,7 @@ export default function PopularHotelsGrid({ onHotelSelect }: PopularHotelsGridPr
     setTimeout(() => setIsVisible(true), 200);
   }, []);
 
-  const loadPopularHotels = async () => {
+  const loadPopularHotels = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);

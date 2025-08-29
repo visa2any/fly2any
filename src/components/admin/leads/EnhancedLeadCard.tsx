@@ -214,7 +214,7 @@ export function EnhancedLeadCard({
           <input
             type="checkbox"
             checked={isSelected}
-            onChange={(e) => onSelect(lead.id, e.target.checked)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSelect(lead.id, e.target.checked)}
             className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 focus:ring-2"
             aria-describedby={`lead-${lead.id}-checkbox-desc`}
           />

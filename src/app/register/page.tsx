@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, ChangeEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, getSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -26,7 +26,7 @@ function RegisterContent() {
 
   // Check if user is already authenticated
   useEffect(() => {
-    const checkSession = async () => {
+    const checkSession = async (): Promise<void> => {
       const session = await getSession();
       if (session) {
         router.push(callbackUrl);
@@ -35,8 +35,8 @@ function RegisterContent() {
     checkSession();
   }, [router, callbackUrl]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev: any) => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
