@@ -1,5 +1,5 @@
+'use client';
 import React from 'react';
-'use client'
 
 import SocialProof from '@/components/ui/social-proof'
 import TrustBadges from '@/components/ui/trust-badges'
