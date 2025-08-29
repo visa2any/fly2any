@@ -39,14 +39,14 @@ const nextConfig: NextConfig = {
   webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
     const path = require('path');
     
-    // React consistency aliases
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      "react": path.resolve(__dirname, "node_modules/react"),
-      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
-      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
-      "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime")
-    };
+    // React consistency aliases - temporarily disabled for build fix
+    // config.resolve.alias = {
+    //   ...config.resolve.alias,
+    //   "react": path.resolve(__dirname, "node_modules/react"),
+    //   "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+    //   "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+    //   "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime")
+    // };
 
     // Node.js polyfills for client-side builds
     config.resolve.fallback = {
