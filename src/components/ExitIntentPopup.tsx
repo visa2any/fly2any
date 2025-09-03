@@ -23,6 +23,8 @@ interface ExitIntentPopupProps {
 }
 
 export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitIntentPopupProps) {
+  // ULTRATHINK MOBILE OPTIMIZATION: Progressive enhancement for mobile UX
+  const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -35,20 +37,33 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const [hasInteracted, setHasInteracted] = useState(false);
 
+  // ULTRATHINK: Mobile detection for progressive enhancement  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
+  }, []);
+
   // Check if popup was already shown/closed in this session
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const sessionData = sessionStorage.getItem('exitIntentPopup');
       if (sessionData) {
         const { closed, filled, timestamp } = JSON.parse(sessionData);
-        // Don't show if closed or filled in the last 24 hours
+        // ULTRATHINK: Longer suppression on mobile (48h vs 24h desktop)
+        const suppressionHours = isMobile ? 48 : 24;
         const hoursSinceAction = (Date.now() - timestamp) / (1000 * 60 * 60);
-        if ((closed || filled) && hoursSinceAction < 24) {
+        if ((closed || filled) && hoursSinceAction < suppressionHours) {
           return; // Don't set up any listeners
         }
       }
     }
-  }, []);
+  }, [isMobile]);
 
   // Track user interaction
   useEffect(() => {
@@ -78,8 +93,9 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       const sessionData = sessionStorage.getItem('exitIntentPopup');
       if (sessionData) {
         const { closed, filled, timestamp } = JSON.parse(sessionData);
+        const suppressionHours = isMobile ? 48 : 24;
         const hoursSinceAction = (Date.now() - timestamp) / (1000 * 60 * 60);
-        if ((closed || filled) && hoursSinceAction < 24) {
+        if ((closed || filled) && hoursSinceAction < suppressionHours) {
           return; // Don't show popup
         }
       }
@@ -88,8 +104,12 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     let hasTriggered = false;
     let delayTimeout: NodeJS.Timeout;
 
-    // Only set delay timer if user has interacted with the page
-    if (hasInteracted) {
+    // ULTRATHINK: Progressive enhancement - much longer delay on mobile
+    const effectiveDelay = isMobile ? Math.max(300, delay * 10) : delay; // 5min minimum on mobile
+
+    // Only set delay timer if user has interacted significantly with the page
+    const requiredInteractions = isMobile ? 5 : 2; // More interaction required on mobile
+    if (hasInteracted && (!isMobile || window.scrollY > 500)) { // Require scroll on mobile
       delayTimeout = setTimeout(() => {
         if (!hasTriggered && !isVisible) {
           const sessionData = sessionStorage.getItem('exitIntentPopup');
@@ -98,14 +118,17 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             hasTriggered = true;
           }
         }
-      }, delay * 1000);
+      }, effectiveDelay * 1000);
     }
 
-    // Exit intent detection - only on desktop and after interaction
+    // ULTRATHINK: Exit intent detection - DESKTOP ONLY and much more conservative
     const handleMouseLeave = (e: MouseEvent) => {
-      // Only trigger on real exit intent (mouse leaving from top)
-      if (e.clientY <= 10 && hasInteracted && !hasTriggered && !isVisible) {
-        // Check if forms have data
+      // DISABLED ON MOBILE - only desktop exit intent
+      if (isMobile) return;
+      
+      // Only trigger on clear exit intent (mouse leaving from very top) with significant interaction
+      if (e.clientY <= 5 && hasInteracted && !hasTriggered && !isVisible && window.scrollY > 1000) {
+        // Check if forms have data or user is actively engaged
         const inputs = document.querySelectorAll('input, textarea, select');
         let hasFormData = false;
         inputs.forEach((input: any) => {
@@ -114,8 +137,9 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
           }
         });
 
-        // Don't show if user has filled forms
-        if (hasFormData) {
+        // Don't show if user has filled forms or spent less than 2 minutes
+        const timeOnSite = Date.now() - (window as any).pageLoadTime || 0;
+        if (hasFormData || timeOnSite < 120000) { // 2 minutes minimum
           sessionStorage.setItem('exitIntentPopup', JSON.stringify({
             filled: true,
             timestamp: Date.now()
@@ -132,9 +156,13 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       }
     };
 
-    // Back button detection
+    // ULTRATHINK: Back button detection - more conservative, especially on mobile
     const handlePopState = () => {
-      if (hasInteracted && !hasTriggered && !isVisible) {
+      // Require more engagement before triggering on mobile
+      const minimumTimeOnSite = isMobile ? 300000 : 120000; // 5min mobile, 2min desktop
+      const timeOnSite = Date.now() - (window as any).pageLoadTime || 0;
+      
+      if (hasInteracted && !hasTriggered && !isVisible && timeOnSite > minimumTimeOnSite) {
         const sessionData = sessionStorage.getItem('exitIntentPopup');
         if (!sessionData || !JSON.parse(sessionData).closed) {
           setIsVisible(true);
@@ -143,10 +171,11 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       }
     };
 
-    // Only add mouseleave listener on desktop
-    if (window.innerWidth > 768) {
+    // ULTRATHINK: Only add mouseleave listener on DESKTOP - disabled on mobile
+    if (!isMobile && window.innerWidth > 768) {
       document.addEventListener('mouseleave', handleMouseLeave);
     }
+    // Back button detection for both desktop and mobile (but with different thresholds)
     window.addEventListener('popstate', handlePopState);
 
     return () => {
@@ -154,7 +183,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
       document.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [enabled, delay, hasInteracted, isVisible]);
+  }, [enabled, delay, hasInteracted, isVisible, isMobile]); // ULTRATHINK: Include isMobile in deps
 
   // Funções de validação
   const validateEmail = (email: string): string | null => {
@@ -344,42 +373,118 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
     );
   }
 
+  // ULTRATHINK: Mobile-optimized modal styling
+  const modalStyles = isMobile ? {
+    // MOBILE: Bottom sheet style - less intrusive
+    position: 'fixed' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 'auto',
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    zIndex: 9999,
+    padding: '0'
+  } : {
+    // DESKTOP: Center modal
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    padding: '16px'
+  };
+
+  const containerStyles = isMobile ? {
+    // MOBILE: Compact bottom sheet
+    background: '#ffffff',
+    borderRadius: '20px 20px 0 0',
+    maxWidth: '100%',
+    width: '100%',
+    maxHeight: '70vh',
+    position: 'relative' as const,
+    overflow: 'auto',
+    boxShadow: '0 -10px 25px rgba(0, 0, 0, 0.15)',
+    animation: 'slideUp 0.3s ease-out'
+  } : {
+    // DESKTOP: Center modal
+    background: '#ffffff',
+    borderRadius: '16px',
+    maxWidth: '360px',
+    width: '100%',
+    position: 'relative' as const,
+    overflow: 'hidden',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+  };
+
+  const headerStyles = isMobile ? {
+    // MOBILE: Compact header with handle
+    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    color: 'white',
+    padding: '16px 20px 12px 20px',
+    textAlign: 'center' as const,
+    position: 'relative' as const,
+    borderRadius: '20px 20px 0 0'
+  } : {
+    // DESKTOP: Full header
+    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    color: 'white',
+    padding: '20px',
+    textAlign: 'center' as const,
+    position: 'relative' as const
+  };
+
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.5)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 9999,
-      padding: '16px'
-    }}>
-      <div style={{
-        background: '#ffffff',
-        borderRadius: '16px',
-        maxWidth: '360px',
-        width: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-      }}>
+    <React.Fragment>
+      {/* ULTRATHINK: Mobile animation styles */}
+      {isMobile && (
+        <style jsx>{`
+          @keyframes slideUp {
+            from {
+              transform: translateY(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+        `}</style>
+      )}
+      
+      <div style={modalStyles}>
+        <div style={containerStyles}>
+        {/* MOBILE: Handle indicator */}
+        {isMobile && (
+          <div style={{
+            width: '40px',
+            height: '4px',
+            background: '#d1d5db',
+            borderRadius: '2px',
+            margin: '8px auto 0 auto'
+          }} />
+        )}
+        
         {/* Header with urgency */}
-        <div style={{
-          background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-          color: 'white',
-          padding: '20px',
-          textAlign: 'center',
-          position: 'relative'
-        }}>
-          <div style={{ fontSize: '20px', marginBottom: '4px' }}>🌟 Espere!</div>
+        <div style={headerStyles}>
+          <div style={{ 
+            fontSize: isMobile ? '16px' : '20px', 
+            marginBottom: '4px' 
+          }}>
+            🌟 {isMobile ? 'Ofertas Exclusivas' : 'Espere!'}
+          </div>
           <div style={{
             fontWeight: '600',
-            fontSize: '16px',
+            fontSize: isMobile ? '14px' : '16px',
             fontFamily: 'Poppins, sans-serif'
           }}>
-            Receba ofertas exclusivas de viagem
+            {isMobile ? 'Não perca nossas promoções' : 'Receba ofertas exclusivas de viagem'}
           </div>
         </div>
 
@@ -387,13 +492,13 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
           onClick={handleClose}
           style={{
             position: 'absolute',
-            top: '12px',
-            right: '12px',
+            top: isMobile ? '8px' : '12px',
+            right: isMobile ? '8px' : '12px',
             color: 'white',
             background: 'rgba(255, 255, 255, 0.2)',
             borderRadius: '50%',
-            width: '32px',
-            height: '32px',
+            width: isMobile ? '28px' : '32px',
+            height: isMobile ? '28px' : '32px',
             border: 'none',
             cursor: 'pointer',
             display: 'flex',
@@ -409,28 +514,40 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
           }}
         >
-          <XIcon style={{ width: '18px', height: '18px' }} />
+          <XIcon style={{ 
+            width: isMobile ? '16px' : '18px', 
+            height: isMobile ? '16px' : '18px' 
+          }} />
         </button>
         
-        <div style={{ padding: '24px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✈️</div>
+        <div style={{ padding: isMobile ? '16px 20px 20px 20px' : '24px' }}>
+          <div style={{ 
+            textAlign: 'center', 
+            marginBottom: isMobile ? '16px' : '24px' 
+          }}>
+            <div style={{ 
+              fontSize: isMobile ? '32px' : '48px', 
+              marginBottom: isMobile ? '8px' : '12px' 
+            }}>✈️</div>
             <h2 style={{
-              fontSize: '22px',
+              fontSize: isMobile ? '18px' : '22px',
               fontWeight: '700',
               fontFamily: 'Poppins, sans-serif',
               color: '#111827',
-              marginBottom: '8px'
+              marginBottom: isMobile ? '6px' : '8px'
             }}>
-              Não perca nossas ofertas!
+              {isMobile ? 'Ofertas imperdíveis!' : 'Não perca nossas ofertas!'}
             </h2>
             <p style={{
-              fontSize: '16px',
+              fontSize: isMobile ? '14px' : '16px',
               color: '#6b7280',
-              marginBottom: '20px',
+              marginBottom: isMobile ? '16px' : '20px',
               lineHeight: '1.5'
             }}>
-              Receba as melhores promoções de passagens e hotéis direto no seu email
+              {isMobile ? 
+                'Promoções direto no seu email' : 
+                'Receba as melhores promoções de passagens e hotéis direto no seu email'
+              }
             </p>
           </div>
 
@@ -452,7 +569,11 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: isMobile ? '12px' : '16px' 
+          }}>
             <div style={{ position: 'relative' }}>
               <div style={{
                 position: 'absolute',
@@ -474,11 +595,11 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                 placeholder="Seu nome completo"
                 style={{
                   width: '100%',
-                  padding: '14px 14px 14px 40px',
-                  borderRadius: '10px',
+                  padding: isMobile ? '12px 12px 12px 36px' : '14px 14px 14px 40px',
+                  borderRadius: isMobile ? '8px' : '10px',
                   border: `1px solid ${validationErrors.nome ? '#ef4444' : '#d1d5db'}`,
                   background: '#ffffff',
-                  fontSize: '15px',
+                  fontSize: isMobile ? '16px' : '15px', // 16px prevents zoom on iOS
                   color: '#111827',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
@@ -527,11 +648,11 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                 placeholder="seu@email.com"
                 style={{
                   width: '100%',
-                  padding: '14px 14px 14px 40px',
-                  borderRadius: '10px',
+                  padding: isMobile ? '12px 12px 12px 36px' : '14px 14px 14px 40px',
+                  borderRadius: isMobile ? '8px' : '10px',
                   border: `1px solid ${validationErrors.email ? '#ef4444' : '#d1d5db'}`,
                   background: '#ffffff',
-                  fontSize: '15px',
+                  fontSize: isMobile ? '16px' : '15px',
                   color: '#111827',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
@@ -577,14 +698,14 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                     setSelectedCountry(country);
                   }}
                   style={{
-                    padding: '14px 6px',
-                    borderRadius: '10px',
+                    padding: isMobile ? '12px 4px' : '14px 6px',
+                    borderRadius: isMobile ? '8px' : '10px',
                     border: '1px solid #d1d5db',
                     background: '#ffffff',
-                    fontSize: '13px',
+                    fontSize: isMobile ? '14px' : '13px',
                     color: '#111827',
                     outline: 'none',
-                    minWidth: '75px',
+                    minWidth: isMobile ? '70px' : '75px',
                     cursor: 'pointer'
                   }}
                 >
@@ -606,11 +727,11 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                   placeholder={selectedCountry.code === '+55' ? '11 99999-9999' : selectedCountry.code === '+1' ? '555-123-4567' : '123456789'}
                   style={{
                     flex: 1,
-                    padding: '14px 14px 14px 40px',
-                    borderRadius: '10px',
+                    padding: isMobile ? '12px 12px 12px 36px' : '14px 14px 14px 40px',
+                    borderRadius: isMobile ? '8px' : '10px',
                     border: `1px solid ${validationErrors.whatsapp ? '#ef4444' : '#d1d5db'}`,
                     background: '#ffffff',
-                    fontSize: '15px',
+                    fontSize: isMobile ? '16px' : '15px',
                     color: '#111827',
                     outline: 'none',
                     transition: 'border-color 0.2s ease'
@@ -643,13 +764,14 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
                 background: isSubmitting || !nome.trim() || !email.trim() ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
                 color: 'white',
                 fontWeight: '600',
-                padding: '16px',
-                borderRadius: '10px',
+                padding: isMobile ? '14px' : '16px',
+                borderRadius: isMobile ? '8px' : '10px',
                 border: 'none',
                 cursor: isSubmitting || !nome.trim() || !email.trim() ? 'not-allowed' : 'pointer',
-                fontSize: '16px',
+                fontSize: isMobile ? '16px' : '16px',
                 transition: 'transform 0.2s ease',
-                fontFamily: 'Poppins, sans-serif'
+                fontFamily: 'Poppins, sans-serif',
+                minHeight: isMobile ? '48px' : 'auto' // Touch-friendly height
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting && nome.trim() && email.trim()) {
@@ -683,31 +805,47 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <div style={{ 
+            marginTop: isMobile ? '16px' : '20px', 
+            textAlign: 'center' 
+          }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '16px',
-              fontSize: '13px',
+              gap: isMobile ? '12px' : '16px',
+              fontSize: isMobile ? '12px' : '13px',
               color: '#6b7280',
-              marginBottom: '12px'
+              marginBottom: isMobile ? '8px' : '12px',
+              flexWrap: isMobile ? 'wrap' : 'nowrap'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <CheckIcon style={{ 
+                  width: isMobile ? '12px' : '14px', 
+                  height: isMobile ? '12px' : '14px', 
+                  color: '#10b981' 
+                }} />
                 <span>Sem spam</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <CheckIcon style={{ 
+                  width: isMobile ? '12px' : '14px', 
+                  height: isMobile ? '12px' : '14px', 
+                  color: '#10b981' 
+                }} />
                 <span>Cancele fácil</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckIcon style={{ width: '14px', height: '14px', color: '#10b981' }} />
+                <CheckIcon style={{ 
+                  width: isMobile ? '12px' : '14px', 
+                  height: isMobile ? '12px' : '14px', 
+                  color: '#10b981' 
+                }} />
                 <span>100% seguro</span>
               </div>
             </div>
             <p style={{
-              fontSize: '11px',
+              fontSize: isMobile ? '10px' : '11px',
               color: '#9ca3af',
               lineHeight: '1.4'
             }}>
@@ -716,6 +854,7 @@ export default function ExitIntentPopup({ enabled = true, delay = 30 }: ExitInte
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </React.Fragment>
   );
 }

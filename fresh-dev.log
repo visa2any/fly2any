@@ -1,0 +1,25 @@
+
+> fly2any@0.1.0 dev
+> node node_modules/next/dist/bin/next dev
+
+   ▲ Next.js 15.4.7
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+   Using tsconfig file: ./tsconfig.json
+ ✓ Ready in 96.1s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 6.4s (246 modules)
+🔒 [MIDDLEWARE] Route check: {
+  path: '/',
+  isLoggedIn: false,
+  userRole: undefined,
+  timestamp: '2025-08-30T00:29:09.799Z'
+}
+ ○ Compiling / ...
+ ✓ Compiled / in 175.4s (1628 modules)
+🚀 LeadCaptureSimple rendering! { isOpen: false, context: 'mobile-app' }
+❌ LeadCaptureSimple not open, returning null
+ ✓ Compiled in 27.3s (732 modules)

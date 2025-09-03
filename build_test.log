@@ -1,0 +1,37 @@
+
+> fly2any@0.1.0 build
+> node scripts/enterprise-react-deduplication.js && prisma generate && next build
+
+🚀 ENTERPRISE REACT DEDUPLICATION - Starting...
+🎯 Running Enterprise React Deduplication...
+🧹 Cleaning Next.js build cache...
+✅ Cleaned: /mnt/d/Users/vilma/fly2any/.next
+🔍 Verifying React version consistency...
+✅ React version: 18.3.1
+✅ React-DOM version: 18.3.1
+✅ React version consistency verified
+🔥 Removing Next.js compiled React conflicts...
+📝 Creating React runtime validation...
+✅ React runtime validation script created
+📦 Updating package.json scripts...
+✅ Package.json scripts updated
+🎉 ENTERPRISE REACT DEDUPLICATION COMPLETE!
+✅ Single React 18.3.1 instance enforced
+✅ Next.js compiled React conflicts resolved
+✅ Hook validation errors should be resolved
+✅ Context nullification issues fixed
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.14.0) to ./node_modules/@prisma/client in 2.38s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/tip-3-accelerate
+
+  ▲ Next.js 14.2.18
+  - Environments: .env.production.local, .env.local, .env
+  - Experiments (use with caution):
+    · esmExternals
+
+   Creating an optimized production build ...

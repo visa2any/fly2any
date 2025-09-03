@@ -35,9 +35,25 @@ const nextConfig: NextConfig = {
     dirs: ['src'],
   },
   
-  // Enterprise-grade webpack configuration
+  // Enterprise-grade webpack configuration with enhanced stability
   webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
     const path = require('path');
+    
+    // Enhanced error handling and build stability
+    config.stats = {
+      errorDetails: true,
+      errors: true,
+      warnings: false,
+    };
+    
+    // Prevent build cache corruption
+    config.cache = {
+      type: 'filesystem',
+      allowCollectingMemory: true,
+      buildDependencies: {
+        config: [__filename],
+      },
+    };
     
     // React consistency aliases - temporarily disabled for build fix
     // config.resolve.alias = {
@@ -237,8 +253,42 @@ const nextConfig: NextConfig = {
     '@radix-ui/react-tooltip'
   ],
 
-  // Experimental features (disabled for stability)
-  experimental: {},
+  // Server external packages (Next.js 15+ format)
+  serverExternalPackages: ['@prisma/client'],
+  
+  // Experimental features optimized for build stability
+  experimental: {
+    // Optimize bundle loading
+    optimizePackageImports: ['@headlessui/react', '@heroicons/react'],
+  },
+  
+  // Enhanced build output configuration
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  
+  // Build stability enhancements
+  onDemandEntries: {
+    // Period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 5,
+  },
+  
+  // Performance monitoring and optimization
+  logging: {
+    fetches: {
+      fullUrl: process.env.NODE_ENV === 'development',
+    },
+  },
+  
+  // Enhanced build performance
+  modularizeImports: {
+    '@heroicons/react/24/outline': {
+      transform: '@heroicons/react/24/outline/{{member}}',
+    },
+    '@heroicons/react/24/solid': {
+      transform: '@heroicons/react/24/solid/{{member}}',
+    },
+  },
 };
 
 export default nextConfig;

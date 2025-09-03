@@ -12,7 +12,7 @@ export default function MobileSimpleFooter() {
         {/* Company Logo */}
         <div className="mb-4">
           <Image
-            src="/fly2any-logo.png"
+            src="/fly2any-logo.svg"
             alt="Fly2Any"
             width={100}
             height={32}

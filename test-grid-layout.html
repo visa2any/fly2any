@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Grid Layout Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+        }
+
+        /* Grid Layout CSS from FlightGrid Component */
+        .flight-grid-container {
+            padding: 48px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-header {
+            max-width: 1400px;
+            margin: 0 auto 32px;
+            padding: 0 24px;
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .grid-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .grid-subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .highlight {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        /* Main Grid Layout - This is the critical part */
+        .flight-grid-container .routes-grid,
+        div.routes-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 24px !important;
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            padding: 0 24px !important;
+            width: 100% !important;
+            grid-auto-rows: auto !important;
+            box-sizing: border-box !important;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            width: 100% !important;
+            min-width: 0 !important;
+            display: block !important;
+            flex: none !important;
+            height: 450px;
+        }
+
+        .route-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .route-image {
+            height: 120px;
+            position: relative;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .route-content {
+            padding: 20px;
+        }
+
+        .route-path {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .city-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .city-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .airport-code {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .flight-arrow {
+            flex: 1;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .price-section {
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .price-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .book-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Media Queries */
+        @media (max-width: 1024px) {
+            .flight-grid-container .routes-grid,
+            div.routes-grid,
+            .routes-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .flight-grid-container .routes-grid,
+            div.routes-grid,
+            .routes-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .grid-title {
+                font-size: 28px;
+            }
+
+            .grid-subtitle {
+                font-size: 16px;
+            }
+        }
+
+        /* Test indicators */
+        .test-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-indicator" id="screenIndicator">
+        Screen: <span id="screenSize">Desktop</span> | 
+        Width: <span id="screenWidth">0</span>px
+    </div>
+
+    <div class="flight-grid-container">
+        <!-- Header Section -->
+        <div class="grid-header">
+            <div class="header-content">
+                <h2 class="grid-title">
+                    <span>✈️</span>
+                    Popular Flight Deals
+                </h2>
+                <p class="grid-subtitle">
+                    Real-time prices from 500+ airlines • Updated every second • 
+                    <span class="highlight">Save up to 60% vs competitors</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Routes Grid - This is what we're testing -->
+        <div class="routes-grid">
+            <!-- Flight Card 1 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">New York</span>
+                            <span class="airport-code">JFK</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Los Angeles</span>
+                            <span class="airport-code">LAX</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$187</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+
+            <!-- Flight Card 2 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Chicago</span>
+                            <span class="airport-code">ORD</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Miami</span>
+                            <span class="airport-code">MIA</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$156</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+
+            <!-- Flight Card 3 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">San Francisco</span>
+                            <span class="airport-code">SFO</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Seattle</span>
+                            <span class="airport-code">SEA</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$98</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+
+            <!-- Flight Card 4 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Atlanta</span>
+                            <span class="airport-code">ATL</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Boston</span>
+                            <span class="airport-code">BOS</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$178</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+
+            <!-- Flight Card 5 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Las Vegas</span>
+                            <span class="airport-code">LAS</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Phoenix</span>
+                            <span class="airport-code">PHX</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$79</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+
+            <!-- Flight Card 6 -->
+            <div class="route-card">
+                <div class="route-image">🏙️</div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Dallas</span>
+                            <span class="airport-code">DFW</span>
+                        </div>
+                        <div class="flight-arrow">✈️</div>
+                        <div class="city-info">
+                            <span class="city-name">Denver</span>
+                            <span class="airport-code">DEN</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$142</span>
+                    </div>
+                    <button class="book-btn">View Deal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateScreenInfo() {
+            const width = window.innerWidth;
+            const screenSizeElement = document.getElementById('screenSize');
+            const screenWidthElement = document.getElementById('screenWidth');
+            
+            screenWidthElement.textContent = width;
+            
+            if (width <= 768) {
+                screenSizeElement.textContent = 'Mobile (1 column)';
+                screenSizeElement.style.color = '#ef4444';
+            } else if (width <= 1024) {
+                screenSizeElement.textContent = 'Tablet (2 columns)';
+                screenSizeElement.style.color = '#f59e0b';
+            } else {
+                screenSizeElement.textContent = 'Desktop (3 columns)';
+                screenSizeElement.style.color = '#10b981';
+            }
+        }
+
+        window.addEventListener('resize', updateScreenInfo);
+        updateScreenInfo(); // Initial call
+    </script>
+</body>
+</html>

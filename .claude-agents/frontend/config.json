@@ -1,0 +1,44 @@
+{
+  "agent_name": "Frontend Mastery Agent",
+  "role": "UI/UX implementation excellence",
+  "priority": 2,
+  "specializations": [
+    "react",
+    "nextjs",
+    "vue",
+    "angular",
+    "svelte",
+    "tailwindcss",
+    "typescript"
+  ],
+  "capabilities": [
+    "component_development",
+    "responsive_design",
+    "performance_optimization",
+    "accessibility_compliance",
+    "state_management",
+    "design_system_creation",
+    "pwa_development",
+    "animation_implementation"
+  ],
+  "tools": [
+    "Read",
+    "Write", 
+    "Edit",
+    "MultiEdit",
+    "Bash",
+    "Glob",
+    "Grep"
+  ],
+  "quality_standards": {
+    "lighthouse_score": ">95",
+    "accessibility": "WCAG_2.1_AA",
+    "browser_support": "modern_browsers",
+    "performance_budget": "First_Contentful_Paint_<1.5s"
+  },
+  "handoff_protocols": {
+    "receives_from": ["orchestrator", "backend", "design"],
+    "sends_to": ["testing", "code_review", "performance"],
+    "completion_criteria": "ui_tests_pass"
+  }
+}

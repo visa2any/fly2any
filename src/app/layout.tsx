@@ -4,6 +4,11 @@ import { Inter, Poppins } from "next/font/google";
 
 import Image from "next/image";
 import { Providers } from "@/components/providers";
+// ULTRATHINK ENTERPRISE: Advanced hydration safety components
+import HydrationErrorBoundary from "@/components/enterprise/HydrationErrorBoundary";
+import HydrationValidator from "@/components/enterprise/HydrationValidator";
+import GlobalMobileStyles from "@/components/GlobalMobileStyles";
+import "@/lib/enterprise/HydrationMonitor"; // Auto-initialize monitoring
 import "./globals.css";
 
 const inter = Inter({
@@ -449,8 +454,21 @@ export default function RootLayout({
         />
       </head>
       <body className="font-inter antialiased">
+        <GlobalMobileStyles />
         <Providers>
-          {children}
+          <HydrationErrorBoundary
+            maxRetries={3}
+            retryDelay={2000}
+            enableLogging={true}
+          >
+            <HydrationValidator
+              mode="graceful"
+              enablePerfMonitoring={true}
+              enableDevDebugging={process.env.NODE_ENV === 'development'}
+            >
+              {children}
+            </HydrationValidator>
+          </HydrationErrorBoundary>
         </Providers>
       </body>
     </html>

@@ -1,0 +1,123 @@
+{
+  "name": "fly2any",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "node scripts/enterprise-react-deduplication.js && next dev",
+    "dev-original": "node scripts/enterprise-react-deduplication.js && next dev",
+    "build": "node scripts/enterprise-react-deduplication.js && prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "clean": "node next-build-cleanup.js",
+    "fix-runtime": "node scripts/react-runtime-fix.js",
+    "postinstall": "prisma generate && node scripts/enterprise-react-deduplication.js",
+    "validate-react": "node scripts/react-runtime-validation.js"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.7",
+    "@heroicons/react": "^2.2.0",
+    "@prisma/client": "^6.14.0",
+    "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.3.3",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@sendgrid/mail": "^8.1.4",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^20.19.11",
+    "@types/nodemailer": "^7.0.1",
+    "@types/qrcode": "^1.5.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.5",
+    "@vercel/postgres": "^0.10.0",
+    "@whiskeysockets/baileys": "^6.7.2",
+    "autoprefixer": "10.4.17",
+    "aws-sdk": "^2.1691.0",
+    "bcryptjs": "^3.0.2",
+    "chart.js": "^4.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
+    "framer-motion": "^12.23.12",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.541.0",
+    "mailersend": "^2.6.0",
+    "mailgun.js": "^10.2.3",
+    "next": "14.2.18",
+    "next-auth": "4.24.10",
+    "nodemailer": "^7.0.5",
+    "pino": "^9.2.0",
+    "playwright": "^1.55.0",
+    "postcss": "8.4.35",
+    "qrcode": "^1.5.3",
+    "qrcode-terminal": "^0.12.0",
+    "react": "18.3.1",
+    "react-chartjs-2": "^5.3.0",
+    "react-day-picker": "^9.9.0",
+    "react-dom": "18.3.1",
+    "resend": "^6.0.1",
+    "stripe": "^18.4.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "3.4.1",
+    "tailwindcss-animate": "^1.0.7",
+    "twilio": "^5.3.5",
+    "typescript": "^5.9.2",
+    "web-push": "^3.6.7",
+    "web-vitals": "^5.1.0",
+    "zod": "^4.0.17",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/qrcode-terminal": "^0.12.2",
+    "@types/web-push": "^3.6.3",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.18",
+    "prisma": "^6.14.0"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "next-auth": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    },
+    "next": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    },
+    "@headlessui/react": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    },
+    "@radix-ui/*": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    }
+  },
+  "resolutions": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "**/react": "18.3.1",
+    "**/react-dom": "18.3.1",
+    "next-auth/react": "18.3.1",
+    "next/dist/compiled/react": "18.3.1",
+    "next/dist/compiled/react-dom": "18.3.1"
+  }
+}

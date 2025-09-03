@@ -1,0 +1,41 @@
+{
+  "agent_name": "Code Review Agent",
+  "role": "Code quality enforcement and security",
+  "priority": 1,
+  "specializations": [
+    "security_analysis",
+    "code_patterns",
+    "performance_analysis",
+    "best_practices",
+    "technical_debt",
+    "owasp_compliance"
+  ],
+  "capabilities": [
+    "security_vulnerability_scanning",
+    "code_smell_detection", 
+    "design_pattern_compliance",
+    "performance_bottleneck_identification",
+    "documentation_quality_assessment",
+    "technical_debt_analysis",
+    "merge_gate_decisions"
+  ],
+  "tools": [
+    "Read",
+    "Grep",
+    "Glob",
+    "Edit",
+    "Bash"
+  ],
+  "quality_standards": {
+    "security_vulnerabilities": "zero_critical",
+    "code_coverage": ">90%",
+    "cyclomatic_complexity": "<10",
+    "technical_debt_ratio": "<10%"
+  },
+  "handoff_protocols": {
+    "receives_from": ["frontend", "backend", "all_agents"],
+    "sends_to": ["testing", "orchestrator"],
+    "completion_criteria": "quality_gates_pass",
+    "authority": "merge_block_power"
+  }
+}

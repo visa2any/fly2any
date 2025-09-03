@@ -18,29 +18,45 @@ interface MobileHotelFormProps {
   className?: string;
 }
 
-type StepType = 'destination' | 'dates' | 'guests' | 'preferences';
+type StepType = 'destination' | 'dates' | 'guests' | 'preferences' | 'budget';
 
 export default function MobileHotelForm({ onSearch, className = '' }: MobileHotelFormProps) {
   const [currentStep, setCurrentStep] = useState<StepType>('destination');
   const [formData, setFormData] = useState({
+    // Core hotel data
     destination: '',
     checkIn: '',
     checkOut: '',
-    guests: 2,
     rooms: 1,
+    guests: {
+      adults: 2,
+      children: 0,
+      infants: 0
+    },
+    
+    // Hotel preferences
     starRating: 'any',
-    preferences: [] as string[]
+    hotelCategory: 'qualquer',
+    amenities: [] as string[],
+    preferences: [] as string[],
+    locationPreference: 'qualquer',
+    
+    // Budget and options
+    budgetRange: '',
+    flexibleDates: false,
+    specialRequests: ''
   });
 
   const steps = [
     { id: 'destination', title: 'Destino', icon: MapPinIcon },
     { id: 'dates', title: 'Datas', icon: CalendarIcon },
-    { id: 'guests', title: 'Hóspedes', icon: UserGroupIcon },
-    { id: 'preferences', title: 'Preferências', icon: StarIcon }
+    { id: 'guests', title: 'Quartos & Hóspedes', icon: UserGroupIcon },
+    { id: 'preferences', title: 'Preferências', icon: StarIcon },
+    { id: 'budget', title: 'Orçamento', icon: BuildingOffice2Icon }
   ];
 
   const handleNext = () => {
-    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences'];
+    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences', 'budget'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -51,7 +67,7 @@ export default function MobileHotelForm({ onSearch, className = '' }: MobileHote
   };
 
   const handleBack = () => {
-    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences'];
+    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences', 'budget'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -66,7 +82,7 @@ export default function MobileHotelForm({ onSearch, className = '' }: MobileHote
   };
 
   const getCurrentStepIndex = () => {
-    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences'];
+    const stepOrder: StepType[] = ['destination', 'dates', 'guests', 'preferences', 'budget'];
     return stepOrder.indexOf(currentStep) + 1;
   };
 
@@ -229,14 +245,28 @@ export default function MobileHotelForm({ onSearch, className = '' }: MobileHote
                       <span className="font-medium text-gray-800">Hóspedes</span>
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => setFormData({ ...formData, guests: Math.max(1, formData.guests - 1) })}
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            guests: { 
+                              ...formData.guests, 
+                              adults: Math.max(1, formData.guests.adults - 1) 
+                            } 
+                          })}
                           className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
                         >
                           -
                         </button>
-                        <span className="text-xl font-semibold w-8 text-center">{formData.guests}</span>
+                        <span className="text-xl font-semibold w-8 text-center">
+                          {formData.guests.adults + formData.guests.children + formData.guests.infants}
+                        </span>
                         <button
-                          onClick={() => setFormData({ ...formData, guests: formData.guests + 1 })}
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            guests: { 
+                              ...formData.guests, 
+                              adults: formData.guests.adults + 1 
+                            } 
+                          })}
                           className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
                         >
                           +

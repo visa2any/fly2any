@@ -17,31 +17,48 @@ interface MobileCarFormProps {
   className?: string;
 }
 
-type StepType = 'location' | 'dates' | 'preferences';
+type StepType = 'location' | 'dates' | 'vehicle' | 'driver' | 'preferences';
 
 export default function MobileCarForm({ onSearch, className = '' }: MobileCarFormProps) {
   const [currentStep, setCurrentStep] = useState<StepType>('location');
   const [formData, setFormData] = useState({
+    // Location details
     pickupLocation: '',
     dropoffLocation: '',
+    
+    // Date and time details
     pickupDate: '',
     pickupTime: '10:00',
     dropoffDate: '',
     dropoffTime: '10:00',
-    carType: 'any',
+    
+    // Vehicle preferences
+    vehicleCategory: 'economico',
+    carType: 'economy',
     transmission: 'any',
-    features: [] as string[]
+    fuelType: 'any',
+    
+    // Driver and insurance
+    driverAge: '25-35',
+    additionalDrivers: 0,
+    insurance: 'basico',
+    
+    // Additional options
+    features: [] as string[],
+    budgetRange: '',
+    specialRequests: ''
   });
   const [sameLocation, setSameLocation] = useState(true);
 
   const steps = [
-    { id: 'location', title: 'Local', icon: MapPinIcon },
-    { id: 'dates', title: 'Datas', icon: CalendarIcon },
-    { id: 'preferences', title: 'Preferências', icon: TruckIcon }
+    { id: 'location', title: 'Locais', icon: MapPinIcon },
+    { id: 'dates', title: 'Datas & Horários', icon: CalendarIcon },
+    { id: 'vehicle', title: 'Veículo', icon: TruckIcon },
+    { id: 'driver', title: 'Motorista', icon: ClockIcon }
   ];
 
   const handleNext = () => {
-    const stepOrder: StepType[] = ['location', 'dates', 'preferences'];
+    const stepOrder: StepType[] = ['location', 'dates', 'vehicle', 'driver'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -51,7 +68,7 @@ export default function MobileCarForm({ onSearch, className = '' }: MobileCarFor
   };
 
   const handleBack = () => {
-    const stepOrder: StepType[] = ['location', 'dates', 'preferences'];
+    const stepOrder: StepType[] = ['location', 'dates', 'vehicle', 'driver'];
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -70,7 +87,7 @@ export default function MobileCarForm({ onSearch, className = '' }: MobileCarFor
   };
 
   const getCurrentStepIndex = () => {
-    const stepOrder: StepType[] = ['location', 'dates', 'preferences'];
+    const stepOrder: StepType[] = ['location', 'dates', 'vehicle', 'driver'];
     return stepOrder.indexOf(currentStep) + 1;
   };
 

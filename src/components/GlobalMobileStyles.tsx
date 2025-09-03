@@ -6,15 +6,20 @@ export default function GlobalMobileStyles() {
     <style jsx={true} global={true}>{`
       /* CSS Custom Properties for consistent theming */
       :root {
-        --mobile-touch-target: 48px;
-        --mobile-touch-target-small: 44px;
+        --mobile-touch-target: 44px;
+        --mobile-touch-target-small: 40px;
         --mobile-border-radius: 12px;
         --mobile-border-radius-large: 16px;
-        --mobile-spacing-xs: 4px;
-        --mobile-spacing-sm: 8px;
-        --mobile-spacing-md: 16px;
-        --mobile-spacing-lg: 24px;
-        --mobile-spacing-xl: 32px;
+        --mobile-spacing-xs: 2px;
+        --mobile-spacing-sm: 6px;
+        --mobile-spacing-md: 12px;
+        --mobile-spacing-lg: 18px;
+        --mobile-spacing-xl: 24px;
+        
+        /* Compact form spacing for mobile */
+        --mobile-form-field-spacing: 12px;
+        --mobile-label-spacing: 2px;
+        --mobile-form-gap: 8px;
         --mobile-animation-fast: 150ms;
         --mobile-animation-normal: 200ms;
         --mobile-animation-slow: 300ms;
@@ -109,7 +114,16 @@ export default function GlobalMobileStyles() {
       }
 
       /* Mobile-first responsive styles */
-      @media (max-width: 768px) {
+      @media (max-width: 767px) {
+        /* CRITICAL FIX: Show mobile app container, hide desktop container on mobile */
+        .mobile-app-container {
+          display: block !important;
+        }
+        
+        .desktop-content-container {
+          display: none !important;
+        }
+        
         /* Show mobile header, hide desktop header on mobile */
         .mobile-header-container {
           display: block !important;
@@ -233,8 +247,8 @@ export default function GlobalMobileStyles() {
         
         /* Enhanced typography */
         .mobile-title {
-          font-size: clamp(20px, 6vw, 28px) !important; /* Reduced size range */
-          line-height: 1.2 !important;
+          font-size: clamp(18px, 5vw, 24px) !important; /* Reduced size range */
+          line-height: 1.15 !important;
           text-align: center !important;
           font-weight: 700 !important;
           letter-spacing: -0.02em !important;
@@ -242,16 +256,16 @@ export default function GlobalMobileStyles() {
         }
         
         .mobile-subtitle {
-          font-size: clamp(14px, 4vw, 18px) !important; /* Reduced size range */
-          line-height: 1.5 !important;
+          font-size: clamp(13px, 3.5vw, 16px) !important; /* Reduced size range */
+          line-height: 1.4 !important;
           text-align: center !important;
           font-weight: 500 !important;
           margin-bottom: 24px !important;
         }
         
         .mobile-text {
-          font-size: 16px !important;
-          line-height: 1.6 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
           text-align: left !important;
         }
 
@@ -260,24 +274,24 @@ export default function GlobalMobileStyles() {
         }
 
         .mobile-text-large {
-          font-size: 18px !important;
-          line-height: 1.5 !important;
+          font-size: 16px !important;
+          line-height: 1.4 !important;
         }
 
         .mobile-text-small {
-          font-size: 14px !important;
-          line-height: 1.5 !important;
+          font-size: 12px !important;
+          line-height: 1.4 !important;
         }
         
         /* Enhanced button system */
         .mobile-button {
           width: 100% !important;
           min-height: var(--mobile-touch-target) !important;
-          padding: 14px 20px !important; /* Reduced padding for better mobile fit */
-          font-size: 14px !important; /* Smaller font for mobile */
+          padding: 12px 16px !important; /* Reduced padding for better mobile fit */
+          font-size: 13px !important; /* Smaller font for mobile */
           font-weight: 600 !important;
           text-align: center !important;
-          border-radius: 10px !important; /* Slightly smaller radius */
+          border-radius: 8px !important; /* Slightly smaller radius */
           border: none !important;
           cursor: pointer !important;
           transition: all var(--mobile-animation-normal) ease !important;
@@ -330,9 +344,9 @@ export default function GlobalMobileStyles() {
         
         /* Enhanced form styling */
         .mobile-form {
-          padding: var(--mobile-spacing-lg) var(--mobile-spacing-md) !important;
-          margin: var(--mobile-spacing-md) 0 !important;
-          border-radius: var(--mobile-border-radius-large) !important;
+          padding: var(--mobile-spacing-md) var(--mobile-spacing-sm) !important;
+          margin: var(--mobile-spacing-sm) 0 !important;
+          border-radius: var(--mobile-border-radius) !important;
           background: white !important;
           box-shadow: var(--mobile-shadow-md) !important;
           border: 1px solid #e2e8f0 !important;
@@ -361,6 +375,20 @@ export default function GlobalMobileStyles() {
           margin: 0 auto !important;
           z-index: 100 !important; /* High z-index to prevent overlapping */
         }
+
+        /* ULTRATHINK: Compact form field spacing optimization */
+        .mobile-form-field {
+          margin-bottom: var(--mobile-form-field-spacing) !important;
+        }
+        
+        .mobile-form-label {
+          margin-bottom: var(--mobile-label-spacing) !important;
+          font-size: 13px !important;
+        }
+        
+        .mobile-form-gap {
+          gap: var(--mobile-form-gap) !important;
+        }
         
         .mobile-form-row {
           display: flex !important;
@@ -384,8 +412,8 @@ export default function GlobalMobileStyles() {
         
         .mobile-form-input {
           width: 100% !important;
-          min-height: 44px !important; /* Fixed height for consistency */
-          padding: 12px 16px !important; /* Optimized padding */
+          min-height: 40px !important; /* Fixed height for consistency */
+          padding: 10px 14px !important; /* Optimized padding */
           font-size: 16px !important; /* Keep 16px to prevent zoom on iOS */
           border-radius: 8px !important; /* Slightly smaller radius */
           border: 1px solid #d1d5db !important;
@@ -449,8 +477,8 @@ export default function GlobalMobileStyles() {
         
         /* Enhanced card system */
         .mobile-card {
-          padding: var(--mobile-spacing-lg) var(--mobile-spacing-sm) !important; /* Reduced horizontal padding */
-          margin: var(--mobile-spacing-sm) var(--mobile-spacing-sm) !important; /* Added horizontal margin */
+          padding: var(--mobile-spacing-md) var(--mobile-spacing-xs) !important; /* Reduced horizontal padding */
+          margin: var(--mobile-spacing-xs) var(--mobile-spacing-xs) !important; /* Added horizontal margin */
           border-radius: var(--mobile-border-radius) !important;
           background: white !important;
           box-shadow: var(--mobile-shadow-sm) !important;
@@ -822,26 +850,26 @@ export default function GlobalMobileStyles() {
           max-width: 600px !important;
           height: auto !important;
           max-height: 80vh !important;
-          border-radius: var(--mobile-border-radius-large) !important;
+          border-radius: var(--mobile-border-radius) !important;
         }
       }
       
       /* Small mobile adjustments */
       @media (max-width: 480px) {
         :root {
-          --mobile-spacing-xs: 3px;
-          --mobile-spacing-sm: 6px;
-          --mobile-spacing-md: 12px;
-          --mobile-spacing-lg: 18px;
-          --mobile-spacing-xl: 24px;
+          --mobile-spacing-xs: 2px;
+          --mobile-spacing-sm: 4px;
+          --mobile-spacing-md: 8px;
+          --mobile-spacing-lg: 12px;
+          --mobile-spacing-xl: 18px;
         }
 
         .small-mobile-title {
-          font-size: clamp(18px, 6vw, 24px) !important; /* Further reduced */
+          font-size: clamp(16px, 5vw, 20px) !important; /* Further reduced */
         }
         
         .small-mobile-text {
-          font-size: 14px !important;
+          font-size: 13px !important;
         }
         
         .small-mobile-padding {
@@ -858,20 +886,20 @@ export default function GlobalMobileStyles() {
 
         /* Make all buttons more compact on very small screens */
         .mobile-button, button {
-          padding: 12px 16px !important;
-          font-size: 13px !important;
-          min-height: 42px !important;
+          padding: 10px 14px !important;
+          font-size: 12px !important;
+          min-height: 38px !important;
         }
 
         /* Ensure text doesn't get too large */
         h1, h2, h3, h4 {
-          font-size: clamp(16px, 5vw, 24px) !important;
-          margin-bottom: 12px !important;
+          font-size: clamp(14px, 4vw, 20px) !important;
+          margin-bottom: 8px !important;
         }
 
         p {
-          font-size: 14px !important;
-          line-height: 1.5 !important;
+          font-size: 13px !important;
+          line-height: 1.4 !important;
         }
 
         /* Grid adjustments for small screens */
@@ -882,7 +910,7 @@ export default function GlobalMobileStyles() {
       }
       
       /* Landscape mobile adjustments */
-      @media (max-width: 768px) and (orientation: landscape) {
+      @media (max-width: 767px) and (orientation: landscape) {
         .mobile-landscape-header {
           height: 60px !important;
         }
@@ -952,6 +980,18 @@ export default function GlobalMobileStyles() {
           background: #374151 !important;
           border-color: #4b5563 !important;
           color: #f9fafb !important;
+        }
+      }
+
+      /* Desktop responsive styles */
+      @media (min-width: 768px) {
+        /* CRITICAL FIX: Hide mobile app container, show desktop container on desktop */
+        .mobile-app-container {
+          display: none !important;
+        }
+        
+        .desktop-content-container {
+          display: block !important;
         }
       }
 

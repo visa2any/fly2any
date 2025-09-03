@@ -1,0 +1,182 @@
+# ENTERPRISE DOCKERFILE FOR REACT 19 + NEXT.JS 15.X
+# Multi-stage build optimized for Node.js v22.17.0
+# Addresses Bus errors and webpack originalFactory issues
+
+# ================================================================
+# STAGE 1: Enterprise Base Image with Node.js v22.17.0
+# ================================================================
+FROM node:22.17.0-alpine AS enterprise-base
+
+# Enterprise environment setup
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CI=true
+ENV DOCKER_BUILD=true
+
+# Node.js enterprise optimizations for React 19
+ENV NODE_OPTIONS="--max-old-space-size=4096 --max-semi-space-size=512 --optimize-for-size --gc-interval=50 --enable-source-maps --expose-gc"
+ENV UV_THREADPOOL_SIZE=16
+
+# React 19 + Next.js 15.x specific optimizations
+ENV REACT_EDITOR=none
+ENV FAST_REFRESH=false
+ENV NEXT_PRIVATE_REACT_ROOT=true
+ENV WEBPACK_DISABLE_PROGRESS=true
+
+# Install enterprise system dependencies
+RUN apk add --no-cache \
+    libc6-compat \
+    dumb-init \
+    g++ \
+    make \
+    python3 \
+    py3-pip \
+    curl \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create enterprise app user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Set working directory
+WORKDIR /app
+
+# ================================================================
+# STAGE 2: Enterprise Dependencies Installation
+# ================================================================
+FROM enterprise-base AS enterprise-deps
+
+# Copy package files with proper ownership
+COPY --chown=nextjs:nodejs package*.json ./
+
+# Enterprise dependency installation with cache optimization
+RUN npm ci --only=production --no-audit --no-fund && \
+    npm cache clean --force
+
+# Install development dependencies separately for build stage
+RUN npm ci --no-audit --no-fund && \
+    npm cache clean --force
+
+# ================================================================
+# STAGE 3: Enterprise Build Stage
+# ================================================================
+FROM enterprise-base AS enterprise-builder
+
+# Copy dependencies from deps stage
+COPY --from=enterprise-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy source code with proper ownership
+COPY --chown=nextjs:nodejs . .
+
+# Copy enterprise webpack configuration
+COPY --chown=nextjs:nodejs webpack.enterprise-react19.js ./
+COPY --chown=nextjs:nodejs eslint.config.enterprise.mjs ./
+COPY --chown=nextjs:nodejs scripts/enterprise-build-system.js ./scripts/
+
+# Ensure build scripts are executable
+RUN chmod +x scripts/enterprise-build-system.js
+
+# Create logs directory for enterprise build system
+RUN mkdir -p /app/logs && chown nextjs:nodejs /app/logs
+
+# Switch to nodejs user for build (security)
+USER nextjs
+
+# Enterprise build process with comprehensive monitoring
+RUN node scripts/enterprise-build-system.js health && \
+    node scripts/enterprise-build-system.js clean && \
+    node scripts/enterprise-build-system.js build
+
+# Verify build output
+RUN test -d .next/static || (echo "Build verification failed: no static assets found" && exit 1)
+RUN test -f .next/BUILD_ID || (echo "Build verification failed: no BUILD_ID found" && exit 1)
+
+# ================================================================
+# STAGE 4: Enterprise Production Runtime
+# ================================================================
+FROM enterprise-base AS enterprise-production
+
+# Production-specific environment
+ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+
+# Copy production dependencies
+COPY --from=enterprise-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy built application from builder stage
+COPY --from=enterprise-builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=enterprise-builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=enterprise-builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy enterprise configuration files
+COPY --from=enterprise-builder --chown=nextjs:nodejs /app/next.config.ts ./
+COPY --from=enterprise-builder --chown=nextjs:nodejs /app/webpack.enterprise-react19.js ./
+
+# Create required directories
+RUN mkdir -p /app/logs /app/tmp && \
+    chown -R nextjs:nodejs /app/logs /app/tmp
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check for enterprise monitoring
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Enterprise startup with dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
+
+# ================================================================
+# STAGE 5: Enterprise Development Stage (Optional)
+# ================================================================
+FROM enterprise-base AS enterprise-development
+
+# Development-specific environment
+ENV NODE_ENV=development
+ENV FAST_REFRESH=true
+
+# Copy all dependencies
+COPY --from=enterprise-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy source code
+COPY --chown=nextjs:nodejs . .
+
+# Create development user directories
+RUN mkdir -p /app/logs /app/.next /app/node_modules/.cache && \
+    chown -R nextjs:nodejs /app/logs /app/.next /app/node_modules/.cache
+
+# Switch to nodejs user
+USER nextjs
+
+# Expose development port
+EXPOSE 3000
+
+# Development startup
+CMD ["node", "scripts/enterprise-build-system.js", "dev"]
+
+# ================================================================
+# Build Arguments and Metadata
+# ================================================================
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG BUILD_COMMIT
+
+LABEL \
+    org.opencontainers.image.title="Fly2Any Enterprise React 19 + Next.js 15.x" \
+    org.opencontainers.image.description="Enterprise-grade flight booking platform with React 19 and Next.js 15.x" \
+    org.opencontainers.image.version="${BUILD_VERSION}" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.revision="${BUILD_COMMIT}" \
+    org.opencontainers.image.source="https://github.com/fly2any/platform" \
+    fly2any.build.node-version="22.17.0" \
+    fly2any.build.react-version="19.0.0" \
+    fly2any.build.nextjs-version="15.4.6" \
+    fly2any.enterprise.webpack-optimizations="true" \
+    fly2any.enterprise.memory-management="true" \
+    fly2any.enterprise.bus-error-prevention="true"

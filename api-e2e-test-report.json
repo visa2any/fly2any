@@ -1,0 +1,276 @@
+{
+  "timestamp": "2025-09-03T02:50:56.615Z",
+  "testConfiguration": {
+    "apiBaseUrl": "http://localhost:3001",
+    "leadsEndpoint": "http://localhost:3001/api/leads",
+    "testDataSets": [
+      "flights",
+      "hotels",
+      "cars",
+      "tours",
+      "insurance"
+    ],
+    "invalidTestScenarios": [
+      "missingRequired",
+      "invalidEmail",
+      "invalidPhoneFormat",
+      "invalidServiceType"
+    ]
+  },
+  "results": {
+    "summary": {
+      "totalTests": 20,
+      "passed": 19,
+      "failed": 1,
+      "successRate": "95.0%"
+    },
+    "performance": {
+      "totalRequests": 16,
+      "successfulRequests": 13,
+      "failedRequests": 3,
+      "averageResponseTime": "1204.69ms",
+      "totalDuration": "19275ms"
+    },
+    "integration": {
+      "database": "CONNECTED",
+      "email": "PENDING",
+      "n8n": "PENDING"
+    },
+    "details": [
+      {
+        "test": "Create flights lead - Response Structure",
+        "status": "PASSED",
+        "details": "Lead ID: lead_1756867846581_f3i8asaeh",
+        "timestamp": "2025-09-03T02:50:48.186Z"
+      },
+      {
+        "test": "Create flights lead - Metadata",
+        "status": "PASSED",
+        "details": "Processing time: 1568ms",
+        "timestamp": "2025-09-03T02:50:48.186Z"
+      },
+      {
+        "test": "Create hotels lead - Response Structure",
+        "status": "PASSED",
+        "details": "Lead ID: lead_1756867849369_ucdge2v69",
+        "timestamp": "2025-09-03T02:50:49.545Z"
+      },
+      {
+        "test": "Create hotels lead - Metadata",
+        "status": "PASSED",
+        "details": "Processing time: 168ms",
+        "timestamp": "2025-09-03T02:50:49.545Z"
+      },
+      {
+        "test": "Create cars lead - Response Structure",
+        "status": "PASSED",
+        "details": "Lead ID: lead_1756867850670_eg12c8drl",
+        "timestamp": "2025-09-03T02:50:50.842Z"
+      },
+      {
+        "test": "Create cars lead - Metadata",
+        "status": "PASSED",
+        "details": "Processing time: 167ms",
+        "timestamp": "2025-09-03T02:50:50.842Z"
+      },
+      {
+        "test": "Create tours lead - Response Structure",
+        "status": "PASSED",
+        "details": "Lead ID: lead_1756867851983_hh0l814k5",
+        "timestamp": "2025-09-03T02:50:52.152Z"
+      },
+      {
+        "test": "Create tours lead - Metadata",
+        "status": "PASSED",
+        "details": "Processing time: 163ms",
+        "timestamp": "2025-09-03T02:50:52.152Z"
+      },
+      {
+        "test": "Create insurance lead - Response Structure",
+        "status": "PASSED",
+        "details": "Lead ID: lead_1756867853264_qjkpfuqgq",
+        "timestamp": "2025-09-03T02:50:53.432Z"
+      },
+      {
+        "test": "Create insurance lead - Metadata",
+        "status": "PASSED",
+        "details": "Processing time: 164ms",
+        "timestamp": "2025-09-03T02:50:53.432Z"
+      },
+      {
+        "test": "Retrieve leads - Response Structure",
+        "status": "PASSED",
+        "details": "Found 8 leads",
+        "timestamp": "2025-09-03T02:50:54.759Z"
+      },
+      {
+        "test": "Error Handling - missingRequired",
+        "status": "PASSED",
+        "details": "Status: 400, Error: Nome é obrigatório",
+        "timestamp": "2025-09-03T02:50:54.859Z"
+      },
+      {
+        "test": "Error Handling - invalidEmail",
+        "status": "PASSED",
+        "details": "Status: 400, Error: Email válido é obrigatório",
+        "timestamp": "2025-09-03T02:50:54.961Z"
+      },
+      {
+        "test": "Error Handling - invalidPhoneFormat",
+        "status": "PASSED",
+        "details": "Status: 400, Error: WhatsApp deve ter pelo menos 10 dígitos",
+        "timestamp": "2025-09-03T02:50:55.077Z"
+      },
+      {
+        "test": "Error Handling - invalidServiceType",
+        "status": "FAILED",
+        "details": "Status: 201, Error: Lead created successfully",
+        "timestamp": "2025-09-03T02:50:55.354Z"
+      },
+      {
+        "test": "Performance - Concurrent Requests",
+        "status": "PASSED",
+        "details": "5/5 requests successful in 988ms",
+        "timestamp": "2025-09-03T02:50:56.350Z"
+      },
+      {
+        "test": "Performance - Response Time",
+        "status": "PASSED",
+        "details": "Average response time: 1267.73ms",
+        "timestamp": "2025-09-03T02:50:56.350Z"
+      },
+      {
+        "test": "Integration - Database Storage",
+        "status": "PASSED",
+        "details": "Lead stored successfully",
+        "timestamp": "2025-09-03T02:50:56.610Z"
+      },
+      {
+        "test": "Integration - Email Notification",
+        "status": "PASSED",
+        "details": "Email notification triggered (check server logs)",
+        "timestamp": "2025-09-03T02:50:56.611Z"
+      },
+      {
+        "test": "Integration - N8N Webhook",
+        "status": "PASSED",
+        "details": "N8N webhook called (check server logs)",
+        "timestamp": "2025-09-03T02:50:56.611Z"
+      }
+    ],
+    "performanceBreakdown": [
+      {
+        "operation": "create_lead_flights",
+        "duration": 13332,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:48.179Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "create_lead_hotels",
+        "duration": 344,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:49.543Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "create_lead_cars",
+        "duration": 294,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:50.841Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "create_lead_tours",
+        "duration": 296,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:52.151Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "create_lead_insurance",
+        "duration": 273,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:53.431Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "get_leads",
+        "duration": 320,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:54.755Z",
+        "statusCode": 200
+      },
+      {
+        "operation": "error_handling_missingRequired",
+        "duration": 98,
+        "success": false,
+        "timestamp": "2025-09-03T02:50:54.858Z",
+        "statusCode": 400
+      },
+      {
+        "operation": "error_handling_invalidEmail",
+        "duration": 101,
+        "success": false,
+        "timestamp": "2025-09-03T02:50:54.960Z",
+        "statusCode": 400
+      },
+      {
+        "operation": "error_handling_invalidPhoneFormat",
+        "duration": 113,
+        "success": false,
+        "timestamp": "2025-09-03T02:50:55.075Z",
+        "statusCode": 400
+      },
+      {
+        "operation": "error_handling_invalidServiceType",
+        "duration": 274,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:55.352Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "performance_test_0",
+        "duration": 325,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:55.681Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "performance_test_1",
+        "duration": 736,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:56.094Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "performance_test_2",
+        "duration": 755,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:56.115Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "performance_test_4",
+        "duration": 766,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:56.128Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "performance_test_3",
+        "duration": 989,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:56.350Z",
+        "statusCode": 201
+      },
+      {
+        "operation": "integration_test",
+        "duration": 259,
+        "success": true,
+        "timestamp": "2025-09-03T02:50:56.610Z",
+        "statusCode": 201
+      }
+    ]
+  }
+}

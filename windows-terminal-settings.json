@@ -1,0 +1,166 @@
+{
+    // Windows Terminal Settings for Better CMD/PowerShell Experience
+    // Copy this to: %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
+    // Or access via: Windows Terminal > Settings (Ctrl+,)
+    
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "copyOnSelect": true,
+    "copyFormatting": false,
+    "theme": "dark",
+    
+    "profiles": {
+        "defaults": {
+            // Default settings for all profiles
+            "fontFace": "Cascadia Code",
+            "fontSize": 11,
+            "padding": "8, 8, 8, 8",
+            "antialiasingMode": "cleartype",
+            "cursorShape": "bar",
+            "useAcrylic": true,
+            "acrylicOpacity": 0.9,
+            "historySize": 10000,
+            "closeOnExit": "graceful",
+            "bellStyle": "visual"
+        },
+        
+        "list": [
+            {
+                // PowerShell with custom profile
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "name": "🚀 PowerShell Enhanced",
+                "commandline": "pwsh.exe -NoLogo -NoExit -File D:\\Users\\vilma\\fly2any\\powershell-profile.ps1",
+                "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png",
+                "colorScheme": "One Half Dark",
+                "startingDirectory": "D:\\Users\\vilma\\fly2any",
+                "tabTitle": "PowerShell"
+            },
+            {
+                // Windows PowerShell (legacy)
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "name": "Windows PowerShell",
+                "commandline": "powershell.exe -NoLogo -NoExit -File D:\\Users\\vilma\\fly2any\\powershell-profile.ps1",
+                "colorScheme": "Campbell Powershell",
+                "startingDirectory": "D:\\Users\\vilma\\fly2any"
+            },
+            {
+                // CMD with aliases
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "name": "🖥️ CMD Enhanced",
+                "commandline": "cmd.exe /k D:\\Users\\vilma\\fly2any\\cmd-aliases.bat",
+                "icon": "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png",
+                "colorScheme": "Vintage",
+                "startingDirectory": "D:\\Users\\vilma\\fly2any",
+                "tabTitle": "CMD"
+            },
+            {
+                // Git Bash
+                "guid": "{00000000-0000-0000-ba54-000000000002}",
+                "name": "🌿 Git Bash",
+                "commandline": "%PROGRAMFILES%\\Git\\bin\\bash.exe -i -l",
+                "icon": "%PROGRAMFILES%\\Git\\mingw64\\share\\git\\git-for-windows.ico",
+                "colorScheme": "Solarized Dark",
+                "startingDirectory": "D:\\Users\\vilma\\fly2any"
+            },
+            {
+                // Node.js
+                "guid": "{00000000-0000-0000-ba54-000000000003}",
+                "name": "📦 Node.js",
+                "commandline": "cmd.exe /k \"D:\\Users\\vilma\\fly2any\\cmd-aliases.bat && node\"",
+                "icon": "🟩",
+                "colorScheme": "Tango Dark",
+                "startingDirectory": "D:\\Users\\vilma\\fly2any"
+            }
+        ]
+    },
+    
+    "schemes": [
+        {
+            "name": "One Half Dark",
+            "black": "#282c34",
+            "red": "#e06c75",
+            "green": "#98c379",
+            "yellow": "#e5c07b",
+            "blue": "#61afef",
+            "purple": "#c678dd",
+            "cyan": "#56b6c2",
+            "white": "#dcdfe4",
+            "brightBlack": "#5a6374",
+            "brightRed": "#e06c75",
+            "brightGreen": "#98c379",
+            "brightYellow": "#e5c07b",
+            "brightBlue": "#61afef",
+            "brightPurple": "#c678dd",
+            "brightCyan": "#56b6c2",
+            "brightWhite": "#dcdfe4",
+            "background": "#282c34",
+            "foreground": "#dcdfe4",
+            "cursorColor": "#FFFFFF",
+            "selectionBackground": "#5a6374"
+        },
+        {
+            "name": "Dracula",
+            "black": "#000000",
+            "red": "#ff5555",
+            "green": "#50fa7b",
+            "yellow": "#f1fa8c",
+            "blue": "#bd93f9",
+            "purple": "#ff79c6",
+            "cyan": "#8be9fd",
+            "white": "#bbbbbb",
+            "brightBlack": "#555555",
+            "brightRed": "#ff5555",
+            "brightGreen": "#50fa7b",
+            "brightYellow": "#f1fa8c",
+            "brightBlue": "#bd93f9",
+            "brightPurple": "#ff79c6",
+            "brightCyan": "#8be9fd",
+            "brightWhite": "#ffffff",
+            "background": "#282a36",
+            "foreground": "#f8f8f2",
+            "cursorColor": "#f8f8f2",
+            "selectionBackground": "#44475a"
+        }
+    ],
+    
+    "actions": [
+        // Custom keyboard shortcuts
+        { "command": { "action": "copy", "singleLine": false }, "keys": "ctrl+c" },
+        { "command": "paste", "keys": "ctrl+v" },
+        { "command": "find", "keys": "ctrl+f" },
+        { "command": { "action": "newTab" }, "keys": "ctrl+t" },
+        { "command": { "action": "closeTab" }, "keys": "ctrl+w" },
+        { "command": { "action": "nextTab" }, "keys": "ctrl+tab" },
+        { "command": { "action": "prevTab" }, "keys": "ctrl+shift+tab" },
+        { "command": { "action": "splitPane", "split": "horizontal" }, "keys": "alt+shift+-" },
+        { "command": { "action": "splitPane", "split": "vertical" }, "keys": "alt+shift+=" },
+        { "command": { "action": "moveFocus", "direction": "down" }, "keys": "alt+down" },
+        { "command": { "action": "moveFocus", "direction": "up" }, "keys": "alt+up" },
+        { "command": { "action": "moveFocus", "direction": "left" }, "keys": "alt+left" },
+        { "command": { "action": "moveFocus", "direction": "right" }, "keys": "alt+right" },
+        { "command": "toggleFullscreen", "keys": "f11" },
+        { "command": { "action": "adjustFontSize", "delta": 1 }, "keys": "ctrl+=" },
+        { "command": { "action": "adjustFontSize", "delta": -1 }, "keys": "ctrl+-" },
+        { "command": "resetFontSize", "keys": "ctrl+0" }
+    ],
+    
+    "keybindings": [
+        // Quick profile switching
+        { "command": { "action": "newTab", "index": 0 }, "keys": "ctrl+shift+1" },
+        { "command": { "action": "newTab", "index": 1 }, "keys": "ctrl+shift+2" },
+        { "command": { "action": "newTab", "index": 2 }, "keys": "ctrl+shift+3" },
+        { "command": { "action": "newTab", "index": 3 }, "keys": "ctrl+shift+4" }
+    ],
+    
+    // Other settings
+    "confirmCloseAllTabs": true,
+    "alwaysShowTabs": true,
+    "showTabsInTitlebar": true,
+    "showTerminalTitleInTitlebar": true,
+    "initialCols": 120,
+    "initialRows": 30,
+    "launchMode": "default",
+    "centerOnLaunch": true,
+    "trimBlockSelection": true,
+    "wordDelimiters": " /\\()\"'-.,:;<>~!@#$%^&*|+=[]{}~?│"
+}

@@ -4,84 +4,69 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HomeIcon,
-  MagnifyingGlassIcon,
+  MapPinIcon,
   HeartIcon,
   UserIcon,
-  ChatBubbleLeftRightIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  Bars3Icon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
-  MagnifyingGlassIcon as MagnifyingGlassIconSolid,
+  MapPinIcon as MapPinIconSolid,
   HeartIcon as HeartIconSolid,
-  UserIcon as UserIconSolid,
-  ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid
+  UserIcon as UserIconSolid
 } from '@heroicons/react/24/solid';
-import PremiumMobileLeadForm from '@/components/mobile/PremiumMobileLeadForm';
-import MobileFlightForm from '@/components/mobile/MobileFlightForm';
-import MobileHotelForm from '@/components/mobile/MobileHotelForm';
-import MobileCarForm from '@/components/mobile/MobileCarForm';
-import MobilePackageForm from '@/components/mobile/MobilePackageForm';
+import MobileLeadCaptureCorrect from '@/components/mobile/MobileLeadCaptureCorrect';
+import MobileSocialProofBadge from '@/components/mobile/MobileSocialProofBadge';
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import Logo from '@/components/Logo';
+import LiveSiteHeader from '@/components/home/LiveSiteHeader';
 
 interface MobileAppLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-type TabType = 'home' | 'search' | 'favorites' | 'profile' | 'chat';
-type ServiceType = 'flights' | 'hotels' | 'cars' | 'packages' | null;
+type TabType = 'home' | 'search' | 'favorites' | 'profile';
 
 export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [currentService, setCurrentService] = useState<ServiceType>(null);
-  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadFormEmbedded, setLeadFormEmbedded] = useState(false);
+  const [preSelectedService, setPreSelectedService] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  // Service context configuration
-  const serviceContext = {
-    flights: { title: 'Busca de Voos', icon: '✈️', color: 'from-blue-500 via-blue-600 to-cyan-600' },
-    hotels: { title: 'Busca de Hotéis', icon: '🏨', color: 'from-emerald-500 via-green-600 to-teal-600' },
-    cars: { title: 'Aluguel de Carros', icon: '🚗', color: 'from-purple-500 via-violet-600 to-indigo-600' },
-    packages: { title: 'Pacotes Completos', icon: '🌟', color: 'from-rose-500 via-pink-600 to-fuchsia-600' }
+  // Handle service selection from home screen
+  const handleServiceSelection = (serviceType: string) => {
+    setPreSelectedService(serviceType);
+    setLeadFormEmbedded(true);
   };
 
-  // Handle service selection - no more modals!
-  const handleServiceSelection = (service: ServiceType) => {
-    setCurrentService(service);
-    setActiveTab('search');
+  // Handle generic quote request
+  const handleGenericQuote = () => {
+    setPreSelectedService(null);
+    setLeadFormEmbedded(true);
+  };
+
+  // Handle multi-step lead form submission
+  const handleLeadFormSubmit = async (formData: any) => {
+    console.log('Lead form submitted:', formData);
+    // Handle form submission - send to API, show success message, etc.
+    
+    // For now, just log and reset
+    setLeadFormEmbedded(false);
+    setPreSelectedService(null);
+    setActiveTab('home');
   };
 
   // Handle back navigation
   const handleBackToHome = () => {
-    setCurrentService(null);
+    setLeadFormEmbedded(false);
+    setPreSelectedService(null);
     setActiveTab('home');
-  };
-
-  // Handle search completions for all services
-  const handleFlightSearch = (searchData: any) => {
-    console.log('Flight search:', searchData);
-    // Here we would typically navigate to results or handle the search
-    // For now, let's show the lead form as a fallback
-    setShowLeadForm(true);
-  };
-
-  const handleHotelSearch = (searchData: any) => {
-    console.log('Hotel search:', searchData);
-    setShowLeadForm(true);
-  };
-
-  const handleCarSearch = (searchData: any) => {
-    console.log('Car search:', searchData);
-    setShowLeadForm(true);
-  };
-
-  const handlePackageSearch = (searchData: any) => {
-    console.log('Package search:', searchData);
-    setShowLeadForm(true);
   };
 
   const tabs = [
@@ -96,9 +81,9 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
     },
     {
       id: 'search' as TabType,
-      label: 'Buscar',
-      icon: MagnifyingGlassIcon,
-      iconSolid: MagnifyingGlassIconSolid,
+      label: 'Explorar',
+      icon: MapPinIcon,
+      iconSolid: MapPinIconSolid,
       color: 'text-purple-600',
       bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100',
       gradient: 'from-purple-500 to-violet-500'
@@ -113,15 +98,6 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
       gradient: 'from-rose-500 to-pink-500'
     },
     {
-      id: 'chat' as TabType,
-      label: 'Chat',
-      icon: ChatBubbleLeftRightIcon,
-      iconSolid: ChatBubbleLeftRightIconSolid,
-      color: 'text-emerald-600',
-      bgColor: 'bg-gradient-to-br from-emerald-50 to-green-100',
-      gradient: 'from-emerald-500 to-teal-500'
-    },
-    {
       id: 'profile' as TabType,
       label: 'Perfil',
       icon: UserIcon,
@@ -132,14 +108,107 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
     }
   ];
 
-  const handleQuoteRequest = () => {
-    setShowLeadForm(true);
-  };
-
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-cyan-50 overflow-hidden">
-      {/* Status Bar Overlay - Premium Gradient */}
-      <div className="h-safe-top bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600" />
+    <div className="h-screen max-h-screen flex flex-col bg-gradient-to-br from-neutral-50 via-white to-neutral-100 overflow-hidden relative">
+      {/* Modern Status Bar with Enhanced UX */}
+      <div className="h-safe-top bg-gradient-to-r from-primary-600 to-primary-700 relative">
+        <div className="absolute inset-0 bg-black/5"></div>
+      </div>
+      
+      {/* MAIN MOBILE HEADER - Clean and consistent */}
+      <div className="bg-white shadow-neu-md border-b border-neutral-200/50 relative z-50">
+        <div className="flex items-center justify-between px-3 py-2">
+          {/* Left Section - Logo */}
+          <div className="flex items-center">
+            <Logo 
+              size="sm" 
+              variant="logo-only" 
+              className="flex-shrink-0"
+            />
+          </div>
+          
+          {/* Right Section - Clean Menu */}
+          <div className="flex items-center gap-2">
+            <button className="text-neutral-600 hover:text-neutral-800 text-xs font-medium px-3 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200">
+              🇧🇷
+            </button>
+            <button className="p-2 hover:bg-neutral-100 rounded-xl transition-all duration-200 active:scale-95">
+              <Bars3Icon className="w-5 h-5 text-neutral-600" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* COMPACT STEP NAVIGATION - Smaller and efficient */}
+      {leadFormEmbedded && (
+        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-white relative z-40 shadow-sm border-b border-white/20">
+          <div className="px-3 py-2">
+            {/* Single Row Layout */}
+            <div className="flex items-center justify-between">
+              {/* Back Button */}
+              <button
+                onClick={handleBackToHome}
+                className="flex items-center gap-1 text-white/90 hover:text-white transition-colors py-1 px-1 hover:bg-white/10 rounded -ml-1"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+                <span className="text-xs font-medium">Voltar</span>
+              </button>
+              
+              {/* Service Title + Progress */}
+              <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
+                <div className="text-xs font-bold text-white truncate">
+                  {preSelectedService === 'voos' && '✈️ Voos'}
+                  {preSelectedService === 'hoteis' && '🏨 Hotéis'}
+                  {preSelectedService === 'carros' && '🚗 Carros'}
+                  {preSelectedService === 'passeios' && '🎯 Tours'}
+                  {preSelectedService === 'seguro' && '🛡️ Seguro'}
+                  {!preSelectedService && '⚡ Cotação'}
+                </div>
+                
+                {/* Compact Progress for Flight Forms */}
+                {preSelectedService === 'voos' && (
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4].map((stepNum, index) => {
+                      const isActive = index === 0; // Placeholder
+                      const isCompleted = false; // Placeholder
+                      
+                      return (
+                        <div key={stepNum} className="flex items-center">
+                          {/* Small Step Circle */}
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                            isCompleted 
+                              ? 'bg-emerald-400 text-white' 
+                              : isActive 
+                                ? 'bg-white text-blue-600' 
+                                : 'bg-white/30 text-white/70'
+                          }`}>
+                            {isCompleted ? '✓' : stepNum}
+                          </div>
+                          
+                          {/* Small Progress Line */}
+                          {index < 3 && (
+                            <div className={`w-3 h-px mx-1 transition-all duration-300 ${
+                              isCompleted ? 'bg-emerald-400' : 'bg-white/30'
+                            }`} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                
+                {/* Simple indicator for other services */}
+                {preSelectedService !== 'voos' && (
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                )}
+              </div>
+              
+              {/* Right spacer */}
+              <div className="w-12"></div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* App Container - FIXED HEIGHT, NO SCROLLING */}
       <div className="flex-1 flex flex-col relative">
@@ -156,178 +225,157 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
               className="h-full"
             >
               {activeTab === 'home' && (
-                <div className="h-full flex flex-col">
-                  {/* Hero Header - Premium Gradient */}
-                  <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 p-6 pb-8 relative overflow-hidden">
-                    {/* Background Pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                      <div className="absolute top-4 left-4 w-32 h-32 bg-white/20 rounded-full blur-xl"></div>
-                      <div className="absolute top-12 right-8 w-24 h-24 bg-white/10 rounded-full blur-lg"></div>
-                      <div className="absolute bottom-4 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-                    </div>
+                <div className="h-full flex flex-col bg-gradient-to-br from-neutral-50 via-white to-neutral-100">
+                  {/* Optimized Full-Screen Distribution */}
+                  <div className="h-full flex flex-col px-2 py-0">
+                    
+                    {/* Compact Top Section - 15% */}
                     <motion.div
-                      initial={{ opacity: 0, y: -20 }}
+                      initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="text-center"
+                      className="text-center mb-2 flex-shrink-0"
+                      style={{ height: '15%' }}
                     >
-                      <h1 className="text-2xl font-bold text-white mb-2">
-                        ✈️ Fly2Any
+                      <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
+                        Onde vamos hoje?
                       </h1>
-                      <p className="text-blue-100 text-sm">
-                        Sua viagem dos sonhos começa aqui
-                      </p>
-                    </motion.div>
-                  </div>
-
-                  {/* Quick Actions - Fixed Height */}
-                  <div className="px-4 -mt-4 flex-1 flex flex-col">
-                    {/* Main CTA Card */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="bg-white rounded-2xl shadow-lg p-6 mb-4"
-                    >
-                      <div className="text-center mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <PlusCircleIcon className="w-8 h-8 text-white" />
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="flex items-center space-x-1 bg-success-50 px-3 py-2 rounded-2xl shadow-neu-sm border border-success-200/50">
+                          <div className="w-1.5 h-1.5 bg-success-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs font-semibold text-success-700">Promoções ativas</span>
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">
-                          Nova Cotação
-                        </h2>
-                        <p className="text-gray-600 text-sm">
-                          Receba as melhores ofertas em minutos
-                        </p>
+                        <div className="flex items-center space-x-1 bg-accent-50 px-3 py-2 rounded-2xl shadow-neu-sm border border-accent-200/50">
+                          <span className="text-xs font-semibold text-accent-700">✨ Até 70% OFF</span>
+                        </div>
                       </div>
-                      
-                      <motion.button
-                        onClick={handleQuoteRequest}
-                        className="w-full bg-gradient-to-r from-violet-600 via-purple-600 to-blue-600 text-white rounded-2xl py-5 font-bold text-lg shadow-2xl shadow-purple-500/30 border border-white/20 backdrop-blur-sm"
-                        whileHover={{ scale: 1.02, boxShadow: "0 25px 50px -12px rgba(139, 69, 195, 0.4)" }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                    </motion.div>
+
+                    {/* ULTRATHINK: Enhanced Mobile Services Section - Optimized for Touch */}
+                    <div className="flex-grow flex flex-col justify-center mb-2" style={{ height: '50%' }}>
+                      <div className="grid grid-cols-2 gap-2 h-full">
+                        {[
+                          { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-primary-100', iconColor: 'text-primary-600', textColor: 'text-neutral-800', popular: true },
+                          { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-success-100', iconColor: 'text-success-600', textColor: 'text-neutral-800', popular: false },
+                          { key: 'carros', icon: '🚗', label: 'Carros', subtitle: 'Aluguel', bgColor: 'bg-white', iconBg: 'bg-purple-100', iconColor: 'text-purple-600', textColor: 'text-neutral-800', popular: false },
+                          { key: 'passeios', icon: '🎯', label: 'Passeios', subtitle: 'Tours', bgColor: 'bg-white', iconBg: 'bg-accent-100', iconColor: 'text-accent-600', textColor: 'text-neutral-800', popular: false },
+                          { key: 'seguro', icon: '🛡️', label: 'Seguro', subtitle: 'Proteção viagem', bgColor: 'bg-white', iconBg: 'bg-warning-100', iconColor: 'text-warning-600', textColor: 'text-neutral-800', popular: false }
+                        ].map((service, index) => (
+                          <motion.div
+                            key={service.label}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={{ delay: 0.1 + index * 0.05, type: "spring", damping: 20 }}
+                            className="relative h-full"
+                          >
+                            {service.popular && (
+                              <div className="absolute -top-2 -right-2 z-10">
+                                <div className="bg-gradient-to-r from-accent-500 to-accent-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-neu-md">
+                                  🔥 Popular
+                                </div>
+                              </div>
+                            )}
+                            <motion.button
+                              onClick={() => handleServiceSelection(service.key)}
+                              className={`w-full h-full ${service.bgColor} rounded-2xl p-4 shadow-neu-lg hover:shadow-neu-xl border border-neutral-200/50 relative overflow-hidden transition-all duration-300`}
+                              whileTap={{ scale: 0.95 }}
+                              whileHover={{ scale: 1.02, y: -1 }}
+                              transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                            >
+                              <div className="text-center h-full flex flex-col justify-center space-y-3">
+                                <div className={`w-16 h-16 ${service.iconBg} rounded-2xl mx-auto flex items-center justify-center shadow-neu-sm`}>
+                                  <span className="text-2xl">{service.icon}</span>
+                                </div>
+                                <div>
+                                  <div className={`text-base font-bold ${service.textColor} mb-1`}>{service.label}</div>
+                                  <div className="text-xs text-neutral-600">{service.subtitle}</div>
+                                </div>
+                              </div>
+                            </motion.button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Enhanced CTA + Social Proof - 35% */}
+                    <div className="flex-shrink-0 space-y-2" style={{ height: '35%' }}>
+                      {/* Main CTA */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-white rounded-3xl shadow-neu-lg p-4 border border-neutral-200/50"
                       >
-                        <div className="flex items-center justify-center space-x-2">
-                          <span className="text-2xl">✨</span>
-                          <span>Solicitar Cotação Grátis</span>
-                        </div>
-                      </motion.button>
-                    </motion.div>
-
-                    {/* Quick Services Grid - Premium Cards */}
-                    <div className="grid grid-cols-2 gap-3 flex-1 max-h-40">
-                      {[
-                        { key: 'flights', icon: '✈️', label: 'Voos', color: 'from-blue-500 via-blue-600 to-cyan-600', glow: 'shadow-blue-500/20' },
-                        { key: 'hotels', icon: '🏨', label: 'Hotéis', color: 'from-emerald-500 via-green-600 to-teal-600', glow: 'shadow-green-500/20' },
-                        { key: 'cars', icon: '🚗', label: 'Carros', color: 'from-purple-500 via-violet-600 to-indigo-600', glow: 'shadow-purple-500/20' },
-                        { key: 'packages', icon: '🌟', label: 'Pacotes', color: 'from-rose-500 via-pink-600 to-fuchsia-600', glow: 'shadow-rose-500/20' }
-                      ].map((service, index) => (
                         <motion.button
-                          key={service.label}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 + index * 0.1 }}
-                          onClick={() => handleServiceSelection(service.key as ServiceType)}
-                          className={`bg-gradient-to-br ${service.color} rounded-2xl p-4 text-white shadow-lg ${service.glow} backdrop-blur-sm border border-white/10`}
-                          whileTap={{ scale: 0.95 }}
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          onClick={handleGenericQuote}
+                          className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-2xl py-4 font-bold text-base shadow-glow-md min-h-[48px] active:shadow-glow-sm transition-all duration-200"
+                          whileTap={{ scale: 0.96 }}
+                          whileHover={{ 
+                            scale: 1.02,
+                            y: -1
+                          }}
+                          style={{ touchAction: 'manipulation' }}
                         >
-                          <div className="text-2xl mb-1">{service.icon}</div>
-                          <div className="text-sm font-medium">{service.label}</div>
+                          <div className="flex items-center justify-center space-x-3">
+                            <span className="text-lg">⚡</span>
+                            <span>Buscar Ofertas Grátis</span>
+                          </div>
                         </motion.button>
-                      ))}
+                      </motion.div>
+                      
+                      {/* Enhanced Social Proof */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-neutral-50 rounded-2xl p-4 shadow-neu-inset border border-neutral-200/50"
+                      >
+                        <div className="flex items-center justify-between text-center mb-3">
+                          <div className="flex-1">
+                            <div className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">150K+</div>
+                            <div className="text-xs text-neutral-600 font-medium">Clientes felizes</div>
+                          </div>
+                          <div className="w-px h-10 bg-gradient-to-b from-transparent via-neutral-300 to-transparent" />
+                          <div className="flex-1">
+                            <div className="text-lg font-bold bg-gradient-to-r from-success-500 to-success-600 bg-clip-text text-transparent">4.9★</div>
+                            <div className="text-xs text-neutral-600 font-medium">Avaliação média</div>
+                          </div>
+                          <div className="w-px h-10 bg-gradient-to-b from-transparent via-neutral-300 to-transparent" />
+                          <div className="flex-1">
+                            <div className="text-lg font-bold bg-gradient-to-r from-accent-500 to-accent-600 bg-clip-text text-transparent">2min</div>
+                            <div className="text-xs text-neutral-600 font-medium">Cotação rápida</div>
+                          </div>
+                        </div>
+                        
+                        {/* Premium trust badges */}
+                        <div className="flex items-center justify-center space-x-3">
+                          <div className="flex items-center space-x-1 bg-green-100 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-xs font-semibold text-green-700">🔒 100% Seguro</span>
+                          </div>
+                          <div className="flex items-center space-x-1 bg-blue-100 px-2 py-1 rounded-full">
+                            <span className="text-xs font-semibold text-blue-700">✨ Gratuito</span>
+                          </div>
+                        </div>
+                      </motion.div>
                     </div>
 
-                    {/* Stats Bar - Fixed Height */}
-                    <div className="bg-white rounded-xl p-4 mt-4 shadow-sm">
-                      <div className="flex justify-around text-center">
-                        <div>
-                          <div className="text-lg font-bold text-blue-600">50K+</div>
-                          <div className="text-xs text-gray-600">Viajantes</div>
-                        </div>
-                        <div className="border-l border-gray-200" />
-                        <div>
-                          <div className="text-lg font-bold text-purple-600">4.9★</div>
-                          <div className="text-xs text-gray-600">Avaliação</div>
-                        </div>
-                        <div className="border-l border-gray-200" />
-                        <div>
-                          <div className="text-lg font-bold text-green-600">24h</div>
-                          <div className="text-xs text-gray-600">Suporte</div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
 
               {activeTab === 'search' && (
-                <div className="h-full bg-gray-50">
-                  {/* Service Header with Back Navigation */}
-                  {currentService && (
-                    <div className="flex items-center gap-3 p-4 bg-white border-b shadow-sm sticky top-0 z-10">
-                      <button 
-                        onClick={handleBackToHome}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <ChevronLeftIcon className="w-6 h-6 text-gray-600" />
-                      </button>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{serviceContext[currentService]?.icon}</span>
-                        <h2 className="text-lg font-semibold text-gray-800">
-                          {serviceContext[currentService]?.title}
-                        </h2>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Service-Specific Forms */}
-                  <div className="h-full">
-                    {currentService === 'flights' && (
-                      <MobileFlightForm 
-                        onSearch={handleFlightSearch}
-                        className="h-full"
-                      />
-                    )}
-                    
-                    {currentService === 'hotels' && (
-                      <MobileHotelForm 
-                        onSearch={handleHotelSearch}
-                        className="h-full"
-                      />
-                    )}
-                    
-                    {currentService === 'cars' && (
-                      <MobileCarForm 
-                        onSearch={handleCarSearch}
-                        className="h-full"
-                      />
-                    )}
-                    
-                    {currentService === 'packages' && (
-                      <MobilePackageForm 
-                        onSearch={handlePackageSearch}
-                        className="h-full"
-                      />
-                    )}
-
-                    {/* Default search state */}
-                    {!currentService && (
-                      <div className="h-full flex items-center justify-center p-6">
-                        <div className="text-center">
-                          <MagnifyingGlassIcon className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold mb-2">Escolha um Serviço</h3>
-                          <p className="text-gray-600">Volte ao início e selecione o serviço desejado</p>
-                          <button
-                            onClick={handleBackToHome}
-                            className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
-                          >
-                            Voltar ao Início
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                <div className="h-full flex items-center justify-center bg-blue-50">
+                  <div className="text-center p-6">
+                    <MagnifyingGlassIcon className="w-14 h-14 text-blue-400 mx-auto mb-3" />
+                    <h2 className="text-lg font-bold text-gray-800 mb-2">Explorar Serviços</h2>
+                    <p className="text-gray-600 mb-3">Descubra as melhores ofertas de viagem</p>
+                    <button
+                      onClick={handleGenericQuote}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+                    >
+                      Buscar Ofertas
+                    </button>
                   </div>
                 </div>
               )}
@@ -335,11 +383,11 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
               {activeTab === 'favorites' && (
                 <div className="h-full flex items-center justify-center bg-rose-50">
                   <div className="text-center p-6">
-                    <HeartIcon className="w-16 h-16 text-rose-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Seus Favoritos</h2>
-                    <p className="text-gray-600 mb-4">Salve suas viagens dos sonhos</p>
+                    <HeartIcon className="w-14 h-14 text-rose-400 mx-auto mb-3" />
+                    <h2 className="text-lg font-bold text-gray-800 mb-2">Seus Favoritos</h2>
+                    <p className="text-gray-600 mb-3">Salve suas viagens dos sonhos</p>
                     <button
-                      onClick={() => setShowLeadForm(true)}
+                      onClick={handleGenericQuote}
                       className="bg-rose-600 text-white px-6 py-3 rounded-xl font-semibold"
                     >
                       Explorar Destinos
@@ -348,33 +396,17 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                 </div>
               )}
 
-              {activeTab === 'chat' && (
-                <div className="h-full flex items-center justify-center bg-green-50">
-                  <div className="text-center p-6">
-                    <ChatBubbleLeftRightIcon className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Chat Suporte</h2>
-                    <p className="text-gray-600 mb-4">Converse com nossos especialistas</p>
-                    <button
-                      onClick={() => setShowLeadForm(true)}
-                      className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold"
-                    >
-                      Iniciar Conversa
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {activeTab === 'profile' && (
                 <div className="h-full flex items-center justify-center bg-orange-50">
                   <div className="text-center p-6">
-                    <UserIcon className="w-16 h-16 text-orange-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Meu Perfil</h2>
-                    <p className="text-gray-600 mb-4">Gerencie suas informações</p>
+                    <UserIcon className="w-14 h-14 text-orange-400 mx-auto mb-3" />
+                    <h2 className="text-lg font-bold text-gray-800 mb-2">Meu Perfil</h2>
+                    <p className="text-gray-600 mb-3">Gerencie suas informações</p>
                     <button
-                      onClick={() => setShowLeadForm(true)}
+                      onClick={handleGenericQuote}
                       className="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold"
                     >
-                      Fazer Login
+                      Começar Cotação
                     </button>
                   </div>
                 </div>
@@ -383,9 +415,11 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           </AnimatePresence>
         </div>
 
-        {/* Bottom Navigation - Premium Design */}
-        <div className="bg-white/80 backdrop-blur-xl border-t border-white/20 px-2 py-2 pb-safe-bottom shadow-2xl shadow-black/5">
-          <div className="flex justify-around">
+        {/* Modern Enhanced Bottom Navigation - Hidden when lead form is active */}
+        {!leadFormEmbedded && (
+          <div className="bg-white/95 backdrop-blur-xl border-t border-neutral-200/50 px-2 py-2 pb-safe-bottom shadow-neu-lg relative z-50">
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-50/20 to-transparent"></div>
+          <div className="flex justify-around relative z-10">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               const IconComponent = isActive ? tab.iconSolid : tab.icon;
@@ -394,24 +428,25 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                 <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="flex-1 py-2 px-1 relative"
-                  whileTap={{ scale: 0.92 }}
-                  whileHover={{ scale: 1.05 }}
+                  className="flex-1 py-3 px-2 relative min-h-[56px] flex items-center justify-center"
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.03 }}
+                  style={{ touchAction: 'manipulation' }}
                 >
                   <div className="flex flex-col items-center">
                     <div className={`p-3 rounded-2xl transition-all duration-300 ${
                       isActive 
-                        ? `${tab.bgColor} shadow-lg shadow-${tab.color.split('-')[1]}-500/20 border border-white/30` 
-                        : 'hover:bg-gray-50'
+                        ? `bg-white shadow-neu-md border border-neutral-200/50` 
+                        : 'hover:bg-neutral-50'
                     }`}>
                       <IconComponent 
                         className={`w-6 h-6 transition-all duration-300 ${
-                          isActive ? `${tab.color} drop-shadow-sm` : 'text-gray-400'
+                          isActive ? `${tab.color}` : 'text-neutral-400'
                         }`} 
                       />
                     </div>
                     <span className={`text-xs mt-1 font-semibold transition-all duration-300 ${
-                      isActive ? `${tab.color} drop-shadow-sm` : 'text-gray-400'
+                      isActive ? `${tab.color}` : 'text-neutral-400'
                     }`}>
                       {tab.label}
                     </span>
@@ -444,14 +479,26 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
             })}
           </div>
         </div>
+        )}
       </div>
 
-      {/* Premium Lead Form Modal */}
-      <PremiumMobileLeadForm
-        isOpen={showLeadForm}
-        onClose={() => setShowLeadForm(false)}
-        context="mobile-app"
-      />
+      {/* ULTRATHINK Mobile Social Proof Badge - Only when NOT in form mode */}
+      {!leadFormEmbedded && <MobileSocialProofBadge />}
+
+      {/* ULTRATHINK Mobile Multi-Step Lead Form - Positioned below headers with lower z-index */}
+      {leadFormEmbedded && (
+        <div className="fixed inset-0 z-20" style={{ paddingTop: '80px' }}>
+          {/* z-20 is below headers (z-50 and z-40) but above regular content */}
+          {/* 80px = 48px (header) + 32px (compact step nav) */}
+          <MobileLeadCaptureCorrect 
+            onSubmit={handleLeadFormSubmit}
+            onClose={handleBackToHome}
+            preSelectedService={preSelectedService}
+            className="h-full"
+            isEmbedded={true}
+          />
+        </div>
+      )}
 
       <style jsx={true} global={true}>{`
         .h-safe-top {

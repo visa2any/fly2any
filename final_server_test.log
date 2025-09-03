@@ -1,0 +1,7 @@
+  ▲ Next.js 14.2.18
+  - Local:        http://localhost:3000
+  - Environments: .env.local, .env
+  - Experiments (use with caution):
+    · esmExternals
+
+ ✓ Starting...

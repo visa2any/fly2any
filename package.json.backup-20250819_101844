@@ -1,0 +1,33 @@
+{
+  "name": "fly2any",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "node next-dev.js",
+    "dev:legacy": "next dev",
+    "dev:emergency": "node next-dev.js",
+    "build": "next build",
+    "build:legacy": "next build",
+    "build:enterprise": "node scripts/enterprise-build-system.js build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "15.4.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "15.4.7",
+    "typescript": "5.9.2"
+  }
+}

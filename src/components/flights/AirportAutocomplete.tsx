@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AirportSelection } from '@/types/flights';
@@ -31,6 +32,7 @@ interface AirportAutocompleteProps {
   inputClassName?: string;
   isMobile?: boolean;
   maxResults?: number;
+  expandDirection?: 'right' | 'left' | 'none';
 }
 
 interface EnhancedAirport extends AirportSelection {
@@ -97,7 +99,8 @@ export default function AirportAutocomplete({
   className = '',
   inputClassName = '',
   isMobile = false,
-  maxResults = 8
+  maxResults = 8,
+  expandDirection = 'none'
 }: AirportAutocompleteProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<EnhancedAirport[]>([]);
@@ -106,6 +109,8 @@ export default function AirportAutocomplete({
   const [recentSearches, setRecentSearches] = useState<AirportSelection[]>([]);
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
   const [isMobileDetected, setIsMobileDetected] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -138,24 +143,70 @@ export default function AirportAutocomplete({
     }
   }, []);
 
-  // Calculate dropdown position to prevent viewport overflow
+  // Initialize portal container
+  useEffect(() => {
+    setPortalContainer(document.body);
+  }, []);
+
+  // Calculate dropdown position for portal rendering
   const calculateDropdownPosition = useCallback(() => {
-    if (!containerRef.current || !isMobileDetected) return;
+    if (!containerRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const dropdownHeight = Math.min(320, Math.max(results.length, 1) * 72 + 40); // Estimated height
+    const inputRect = inputRef.current?.getBoundingClientRect();
     
-    const spaceBelow = viewportHeight - containerRect.bottom;
-    const spaceAbove = containerRect.top;
+    if (!inputRect) return;
 
-    // On mobile, prefer bottom unless there's significantly more space above
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow + 100) {
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = Math.min(320, Math.max(results.length, 1) * 58 + 40);
+    
+    const spaceBelow = viewportHeight - inputRect.bottom;
+    const spaceAbove = inputRect.top;
+
+    let top, maxHeight;
+    
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow + 50) {
+      // Position above input
       setDropdownPosition('top');
+      top = inputRect.top - dropdownHeight - 8;
+      maxHeight = Math.min(dropdownHeight, inputRect.top - 20);
     } else {
+      // Position below input  
       setDropdownPosition('bottom');
+      top = inputRect.bottom + 8;
+      maxHeight = Math.min(dropdownHeight, spaceBelow - 20);
     }
-  }, [isMobileDetected]); // Remove results.length to prevent infinite loop
+
+    // Calculate width expansion based on direction (+20%)
+    const baseWidth = inputRect.width;
+    const expansionWidth = baseWidth * 0.2;
+    let finalWidth = baseWidth;
+    let finalLeft = inputRect.left;
+
+    if (expandDirection === 'right') {
+      // Expand to the right - keep left position, increase width
+      finalWidth = baseWidth + expansionWidth;
+    } else if (expandDirection === 'left') {
+      // Expand to the left - shift left position, increase width  
+      finalLeft = inputRect.left - expansionWidth;
+      finalWidth = baseWidth + expansionWidth;
+      
+      // Ensure we don't go off the left edge of the viewport
+      if (finalLeft < 10) {
+        finalLeft = 10;
+        finalWidth = inputRect.left + baseWidth - 10;
+      }
+    }
+
+    setDropdownStyle({
+      position: 'fixed',
+      top: `${Math.max(10, top)}px`,
+      left: `${finalLeft}px`,
+      width: `${finalWidth}px`,
+      maxHeight: `${maxHeight}px`,
+      zIndex: 99999
+    });
+  }, [results.length, expandDirection]);
 
   // Recalculate position when dropdown opens or results change
   useEffect(() => {
@@ -193,11 +244,11 @@ export default function AirportAutocomplete({
   // Update query when value changes externally
   useEffect(() => {
     if (value?.iataCode && value?.city) {
-      const expectedQuery = `${value.iataCode} - ${value.city}`;
+      const expectedQuery = `${value.city} • ${value.iataCode}`;
       if (query !== expectedQuery) {
         setQuery(expectedQuery);
       }
-    } else if (!value?.iataCode && query && !query.includes(' - ')) {
+    } else if (!value?.iataCode && query && !query.includes(' • ')) {
       // Don't clear the query if user is actively typing
       // Only clear if it's not a user-typed search term
     }
@@ -287,7 +338,7 @@ export default function AirportAutocomplete({
     setIsOpen(true);
     
     // Clear selection if user is typing
-    if (newQuery !== `${value?.iataCode || ''} - ${value?.city || ''}`) {
+    if (newQuery !== `${value?.city || ''} • ${value?.iataCode || ''}`) {
       onChange(null);
     }
 
@@ -308,7 +359,7 @@ export default function AirportAutocomplete({
     };
 
     onChange(selectedAirport);
-    setQuery(`${airport.iataCode} - ${airport.city}`);
+    setQuery(`${airport.city} • ${airport.iataCode}`);
     setIsOpen(false);
     setSelectedIndex(-1);
 
@@ -391,13 +442,14 @@ export default function AirportAutocomplete({
       case 'Asia': return '🌏';
       case 'Africa': return '🌍';
       case 'Oceania': return '🇦🇺';
+      case 'Central America': return '🇲🇽';
       case 'Recent': return '🕒';
       default: return '🌎';
     }
   };
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} style={{ zIndex: isOpen ? 10000 : 'auto' }}>
       <div className="relative">
         <input
           ref={inputRef}
@@ -421,18 +473,18 @@ export default function AirportAutocomplete({
           placeholder={placeholder}
           disabled={disabled}
           className={`
-            w-full px-4 py-3 pl-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors
+            w-full py-3 pl-5 pr-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm
             ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
             ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-            ${isMobileDetected ? 'min-h-[48px] text-base' : 'min-h-[44px]'}
+            ${isMobileDetected ? 'min-h-[48px]' : 'min-h-[44px]'}
             ${isMobileDetected ? 'focus:ring-4 focus:ring-blue-100' : ''}
             ${isMobileDetected ? 'touch-manipulation -webkit-appearance-none' : ''}
             ${inputClassName}
           `}
-          // Prevent zoom on mobile when focusing input
-          style={isMobileDetected ? { fontSize: '16px' } : undefined}
+          // Consistent 14px font size - no zoom conflicts
+          style={isMobileDetected ? { fontSize: '14px' } : undefined}
         />
-        <FlightIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <FlightIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
         
         {query && !disabled && (
           <button
@@ -442,8 +494,8 @@ export default function AirportAutocomplete({
               inputRef.current?.focus();
             }}
             className={`
-              absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600
-              ${isMobileDetected ? 'min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2' : ''}
+              absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600
+              ${isMobileDetected ? 'min-w-[44px] min-h-[44px] flex items-center justify-center' : ''}
             `}
           >
             ✕
@@ -455,28 +507,39 @@ export default function AirportAutocomplete({
         <p className="mt-1 text-sm text-red-600">{error}</p>
       )}
 
-      <AnimatePresence>
-        {isOpen && results.length > 0 && (
-          <motion.div
-            ref={resultsRef}
-            initial={{ opacity: 0, y: dropdownPosition === 'bottom' ? -10 : 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: dropdownPosition === 'bottom' ? -10 : 10 }}
-            className={`
-              absolute left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-y-auto
-              ${dropdownPosition === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'}
-              ${isMobileDetected 
-                ? 'max-h-[60vh] shadow-2xl border-2 rounded-xl' 
-                : 'max-h-80'
-              }
-              ${isMobileDetected && dropdownPosition === 'bottom' ? 'max-h-[calc(100vh-120px)]' : ''}
-            `}
+      {/* Render dropdown in portal to escape stacking contexts */}
+      {portalContainer && createPortal(
+        <AnimatePresence>
+          {isOpen && results.length > 0 && (
+            <motion.div
+              ref={resultsRef}
+              initial={{ opacity: 0, scale: 0.95, y: dropdownPosition === 'bottom' ? -10 : 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: dropdownPosition === 'bottom' ? -10 : 10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="overflow-y-auto"
+              style={{
+                ...dropdownStyle,
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(226,232,240,0.8)',
+                borderRadius: isMobileDetected ? '16px' : '12px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.15), inset 3px 3px 6px rgba(255,255,255,0.9), inset -3px -3px 6px rgba(226,232,240,0.4)',
+                pointerEvents: 'auto'
+              }}
           >
-            {/* Header for recent searches */}
+            {/* Header for recent searches - Premium Styled */}
             {!query.trim() && recentSearches.length > 0 && (
-              <div className="px-4 py-2 border-b bg-gray-50 text-sm font-medium text-gray-600 flex items-center gap-2">
-                <ClockIcon className="w-4 h-4" />
-                Recent Searches
+              <div 
+                className="px-3 py-2 border-b text-xs font-bold text-gray-700 flex items-center gap-1.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(248,250,252,0.9), rgba(241,245,249,0.8))',
+                  borderBottom: '1px solid rgba(226,232,240,0.6)'
+                }}
+              >
+                <ClockIcon className="w-3 h-3 text-blue-600" />
+                <span className="tracking-wide">Recent Searches</span>
               </div>
             )}
 
@@ -486,86 +549,101 @@ export default function AirportAutocomplete({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.05 }}
-                onClick={() => handleAirportSelect(airport)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAirportSelect(airport);
+                }}
                 onTouchStart={(e: any) => {
-                  // Prevent scrolling on touch start for better mobile experience
-                  if (isMobileDetected) {
-                    e.preventDefault();
-                  }
+                  // Prevent scrolling and ensure touch events work properly
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onTouchEnd={(e: any) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAirportSelect(airport);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 }}
                 className={`
-                  w-full text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors border-b border-gray-100 last:border-b-0
-                  ${selectedIndex === index ? 'bg-blue-50' : ''}
+                  w-full text-left focus:outline-none transition-all duration-200 border-b last:border-b-0 touch-manipulation
                   ${isMobileDetected 
-                    ? 'px-4 py-4 min-h-[60px] active:bg-blue-100 touch-manipulation' 
-                    : 'px-4 py-3'
+                    ? 'px-2 py-2.5 min-h-[54px]' 
+                    : 'px-2 py-2.5 min-h-[54px]'
                   }
                 `}
+                style={{
+                  borderBottom: index < results.length - 1 ? '1px solid rgba(226,232,240,0.4)' : 'none',
+                  background: selectedIndex === index 
+                    ? 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.06))' 
+                    : 'transparent'
+                }}
+                onMouseEnter={() => setSelectedIndex(index)}
+                onMouseLeave={() => setSelectedIndex(-1)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <span className={`${isMobileDetected ? 'text-xl' : 'text-lg'} flex-shrink-0`}>
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <span className={`${isMobileDetected ? 'text-xs' : 'text-xs'} flex-shrink-0`}>
                       {getAirportIcon(airport)}
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className={`font-semibold text-gray-900 truncate ${
-                        isMobileDetected ? 'text-base' : 'text-sm'
-                      }`}>
-                        {airport.iataCode} - {airport.city}
-                      </div>
-                      <div className={`text-gray-600 truncate ${
-                        isMobileDetected ? 'text-sm' : 'text-xs'
-                      }`}>
-                        {airport.name}
-                      </div>
-                      <div className={`text-gray-500 flex items-center gap-1 ${
+                    <div className="min-w-0 flex-1 leading-none py-0">
+                      <div className={`font-semibold text-gray-900 leading-tight ${
                         isMobileDetected ? 'text-xs' : 'text-xs'
                       }`}>
-                        <span className="flex-shrink-0">{getRegionFlag(airport.region)}</span>
-                        <span className="truncate">{airport.country}</span>
-                        {airport.region !== 'Recent' && !isMobileDetected && (
-                          <span className="ml-2 bg-gray-200 px-2 py-0.5 rounded text-xs flex-shrink-0">
-                            {airport.region}
-                          </span>
-                        )}
-                      </div>
-                      {/* Show region on mobile in separate line for better readability */}
-                      {airport.region !== 'Recent' && isMobileDetected && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          <span className="bg-gray-200 px-2 py-0.5 rounded text-xs">
-                            {airport.region}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <span className="truncate font-bold">{airport.city} • {airport.iataCode}</span>
+                          <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
+                            <span className="text-gray-500 text-xs font-normal">{getRegionFlag(airport.region)}</span>
+                            {airport.region !== 'Recent' && (
+                              <span className="bg-gray-200 px-1 py-0 rounded text-xs font-medium text-gray-600">
+                                {airport.region}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      )}
+                        <div className="text-xs text-gray-600 font-normal mt-0.5 truncate">
+                          {airport.name}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
                   {(airport.popularity ?? 0) >= 4 && airport.region !== 'Recent' && (
                     <div className={`text-yellow-500 flex-shrink-0 ${
-                      isMobileDetected ? 'text-base' : 'text-sm'
+                      isMobileDetected ? 'text-xs' : 'text-xs'
                     }`}>⭐</div>
                   )}
                 </div>
               </motion.button>
             ))}
 
-            {/* No results message */}
+            {/* No results message - Premium Styled */}
             {query.trim() && results.length === 0 && (
-              <div className={`text-center text-gray-500 ${
-                isMobileDetected ? 'px-6 py-12' : 'px-4 py-8'
-              }`}>
-                <div className={`mb-2 ${isMobileDetected ? 'text-3xl' : 'text-2xl'}`}>🔍</div>
-                <div className={`font-medium ${isMobileDetected ? 'text-base' : 'text-sm'}`}>
+              <div 
+                className={`text-center text-gray-500 ${
+                  isMobileDetected ? 'px-4 py-6' : 'px-3 py-4'
+                }`}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(248,250,252,0.9), rgba(241,245,249,0.8))'
+                }}
+              >
+                <div className={`mb-2 ${isMobileDetected ? 'text-2xl' : 'text-xl'}`}>🔍</div>
+                <div className={`font-bold text-gray-700 ${isMobileDetected ? 'text-sm' : 'text-xs'}`}>
                   No airports found
                 </div>
-                <div className={`${isMobileDetected ? 'text-sm' : 'text-xs'} mt-2`}>
+                <div className={`${isMobileDetected ? 'text-xs' : 'text-xs'} mt-1 text-gray-600`}>
                   Try searching by city name or IATA code
                 </div>
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        portalContainer
+      )}
     </div>
   );
 }

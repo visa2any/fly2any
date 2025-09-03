@@ -270,7 +270,12 @@ export default function DatePicker({
       
       <div
         onClick={handleToggleOpen}
-        className={`w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4 bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl sm:rounded-2xl focus:ring-2 sm:focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 text-sm sm:text-base font-bold text-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/80 cursor-pointer flex items-center justify-between group ${className} ${inputClassName} ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}`}
+        className={`w-full bg-white/70 backdrop-blur-sm border border-white/60 rounded-xl sm:rounded-2xl focus:ring-2 sm:focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 text-slate-900 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-white/80 cursor-pointer flex items-center justify-between group ${className} ${inputClassName} ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}`}
+        style={{
+          padding: window.innerWidth <= 768 ? '8px 10px' : '12px 16px',
+          fontSize: window.innerWidth <= 768 ? '13px' : '14px',
+          fontWeight: window.innerWidth <= 768 ? '500' : 'bold'
+        }}
       >
         <span className={`${displayValue ? 'text-gray-900' : 'text-gray-500'} text-sm sm:text-base font-bold`}>
           {displayValue || placeholder}
@@ -290,35 +295,49 @@ export default function DatePicker({
       {isOpen && isClient && typeof window !== 'undefined' && createPortal(
         <div
           data-datepicker-calendar="true"
-          className="fixed bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[99999] p-5"
+          className="fixed bg-white border-2 border-gray-200 rounded-xl shadow-2xl z-[99999]"
           style={{
             top: `${calendarPosition.top}px`,
             left: `${calendarPosition.left}px`,
-            width: `${Math.max(calendarPosition.width, 320)}px`,
-            maxHeight: '400px',
-            overflow: 'auto'
+            width: `${Math.max(calendarPosition.width, window.innerWidth <= 768 ? 280 : 320)}px`,
+            maxHeight: window.innerWidth <= 768 ? '320px' : '400px',
+            overflow: 'auto',
+            padding: window.innerWidth <= 768 ? '12px' : '20px'
           }}
         >
-          {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-5">
+          {/* Calendar Header - Compact on Mobile */}
+          <div className="flex items-center justify-between" style={{ marginBottom: window.innerWidth <= 768 ? '12px' : '20px' }}>
             <button
               type="button"
               onClick={() => navigateMonth('prev')}
-              className="p-2 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
+              className="hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                padding: window.innerWidth <= 768 ? '6px' : '8px',
+                width: window.innerWidth <= 768 ? '28px' : '32px',
+                height: window.innerWidth <= 768 ? '28px' : '32px'
+              }}
             >
-              <ArrowLeftIcon className="w-4 h-4 text-gray-700" />
+              <ArrowLeftIcon className={`text-gray-700 ${window.innerWidth <= 768 ? 'w-3 h-3' : 'w-4 h-4'}`} />
             </button>
             
-            <h3 className="text-base font-semibold text-gray-900 text-center flex-1">
+            <h3 className="text-gray-900 text-center flex-1" style={{
+              fontSize: window.innerWidth <= 768 ? '14px' : '16px',
+              fontWeight: window.innerWidth <= 768 ? '500' : '600'
+            }}>
               {months[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </h3>
             
             <button
               type="button"
               onClick={() => navigateMonth('next')}
-              className="p-2 hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
+              className="hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                padding: window.innerWidth <= 768 ? '6px' : '8px',
+                width: window.innerWidth <= 768 ? '28px' : '32px',
+                height: window.innerWidth <= 768 ? '28px' : '32px'
+              }}
             >
-              <ArrowRightIcon className="w-4 h-4 text-gray-700" />
+              <ArrowRightIcon className={`text-gray-700 ${window.innerWidth <= 768 ? 'w-3 h-3' : 'w-4 h-4'}`} />
             </button>
           </div>
 
@@ -343,12 +362,12 @@ export default function DatePicker({
                 onClick={() => handleDateSelect(day)}
                 disabled={day.isDisabled}
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: window.innerWidth <= 768 ? '32px' : '36px',
+                  height: window.innerWidth <= 768 ? '32px' : '36px',
                   border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: day.isToday ? '700' : '500',
+                  borderRadius: window.innerWidth <= 768 ? '4px' : '6px',
+                  fontSize: window.innerWidth <= 768 ? '12px' : '14px',
+                  fontWeight: day.isToday ? (window.innerWidth <= 768 ? '600' : '700') : (window.innerWidth <= 768 ? '400' : '500'),
                   cursor: day.isDisabled ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -386,22 +405,24 @@ export default function DatePicker({
             ))}
           </div>
 
-          {/* Footer com dica */}
-          <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            background: '#f8fafc',
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <span style={{
-              fontSize: '12px',
-              color: '#64748b',
-              fontWeight: '500'
+          {/* Footer com dica - Compact on mobile */}
+          {window.innerWidth > 768 && (
+            <div style={{
+              marginTop: '16px',
+              padding: '12px',
+              background: '#f8fafc',
+              borderRadius: '8px',
+              textAlign: 'center'
             }}>
-              💡 Please select a date from today onwards
-            </span>
-          </div>
+              <span style={{
+                fontSize: '12px',
+                color: '#64748b',
+                fontWeight: '500'
+              }}>
+                💡 Please select a date from today onwards
+              </span>
+            </div>
+          )}
         </div>,
         document.body
       )}

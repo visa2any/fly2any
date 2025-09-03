@@ -1,0 +1,142 @@
+[
+  {
+    "device": "iPhone 12",
+    "url": "https://www.fly2any.com/",
+    "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+    "consoleErrors": [],
+    "viewport": {
+      "width": 390,
+      "height": 664
+    },
+    "tests": {
+      "mainContent": false,
+      "navigation": false,
+      "flightForm": false,
+      "layout": {
+        "width": 390,
+        "height": 332,
+        "overflow": "visible",
+        "overflowX": "visible"
+      },
+      "horizontalScroll": false,
+      "clickableElements": 1,
+      "firstButtonClickable": true,
+      "performance": {
+        "loadTime": 3501,
+        "domReady": 1838,
+        "firstPaint": 1820
+      },
+      "mobileCSS": {
+        "hasViewportMeta": true,
+        "viewportContent": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes",
+        "hasMediaQueries": true
+      },
+      "errorElements": 0
+    }
+  },
+  {
+    "device": "iPhone SE",
+    "url": "https://www.fly2any.com/",
+    "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+    "consoleErrors": [],
+    "viewport": {
+      "width": 320,
+      "height": 568
+    },
+    "tests": {
+      "mainContent": false,
+      "navigation": false,
+      "flightForm": false,
+      "layout": {
+        "width": 320,
+        "height": 284,
+        "overflow": "visible",
+        "overflowX": "visible"
+      },
+      "horizontalScroll": false,
+      "clickableElements": 1,
+      "firstButtonClickable": true,
+      "performance": {
+        "loadTime": 2730,
+        "domReady": 1026,
+        "firstPaint": 1052
+      },
+      "mobileCSS": {
+        "hasViewportMeta": true,
+        "viewportContent": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes",
+        "hasMediaQueries": true
+      },
+      "errorElements": 0
+    }
+  },
+  {
+    "device": "Samsung Galaxy S21",
+    "url": "https://www.fly2any.com/",
+    "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+    "consoleErrors": [],
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "tests": {
+      "mainContent": true,
+      "navigation": true,
+      "flightForm": true,
+      "layout": {
+        "width": 1265,
+        "height": 4288,
+        "overflow": "visible",
+        "overflowX": "visible"
+      },
+      "horizontalScroll": false,
+      "clickableElements": 35,
+      "firstButtonClickable": true,
+      "performance": {
+        "loadTime": 2992,
+        "domReady": 2184,
+        "firstPaint": 2548
+      },
+      "mobileCSS": {
+        "hasViewportMeta": true,
+        "viewportContent": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes",
+        "hasMediaQueries": true
+      },
+      "errorElements": 0
+    }
+  },
+  {
+    "device": "iPad",
+    "url": "https://www.fly2any.com/",
+    "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+    "consoleErrors": [],
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "tests": {
+      "mainContent": false,
+      "navigation": false,
+      "flightForm": false,
+      "layout": {
+        "width": 1280,
+        "height": 360,
+        "overflow": "visible",
+        "overflowX": "visible"
+      },
+      "horizontalScroll": false,
+      "clickableElements": 1,
+      "firstButtonClickable": true,
+      "performance": {
+        "loadTime": 2975,
+        "domReady": 1144,
+        "firstPaint": 1240
+      },
+      "mobileCSS": {
+        "hasViewportMeta": true,
+        "viewportContent": "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes",
+        "hasMediaQueries": true
+      },
+      "errorElements": 0
+    }
+  }
+]

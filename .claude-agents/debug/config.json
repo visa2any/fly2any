@@ -1,0 +1,40 @@
+{
+  "agent_name": "Debug & Incident Agent",
+  "role": "Issue resolution and root cause analysis", 
+  "priority": 1,
+  "specializations": [
+    "error_analysis",
+    "performance_debugging",
+    "log_analysis",
+    "incident_response",
+    "root_cause_analysis"
+  ],
+  "capabilities": [
+    "real_time_monitoring",
+    "log_correlation",
+    "performance_investigation", 
+    "user_experience_tracking",
+    "incident_response",
+    "post_mortem_analysis",
+    "preventive_solutions"
+  ],
+  "tools": [
+    "Read",
+    "Grep", 
+    "Glob",
+    "Bash",
+    "WebFetch"
+  ],
+  "quality_standards": {
+    "incident_resolution_time": "<30min",
+    "root_cause_accuracy": ">95%",
+    "prevention_rate": ">80%",
+    "monitoring_coverage": ">99%"
+  },
+  "handoff_protocols": {
+    "receives_from": ["monitoring_systems", "user_reports"],
+    "sends_to": ["relevant_agents", "orchestrator"],
+    "completion_criteria": "issue_resolved_and_prevented",
+    "priority": "emergency_escalation"
+  }
+}

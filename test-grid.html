@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Grid Test</title>
+    <style>
+        .routes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            height: 400px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .route-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .route-content {
+            padding: 20px;
+        }
+
+        .route-header h3 {
+            margin: 0 0 10px 0;
+            color: #1e293b;
+        }
+
+        .price-section {
+            margin: 15px 0;
+        }
+
+        .price-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .flight-grid-container {
+            padding: 48px 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+        }
+
+        .grid-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .grid-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 1024px) {
+            .routes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .routes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flight-grid-container">
+        <div class="grid-header">
+            <h2 class="grid-title">✈️ Popular Flight Deals</h2>
+        </div>
+        
+        <div class="routes-grid">
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>New York → Los Angeles</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$187</span>
+                    </div>
+                    <p>Non-stop • 5h 45m • United</p>
+                </div>
+            </div>
+            
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>Chicago → Miami</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$156</span>
+                    </div>
+                    <p>Non-stop • 3h 15m • American</p>
+                </div>
+            </div>
+            
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>San Francisco → Seattle</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$98</span>
+                    </div>
+                    <p>Non-stop • 2h 10m • Alaska</p>
+                </div>
+            </div>
+            
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>Atlanta → Boston</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$178</span>
+                    </div>
+                    <p>Non-stop • 2h 45m • Delta</p>
+                </div>
+            </div>
+            
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>Las Vegas → Phoenix</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$79</span>
+                    </div>
+                    <p>Non-stop • 1h 20m • Southwest</p>
+                </div>
+            </div>
+            
+            <div class="route-card">
+                <div class="route-content">
+                    <div class="route-header">
+                        <h3>Dallas → Denver</h3>
+                    </div>
+                    <div class="price-section">
+                        <span class="price-value">$142</span>
+                    </div>
+                    <p>Non-stop • 2h 30m • United</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

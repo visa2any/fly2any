@@ -1,0 +1,72 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    // Disable experimental features that might cause issues
+  },
+  webpack: (config, { dev, isServer, webpack }) => {
+    // ENTERPRISE FIX: Comprehensive React and React-DOM client resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Force single React instance resolution
+      'react': require.resolve('react'),
+      'react-dom': require.resolve('react-dom'),
+      'react-dom/client': require.resolve('react-dom/client'),
+      'react-dom/server': require.resolve('react-dom/server'),
+      'react/jsx-runtime': require.resolve('react/jsx-runtime'),
+      'react/jsx-dev-runtime': require.resolve('react/jsx-dev-runtime')
+    };
+
+    // Enhanced fallback configuration for module resolution
+    if (!config.resolve.fallback) config.resolve.fallback = {};
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'react': require.resolve('react'),
+      'react-dom': require.resolve('react-dom'),
+      'react-dom/client': require.resolve('react-dom/client'),
+      'react-dom/server': require.resolve('react-dom/server'),
+      'react/jsx-runtime': require.resolve('react/jsx-runtime'),
+      'react/jsx-dev-runtime': require.resolve('react/jsx-dev-runtime')
+    };
+
+    // NextAuth specific JSX runtime resolution fix
+    config.resolve.modules = [
+      'node_modules',
+      require.resolve('react').split('/node_modules/')[0] + '/node_modules'
+    ];
+
+    // Ensure proper module resolution for NextAuth dependencies
+    config.resolve.symlinks = false;
+
+    // Fix ReactCurrentDispatcher by enforcing single React context
+    if (config.externals && !isServer) {
+      config.externals = config.externals.filter(
+        external => typeof external !== 'string' || !external.includes('react')
+      );
+    }
+
+    // Enterprise React-DOM client and JSX runtime compatibility plugins
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^react-dom\/client$/,
+        require.resolve('react-dom/client')
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /^react-dom\/server$/,
+        require.resolve('react-dom/server')
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /^react\/jsx-runtime$/,
+        require.resolve('react/jsx-runtime')
+      ),
+      new webpack.NormalModuleReplacementPlugin(
+        /^react\/jsx-dev-runtime$/,
+        require.resolve('react/jsx-dev-runtime')
+      )
+    );
+
+    return config;
+  },
+};
+
+module.exports = nextConfig;

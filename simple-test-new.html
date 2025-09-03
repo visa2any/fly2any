@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test Page</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Next.js Debug Test Page</h1>
+        <p>This is a simple HTML page to test if the issue is with Next.js specifically or with the browser/server setup.</p>
+        
+        <div id="test-results">
+            <p>✅ Basic HTML rendering: <span class="success">Working</span></p>
+            <p>✅ CSS styling: <span class="success">Working</span></p>
+            <p id="js-test">❌ JavaScript: <span class="error">Not tested yet</span></p>
+        </div>
+        
+        <div id="next-diagnosis">
+            <h2>🎯 Next.js Issue Diagnosis</h2>
+            <p>Since Next.js won't start, the problem is likely:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li>TypeScript compilation errors hanging the build process</li>
+                <li>Complex component dependencies causing infinite loops</li>
+                <li>Memory issues with the large page.tsx file (45,000+ tokens)</li>
+                <li>Webpack configuration conflicts with React 19</li>
+                <li>Circular dependencies or imports</li>
+            </ul>
+        </div>
+        
+        <button onclick="testConsole()">Test Console Logging</button>
+    </div>
+    
+    <script>
+        // Update JavaScript status
+        document.getElementById('js-test').innerHTML = '✅ JavaScript: <span class="success">Working</span>';
+        
+        function testConsole() {
+            console.log('Console test: Working properly');
+            console.error('Test error message');
+            console.warn('Test warning message');
+            alert('JavaScript execution is working!');
+        }
+        
+        // Log to console for debugging
+        console.log('Simple test page loaded successfully');
+        console.warn('This is a test warning');
+        console.error('This is a test error (for debugging purposes)');
+    </script>
+</body>
+</html>

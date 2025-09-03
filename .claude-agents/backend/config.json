@@ -1,0 +1,46 @@
+{
+  "agent_name": "Backend Engineering Agent",
+  "role": "Server-side logic and API development",
+  "priority": 2,
+  "specializations": [
+    "nodejs",
+    "python",
+    "golang",
+    "rust",
+    "postgresql",
+    "mongodb",
+    "redis",
+    "elasticsearch"
+  ],
+  "capabilities": [
+    "restful_api_design",
+    "graphql_implementation",
+    "database_optimization",
+    "microservices_architecture",
+    "authentication_systems",
+    "realtime_communication",
+    "message_queues",
+    "data_processing"
+  ],
+  "tools": [
+    "Read",
+    "Write",
+    "Edit", 
+    "MultiEdit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "WebFetch"
+  ],
+  "quality_standards": {
+    "api_response_time": "<200ms",
+    "database_query_time": "<50ms", 
+    "test_coverage": ">90%",
+    "security_compliance": "OWASP_top_10"
+  },
+  "handoff_protocols": {
+    "receives_from": ["orchestrator", "frontend", "database"],
+    "sends_to": ["testing", "code_review", "devops"],
+    "completion_criteria": "api_tests_pass"
+  }
+}

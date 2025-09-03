@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popular Flight Deals Grid - Visual Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+
+        .flight-grid-container {
+            padding: 48px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-header {
+            max-width: 1400px;
+            margin: 0 auto 32px;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        .grid-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .routes-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 24px !important;
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            padding: 0 24px !important;
+            width: 100% !important;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid #e5e7eb;
+        }
+
+        .route-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: #3b82f6;
+        }
+
+        .route-image {
+            height: 140px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .image-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            z-index: 1;
+        }
+        
+        .destination-icon {
+            font-size: 40px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .route-airline {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .route-content {
+            padding: 16px;
+        }
+
+        .route-path {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .city-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .city-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .airport-code {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .flight-arrow {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 0 16px;
+        }
+
+        .arrow-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+        }
+
+        .flight-icon {
+            position: relative;
+            font-size: 20px;
+            background: white;
+            padding: 0 8px;
+        }
+
+        .price-section {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .price-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .price-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-left: 4px;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 8px 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .book-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .deal-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 10px;
+            background: #dc2626;
+            color: white;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .social-proof {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        @media (max-width: 1024px) {
+            .routes-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .routes-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flight-grid-container">
+        <div class="grid-header">
+            <h2 class="grid-title">
+                <span>✈️</span>
+                Popular Flight Deals
+                <span style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px;">LIVE PRICES</span>
+            </h2>
+        </div>
+
+        <div class="routes-grid">
+            <!-- Card 1: NYC to LAX -->
+            <div class="route-card">
+                <div class="deal-badge">🔥 HOT DEAL</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🌴</div>
+                        <div class="route-airline">United</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">New York</span>
+                            <span class="airport-code">JFK</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">Los Angeles</span>
+                            <span class="airport-code">LAX</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$187</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 23 viewing now</span>
+                        <span>✅ 127 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 2: Chicago to Miami -->
+            <div class="route-card">
+                <div class="deal-badge" style="background: #f59e0b;">⚡ GREAT PRICE</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🏖️</div>
+                        <div class="route-airline">American</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Chicago</span>
+                            <span class="airport-code">ORD</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">Miami</span>
+                            <span class="airport-code">MIA</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$156</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 18 viewing now</span>
+                        <span>✅ 89 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 3: NYC to London -->
+            <div class="route-card">
+                <div class="deal-badge">🔥 HOT DEAL</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🇬🇧</div>
+                        <div class="route-airline">British Airways</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">New York</span>
+                            <span class="airport-code">JFK</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">London</span>
+                            <span class="airport-code">LHR</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$487</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 31 viewing now</span>
+                        <span>✅ 89 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 4: San Francisco to Seattle -->
+            <div class="route-card">
+                <div class="deal-badge" style="background: #10b981;">💰 GOOD VALUE</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🌲</div>
+                        <div class="route-airline">Alaska</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">San Francisco</span>
+                            <span class="airport-code">SFO</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">Seattle</span>
+                            <span class="airport-code">SEA</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$98</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 11 viewing now</span>
+                        <span>✅ 45 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 5: LAX to Tokyo -->
+            <div class="route-card">
+                <div class="deal-badge" style="background: #f59e0b;">⚡ GREAT PRICE</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🗾</div>
+                        <div class="route-airline">JAL</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Los Angeles</span>
+                            <span class="airport-code">LAX</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">Tokyo</span>
+                            <span class="airport-code">NRT</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$689</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 28 viewing now</span>
+                        <span>✅ 67 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 6: Miami to Cancun -->
+            <div class="route-card">
+                <div class="deal-badge" style="background: #f59e0b;">⚡ GREAT PRICE</div>
+                <div class="route-image">
+                    <div class="image-content">
+                        <div class="destination-icon">🏝️</div>
+                        <div class="route-airline">Aeromexico</div>
+                    </div>
+                </div>
+                <div class="route-content">
+                    <div class="route-path">
+                        <div class="city-info">
+                            <span class="city-name">Miami</span>
+                            <span class="airport-code">MIA</span>
+                        </div>
+                        <div class="flight-arrow">
+                            <div class="arrow-line"></div>
+                            <span class="flight-icon">✈️</span>
+                        </div>
+                        <div class="city-info">
+                            <span class="city-name">Cancun</span>
+                            <span class="airport-code">CUN</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div>
+                            <span class="price-value">$234</span>
+                            <span class="price-label">per person</span>
+                        </div>
+                        <div style="color: #10b981; font-size: 12px;">📉 Dropping</div>
+                    </div>
+                    <div class="social-proof">
+                        <span>👥 19 viewing now</span>
+                        <span>✅ 124 booked today</span>
+                    </div>
+                    <button class="book-btn">
+                        View Deal →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

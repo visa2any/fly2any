@@ -38,6 +38,8 @@ import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
+// Enterprise hydration-safe hooks
+import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
 
 interface ServiceFormData {
   serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
@@ -122,6 +124,14 @@ export default function Home() {
   
   // Show premium app form automatically on mobile only
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+  
+  // ULTRATHINK ENTERPRISE: Hydration-safe random number for social proof
+  const socialProofCount = useHydrationSafeRandom({
+    min: 5,
+    max: 19, // Same range as original: Math.floor(Math.random() * 15) + 5
+    fallback: 12, // Professional fallback number for SSR
+    delay: 100 // Small delay for smooth UX transition
+  });
 
   // Safe mobile detection after hydration
   useEffect(() => {
@@ -784,7 +794,6 @@ export default function Home() {
   return (
     <>
       <GlobalMobileStyles />
-      <LiveSiteHeader />
 
       {/* Mobile Success Notification */}
       <div className="mobile-success-hidden">
@@ -814,7 +823,7 @@ export default function Home() {
             Ótima escolha!
           </div>
           <div style={{ fontSize: '12px', opacity: 0.9 }}>
-            Mais {Math.floor(Math.random() * 15) + 5} pessoas fizeram isso hoje
+            Mais {socialProofCount.value} pessoas fizeram isso hoje
           </div>
         </div>
       </div> {/* Close mobile-success div */}
@@ -954,9 +963,10 @@ export default function Home() {
         </div>
       </div> {/* Close exit-intent div */}
 
-      {/* Social Proof Notification Widget */}
-      <div className={showSocialProof ? 'social-proof-widget-visible' : 'social-proof-widget-hidden'}>
-        <div style={{
+      {/* Social Proof Notification Widget - Desktop Only */}
+      {!isMobileDevice && (
+        <div className={showSocialProof ? 'social-proof-widget-visible' : 'social-proof-widget-hidden'}>
+          <div style={{
           position: 'fixed',
           bottom: '20px',
           left: '20px',
@@ -1015,59 +1025,20 @@ export default function Home() {
               ✕
             </button>
           </div>
+          </div>
         </div>
-      </div> {/* Close social-proof-widget div */}
+      )}
       
-      <div style={containerStyle} className="mobile-overflow-hidden">
-        {/* Mobile App Experience - CSS media query controlled */}
-        <div className="mobile-layout-visible">
-          <MobileAppLayout>
-            {/* Mobile Hero Section */}
-            <div className="mobile-hero-content">
-              <div className="text-center p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <h2 className="text-xl font-bold mb-2">🌎 Conecte-se ao Mundo</h2>
-                <p className="text-blue-100 text-sm">Voos • Hotéis • Carros • Seguros</p>
-              </div>
-              
-              {/* Quick Action Cards */}
-              <div className="p-4 grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="text-2xl mb-2">✈️</div>
-                  <div className="text-sm font-semibold text-gray-800">Voos</div>
-                  <div className="text-xs text-gray-500">Melhores preços</div>
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="text-2xl mb-2">🏨</div>
-                  <div className="text-sm font-semibold text-gray-800">Hotéis</div>
-                  <div className="text-xs text-gray-500">Reserve agora</div>
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="text-2xl mb-2">🚗</div>
-                  <div className="text-sm font-semibold text-gray-800">Carros</div>
-                  <div className="text-xs text-gray-500">Alugue fácil</div>
-                </div>
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="text-2xl mb-2">🛡️</div>
-                  <div className="text-sm font-semibold text-gray-800">Seguro</div>
-                  <div className="text-xs text-gray-500">Viaje seguro</div>
-                </div>
-              </div>
+      {/* Close social-proof-widget div */}
+      
+      {/* Mobile App Experience - CSS Media Query Controlled */}
+      <div className="mobile-app-container">
+        <MobileAppLayout />
+      </div>
 
-              {/* CTA Button */}
-              <div className="p-4">
-                <button 
-                  onClick={() => setShowLeadCapture(true)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-lg font-semibold shadow-lg active:scale-95 transition-transform"
-                >
-                  🚀 Solicitar Cotação Grátis
-                </button>
-              </div>
-            </div>
-          </MobileAppLayout>
-        </div>
-
-        {/* Desktop Content - CSS media query controlled */}
-        <div className="desktop-content-visible">
+      {/* Desktop Content - CSS Media Query Controlled */}
+      <div className="desktop-content-container">
+          <LiveSiteHeader />
             {/* Floating Background Elements */}
             <div style={floatingElement1Style}></div>
             <div style={floatingElement2Style}></div>
@@ -1078,17 +1049,17 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: isMobileDevice ? '40px 0 60px 0' : '60px 0 80px 0',
+          padding: isMobileDevice ? '24px 0 32px 0' : '60px 0 80px 0',
           width: '100%',
           maxWidth: '100vw'
         }} className="mobile-section">
           <div style={{
             maxWidth: '1400px',
             margin: '0 auto',
-            padding: isMobileDevice ? '0 20px' : '0 32px',
+            padding: isMobileDevice ? '0' : '0 32px',
             display: 'grid',
             gridTemplateColumns: isMobileDevice ? '1fr' : '1fr 1fr',
-            gap: isMobileDevice ? '40px' : '64px',
+            gap: isMobileDevice ? '24px' : '64px',
             alignItems: 'center'
           }} className="mobile-container mobile-grid-single">
             {/* Left Side - Content */}
@@ -1112,11 +1083,11 @@ export default function Home() {
               }}>
               </div>
               <h1 style={{
-                fontSize: isMobileDevice ? '24px' : '56px',
+                fontSize: isMobileDevice ? '20px' : '56px',
                 fontWeight: '800',
                 fontFamily: 'Poppins, sans-serif',
                 lineHeight: '1.3',
-                margin: isMobileDevice ? '0 0 16px 0' : '0 0 24px 0',
+                margin: isMobileDevice ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 maxWidth: '100%',
                 textAlign: isMobileDevice ? 'center' : 'left',
@@ -1125,11 +1096,11 @@ export default function Home() {
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
               <p style={{
-                fontSize: isMobileDevice ? '16px' : '20px',
+                fontSize: isMobileDevice ? '14px' : '20px',
                 color: colors.secondary.gray600,
                 lineHeight: '1.6',
                 maxWidth: isMobileDevice ? '100%' : '520px',
-                marginBottom: isMobileDevice ? '24px' : '40px',
+                marginBottom: isMobileDevice ? '16px' : '40px',
                 fontWeight: '400',
                 textAlign: isMobileDevice ? 'center' : 'left'
               }} className="mobile-subtitle">
@@ -1140,40 +1111,40 @@ export default function Home() {
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: isMobileDevice ? '16px' : '32px',
-                marginBottom: isMobileDevice ? '24px' : '40px',
+                gap: isMobileDevice ? '12px' : '32px',
+                marginBottom: isMobileDevice ? '16px' : '40px',
                 flexWrap: 'wrap',
                 justifyContent: isMobileDevice ? 'center' : 'flex-start'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '8px' }}>
                   <div style={{
                     background: colors.primary.gray50,
-                    padding: '8px',
+                    padding: isMobileDevice ? '6px' : '8px',
                     borderRadius: '8px',
                     border: `1px solid ${colors.accent.green}20`
                   }}>
-                    <CheckIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
+                    <CheckIcon style={{ width: isMobileDevice ? '14px' : '16px', height: isMobileDevice ? '14px' : '16px', color: colors.accent.green }} />
                   </div>
-                  <span style={{ color: colors.secondary.gray600, fontSize: isMobileDevice ? '12px' : '14px', fontWeight: '500' }}>
+                  <span style={{ color: colors.secondary.gray600, fontSize: isMobileDevice ? '11px' : '14px', fontWeight: '500' }}>
                     Garantia Melhor Preço
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '8px' }}>
                   <div style={{
                     background: colors.primary.gray50,
-                    padding: '8px',
+                    padding: isMobileDevice ? '6px' : '8px',
                     borderRadius: '8px',
                     border: `1px solid ${colors.accent.yellow}20`
                   }}>
-                    <StarIcon style={{ width: '16px', height: '16px', color: colors.accent.yellow }} />
+                    <StarIcon style={{ width: isMobileDevice ? '14px' : '16px', height: isMobileDevice ? '14px' : '16px', color: colors.accent.yellow }} />
                   </div>
                   <span style={{ color: colors.secondary.gray600, fontSize: '14px', fontWeight: '500' }}>
                     4.9/5 estrelas
                   </span>
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '8px' }}>
                   <div style={{
                     background: 'rgba(34, 197, 94, 0.2)',
                     padding: '8px',
@@ -1191,8 +1162,8 @@ export default function Home() {
               {/* Quick Action Buttons */}
               <div style={{
                 display: 'flex',
-                gap: isMobileDevice ? '12px' : '16px',
-                marginBottom: isMobileDevice ? '32px' : '40px',
+                gap: isMobileDevice ? '8px' : '16px',
+                marginBottom: isMobileDevice ? '20px' : '40px',
                 flexWrap: 'wrap',
                 flexDirection: isMobileDevice ? 'column' : 'row',
                 alignItems: isMobileDevice ? 'center' : 'flex-start'
@@ -1209,10 +1180,10 @@ export default function Home() {
                   style={{
                     background: colors.accent.orange,
                     color: 'white',
-                    padding: isMobileDevice ? '14px 20px' : '18px 36px',
-                    borderRadius: isMobileDevice ? '10px' : '12px',
+                    padding: isMobileDevice ? '12px 16px' : '18px 36px',
+                    borderRadius: isMobileDevice ? '8px' : '12px',
                     border: 'none',
-                    fontSize: isMobileDevice ? '14px' : '16px',
+                    fontSize: isMobileDevice ? '13px' : '16px',
                     fontWeight: '600',
                     cursor: 'pointer',
                     width: isMobileDevice ? '100%' : 'auto',
@@ -1235,7 +1206,7 @@ export default function Home() {
                     e.currentTarget.style.background = colors.accent.orange;
                   }}
                 >
-                  <FlightIcon style={{ width: isMobileDevice ? '16px' : '20px', height: isMobileDevice ? '16px' : '20px' }} />
+                  <FlightIcon style={{ width: isMobileDevice ? '14px' : '20px', height: isMobileDevice ? '14px' : '20px' }} />
                   {isMobileDevice ? 'Free Quote - Save $250' : 'Save up to $250 - Free Quote'}
                 </button>
                 
@@ -1247,10 +1218,10 @@ export default function Home() {
                     background: 'rgba(255, 255, 255, 0.15)',
                     backdropFilter: 'blur(10px)',
                     color: 'white',
-                    padding: isMobileDevice ? '14px 20px' : '16px 32px',
-                    borderRadius: isMobileDevice ? '10px' : '12px',
+                    padding: isMobileDevice ? '12px 16px' : '16px 32px',
+                    borderRadius: isMobileDevice ? '8px' : '12px',
                     border: '1px solid rgba(255, 255, 255, 0.2)',
-                    fontSize: isMobileDevice ? '14px' : '16px',
+                    fontSize: isMobileDevice ? '13px' : '16px',
                     fontWeight: '600',
                     textDecoration: 'none',
                     cursor: 'pointer',
@@ -1262,7 +1233,7 @@ export default function Home() {
                     width: isMobileDevice ? '100%' : 'auto'
                   }}
                 >
-                  <ChatIcon style={{ width: isMobileDevice ? '16px' : '20px', height: isMobileDevice ? '16px' : '20px' }} />
+                  <ChatIcon style={{ width: isMobileDevice ? '14px' : '20px', height: isMobileDevice ? '14px' : '20px' }} />
                   WhatsApp
                 </a>
               </div>
@@ -1280,11 +1251,11 @@ export default function Home() {
               <div style={{
                 background: 'rgba(255, 255, 255, 0.98)',
                 backdropFilter: 'blur(20px)',
-                borderRadius: isMobileDevice ? '16px' : '32px',
-                padding: isMobileDevice ? '20px' : '40px',
+                borderRadius: isMobileDevice ? '12px' : '32px',
+                padding: isMobileDevice ? '0' : '40px',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                maxHeight: isMobileDevice ? '90vh' : 'auto',
+                maxHeight: isMobileDevice ? '85vh' : 'auto',
                 overflowY: isMobileDevice ? 'auto' : 'visible',
                 scrollBehavior: 'smooth',
                 WebkitOverflowScrolling: 'touch',
@@ -1309,7 +1280,7 @@ export default function Home() {
                     justifyContent: 'space-between',
                     animation: 'mobileSlideUp 0.3s ease-out'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '8px' }}>
                       <span style={{ 
                         fontSize: '20px',
                         animation: 'pulse 2s infinite'
@@ -1602,8 +1573,8 @@ export default function Home() {
                           {/* Available Services */}
                           <div style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: isMobileDevice ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
-                            gap: isMobileDevice ? '12px' : '8px', 
+                            gridTemplateColumns: isMobileDevice ? '1fr' : 'repeat(3, 1fr)', 
+                            gap: isMobileDevice ? '8px' : '8px', 
                             marginTop: '16px' 
                           }}>
                             {(['voos', 'hoteis', 'carros', 'passeios', 'seguro'] as const).map(serviceType => {
@@ -1628,25 +1599,25 @@ export default function Home() {
                                   }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
                                   style={{ 
-                                    padding: isMobileDevice ? '12px 16px' : '16px 20px', 
-                                    borderRadius: isMobileDevice ? '8px' : '12px', 
+                                    padding: isMobileDevice ? '8px 10px' : '16px 20px', 
+                                    borderRadius: isMobileDevice ? '6px' : '12px', 
                                     border: isSelected ? `2px solid ${colors.accent.orange}` : `1px solid ${colors.primary.gray200}`, 
                                     background: isSelected ? `${colors.accent.orange}05` : colors.primary.white, 
                                     cursor: isSelected || isMaxServices ? 'not-allowed' : 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: isMobileDevice ? '6px' : '8px',
+                                    gap: isMobileDevice ? '4px' : '8px',
                                     opacity: isSelected || isMaxServices ? 0.7 : 1,
                                     position: 'relative',
-                                    fontSize: isMobileDevice ? '12px' : '14px',
-                                    fontWeight: '600',
+                                    fontSize: isMobileDevice ? '11px' : '14px',
+                                    fontWeight: isMobileDevice ? '500' : '600',
                                     transition: 'all 0.2s ease',
                                     transform: 'scale(1)',
                                     boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
                                     color: colors.secondary.gray800,
                                     width: '100%',
-                                    minHeight: isMobileDevice ? '44px' : 'auto'
+                                    minHeight: isMobileDevice ? '32px' : 'auto'
                                   }}
                                   onMouseEnter={(e) => {
                                     if (!isSelected && !isMaxServices) {
@@ -1667,7 +1638,7 @@ export default function Home() {
                                 >
                                   {serviceType === 'voos' && (
                                     <>
-                                      <FlightIcon style={{ width: '18px', height: '18px' }} /> 
+                                      <FlightIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> 
                                       Voos
                                       <span style={{
                                         position: 'absolute',
@@ -1687,22 +1658,22 @@ export default function Home() {
                                   )}
                                   {serviceType === 'hoteis' && (
                                     <>
-                                      <HotelIcon style={{ width: '18px', height: '18px' }} /> Hotéis
+                                      <HotelIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Hotéis
                                     </>
                                   )}
                                   {serviceType === 'carros' && (
                                     <>
-                                      <CarIcon style={{ width: '18px', height: '18px' }} /> Carros
+                                      <CarIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Carros
                                     </>
                                   )}
                                   {serviceType === 'passeios' && (
                                     <>
-                                      <TourIcon style={{ width: '18px', height: '18px' }} /> Passeios
+                                      <TourIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Passeios
                                     </>
                                   )}
                                   {serviceType === 'seguro' && (
                                     <>
-                                      <InsuranceIcon style={{ width: '18px', height: '18px' }} /> Seguro
+                                      <InsuranceIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Seguro
                                     </>
                                   )}
                                   {isSelected && <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />}
@@ -1816,7 +1787,7 @@ export default function Home() {
                           <div style={{ 
                             display: 'flex', 
                             flexDirection: isMobileDevice ? 'column' : 'row',
-                            gap: isMobileDevice ? '16px' : '12px', 
+                            gap: isMobileDevice ? '12px' : '12px', 
                             marginBottom: '16px' 
                           }}>
                             <div style={{ flex: 1 }}>
@@ -1852,8 +1823,8 @@ export default function Home() {
                       {getCurrentService()?.serviceType === 'hoteis' && (
                         <>
                           {/* Destino */}
-                          <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontWeight: 500 }}>
+                          <div style={{ marginBottom: isMobileDevice ? '12px' : '16px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: isMobileDevice ? '2px' : '4px', fontWeight: 500, fontSize: isMobileDevice ? '13px' : '14px' }}>
                               <LocationIcon style={{ width: '14px', height: '14px', color: colors.secondary.gray600 }} />
                               Destino
                             </label>
@@ -1878,7 +1849,7 @@ export default function Home() {
                           <div style={{ 
                             display: 'flex', 
                             flexDirection: isMobileDevice ? 'column' : 'row',
-                            gap: isMobileDevice ? '16px' : '12px', 
+                            gap: isMobileDevice ? '12px' : '12px', 
                             marginBottom: '16px' 
                           }}>
                             <div style={{ flex: 1 }}>
@@ -1975,9 +1946,9 @@ export default function Home() {
                       {getCurrentService()?.serviceType === 'carros' && (
                         <>
                           {/* Local de Retirada e Entrega */}
-                          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', gap: isMobileDevice ? '8px' : '12px', marginBottom: isMobileDevice ? '12px' : '16px' }}>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Local de Retirada</label>
+                              <label style={{ display: 'block', marginBottom: isMobileDevice ? '2px' : '4px', fontWeight: 500, fontSize: isMobileDevice ? '13px' : '14px' }}>Local de Retirada</label>
                               <CityAutocomplete
                                 value={getCurrentService()?.localRetirada || ''}
                                 onChange={(value: any) => updateCurrentService({ localRetirada: value })}
@@ -1988,7 +1959,7 @@ export default function Home() {
                               />
                             </div>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Local de Entrega</label>
+                              <label style={{ display: 'block', marginBottom: isMobileDevice ? '2px' : '4px', fontWeight: 500, fontSize: isMobileDevice ? '13px' : '14px' }}>Local de Entrega</label>
                               <CityAutocomplete
                                 value={
                                   (() => {
@@ -2008,9 +1979,9 @@ export default function Home() {
                           </div>
                           
                           {/* Data e Hora de Retirada */}
-                          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', gap: isMobileDevice ? '8px' : '12px', marginBottom: isMobileDevice ? '12px' : '16px' }}>
                             <div style={{ flex: 1 }}>
-                              <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Data de Retirada</label>
+                              <label style={{ display: 'block', marginBottom: isMobileDevice ? '2px' : '4px', fontWeight: 500, fontSize: isMobileDevice ? '13px' : '14px' }}>Data de Retirada</label>
                               <DatePicker
                                 value={getCurrentService()?.dataRetirada || ''}
                                 onChange={value => updateCurrentService({ dataRetirada: value })}
@@ -2377,16 +2348,16 @@ export default function Home() {
                         </div>
                         
                         <div style={{ flex: 1, position: 'relative' }}>
-                          <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Passageiros</label>
+                          <label style={{ display: 'block', marginBottom: '2px', fontWeight: 500, fontSize: '13px' }}>Passageiros</label>
                           <div
                             data-passengers-trigger
                             style={{
                               width: '100%',
-                              padding: '10px 12px',
+                              padding: isMobileDevice ? '8px 10px' : '10px 12px',
                               border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
+                              borderRadius: '6px',
                               background: '#ffffff',
-                              fontSize: '14px',
+                              fontSize: isMobileDevice ? '13px' : '14px',
                               cursor: 'pointer',
                               fontWeight: '500',
                               transition: 'all 0.2s ease',
@@ -2415,10 +2386,10 @@ export default function Home() {
                               {(getCurrentService()?.criancas || 0) > 0 && `, ${getCurrentService()?.criancas} Criança${getCurrentService()?.criancas > 1 ? 's' : ''}`}
                               {(getCurrentService()?.bebes || 0) > 0 && `, ${getCurrentService()?.bebes} Bebê${getCurrentService()?.bebes > 1 ? 's' : ''}`}
                             </span>
-                            <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>▼</span>
+                            <span style={{ fontSize: '11px', color: colors.secondary.gray600 }}>▼</span>
                           </div>
                           
-                          {/* Dropdown Panel */}
+                          {/* Compact Dropdown Panel */}
                           <div
                             id="passengers-dropdown"
                             style={{
@@ -2427,19 +2398,19 @@ export default function Home() {
                               left: 0,
                               right: 0,
                               background: '#ffffff',
-                              border: '2px solid #e5e7eb',
+                              border: '1px solid #d1d5db',
                               borderTop: 'none',
-                              borderRadius: '0 0 8px 8px',
-                              padding: '12px',
+                              borderRadius: '0 0 6px 6px',
+                              padding: isMobileDevice ? '6px' : '8px',
                               display: 'none',
                               zIndex: 1000,
-                              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)'
                             }}
                           >
-                            {/* Adultos */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Adultos</span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {/* Compact Adultos */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobileDevice ? '4px' : '6px' }}>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700, fontSize: isMobileDevice ? '12px' : '13px' }}>Adultos</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '4px' : '6px' }}>
                                 <button
                                   type="button"
                                   onClick={(e: React.MouseEvent) => {
@@ -2450,10 +2421,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2461,7 +2439,7 @@ export default function Home() {
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600', fontSize: '16px' }}>
+                                <span style={{ minWidth: isMobileDevice ? '16px' : '18px', textAlign: 'center', fontWeight: '600', fontSize: isMobileDevice ? '13px' : '14px' }}>
                                   {getCurrentService()?.adultos || 1}
                                 </span>
                                 <button
@@ -2474,10 +2452,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2488,10 +2473,12 @@ export default function Home() {
                               </div>
                             </div>
                             
-                            {/* Crianças */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Crianças <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>(2-11 anos)</span></span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {/* Compact Crianças */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobileDevice ? '4px' : '6px' }}>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700, fontSize: isMobileDevice ? '12px' : '13px' }}>
+                                Crianças <span style={{ fontSize: isMobileDevice ? '10px' : '11px', color: colors.secondary.gray600 }}>(2-11)</span>
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '4px' : '6px' }}>
                                 <button
                                   type="button"
                                   onClick={(e: React.MouseEvent) => {
@@ -2502,10 +2489,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2513,7 +2507,7 @@ export default function Home() {
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600', fontSize: '16px' }}>
+                                <span style={{ minWidth: isMobileDevice ? '16px' : '18px', textAlign: 'center', fontWeight: '600', fontSize: isMobileDevice ? '13px' : '14px' }}>
                                   {getCurrentService()?.criancas || 0}
                                 </span>
                                 <button
@@ -2526,10 +2520,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2540,10 +2541,12 @@ export default function Home() {
                               </div>
                             </div>
                             
-                            {/* Bebês */}
+                            {/* Compact Bebês */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontWeight: '500', color: colors.secondary.gray700 }}>Bebês <span style={{ fontSize: '12px', color: colors.secondary.gray600 }}>(até 2 anos)</span></span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontWeight: '500', color: colors.secondary.gray700, fontSize: isMobileDevice ? '12px' : '13px' }}>
+                                Bebês <span style={{ fontSize: isMobileDevice ? '10px' : '11px', color: colors.secondary.gray600 }}>(até 2)</span>
+                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '4px' : '6px' }}>
                                 <button
                                   type="button"
                                   onClick={(e: React.MouseEvent) => {
@@ -2554,10 +2557,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2565,7 +2575,7 @@ export default function Home() {
                                 >
                                   −
                                 </button>
-                                <span style={{ minWidth: '20px', textAlign: 'center', fontWeight: '600', fontSize: '16px' }}>
+                                <span style={{ minWidth: isMobileDevice ? '16px' : '18px', textAlign: 'center', fontWeight: '600', fontSize: isMobileDevice ? '13px' : '14px' }}>
                                   {getCurrentService()?.bebes || 0}
                                 </span>
                                 <button
@@ -2578,10 +2588,17 @@ export default function Home() {
                                     }
                                   }}
                                   style={{
-                                    width: '24px', height: '24px', borderRadius: '4px',
-                                    border: '1px solid #d1d5db', background: colors.primary.gray50,
-                                    cursor: 'pointer', fontSize: '14px', fontWeight: 'bold',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: isMobileDevice ? '20px' : '22px', 
+                                    height: isMobileDevice ? '20px' : '22px', 
+                                    borderRadius: '3px',
+                                    border: '1px solid #d1d5db', 
+                                    background: colors.primary.gray50,
+                                    cursor: 'pointer', 
+                                    fontSize: isMobileDevice ? '12px' : '13px', 
+                                    fontWeight: 'bold',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
                                     transition: 'all 0.2s ease'
                                   }}
                                   onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
@@ -2965,13 +2982,13 @@ export default function Home() {
                           type="submit" 
                           disabled={isSubmitting}
                           style={{ 
-                            padding: isMobileDevice ? '14px 20px' : '12px 24px',
+                            padding: isMobileDevice ? '12px 16px' : '12px 24px',
                             background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: isMobileDevice ? '10px' : '12px',
+                            borderRadius: isMobileDevice ? '8px' : '12px',
                             cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                            fontSize: isMobileDevice ? '14px' : '16px',
+                            fontSize: isMobileDevice ? '13px' : '16px',
                             fontWeight: '600',
                             transition: 'all 0.3s ease',
                             boxShadow: !isSubmitting ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
@@ -3008,11 +3025,11 @@ export default function Home() {
           }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
               <h2 style={{
-                fontSize: isMobileDevice ? '24px' : '56px',
+                fontSize: isMobileDevice ? '18px' : '56px',
                 fontWeight: '800',
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
-                margin: isMobileDevice ? '0 0 16px 0' : '0 0 24px 0',
+                margin: isMobileDevice ? '0 0 12px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
                 lineHeight: '1.3'
               }}>
@@ -3505,12 +3522,16 @@ export default function Home() {
             </div>
           </div>
         </section>
-        </div> {/* Close social-proof div */}
+        </div>
+        {/* Close social-proof div */}
         </main>
+        </div>
+        {/* Close desktop-content-container div */}
 
         {/* Success Toast */}
         <div className="success-toast-hidden">
-          <div className="success-toast-content"
+          <div 
+            className="success-toast-content"
             style={{
             position: 'fixed',
             top: '24px',
@@ -3569,28 +3590,28 @@ export default function Home() {
 
         {/* Floating Chat Buttons */}
         <FloatingChat />
-        </div> {/* Close desktop-content div */}
-
+        
         {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
         <div className="lead-capture-mobile-visible">
-          <LeadCaptureSimple
-            isOpen={showLeadCapture}
-            onClose={() => {
-              console.log('🔒 Closing premium form');
-              setShowLeadCapture(false);
-            }}
-            context="mobile-app"
-          />
+          {showLeadCapture && (
+            <LeadCaptureSimple
+              isOpen={showLeadCapture}
+              onClose={() => {
+                console.log('🔒 Closing premium form');
+                setShowLeadCapture(false);
+              }}
+              context="mobile-app"
+            />
+          )}
         </div> {/* Close lead-capture-mobile div */}
 
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={60} />
-      </div>
-      
-      {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
-      <div className="desktop-footer-visible">
-        <LiveSiteFooter />
-      </div>
+        
+        {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
+        <div className="desktop-footer-visible">
+          <LiveSiteFooter />
+        </div>
     </>
   );
 }

@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "protocol_name": "AI_Development_Team_Communication",
+  "message_format": {
+    "header": {
+      "from_agent": "string",
+      "to_agent": "string|array", 
+      "message_type": "task|update|escalation|completion|error",
+      "priority": "low|medium|high|critical",
+      "timestamp": "ISO8601",
+      "correlation_id": "uuid"
+    },
+    "payload": {
+      "task_description": "string",
+      "context": "object",
+      "files_involved": "array",
+      "dependencies": "array",
+      "expected_output": "object",
+      "quality_criteria": "object"
+    }
+  },
+  "handoff_rules": {
+    "quality_gates": [
+      "code_review_passed",
+      "tests_passed", 
+      "security_scan_passed",
+      "performance_criteria_met",
+      "documentation_updated"
+    ],
+    "escalation_triggers": [
+      "task_timeout",
+      "quality_failure",
+      "dependency_blocker",
+      "resource_constraint"
+    ]
+  },
+  "agent_coordination": {
+    "parallel_execution": {
+      "frontend_backend": "allowed",
+      "testing_code_review": "sequential",
+      "docs_research": "allowed"
+    },
+    "conflict_resolution": "orchestrator_decides",
+    "resource_sharing": "queue_based"
+  }
+}

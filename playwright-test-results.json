@@ -1,0 +1,35 @@
+{
+  "serverStatus": "running",
+  "pageLoadStatus": "success",
+  "screenshots": [
+    "fly2any-homepage-2025-08-24T12-05-10-930Z.png",
+    "fly2any-viewport-2025-08-24T12-05-10-930Z.png"
+  ],
+  "elements": {
+    "Page Title/Header": "✅ Found 1 element(s)",
+    "Search Form": "❌ Not found",
+    "Input Fields": "✅ Found 3 element(s)",
+    "Buttons": "✅ Found 4 element(s)",
+    "Popular Flight Deals Section": "✅ Found 1 element(s)",
+    "Flight Cards": "✅ Found 3 element(s)",
+    "Navigation": "❌ Not found",
+    "Footer": "❌ Not found"
+  },
+  "consoleLogs": [
+    "warning: cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation"
+  ],
+  "pageErrors": [],
+  "performance": {
+    "pageLoadTime": 1658,
+    "domContentLoaded": null,
+    "loadComplete": null,
+    "firstPaint": 1860,
+    "firstContentfulPaint": 1860
+  },
+  "testsPassed": 8,
+  "testsFailed": 3,
+  "timestamp": "2025-08-24T12:05:08.669Z",
+  "title": "Fly2Any - Flight Search",
+  "url": "http://localhost:3001/",
+  "overallStatus": "partial_success"
+}

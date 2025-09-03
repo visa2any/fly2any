@@ -277,7 +277,7 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
           <div className="flex items-center">
             {/* Original Fly2Any Logo */}
             <img 
-              src="/fly2any-logo.png" 
+              src="/fly2any-logo.svg" 
               alt="Fly2Any" 
               className="w-12 h-12 md:w-14 md:h-14 rounded-lg"
               style={{ 

@@ -186,6 +186,27 @@ export interface FlightSegment {
   departureDate: Date;
 }
 
+export interface ContactInformation {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  countryCode: string;
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+}
+
+export interface TravelNotes {
+  specialRequests: string;
+  dietaryRestrictions: string;
+  mobilityAssistance: boolean;
+  seatPreference: 'window' | 'aisle' | 'middle' | 'no-preference';
+  additionalNotes: string;
+}
+
 export interface FlightSearchFormData {
   tripType: 'round-trip' | 'one-way' | 'multi-city';
   origin: AirportSelection | null;
@@ -196,6 +217,8 @@ export interface FlightSearchFormData {
   passengers: PassengerCounts;
   travelClass: TravelClass;
   preferences: SearchPreferences;
+  contactInfo?: ContactInformation;
+  travelNotes?: TravelNotes;
 }
 
 export interface AirportSelection {

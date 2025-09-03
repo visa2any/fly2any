@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Form Layout Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .flight-form {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af, #3730a3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flight-form">
+    <!-- Trust Signals Bar -->
+    <div class="bg-black/20 backdrop-blur-sm border-b border-white/10 py-3">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-wrap justify-center gap-8 text-sm font-medium">
+                <div class="flex items-center gap-2 text-yellow-400">
+                    <span class="text-base">🏆</span>
+                    <span>2M+ Travelers Trust Us</span>
+                </div>
+                <div class="flex items-center gap-2 text-green-400">
+                    <span class="text-base">💰</span>
+                    <span>Save Up to 60%</span>
+                </div>
+                <div class="flex items-center gap-2 text-blue-400">
+                    <span class="text-base">⚡</span>
+                    <span>Sub-1 Second Search</span>
+                </div>
+                <div class="flex items-center gap-2 text-purple-400">
+                    <span class="text-base">🔒</span>
+                    <span>Price Match Guarantee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="flex-1 flex flex-col justify-center px-4 py-12">
+        <div class="max-w-7xl mx-auto text-center">
+            
+            <!-- Main Headline -->
+            <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white mb-4 sm:mb-6 leading-tight font-sans">
+                Find Flights That
+                <span class="block bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+                    Don't Break the Bank
+                </span>
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="text-lg sm:text-xl md:text-2xl text-white/90 mb-3 sm:mb-4 max-w-4xl mx-auto font-medium px-4">
+                AI-powered search across 500+ airlines. Compare prices instantly and save up to 60% vs other booking sites.
+            </p>
+
+            <!-- Competitive Advantage -->
+            <div class="text-sm sm:text-lg text-green-400 font-semibold mb-8 sm:mb-12 px-4">
+                <div class="hidden sm:block">⚡ 3x faster than Kayak • 💰 Better prices than Expedia • 🎯 More options than Booking.com</div>
+                <div class="sm:hidden text-center">
+                    <div>⚡ 3x faster than Kayak</div>
+                    <div>💰 Better prices than Expedia</div>
+                    <div>🎯 More options than Booking.com</div>
+                </div>
+            </div>
+
+            <!-- Flight Search Form -->
+            <div class="w-full max-w-none mx-auto px-4">
+                <div class="bg-transparent p-8 w-full max-w-none mx-auto">
+                    <!-- Trip Type Selector -->
+                    <div class="flex gap-2 mb-6">
+                        <button class="px-4 py-2 rounded-full text-sm font-medium bg-white/25 backdrop-blur-md text-white shadow-md border border-white/40">
+                            Round-trip
+                        </button>
+                        <button class="px-4 py-2 rounded-full text-sm font-medium text-white/80 hover:bg-white/10 border border-white/20">
+                            One-way
+                        </button>
+                        <button class="px-4 py-2 rounded-full text-sm font-medium text-white/80 hover:bg-white/10 border border-white/20">
+                            Multi-city
+                        </button>
+                    </div>
+
+                    <!-- Single Row Form - Full Width -->
+                    <div class="flex flex-col md:flex-row gap-4 w-full items-end">
+                        
+                        <!-- From Field - 25% width -->
+                        <div class="w-full md:flex-1 md:max-w-[25%]">
+                            <label class="block text-sm font-bold text-white/90 mb-3">From</label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    value="New York (JFK)"
+                                    placeholder="Departure city"
+                                    class="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white placeholder-white/60 shadow-lg hover:bg-white/20"
+                                />
+                                <div class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/60">✈️</div>
+                            </div>
+                        </div>
+
+                        <!-- To Field - 25% width -->
+                        <div class="w-full md:flex-1 md:max-w-[25%]">
+                            <label class="block text-sm font-bold text-white/90 mb-3">To</label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    value="Los Angeles (LAX)"
+                                    placeholder="Destination city"
+                                    class="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white placeholder-white/60 shadow-lg hover:bg-white/20"
+                                />
+                                <div class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/60 rotate-45">✈️</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Departure Date - 15% width -->
+                        <div class="w-full md:flex-1 md:max-w-[15%]">
+                            <label class="block text-sm font-bold text-white/90 mb-3">Departure</label>
+                            <div class="relative">
+                                <input
+                                    type="date"
+                                    value="2025-08-27"
+                                    class="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white shadow-lg hover:bg-white/20"
+                                />
+                                <div class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/60">📅</div>
+                            </div>
+                        </div>
+
+                        <!-- Return Date - 15% width -->
+                        <div class="w-full md:flex-1 md:max-w-[15%]">
+                            <label class="block text-sm font-bold text-white/90 mb-3">Return</label>
+                            <div class="relative">
+                                <input
+                                    type="date"
+                                    value="2025-09-03"
+                                    class="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-white shadow-lg hover:bg-white/20"
+                                />
+                                <div class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/60">📅</div>
+                            </div>
+                        </div>
+
+                        <!-- Passengers - 12% width -->
+                        <div class="w-full md:flex-1 md:max-w-[12%]">
+                            <label class="block text-sm font-bold text-white/90 mb-3">Passengers</label>
+                            <div class="relative">
+                                <button
+                                    type="button"
+                                    class="w-full pl-14 pr-4 py-5 text-lg font-semibold bg-white/15 backdrop-blur-md border-2 border-white/30 rounded-2xl focus:border-white/50 focus:outline-none transition-all text-left text-white shadow-lg hover:bg-white/20"
+                                >
+                                    1 passenger
+                                </button>
+                                <div class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white/60">👥</div>
+                            </div>
+                        </div>
+
+                        <!-- Search Button - 8% width -->
+                        <div class="w-full md:flex-1 md:max-w-[8%]">
+                            <button
+                                type="submit"
+                                class="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black py-5 px-6 rounded-2xl text-lg transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105 min-h-[68px]"
+                            >
+                                <span class="hidden sm:inline">SEARCH</span>
+                                <span class="sm:hidden">🔍</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

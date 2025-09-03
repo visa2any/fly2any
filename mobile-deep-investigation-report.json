@@ -1,0 +1,187 @@
+{
+  "summary": {
+    "workingBreakpoints": [
+      1024,
+      1280
+    ],
+    "failingBreakpoints": [
+      320,
+      360,
+      390,
+      393
+    ],
+    "criticalBreakpoint": {
+      "min": 393,
+      "max": 1024,
+      "description": "Site breaks between 393px and 1024px width"
+    }
+  },
+  "details": [
+    {
+      "viewport": {
+        "name": "iPhone SE (Ultra Small)",
+        "width": 320,
+        "height": 568
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Oops! Something went wrong\n\nWe encountered an error while processing your request.\n\nTry again",
+        "hasMainContent": false,
+        "hasNavigation": false,
+        "hasFlightForm": false,
+        "hasErrorMessage": true,
+        "actualHeight": 284,
+        "actualWidth": 320,
+        "visibleElements": 62,
+        "headElements": 70
+      },
+      "networkRequests": 30,
+      "consoleErrors": [
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389",
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-320x568.png",
+      "working": false
+    },
+    {
+      "viewport": {
+        "name": "iPhone 12 Mini",
+        "width": 360,
+        "height": 640
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Oops! Something went wrong\n\nWe encountered an error while processing your request.\n\nTry again",
+        "hasMainContent": false,
+        "hasNavigation": false,
+        "hasFlightForm": false,
+        "hasErrorMessage": true,
+        "actualHeight": 320,
+        "actualWidth": 360,
+        "visibleElements": 62,
+        "headElements": 70
+      },
+      "networkRequests": 30,
+      "consoleErrors": [
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389",
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-360x640.png",
+      "working": false
+    },
+    {
+      "viewport": {
+        "name": "iPhone 12",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Oops! Something went wrong\n\nWe encountered an error while processing your request.\n\nTry again",
+        "hasMainContent": false,
+        "hasNavigation": false,
+        "hasFlightForm": false,
+        "hasErrorMessage": true,
+        "actualHeight": 422,
+        "actualWidth": 390,
+        "visibleElements": 62,
+        "headElements": 70
+      },
+      "networkRequests": 30,
+      "consoleErrors": [
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389",
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-390x844.png",
+      "working": false
+    },
+    {
+      "viewport": {
+        "name": "iPhone 12 Pro",
+        "width": 393,
+        "height": 852
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Oops! Something went wrong\n\nWe encountered an error while processing your request.\n\nTry again",
+        "hasMainContent": false,
+        "hasNavigation": false,
+        "hasFlightForm": false,
+        "hasErrorMessage": true,
+        "actualHeight": 426,
+        "actualWidth": 393,
+        "visibleElements": 62,
+        "headElements": 70
+      },
+      "networkRequests": 30,
+      "consoleErrors": [
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389",
+        "Error: Minified React error #310; visit https://react.dev/errors/310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.\n    at al (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:329547)\n    at Object.aK [as useMemo] (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:336750)\n    at t.useMemo (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:458044)\n    at https://www.fly2any.com/_next/static/chunks/7632-fba168b582ba877e.js:1:117608\n    at ae (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:328261)\n    at oA (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:347845)\n    at oP (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:346558)\n    at oX (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:362570)\n    at lb (https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391544)\n    at https://www.fly2any.com/_next/static/chunks/vendors-7849f414629254e1.js:18:391389"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-393x852.png",
+      "working": false
+    },
+    {
+      "viewport": {
+        "name": "Samsung Galaxy S21",
+        "width": 1280,
+        "height": 720
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Início\nComo Funciona\nBlog\nFAQ\nSobre Nós\nContato\n🇧🇷 PT\nMaria S. de Orlando\nReservou São Paulo • $347\nhá 2 min atrás\n✕\nFly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!\n\nConectando americanos, bra",
+        "hasMainContent": true,
+        "hasNavigation": true,
+        "hasFlightForm": true,
+        "hasErrorMessage": false,
+        "actualHeight": 4288,
+        "actualWidth": 1265,
+        "visibleElements": 361,
+        "headElements": 70
+      },
+      "networkRequests": 42,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-1280x720.png",
+      "working": true
+    },
+    {
+      "viewport": {
+        "name": "Desktop Minimum",
+        "width": 1024,
+        "height": 768
+      },
+      "status": 200,
+      "pageContent": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "bodyText": "Início\nComo Funciona\nBlog\nFAQ\nSobre Nós\nContato\n🇧🇷 PT\nMaria S. de Orlando\nReservou São Paulo • $347\nhá 2 min atrás\n✕\nFly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!\n\nConectando americanos, bra",
+        "hasMainContent": true,
+        "hasNavigation": true,
+        "hasFlightForm": true,
+        "hasErrorMessage": false,
+        "actualHeight": 4678,
+        "actualWidth": 1009,
+        "visibleElements": 361,
+        "headElements": 63
+      },
+      "networkRequests": 42,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "jsErrors": [],
+      "screenshot": "/mnt/d/Users/vilma/fly2any/mobile-deep-1024x768.png",
+      "working": true
+    }
+  ]
+}

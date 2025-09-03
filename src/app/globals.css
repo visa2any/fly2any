@@ -5,6 +5,43 @@
 /* React Day Picker CSS */
 @import 'react-day-picker/dist/style.css';
 
+/* Modern 2025 Mobile Design System */
+@layer base {
+  :root {
+    /* Enhanced color variables for better consistency */
+    --primary: 14 165 233; /* Sky Blue */
+    --accent: 249 115 22; /* Orange */
+    --neutral: 115 115 115; /* Gray */
+    --success: 34 197 94; /* Green */
+    --warning: 245 158 11; /* Amber */
+    
+    /* Neumorphic shadow variables */
+    --shadow-neu-light: 255 255 255;
+    --shadow-neu-dark: 0 0 0;
+  }
+}
+
+@layer utilities {
+  /* Modern glassmorphism effects */
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg;
+  }
+  
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-lg;
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Enhanced focus states for accessibility */
+  .focus-modern {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2;
+  }
+}
+
 /* Mobile/Desktop Content Control - Media Query Based */
 .mobile-layout-visible {
   display: none;
@@ -25,8 +62,30 @@
   display: none;
 }
 
-/* Responsive behavior using media queries */
-@media (max-width: 768px) {
+/* CRITICAL MOBILE DETECTION FIX - CSS Media Query Control */
+.mobile-app-container {
+  display: none; /* Hidden by default on desktop */
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.desktop-content-container {
+  display: block; /* Visible by default on desktop */
+}
+
+/* Responsive behavior using media queries - Mobile first approach */
+@media (max-width: 767px) {
+  /* Mobile devices: Show mobile app, hide desktop content */
+  .mobile-app-container {
+    display: block !important;
+  }
+  
+  .desktop-content-container {
+    display: none !important;
+  }
+  
   .mobile-layout-visible {
     display: block !important;
   }
@@ -41,6 +100,42 @@
   
   .desktop-content-hidden {
     display: block !important;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Desktop devices: Hide mobile app, show desktop content */
+  .mobile-app-container {
+    display: none !important;
+  }
+  
+  .desktop-content-container {
+    display: block !important;
+  }
+  
+  /* ULTRATHINK: Restore scrollbars on desktop for accessibility */
+  * {
+    scrollbar-width: thin; /* Firefox - thin scrollbar */
+    -ms-overflow-style: auto; /* IE/Edge - show scrollbar */
+  }
+  
+  *::-webkit-scrollbar {
+    display: block; /* Chrome, Safari, Opera - show scrollbar */
+    width: 8px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
 }
 
@@ -75,6 +170,38 @@
 
 .features-section-hidden {
   display: none;
+}
+
+/* ULTRATHINK: Hydration-Safe Mobile Navigation Positioning */
+@layer utilities {
+  /* Safe area aware step navigation positioning */
+  .mobile-step-nav-position {
+    top: env(safe-area-inset-top, 0px);
+    margin-top: 48px;
+  }
+  
+  /* Safe area aware form content spacing */
+  .mobile-form-content-spacing {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: calc(env(safe-area-inset-top, 0px) + 108px);
+  }
+  
+  /* Enhanced safe area support for bottom elements */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Mobile-specific hydration-safe styles */
+@media (max-width: 767px) {
+  .mobile-step-nav-position {
+    top: env(safe-area-inset-top, 0px);
+    margin-top: 48px;
+  }
+  
+  .mobile-form-content-spacing {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 108px);
+  }
 }
 
 .social-proof-visible {
@@ -1011,5 +1138,21 @@
 
   .mobile-button-stack > * {
     width: 100%;
+  }
+  
+  /* ULTRATHINK: Hide scrollbars on mobile devices (touch screen) while preserving ALL functionality */
+  /* Mobile-first approach: hide scrollbars on mobile, keep on desktop for accessibility */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* Ensure touch scrolling works perfectly on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 }

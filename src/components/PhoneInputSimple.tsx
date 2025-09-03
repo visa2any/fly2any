@@ -154,7 +154,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
               border: '1px solid #d1d5db',
               borderRadius: '8px',
               boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              zIndex: 1000,
+              zIndex: 9999,
               maxHeight: '240px',
               overflowY: 'auto',
               marginTop: '4px'

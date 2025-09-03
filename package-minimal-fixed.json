@@ -1,0 +1,18 @@
+{
+  "name": "fly2any",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "15.4.7",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  }
+}

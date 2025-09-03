@@ -1,0 +1,3 @@
+@echo off
+echo Starting Fly2Any Development Server...
+node node_modules\next\dist\bin\next dev

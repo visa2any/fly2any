@@ -63,28 +63,28 @@ export default function LiveSiteHeader() {
         </div>
       </div>
 
-      {/* Ultra-Compact Mobile Header */}
-      <div className="md:hidden bg-gradient-to-r from-purple-600 to-indigo-700">
-        <div className="flex items-center justify-between px-4 py-1" style={{ height: '32px' }}>
-          {/* Compact Logo */}
+      {/* PROMINENT Mobile Header - Main Fly2Any Branding */}
+      <div className="md:hidden bg-gradient-to-r from-purple-600 to-indigo-700 shadow-lg relative z-50">
+        <div className="flex items-center justify-between px-4 py-3" style={{ minHeight: '56px' }}>
+          {/* Main Logo - More Prominent */}
           <Link href="/" className="flex items-center">
             <Image
               src="/fly2any-logo.png"
               alt="Fly2Any"
-              width={80}
-              height={24}
-              className="h-6 w-auto"
+              width={120}
+              height={36}
+              className="h-8 w-auto"
               priority
             />
           </Link>
 
-          {/* Micro Actions */}
-          <div className="flex items-center gap-2">
-            <button className="text-white/80 hover:text-white text-xs">
-              🇧🇷
+          {/* Action Buttons - Better Visibility */}
+          <div className="flex items-center gap-3">
+            <button className="text-white hover:text-purple-200 text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/10 transition-all">
+              🇧🇷 PT
             </button>
-            <button className="text-white/80 hover:text-white p-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="text-white hover:text-purple-200 p-2 rounded-lg hover:bg-white/10 transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>

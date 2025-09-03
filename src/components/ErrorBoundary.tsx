@@ -87,6 +87,23 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
+
+    // Enhanced page-level logging for RSC-compliant architecture
+    if (this.props.level === 'page') {
+      console.error('🚨 Page-level error caught by ErrorBoundary:', {
+        message: error.message,
+        componentStack: errorInfo.componentStack 
+          ? errorInfo.componentStack.split('\n').slice(0, 3).join('\n')
+          : 'Component stack not available',
+        timestamp: new Date().toISOString(),
+        level: this.props.level
+      });
+      
+      // TODO: Send critical errors to monitoring service in production
+      // if (process.env.NODE_ENV === 'production') {
+      //   sendToMonitoringService({ error, errorInfo, level: 'page' });
+      // }
+    }
   }
 
   private handleRetry = (): void => {

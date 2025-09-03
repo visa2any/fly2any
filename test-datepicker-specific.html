@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DatePicker Debug Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-container {
+            border: 2px solid #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .fixed-portal {
+            position: fixed;
+            top: 100px;
+            left: 100px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 99999;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .calendar-day {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>DatePicker Debug Test</h1>
+    
+    <div class="test-container">
+        <h2>Test 1: Basic Portal Creation</h2>
+        <button onclick="testBasicPortal()">Create Basic Portal</button>
+        <div id="portal-status"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test 2: DatePicker Input Simulation</h2>
+        <input 
+            type="text" 
+            class="input-field" 
+            placeholder="Click to open calendar"
+            onclick="testDatePickerSimulation()"
+            readonly
+        />
+        <div id="datepicker-status"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test 3: Z-Index and Positioning</h2>
+        <button onclick="testZIndexIssues()">Test Z-Index Conflicts</button>
+        <div id="zindex-status"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test 4: React createPortal</h2>
+        <div id="react-portal-test"></div>
+        <button onclick="testReactPortal()">Test React createPortal</button>
+    </div>
+
+    <script>
+        let portalCount = 0;
+
+        function testBasicPortal() {
+            const portal = document.createElement('div');
+            portal.className = 'fixed-portal';
+            portal.innerHTML = `
+                <h3>Basic Portal Test ${++portalCount}</h3>
+                <p>This should appear as a fixed overlay</p>
+                <button onclick="this.parentElement.remove()">Close</button>
+            `;
+            document.body.appendChild(portal);
+            
+            document.getElementById('portal-status').innerHTML = 
+                `✅ Portal ${portalCount} created successfully`;
+        }
+
+        function testDatePickerSimulation() {
+            // Remove existing calendar if any
+            const existing = document.getElementById('test-calendar');
+            if (existing) existing.remove();
+
+            const calendar = document.createElement('div');
+            calendar.id = 'test-calendar';
+            calendar.className = 'fixed-portal';
+            calendar.style.top = '200px';
+            calendar.style.left = '200px';
+            
+            calendar.innerHTML = `
+                <h3>Test Calendar</h3>
+                <div class="calendar-grid">
+                    ${Array.from({length: 35}, (_, i) => 
+                        `<div class="calendar-day">${i + 1}</div>`
+                    ).join('')}
+                </div>
+                <button onclick="this.parentElement.remove()">Close Calendar</button>
+            `;
+            
+            document.body.appendChild(calendar);
+            document.getElementById('datepicker-status').innerHTML = 
+                '✅ Calendar simulation created';
+        }
+
+        function testZIndexIssues() {
+            // Create multiple overlays with different z-indexes
+            const indexes = [1000, 10000, 50000, 99999];
+            
+            indexes.forEach((zIndex, i) => {
+                const overlay = document.createElement('div');
+                overlay.style = `
+                    position: fixed;
+                    top: ${50 + i * 60}px;
+                    left: 300px;
+                    background: hsl(${i * 90}, 70%, 50%);
+                    color: white;
+                    padding: 10px;
+                    z-index: ${zIndex};
+                    border-radius: 4px;
+                `;
+                overlay.innerHTML = `Z-Index: ${zIndex}`;
+                overlay.onclick = () => overlay.remove();
+                document.body.appendChild(overlay);
+            });
+            
+            document.getElementById('zindex-status').innerHTML = 
+                '✅ Z-index test overlays created (click to remove)';
+        }
+
+        function testReactPortal() {
+            const { useState, useEffect } = React;
+            const { createPortal } = ReactDOM;
+
+            function TestPortalComponent() {
+                const [showPortal, setShowPortal] = useState(false);
+
+                const portalContent = showPortal ? createPortal(
+                    React.createElement('div', {
+                        className: 'fixed-portal',
+                        style: { top: '300px', left: '400px' }
+                    }, [
+                        React.createElement('h3', { key: 'title' }, 'React Portal Test'),
+                        React.createElement('p', { key: 'desc' }, 'This is a React createPortal test'),
+                        React.createElement('button', {
+                            key: 'close',
+                            onClick: () => setShowPortal(false)
+                        }, 'Close Portal')
+                    ]),
+                    document.body
+                ) : null;
+
+                return React.createElement('div', null, [
+                    React.createElement('button', {
+                        key: 'toggle',
+                        onClick: () => setShowPortal(!showPortal)
+                    }, showPortal ? 'Hide Portal' : 'Show Portal'),
+                    portalContent
+                ]);
+            }
+
+            const container = document.getElementById('react-portal-test');
+            const root = ReactDOM.createRoot(container);
+            root.render(React.createElement(TestPortalComponent));
+        }
+
+        // Auto-run basic diagnostics
+        window.addEventListener('load', () => {
+            console.log('🔍 DatePicker Debug Page Loaded');
+            console.log('✅ React available:', typeof React !== 'undefined');
+            console.log('✅ ReactDOM available:', typeof ReactDOM !== 'undefined');
+            console.log('✅ createPortal available:', typeof ReactDOM.createPortal !== 'undefined');
+        });
+    </script>
+</body>
+</html>

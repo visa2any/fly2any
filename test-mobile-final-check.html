@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Form Visibility Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .checklist li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #28a745;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .status h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            color: #856404;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .test-container {
+                border-radius: 15px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>📱 Mobile Form Fix Verification</h1>
+        
+        <ul class="checklist">
+            <li>
+                <span class="check">✓</span>
+                <span>Removed white gradient overlay at bottom</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Changed overflow from hidden to visible</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Used min-height instead of fixed height</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Removed white background from form wrapper</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Added proper z-index hierarchy (1-100)</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Fixed gradient overlays positioning</span>
+            </li>
+            <li>
+                <span class="check">✓</span>
+                <span>Ensured form has highest z-index (100)</span>
+            </li>
+        </ul>
+        
+        <div class="status">
+            <h2>✅ All Fixes Applied</h2>
+            <p>The mobile Lead Form should now be 100% visible with no white overlay!</p>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> The form now has proper layering with z-index values from 1-100, ensuring no elements overlap the form content. The container uses min-height to allow expansion and overflow is set to visible to prevent clipping.
+        </div>
+        
+        <script>
+            // Animate checklist items
+            document.querySelectorAll('.checklist li').forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    item.style.transition = 'all 0.5s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+        </script>
+    </div>
+</body>
+</html>

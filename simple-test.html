@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React 19 Webpack Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    .status {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .success { background: rgba(76, 175, 80, 0.3); border: 2px solid #4CAF50; }
+    .error { background: rgba(244, 67, 54, 0.3); border: 2px solid #F44336; }
+    .warning { background: rgba(255, 152, 0, 0.3); border: 2px solid #FF9800; }
+    .info { background: rgba(33, 150, 243, 0.3); border: 2px solid #2196F3; }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover { background: #45a049; }
+    .error-button { background: #F44336; }
+    .error-button:hover { background: #da190b; }
+    #console-output {
+      background: #1a1a1a;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 React 19 + Webpack originalFactory Error Analysis</h1>
+    
+    <div class="status info">
+      <strong>Test Environment:</strong> Standalone HTML for React 19 testing
+    </div>
+
+    <div class="test-section">
+      <h2>📦 React 19 Loading Test</h2>
+      <div id="react-status" class="status warning">Loading React 19...</div>
+      <div id="react-test-container"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>⚛️ Component Lifecycle Test</h2>
+      <div id="lifecycle-status" class="status warning">Preparing component tests...</div>
+      <div id="lifecycle-container"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔧 Webpack Error Simulation</h2>
+      <div id="webpack-status" class="status warning">Ready to test webpack scenarios...</div>
+      <div id="webpack-container">
+        <button onclick="simulateWebpackError()">Simulate originalFactory Error</button>
+        <button onclick="testModuleResolution()">Test Module Resolution</button>
+        <button onclick="triggerHMRError()" class="error-button">Trigger HMR Error</button>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>📊 Performance Analysis</h2>
+      <div id="performance-status" class="status warning">Analyzing performance...</div>
+      <div id="performance-container"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📋 Console Output</h2>
+      <div id="console-output"></div>
+    </div>
+  </div>
+
+  <!-- React 19 from CDN -->
+  <script src="https://unpkg.com/react@19/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@19/umd/react-dom.development.js"></script>
+  
+  <script>
+    // Console capture for debugging
+    const originalConsole = { ...console };
+    const consoleOutput = document.getElementById('console-output');
+    
+    function logToConsole(type, ...args) {
+      const timestamp = new Date().toISOString();
+      const message = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+      ).join(' ');
+      
+      consoleOutput.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+      
+      // Also log to real console
+      originalConsole[type](...args);
+    }
+    
+    ['log', 'error', 'warn', 'info'].forEach(method => {
+      console[method] = (...args) => logToConsole(method, ...args);
+    });
+
+    // React 19 Testing
+    function testReact19() {
+      console.log('🚀 Starting React 19 tests...');
+      
+      try {
+        if (typeof React === 'undefined') {
+          throw new Error('React is not loaded');
+        }
+        
+        console.log('✅ React version:', React.version);
+        document.getElementById('react-status').innerHTML = 
+          `<strong>✅ Success:</strong> React ${React.version} loaded successfully`;
+        document.getElementById('react-status').className = 'status success';
+        
+        // Test React component creation
+        const testElement = React.createElement('div', {
+          style: { padding: '10px', background: 'rgba(76, 175, 80, 0.2)', borderRadius: '5px' }
+        }, `React ${React.version} component rendered successfully! 🎉`);
+        
+        const container = document.getElementById('react-test-container');
+        const root = ReactDOM.createRoot(container);
+        root.render(testElement);
+        
+        console.log('✅ React component rendered successfully');
+        
+        // Test lifecycle
+        testComponentLifecycle();
+        
+      } catch (error) {
+        console.error('❌ React 19 test failed:', error);
+        document.getElementById('react-status').innerHTML = 
+          `<strong>❌ Error:</strong> ${error.message}`;
+        document.getElementById('react-status').className = 'status error';
+      }
+    }
+
+    function testComponentLifecycle() {
+      console.log('🔄 Testing component lifecycle...');
+      
+      try {
+        // Test component with state and effects
+        function TestComponent() {
+          const [count, setCount] = React.useState(0);
+          const [mounted, setMounted] = React.useState(false);
+          
+          React.useEffect(() => {
+            console.log('✅ useEffect fired - component mounted');
+            setMounted(true);
+            
+            return () => {
+              console.log('🧹 useEffect cleanup - component unmounting');
+            };
+          }, []);
+          
+          React.useEffect(() => {
+            console.log('📊 Count updated:', count);
+          }, [count]);
+          
+          return React.createElement('div', null,
+            React.createElement('h3', null, 'Lifecycle Test Component'),
+            React.createElement('p', null, `Count: ${count} | Mounted: ${mounted ? 'Yes' : 'No'}`),
+            React.createElement('button', {
+              onClick: () => setCount(c => c + 1),
+              style: { margin: '5px' }
+            }, 'Increment'),
+            React.createElement('button', {
+              onClick: () => setCount(0),
+              style: { margin: '5px', background: '#FF9800' }
+            }, 'Reset')
+          );
+        }
+        
+        const container = document.getElementById('lifecycle-container');
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(TestComponent));
+        
+        document.getElementById('lifecycle-status').innerHTML = 
+          '<strong>✅ Success:</strong> Component lifecycle test passed';
+        document.getElementById('lifecycle-status').className = 'status success';
+        
+        console.log('✅ Component lifecycle test completed');
+        
+      } catch (error) {
+        console.error('❌ Component lifecycle test failed:', error);
+        document.getElementById('lifecycle-status').innerHTML = 
+          `<strong>❌ Error:</strong> ${error.message}`;
+        document.getElementById('lifecycle-status').className = 'status error';
+      }
+    }
+
+    // Webpack Error Simulation
+    function simulateWebpackError() {
+      console.log('🧪 Simulating webpack originalFactory error...');
+      
+      try {
+        // Simulate the originalFactory undefined error
+        const mockModule = {
+          exports: {},
+          require: function(id) {
+            if (id === 'react') return React;
+            throw new Error(`Module not found: ${id}`);
+          }
+        };
+        
+        // This simulates the webpack module loading issue
+        const originalFactory = undefined; // This is the core issue
+        
+        if (!originalFactory) {
+          throw new Error("TypeError: can't access property 'call', originalFactory is undefined");
+        }
+        
+        originalFactory.call(mockModule.exports, mockModule, mockModule.exports, mockModule.require);
+        
+      } catch (error) {
+        console.error('❌ Webpack Error Simulated:', error.message);
+        document.getElementById('webpack-status').innerHTML = 
+          `<strong>🎯 Simulated Error:</strong> ${error.message}`;
+        document.getElementById('webpack-status').className = 'status error';
+        
+        // Provide analysis
+        setTimeout(() => {
+          console.log('📊 Analysis: This error occurs when webpack module factory is undefined');
+          console.log('💡 Common causes: HMR conflicts, React version mismatches, build configuration issues');
+          console.log('🔧 Solutions: Disable React Fast Refresh, update dependencies, check webpack config');
+        }, 1000);
+      }
+    }
+
+    function testModuleResolution() {
+      console.log('🔍 Testing module resolution...');
+      
+      try {
+        // Test different module loading scenarios
+        const tests = [
+          { name: 'React', module: window.React },
+          { name: 'ReactDOM', module: window.ReactDOM },
+          { name: 'undefined module', module: window.NonexistentModule }
+        ];
+        
+        tests.forEach(test => {
+          if (test.module) {
+            console.log(`✅ ${test.name} resolved successfully`);
+          } else {
+            console.warn(`⚠️ ${test.name} not resolved`);
+          }
+        });
+        
+        document.getElementById('webpack-status').innerHTML = 
+          '<strong>✅ Success:</strong> Module resolution test completed';
+        document.getElementById('webpack-status').className = 'status success';
+        
+      } catch (error) {
+        console.error('❌ Module resolution test failed:', error);
+      }
+    }
+
+    function triggerHMRError() {
+      console.log('🔥 Simulating HMR (Hot Module Replacement) error...');
+      
+      try {
+        // Simulate HMR update scenario that could cause originalFactory issues
+        if (typeof module !== 'undefined' && module.hot) {
+          module.hot.accept('./non-existent-module', () => {
+            console.log('HMR update accepted');
+          });
+        } else {
+          // Simulate the error condition
+          throw new Error('HMR: Module replacement failed - originalFactory is undefined during hot update');
+        }
+        
+      } catch (error) {
+        console.error('❌ HMR Error:', error.message);
+        console.log('💡 This type of error often occurs in Next.js development with React Fast Refresh');
+        console.log('🔧 Solution: Disable React Fast Refresh in next.config.js');
+      }
+    }
+
+    // Performance Analysis
+    function analyzePerformance() {
+      console.log('📊 Analyzing performance...');
+      
+      try {
+        const performanceData = {
+          userAgent: navigator.userAgent,
+          memoryUsage: window.performance.memory ? {
+            used: Math.round(window.performance.memory.usedJSHeapSize / 1024 / 1024) + ' MB',
+            total: Math.round(window.performance.memory.totalJSHeapSize / 1024 / 1024) + ' MB',
+            limit: Math.round(window.performance.memory.jsHeapSizeLimit / 1024 / 1024) + ' MB'
+          } : 'Not available',
+          timing: window.performance.timing ? {
+            domLoading: window.performance.timing.domLoading - window.performance.timing.navigationStart + ' ms',
+            domComplete: window.performance.timing.domComplete - window.performance.timing.navigationStart + ' ms'
+          } : 'Not available',
+          reactVersion: React.version,
+          reactDOMVersion: ReactDOM.version || 'Unknown'
+        };
+        
+        console.log('📊 Performance Data:', performanceData);
+        
+        document.getElementById('performance-container').innerHTML = `
+          <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+            <h4>Performance Metrics</h4>
+            <p><strong>Memory Usage:</strong> ${JSON.stringify(performanceData.memoryUsage, null, 2)}</p>
+            <p><strong>React Version:</strong> ${performanceData.reactVersion}</p>
+            <p><strong>Page Timing:</strong> ${JSON.stringify(performanceData.timing, null, 2)}</p>
+          </div>
+        `;
+        
+        document.getElementById('performance-status').innerHTML = 
+          '<strong>✅ Success:</strong> Performance analysis completed';
+        document.getElementById('performance-status').className = 'status success';
+        
+      } catch (error) {
+        console.error('❌ Performance analysis failed:', error);
+        document.getElementById('performance-status').innerHTML = 
+          `<strong>❌ Error:</strong> ${error.message}`;
+        document.getElementById('performance-status').className = 'status error';
+      }
+    }
+
+    // Initialize tests when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Page loaded, starting comprehensive tests...');
+      
+      setTimeout(() => {
+        testReact19();
+        analyzePerformance();
+      }, 500);
+    });
+
+    // Global error handler
+    window.addEventListener('error', (event) => {
+      console.error('🚨 Global Error:', event.error?.message || event.message);
+      console.error('📍 Source:', event.filename + ':' + event.lineno);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('🚨 Unhandled Promise Rejection:', event.reason);
+    });
+  </script>
+</body>
+</html>

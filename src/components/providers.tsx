@@ -18,21 +18,7 @@ function DevelopmentWrapper({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ErrorBoundary 
-      level="page" 
-      onError={(error, errorInfo) => {
-        // Log page-level errors with additional context
-        console.error('🚨 Page-level error caught by ErrorBoundary:', {
-          message: error.message,
-          componentStack: errorInfo.componentStack 
-            ? errorInfo.componentStack.split('\n').slice(0, 3).join('\n')
-            : 'Component stack not available'
-        });
-        
-        // TODO: Send critical errors to monitoring service
-        // if (process.env.NODE_ENV === 'production') {
-        //   sendToMonitoringService({ error, errorInfo, level: 'page' });
-        // }
-      }}
+      level="page"
     >
       <DevelopmentWrapper>
         <SessionProvider refetchOnWindowFocus={false}>
