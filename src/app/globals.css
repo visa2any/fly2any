@@ -19,6 +19,20 @@
     --shadow-neu-light: 255 255 255;
     --shadow-neu-dark: 0 0 0;
   }
+  
+  /* ULTRATHINK FIX: Ensure proper scrolling on desktop */
+  html {
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    overflow-x: hidden;
+    overflow-y: visible !important;
+    min-height: 100vh;
+    position: relative;
+  }
 }
 
 @layer utilities {
@@ -73,6 +87,11 @@
 
 .desktop-content-container {
   display: block; /* Visible by default on desktop */
+  /* ULTRATHINK FIX: Enable scrolling on desktop */
+  min-height: 100vh;
+  overflow: visible !important;
+  overflow-y: auto !important;
+  position: relative;
 }
 
 /* Responsive behavior using media queries - Mobile first approach */
@@ -111,6 +130,17 @@
   
   .desktop-content-container {
     display: block !important;
+    /* ULTRATHINK FIX: Force scrolling on desktop */
+    overflow: visible !important;
+    overflow-y: auto !important;
+    min-height: 100vh;
+  }
+  
+  /* ULTRATHINK FIX: Ensure body can scroll on desktop */
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
   }
   
   /* ULTRATHINK: Restore scrollbars on desktop for accessibility */
