@@ -9,11 +9,10 @@
     "dev": "node node_modules/next/dist/bin/next dev",
     "dev:npx": "npx next dev",
     "dev:win": "node node_modules\\next\\dist\\bin\\next dev",
-    "build": "prisma generate && node node_modules/next/dist/bin/next build",
+    "build": "node node_modules/next/dist/bin/next build",
     "start": "node node_modules/next/dist/bin/next start",
     "lint": "node node_modules/next/dist/bin/next lint",
-    "type-check": "tsc --noEmit",
-    "postinstall": "prisma generate"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.876.0",
