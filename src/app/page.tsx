@@ -736,7 +736,8 @@ export default function Home() {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)',
     position: 'relative' as const,
-    overflow: 'visible' as const,
+    // ULTRATHINK FIX: Remove overflow visible to allow scrolling on desktop
+    // overflow: 'visible' as const,
     fontFamily: 'Inter, sans-serif',
     width: '100%',
     maxWidth: '100vw',

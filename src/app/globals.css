@@ -20,18 +20,17 @@
     --shadow-neu-dark: 0 0 0;
   }
   
-  /* ULTRATHINK FIX: Ensure proper scrolling on desktop */
+  /* ULTRATHINK BASE: Minimal global settings */
   html {
     overflow-x: hidden;
-    overflow-y: auto !important;
     scroll-behavior: smooth;
   }
   
   body {
     overflow-x: hidden;
-    overflow-y: visible !important;
-    min-height: 100vh;
     position: relative;
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -87,10 +86,12 @@
 
 .desktop-content-container {
   display: block; /* Visible by default on desktop */
-  /* ULTRATHINK FIX: Enable scrolling on desktop */
-  min-height: 100vh;
+  /* ULTRATHINK CONTENT LIBERATION: Natural expansion */
+  height: auto !important; /* Natural height calculation */
+  min-height: auto !important; /* Remove viewport constraint */
+  max-height: none !important; /* No height ceiling */
   overflow: visible !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important; /* Natural content flow */
   position: relative;
 }
 
@@ -130,41 +131,87 @@
   
   .desktop-content-container {
     display: block !important;
-    /* ULTRATHINK FIX: Force scrolling on desktop */
+    /* ULTRATHINK CONTENT LIBERATION: Natural document expansion */
+    height: auto !important; /* Natural height calculation */
+    min-height: auto !important; /* Remove viewport constraint */
+    max-height: none !important; /* No height ceiling */
     overflow: visible !important;
-    overflow-y: auto !important;
-    min-height: 100vh;
+    overflow-y: visible !important; /* Natural content flow */
+    position: relative !important;
   }
   
-  /* ULTRATHINK FIX: Ensure body can scroll on desktop */
-  html, body {
-    overflow-y: auto !important;
+  /* ULTRATHINK NUCLEAR OPTION: Maximum specificity height liberation */
+  html[lang] {
+    height: auto !important; /* NUCLEAR: Force natural height */
+    min-height: 0px !important; /* NUCLEAR: Remove ALL height constraints */
+    max-height: none !important; /* NUCLEAR: Remove height ceiling */
+    overflow-y: auto !important; /* NUCLEAR: Force scrolling */
+  }
+  
+  html[lang] body {
+    height: auto !important; /* NUCLEAR: Force natural height */
+    min-height: 0px !important; /* NUCLEAR: Remove ALL height constraints */  
+    max-height: none !important; /* NUCLEAR: Remove height ceiling */
+    overflow-y: visible !important; /* NUCLEAR: Natural content flow */
+  }
+  
+  /* NUCLEAR BACKUP: Direct element targeting */
+  html, html body {
     height: auto !important;
-    min-height: 100vh;
+    min-height: 0px !important;
+    max-height: none !important;
   }
   
-  /* ULTRATHINK: Restore scrollbars on desktop for accessibility */
+  /* ULTRATHINK JAVASCRIPT SHIELD: Prevent JS from overriding height */
+  html[style*="height"], html[style*="min-height"], html[style*="max-height"] {
+    height: auto !important;
+    min-height: 0px !important;
+    max-height: none !important;
+  }
+  
+  body[style*="height"], body[style*="min-height"], body[style*="max-height"] {
+    height: auto !important;
+    min-height: 0px !important;
+    max-height: none !important;
+  }
+  
+  /* ULTRATHINK SURGICAL FIX: Only main document scrollbar visible (best practices) */
+  /* Remove aggressive overrides - let natural CSS flow work */
+  
+  /* ULTRATHINK BEST PRACTICES: ONLY main document scrollbar visible */
+  
+  /* Hide ALL scrollbars first */
   * {
-    scrollbar-width: thin; /* Firefox - thin scrollbar */
-    -ms-overflow-style: auto; /* IE/Edge - show scrollbar */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
   }
   
   *::-webkit-scrollbar {
-    display: block; /* Chrome, Safari, Opera - show scrollbar */
-    width: 8px;
+    display: none; /* Chrome, Safari, Opera */
   }
   
-  *::-webkit-scrollbar-track {
+  /* Show ONLY main document scrollbar (best practices) */
+  html {
+    scrollbar-width: thin !important; /* Firefox - main scrollbar */
+    -ms-overflow-style: auto !important; /* IE/Edge - main scrollbar */
+  }
+  
+  html::-webkit-scrollbar {
+    display: block !important; /* Chrome, Safari, Opera - main scrollbar */
+    width: 12px;
+  }
+  
+  html::-webkit-scrollbar-track {
     background: #f1f1f1;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   
-  *::-webkit-scrollbar-thumb {
+  html::-webkit-scrollbar-thumb {
     background: #c1c1c1;
-    border-radius: 4px;
+    border-radius: 6px;
   }
   
-  *::-webkit-scrollbar-thumb:hover {
+  html::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
   }
 }
@@ -1170,19 +1217,23 @@
     width: 100%;
   }
   
-  /* ULTRATHINK: Hide scrollbars on mobile devices (touch screen) while preserving ALL functionality */
-  /* Mobile-first approach: hide scrollbars on mobile, keep on desktop for accessibility */
-  * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
-  }
-  
-  *::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
+  /* ULTRATHINK FIX: Move scrollbar hiding to mobile-only - PRESERVE DESKTOP SCROLLING */
+  /* MOBILE-ONLY: Hide scrollbars on touch devices, KEEP on desktop for accessibility */
   
   /* Ensure touch scrolling works perfectly on mobile */
   * {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* MOBILE-ONLY SCROLLBAR HIDING - Only applies to mobile devices */
+  @media (max-width: 767px) {
+    * {
+      scrollbar-width: none; /* Firefox - MOBILE ONLY */
+      -ms-overflow-style: none; /* IE/Edge - MOBILE ONLY */
+    }
+    
+    *::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera - MOBILE ONLY */
+    }
   }
 }

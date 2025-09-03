@@ -993,6 +993,21 @@ export default function GlobalMobileStyles() {
         .desktop-content-container {
           display: block !important;
         }
+        
+        /* ULTRATHINK FIX: Ensure desktop scrolling works properly */
+        html {
+          overflow-y: scroll !important;
+          height: auto !important;
+          min-height: 100vh !important;
+        }
+        
+        body {
+          overflow-y: visible !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
       }
 
       /* Print styles for mobile */

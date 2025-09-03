@@ -200,6 +200,72 @@ export default function RootLayout({
           />
         )}
 
+        {/* ULTRATHINK: Desktop scrolling protection */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // ULTRATHINK: Desktop height protection shield
+              (function() {
+                if (typeof window !== 'undefined') {
+                  function protectDesktopScrolling() {
+                    // Only apply on desktop (width > 768px)
+                    if (window.innerWidth > 768) {
+                      const html = document.documentElement;
+                      const body = document.body;
+                      
+                      // Remove any inline styles that constrain height
+                      if (html.style.height === '100vh' || html.style.minHeight === '100vh') {
+                        html.style.height = 'auto';
+                        html.style.minHeight = 'auto';
+                        html.style.maxHeight = 'none';
+                      }
+                      
+                      if (body.style.height === '100vh' || body.style.minHeight === '100vh') {
+                        body.style.height = 'auto';
+                        body.style.minHeight = 'auto';
+                        body.style.maxHeight = 'none';
+                      }
+                    }
+                  }
+                  
+                  // Run immediately
+                  protectDesktopScrolling();
+                  
+                  // Run after DOM loads
+                  document.addEventListener('DOMContentLoaded', protectDesktopScrolling);
+                  
+                  // Run after React hydration
+                  setTimeout(protectDesktopScrolling, 1000);
+                  setTimeout(protectDesktopScrolling, 3000);
+                  setTimeout(protectDesktopScrolling, 5000);
+                  
+                  // Monitor for changes
+                  if (window.MutationObserver) {
+                    const observer = new MutationObserver(function(mutations) {
+                      mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && 
+                            mutation.attributeName === 'style' &&
+                            window.innerWidth > 768) {
+                          protectDesktopScrolling();
+                        }
+                      });
+                    });
+                    
+                    observer.observe(document.documentElement, { 
+                      attributes: true, 
+                      attributeFilter: ['style'] 
+                    });
+                    observer.observe(document.body, { 
+                      attributes: true, 
+                      attributeFilter: ['style'] 
+                    });
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+        
         {/* Initialize Tracking Manager */}
         <script
           dangerouslySetInnerHTML={{
