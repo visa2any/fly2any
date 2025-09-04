@@ -227,17 +227,17 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
             >
               {activeTab === 'home' && (
                 <div className="h-full flex flex-col bg-gradient-to-br from-neutral-50 via-white to-neutral-100">
-                  {/* Optimized Full-Screen Distribution */}
-                  <div className="h-full flex flex-col px-2 py-1">
+                  {/* ULTRATHINK: Ultra-Compact Distribution for Menu Visibility */}
+                  <div className="h-full flex flex-col px-2 py-0">
                     
                     {/* ULTRATHINK Optimized Hero Section - Compact & Efficient */}
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="text-center mb-2 flex-shrink-0 pt-1"
+                      className="text-center mb-1 flex-shrink-0 pt-1"
                     >
-                      <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-2">
+                      <h1 className="text-base font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-1">
                         Onde vamos hoje?
                       </h1>
                       <div className="flex items-center justify-center space-x-2">
@@ -252,8 +252,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     </motion.div>
 
                     {/* ULTRATHINK: Balanced Services Section - Compact Gap for Menu Visibility */}
-                    <div className="flex-1 flex flex-col justify-start mb-1">
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="flex-1 flex flex-col justify-start">
+                      <div className="grid grid-cols-2 gap-1.5">
                         {[
                           { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', textColor: 'text-slate-800', popular: true, shadowColor: 'shadow-sky-100' },
                           { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-emerald-100' },
@@ -276,7 +276,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             )}
                             <motion.button
                               onClick={() => handleServiceSelection(service.key)}
-                              className={`w-full h-full ${service.bgColor} rounded-xl p-2.5 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[72px] min-w-[80px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95`}
+                              className={`w-full h-full ${service.bgColor} rounded-xl p-2 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[64px] min-w-[72px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95`}
                               whileTap={{ scale: 0.96 }}
                               whileHover={{ 
                                 scale: 1.02, 
@@ -288,13 +288,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                               role="button"
                               aria-label={`Buscar ${service.label.toLowerCase()}`}
                             >
-                              <div className="text-center h-full flex flex-col justify-center space-y-1.5">
-                                <div className={`w-11 h-11 ${service.iconBg} rounded-xl mx-auto flex items-center justify-center shadow-md`}>
-                                  <span className="text-lg">{service.icon}</span>
+                              <div className="text-center h-full flex flex-col justify-center space-y-1">
+                                <div className={`w-10 h-10 ${service.iconBg} rounded-xl mx-auto flex items-center justify-center shadow-sm`}>
+                                  <span className="text-base">{service.icon}</span>
                                 </div>
                                 <div>
-                                  <div className={`text-sm font-semibold ${service.textColor} mb-0.5`}>{service.label}</div>
-                                  <div className="text-xs text-slate-600 font-medium">{service.subtitle}</div>
+                                  <div className={`text-sm font-semibold ${service.textColor} mb-0`}>{service.label}</div>
+                                  <div className="text-xs text-slate-600 font-medium leading-tight">{service.subtitle}</div>
                                 </div>
                               </div>
                             </motion.button>
@@ -310,7 +310,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                         >
                           <motion.button
                             onClick={() => handleServiceSelection('seguro')}
-                            className="w-full bg-white rounded-xl p-2.5 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95"
+                            className="w-full bg-white rounded-xl p-2 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[52px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95"
                             whileTap={{ scale: 0.96 }}
                             whileHover={{ 
                               scale: 1.02, 
@@ -322,13 +322,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             role="button"
                             aria-label="Buscar seguro viagem"
                           >
-                            <div className="flex items-center justify-center space-x-3">
-                              <div className="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center shadow-md">
-                                <span className="text-lg">🛡️</span>
+                            <div className="flex items-center justify-center space-x-2.5">
+                              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shadow-sm">
+                                <span className="text-base">🛡️</span>
                               </div>
                               <div className="text-left flex-1">
-                                <div className="text-sm font-semibold text-slate-800 mb-0.5">Seguro Viagem</div>
-                                <div className="text-xs text-slate-600 font-medium">Proteção completa para sua viagem</div>
+                                <div className="text-sm font-semibold text-slate-800 mb-0">Seguro Viagem</div>
+                                <div className="text-xs text-slate-600 font-medium leading-tight">Proteção completa</div>
                               </div>
                             </div>
                           </motion.button>
@@ -337,13 +337,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     </div>
 
 
-                    {/* ULTRATHINK: Social Proof - Optimized for Bottom Menu Visibility */}
-                    <div className="flex-shrink-0 mt-2 mb-3">
+                    {/* ULTRATHINK: Ultra-Compact Social Proof for Maximum Menu Space */}
+                    <div className="flex-shrink-0 mt-1 mb-1">
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-gradient-to-r from-neutral-50/90 to-white/90 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-lg border border-neutral-200/60"
+                        className="bg-gradient-to-r from-neutral-50/90 to-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-md border border-neutral-200/50"
                       >
                         {/* Inline Social Stats - Responsive Minimal */}
                         <div className="flex items-center justify-between text-center">
