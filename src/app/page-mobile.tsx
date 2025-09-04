@@ -194,7 +194,6 @@ export default function HomeMobile() {
               </p>
             </div>
           </Link>
-        </div>
 
           {/* Compact Actions */}
           <div style={{ 
