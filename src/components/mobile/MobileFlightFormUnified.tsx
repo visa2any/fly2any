@@ -418,12 +418,14 @@ export default function MobileFlightFormUnified({
             {/* STEP 1: TRAVEL DETAILS */}
             {currentStep === 'travel' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <PaperAirplaneIcon className="w-6 h-6 text-white" />
+                <div className="mb-4">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                      <PaperAirplaneIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className={modeStyles.title}>Detalhes do Voo</h2>
                   </div>
-                  <h2 className={modeStyles.title}>Detalhes do Voo</h2>
-                  <p className="text-sm text-gray-600 mt-1">Configure sua viagem ideal</p>
+                  <p className="text-sm text-gray-600 text-center">Configure sua viagem ideal</p>
                 </div>
 
                 {/* Trip Type */}
