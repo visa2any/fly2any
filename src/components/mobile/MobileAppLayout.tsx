@@ -252,9 +252,9 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                       </div>
                     </motion.div>
 
-                    {/* ULTRATHINK: Enhanced Services Section - Optimized for Menu Visibility 32% */}
-                    <div className="flex-grow flex flex-col justify-center" style={{ height: '32%' }}>
-                      <div className="grid grid-cols-2 gap-2 h-full">
+                    {/* ULTRATHINK: Ultra-Compact Services Section - Maximum Menu Visibility 22% */}
+                    <div className="flex-shrink-0" style={{ height: '22%' }}>
+                      <div className="grid grid-cols-2 gap-1.5 h-full">
                         {[
                           { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', textColor: 'text-slate-800', popular: true, shadowColor: 'shadow-sky-100' },
                           { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-emerald-100' },
@@ -277,7 +277,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             )}
                             <motion.button
                               onClick={() => handleServiceSelection(service.key)}
-                              className={`w-full h-full ${service.bgColor} rounded-2xl p-3 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[68px] min-w-[76px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95`}
+                              className={`w-full h-full ${service.bgColor} rounded-xl p-2 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[60px] min-w-[68px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95`}
                               whileTap={{ scale: 0.96 }}
                               whileHover={{ 
                                 scale: 1.02, 
@@ -289,13 +289,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                               role="button"
                               aria-label={`Buscar ${service.label.toLowerCase()}`}
                             >
-                              <div className="text-center h-full flex flex-col justify-center space-y-1.5">
-                                <div className={`w-12 h-12 ${service.iconBg} rounded-2xl mx-auto flex items-center justify-center shadow-md`}>
-                                  <span className="text-xl">{service.icon}</span>
+                              <div className="text-center h-full flex flex-col justify-center space-y-1">
+                                <div className={`w-10 h-10 ${service.iconBg} rounded-xl mx-auto flex items-center justify-center shadow-sm`}>
+                                  <span className="text-lg">{service.icon}</span>
                                 </div>
                                 <div>
-                                  <div className={`text-sm font-semibold ${service.textColor} mb-0.5`}>{service.label}</div>
-                                  <div className="text-xs text-slate-600 font-medium">{service.subtitle}</div>
+                                  <div className={`text-xs font-semibold ${service.textColor} mb-0`}>{service.label}</div>
+                                  <div className="text-xs text-slate-600 font-medium leading-tight">{service.subtitle}</div>
                                 </div>
                               </div>
                             </motion.button>
@@ -311,7 +311,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                         >
                           <motion.button
                             onClick={() => handleServiceSelection('seguro')}
-                            className="w-full bg-white rounded-2xl p-3 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[56px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95"
+                            className="w-full bg-white rounded-xl p-2 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95"
                             whileTap={{ scale: 0.96 }}
                             whileHover={{ 
                               scale: 1.02, 
@@ -323,13 +323,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             role="button"
                             aria-label="Buscar seguro viagem"
                           >
-                            <div className="flex items-center justify-center space-x-3">
-                              <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shadow-md">
-                                <span className="text-xl">🛡️</span>
+                            <div className="flex items-center justify-center space-x-2.5">
+                              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shadow-sm">
+                                <span className="text-lg">🛡️</span>
                               </div>
                               <div className="text-left flex-1">
-                                <div className="text-sm font-semibold text-slate-800 mb-0.5">Seguro Viagem</div>
-                                <div className="text-xs text-slate-600 font-medium">Proteção completa</div>
+                                <div className="text-xs font-semibold text-slate-800 mb-0">Seguro Viagem</div>
+                                <div className="text-xs text-slate-600 font-medium leading-tight">Proteção completa</div>
                               </div>
                             </div>
                           </motion.button>
@@ -337,27 +337,27 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                       </div>
                     </div>
 
-                    {/* ULTRATHINK: Compact CTA Section - 8.5% Optimized */}
-                    <div className="flex-shrink-0" style={{ height: '8.5%' }}>
+                    {/* ULTRATHINK: Ultra-Compact CTA Section - 10% Optimized */}
+                    <div className="flex-shrink-0 mt-2" style={{ height: '10%' }}>
                       {/* ULTRATHINK Professional CTA - Enhanced Visual Hierarchy */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-lg p-2.5 border border-slate-700/50"
+                        className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-2.5 border border-slate-700/50"
                       >
                         <div className="text-center text-white">
-                          <div className="text-sm font-semibold mb-1.5 flex items-center justify-center space-x-2">
-                            <span className="text-base">🎁</span>
+                          <div className="text-sm font-semibold mb-1 flex items-center justify-center space-x-1.5">
+                            <span className="text-sm">🎁</span>
                             <span className="text-xs font-bold">Cotação Grátis em 2 Horas!</span>
                           </div>
-                          <div className="text-xs text-slate-300 mb-2 font-medium">Economize na sua próxima viagem</div>
+                          <div className="text-xs text-slate-300 mb-2 font-medium leading-tight">Economize na sua próxima viagem</div>
                         
                           {/* Professional Dual Action Buttons */}
                           <div className="grid grid-cols-2 gap-2">
                             <motion.button
                               onClick={handleGenericQuote}
-                              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl py-2 font-semibold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:ring-offset-2 active:transform active:scale-95"
+                              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg py-1.5 font-semibold text-xs shadow-md flex items-center justify-center space-x-1 transition-all min-h-[36px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:ring-offset-2 active:transform active:scale-95"
                               whileTap={{ scale: 0.96 }}
                               whileHover={{ 
                                 y: -1,
@@ -375,7 +375,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             
                             <motion.button
                               onClick={handleGenericQuote}
-                              className="bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-xl py-2 font-semibold text-xs shadow-md flex items-center justify-center space-x-1.5 transition-all min-h-[40px] focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:ring-offset-2 active:transform active:scale-95"
+                              className="bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-lg py-1.5 font-semibold text-xs shadow-md flex items-center justify-center space-x-1 transition-all min-h-[36px] focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:ring-offset-2 active:transform active:scale-95"
                               whileTap={{ scale: 0.96 }}
                               whileHover={{ 
                                 y: -1,
