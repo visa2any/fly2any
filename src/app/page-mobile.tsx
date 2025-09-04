@@ -174,7 +174,7 @@ export default function HomeMobile() {
               justifyContent: 'center',
               flexShrink: 0
             }}>
-              <services[4].icon style={{ width: '20px', height: '20px', color: 'white' }} />
+              {React.createElement(services[4].icon, { style: { width: '20px', height: '20px', color: 'white' } })}
             </div>
             <div style={{ flex: 1, textAlign: 'left' }}>
               <h3 style={{ 
