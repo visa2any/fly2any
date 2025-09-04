@@ -251,8 +251,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                       </div>
                     </motion.div>
 
-                    {/* ULTRATHINK: Balanced Services Section - Proper Proportions */}
-                    <div className="flex-1 flex flex-col justify-start mb-3">
+                    {/* ULTRATHINK: Balanced Services Section - Compact Gap for Menu Visibility */}
+                    <div className="flex-1 flex flex-col justify-start mb-1">
                       <div className="grid grid-cols-2 gap-2 flex-1">
                         {[
                           { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', textColor: 'text-slate-800', popular: true, shadowColor: 'shadow-sky-100' },
@@ -336,8 +336,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                       </div>
                     </div>
 
-                    {/* ULTRATHINK: Compact CTA Section - Properly Positioned */}
-                    <div className="flex-shrink-0 mb-2">
+                    {/* ULTRATHINK: Compact CTA Section - Reduced Gap */}
+                    <div className="flex-shrink-0 mb-1">
                       {/* ULTRATHINK Professional CTA - Enhanced Visual Hierarchy */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -350,7 +350,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                             <span className="text-base">🎁</span>
                             <span className="text-xs font-bold">Cotação Grátis em 2 Horas!</span>
                           </div>
-                          <div className="text-xs text-slate-300 mb-3 font-medium">Economize na sua próxima viagem</div>
+                          <div className="text-xs text-slate-300 mb-2 font-medium">Economize na sua próxima viagem</div>
                         
                           {/* Professional Dual Action Buttons */}
                           <div className="grid grid-cols-2 gap-2">
@@ -394,13 +394,13 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                       </motion.div>
                     </div>
 
-                    {/* ULTRATHINK: Social Proof - Visible & Balanced */}
-                    <div className="flex-shrink-0 mb-2">
+                    {/* ULTRATHINK: Social Proof - Compact for Menu Space */}
+                    <div className="flex-shrink-0 mb-1">
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="bg-neutral-50/80 rounded-xl px-3 py-2 shadow-neu-inset border border-neutral-200/50"
+                        className="bg-neutral-50/80 rounded-xl px-3 py-1.5 shadow-neu-inset border border-neutral-200/50"
                       >
                         {/* Inline Social Stats - Responsive Minimal */}
                         <div className="flex items-center justify-between text-center">
