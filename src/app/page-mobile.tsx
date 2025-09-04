@@ -33,9 +33,12 @@ export default function HomeMobile() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </Head>
       <div style={{ 
-        minHeight: '100vh', 
+        height: '100vh', 
         background: 'linear-gradient(135deg, #1e40af 0%, #a21caf 50%, #713f12 100%)',
-        paddingBottom: '80px'
+        paddingBottom: 'env(safe-area-inset-bottom, 80px)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
       }}>
         <MobileNavigation currentPath="/" style={{
           position: 'fixed',
@@ -45,347 +48,185 @@ export default function HomeMobile() {
           zIndex: 100
         }}/>
 
-        {/* Hero Section */}
+        {/* Compact Hero Section */}
         <div style={{ 
-          padding: '16px 16px 0 16px',
-          marginBottom: '24px',
-          boxSizing: 'border-box'
+          padding: '12px 20px 8px',
+          textAlign: 'center',
+          flexShrink: 0
         }}>
-          <div style={{ 
-            textAlign: 'center', 
-            marginBottom: '16px',
-            paddingTop: '8px'
-          }}>
-            <Logo size="lg" variant="logo-only" />
-          </div>
+          <Logo size="md" variant="logo-only" />
           <h1 style={{ 
-            fontSize: '24px',
+            fontSize: '18px',
             fontWeight: '700', 
             color: 'white', 
-            marginBottom: '12px',
+            margin: '6px 0 4px',
             fontFamily: 'Poppins, sans-serif',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            padding: '0 8px'
+            lineHeight: '1.2'
           }}>
             Sua Ponte para o Brasil
           </h1>
           <p style={{ 
-            fontSize: '14px',
-            color: 'rgba(255, 255, 255, 0.9)', 
-            marginBottom: '24px',
-            lineHeight: '1.4',
-            textAlign: 'center',
-            padding: '0 8px'
+            fontSize: '12px',
+            color: 'rgba(255, 255, 255, 0.8)', 
+            margin: 0,
+            lineHeight: '1.3'
           }}>
-            Especialistas em viagens para brasileiros nos EUA há mais de 10 anos
+            Especialistas em viagens • Cotação em 2h • 24/7 português
           </p>
-          
-          {/* Key Benefits */}
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr', 
-            gap: '12px', 
-            marginBottom: '24px',
-            padding: '0 8px'
-          }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <CheckIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-                <span style={{ 
-                  fontSize: '14px',
-                  color: 'white'
-                }}>
-                  {i === 0 && 'Cotação gratuita em 2 horas'}
-                  {i === 1 && 'Atendimento 24h em português'}
-                  {i === 2 && 'Melhores preços garantidos'}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Services */}
+        {/* Services Grid - Main Content */}
         <div style={{ 
-          background: 'rgba(255, 255, 255, 0.1)', 
-          margin: '0 20px 32px',
-          borderRadius: '12px',
-          padding: '20px',
-          textAlign: 'center'
+          flex: 1,
+          padding: '0 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}>
           <h2 style={{ 
-            fontSize: '20px',
-            fontWeight: '700', 
+            fontSize: '16px',
+            fontWeight: '600', 
             color: 'white', 
-            marginBottom: '24px',
+            margin: '0 0 12px',
+            textAlign: 'center',
             fontFamily: 'Poppins, sans-serif'
           }}>
             O que você precisa?
           </h2>
           
+          {/* Services Grid */}
           <div style={{ 
             display: 'grid',
-            gridTemplateColumns: '1fr', 
-            gap: '12px'
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '8px',
+            marginBottom: '12px'
           }}>
-            {services.map((service) => (
+            {services.slice(0, 4).map((service) => (
               <Link
                 key={service.id}
                 href={service.href}
                 style={{
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '16px',
-                  padding: '20px 16px',
-                  borderRadius: '12px',
+                  gap: '6px',
+                  padding: '12px 8px',
+                  borderRadius: '8px',
                   background: selectedService === service.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   textDecoration: 'none',
                   transition: 'all 0.2s ease',
                   color: 'white',
-                  minHeight: '80px'
+                  minHeight: '70px'
                 }}
                 onClick={() => setSelectedService(service.id)}
               >
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '10px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
                   background: service.color,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0
                 }}>
-                  <service.icon style={{ width: '24px', height: '24px', color: 'white' }} />
+                  <service.icon style={{ width: '18px', height: '18px', color: 'white' }} />
                 </div>
-                <div style={{ flex: 1, textAlign: 'left' }}>
-                  <h3 style={{ 
-                    fontSize: '16px',
-                    fontWeight: '600', 
-                    marginBottom: '4px',
-                    color: 'white'
-                  }}>
-                    {service.name}
-                  </h3>
-                  <p style={{ 
-                    fontSize: '14px',
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    margin: 0
-                  }}>
-                    {service.id === 'voos' && 'Passagens aéreas Brasil-EUA'}
-                    {service.id === 'hoteis' && 'Hospedagem no Brasil'}
-                    {service.id === 'carros' && 'Aluguel de veículos'}
-                    {service.id === 'passeios' && 'Tours e experiências'}
-                    {service.id === 'seguro' && 'Proteção para viagem'}
-                  </p>
-                </div>
+                <span style={{ 
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: 'white',
+                  textAlign: 'center',
+                  lineHeight: '1.2'
+                }}>
+                  {service.name}
+                </span>
               </Link>
             ))}
           </div>
-        </div>
 
-        {/* Featured Routes */}
-        <div style={{ 
-          background: 'rgba(255, 255, 255, 0.1)', 
-          margin: '0 20px 32px',
-          borderRadius: '12px',
-          padding: '20px',
-          textAlign: 'center'
-        }}>
-          <h2 style={{ 
-            fontSize: '20px',
-            fontWeight: '700', 
-            color: 'white', 
-            marginBottom: '24px',
-            fontFamily: 'Poppins, sans-serif'
-          }}>
-            Rotas Populares
-          </h2>
-          
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: '1fr', 
-            gap: '12px'
-          }}>
-            <Link
-              href="/voos-miami-sao-paulo"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '20px 16px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                color: 'white',
-                minHeight: '80px'
-              }}
-            >
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ 
-                  fontSize: '16px',
-                  fontWeight: '600', 
-                  marginBottom: '4px',
-                  color: 'white'
-                }}>
-                  Miami → São Paulo
-                </h3>
-                <p style={{ 
-                  fontSize: '14px',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  margin: 0
-                }}>
-                  A partir de $650
-                </p>
-              </div>
-              <FlightIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-            </Link>
-
-            <Link
-              href="/voos-new-york-rio-janeiro"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '20px 16px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                color: 'white',
-                minHeight: '80px'
-              }}
-            >
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ 
-                  fontSize: '16px',
-                  fontWeight: '600', 
-                  marginBottom: '4px',
-                  color: 'white'
-                }}>
-                  New York → Rio de Janeiro
-                </h3>
-                <p style={{ 
-                  fontSize: '14px',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  margin: 0
-                }}>
-                  A partir de $720
-                </p>
-              </div>
-              <FlightIcon style={{ width: '20px', height: '20px', color: '#facc15' }} />
-            </Link>
-
-            <Link
-              href="/voos-brasil-eua"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '16px',
-                borderRadius: '12px',
-                background: 'rgba(250, 204, 21, 0.2)',
-                border: '1px solid rgba(250, 204, 21, 0.3)',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                color: 'white'
-              }}
-            >
-              <span style={{ 
-                fontSize: '16px',
-                fontWeight: '600'
-              }}>
-                Ver todas as rotas
-              </span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Social Proof */}
-        <div style={{ 
-          background: 'rgba(255, 255, 255, 0.1)', 
-          margin: '0 20px 32px',
-          borderRadius: '12px',
-          padding: '20px',
-          textAlign: 'center'
-        }}>
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
-              {[...Array(5)].map((_, i) => (
-                <StarIcon key={i} style={{ width: '20px', height: '20px', color: '#facc15' }} />
-              ))}
+          {/* Featured Service - Seguro */}
+          <Link
+            href={services[4].href}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              background: selectedService === services[4].id ? 'rgba(234, 88, 12, 0.3)' : 'rgba(234, 88, 12, 0.2)',
+              border: '1px solid rgba(234, 88, 12, 0.4)',
+              textDecoration: 'none',
+              transition: 'all 0.2s ease',
+              color: 'white',
+              marginBottom: '12px'
+            }}
+            onClick={() => setSelectedService(services[4].id)}
+          >
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: services[4].color,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <services[4].icon style={{ width: '20px', height: '20px', color: 'white' }} />
             </div>
-            <p style={{ 
-              fontSize: '16px',
-              color: 'white', 
-              fontWeight: '600',
-              margin: 0
-            }}>
-              4.9/5 - Mais de 1.200 clientes satisfeitos
-            </p>
-          </div>
-          
-          <div style={{ 
-            padding: '16px',
-            borderRadius: '8px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            marginBottom: '16px'
-          }}>
-            <p style={{ 
-              fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontStyle: 'italic',
-              marginBottom: '8px'
-            }}>
-              &quot;Excelente atendimento! Conseguiram um preço incrível para minha viagem ao Brasil.&quot;
-            </p>
-            <p style={{ 
-              fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.7)',
-              margin: 0
-            }}>
-              - Maria Silva, Miami
-            </p>
-          </div>
+            <div style={{ flex: 1, textAlign: 'left' }}>
+              <h3 style={{ 
+                fontSize: '14px',
+                fontWeight: '600', 
+                margin: '0 0 2px',
+                color: 'white'
+              }}>
+                {services[4].name}
+              </h3>
+              <p style={{ 
+                fontSize: '11px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                margin: 0
+              }}>
+                Proteção para viagem
+              </p>
+            </div>
+          </Link>
         </div>
 
-        {/* Contact CTA */}
-        <div style={{ 
-          background: 'rgba(250, 204, 21, 0.1)', 
-          border: '1px solid rgba(250, 204, 21, 0.3)',
-          margin: '0 20px',
-          borderRadius: '12px',
-          padding: '20px',
-          textAlign: 'center'
-        }}>
-          <h2 style={{ 
-            fontSize: '20px',
-            fontWeight: '700', 
-            color: 'white', 
-            marginBottom: '16px',
-            fontFamily: 'Poppins, sans-serif'
+          {/* Compact Actions */}
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            marginTop: 'auto',
+            paddingBottom: '8px'
           }}>
-            Pronto para viajar?
-          </h2>
-          <p style={{ 
-            fontSize: '16px',
-            color: 'rgba(255, 255, 255, 0.9)', 
-            marginBottom: '24px',
-            lineHeight: '1.5'
-          }}>
-            Receba uma cotação personalizada em até 2 horas
-          </p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Social Proof Badge */}
+            <div style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginBottom: '4px'
+            }}>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon key={i} style={{ width: '12px', height: '12px', color: '#facc15' }} />
+                ))}
+              </div>
+              <span style={{ 
+                fontSize: '11px',
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontWeight: '500'
+              }}>
+                4.9/5 • 1.200+ clientes
+              </span>
+            </div>
+
+            {/* Main CTA - BUSCAR OFERTAS GRATIS */}
             <Link 
               href="/cotacao/voos"
               style={{
@@ -393,39 +234,66 @@ export default function HomeMobile() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                padding: '16px',
+                padding: '14px 16px',
                 borderRadius: '8px',
-                background: '#2563eb',
-                color: 'white',
+                background: 'linear-gradient(135deg, #facc15 0%, #f59e0b 100%)',
+                color: '#1f2937',
                 textDecoration: 'none',
-                fontWeight: '600',
-                fontSize: '16px'
+                fontWeight: '700',
+                fontSize: '15px',
+                boxShadow: '0 4px 12px rgba(250, 204, 21, 0.3)',
+                border: 'none'
               }}
             >
-              <FlightIcon style={{ width: '20px', height: '20px' }} />
-              Solicitar Cotação
+              <FlightIcon style={{ width: '18px', height: '18px', color: '#1f2937' }} />
+              BUSCAR OFERTAS GRÁTIS
             </Link>
             
-            <Link 
-              href="/contato"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                padding: '16px',
-                borderRadius: '8px',
-                background: 'transparent',
-                border: '1px solid white',
-                color: 'white',
-                textDecoration: 'none',
-                fontWeight: '600',
-                fontSize: '16px'
-              }}
-            >
-              <ChatIcon style={{ width: '20px', height: '20px' }} />
-              Falar com Especialista
-            </Link>
+            {/* Secondary Actions */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Link 
+                href="/voos-brasil-eua"
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  fontSize: '12px'
+                }}
+              >
+                Ver Rotas
+              </Link>
+              
+              <Link 
+                href="/contato"
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  fontWeight: '500',
+                  fontSize: '12px'
+                }}
+              >
+                <ChatIcon style={{ width: '14px', height: '14px' }} />
+                Contato
+              </Link>
+            </div>
           </div>
         </div>
       </div>

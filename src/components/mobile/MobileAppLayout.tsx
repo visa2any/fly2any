@@ -129,10 +129,10 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           
           {/* Right Section - Clean Menu */}
           <div className="flex items-center gap-2">
-            <button className="text-neutral-600 hover:text-neutral-800 text-xs font-medium px-3 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200">
+            <button className="text-neutral-600 hover:text-neutral-800 text-xs font-medium px-3 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Alterar idioma">
               🇧🇷
             </button>
-            <button className="p-2 hover:bg-neutral-100 rounded-xl transition-all duration-200 active:scale-95">
+            <button className="p-2 hover:bg-neutral-100 rounded-xl transition-all duration-200 active:scale-95 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Menu principal">
               <Bars3Icon className="w-5 h-5 text-neutral-600" />
             </button>
           </div>
@@ -148,7 +148,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
               {/* Back Button */}
               <button
                 onClick={handleBackToHome}
-                className="flex items-center gap-1 text-white/90 hover:text-white transition-colors py-1 px-1 hover:bg-white/10 rounded -ml-1"
+                className="flex items-center gap-1 text-white/90 hover:text-white transition-colors py-1 px-1 hover:bg-white/10 rounded -ml-1 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-white/50"
+                aria-label="Voltar para início"
               >
                 <ChevronLeftIcon className="w-4 h-4" />
                 <span className="text-xs font-medium">Voltar</span>
@@ -229,37 +230,36 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                   {/* Optimized Full-Screen Distribution */}
                   <div className="h-full flex flex-col px-2 py-0">
                     
-                    {/* Compact Top Section - 15% */}
+                    {/* ULTRATHINK Optimized Hero Section - Enhanced Spacing 14% */}
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="text-center mb-2 flex-shrink-0"
-                      style={{ height: '15%' }}
+                      className="text-center mb-3 flex-shrink-0 pt-2"
+                      style={{ height: '14%' }}
                     >
-                      <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
+                      <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3 mt-2">
                         Onde vamos hoje?
                       </h1>
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="flex items-center space-x-1 bg-success-50 px-3 py-2 rounded-2xl shadow-neu-sm border border-success-200/50">
+                      <div className="flex items-center justify-center space-x-3">
+                        <div className="flex items-center space-x-1 bg-success-50 px-3 py-1.5 rounded-2xl shadow-neu-sm border border-success-200/50">
                           <div className="w-1.5 h-1.5 bg-success-500 rounded-full animate-pulse"></div>
                           <span className="text-xs font-semibold text-success-700">Promoções ativas</span>
                         </div>
-                        <div className="flex items-center space-x-1 bg-accent-50 px-3 py-2 rounded-2xl shadow-neu-sm border border-accent-200/50">
-                          <span className="text-xs font-semibold text-accent-700">✨ Até 70% OFF</span>
+                        <div className="flex items-center space-x-1 bg-accent-50 px-3 py-1.5 rounded-2xl shadow-neu-sm border border-accent-200/50">
+                          <span className="text-xs font-semibold text-accent-700">✨ Até 10% OFF</span>
                         </div>
                       </div>
                     </motion.div>
 
-                    {/* ULTRATHINK: Enhanced Mobile Services Section - Optimized for Touch */}
-                    <div className="flex-grow flex flex-col justify-center mb-2" style={{ height: '50%' }}>
+                    {/* ULTRATHINK: Enhanced Services Section - Primary Focus 47% */}
+                    <div className="flex-grow flex flex-col justify-center" style={{ height: '47%' }}>
                       <div className="grid grid-cols-2 gap-2 h-full">
                         {[
-                          { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-primary-100', iconColor: 'text-primary-600', textColor: 'text-neutral-800', popular: true },
-                          { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-success-100', iconColor: 'text-success-600', textColor: 'text-neutral-800', popular: false },
-                          { key: 'carros', icon: '🚗', label: 'Carros', subtitle: 'Aluguel', bgColor: 'bg-white', iconBg: 'bg-purple-100', iconColor: 'text-purple-600', textColor: 'text-neutral-800', popular: false },
-                          { key: 'passeios', icon: '🎯', label: 'Passeios', subtitle: 'Tours', bgColor: 'bg-white', iconBg: 'bg-accent-100', iconColor: 'text-accent-600', textColor: 'text-neutral-800', popular: false },
-                          { key: 'seguro', icon: '🛡️', label: 'Seguro', subtitle: 'Proteção viagem', bgColor: 'bg-white', iconBg: 'bg-warning-100', iconColor: 'text-warning-600', textColor: 'text-neutral-800', popular: false }
+                          { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', textColor: 'text-slate-800', popular: true, shadowColor: 'shadow-sky-100' },
+                          { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-emerald-100' },
+                          { key: 'carros', icon: '🚗', label: 'Carros', subtitle: 'Aluguel', bgColor: 'bg-white', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-violet-100' },
+                          { key: 'passeios', icon: '🎯', label: 'Tours', subtitle: 'Experiências', bgColor: 'bg-white', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-amber-100' }
                         ].map((service, index) => (
                           <motion.div
                             key={service.label}
@@ -270,91 +270,152 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                           >
                             {service.popular && (
                               <div className="absolute -top-2 -right-2 z-10">
-                                <div className="bg-gradient-to-r from-accent-500 to-accent-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-neu-md">
+                                <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                                   🔥 Popular
                                 </div>
                               </div>
                             )}
                             <motion.button
                               onClick={() => handleServiceSelection(service.key)}
-                              className={`w-full h-full ${service.bgColor} rounded-2xl p-4 shadow-neu-lg hover:shadow-neu-xl border border-neutral-200/50 relative overflow-hidden transition-all duration-300`}
-                              whileTap={{ scale: 0.95 }}
-                              whileHover={{ scale: 1.02, y: -1 }}
+                              className={`w-full h-full ${service.bgColor} rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[76px] min-w-[84px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95`}
+                              whileTap={{ scale: 0.96 }}
+                              whileHover={{ 
+                                scale: 1.02, 
+                                y: -2,
+                                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)'
+                              }}
                               transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                              style={{ touchAction: 'manipulation' }}
+                              role="button"
+                              aria-label={`Buscar ${service.label.toLowerCase()}`}
                             >
-                              <div className="text-center h-full flex flex-col justify-center space-y-3">
-                                <div className={`w-16 h-16 ${service.iconBg} rounded-2xl mx-auto flex items-center justify-center shadow-neu-sm`}>
+                              <div className="text-center h-full flex flex-col justify-center space-y-2">
+                                <div className={`w-16 h-16 ${service.iconBg} rounded-2xl mx-auto flex items-center justify-center shadow-md`}>
                                   <span className="text-2xl">{service.icon}</span>
                                 </div>
                                 <div>
-                                  <div className={`text-base font-bold ${service.textColor} mb-1`}>{service.label}</div>
-                                  <div className="text-xs text-neutral-600">{service.subtitle}</div>
+                                  <div className={`text-base font-semibold ${service.textColor} mb-1`}>{service.label}</div>
+                                  <div className="text-xs text-slate-600 font-medium">{service.subtitle}</div>
                                 </div>
                               </div>
                             </motion.button>
                           </motion.div>
                         ))}
+                        
+                        {/* ULTRATHINK Professional Seguro Service - Full Width Enhanced */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          transition={{ delay: 0.3, type: "spring", damping: 20 }}
+                          className="col-span-2"
+                        >
+                          <motion.button
+                            onClick={() => handleServiceSelection('seguro')}
+                            className="w-full bg-white rounded-2xl p-4 shadow-lg hover:shadow-xl border border-slate-200/50 relative overflow-hidden transition-all duration-200 min-h-[64px] focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 active:transform active:scale-95"
+                            whileTap={{ scale: 0.96 }}
+                            whileHover={{ 
+                              scale: 1.02, 
+                              y: -2,
+                              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)'
+                            }}
+                            transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                            style={{ touchAction: 'manipulation' }}
+                            role="button"
+                            aria-label="Buscar seguro viagem"
+                          >
+                            <div className="flex items-center justify-center space-x-4">
+                              <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center shadow-md">
+                                <span className="text-2xl">🛡️</span>
+                              </div>
+                              <div className="text-left flex-1">
+                                <div className="text-base font-semibold text-slate-800 mb-1">Seguro Viagem</div>
+                                <div className="text-sm text-slate-600 font-medium">Proteção completa para sua viagem</div>
+                              </div>
+                            </div>
+                          </motion.button>
+                        </motion.div>
                       </div>
                     </div>
 
-                    {/* Enhanced CTA + Social Proof - 35% */}
-                    <div className="flex-shrink-0 space-y-2" style={{ height: '35%' }}>
-                      {/* Main CTA */}
+                    {/* ULTRATHINK: Compact CTA Section - 9.7% Optimized */}
+                    <div className="flex-shrink-0" style={{ height: '9.7%' }}>
+                      {/* ULTRATHINK Professional CTA - Enhanced Visual Hierarchy */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="bg-white rounded-3xl shadow-neu-lg p-4 border border-neutral-200/50"
+                        className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl shadow-lg p-3 border border-slate-700/50"
                       >
-                        <motion.button
-                          onClick={handleGenericQuote}
-                          className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-2xl py-4 font-bold text-base shadow-glow-md min-h-[48px] active:shadow-glow-sm transition-all duration-200"
-                          whileTap={{ scale: 0.96 }}
-                          whileHover={{ 
-                            scale: 1.02,
-                            y: -1
-                          }}
-                          style={{ touchAction: 'manipulation' }}
-                        >
-                          <div className="flex items-center justify-center space-x-3">
-                            <span className="text-lg">⚡</span>
-                            <span>Buscar Ofertas Grátis</span>
+                        <div className="text-center text-white">
+                          <div className="text-sm font-semibold mb-2 flex items-center justify-center space-x-2">
+                            <span className="text-lg">🎁</span>
+                            <span className="text-sm font-bold">Cotação Grátis em 2 Horas!</span>
                           </div>
-                        </motion.button>
+                          <div className="text-xs text-slate-300 mb-3 font-medium">Economize na sua próxima viagem</div>
+                        
+                          {/* Professional Dual Action Buttons */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <motion.button
+                              onClick={handleGenericQuote}
+                              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl py-2.5 font-semibold text-xs shadow-md flex items-center justify-center space-x-2 transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:ring-offset-2 active:transform active:scale-95"
+                              whileTap={{ scale: 0.96 }}
+                              whileHover={{ 
+                                y: -1,
+                                boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)'
+                              }}
+                              style={{ touchAction: 'manipulation' }}
+                              role="button"
+                              aria-label="Iniciar conversa via WhatsApp"
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                              </svg>
+                              <span>WhatsApp</span>
+                            </motion.button>
+                            
+                            <motion.button
+                              onClick={handleGenericQuote}
+                              className="bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 text-white rounded-xl py-2.5 font-semibold text-xs shadow-md flex items-center justify-center space-x-2 transition-all min-h-[44px] focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:ring-offset-2 active:transform active:scale-95"
+                              whileTap={{ scale: 0.96 }}
+                              whileHover={{ 
+                                y: -1,
+                                boxShadow: '0 6px 20px rgba(124, 58, 237, 0.3)'
+                              }}
+                              style={{ touchAction: 'manipulation' }}
+                              role="button"
+                              aria-label="Falar com AI Assistant"
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                              </svg>
+                              <span>AI Assistant</span>
+                            </motion.button>
+                          </div>
+                        </div>
                       </motion.div>
-                      
-                      {/* Enhanced Social Proof */}
+                    </div>
+
+                    {/* ULTRATHINK: Responsive Gap Buffer - Reduced by 50% for navigation space */}
+                    <div className="flex-shrink-0" style={{ height: '1.5%' }}></div>
+
+                    {/* ULTRATHINK: Social Proof - Optimized to 4% for navigation space */}
+                    <div className="flex-shrink-0 mb-1" style={{ height: '4%' }}>
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-neutral-50 rounded-2xl p-4 shadow-neu-inset border border-neutral-200/50"
+                        transition={{ delay: 0.5 }}
+                        className="bg-neutral-50/80 rounded-xl px-3 py-1.5 shadow-neu-inset border border-neutral-200/50"
                       >
-                        <div className="flex items-center justify-between text-center mb-3">
-                          <div className="flex-1">
-                            <div className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">150K+</div>
-                            <div className="text-xs text-neutral-600 font-medium">Clientes felizes</div>
+                        {/* Inline Social Stats - Responsive Minimal */}
+                        <div className="flex items-center justify-between text-center">
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm font-semibold text-primary-600">⭐15K+</span>
                           </div>
-                          <div className="w-px h-10 bg-gradient-to-b from-transparent via-neutral-300 to-transparent" />
-                          <div className="flex-1">
-                            <div className="text-lg font-bold bg-gradient-to-r from-success-500 to-success-600 bg-clip-text text-transparent">4.9★</div>
-                            <div className="text-xs text-neutral-600 font-medium">Avaliação média</div>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm font-semibold text-success-600">✓4.9</span>
                           </div>
-                          <div className="w-px h-10 bg-gradient-to-b from-transparent via-neutral-300 to-transparent" />
-                          <div className="flex-1">
-                            <div className="text-lg font-bold bg-gradient-to-r from-accent-500 to-accent-600 bg-clip-text text-transparent">2min</div>
-                            <div className="text-xs text-neutral-600 font-medium">Cotação rápida</div>
-                          </div>
-                        </div>
-                        
-                        {/* Premium trust badges */}
-                        <div className="flex items-center justify-center space-x-3">
-                          <div className="flex items-center space-x-1 bg-green-100 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-xs font-semibold text-green-700">🔒 100% Seguro</span>
-                          </div>
-                          <div className="flex items-center space-x-1 bg-blue-100 px-2 py-1 rounded-full">
-                            <span className="text-xs font-semibold text-blue-700">✨ Gratuito</span>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs font-semibold text-accent-600 bg-gradient-to-r from-blue-50 to-green-50 px-2 py-1 rounded-full">✨ Gratuito</span>
                           </div>
                         </div>
                       </motion.div>
@@ -372,7 +433,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     <p className="text-gray-600 mb-3">Descubra as melhores ofertas de viagem</p>
                     <button
                       onClick={handleGenericQuote}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold"
+                      className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                      aria-label="Buscar ofertas especiais"
                     >
                       Buscar Ofertas
                     </button>
@@ -388,7 +450,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     <p className="text-gray-600 mb-3">Salve suas viagens dos sonhos</p>
                     <button
                       onClick={handleGenericQuote}
-                      className="bg-rose-600 text-white px-6 py-3 rounded-xl font-semibold"
+                      className="bg-rose-600 text-white px-6 py-3 rounded-xl font-semibold min-h-[44px] focus:outline-none focus:ring-2 focus:ring-rose-400/50"
+                      aria-label="Explorar destinos favoritos"
                     >
                       Explorar Destinos
                     </button>
@@ -404,7 +467,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                     <p className="text-gray-600 mb-3">Gerencie suas informações</p>
                     <button
                       onClick={handleGenericQuote}
-                      className="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold"
+                      className="bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold min-h-[44px] focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+                      aria-label="Começar cotação personalizada"
                     >
                       Começar Cotação
                     </button>
@@ -415,7 +479,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           </AnimatePresence>
         </div>
 
-        {/* Modern Enhanced Bottom Navigation - Hidden when lead form is active */}
+        {/* ULTRATHINK Enhanced Bottom Navigation - Compact Icons & Bottom Line */}
         {!leadFormEmbedded && (
           <div className="bg-white/95 backdrop-blur-xl border-t border-neutral-200/50 px-2 py-2 pb-safe-bottom shadow-neu-lg relative z-50">
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-50/20 to-transparent"></div>
@@ -428,15 +492,18 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                 <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="flex-1 py-3 px-2 relative min-h-[56px] flex items-center justify-center"
+                  className="flex-1 py-2 px-1 relative min-h-[44px] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-1 rounded-lg active:transform active:scale-95"
                   whileTap={{ scale: 0.9 }}
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.02 }}
                   style={{ touchAction: 'manipulation' }}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Navegar para ${tab.label}`}
                 >
                   <div className="flex flex-col items-center">
-                    <div className={`p-3 rounded-2xl transition-all duration-300 ${
+                    <div className={`p-1.5 rounded-lg transition-all duration-300 ${
                       isActive 
-                        ? `bg-white shadow-neu-md border border-neutral-200/50` 
+                        ? 'hover:bg-neutral-50/50' 
                         : 'hover:bg-neutral-50'
                     }`}>
                       <IconComponent 
@@ -445,33 +512,33 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
                         }`} 
                       />
                     </div>
-                    <span className={`text-xs mt-1 font-semibold transition-all duration-300 ${
+                    <span className={`text-xs mt-0.5 font-medium transition-all duration-300 ${
                       isActive ? `${tab.color}` : 'text-neutral-400'
                     }`}>
                       {tab.label}
                     </span>
                   </div>
 
-                  {/* Premium Active Indicator */}
+                  {/* ULTRATHINK Enhanced Active Indicator - Full Width Bottom Line */}
                   {isActive && (
                     <motion.div
-                      className={`absolute -top-0.5 left-1/2 w-8 h-1 bg-gradient-to-r ${tab.gradient} rounded-full shadow-lg`}
+                      className={`absolute -bottom-0.5 left-1/2 w-14 h-1 bg-gradient-to-r ${tab.gradient} rounded-full shadow-sm`}
                       layoutId="activeIndicator"
                       style={{ x: '-50%' }}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", damping: 20, stiffness: 400 }}
                     />
                   )}
 
-                  {/* Glow Effect */}
+                  {/* Enhanced Subtle Highlight Effect */}
                   {isActive && (
                     <motion.div
-                      className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${tab.gradient} opacity-5 blur-sm`}
-                      layoutId="glowEffect"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                      className="absolute inset-0 rounded-lg bg-gradient-to-b from-transparent via-transparent to-neutral-100/20"
+                      layoutId="highlightEffect"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
                     />
                   )}
                 </motion.button>
