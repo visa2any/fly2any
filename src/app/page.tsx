@@ -3729,7 +3729,7 @@ export default function Home() {
             <MobileFlightFormUnified
               mode="premium"
               stepFlow="extended"
-              showNavigation={false}
+              showNavigation={true}
               onClose={() => setShowMobileFlightForm(false)}
               onSubmit={(data) => {
                 console.log('✅ Flight form submitted:', data);

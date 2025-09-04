@@ -101,16 +101,16 @@ const designTokens = {
     }
   },
   spacing: {
-    section: 'space-y-4',
-    field: 'mb-4',
-    compact: 'p-3',
-    comfortable: 'p-4',
-    spacious: 'p-6'
+    section: 'space-y-3',
+    field: 'mb-3',
+    compact: 'p-2',
+    comfortable: 'p-3',
+    spacious: 'p-4'
   },
   typography: {
-    title: 'text-lg font-bold text-gray-900',
+    title: 'text-base font-bold text-gray-900',
     subtitle: 'text-sm text-gray-600',
-    label: 'text-xs font-semibold text-gray-700 mb-2 block',
+    label: 'text-sm font-semibold text-gray-700 mb-2 block',
     input: 'text-base font-medium'
   },
   animations: {
@@ -177,16 +177,16 @@ export default function MobileFlightFormUnified({
     if (stepFlow === 'extended') {
       return [
         { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
-        { key: 'budget-notes', title: 'Orçamento', icon: CurrencyDollarIcon },
-        { key: 'contact', title: 'Contato', icon: UserIcon },
-        { key: 'review', title: 'Revisar', icon: CheckIcon },
-        { key: 'confirmation', title: 'Confirmação', icon: SparklesIcon }
+        { key: 'budget-notes', title: 'Budget', icon: CurrencyDollarIcon },
+        { key: 'contact', title: 'Contact', icon: UserIcon },
+        { key: 'review', title: 'Review', icon: CheckIcon },
+        { key: 'confirmation', title: 'Confirmation', icon: SparklesIcon }
       ];
     } else {
       return [
         { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
-        { key: 'contact', title: 'Contato', icon: UserIcon },
-        { key: 'review', title: 'Revisar', icon: CheckIcon }
+        { key: 'contact', title: 'Contact', icon: UserIcon },
+        { key: 'review', title: 'Review', icon: CheckIcon }
       ];
     }
   };
@@ -365,21 +365,21 @@ export default function MobileFlightFormUnified({
       case 'compact':
         return {
           container: 'bg-white',
-          section: 'bg-white rounded-lg border border-gray-200 p-3 mb-3',
+          section: 'bg-white rounded-lg border border-gray-200 p-2 mb-2',
           title: 'text-sm font-bold text-gray-900',
           spacing: 'space-y-2'
         };
       case 'premium':
         return {
           container: 'bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-50',
-          section: 'backdrop-blur-xl bg-gradient-to-r from-white/90 via-white/95 to-white/90 rounded-2xl p-4 mb-4 border border-blue-200/50 shadow-lg',
-          title: 'text-lg font-bold text-gray-900',
-          spacing: 'space-y-4'
+          section: 'backdrop-blur-xl bg-gradient-to-r from-white/90 via-white/95 to-white/90 rounded-xl p-3 mb-3 border border-blue-200/50 shadow-lg',
+          title: 'text-base font-bold text-gray-900',
+          spacing: 'space-y-3'
         };
       case 'embedded':
         return {
           container: 'bg-transparent',
-          section: 'bg-white rounded-xl border border-gray-100 p-4 mb-4 shadow-sm',
+          section: 'bg-white rounded-xl border border-gray-100 p-3 mb-3 shadow-sm',
           title: 'text-base font-bold text-gray-900',
           spacing: 'space-y-3'
         };
@@ -402,48 +402,6 @@ export default function MobileFlightFormUnified({
   return (
     <div className={`h-full flex flex-col ${modeStyles.container} ${className}`}>
       
-      {/* UNIFIED HEADER - Only show if navigation enabled */}
-      {showNavigation && (
-        <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-sky-500 text-white px-4 py-3">
-          <div className="flex items-center justify-between">
-            {/* Back Button */}
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 text-white/90 hover:text-white transition-colors"
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-                <span className="text-sm font-medium">Voltar</span>
-              </button>
-            )}
-            
-            {/* Title & Progress */}
-            <div className="flex-1 text-center">
-              <h1 className="text-sm font-bold">✈️ Cotação de Voos</h1>
-              <div className="flex justify-center gap-1 mt-1">
-                {steps.map((step, index) => {
-                  const isActive = step.key === currentStep;
-                  const isCompleted = getCurrentStepIndex() > index;
-                  
-                  return (
-                    <div
-                      key={step.key}
-                      className={`w-6 h-1 rounded-full transition-all ${
-                        isCompleted ? 'bg-white' : isActive ? 'bg-white/70' : 'bg-white/30'
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Step Counter */}
-            <div className="text-xs text-white/80">
-              {getCurrentStepIndex() + 1}/{steps.length}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 overflow-auto">
@@ -454,17 +412,17 @@ export default function MobileFlightFormUnified({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={designTokens.animations.page}
-            className={`${modeStyles.spacing} p-4`}
+            className={`${modeStyles.spacing} p-3`}
           >
             
             {/* STEP 1: TRAVEL DETAILS */}
             {currentStep === 'travel' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <PaperAirplaneIcon className="w-8 h-8 text-white" />
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <PaperAirplaneIcon className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className={modeStyles.title}>Detalhes da Viagem</h2>
+                  <h2 className={modeStyles.title}>Detalhes do Voo</h2>
                   <p className="text-sm text-gray-600 mt-1">Configure sua viagem ideal</p>
                 </div>
 
@@ -645,14 +603,14 @@ export default function MobileFlightFormUnified({
               </div>
             )}
 
-            {/* STEP 2: CONTACT INFORMATION */}
+            {/* STEP 3: CONTACT INFORMATION */}
             {currentStep === 'contact' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <UserIcon className="w-8 h-8 text-white" />
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <UserIcon className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className={modeStyles.title}>Seus Dados</h2>
+                  <h2 className={modeStyles.title}>Contact</h2>
                   <p className="text-sm text-gray-600 mt-1">Para que possamos entrar em contato</p>
                 </div>
 
@@ -722,18 +680,18 @@ export default function MobileFlightFormUnified({
               </div>
             )}
 
-            {/* STEP 3: BUDGET & NOTES (Extended Flow Only) */}
+            {/* STEP 2: BUDGET & NOTES (Extended Flow Only) */}
             {currentStep === 'budget-notes' && stepFlow === 'extended' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <CurrencyDollarIcon className="w-8 h-8 text-white" />
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <CurrencyDollarIcon className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className={modeStyles.title}>Orçamento & Preferências</h2>
+                  <h2 className={modeStyles.title}>Budget</h2>
                   <p className="text-sm text-gray-600 mt-1">Personalize sua experiência</p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Budget Selection */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-800 mb-3">Faixa de Orçamento</h3>
@@ -806,11 +764,11 @@ export default function MobileFlightFormUnified({
             {/* STEP 4: REVIEW & SUBMIT */}
             {currentStep === 'review' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <CheckIcon className="w-8 h-8 text-white" />
+                <div className="text-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <CheckIcon className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className={modeStyles.title}>Revisar & Confirmar</h2>
+                  <h2 className={modeStyles.title}>Review</h2>
                   <p className="text-sm text-gray-600 mt-1">Verifique suas informações antes de enviar</p>
                 </div>
 
@@ -882,7 +840,7 @@ export default function MobileFlightFormUnified({
                     onClick={nextStep}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-sm shadow-lg mt-6"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg mt-4"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <CheckIcon className="w-4 h-4" />
@@ -896,21 +854,21 @@ export default function MobileFlightFormUnified({
             {/* STEP 5: CONFIRMATION & SUBMIT */}
             {currentStep === 'confirmation' && (
               <div className={modeStyles.spacing}>
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <motion.div 
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                    className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg"
                   >
-                    <SparklesIcon className="w-10 h-10 text-white" />
+                    <SparklesIcon className="w-8 h-8 text-white" />
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                   >
-                    <h2 className={`${modeStyles.title} text-green-600`}>Tudo Pronto!</h2>
+                    <h2 className={`${modeStyles.title} text-green-600`}>Confirmation</h2>
                     <p className="text-sm text-gray-600 mt-1">Confirme o envio da sua solicitação</p>
                   </motion.div>
                 </div>
@@ -991,7 +949,7 @@ export default function MobileFlightFormUnified({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 1.0 }}
-                    className="w-full bg-gradient-to-r from-green-600 via-green-600 to-emerald-600 text-white py-4 px-6 rounded-xl font-bold text-sm shadow-xl disabled:opacity-50 mt-6 relative overflow-hidden"
+                    className="w-full bg-gradient-to-r from-green-600 via-green-600 to-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-xl disabled:opacity-50 mt-4 relative overflow-hidden"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center gap-2">
@@ -1032,18 +990,18 @@ export default function MobileFlightFormUnified({
 
       {/* UNIFIED NAVIGATION - Only show if enabled and not on final step */}
       {showNavigation && currentStep !== 'confirmation' && (
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
+        <div className="flex-shrink-0 border-t border-gray-200 bg-white px-3 py-2">
           <div className="flex justify-between items-center">
             <button
               onClick={prevStep}
               disabled={getCurrentStepIndex() === 0}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 text-sm font-medium disabled:opacity-50 hover:text-gray-800"
+              className="flex items-center gap-1 px-3 py-2 text-gray-600 text-sm font-medium disabled:opacity-50 hover:text-gray-800 min-w-[80px]"
             >
               <ChevronLeftIcon className="w-4 h-4" />
               Voltar
             </button>
 
-            <div className="flex gap-1">
+            <div className="flex gap-1 px-2">
               {steps.map((step, index) => {
                 const isActive = step.key === currentStep;
                 const isCompleted = getCurrentStepIndex() > index;
@@ -1062,7 +1020,7 @@ export default function MobileFlightFormUnified({
             <button
               onClick={nextStep}
               disabled={!canProceedFromStep(currentStep)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-blue-700"
+              className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-blue-700 min-w-[90px]"
             >
               Continue
               <ChevronRightIcon className="w-4 h-4" />
