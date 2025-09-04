@@ -3730,22 +3730,40 @@ export default function Home() {
 
         {/* Mobile Flight Form - Full Screen Overlay */}
         {showMobileFlightForm && (
-          <div className="fixed inset-0 z-50 bg-white">
-            <MobileFlightFormUnified
-              mode="premium"
-              stepFlow="extended"
-              showNavigation={true}
-              onClose={() => setShowMobileFlightForm(false)}
-              onSubmit={(data) => {
-                console.log('✅ Flight form submitted:', data);
-                // Handle form submission - could integrate with existing API
-                setShowMobileFlightForm(false);
-                
-                // Show success message or redirect
-                alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
-              }}
-              className="h-full"
-            />
+          <div className="fixed inset-0 z-50 bg-white flex flex-col">
+            {/* Platform Header - Consistent across all steps */}
+            <div className={styles.mobileHeader}>
+              <div className={styles.mobileHeaderContent}>
+                <div className={styles.mobileLogoContainer}>
+                  <Logo variant="logo-only" size="sm" />
+                </div>
+                <button 
+                  className={styles.mobileHamburgerButton}
+                  onClick={() => setShowMobileFlightForm(false)}
+                >
+                  <Bars3Icon className={styles.mobileHamburgerIcon} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Flight Form Content - Remaining viewport */}
+            <div className="flex-1 overflow-hidden">
+              <MobileFlightFormUnified
+                mode="premium"
+                stepFlow="extended"
+                showNavigation={true}
+                onClose={() => setShowMobileFlightForm(false)}
+                onSubmit={(data) => {
+                  console.log('✅ Flight form submitted:', data);
+                  // Handle form submission - could integrate with existing API
+                  setShowMobileFlightForm(false);
+                  
+                  // Show success message or redirect
+                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                }}
+                className="h-full"
+              />
+            </div>
           </div>
         )}
         
