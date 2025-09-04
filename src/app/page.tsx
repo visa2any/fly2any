@@ -1059,7 +1059,11 @@ export default function Home() {
             {/* Row 1: Voos and Hotéis */}
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🎯 Voos button clicked - showMobileFlightForm:', showMobileFlightForm);
                 setShowMobileFlightForm(true);
                 
                 // Analytics tracking
@@ -1071,6 +1075,7 @@ export default function Home() {
                   });
                 }
               }}
+              style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>✈️</div>
               <span className={styles.mobileServiceLabel}>Voos</span>
