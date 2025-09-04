@@ -19,6 +19,13 @@ import {
   MailIcon,
   LocationIcon
 } from '@/components/Icons';
+import { 
+  HomeIcon,
+  MapPinIcon,
+  HeartIcon,
+  UserIcon,
+  Bars3Icon
+} from '@heroicons/react/24/outline';
 import Logo from '@/components/Logo';
 // import ResponsiveHeader from '@/components/ResponsiveHeader'; // Temporarily replaced with LiveSiteHeader
 import Footer from '@/components/Footer';
@@ -40,6 +47,8 @@ import { cities } from '@/data/cities';
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
 // Enterprise hydration-safe hooks
 import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
+// CSS Module for cleaner styling
+import styles from './page.module.css';
 
 interface ServiceFormData {
   serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
@@ -797,30 +806,10 @@ export default function Home() {
       <GlobalMobileStyles />
 
       {/* Mobile Success Notification */}
-      <div className="mobile-success-hidden">
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'linear-gradient(135deg, #10B981, #059669)',
-          color: 'white',
-          padding: '16px',
-          borderRadius: '16px',
-          maxWidth: '280px',
-          width: '90vw',
-          zIndex: 1002,
-          textAlign: 'center',
-          animation: 'bounceIn 0.6s ease-out',
-          boxShadow: '0 20px 40px rgba(16, 185, 129, 0.4)',
-          border: '2px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ fontSize: '24px', marginBottom: '6px' }}>🎉</div>
-          <div style={{ 
-            fontSize: '14px', 
-            fontWeight: '700', 
-            marginBottom: '4px' 
-          }}>
+      <div className={styles.mobileSuccessHidden}>
+        <div className={styles.mobileSuccessModal}>
+          <div className={styles.mobileSuccessIcon}>🎉</div>
+          <div className={styles.mobileSuccessTitle}>
             Ótima escolha!
           </div>
           <div style={{ fontSize: '12px', opacity: 0.9 }}>
@@ -1032,9 +1021,178 @@ export default function Home() {
       
       {/* Close social-proof-widget div */}
       
-      {/* Mobile App Experience - CSS Media Query Controlled */}
-      <div className="mobile-app-container">
-        <MobileAppLayout />
+      {/* Mobile App Experience - Perfect Viewport Harmony */}
+      <div className={styles.mobileAppContainer}>
+        {/* Header Section - 8vh */}
+        <div className={styles.mobileHeader}>
+          <div className={styles.mobileHeaderContent}>
+            <div className={styles.mobileLogoContainer}>
+              <Logo variant="logo-only" size="sm" />
+            </div>
+            <button className={styles.mobileHamburgerButton}>
+              <Bars3Icon className={styles.mobileHamburgerIcon} />
+            </button>
+          </div>
+        </div>
+
+        {/* Hero Section - 15vh */}
+        <div className={styles.mobileHero}>
+          <h1 className={styles.mobileHeroTitle}>
+            Onde vamos hoje?
+          </h1>
+          <div className={styles.mobilePromoWrapper}>
+            <div className={`${styles.mobilePromoBadge} ${styles.mobilePromoBadgeGreen}`}>
+              <div className={styles.promoPulse}></div>
+              <span>Promoções ativas</span>
+            </div>
+            <div className={`${styles.mobilePromoBadge} ${styles.mobilePromoBadgeAccent}`}>
+              <span>✨ Até 10% OFF</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Services Section - 50vh */}
+        <div className={styles.mobileServicesSection}>
+          <div className={`${styles.servicesGrid} ${styles.mobileServicesGrid}`}>
+            {/* Row 1: Voos and Hotéis */}
+            <button 
+              className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
+              onClick={() => {
+                const formSection = document.querySelector('form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className={styles.mobileServiceIcon}>✈️</div>
+              <span className={styles.mobileServiceLabel}>Voos</span>
+              <span className={styles.mobileServiceSubtitle}>Passagens aéreas</span>
+              <span className={styles.popularBadge}>Popular</span>
+            </button>
+
+            <button 
+              className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
+              onClick={() => {
+                const formSection = document.querySelector('form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className={styles.mobileServiceIcon}>🏨</div>
+              <span className={styles.mobileServiceLabel}>Hotéis</span>
+              <span className={styles.mobileServiceSubtitle}>Hospedagem</span>
+            </button>
+
+            {/* Row 2: Carros and Tours */}
+            <button 
+              className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
+              onClick={() => {
+                const formSection = document.querySelector('form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className={styles.mobileServiceIcon}>🚗</div>
+              <span className={styles.mobileServiceLabel}>Carros</span>
+              <span className={styles.mobileServiceSubtitle}>Aluguel</span>
+            </button>
+
+            <button 
+              className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
+              onClick={() => {
+                const formSection = document.querySelector('form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className={styles.mobileServiceIcon}>🎯</div>
+              <span className={styles.mobileServiceLabel}>Tours</span>
+              <span className={styles.mobileServiceSubtitle}>Experiências</span>
+            </button>
+
+            {/* Row 3: Seguro - FULL WIDTH */}
+            <button 
+              className={`${styles.serviceButton} ${styles.mobileServiceButton} ${styles.serviceButtonFullWidth}`}
+              onClick={() => {
+                const formSection = document.querySelector('form');
+                if (formSection) {
+                  formSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <div className={styles.mobileServiceIcon}>🛡️</div>
+              <div className={styles.mobileServiceContent}>
+                <span className={styles.mobileServiceLabel}>Seguro Viagem</span>
+                <span className={styles.mobileServiceSubtitle}>Proteção completa</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Social Proof Section - 12vh */}
+        <div className={styles.mobileSocialProofSection}>
+          <div className={styles.mobileSocialProof}>
+            <div className={styles.mobileSocialProofContent}>
+              <div className={`${styles.mobileSocialStat} ${styles.mobileSocialStatUsers}`}>
+                ⭐15K+
+              </div>
+              <div className={`${styles.mobileSocialStat} ${styles.mobileSocialStatRating}`}>
+                ✓4.9
+              </div>
+              <div className={`${styles.mobileSocialStat} ${styles.mobileSocialStatFree}`}>
+                ✨ Gratuito
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust Badges Section - 8vh */}
+        <div className={styles.mobileTrustBadgesSection}>
+          <div className={styles.mobileTrustBadges}>
+            <div className={styles.mobileTrustBadgeItem}>
+              <div className={styles.mobileTrustBadgeIcon}>🔒</div>
+              <span className={styles.mobileTrustBadgeText}>100% Seguro</span>
+            </div>
+            <div className={styles.mobileTrustBadgeItem}>
+              <div className={styles.mobileTrustBadgeIcon}>⚡</div>
+              <span className={styles.mobileTrustBadgeText}>2h Resposta</span>
+            </div>
+            <div className={styles.mobileTrustBadgeItem}>
+              <div className={styles.mobileTrustBadgeIcon}>✨</div>
+              <span className={styles.mobileTrustBadgeText}>Cotação Grátis</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Navigation Section - 7vh */}
+        <div className={styles.mobileBottomNavSection}>
+          <div className={styles.mobileBottomNav}>
+            <div className={styles.mobileBottomNavContent}>
+              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}>
+                <HomeIcon className={styles.mobileNavTabIcon} />
+                <span className={styles.mobileNavTabLabel}>Home</span>
+              </button>
+              <button 
+                className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
+                onClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              >
+                <ChatIcon className={styles.mobileNavTabIcon} />
+                <span className={styles.mobileNavTabLabel}>Chat</span>
+              </button>
+              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
+                <HeartIcon className={styles.mobileNavTabIcon} />
+                <span className={styles.mobileNavTabLabel}>Favoritos</span>
+              </button>
+              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
+                <UserIcon className={styles.mobileNavTabIcon} />
+                <span className={styles.mobileNavTabLabel}>Perfil</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Desktop Content - CSS Media Query Controlled */}
@@ -1050,7 +1208,7 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: isMobileDevice ? '24px 0 32px 0' : '60px 0 80px 0',
+          padding: isMobileDevice ? '24px 0 32px 0' : '30px 0 80px 0',
           width: '100%',
           maxWidth: '100vw'
         }} className="mobile-section">
@@ -1083,28 +1241,10 @@ export default function Home() {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
               </div>
-              <h1 style={{
-                fontSize: isMobileDevice ? '20px' : '56px',
-                fontWeight: '800',
-                fontFamily: 'Poppins, sans-serif',
-                lineHeight: '1.3',
-                margin: isMobileDevice ? '0 0 12px 0' : '0 0 24px 0',
-                letterSpacing: '-0.02em',
-                maxWidth: '100%',
-                textAlign: isMobileDevice ? 'center' : 'left',
-                color: colors.secondary.gray900
-              }} className="mobile-title">
+              <h1 className={`${styles.heroTitle} ${isMobileDevice ? styles.mobileHeroTitle : ''}`}>
                 Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
               </h1>
-              <p style={{
-                fontSize: isMobileDevice ? '14px' : '20px',
-                color: colors.secondary.gray600,
-                lineHeight: '1.6',
-                maxWidth: isMobileDevice ? '100%' : '520px',
-                marginBottom: isMobileDevice ? '16px' : '40px',
-                fontWeight: '400',
-                textAlign: isMobileDevice ? 'center' : 'left'
-              }} className="mobile-subtitle">
+              <p className={`${styles.heroSubtitle} ${isMobileDevice ? styles.mobileHeroSubtitle : ''}`}>
                 Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
               </p>
               
@@ -1168,7 +1308,7 @@ export default function Home() {
                 flexWrap: 'wrap',
                 flexDirection: isMobileDevice ? 'column' : 'row',
                 alignItems: isMobileDevice ? 'center' : 'flex-start'
-              }} className="mobile-button-group">
+              }} className={styles.mobileButtonGroup}>
 
                 <button
                   type="button"
@@ -1572,12 +1712,7 @@ export default function Home() {
                           )}
 
                           {/* Available Services */}
-                          <div style={{ 
-                            display: 'grid', 
-                            gridTemplateColumns: isMobileDevice ? '1fr' : 'repeat(3, 1fr)', 
-                            gap: isMobileDevice ? '8px' : '8px', 
-                            marginTop: '16px' 
-                          }}>
+                          <div className={`${styles.servicesGrid} ${isMobileDevice ? styles.mobileServicesGrid : styles.desktopServicesGrid}`}>
                             {(['voos', 'hoteis', 'carros', 'passeios', 'seguro'] as const).map(serviceType => {
                               const isSelected = formData.selectedServices.some(s => s.serviceType === serviceType);
                               const isMaxServices = formData.selectedServices.length >= 5;
@@ -1599,47 +1734,17 @@ export default function Home() {
                                     }
                                   }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
-                                  style={{ 
-                                    padding: isMobileDevice ? '8px 10px' : '16px 20px', 
-                                    borderRadius: isMobileDevice ? '6px' : '12px', 
-                                    border: isSelected ? `2px solid ${colors.accent.orange}` : `1px solid ${colors.primary.gray200}`, 
-                                    background: isSelected ? `${colors.accent.orange}05` : colors.primary.white, 
-                                    cursor: isSelected || isMaxServices ? 'not-allowed' : 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: isMobileDevice ? '4px' : '8px',
-                                    opacity: isSelected || isMaxServices ? 0.7 : 1,
-                                    position: 'relative',
-                                    fontSize: isMobileDevice ? '11px' : '14px',
-                                    fontWeight: isMobileDevice ? '500' : '600',
-                                    transition: 'all 0.2s ease',
-                                    transform: 'scale(1)',
-                                    boxShadow: isSelected ? `0 4px 12px ${colors.accent.orange}15` : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                                    color: colors.secondary.gray800,
-                                    width: '100%',
-                                    minHeight: isMobileDevice ? '32px' : 'auto'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (!isSelected && !isMaxServices) {
-                                      e.currentTarget.style.transform = 'translateY(-2px)';
-                                      e.currentTarget.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.15)`;
-                                      e.currentTarget.style.borderColor = colors.secondary.blue;
-                                      e.currentTarget.style.background = colors.primary.gray50;
-                                    }
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (!isSelected && !isMaxServices) {
-                                      e.currentTarget.style.transform = 'translateY(0)';
-                                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                                      e.currentTarget.style.borderColor = colors.primary.gray200;
-                                      e.currentTarget.style.background = colors.primary.white;
-                                    }
-                                  }}
+                                  className={`
+                                    ${styles.serviceButton}
+                                    ${isMobileDevice ? styles.mobileServiceButton : styles.desktopServiceButton}
+                                    ${isSelected ? styles.serviceButtonSelected : ''}
+                                    ${isSelected || isMaxServices ? styles.serviceButtonDisabled : ''}
+                                    ${serviceType === 'seguro' ? styles.serviceButtonFullWidth : ''}
+                                  `}
                                 >
                                   {serviceType === 'voos' && (
                                     <>
-                                      <FlightIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> 
+                                      <FlightIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> 
                                       Voos
                                       <span style={{
                                         position: 'absolute',
@@ -1659,22 +1764,22 @@ export default function Home() {
                                   )}
                                   {serviceType === 'hoteis' && (
                                     <>
-                                      <HotelIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Hotéis
+                                      <HotelIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Hotéis
                                     </>
                                   )}
                                   {serviceType === 'carros' && (
                                     <>
-                                      <CarIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Carros
+                                      <CarIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Carros
                                     </>
                                   )}
                                   {serviceType === 'passeios' && (
                                     <>
-                                      <TourIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Passeios
+                                      <TourIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Passeios
                                     </>
                                   )}
                                   {serviceType === 'seguro' && (
                                     <>
-                                      <InsuranceIcon style={{ width: isMobileDevice ? '14px' : '18px', height: isMobileDevice ? '14px' : '18px' }} /> Seguro
+                                      <InsuranceIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Seguro
                                     </>
                                   )}
                                   {isSelected && <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />}
@@ -3014,7 +3119,7 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: '100px 0',
+          padding: '25px 0',
           background: colors.primary.gray50,
           width: '100%',
           maxWidth: '100vw'
@@ -3255,7 +3360,7 @@ export default function Home() {
         <section style={{
           position: 'relative',
           zIndex: 10,
-          padding: '80px 0',
+          padding: '72px 0',
           textAlign: 'center',
           width: '100%',
           maxWidth: '100vw'
@@ -3589,8 +3694,10 @@ export default function Home() {
           </div>
         </div> {/* Close success-toast div */}
 
-        {/* Floating Chat Buttons */}
-        <FloatingChat />
+        {/* Floating Chat Buttons - Hidden on Mobile (integrated in bottom nav) */}
+        <div className={styles.desktopVisible}>
+          <FloatingChat />
+        </div>
         
         {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
         <div className="lead-capture-mobile-visible">

@@ -44,7 +44,7 @@ export default function Logo({
       >
         <Image
           src="/fly2any-logo.png"
-          alt="Fly2Any - Sua ponte para o Brasil"
+          alt="Fly2Any"
           fill
           sizes="(max-width: 768px) 150px, (max-width: 1200px) 200px, 250px"
           className="object-contain"
@@ -72,18 +72,6 @@ export default function Logo({
             <span className={isWhite ? 'text-amber-500' : 'text-amber-300'}>2</span>
             <span className={isWhite ? 'text-gray-800' : 'text-white'}>Any</span>
           </HeadingTag>
-          <p 
-            className={`font-medium uppercase tracking-wider font-sans m-0 mt-0.5 ${
-              isWhite 
-                ? 'text-gray-500' 
-                : 'text-blue-100'
-            }`}
-            style={{
-              fontSize: `${currentSize.tagline}px`,
-            }}
-          >
-            Sua ponte para o Brasil
-          </p>
         </div>
       )}
     </div>
