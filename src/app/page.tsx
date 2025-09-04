@@ -3746,8 +3746,8 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Flight Form Content - Remaining viewport */}
-            <div className="flex-1 overflow-hidden">
+            {/* Flight Form Content - Full viewport with navigation */}
+            <div className="flex-1 flex flex-col h-full min-h-0">
               <MobileFlightFormUnified
                 mode="premium"
                 stepFlow="extended"

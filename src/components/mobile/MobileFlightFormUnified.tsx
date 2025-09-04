@@ -75,7 +75,7 @@ interface MobileFlightFormUnifiedProps {
   initialData?: Partial<FlightFormData>;
 }
 
-type StepType = 'travel' | 'budget-notes' | 'contact' | 'review' | 'confirmation';
+type StepType = 'travel' | 'budget-notes' | 'contact' | 'confirmation';
 
 // ========================================================================================
 // DESIGN SYSTEM TOKENS
@@ -179,14 +179,13 @@ export default function MobileFlightFormUnified({
         { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
         { key: 'budget-notes', title: 'Budget', icon: CurrencyDollarIcon },
         { key: 'contact', title: 'Contact', icon: UserIcon },
-        { key: 'review', title: 'Review', icon: CheckIcon },
         { key: 'confirmation', title: 'Confirmation', icon: SparklesIcon }
       ];
     } else {
       return [
         { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
         { key: 'contact', title: 'Contact', icon: UserIcon },
-        { key: 'review', title: 'Review', icon: CheckIcon }
+        { key: 'confirmation', title: 'Confirmation', icon: SparklesIcon }
       ];
     }
   };
@@ -218,8 +217,6 @@ export default function MobileFlightFormUnified({
           formData.contactInfo.email && 
           formData.contactInfo.phone
         );
-      case 'review':
-        return true; // Can proceed to confirmation
       case 'confirmation':
         return false; // Final step, no proceeding
       default:
@@ -314,6 +311,14 @@ export default function MobileFlightFormUnified({
         source: `mobile_flight_form_unified_${mode}`,
         userAgent: navigator.userAgent
       };
+
+      // Log complete submission data for verification
+      console.log('🚀 [ULTRATHINK] Complete Form Submission Data:', {
+        timestamp: new Date().toISOString(),
+        formData,
+        submissionData,
+        source: 'mobile_flight_form_unified'
+      });
 
       // Submit to API
       const response = await fetch('/api/leads', {
@@ -419,13 +424,15 @@ export default function MobileFlightFormUnified({
             {currentStep === 'travel' && (
               <div className={modeStyles.spacing}>
                 <div className="mb-4">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                      <PaperAirplaneIcon className="w-5 h-5 text-white" />
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <PaperAirplaneIcon className="w-6 h-6 text-white" />
                     </div>
-                    <h2 className={modeStyles.title}>Detalhes do Voo</h2>
+                    <div className="flex-1 min-w-0">
+                      <h2 className={`${modeStyles.title} leading-tight mb-1`}>Detalhes do Voo</h2>
+                      <p className="text-sm text-gray-600 leading-relaxed">Configure sua viagem ideal</p>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 text-center">Configure sua viagem ideal</p>
                 </div>
 
                 {/* Trip Type */}
@@ -602,6 +609,33 @@ export default function MobileFlightFormUnified({
                     ))}
                   </div>
                 </div>
+
+                {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={prevStep}
+                      disabled={getCurrentStepIndex() === 0}
+                      className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-200"
+                    >
+                      <ChevronLeftIcon className="w-4 h-4" />
+                      Voltar
+                    </button>
+
+                    <div className="text-sm text-gray-500">
+                      {getCurrentStepIndex() + 1} de {steps.length}
+                    </div>
+
+                    <button
+                      onClick={nextStep}
+                      disabled={!canProceedFromStep(currentStep)}
+                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                    >
+                      Avançar
+                      <ChevronRightIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -677,6 +711,33 @@ export default function MobileFlightFormUnified({
                       className="w-full"
                       required
                     />
+                  </div>
+                </div>
+
+                {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={prevStep}
+                      disabled={getCurrentStepIndex() === 0}
+                      className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-200"
+                    >
+                      <ChevronLeftIcon className="w-4 h-4" />
+                      Voltar
+                    </button>
+
+                    <div className="text-sm text-gray-500">
+                      {getCurrentStepIndex() + 1} de {steps.length}
+                    </div>
+
+                    <button
+                      onClick={nextStep}
+                      disabled={!canProceedFromStep(currentStep)}
+                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                    >
+                      Avançar
+                      <ChevronRightIcon className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -760,100 +821,37 @@ export default function MobileFlightFormUnified({
                     </label>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* STEP 4: REVIEW & SUBMIT */}
-            {currentStep === 'review' && (
-              <div className={modeStyles.spacing}>
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <CheckIcon className="w-6 h-6 text-white" />
-                  </div>
-                  <h2 className={modeStyles.title}>Review</h2>
-                  <p className="text-sm text-gray-600 mt-1">Verifique suas informações antes de enviar</p>
-                </div>
+                {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={prevStep}
+                      disabled={getCurrentStepIndex() === 0}
+                      className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 hover:bg-gray-200"
+                    >
+                      <ChevronLeftIcon className="w-4 h-4" />
+                      Voltar
+                    </button>
 
-                <div className="space-y-4">
-                  {/* Travel Summary */}
-                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                    <h3 className="text-sm font-bold text-blue-900 mb-2">✈️ Viagem</h3>
-                    <div className="space-y-1 text-xs text-blue-800">
-                      <div className="flex justify-between">
-                        <span>Rota:</span>
-                        <span className="font-medium">{formData.origin?.iataCode} → {formData.destination?.iataCode}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Data ida:</span>
-                        <span className="font-medium">
-                          {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                      {formData.returnDate && (
-                        <div className="flex justify-between">
-                          <span>Data volta:</span>
-                          <span className="font-medium">
-                            {new Date(formData.returnDate).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span>Passageiros:</span>
-                        <span className="font-medium">
-                          {formData.passengers.adults}A
-                          {formData.passengers.children > 0 && `+${formData.passengers.children}C`}
-                          {formData.passengers.infants > 0 && `+${formData.passengers.infants}B`}
-                        </span>
-                      </div>
+                    <div className="text-sm text-gray-500">
+                      {getCurrentStepIndex() + 1} de {steps.length}
                     </div>
+
+                    <button
+                      onClick={nextStep}
+                      disabled={!canProceedFromStep(currentStep)}
+                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                    >
+                      Avançar
+                      <ChevronRightIcon className="w-4 h-4" />
+                    </button>
                   </div>
-
-                  {/* Contact Summary */}
-                  <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                    <h3 className="text-sm font-bold text-green-900 mb-2">👤 Contato</h3>
-                    <div className="space-y-1 text-xs text-green-800">
-                      <div>{formData.contactInfo.firstName} {formData.contactInfo.lastName}</div>
-                      <div>{formData.contactInfo.email}</div>
-                      <div>{formData.contactInfo.phone}</div>
-                    </div>
-                  </div>
-
-                  {/* Special Options */}
-                  {(formData.urgente || formData.flexivelDatas) && (
-                    <div className="flex gap-2">
-                      {formData.urgente && (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">⚡ Urgente</span>
-                      )}
-                      {formData.flexivelDatas && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">📅 Flexível</span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Trust Indicators */}
-                  <div className="text-center space-y-1 text-xs text-gray-600 mt-4">
-                    <p>✅ Resposta em até 2 horas</p>
-                    <p>📞 Atendimento especializado</p>
-                    <p>💰 Cotação gratuita</p>
-                  </div>
-
-                  {/* Continue to Confirmation Button */}
-                  <motion.button
-                    onClick={nextStep}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg mt-4"
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <CheckIcon className="w-4 h-4" />
-                      Confirmar Dados
-                    </div>
-                  </motion.button>
                 </div>
               </div>
             )}
 
-            {/* STEP 5: CONFIRMATION & SUBMIT */}
+            {/* STEP 4: CONFIRMATION & SUBMIT */}
             {currentStep === 'confirmation' && (
               <div className={modeStyles.spacing}>
                 <div className="text-center mb-4">
@@ -881,7 +879,7 @@ export default function MobileFlightFormUnified({
                   transition={{ duration: 0.5, delay: 0.6 }}
                   className="space-y-4"
                 >
-                  {/* Quick Summary */}
+                  {/* Complete Flight Summary */}
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
@@ -890,26 +888,58 @@ export default function MobileFlightFormUnified({
                       <div>
                         <h3 className="text-sm font-bold text-green-900">Sua Cotação de Voo</h3>
                         <p className="text-xs text-green-700">
-                          {formData.origin?.iataCode} → {formData.destination?.iataCode}
+                          {formData.origin?.city} ({formData.origin?.iataCode}) → {formData.destination?.city} ({formData.destination?.iataCode})
                         </p>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="text-center p-2 bg-white/50 rounded-lg">
-                        <div className="font-semibold text-green-800">Partida</div>
-                        <div className="text-green-600">
-                          {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
-                        </div>
-                      </div>
-                      {formData.returnDate && (
+                    <div className="space-y-3">
+                      {/* Trip Type & Dates */}
+                      <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="text-center p-2 bg-white/50 rounded-lg">
-                          <div className="font-semibold text-green-800">Retorno</div>
+                          <div className="font-semibold text-green-800">Tipo de Viagem</div>
                           <div className="text-green-600">
-                            {new Date(formData.returnDate).toLocaleDateString('pt-BR')}
+                            {formData.tripType === 'round-trip' ? 'Ida e volta' : 
+                             formData.tripType === 'one-way' ? 'Só ida' : 'Múltiplas cidades'}
                           </div>
                         </div>
-                      )}
+                        <div className="text-center p-2 bg-white/50 rounded-lg">
+                          <div className="font-semibold text-green-800">Classe</div>
+                          <div className="text-green-600 capitalize">{formData.travelClass}</div>
+                        </div>
+                      </div>
+
+                      {/* Dates */}
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="text-center p-2 bg-white/50 rounded-lg">
+                          <div className="font-semibold text-green-800">Partida</div>
+                          <div className="text-green-600">
+                            {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                        {formData.returnDate && (
+                          <div className="text-center p-2 bg-white/50 rounded-lg">
+                            <div className="font-semibold text-green-800">Retorno</div>
+                            <div className="text-green-600">
+                              {new Date(formData.returnDate).toLocaleDateString('pt-BR')}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Passengers */}
+                      <div className="bg-white/50 rounded-lg p-3">
+                        <div className="font-semibold text-green-800 mb-2 text-xs">Passageiros</div>
+                        <div className="flex gap-4 text-xs">
+                          <span className="text-green-600">{formData.passengers.adults} Adulto(s)</span>
+                          {formData.passengers.children > 0 && (
+                            <span className="text-green-600">{formData.passengers.children} Criança(s)</span>
+                          )}
+                          {formData.passengers.infants > 0 && (
+                            <span className="text-green-600">{formData.passengers.infants} Bebê(s)</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -941,6 +971,123 @@ export default function MobileFlightFormUnified({
                       <p>📱 {formData.contactInfo.phone}</p>
                     </div>
                   </div>
+
+                  {/* Complete Budget & Preferences */}
+                  {stepFlow === 'extended' && (
+                    <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                      <h4 className="text-sm font-bold text-purple-900 mb-3">💰 Orçamento & Preferências</h4>
+                      <div className="space-y-3">
+                        {/* Budget Selection */}
+                        {formData.budget && (
+                          <div className="bg-white/50 rounded-lg p-3">
+                            <div className="font-semibold text-purple-800 mb-1 text-xs">Faixa de Orçamento</div>
+                            <div className="text-purple-700 text-xs capitalize">
+                              {formData.budget === 'economy' && '💰 Econômico (R$ 500 - 1.500)'}
+                              {formData.budget === 'standard' && '💳 Padrão (R$ 1.500 - 3.000)'}
+                              {formData.budget === 'premium' && '💎 Premium (R$ 3.000 - 5.000)'}
+                              {formData.budget === 'luxury' && '👑 Luxo (R$ 5.000+)'}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Special Preferences */}
+                        {formData.preferences && (
+                          <div className="bg-white/50 rounded-lg p-3">
+                            <div className="font-semibold text-purple-800 mb-1 text-xs">Preferências Especiais</div>
+                            <div className="text-purple-700 text-xs">{formData.preferences}</div>
+                          </div>
+                        )}
+
+                        {/* Special Options */}
+                        {(formData.urgente || formData.flexivelDatas) && (
+                          <div className="bg-white/50 rounded-lg p-3">
+                            <div className="font-semibold text-purple-800 mb-2 text-xs">Opções Especiais</div>
+                            <div className="flex flex-wrap gap-2">
+                              {formData.urgente && (
+                                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">⚡ Urgente (7 dias)</span>
+                              )}
+                              {formData.flexivelDatas && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">📅 Datas Flexíveis</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show when no preferences */}
+                        {!formData.budget && !formData.preferences && !formData.urgente && !formData.flexivelDatas && (
+                          <div className="text-xs text-purple-600 text-center py-2">
+                            Sem preferências especiais selecionadas
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete Data Summary */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 1.2 }}
+                    className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 border border-gray-200"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 bg-slate-500 rounded-lg flex items-center justify-center">
+                        <CheckIcon className="w-4 h-4 text-white" />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900">Resumo Completo da Solicitação</h4>
+                    </div>
+                    
+                    <div className="text-xs text-slate-700 space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <strong className="text-slate-800">📍 Rota:</strong>
+                          <br />{formData.origin?.city} → {formData.destination?.city}
+                        </div>
+                        <div>
+                          <strong className="text-slate-800">📅 Datas:</strong>
+                          <br />
+                          Ida: {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
+                          {formData.returnDate && (
+                            <><br />Volta: {new Date(formData.returnDate).toLocaleDateString('pt-BR')}</>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200">
+                        <div className="flex justify-between items-center">
+                          <span><strong>👥 Total Passageiros:</strong> {formData.passengers.adults + formData.passengers.children + formData.passengers.infants}</span>
+                          <span><strong>✈️ Classe:</strong> {formData.travelClass}</span>
+                        </div>
+                      </div>
+
+                      {stepFlow === 'extended' && (formData.budget || formData.urgente || formData.flexivelDatas) && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <strong className="text-slate-800">🎯 Preferências:</strong>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {formData.budget && (
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                                {formData.budget}
+                              </span>
+                            )}
+                            {formData.urgente && (
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Urgente</span>
+                            )}
+                            {formData.flexivelDatas && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Flexível</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="pt-2 border-t border-gray-200 text-center">
+                        <p className="text-slate-600">
+                          ✅ Todos os dados serão enviados para nossa equipe especializada
+                          <br />
+                          📧 Você receberá uma confirmação por e-mail em instantes
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
 
                   {/* Final Submit Button */}
                   <motion.button
@@ -990,46 +1137,6 @@ export default function MobileFlightFormUnified({
         </AnimatePresence>
       </div>
 
-      {/* UNIFIED NAVIGATION - Only show if enabled and not on final step */}
-      {showNavigation && currentStep !== 'confirmation' && (
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white px-3 py-2">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={prevStep}
-              disabled={getCurrentStepIndex() === 0}
-              className="flex items-center gap-1 px-3 py-2 text-gray-600 text-sm font-medium disabled:opacity-50 hover:text-gray-800 min-w-[80px]"
-            >
-              <ChevronLeftIcon className="w-4 h-4" />
-              Voltar
-            </button>
-
-            <div className="flex gap-1 px-2">
-              {steps.map((step, index) => {
-                const isActive = step.key === currentStep;
-                const isCompleted = getCurrentStepIndex() > index;
-                
-                return (
-                  <div
-                    key={step.key}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      isCompleted ? 'bg-green-600' : isActive ? 'bg-blue-600' : 'bg-gray-300'
-                    }`}
-                  />
-                );
-              })}
-            </div>
-
-            <button
-              onClick={nextStep}
-              disabled={!canProceedFromStep(currentStep)}
-              className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-blue-700 min-w-[90px]"
-            >
-              Continue
-              <ChevronRightIcon className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
