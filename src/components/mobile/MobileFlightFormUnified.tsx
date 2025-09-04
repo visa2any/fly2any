@@ -75,7 +75,7 @@ interface MobileFlightFormUnifiedProps {
   initialData?: Partial<FlightFormData>;
 }
 
-type StepType = 'travel' | 'contact' | 'budget-notes' | 'review';
+type StepType = 'travel' | 'budget-notes' | 'contact' | 'review' | 'confirmation';
 
 // ========================================================================================
 // DESIGN SYSTEM TOKENS
@@ -174,20 +174,18 @@ export default function MobileFlightFormUnified({
   // =====================
   
   const getStepConfig = () => {
-    const baseSteps = [
-      { key: 'travel', title: 'Viagem', icon: PaperAirplaneIcon },
-      { key: 'contact', title: 'Contato', icon: UserIcon }
-    ];
-    
     if (stepFlow === 'extended') {
       return [
-        ...baseSteps,
-        { key: 'budget-notes', title: 'Orçamento', icon: SparklesIcon },
-        { key: 'review', title: 'Revisar', icon: CheckIcon }
+        { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
+        { key: 'budget-notes', title: 'Orçamento', icon: CurrencyDollarIcon },
+        { key: 'contact', title: 'Contato', icon: UserIcon },
+        { key: 'review', title: 'Revisar', icon: CheckIcon },
+        { key: 'confirmation', title: 'Confirmação', icon: SparklesIcon }
       ];
     } else {
       return [
-        ...baseSteps,
+        { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
+        { key: 'contact', title: 'Contato', icon: UserIcon },
         { key: 'review', title: 'Revisar', icon: CheckIcon }
       ];
     }
@@ -211,6 +209,8 @@ export default function MobileFlightFormUnified({
           (formData.tripType !== 'round-trip' || formData.returnDate) &&
           formData.passengers.adults > 0
         );
+      case 'budget-notes':
+        return true; // Budget and notes are optional
       case 'contact':
         return !!(
           formData.contactInfo.firstName && 
@@ -218,10 +218,10 @@ export default function MobileFlightFormUnified({
           formData.contactInfo.email && 
           formData.contactInfo.phone
         );
-      case 'budget-notes':
-        return true; // Optional step
       case 'review':
-        return true;
+        return true; // Can proceed to confirmation
+      case 'confirmation':
+        return false; // Final step, no proceeding
       default:
         return false;
     }
@@ -877,31 +877,153 @@ export default function MobileFlightFormUnified({
                     <p>💰 Cotação gratuita</p>
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Continue to Confirmation Button */}
+                  <motion.button
+                    onClick={nextStep}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-bold text-sm shadow-lg mt-6"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <CheckIcon className="w-4 h-4" />
+                      Confirmar Dados
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: CONFIRMATION & SUBMIT */}
+            {currentStep === 'confirmation' && (
+              <div className={modeStyles.spacing}>
+                <div className="text-center mb-6">
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                  >
+                    <SparklesIcon className="w-10 h-10 text-white" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <h2 className={`${modeStyles.title} text-green-600`}>Tudo Pronto!</h2>
+                    <p className="text-sm text-gray-600 mt-1">Confirme o envio da sua solicitação</p>
+                  </motion.div>
+                </div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                  className="space-y-4"
+                >
+                  {/* Quick Summary */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <PaperAirplaneIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-green-900">Sua Cotação de Voo</h3>
+                        <p className="text-xs text-green-700">
+                          {formData.origin?.iataCode} → {formData.destination?.iataCode}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="text-center p-2 bg-white/50 rounded-lg">
+                        <div className="font-semibold text-green-800">Partida</div>
+                        <div className="text-green-600">
+                          {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
+                        </div>
+                      </div>
+                      {formData.returnDate && (
+                        <div className="text-center p-2 bg-white/50 rounded-lg">
+                          <div className="font-semibold text-green-800">Retorno</div>
+                          <div className="text-green-600">
+                            {new Date(formData.returnDate).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Service Promise */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.8 }}
+                    className="bg-blue-50 rounded-xl p-4 border border-blue-200"
+                  >
+                    <div className="text-center space-y-2">
+                      <div className="text-lg">🎯</div>
+                      <h4 className="text-sm font-bold text-blue-900">Nossa Promessa</h4>
+                      <div className="space-y-1 text-xs text-blue-700">
+                        <p>✅ Resposta garantida em até 2 horas</p>
+                        <p>💎 Atendimento especializado personalizado</p>
+                        <p>💰 Melhores preços do mercado</p>
+                        <p>🛡️ Suporte completo durante sua viagem</p>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Contact Info */}
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h4 className="text-sm font-bold text-gray-900 mb-2">Dados de Contato</h4>
+                    <div className="text-xs text-gray-700 space-y-1">
+                      <p>{formData.contactInfo.firstName} {formData.contactInfo.lastName}</p>
+                      <p>📧 {formData.contactInfo.email}</p>
+                      <p>📱 {formData.contactInfo.phone}</p>
+                    </div>
+                  </div>
+
+                  {/* Final Submit Button */}
                   <motion.button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl font-bold text-sm shadow-lg disabled:opacity-50 mt-6"
+                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.0 }}
+                    className="w-full bg-gradient-to-r from-green-600 via-green-600 to-emerald-600 text-white py-4 px-6 rounded-xl font-bold text-sm shadow-xl disabled:opacity-50 mt-6 relative overflow-hidden"
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center gap-2">
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                          className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Enviando...
+                        Enviando solicitação...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2">
-                        <PaperAirplaneIcon className="w-4 h-4" />
-                        Enviar Solicitação
+                        <PaperAirplaneIcon className="w-5 h-5" />
+                        Enviar Solicitação Final
                       </div>
                     )}
+                    
+                    {/* Subtle animation background */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '100%' }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    />
                   </motion.button>
-                </div>
+
+                  {/* Disclaimer */}
+                  <p className="text-xs text-gray-500 text-center mt-4 leading-relaxed">
+                    Ao enviar, você concorda com nossos termos de serviço. 
+                    Sua cotação será processada e você receberá uma resposta detalhada em seu email.
+                  </p>
+                </motion.div>
               </div>
             )}
           </motion.div>
@@ -909,7 +1031,7 @@ export default function MobileFlightFormUnified({
       </div>
 
       {/* UNIFIED NAVIGATION - Only show if enabled and not on final step */}
-      {showNavigation && currentStep !== 'review' && (
+      {showNavigation && currentStep !== 'confirmation' && (
         <div className="flex-shrink-0 border-t border-gray-200 bg-white px-4 py-3">
           <div className="flex justify-between items-center">
             <button

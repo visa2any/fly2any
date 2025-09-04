@@ -45,6 +45,7 @@ import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
+import MobileFlightFormUnified from '@/components/mobile/MobileFlightFormUnified';
 // Enterprise hydration-safe hooks
 import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
 // CSS Module for cleaner styling
@@ -200,6 +201,7 @@ export default function Home() {
   const [socialProofIndex, setSocialProofIndex] = useState(0);
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [exitIntentEmail, setExitIntentEmail] = useState('');
+  const [showMobileFlightForm, setShowMobileFlightForm] = useState(false);
   // Removed mobile-specific state to fix hook rule violations
 
   // Social proof notifications data
@@ -1058,9 +1060,15 @@ export default function Home() {
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
               onClick={() => {
-                const formSection = document.querySelector('form');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+                setShowMobileFlightForm(true);
+                
+                // Analytics tracking
+                if (typeof window !== 'undefined' && window.gtag) {
+                  window.gtag('event', 'mobile_flight_form_open', {
+                    event_category: 'engagement',
+                    event_label: 'voos',
+                    value: 1
+                  });
                 }
               }}
             >
@@ -1167,31 +1175,30 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom Navigation Section - 7vh */}
-        <div className={styles.mobileBottomNavSection}>
-          <div className={styles.mobileBottomNav}>
-            <div className={styles.mobileBottomNavContent}>
-              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}>
-                <HomeIcon className={styles.mobileNavTabIcon} />
-                <span className={styles.mobileNavTabLabel}>Home</span>
-              </button>
-              <button 
-                className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
-                onClick={() => window.open('https://wa.me/551151944717', '_blank')}
-              >
-                <ChatIcon className={styles.mobileNavTabIcon} />
-                <span className={styles.mobileNavTabLabel}>Chat</span>
-              </button>
-              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
-                <HeartIcon className={styles.mobileNavTabIcon} />
-                <span className={styles.mobileNavTabLabel}>Favoritos</span>
-              </button>
-              <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
-                <UserIcon className={styles.mobileNavTabIcon} />
-                <span className={styles.mobileNavTabLabel}>Perfil</span>
-              </button>
-            </div>
-          </div>
+      </div>
+
+      {/* Fixed Bottom Navigation - Overlay (outside document flow) */}
+      <div className={styles.mobileBottomNav}>
+        <div className={styles.mobileBottomNavContent}>
+          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}>
+            <HomeIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Home</span>
+          </button>
+          <button 
+            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
+            onClick={() => window.open('https://wa.me/551151944717', '_blank')}
+          >
+            <ChatIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Chat</span>
+          </button>
+          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
+            <HeartIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Favoritos</span>
+          </button>
+          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
+            <UserIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Perfil</span>
+          </button>
         </div>
       </div>
 
@@ -3715,6 +3722,27 @@ export default function Home() {
 
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={60} />
+
+        {/* Mobile Flight Form - Full Screen Overlay */}
+        {showMobileFlightForm && (
+          <div className="fixed inset-0 z-50 bg-white">
+            <MobileFlightFormUnified
+              mode="premium"
+              stepFlow="extended"
+              showNavigation={false}
+              onClose={() => setShowMobileFlightForm(false)}
+              onSubmit={(data) => {
+                console.log('✅ Flight form submitted:', data);
+                // Handle form submission - could integrate with existing API
+                setShowMobileFlightForm(false);
+                
+                // Show success message or redirect
+                alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+              }}
+              className="h-full"
+            />
+          </div>
+        )}
         
         {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
         <div className="desktop-footer-visible">
