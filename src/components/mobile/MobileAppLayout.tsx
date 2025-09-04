@@ -253,7 +253,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
 
                     {/* ULTRATHINK: Balanced Services Section - Compact Gap for Menu Visibility */}
                     <div className="flex-1 flex flex-col justify-start mb-1">
-                      <div className="grid grid-cols-2 gap-2 flex-1">
+                      <div className="grid grid-cols-2 gap-2">
                         {[
                           { key: 'voos', icon: '✈️', label: 'Voos', subtitle: 'Passagens aéreas', bgColor: 'bg-white', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', textColor: 'text-slate-800', popular: true, shadowColor: 'shadow-sky-100' },
                           { key: 'hoteis', icon: '🏨', label: 'Hotéis', subtitle: 'Hospedagem', bgColor: 'bg-white', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', textColor: 'text-slate-800', popular: false, shadowColor: 'shadow-emerald-100' },
