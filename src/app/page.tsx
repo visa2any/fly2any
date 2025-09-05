@@ -200,6 +200,8 @@ export default function Home() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [errorToastMessage, setErrorToastMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSocialProof, setShowSocialProof] = useState(false);
   const [socialProofIndex, setSocialProofIndex] = useState(0);
@@ -629,8 +631,10 @@ export default function Home() {
         }
       }
       
-      // Show error message
-      alert(errorMessage + '\n\n📱 Para atendimento imediato, entre em contato via WhatsApp.');
+      // Show error toast instead of alert
+      setErrorToastMessage(errorMessage);
+      setShowErrorToast(true);
+      setTimeout(() => setShowErrorToast(false), 8000);
       
       // Don't close form on error - let user retry
       console.log(`🔄 [MOBILE ${serviceType.toUpperCase()}] Form remains open for retry`);
@@ -1216,6 +1220,12 @@ export default function Home() {
                 e.stopPropagation();
                 
                 console.log('🎯 Voos button clicked - showMobileFlightForm:', showMobileFlightForm);
+                
+                // Haptic feedback for mobile
+                if (navigator.vibrate) {
+                  navigator.vibrate(50);
+                }
+                
                 setShowMobileFlightForm(true);
                 
                 // Analytics tracking
@@ -1227,7 +1237,18 @@ export default function Home() {
                   });
                 }
               }}
-              style={{ touchAction: 'manipulation' }}
+              onTouchStart={(e) => {
+                e.currentTarget.style.transform = 'scale(0.95)';
+                e.currentTarget.style.transition = 'all 0.1s ease';
+              }}
+              onTouchEnd={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+              style={{ 
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none'
+              }}
             >
               <div className={styles.mobileServiceIcon}>✈️</div>
               <span className={styles.mobileServiceLabel}>Voos</span>
@@ -1975,7 +1996,16 @@ export default function Home() {
                                 <button 
                                   key={serviceType}
                                   type="button" 
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    // Enhanced mobile touch handling
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    // Haptic feedback for mobile devices
+                                    if ('vibrate' in navigator) {
+                                      navigator.vibrate([30]);
+                                    }
+                                    
                                     addNewService(serviceType);
                                     
                                     // Simple analytics tracking without mobile state dependencies
@@ -1985,6 +2015,20 @@ export default function Home() {
                                         event_label: serviceType,
                                         value: 1
                                       });
+                                    }
+                                  }}
+                                  onTouchStart={(e) => {
+                                    // Enhanced touch response for mobile
+                                    if (isMobileDevice) {
+                                      e.currentTarget.style.transform = 'scale(0.95)';
+                                    }
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    // Reset touch response
+                                    if (isMobileDevice) {
+                                      setTimeout(() => {
+                                        e.currentTarget.style.transform = '';
+                                      }, 100);
                                     }
                                   }} 
                                   disabled={isSelected || (isMaxServices && !isSelected)}
@@ -3889,7 +3933,8 @@ export default function Home() {
         {/* Close desktop-content-container div */}
 
         {/* Success Toast */}
-        <div className="success-toast-hidden">
+        {showSuccessToast && (
+        <div className="success-toast">
           <div 
             className="success-toast-content"
             style={{
@@ -3946,7 +3991,67 @@ export default function Home() {
               ×
             </button>
           </div>
-        </div> {/* Close success-toast div */}
+        </div>
+        )} {/* Close success-toast div */}
+
+        {/* Error Toast */}
+        {showErrorToast && (
+        <div className="error-toast">
+          <div 
+            className="error-toast-content"
+            style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 9999,
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            fontSize: '16px',
+            fontWeight: '600',
+            maxWidth: '400px',
+            transform: 'translateX(0)',
+            transition: 'all 0.5s ease-out'
+          }}>
+            <div style={{
+              fontSize: '24px'
+            }}>
+              ⚠️
+            </div>
+            <div>
+              <div style={{ fontWeight: '700', marginBottom: '4px' }}>
+                {errorToastMessage}
+              </div>
+              <div style={{ fontSize: '14px', opacity: 0.9 }}>
+                📱 Para atendimento imediato, entre em contato via WhatsApp.
+              </div>
+            </div>
+            <button
+              onClick={() => setShowErrorToast(false)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                color: 'white',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        )} {/* Close error-toast div */}
 
         {/* Floating Chat Buttons - Hidden on Mobile (integrated in bottom nav) */}
         <div className={styles.desktopVisible}>
@@ -3972,9 +4077,9 @@ export default function Home() {
 
         {/* Mobile Flight Form - Full Screen Overlay */}
         {showMobileFlightForm && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col" style={{ height: '100vh', overscrollBehavior: 'contain' }}>
+          <div className={styles.mobileFormOverlay}>
             {/* Platform Header - Consistent across all steps */}
-            <div className={styles.mobileHeader} style={{ flexShrink: 0 }}>
+            <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
                   <Link 
@@ -3995,7 +4100,7 @@ export default function Home() {
             </div>
             
             {/* Form Content Area */}
-            <div className="flex-1 overflow-y-auto pt-4 px-2" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'contain' }}>
+            <div className={styles.mobileFormContentWithPadding}>
               <MobileFlightFormUnified
                 mode="premium"
                 stepFlow="extended"
@@ -4007,12 +4112,72 @@ export default function Home() {
                 className=""
               />
             </div>
+            
+            {/* Bottom Navigation in Flight Form */}
+            <div className={styles.mobileBottomNav}>
+              <div className={styles.mobileBottomNavContent}>
+                <button 
+                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+                  onClick={() => {
+                    setShowMobileFlightForm(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <FlightIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Voos</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileFlightForm(false);
+                    setShowMobileHotelForm(true);
+                  }}
+                >
+                  <HotelIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Hotel</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileFlightForm(false);
+                    setShowMobileCarForm(true);
+                  }}
+                >
+                  <CarIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Carro</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileFlightForm(false);
+                    setShowMobileTourForm(true);
+                  }}
+                >
+                  <TourIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Tour</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileFlightForm(false);
+                    setShowMobileInsuranceForm(true);
+                  }}
+                >
+                  <InsuranceIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Seguro</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Mobile Hotel Form - Full Screen Overlay */}
         {showMobileHotelForm && (
-          <div className="fixed inset-0 z-[1100] bg-white flex flex-col">
+          <div className={`${styles.mobileFormOverlay} ${styles.mobileFormOverlayHotel}`}>
             {/* Platform Header - Consistent across all steps */}
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
@@ -4035,7 +4200,7 @@ export default function Home() {
             </div>
             
             {/* Form Content Area */}
-            <div className="flex-1 overflow-y-auto pt-4 px-2">
+            <div className={styles.mobileFormContentWithPadding}>
               <MobileHotelFormUnified
                 mode="premium"
                 onClose={() => setShowMobileHotelForm(false)}
@@ -4044,6 +4209,66 @@ export default function Home() {
                 }}
                 className=""
                 />
+            </div>
+            
+            {/* Bottom Navigation in Hotel Form */}
+            <div className={styles.mobileBottomNav}>
+              <div className={styles.mobileBottomNavContent}>
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileHotelForm(false);
+                    setShowMobileFlightForm(true);
+                  }}
+                >
+                  <FlightIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Voos</span>
+                </button>
+
+                <button 
+                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+                  onClick={() => {
+                    setShowMobileHotelForm(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <HotelIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Hotel</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileHotelForm(false);
+                    setShowMobileCarForm(true);
+                  }}
+                >
+                  <CarIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Carro</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileHotelForm(false);
+                    setShowMobileTourForm(true);
+                  }}
+                >
+                  <TourIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Tour</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileHotelForm(false);
+                    setShowMobileInsuranceForm(true);
+                  }}
+                >
+                  <InsuranceIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Seguro</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -4083,6 +4308,66 @@ export default function Home() {
                 className=""
               />
             </div>
+            
+            {/* Bottom Navigation in Car Form */}
+            <div className={styles.mobileBottomNav}>
+              <div className={styles.mobileBottomNavContent}>
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileCarForm(false);
+                    setShowMobileFlightForm(true);
+                  }}
+                >
+                  <FlightIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Voos</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileCarForm(false);
+                    setShowMobileHotelForm(true);
+                  }}
+                >
+                  <HotelIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Hotel</span>
+                </button>
+
+                <button 
+                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+                  onClick={() => {
+                    setShowMobileCarForm(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <CarIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Carro</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileCarForm(false);
+                    setShowMobileTourForm(true);
+                  }}
+                >
+                  <TourIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Tour</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileCarForm(false);
+                    setShowMobileInsuranceForm(true);
+                  }}
+                >
+                  <InsuranceIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Seguro</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -4121,6 +4406,66 @@ export default function Home() {
                 className=""
                 />
             </div>
+            
+            {/* Bottom Navigation in Tour Form */}
+            <div className={styles.mobileBottomNav}>
+              <div className={styles.mobileBottomNavContent}>
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileTourForm(false);
+                    setShowMobileFlightForm(true);
+                  }}
+                >
+                  <FlightIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Voos</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileTourForm(false);
+                    setShowMobileHotelForm(true);
+                  }}
+                >
+                  <HotelIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Hotel</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileTourForm(false);
+                    setShowMobileCarForm(true);
+                  }}
+                >
+                  <CarIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Carro</span>
+                </button>
+
+                <button 
+                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+                  onClick={() => {
+                    setShowMobileTourForm(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <TourIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Tour</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileTourForm(false);
+                    setShowMobileInsuranceForm(true);
+                  }}
+                >
+                  <InsuranceIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Seguro</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -4158,6 +4503,66 @@ export default function Home() {
                 }}
                 className=""
               />
+            </div>
+            
+            {/* Bottom Navigation in Insurance Form */}
+            <div className={styles.mobileBottomNav}>
+              <div className={styles.mobileBottomNavContent}>
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileInsuranceForm(false);
+                    setShowMobileFlightForm(true);
+                  }}
+                >
+                  <FlightIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Voos</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileInsuranceForm(false);
+                    setShowMobileHotelForm(true);
+                  }}
+                >
+                  <HotelIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Hotel</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileInsuranceForm(false);
+                    setShowMobileCarForm(true);
+                  }}
+                >
+                  <CarIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Carro</span>
+                </button>
+
+                <button 
+                  className={styles.mobileNavTab}
+                  onClick={() => {
+                    setShowMobileInsuranceForm(false);
+                    setShowMobileTourForm(true);
+                  }}
+                >
+                  <TourIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Tour</span>
+                </button>
+
+                <button 
+                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+                  onClick={() => {
+                    setShowMobileInsuranceForm(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
+                  <InsuranceIcon className={styles.mobileNavTabIcon} />
+                  <span className={styles.mobileNavTabLabel}>Seguro</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
