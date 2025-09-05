@@ -13,6 +13,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import { cities } from '@/data/cities';
 
 interface MobileInsuranceFormProps {
   onUpdate?: (insuranceData: any) => void;
@@ -230,18 +232,15 @@ export default function MobileInsuranceForm({ onUpdate, initialData, className =
                 </div>
 
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1">
-                      Destino da Viagem *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.destinoSeguro}
-                      onChange={(e) => updateFormData('destinoSeguro', e.target.value)}
-                      placeholder="Ex: Europa, Estados Unidos, Ásia..."
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-success-500 focus:ring-2 focus:ring-success-500/20 transition-all duration-200"
-                    />
-                  </div>
+                  <CityAutocomplete
+                    value={formData.destinoSeguro}
+                    onChange={(value) => updateFormData('destinoSeguro', value)}
+                    placeholder="Ex: Europa, Estados Unidos, Ásia..."
+                    label="Destino da Viagem *"
+                    iconColor="#10b981"
+                    cities={cities}
+                    className="w-full"
+                  />
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>

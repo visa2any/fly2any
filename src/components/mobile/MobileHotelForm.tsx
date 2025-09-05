@@ -12,6 +12,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import { cities } from '@/data/cities';
 
 interface MobileHotelFormProps {
   onSearch?: (searchData: any) => void;
@@ -131,16 +133,15 @@ export default function MobileHotelForm({ onSearch, className = '' }: MobileHote
                 </div>
 
                 <div className="space-y-4">
-                  <div className="relative">
-                    <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Cidade, hotel ou região"
-                      value={formData.destination}
-                      onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-emerald-500 focus:outline-none text-lg"
-                    />
-                  </div>
+                  <CityAutocomplete
+                    value={formData.destination}
+                    onChange={(value) => setFormData({ ...formData, destination: value })}
+                    placeholder="Cidade, hotel ou região"
+                    label="Destino"
+                    iconColor="#10b981"
+                    cities={cities}
+                    className="w-full"
+                  />
 
                   {/* Popular Destinations */}
                   <div className="mt-6">

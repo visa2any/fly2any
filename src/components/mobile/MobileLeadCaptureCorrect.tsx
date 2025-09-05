@@ -32,6 +32,7 @@ import MobileHotelForm from './MobileHotelForm';
 import MobileCarForm from './MobileCarForm';
 import MobileTourForm from './MobileTourForm';
 import MobileInsuranceForm from './MobileInsuranceForm';
+import PremiumSuccessModal from './PremiumSuccessModal';
 import Logo from '@/components/Logo';
 
 interface ServiceData {
@@ -81,6 +82,15 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClientSide, setIsClientSide] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<{
+    nome?: string;
+    email?: string;
+    servicos?: string[];
+    leadId?: string;
+  }>({});
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // ULTRATHINK: Hydration-safe client-side check for animations
   React.useEffect(() => {
@@ -189,16 +199,25 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
 
       const result = await response.json();
       
+      // Prepare success data for premium modal
+      setSuccessData({
+        nome: formData.nome,
+        email: formData.email,
+        servicos: formData.servicos,
+        leadId: result.leadId || `FLY${Date.now()}`
+      });
+      
       if (onSubmit) {
         onSubmit(submissionData);
       }
 
-      // Show success message
-      alert('Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.');
+      // Show premium success modal
+      setShowSuccessModal(true);
       
     } catch (error) {
       console.error('Error submitting lead:', error);
-      alert('Erro ao enviar sua solicitação. Tente novamente.');
+      setErrorMessage('Erro ao enviar sua solicitação. Tente novamente.');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -1464,6 +1483,29 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
           </div>
         </div>
       </div>
+
+      {/* Premium Success Modal - ULTRATHINK Enhancement */}
+      <PremiumSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          // Reset form or navigate away if needed
+          if (onClose) {
+            setTimeout(() => onClose(), 300);
+          }
+        }}
+        leadData={successData}
+      />
+
+      {/* ULTRATHINK: Premium Error Modal */}
+      <PremiumSuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        leadData={{
+          nome: errorMessage,
+          servicos: []
+        }}
+      />
     </div>
   );
 }

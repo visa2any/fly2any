@@ -14,6 +14,8 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import { cities } from '@/data/cities';
 
 interface MobileTourFormProps {
   onUpdate?: (tourData: any) => void;
@@ -182,18 +184,15 @@ export default function MobileTourForm({ onUpdate, initialData, className = '' }
                 </div>
 
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1">
-                      Destino do Passeio *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.destino}
-                      onChange={(e) => updateFormData('destino', e.target.value)}
-                      placeholder="Ex: Rio de Janeiro, Paris, Tokyo..."
-                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:border-warning-500 focus:ring-2 focus:ring-warning-500/20 transition-all duration-200"
-                    />
-                  </div>
+                  <CityAutocomplete
+                    value={formData.destino}
+                    onChange={(value) => updateFormData('destino', value)}
+                    placeholder="Ex: Rio de Janeiro, Paris, Tokyo..."
+                    label="Destino do Passeio *"
+                    iconColor="#f59e0b"
+                    cities={cities}
+                    className="w-full"
+                  />
 
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-1">

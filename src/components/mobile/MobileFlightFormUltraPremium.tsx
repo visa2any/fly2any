@@ -21,6 +21,7 @@ import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import PhoneInput from '@/components/PhoneInputSimple';
 import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
 import EnhancedSuccessModal from '@/components/mobile/EnhancedSuccessModal';
+import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 import { AirportSelection } from '@/types/flights';
 
 interface FlightFormData {
@@ -62,6 +63,8 @@ export default function MobileFlightFormUltraPremium({ onSearch, className = '' 
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const [formData, setFormData] = useState<FlightFormData>({
     tripType: 'round-trip',
@@ -267,7 +270,8 @@ export default function MobileFlightFormUltraPremium({ onSearch, className = '' 
       
     } catch (error) {
       console.error('Error submitting flight form:', error);
-      alert('Erro ao enviar sua solicitação. Tente novamente.');
+      setErrorMessage('Erro ao enviar sua solicitação. Tente novamente.');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -1169,6 +1173,16 @@ export default function MobileFlightFormUltraPremium({ onSearch, className = '' 
           ? `${formData.origin.name} → ${formData.destination.name}` 
           : undefined}
         leadId={submissionId || undefined}
+      />
+
+      {/* ULTRATHINK: Premium Error Modal */}
+      <PremiumSuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        leadData={{
+          nome: errorMessage,
+          servicos: []
+        }}
       />
     </div>
   );

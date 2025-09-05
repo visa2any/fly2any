@@ -21,6 +21,7 @@ import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import PhoneInput from '@/components/PhoneInputSimple';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import { cities } from '@/data/cities';
+import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 
 // ========================================================================================
 // UNIFIED CAR RENTAL FORM INTERFACES & TYPES
@@ -132,6 +133,9 @@ export default function MobileCarFormUnified({
   const [currentStep, setCurrentStep] = useState<StepType>('rental');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const [formData, setFormData] = useState<CarFormData>({
     pickupLocation: initialData.pickupLocation || '',
@@ -340,10 +344,12 @@ export default function MobileCarFormUnified({
       if ('vibrate' in navigator) {
         navigator.vibrate([100, 50, 100]);
       }
+      setShowSuccessModal(true);
 
     } catch (error) {
       console.error('Erro ao enviar formulário de aluguel de carro:', error);
-      alert('Erro ao enviar solicitação. Tente novamente.');
+      setErrorMessage('Erro ao enviar solicitação. Tente novamente.');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -1178,6 +1184,30 @@ export default function MobileCarFormUnified({
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* ULTRATHINK: Premium Success & Error Modals */}
+      <PremiumSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          if (onClose) onClose();
+        }}
+        leadData={{
+          nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
+          email: formData.contactInfo.email,
+          servicos: ['carros'],
+          leadId: undefined
+        }}
+      />
+
+      <PremiumSuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        leadData={{
+          nome: errorMessage,
+          servicos: []
+        }}
+      />
 
     </div>
   );

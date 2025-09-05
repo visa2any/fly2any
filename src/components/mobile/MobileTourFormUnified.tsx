@@ -19,7 +19,7 @@ import {
   LanguageIcon
 } from '@heroicons/react/24/outline';
 import CityAutocomplete from '../CityAutocomplete';
-import PhoneInput from '../PhoneInput';
+import PhoneInput from '@/components/PhoneInputSimple';
 import { cities } from '@/data/cities';
 
 interface TourFormData {

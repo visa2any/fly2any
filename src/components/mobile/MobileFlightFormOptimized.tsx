@@ -19,6 +19,7 @@ import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import PhoneInput from '@/components/PhoneInputSimple';
 import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
 import { AirportSelection } from '@/types/flights';
+import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 
 // ========================================================================================
 // OPTIMIZED FLIGHT FORM - ULTRATHINK PROGRESSIVE ENHANCEMENT
@@ -93,6 +94,9 @@ export default function MobileFlightFormOptimized({
   const [currentStep, setCurrentStep] = useState<StepType>('trip');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FlightFormData, string>>>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const [formData, setFormData] = useState<FlightFormData>({
     tripType: 'round-trip',
@@ -242,11 +246,12 @@ export default function MobileFlightFormOptimized({
         onSubmit(formData);
       }
 
-      alert('✅ Solicitação enviada com sucesso! Entraremos em contato em breve.');
+      setShowSuccessModal(true);
       
     } catch (error) {
       console.error('Error submitting flight form:', error);
-      alert('❌ Erro ao enviar solicitação. Tente novamente.');
+      setErrorMessage('Erro ao enviar solicitação. Tente novamente.');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -799,6 +804,31 @@ export default function MobileFlightFormOptimized({
           <div className="w-20"></div>
         )}
       </div>
+
+      {/* ULTRATHINK: Premium Success & Error Modals */}
+      <PremiumSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          if (onClose) onClose();
+        }}
+        leadData={{
+          nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
+          email: formData.contactInfo.email,
+          servicos: ['voos'],
+          leadId: undefined
+        }}
+      />
+
+      <PremiumSuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        leadData={{
+          nome: errorMessage,
+          servicos: []
+        }}
+      />
+
     </div>
   );
 }

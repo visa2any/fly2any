@@ -11,6 +11,8 @@ import {
   ChevronRightIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import { cities } from '@/data/cities';
 
 interface MobileCarFormProps {
   onSearch?: (searchData: any) => void;
@@ -137,19 +139,15 @@ export default function MobileCarForm({ onSearch, className = '' }: MobileCarFor
 
                 <div className="space-y-4">
                   {/* Pickup Location */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Local de Retirada</label>
-                    <div className="relative">
-                      <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Aeroporto, cidade ou endereço"
-                        value={formData.pickupLocation}
-                        onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none text-lg"
-                      />
-                    </div>
-                  </div>
+                  <CityAutocomplete
+                    value={formData.pickupLocation}
+                    onChange={(value) => setFormData({ ...formData, pickupLocation: value })}
+                    placeholder="Aeroporto, cidade ou endereço"
+                    label="Local de Retirada"
+                    iconColor="#8b5cf6"
+                    cities={cities}
+                    className="w-full"
+                  />
 
                   {/* Same Location Toggle */}
                   <label className="flex items-center p-4 bg-white rounded-xl border border-gray-200 cursor-pointer hover:border-purple-300">
@@ -169,17 +167,15 @@ export default function MobileCarForm({ onSearch, className = '' }: MobileCarFor
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                     >
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Local de Devolução</label>
-                      <div className="relative">
-                        <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="text"
-                          placeholder="Aeroporto, cidade ou endereço"
-                          value={formData.dropoffLocation}
-                          onChange={(e) => setFormData({ ...formData, dropoffLocation: e.target.value })}
-                          className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none text-lg"
-                        />
-                      </div>
+                      <CityAutocomplete
+                        value={formData.dropoffLocation}
+                        onChange={(value) => setFormData({ ...formData, dropoffLocation: value })}
+                        placeholder="Aeroporto, cidade ou endereço"
+                        label="Local de Devolução"
+                        iconColor="#8b5cf6"
+                        cities={cities}
+                        className="w-full"
+                      />
                     </motion.div>
                   )}
 

@@ -21,6 +21,7 @@ import {
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import PhoneInput from '@/components/PhoneInputSimple';
 import CityAutocomplete from '@/components/CityAutocomplete';
+import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 import { cities } from '@/data/cities';
 
 // ========================================================================================
@@ -130,6 +131,9 @@ export default function MobileHotelFormUnified({
   const [currentStep, setCurrentStep] = useState<StepType>('accommodation');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const [formData, setFormData] = useState<HotelFormData>({
     destination: initialData.destination || '',
@@ -261,6 +265,14 @@ export default function MobileHotelFormUnified({
   // =====================
 
   const handleSubmit = async () => {
+    // ULTRATHINK: Enhanced Frontend Validation
+    const validation = validateFormData();
+    if (!validation.isValid) {
+      setErrorMessage(validation.message);
+      setShowErrorModal(true);
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -270,8 +282,8 @@ export default function MobileHotelFormUnified({
 
       // Prepare submission data
       const submissionData = {
-        nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
-        email: formData.contactInfo.email,
+        nome: `${formData.contactInfo.firstName.trim()} ${formData.contactInfo.lastName.trim()}`,
+        email: formData.contactInfo.email.trim(),
         telefone: formData.contactInfo.phone,
         servicos: ['hoteis'],
         serviceData: {
@@ -315,8 +327,10 @@ export default function MobileHotelFormUnified({
         body: JSON.stringify(submissionData)
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error('Falha ao enviar solicitação');
+        throw new Error(result.message || 'Falha ao enviar solicitação');
       }
 
       // Call callbacks
@@ -329,12 +343,63 @@ export default function MobileHotelFormUnified({
         navigator.vibrate([100, 50, 100]);
       }
 
+      // Show success modal instead of alert
+      setShowSuccessModal(true);
+
     } catch (error) {
       console.error('Erro ao enviar formulário de hotel:', error);
-      alert('Erro ao enviar solicitação. Tente novamente.');
+      setErrorMessage(error instanceof Error ? error.message : 'Erro ao enviar solicitação. Tente novamente.');
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // ULTRATHINK: Enhanced Validation Function
+  const validateFormData = () => {
+    // Check required fields
+    if (!formData.contactInfo.firstName?.trim()) {
+      return { isValid: false, message: '❌ Nome é obrigatório' };
+    }
+    if (!formData.contactInfo.lastName?.trim()) {
+      return { isValid: false, message: '❌ Sobrenome é obrigatório' };
+    }
+    if (!formData.contactInfo.email?.trim()) {
+      return { isValid: false, message: '❌ Email é obrigatório' };
+    }
+    if (!formData.contactInfo.phone?.trim()) {
+      return { isValid: false, message: '❌ Telefone é obrigatório' };
+    }
+    if (!formData.destination?.trim()) {
+      return { isValid: false, message: '❌ Destino é obrigatório' };
+    }
+    if (!formData.checkinDate) {
+      return { isValid: false, message: '❌ Data de check-in é obrigatória' };
+    }
+    if (!formData.checkoutDate) {
+      return { isValid: false, message: '❌ Data de check-out é obrigatória' };
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.contactInfo.email.trim())) {
+      return { isValid: false, message: '❌ Email deve ter um formato válido' };
+    }
+
+    // Validate dates
+    const checkinDate = new Date(formData.checkinDate);
+    const checkoutDate = new Date(formData.checkoutDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (checkinDate < today) {
+      return { isValid: false, message: '❌ Data de check-in deve ser futura' };
+    }
+    if (checkoutDate <= checkinDate) {
+      return { isValid: false, message: '❌ Data de check-out deve ser posterior ao check-in' };
+    }
+
+    return { isValid: true, message: '' };
   };
 
   // =====================
@@ -1004,6 +1069,30 @@ export default function MobileHotelFormUnified({
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* ULTRATHINK: Premium Success & Error Modals */}
+      <PremiumSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          if (onClose) onClose();
+        }}
+        leadData={{
+          nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
+          email: formData.contactInfo.email,
+          servicos: ['hoteis'],
+          leadId: undefined
+        }}
+      />
+
+      <PremiumSuccessModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        leadData={{
+          nome: errorMessage,
+          servicos: []
+        }}
+      />
 
     </div>
   );
