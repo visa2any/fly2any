@@ -574,10 +574,8 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
             {currentStep === 'voos' && (
               <MobileFlightFormUnified
                 onSearch={(data) => handleServiceUpdate('voos', data)}
-                mode="embedded"
-                stepFlow="extended"
-                showNavigation={false}
-                className=""
+                initialData={formData.serviceData.voos}
+                className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
             )}
 
@@ -1032,10 +1030,8 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
             {currentStep === 'voos' && (
               <MobileFlightFormUnified
                 onSearch={(data) => handleServiceUpdate('voos', data)}
-                mode="embedded"
-                stepFlow="extended"
-                showNavigation={false}
-                className=""
+                initialData={formData.serviceData.voos}
+                className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
             )}
 
