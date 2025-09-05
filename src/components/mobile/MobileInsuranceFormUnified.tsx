@@ -349,7 +349,7 @@ const MobileInsuranceFormUnified: React.FC<MobileInsuranceFormProps> = ({
       
 
       {/* MAIN CONTENT AREA */}
-      <div className="pb-20 safe-area-inset-bottom">
+      <div className="pb-32 safe-area-inset-bottom">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}

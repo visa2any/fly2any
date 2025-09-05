@@ -204,7 +204,7 @@ export default function AirportAutocomplete({
       left: `${finalLeft}px`,
       width: `${finalWidth}px`,
       maxHeight: `${maxHeight}px`,
-      zIndex: 99999
+      zIndex: 11000
     });
   }, [results.length, expandDirection]);
 
@@ -449,7 +449,7 @@ export default function AirportAutocomplete({
   };
 
   return (
-    <div ref={containerRef} className={`relative ${className}`} style={{ zIndex: isOpen ? 10000 : 'auto' }}>
+    <div ref={containerRef} className={`relative ${className}`} style={{ zIndex: isOpen ? 11000 : 'auto' }}>
       <div className="relative">
         <input
           ref={inputRef}

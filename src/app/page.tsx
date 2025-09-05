@@ -498,6 +498,148 @@ export default function Home() {
     setIsAddingService(false);
   };
 
+  // Mobile lead submission handler - unified API integration
+  const handleMobileLeadSubmit = async (formData: any, serviceType: string, formStateSetter: (value: boolean) => void) => {
+    console.log(`🚀 [MOBILE ${serviceType.toUpperCase()}] Starting lead submission...`);
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Prepare lead data for API
+      const leadData = {
+        // Personal Information
+        nome: formData.nome || formData.nomeCompleto || '',
+        email: formData.email || '',
+        whatsapp: formData.whatsapp || formData.telefone || '',
+        telefone: formData.telefone || formData.whatsapp || '',
+        sobrenome: formData.sobrenome || '',
+        
+        // Location Information - handle both string and airport object formats
+        origem: (() => {
+          if (!formData.origem) return 'A definir';
+          if (typeof formData.origem === 'string') return formData.origem;
+          return `${formData.origem.city}, ${formData.origem.country} (${formData.origem.iataCode})`;
+        })(),
+        destino: (() => {
+          if (!formData.destino) return 'A definir';
+          if (typeof formData.destino === 'string') return formData.destino;
+          return `${formData.destino.city}, ${formData.destino.country} (${formData.destino.iataCode})`;
+        })(),
+        
+        // Travel Information
+        selectedServices: [serviceType],
+        tipoViagem: formData.tipoViagem || 'ida-volta',
+        dataPartida: formData.dataPartida || formData.dataIda || formData.checkin || formData.dataRetirada || formData.dataInicio || '',
+        dataRetorno: formData.dataRetorno || formData.dataVolta || formData.checkout || formData.dataDevolucao || formData.dataFim || '',
+        dataIda: formData.dataIda,
+        dataVolta: formData.dataVolta,
+        
+        // Passenger Information
+        numeroPassageiros: formData.numeroPassageiros || formData.adultos || 1,
+        adultos: formData.adultos || 1,
+        criancas: formData.criancas || 0,
+        bebes: formData.bebes || 0,
+        
+        // Service-specific data
+        classeViagem: formData.classeViagem || formData.classeVoo || 'economica',
+        classeVoo: formData.classeVoo || 'economica',
+        companhiaPreferida: formData.companhiaPreferida,
+        horarioPreferido: formData.horarioPreferido || 'qualquer',
+        escalas: formData.escalas || 'qualquer',
+        
+        // Hotel-specific
+        numeroQuartos: formData.numeroQuartos,
+        categoriaHotel: formData.categoriaHotel,
+        
+        // Car-specific
+        categoria: formData.categoria,
+        localRetirada: formData.localRetirada,
+        localDevolucao: formData.localDevolucao,
+        
+        // Tour-specific
+        tipoTour: formData.tipoTour,
+        categoriaHospedagem: formData.categoriaHospedagem,
+        
+        // Insurance-specific
+        tipoSeguro: formData.tipoSeguro,
+        cobertura: formData.cobertura,
+        
+        // Budget Information
+        orcamentoTotal: formData.orcamentoTotal || formData.orcamentoAproximado,
+        orcamentoAproximado: formData.orcamentoAproximado,
+        prioridadeOrcamento: formData.prioridadeOrcamento || 'custo_beneficio',
+        flexibilidadeDatas: formData.flexibilidadeDatas || false,
+        
+        // Additional Information
+        observacoes: formData.observacoes,
+        
+        // Source metadata
+        source: 'mobile_app',
+        serviceType: serviceType,
+        
+        // Raw data for debugging
+        fullData: formData
+      };
+      
+      console.log(`📊 [MOBILE ${serviceType.toUpperCase()}] Prepared lead data:`, leadData);
+      
+      // Submit to API
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-Id': crypto.randomUUID()
+        },
+        body: JSON.stringify(leadData)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || result.message || 'Erro ao enviar dados');
+      }
+      
+      console.log(`✅ [MOBILE ${serviceType.toUpperCase()}] Lead submitted successfully:`, result.data?.leadId);
+      
+      // Close form and show success
+      formStateSetter(false);
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 5000);
+      
+      // Optional: Scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+    } catch (error) {
+      console.error(`❌ [MOBILE ${serviceType.toUpperCase()}] Submission failed:`, error);
+      
+      // Enhanced error handling with user-friendly messages
+      let errorMessage = '❌ Erro ao enviar formulário. Nossa equipe foi notificada.';
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        
+        if (errorMsg.includes('fetch') || errorMsg.includes('network') || errorMsg.includes('connection')) {
+          errorMessage = '❌ Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (errorMsg.includes('timeout')) {
+          errorMessage = '❌ Tempo esgotado. Tente novamente.';
+        } else if (errorMsg.includes('validation') || errorMsg.includes('invalid') || errorMsg.includes('obrigatório')) {
+          errorMessage = '❌ Dados inválidos. Verifique os campos e tente novamente.';
+        } else if (errorMsg.includes('server') || errorMsg.includes('500')) {
+          errorMessage = '❌ Erro interno do servidor. Nossa equipe foi notificada.';
+        }
+      }
+      
+      // Show error message
+      alert(errorMessage + '\n\n📱 Para atendimento imediato, entre em contato via WhatsApp.');
+      
+      // Don't close form on error - let user retry
+      console.log(`🔄 [MOBILE ${serviceType.toUpperCase()}] Form remains open for retry`);
+      
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling
@@ -3860,12 +4002,7 @@ export default function Home() {
                 showNavigation={true}
                 onClose={() => setShowMobileFlightForm(false)}
                 onSubmit={(data) => {
-                  console.log('✅ Flight form submitted:', data);
-                  // Handle form submission - could integrate with existing API
-                  setShowMobileFlightForm(false);
-                  
-                  // Show success message or redirect
-                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                  handleMobileLeadSubmit(data, 'voos', setShowMobileFlightForm);
                 }}
                 className=""
               />
@@ -3875,7 +4012,7 @@ export default function Home() {
 
         {/* Mobile Hotel Form - Full Screen Overlay */}
         {showMobileHotelForm && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="fixed inset-0 z-[1100] bg-white flex flex-col">
             {/* Platform Header - Consistent across all steps */}
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
@@ -3903,12 +4040,7 @@ export default function Home() {
                 mode="premium"
                 onClose={() => setShowMobileHotelForm(false)}
                 onSubmit={(data) => {
-                  console.log('✅ Hotel form submitted:', data);
-                  // Handle form submission - could integrate with existing API
-                  setShowMobileHotelForm(false);
-                  
-                  // Show success message or redirect
-                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                  handleMobileLeadSubmit(data, 'hoteis', setShowMobileHotelForm);
                 }}
                 className=""
                 />
@@ -3918,7 +4050,7 @@ export default function Home() {
 
         {/* Mobile Car Form - Full Screen Overlay */}
         {showMobileCarForm && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="fixed inset-0 z-[1100] bg-white flex flex-col">
             {/* Platform Header - Consistent across all steps */}
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
@@ -3946,12 +4078,7 @@ export default function Home() {
                 mode="premium"
                 onClose={() => setShowMobileCarForm(false)}
                 onSubmit={(data) => {
-                  console.log('✅ Car form submitted:', data);
-                  // Handle form submission - could integrate with existing API
-                  setShowMobileCarForm(false);
-                  
-                  // Show success message or redirect
-                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                  handleMobileLeadSubmit(data, 'carros', setShowMobileCarForm);
                 }}
                 className=""
               />
@@ -3961,7 +4088,7 @@ export default function Home() {
 
         {/* Mobile Tour Form - Full Screen Overlay */}
         {showMobileTourForm && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="fixed inset-0 z-[1100] bg-white flex flex-col">
             {/* Platform Header - Consistent across all steps */}
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
@@ -3989,12 +4116,7 @@ export default function Home() {
                 mode="premium"
                 onClose={() => setShowMobileTourForm(false)}
                 onSubmit={(data) => {
-                  console.log('✅ Tour form submitted:', data);
-                  // Handle form submission - could integrate with existing API
-                  setShowMobileTourForm(false);
-                  
-                  // Show success message or redirect
-                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                  handleMobileLeadSubmit(data, 'passeios', setShowMobileTourForm);
                 }}
                 className=""
                 />
@@ -4004,7 +4126,7 @@ export default function Home() {
 
         {/* Mobile Insurance Form - Full Screen Overlay */}
         {showMobileInsuranceForm && (
-          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+          <div className="fixed inset-0 z-[1100] bg-white flex flex-col">
             {/* Platform Header - Consistent across all steps */}
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
@@ -4032,12 +4154,7 @@ export default function Home() {
                 mode="premium"
                 onClose={() => setShowMobileInsuranceForm(false)}
                 onSubmit={(data) => {
-                  console.log('✅ Insurance form submitted:', data);
-                  // Handle form submission - could integrate with existing API
-                  setShowMobileInsuranceForm(false);
-                  
-                  // Show success message or redirect
-                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                  handleMobileLeadSubmit(data, 'seguro', setShowMobileInsuranceForm);
                 }}
                 className=""
               />

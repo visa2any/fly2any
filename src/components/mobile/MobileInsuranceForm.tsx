@@ -517,7 +517,7 @@ export default function MobileInsuranceForm({ onUpdate, initialData, className =
       </div>
 
       {/* Navigation */}
-      <div className="p-4 border-t border-neutral-100 bg-neutral-50 pb-20 safe-area-inset-bottom">
+      <div className="p-4 border-t border-neutral-100 bg-neutral-50 pb-32 safe-area-inset-bottom">
         <div className="flex justify-between gap-3">
           <button
             onClick={prevStep}

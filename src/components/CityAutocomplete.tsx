@@ -164,7 +164,7 @@ export default function CityAutocomplete({
             borderTop: 'none',
             borderRadius: '0 0 12px 12px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            zIndex: 9999,
+            zIndex: 11000,
             maxHeight: '240px',
             overflowY: 'auto'
           }}

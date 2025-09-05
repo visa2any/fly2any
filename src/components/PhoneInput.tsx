@@ -203,7 +203,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
               border: '1px solid #e5e7eb',
               borderRadius: '8px',
               boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-              zIndex: 1000,
+              zIndex: 11000,
               maxHeight: '300px',
               overflowY: 'auto',
               marginTop: '2px'
