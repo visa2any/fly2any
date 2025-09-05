@@ -333,7 +333,7 @@ const MobileTourFormUnified: React.FC<MobileTourFormProps> = ({
       
 
       {/* MAIN CONTENT AREA */}
-      <div className="pb-20">
+      <div className="pb-20 safe-area-inset-bottom">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}

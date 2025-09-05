@@ -409,7 +409,7 @@ export default function MobileFlightFormUnified({
       
 
       {/* MAIN CONTENT AREA */}
-      <div className="pb-20">
+      <div className="pb-20 safe-area-inset-bottom">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -612,7 +612,7 @@ export default function MobileFlightFormUnified({
                 </div>
 
                 {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
-                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200 safe-area-inset-bottom">
                   <div className="flex justify-between items-center">
                     <button
                       onClick={prevStep}
@@ -716,7 +716,7 @@ export default function MobileFlightFormUnified({
                 </div>
 
                 {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
-                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200 safe-area-inset-bottom">
                   <div className="flex justify-between items-center">
                     <button
                       onClick={prevStep}
@@ -824,7 +824,7 @@ export default function MobileFlightFormUnified({
                 </div>
 
                 {/* SIMPLE NAVIGATION BUTTONS - Clear of fixed menu */}
-                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200">
+                <div className="mt-6 pt-4 pb-20 mb-4 border-t border-gray-200 safe-area-inset-bottom">
                   <div className="flex justify-between items-center">
                     <button
                       onClick={prevStep}

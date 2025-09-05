@@ -380,7 +380,7 @@ export default function MobileCarForm({ onSearch, className = '' }: MobileCarFor
       </div>
 
       {/* Navigation Buttons */}
-      <div className="bg-white border-t p-4 space-y-3">
+      <div className="bg-white border-t p-4 space-y-3 pb-20 safe-area-inset-bottom">
         <div className="flex gap-3">
           {getCurrentStepIndex() > 1 && (
             <button
