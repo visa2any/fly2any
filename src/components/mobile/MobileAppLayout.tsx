@@ -39,10 +39,32 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
     setIsVisible(true);
   }, []);
 
+  // Handle body scroll when leadFormEmbedded state changes
+  useEffect(() => {
+    if (leadFormEmbedded) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+    }
+    
+    // Cleanup function to restore scroll on component unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+    };
+  }, [leadFormEmbedded]);
+
   // Handle service selection from home screen
   const handleServiceSelection = (serviceType: string) => {
     setPreSelectedService(serviceType);
     setLeadFormEmbedded(true);
+    // Scroll to top immediately when opening form from cards
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   // Handle generic quote request
@@ -116,100 +138,31 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
       </div>
       
       {/* MAIN MOBILE HEADER - Clean and consistent */}
-      <div className="bg-white shadow-neu-md border-b border-neutral-200/50 relative z-50">
-        <div className="flex items-center justify-between px-3 py-2">
-          {/* Left Section - Logo */}
-          <div className="flex items-center">
-            <Logo 
-              size="sm" 
-              variant="logo-only" 
-              className="flex-shrink-0"
-            />
-          </div>
-          
-          {/* Right Section - Clean Menu */}
-          <div className="flex items-center gap-2">
-            <button className="text-neutral-600 hover:text-neutral-800 text-xs font-medium px-3 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Alterar idioma">
-              🇧🇷
-            </button>
-            <button className="p-2 hover:bg-neutral-100 rounded-xl transition-all duration-200 active:scale-95 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Menu principal">
-              <Bars3Icon className="w-5 h-5 text-neutral-600" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* COMPACT STEP NAVIGATION - Smaller and efficient */}
-      {leadFormEmbedded && (
-        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 text-white relative z-40 shadow-sm border-b border-white/20">
-          <div className="px-3 py-2">
-            {/* Single Row Layout */}
-            <div className="flex items-center justify-between">
-              {/* Back Button */}
-              <button
-                onClick={handleBackToHome}
-                className="flex items-center gap-1 text-white/90 hover:text-white transition-colors py-1 px-1 hover:bg-white/10 rounded -ml-1 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-white/50"
-                aria-label="Voltar para início"
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-                <span className="text-xs font-medium">Voltar</span>
+      {!leadFormEmbedded && (
+        <div className="bg-white shadow-neu-md border-b border-neutral-200/50 relative z-50">
+          <div className="flex items-center justify-between px-3 py-2">
+            {/* Left Section - Logo */}
+            <div className="flex items-center">
+              <Logo 
+                size="sm" 
+                variant="logo-only" 
+                className="flex-shrink-0"
+              />
+            </div>
+            
+            {/* Right Section - Clean Menu */}
+            <div className="flex items-center gap-2">
+              <button className="text-neutral-600 hover:text-neutral-800 text-xs font-medium px-3 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Alterar idioma">
+                🇧🇷
               </button>
-              
-              {/* Service Title + Progress */}
-              <div className="flex-1 flex items-center justify-center gap-3 min-w-0">
-                <div className="text-xs font-bold text-white truncate">
-                  {preSelectedService === 'voos' && '✈️ Voos'}
-                  {preSelectedService === 'hoteis' && '🏨 Hotéis'}
-                  {preSelectedService === 'carros' && '🚗 Carros'}
-                  {preSelectedService === 'passeios' && '🎯 Tours'}
-                  {preSelectedService === 'seguro' && '🛡️ Seguro'}
-                  {!preSelectedService && '⚡ Cotação'}
-                </div>
-                
-                {/* Compact Progress for Flight Forms */}
-                {preSelectedService === 'voos' && (
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4].map((stepNum, index) => {
-                      const isActive = index === 0; // Placeholder
-                      const isCompleted = false; // Placeholder
-                      
-                      return (
-                        <div key={stepNum} className="flex items-center">
-                          {/* Small Step Circle */}
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                            isCompleted 
-                              ? 'bg-emerald-400 text-white' 
-                              : isActive 
-                                ? 'bg-white text-blue-600' 
-                                : 'bg-white/30 text-white/70'
-                          }`}>
-                            {isCompleted ? '✓' : stepNum}
-                          </div>
-                          
-                          {/* Small Progress Line */}
-                          {index < 3 && (
-                            <div className={`w-3 h-px mx-1 transition-all duration-300 ${
-                              isCompleted ? 'bg-emerald-400' : 'bg-white/30'
-                            }`} />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                {/* Simple indicator for other services */}
-                {preSelectedService !== 'voos' && (
-                  <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
-                )}
-              </div>
-              
-              {/* Right spacer */}
-              <div className="w-12"></div>
+              <button className="p-2 hover:bg-neutral-100 rounded-xl transition-all duration-200 active:scale-95 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500/50" aria-label="Menu principal">
+                <Bars3Icon className="w-5 h-5 text-neutral-600" />
+              </button>
             </div>
           </div>
         </div>
       )}
+
       
       {/* App Container - FIXED HEIGHT, NO SCROLLING */}
       <div className="flex-1 flex flex-col relative">
@@ -491,20 +444,37 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
       {/* ULTRATHINK Mobile Social Proof Badge - Only when NOT in form mode */}
       {!leadFormEmbedded && <MobileSocialProofBadge />}
 
-      {/* ULTRATHINK Mobile Multi-Step Lead Form - Positioned below headers with lower z-index */}
-      {leadFormEmbedded && (
-        <div className="fixed inset-0 z-20" style={{ paddingTop: '80px' }}>
-          {/* z-20 is below headers (z-50 and z-40) but above regular content */}
-          {/* 80px = 48px (header) + 32px (compact step nav) */}
-          <MobileLeadCaptureCorrect 
-            onSubmit={handleLeadFormSubmit}
-            onClose={handleBackToHome}
-            preSelectedService={preSelectedService}
-            className="h-full"
-            isEmbedded={true}
-          />
-        </div>
-      )}
+      {/* ULTRATHINK Mobile Multi-Step Lead Form - Full screen overlay with enhanced positioning */}
+      <AnimatePresence>
+        {leadFormEmbedded && (
+          <motion.div 
+            className="fixed inset-0 z-[9999] bg-white"
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              zIndex: 9999
+            }}
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            {/* Form takes full viewport height */}
+            <div className="h-screen w-full flex flex-col overflow-hidden">
+              <MobileLeadCaptureCorrect 
+                onSubmit={handleLeadFormSubmit}
+                onClose={handleBackToHome}
+                preSelectedService={preSelectedService}
+                className="flex-1 h-full overflow-hidden"
+                isEmbedded={true}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx={true} global={true}>{`
         .h-safe-top {
