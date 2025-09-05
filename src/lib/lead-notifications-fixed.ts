@@ -58,38 +58,53 @@ export async function sendLeadNotification(leadData: LeadNotificationData) {
     
     const subject = `🚨 Novo Lead - ${leadData.nome} - ${leadData.origem || 'Origem'} → ${leadData.destino || 'Destino'}`;
     
-    // Simple HTML template
+    // Enhanced HTML template with complete lead information
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; color: #333; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .info-block { background: #f8fafc; padding: 15px; margin: 15px 0; border-left: 4px solid #667eea; }
-        .info-row { margin: 8px 0; }
-        .label { font-weight: bold; color: #666; }
-        .value { color: #333; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 25px; text-align: center; }
+        .priority-high { background: linear-gradient(135deg, #ff6b35, #f7931e); }
+        .content { padding: 25px; }
+        .info-block { background: #f8fafc; padding: 18px; margin: 18px 0; border-left: 4px solid #667eea; border-radius: 6px; }
+        .info-block-travel { border-left-color: #10b981; }
+        .info-block-passengers { border-left-color: #8b5cf6; }
+        .info-block-budget { border-left-color: #f59e0b; }
+        .info-block-preferences { border-left-color: #3b82f6; }
+        .info-row { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .label { font-weight: 600; color: #4b5563; min-width: 140px; }
+        .value { color: #1f2937; font-weight: 500; flex: 1; text-align: right; }
+        .value-highlight { background: #eff6ff; padding: 4px 8px; border-radius: 4px; color: #1d4ed8; }
+        .service-tag { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 12px; margin: 2px; font-size: 12px; }
         .cta { text-align: center; margin: 30px 0; }
-        .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; }
-        .footer { background: #f8fafc; padding: 15px; text-align: center; color: #666; font-size: 12px; }
+        .button { display: inline-block; padding: 15px 35px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; }
+        .footer { background: #f8fafc; padding: 20px; text-align: center; color: #6b7280; font-size: 13px; }
+        .alert { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 6px; margin: 20px 0; }
+        .whatsapp-btn { background: #25d366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h2>🎯 Novo Lead Recebido!</h2>
-            <p>Um cliente solicitou orçamento</p>
+        <div class="header ${
+          (leadData.orcamentoTotal && parseFloat(leadData.orcamentoTotal.replace(/[^0-9.-]/g, '')) > 5000) || 
+          leadData.numeroPassageiros && leadData.numeroPassageiros > 4 
+            ? 'priority-high' : ''
+        }">
+            <h2>🎯 Novo Lead de Alta Prioridade!</h2>
+            <p>Cliente ${leadData.nome} solicitou orçamento</p>
+            <p><strong>🌍 ${leadData.origem || 'Origem'} → ${leadData.destino || 'Destino'}</strong></p>
         </div>
         
         <div class="content">
             <div class="info-block">
                 <h3>👤 Informações do Cliente</h3>
                 <div class="info-row">
-                    <span class="label">Nome:</span> <span class="value">${leadData.nome}</span>
+                    <span class="label">Nome Completo:</span> <span class="value value-highlight">${leadData.nome}</span>
                 </div>
                 <div class="info-row">
                     <span class="label">Email:</span> <span class="value">${leadData.email}</span>
@@ -100,9 +115,12 @@ export async function sendLeadNotification(leadData: LeadNotificationData) {
                 <div class="info-row">
                     <span class="label">Telefone:</span> <span class="value">${leadData.telefone || 'Não informado'}</span>
                 </div>
+                <div class="info-row">
+                    <span class="label">Fonte:</span> <span class="value">${leadData.source || 'Website'}</span>
+                </div>
             </div>
             
-            <div class="info-block">
+            <div class="info-block info-block-travel">
                 <h3>✈️ Detalhes da Viagem</h3>
                 <div class="info-row">
                     <span class="label">Origem:</span> <span class="value">${leadData.origem || 'A definir'}</span>
@@ -111,64 +129,183 @@ export async function sendLeadNotification(leadData: LeadNotificationData) {
                     <span class="label">Destino:</span> <span class="value">${leadData.destino || 'A definir'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="label">Data Ida:</span> <span class="value">${formatDate(leadData.dataPartida)}</span>
+                    <span class="label">Tipo de Viagem:</span> <span class="value">${leadData.tipoViagem || 'Ida e volta'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="label">Data Volta:</span> <span class="value">${formatDate(leadData.dataRetorno)}</span>
+                    <span class="label">Data Partida:</span> <span class="value">${formatDate(leadData.dataPartida)}</span>
                 </div>
                 <div class="info-row">
-                    <span class="label">Serviços:</span> <span class="value">${leadData.selectedServices?.join(', ') || 'Voo'}</span>
+                    <span class="label">Data Retorno:</span> <span class="value">${formatDate(leadData.dataRetorno)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Serviços:</span> 
+                    <span class="value">
+                        ${leadData.selectedServices?.map(service => `<span class="service-tag">${service}</span>`).join('') || '<span class="service-tag">voos</span>'}
+                    </span>
                 </div>
             </div>
             
-            ${leadData.observacoes ? `
-            <div class="info-block">
-                <h3>📝 Observações</h3>
-                <p>${leadData.observacoes}</p>
+            <div class="info-block info-block-passengers">
+                <h3>👥 Informações dos Passageiros</h3>
+                <div class="info-row">
+                    <span class="label">Total Passageiros:</span> <span class="value value-highlight">${leadData.numeroPassageiros || 1}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Adultos:</span> <span class="value">${leadData.adultos || 1}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Crianças:</span> <span class="value">${leadData.criancas || 0}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Bebês:</span> <span class="value">${leadData.bebes || 0}</span>
+                </div>
+            </div>
+            
+            ${leadData.classeViagem || leadData.orcamentoTotal || leadData.prioridadeOrcamento ? `
+            <div class="info-block info-block-preferences">
+                <h3>🎯 Preferências e Orçamento</h3>
+                ${leadData.classeViagem ? `
+                <div class="info-row">
+                    <span class="label">Classe de Voo:</span> <span class="value">${leadData.classeViagem}</span>
+                </div>
+                ` : ''}
+                ${leadData.orcamentoTotal ? `
+                <div class="info-row">
+                    <span class="label">Orçamento:</span> <span class="value value-highlight">US$ ${leadData.orcamentoTotal}</span>
+                </div>
+                ` : ''}
+                ${leadData.prioridadeOrcamento ? `
+                <div class="info-row">
+                    <span class="label">Prioridade:</span> <span class="value">${leadData.prioridadeOrcamento}</span>
+                </div>
+                ` : ''}
+                ${leadData.precisaHospedagem ? `
+                <div class="info-row">
+                    <span class="label">Hospedagem:</span> <span class="value">✅ Precisa</span>
+                </div>
+                ` : ''}
+                ${leadData.precisaTransporte ? `
+                <div class="info-row">
+                    <span class="label">Transporte:</span> <span class="value">✅ Precisa</span>
+                </div>
+                ` : ''}
             </div>
             ` : ''}
             
-            <div class="cta">
-                <a href="https://fly2any.com/admin" class="button">Acessar Painel Admin</a>
+            ${leadData.observacoes ? `
+            <div class="info-block">
+                <h3>📝 Observações do Cliente</h3>
+                <p style="background: white; padding: 12px; border-radius: 4px; font-style: italic;">${leadData.observacoes}</p>
+            </div>
+            ` : ''}
+            
+            <div class="alert">
+                <strong>⚡ AÇÃO URGENTE:</strong> Cliente esperando resposta! Entre em contato nas próximas 2 horas para maximizar conversão.
             </div>
             
-            <div class="info-block" style="background: #fff3cd; border-color: #ffc107;">
-                <strong>⚡ Ação Necessária:</strong> Entre em contato com o cliente o mais rápido possível!
+            <div class="cta">
+                ${leadData.whatsapp ? `
+                <a href="https://wa.me/${leadData.whatsapp.replace(/[^0-9]/g, '')}?text=Olá ${leadData.nome}! Recebemos seu pedido de orçamento para ${leadData.origem} → ${leadData.destino}. Vamos preparar a melhor proposta para você!" class="whatsapp-btn">📱 WhatsApp</a>
+                ` : ''}
+                <a href="https://fly2any.com/admin/leads/modern" class="button">📊 Painel Admin</a>
+                <a href="mailto:${leadData.email}?subject=Re: Orçamento ${leadData.origem} → ${leadData.destino}&body=Olá ${leadData.nome}!%0A%0ARecebemos seu pedido de orçamento e nossa equipe está preparando a melhor proposta para sua viagem." class="button" style="background: #059669;">✉️ Responder Email</a>
+            </div>
+            
+            <div class="info-block" style="background: #dcfce7; border-left-color: #16a34a;">
+                <h3>📈 Análise Rápida do Lead</h3>
+                <div class="info-row">
+                    <span class="label">Score de Conversão:</span> 
+                    <span class="value">${
+                      (() => {
+                        let score = 50; // base score
+                        if (leadData.whatsapp) score += 20; // has whatsapp
+                        if (leadData.orcamentoTotal) score += 15; // has budget
+                        if (leadData.dataPartida) score += 10; // has specific dates
+                        if (leadData.numeroPassageiros && leadData.numeroPassageiros > 2) score += 10; // group travel
+                        const finalScore = Math.min(score, 95); // cap at 95%
+                        const statusLabel = finalScore >= 80 ? '🟢 ALTO' : finalScore >= 60 ? '🟡 MÉDIO' : '🔴 BAIXO';
+                        return `${finalScore}% ${statusLabel}`;
+                      })()
+                    }</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Valor Estimado:</span> 
+                    <span class="value">${
+                      leadData.orcamentoTotal 
+                        ? `US$ ${leadData.orcamentoTotal}` 
+                        : `US$ ${(leadData.numeroPassageiros || 1) * 800}-${(leadData.numeroPassageiros || 1) * 2500} (estimativa)`
+                    }</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Urgência:</span> 
+                    <span class="value">${
+                      leadData.dataPartida 
+                        ? (() => {
+                            const days = Math.ceil((new Date(leadData.dataPartida).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                            return days < 30 ? '🔥 ALTA (menos de 30 dias)' : days < 90 ? '⚡ MÉDIA (30-90 dias)' : '📅 BAIXA (mais de 90 dias)';
+                          })()
+                        : '❓ A definir'
+                    }</span>
+                </div>
             </div>
         </div>
         
         <div class="footer">
-            <p>Lead ID: ${leadData.id}</p>
-            <p>Recebido em: ${new Date().toLocaleString('pt-BR')}</p>
-            <p>© 2025 Fly2Any - Sistema de Leads</p>
+            <p><strong>Lead ID:</strong> ${leadData.id}</p>
+            <p><strong>Recebido em:</strong> ${new Date().toLocaleString('pt-BR', { 
+              timeZone: 'America/Sao_Paulo',
+              year: 'numeric',
+              month: '2-digit', 
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
+            <p>© 2025 Fly2Any - Sistema Inteligente de Leads</p>
+            <p style="font-size: 11px; color: #9ca3af;">Este é um email automático. Para suporte técnico, entre em contato conosco.</p>
         </div>
     </div>
 </body>
 </html>`;
     
-    // Plain text fallback
+    // Enhanced plain text fallback with complete information
     const textContent = `
-NOVO LEAD RECEBIDO!
+🎯 NOVO LEAD DE ALTA PRIORIDADE!
+${'='.repeat(50)}
 
-INFORMAÇÕES DO CLIENTE:
+👤 INFORMAÇÕES DO CLIENTE:
 Nome: ${leadData.nome}
 Email: ${leadData.email}
 WhatsApp: ${leadData.whatsapp || 'Não informado'}
 Telefone: ${leadData.telefone || 'Não informado'}
+Fonte: ${leadData.source || 'Website'}
 
-DETALHES DA VIAGEM:
+✈️ DETALHES DA VIAGEM:
 Origem: ${leadData.origem || 'A definir'}
 Destino: ${leadData.destino || 'A definir'}
-Data Ida: ${formatDate(leadData.dataPartida)}
-Data Volta: ${formatDate(leadData.dataRetorno)}
-Serviços: ${leadData.selectedServices?.join(', ') || 'Voo'}
+Tipo: ${leadData.tipoViagem || 'Ida e volta'}
+Data Partida: ${formatDate(leadData.dataPartida)}
+Data Retorno: ${formatDate(leadData.dataRetorno)}
+Serviços: ${leadData.selectedServices?.join(', ') || 'voos'}
 
-${leadData.observacoes ? `OBSERVAÇÕES:\n${leadData.observacoes}\n` : ''}
+👥 PASSAGEIROS:
+Total: ${leadData.numeroPassageiros || 1}
+Adultos: ${leadData.adultos || 1}
+Crianças: ${leadData.criancas || 0}
+Bebês: ${leadData.bebes || 0}
+
+🎯 PREFERÊNCIAS:
+${leadData.classeViagem ? `Classe: ${leadData.classeViagem}\n` : ''}${leadData.orcamentoTotal ? `Orçamento: US$ ${leadData.orcamentoTotal}\n` : ''}${leadData.prioridadeOrcamento ? `Prioridade: ${leadData.prioridadeOrcamento}\n` : ''}${leadData.precisaHospedagem ? 'Hospedagem: ✅ Precisa\n' : ''}${leadData.precisaTransporte ? 'Transporte: ✅ Precisa\n' : ''}
+
+${leadData.observacoes ? `📝 OBSERVAÇÕES:\n${leadData.observacoes}\n\n` : ''}
+⚡ AÇÃO URGENTE: Entre em contato nas próximas 2 horas!
+
+${leadData.whatsapp ? `WhatsApp: https://wa.me/${leadData.whatsapp.replace(/[^0-9]/g, '')}\n` : ''}Painel Admin: https://fly2any.com/admin/leads/modern
+Email Cliente: mailto:${leadData.email}
 
 Lead ID: ${leadData.id}
-Recebido em: ${new Date().toLocaleString('pt-BR')}
+Recebido: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
 
-Acesse o painel admin: https://fly2any.com/admin
+© 2025 Fly2Any - Sistema Inteligente de Leads
 `;
     
     // Try to send email to each admin

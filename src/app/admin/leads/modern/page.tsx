@@ -43,6 +43,7 @@ interface Lead {
   notes?: string;
   lastActivity?: string;
   score?: number;
+  selectedServices?: string[] | string;
   tags?: Array<{
     id: string;
     name: string;
@@ -1134,7 +1135,7 @@ export default function ModernLeadsPage() {
           {(() => {
             const serviceStats = leads.reduce((acc, lead) => {
               const services = Array.isArray(lead.selectedServices) ? lead.selectedServices : [lead.source || 'outros'];
-              services.forEach(service => {
+              services.forEach((service: string) => {
                 if (!acc[service]) acc[service] = { count: 0, revenue: 0 };
                 acc[service].count++;
                 acc[service].revenue += parseBudgetValue(lead.orcamentoTotal);
@@ -1421,7 +1422,7 @@ export default function ModernLeadsPage() {
                                   
                                   {/* Services Tags */}
                                   <div className="flex flex-wrap gap-2 mb-4">
-                                    {(Array.isArray(lead.selectedServices) ? lead.selectedServices : [lead.source || 'outros']).map((service, index) => (
+                                    {(Array.isArray(lead.selectedServices) ? lead.selectedServices : [lead.source || 'outros']).map((service: string, index: number) => (
                                       <span key={index} className="service-tag">
                                         {service === 'voos' && '✈️'}
                                         {service === 'hoteis' && '🏨'}
@@ -1451,7 +1452,7 @@ export default function ModernLeadsPage() {
                                       </a>
                                     )}
                                     <button
-                                      onClick={() => handleContactLead && handleContactLead(lead.id)}
+                                      onClick={() => handleContactLead && handleContactLead(lead.id, 'phone')}
                                       className="admin-btn admin-btn-primary admin-btn-sm"
                                     >
                                       📞
@@ -1533,7 +1534,7 @@ export default function ModernLeadsPage() {
                   {(() => {
                     const serviceStats = leads.reduce((acc, lead) => {
                       const services = Array.isArray(lead.selectedServices) ? lead.selectedServices : [lead.source || 'outros'];
-                      services.forEach(service => {
+                      services.forEach((service: string) => {
                         if (!acc[service]) acc[service] = { count: 0, revenue: 0, avgDeal: 0, conversion: 0 };
                         acc[service].count++;
                         acc[service].revenue += parseBudgetValue(lead.orcamentoTotal);
