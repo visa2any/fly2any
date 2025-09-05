@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Navigation Test</title>
+</head>
+<body>
+    <h1>Logo Navigation Test Results</h1>
+    
+    <h2>Test Instructions:</h2>
+    <ol>
+        <li>Open <a href="http://localhost:3001" target="_blank">http://localhost:3001</a> in your browser</li>
+        <li>Test each mobile form by:
+            <ul>
+                <li>Opening each service form (Voos, Hotéis, Carros, Tours, Seguros)</li>
+                <li>Once the mobile form overlay is open, click the logo</li>
+                <li>Verify that:
+                    <ul>
+                        <li>The mobile form closes</li>
+                        <li>The page navigates back to the home page</li>
+                        <li>No JavaScript errors appear in the console</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h2>Expected Behavior:</h2>
+    <p>✅ Clicking logo should:</p>
+    <ul>
+        <li>Close the active mobile form overlay</li>
+        <li>Navigate to home page (/)</li>
+        <li>Allow normal page interaction</li>
+    </ul>
+    
+    <h2>Forms to Test:</h2>
+    <ul>
+        <li>🛩️ Mobile Flight Form (setShowMobileFlightForm)</li>
+        <li>🏨 Mobile Hotel Form (setShowMobileHotelForm)</li>
+        <li>🚗 Mobile Car Form (setShowMobileCarForm)</li>
+        <li>🎯 Mobile Tour Form (setShowMobileTourForm)</li>
+        <li>🛡️ Mobile Insurance Form (setShowMobileInsuranceForm)</li>
+    </ul>
+    
+    <h2>Technical Implementation:</h2>
+    <p>Each Logo component has an onClick handler that sets the respective mobile form state to false:</p>
+    <pre>
+&lt;Link 
+  href="/" 
+  className="block"
+  onClick={() =&gt; setShowMobile[Service]Form(false)}
+&gt;
+  &lt;Logo variant="logo-only" size="sm" /&gt;
+&lt;/Link&gt;
+    </pre>
+</body>
+</html>

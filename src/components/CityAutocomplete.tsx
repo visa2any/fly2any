@@ -12,6 +12,7 @@ interface CityAutocompleteProps {
   iconColor?: string;
   error?: string;
   cities: City[];
+  className?: string;
 }
 
 export default function CityAutocomplete({
@@ -20,7 +21,8 @@ export default function CityAutocomplete({
   label,
   iconColor = '#6b7280',
   error,
-  cities
+  cities,
+  className = ''
 }: CityAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
@@ -101,7 +103,7 @@ export default function CityAutocomplete({
   }, []);
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div className={className} style={{ position: 'relative', width: '100%' }}>
       {label && (
         <label style={{
           display: 'flex',
@@ -162,7 +164,7 @@ export default function CityAutocomplete({
             borderTop: 'none',
             borderRadius: '0 0 12px 12px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
+            zIndex: 9999,
             maxHeight: '240px',
             overflowY: 'auto'
           }}

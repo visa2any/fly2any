@@ -6,8 +6,8 @@ import {
   MapPinIcon,
   CalendarIcon,
   UsersIcon,
-  PaperAirplaneIcon,
-  ArrowPathIcon,
+  HomeIcon,
+  StarIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -16,34 +16,32 @@ import {
   ChevronDownIcon,
   SparklesIcon,
   CurrencyDollarIcon,
-  PencilIcon
+  BuildingOffice2Icon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import PhoneInput from '@/components/PhoneInputSimple';
-import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
-import { AirportSelection } from '@/types/flights';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import { cities } from '@/data/cities';
 
 // ========================================================================================
-// UNIFIED FLIGHT FORM INTERFACES & TYPES
+// UNIFIED HOTEL FORM INTERFACES & TYPES
 // ========================================================================================
 
-interface FlightFormData {
+interface HotelFormData {
   // Trip Configuration
-  tripType: 'round-trip' | 'one-way' | 'multi-city';
-  origin: AirportSelection | null;
-  destination: AirportSelection | null;
-  departureDate: string;
-  returnDate: string;
+  destination: string;
+  checkinDate: string;
+  checkoutDate: string;
   
-  // Passengers
-  passengers: {
-    adults: number;
-    children: number;
-    infants: number;
-  };
+  // Accommodation
+  rooms: number;
+  adults: number;
+  children: number;
   
-  // Travel Preferences
-  travelClass: 'economy' | 'premium' | 'business' | 'first';
+  // Preferences
+  hotelCategory: 'budget' | 'standard' | 'premium' | 'luxury';
+  amenities: string[];
+  locationPreference: string;
   budget: 'economy' | 'standard' | 'premium' | 'luxury';
   preferences: string;
   urgente: boolean;
@@ -59,10 +57,10 @@ interface FlightFormData {
   };
 }
 
-interface MobileFlightFormUnifiedProps {
+interface MobileHotelFormUnifiedProps {
   // Core functionality
-  onSearch?: (data: FlightFormData) => void;
-  onSubmit?: (data: FlightFormData) => void;
+  onSearch?: (data: HotelFormData) => void;
+  onSubmit?: (data: HotelFormData) => void;
   onClose?: () => void;
   
   // Configuration
@@ -72,10 +70,10 @@ interface MobileFlightFormUnifiedProps {
   className?: string;
   
   // Initial data
-  initialData?: Partial<FlightFormData>;
+  initialData?: Partial<HotelFormData>;
 }
 
-type StepType = 'travel' | 'budget-notes' | 'contact' | 'confirmation';
+type StepType = 'accommodation' | 'budget-notes' | 'contact' | 'confirmation';
 
 // ========================================================================================
 // DESIGN SYSTEM TOKENS
@@ -84,48 +82,38 @@ type StepType = 'travel' | 'budget-notes' | 'contact' | 'confirmation';
 const designTokens = {
   colors: {
     primary: {
-      50: 'bg-blue-50',
-      100: 'bg-blue-100',
-      500: 'bg-blue-500',
-      600: 'bg-blue-600',
-      700: 'bg-blue-700'
+      50: 'bg-green-50',
+      100: 'bg-green-100',
+      500: 'bg-green-500',
+      600: 'bg-green-600',
+      700: 'bg-green-700'
     },
     success: {
-      50: 'bg-green-50',
-      500: 'bg-green-500',
-      600: 'bg-green-600'
+      50: 'bg-emerald-50',
+      500: 'bg-emerald-500',
+      600: 'bg-emerald-600'
     },
     warning: {
       50: 'bg-yellow-50',
       500: 'bg-yellow-500'
+    },
+    purple: {
+      50: 'bg-purple-50',
+      500: 'bg-purple-500',
+      600: 'bg-purple-600'
     }
   },
-  spacing: {
-    section: 'space-y-3',
-    field: 'mb-3',
-    compact: 'p-2',
-    comfortable: 'p-3',
-    spacious: 'p-4'
-  },
-  typography: {
-    title: 'text-base font-bold text-gray-900',
-    subtitle: 'text-sm text-gray-600',
-    label: 'text-sm font-semibold text-gray-700 mb-2 block',
-    input: 'text-base font-medium'
-  },
   animations: {
-    page: { duration: 0.3 },
-    button: { duration: 0.2, type: 'spring', damping: 20 },
-    micro: { duration: 0.15 }
+    page: { duration: 0.3, ease: "easeOut" as const }
   }
 };
 
 // ========================================================================================
-// UNIFIED MOBILE FLIGHT FORM COMPONENT
+// MAIN COMPONENT
 // ========================================================================================
 
-export default function MobileFlightFormUnified({ 
-  onSearch, 
+export default function MobileHotelFormUnified({
+  onSearch,
   onSubmit,
   onClose,
   mode = 'premium',
@@ -133,40 +121,37 @@ export default function MobileFlightFormUnified({
   showNavigation = true,
   className = '',
   initialData = {}
-}: MobileFlightFormUnifiedProps) {
-  
+}: MobileHotelFormUnifiedProps) {
+
   // =====================
   // STATE MANAGEMENT
   // =====================
   
-  const [currentStep, setCurrentStep] = useState<StepType>('travel');
+  const [currentStep, setCurrentStep] = useState<StepType>('accommodation');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState<FlightFormData>({
-    tripType: 'round-trip',
-    origin: null,
-    destination: null,
-    departureDate: '',
-    returnDate: '',
-    passengers: {
-      adults: 1,
-      children: 0,
-      infants: 0
-    },
-    travelClass: 'economy',
+  const [formData, setFormData] = useState<HotelFormData>({
+    destination: initialData.destination || '',
+    checkinDate: initialData.checkinDate || '',
+    checkoutDate: initialData.checkoutDate || '',
+    rooms: initialData.rooms || 1,
+    adults: initialData.adults || 2,
+    children: initialData.children || 0,
+    hotelCategory: initialData.hotelCategory || 'standard',
+    amenities: initialData.amenities || [],
+    locationPreference: initialData.locationPreference || '',
+    budget: initialData.budget || 'standard',
+    preferences: initialData.preferences || '',
+    urgente: initialData.urgente || false,
+    flexivelDatas: initialData.flexivelDatas || false,
     contactInfo: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      countryCode: '+55'
-    },
-    budget: 'standard',
-    preferences: '',
-    urgente: false,
-    flexivelDatas: false,
-    ...initialData
+      firstName: initialData.contactInfo?.firstName || '',
+      lastName: initialData.contactInfo?.lastName || '',
+      email: initialData.contactInfo?.email || '',
+      phone: initialData.contactInfo?.phone || '',
+      countryCode: initialData.contactInfo?.countryCode || '+55'
+    }
   });
 
   // =====================
@@ -176,14 +161,14 @@ export default function MobileFlightFormUnified({
   const getStepConfig = () => {
     if (stepFlow === 'extended') {
       return [
-        { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
+        { key: 'accommodation', title: 'Detalhes do Hotel', icon: BuildingOffice2Icon },
         { key: 'budget-notes', title: 'Budget', icon: CurrencyDollarIcon },
         { key: 'contact', title: 'Contact', icon: UserIcon },
         { key: 'confirmation', title: 'Confirmation', icon: SparklesIcon }
       ];
     } else {
       return [
-        { key: 'travel', title: 'Detalhes do Voo', icon: PaperAirplaneIcon },
+        { key: 'accommodation', title: 'Detalhes do Hotel', icon: BuildingOffice2Icon },
         { key: 'contact', title: 'Contact', icon: UserIcon },
         { key: 'confirmation', title: 'Confirmation', icon: SparklesIcon }
       ];
@@ -199,17 +184,16 @@ export default function MobileFlightFormUnified({
   
   const canProceedFromStep = (step: StepType): boolean => {
     switch (step) {
-      case 'travel':
+      case 'accommodation':
         return !!(
-          formData.tripType && 
-          formData.origin?.iataCode && 
-          formData.destination?.iataCode && 
-          formData.departureDate && 
-          (formData.tripType !== 'round-trip' || formData.returnDate) &&
-          formData.passengers.adults > 0
+          formData.destination && 
+          formData.checkinDate && 
+          formData.checkoutDate && 
+          formData.rooms >= 1 && 
+          formData.adults >= 1
         );
       case 'budget-notes':
-        return true; // Budget and notes are optional
+        return true; // Optional step, can always proceed
       case 'contact':
         return !!(
           formData.contactInfo.firstName && 
@@ -254,70 +238,74 @@ export default function MobileFlightFormUnified({
   // FORM HANDLERS
   // =====================
   
-  const handlePassengerChange = useCallback((type: 'adults' | 'children' | 'infants', increment: boolean) => {
+  const handleCountChange = useCallback((type: 'rooms' | 'adults' | 'children', increment: boolean) => {
     setFormData(prev => ({
       ...prev,
-      passengers: {
-        ...prev.passengers,
-        [type]: Math.max(0, prev.passengers[type] + (increment ? 1 : -1))
-      }
+      [type]: increment 
+        ? prev[type] + 1 
+        : Math.max(type === 'rooms' ? 1 : 0, prev[type] - 1)
     }));
-    
-    if ('vibrate' in navigator) {
-      navigator.vibrate(increment ? 12 : 8);
-    }
   }, []);
+
+  const handleAmenityToggle = useCallback((amenity: string) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter(a => a !== amenity)
+        : [...prev.amenities, amenity]
+    }));
+  }, []);
+
+  // =====================
+  // SUBMISSION HANDLERS
+  // =====================
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
     try {
       // Track analytics
-      trackFormSubmit(`flight_form_mobile_${mode}`);
-      trackQuoteRequest({ services: ['voos'] });
+      trackFormSubmit(`hotel_form_mobile_${mode}`);
+      trackQuoteRequest({ services: ['hoteis'] });
 
       // Prepare submission data
       const submissionData = {
         nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
         email: formData.contactInfo.email,
         telefone: formData.contactInfo.phone,
-        servicos: ['voos'],
+        servicos: ['hoteis'],
         serviceData: {
-          voos: {
+          hoteis: {
             ...formData,
-            originAirport: formData.origin,
-            destinationAirport: formData.destination,
-            origin: formData.origin?.iataCode || '',
-            destination: formData.destination?.iataCode || ''
+            nights: formData.checkinDate && formData.checkoutDate ? 
+              Math.ceil((new Date(formData.checkoutDate).getTime() - new Date(formData.checkinDate).getTime()) / (1000 * 3600 * 24)) 
+              : 1
           }
         },
-        flightSearchParams: {
-          originLocationCode: formData.origin?.iataCode || '',
-          destinationLocationCode: formData.destination?.iataCode || '',
-          departureDate: formData.departureDate,
-          returnDate: formData.returnDate || undefined,
-          adults: formData.passengers.adults,
-          children: formData.passengers.children,
-          infants: formData.passengers.infants,
-          travelClass: formData.travelClass.toUpperCase(),
-          oneWay: formData.tripType === 'one-way',
-          flexibleDates: formData.flexivelDatas ? { enabled: true, days: 3 } : undefined
+        hotelSearchParams: {
+          destination: formData.destination,
+          checkinDate: formData.checkinDate,
+          checkoutDate: formData.checkoutDate,
+          rooms: formData.rooms,
+          adults: formData.adults,
+          children: formData.children,
+          category: formData.hotelCategory
         },
         observacoes: formData.preferences || '',
         urgente: formData.urgente,
         flexivelDatas: formData.flexivelDatas,
         budget: formData.budget,
         timestamp: new Date().toISOString(),
-        source: `mobile_flight_form_unified_${mode}`,
+        source: `mobile_hotel_form_unified_${mode}`,
         userAgent: navigator.userAgent
       };
 
       // Log complete submission data for verification
-      console.log('🚀 [ULTRATHINK] Complete Form Submission Data:', {
+      console.log('🏨 [ULTRATHINK] Complete Hotel Form Submission Data:', {
         timestamp: new Date().toISOString(),
         formData,
         submissionData,
-        source: 'mobile_flight_form_unified'
+        source: 'mobile_hotel_form_unified'
       });
 
       // Submit to API
@@ -336,33 +324,21 @@ export default function MobileFlightFormUnified({
         onSubmit(formData);
       }
       
-      if (onSearch) {
-        onSearch(formData);
+      // Show success feedback
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]);
       }
 
-      alert('Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.');
-      
     } catch (error) {
-      console.error('Error submitting flight form:', error);
-      alert('Erro ao enviar sua solicitação. Tente novamente.');
+      console.error('Erro ao enviar formulário de hotel:', error);
+      alert('Erro ao enviar solicitação. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // =====================
-  // UTILITY FUNCTIONS
-  // =====================
-  
-  const getTodayDate = () => new Date().toISOString().split('T')[0];
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  };
-
-  // =====================
-  // MODE-SPECIFIC STYLING
+  // DYNAMIC STYLING
   // =====================
   
   const getModeStyles = () => {
@@ -370,30 +346,23 @@ export default function MobileFlightFormUnified({
       case 'compact':
         return {
           container: 'bg-white',
-          section: 'bg-white rounded-lg border border-gray-200 p-2 mb-2',
+          section: 'bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200',
           title: 'text-sm font-bold text-gray-900',
           spacing: 'space-y-2'
         };
       case 'premium':
         return {
-          container: 'bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-50',
-          section: 'backdrop-blur-xl bg-gradient-to-r from-white/90 via-white/95 to-white/90 rounded-xl p-3 mb-3 border border-blue-200/50 shadow-lg',
-          title: 'text-base font-bold text-gray-900',
-          spacing: 'space-y-3'
-        };
-      case 'embedded':
-        return {
-          container: 'bg-transparent',
-          section: 'bg-white rounded-xl border border-gray-100 p-3 mb-3 shadow-sm',
+          container: 'bg-gradient-to-br from-slate-50 via-green-50/80 to-emerald-50',
+          section: 'backdrop-blur-xl bg-gradient-to-r from-white/90 via-white/95 to-white/90 rounded-xl p-3 mb-3 border border-green-200/50 shadow-lg',
           title: 'text-base font-bold text-gray-900',
           spacing: 'space-y-3'
         };
       default:
         return {
           container: 'bg-white',
-          section: 'bg-white rounded-xl border border-gray-200 p-4 mb-4',
-          title: 'text-lg font-bold text-gray-900',
-          spacing: 'space-y-4'
+          section: 'bg-white rounded-lg p-3 mb-3 border border-gray-200 shadow-sm',
+          title: 'text-sm font-semibold text-gray-900',
+          spacing: 'space-y-3'
         };
     }
   };
@@ -401,15 +370,15 @@ export default function MobileFlightFormUnified({
   const modeStyles = getModeStyles();
 
   // ========================================================================================
-  // RENDER COMPONENT
+  // RENDER
   // ========================================================================================
 
   return (
-    <div className={`flex flex-col ${modeStyles.container} ${className}`}>
+    <div className={`h-full flex flex-col ${modeStyles.container} ${className}`}>
       
 
       {/* MAIN CONTENT AREA */}
-      <div className="pb-20">
+      <div className="flex-1 overflow-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -417,163 +386,94 @@ export default function MobileFlightFormUnified({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={designTokens.animations.page}
-            className={`${modeStyles.spacing} p-3`}
-            style={{ minHeight: 'auto' }}
+            className="h-full"
           >
             
-            {/* STEP 1: TRAVEL DETAILS */}
-            {currentStep === 'travel' && (
+            {/* STEP 1: ACCOMMODATION DETAILS */}
+            {currentStep === 'accommodation' && (
               <div className={modeStyles.spacing}>
                 <div className="mb-4">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                      <PaperAirplaneIcon className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <BuildingOffice2Icon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className={`${modeStyles.title} leading-tight mb-1`}>Detalhes do Voo</h2>
-                      <p className="text-sm text-gray-600 leading-relaxed">Configure sua viagem ideal</p>
+                      <h2 className={`${modeStyles.title} leading-tight mb-1`}>Detalhes do Hotel</h2>
+                      <p className="text-sm text-gray-600 leading-relaxed">Configure sua hospedagem ideal</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Trip Type */}
+                {/* Destination */}
                 <div className={modeStyles.section}>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Tipo de Viagem</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { value: 'round-trip', label: 'Ida e volta', icon: '↔️' },
-                      { value: 'one-way', label: 'Somente ida', icon: '→' }
-                    ].map((type) => (
-                      <motion.button
-                        key={type.value}
-                        onClick={() => setFormData(prev => ({ ...prev, tripType: type.value as any }))}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                          formData.tripType === type.value
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 bg-white hover:border-blue-300'
-                        }`}
-                      >
-                        <div className="text-center">
-                          <div className="text-lg mb-1">{type.icon}</div>
-                          <div>{type.label}</div>
-                        </div>
-                      </motion.button>
-                    ))}
-                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Destino</h3>
+                  <CityAutocomplete
+                    value={formData.destination}
+                    onChange={(value) => setFormData(prev => ({ ...prev, destination: value }))}
+                    cities={cities}
+                    placeholder="Para onde você vai?"
+                    className="w-full"
+                  />
                 </div>
 
-                {/* Route Selection */}
-                <div className={modeStyles.section}>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Rota</h3>
-                  <div className="space-y-3">
-                    <AirportAutocomplete
-                      value={formData.origin}
-                      onChange={(airport) => setFormData(prev => ({ ...prev, origin: airport }))}
-                      placeholder="🛫 De onde?"
-                      className="w-full"
-                      inputClassName="px-4 py-3 text-sm rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                      isMobile={true}
-                      maxResults={4}
-                    />
-                    
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            origin: prev.destination,
-                            destination: prev.origin
-                          }));
-                        }}
-                        className="p-2 bg-blue-100 rounded-lg text-blue-600 hover:bg-blue-200 transition-colors"
-                      >
-                        <ArrowPathIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                    
-                    <AirportAutocomplete
-                      value={formData.destination}
-                      onChange={(airport) => setFormData(prev => ({ ...prev, destination: airport }))}
-                      placeholder="🛬 Para onde?"
-                      className="w-full"
-                      inputClassName="px-4 py-3 text-sm rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                      isMobile={true}
-                      maxResults={4}
-                    />
-                  </div>
-                </div>
-
-                {/* Dates */}
+                {/* Check-in/out Dates */}
                 <div className={modeStyles.section}>
                   <h3 className="text-sm font-semibold text-gray-800 mb-3">Datas</h3>
-                  <div className={`grid gap-3 ${formData.tripType === 'round-trip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-medium text-gray-700 mb-1 block">📅 Ida</label>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Check-in</label>
                       <input
                         type="date"
-                        value={formData.departureDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, departureDate: e.target.value }))}
-                        min={getTodayDate()}
-                        className="w-full px-3 py-2 text-sm rounded-lg border-2 border-gray-200 focus:border-blue-500"
+                        value={formData.checkinDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, checkinDate: e.target.value }))}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-3 py-2.5 text-sm rounded-lg border-2 border-gray-200 focus:border-green-500"
                       />
                     </div>
-                    
-                    {formData.tripType === 'round-trip' && (
-                      <div>
-                        <label className="text-xs font-medium text-gray-700 mb-1 block">📅 Volta</label>
-                        <input
-                          type="date"
-                          value={formData.returnDate}
-                          onChange={(e) => setFormData(prev => ({ ...prev, returnDate: e.target.value }))}
-                          min={formData.departureDate || getTomorrowDate()}
-                          className="w-full px-3 py-2 text-sm rounded-lg border-2 border-gray-200 focus:border-blue-500"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <label className="text-xs font-medium text-gray-700 mb-1 block">Check-out</label>
+                      <input
+                        type="date"
+                        value={formData.checkoutDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, checkoutDate: e.target.value }))}
+                        min={formData.checkinDate || new Date().toISOString().split('T')[0]}
+                        className="w-full px-3 py-2.5 text-sm rounded-lg border-2 border-gray-200 focus:border-green-500"
+                      />
+                    </div>
                   </div>
-                  
-                  <label className="flex items-center gap-2 mt-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.flexivelDatas}
-                      onChange={(e) => setFormData(prev => ({ ...prev, flexivelDatas: e.target.checked }))}
-                      className="w-4 h-4 rounded border-blue-300 text-blue-600"
-                    />
-                    <span className="text-xs text-gray-700">Datas flexíveis (+/- 3 dias)</span>
-                  </label>
                 </div>
 
-                {/* Passengers */}
+                {/* Rooms & Guests - Horizontal Grid for Mobile Optimization */}
                 <div className={modeStyles.section}>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Passageiros</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Quartos e Hóspedes</h3>
                   <div className="grid grid-cols-3 gap-4">
                     {[
-                      { type: 'adults', label: 'Adultos', emoji: '👤', min: 1 },
-                      { type: 'children', label: 'Crianças', emoji: '🧒', min: 0 },
-                      { type: 'infants', label: 'Bebês', emoji: '👶', min: 0 }
-                    ].map((passenger) => (
-                      <div key={passenger.type} className="text-center">
+                      { key: 'rooms', label: 'Quartos', emoji: '🏨', min: 1, max: 10 },
+                      { key: 'adults', label: 'Adultos', emoji: '👤', min: 1, max: 20 },
+                      { key: 'children', label: 'Crianças', emoji: '🧒', min: 0, max: 10 }
+                    ].map(({ key, label, emoji, min, max }) => (
+                      <div key={key} className="text-center">
                         <div className="text-xs font-medium text-gray-700 mb-2 flex flex-col items-center">
-                          <span className="text-lg mb-1">{passenger.emoji}</span>
-                          <span>{passenger.label}</span>
+                          <span className="text-lg mb-1">{emoji}</span>
+                          <span>{label}</span>
                         </div>
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => handlePassengerChange(passenger.type as any, false)}
-                            disabled={formData.passengers[passenger.type as keyof typeof formData.passengers] <= passenger.min}
-                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center disabled:opacity-50 text-sm font-bold hover:bg-gray-200"
+                            type="button"
+                            onClick={() => handleCountChange(key as 'rooms' | 'adults' | 'children', false)}
+                            disabled={(formData[key as keyof HotelFormData] as number) <= min}
+                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center disabled:opacity-50 text-sm font-bold hover:bg-gray-200 transition-colors"
                           >
                             -
                           </button>
                           <span className="font-bold text-lg min-w-[24px]">
-                            {formData.passengers[passenger.type as keyof typeof formData.passengers]}
+                            {formData[key as keyof HotelFormData] as number}
                           </span>
                           <button
-                            onClick={() => handlePassengerChange(passenger.type as any, true)}
-                            disabled={formData.passengers[passenger.type as keyof typeof formData.passengers] >= 9}
-                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center disabled:opacity-50 text-sm font-bold hover:bg-gray-200"
+                            type="button"
+                            onClick={() => handleCountChange(key as 'rooms' | 'adults' | 'children', true)}
+                            disabled={(formData[key as keyof HotelFormData] as number) >= max}
+                            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center disabled:opacity-50 text-sm font-bold hover:bg-gray-200 transition-colors"
                           >
                             +
                           </button>
@@ -583,29 +483,30 @@ export default function MobileFlightFormUnified({
                   </div>
                 </div>
 
-                {/* Travel Class */}
+                {/* Hotel Category */}
                 <div className={modeStyles.section}>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Classe de Viagem</h3>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Categoria do Hotel</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { value: 'economy', label: 'Econômica', icon: '💺' },
-                      { value: 'premium', label: 'Premium', icon: '🎯' },
-                      { value: 'business', label: 'Executiva', icon: '💼' },
-                      { value: 'first', label: 'Primeira', icon: '👑' }
-                    ].map((cls) => (
+                      { value: 'budget', label: 'Econômico', stars: '⭐⭐', desc: 'Básico e funcional' },
+                      { value: 'standard', label: 'Padrão', stars: '⭐⭐⭐', desc: 'Conforto e qualidade' },
+                      { value: 'premium', label: 'Premium', stars: '⭐⭐⭐⭐', desc: 'Luxo e serviços' },
+                      { value: 'luxury', label: 'Luxo', stars: '⭐⭐⭐⭐⭐', desc: 'Experiência única' }
+                    ].map((category) => (
                       <button
-                        key={cls.value}
-                        onClick={() => setFormData(prev => ({ ...prev, travelClass: cls.value as any }))}
-                        className={`p-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                          formData.travelClass === cls.value
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 bg-white hover:border-blue-300'
+                        key={category.value}
+                        onClick={() => setFormData(prev => ({ ...prev, hotelCategory: category.value as any }))}
+                        className={`p-3 rounded-lg border-2 text-xs font-medium transition-all text-left ${
+                          formData.hotelCategory === category.value
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                       >
-                        <div className="text-center">
-                          <div className="text-lg mb-1">{cls.icon}</div>
-                          <div>{cls.label}</div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold">{category.label}</span>
+                          <span>{category.stars}</span>
                         </div>
+                        <div className="text-xs text-gray-500">{category.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -630,7 +531,7 @@ export default function MobileFlightFormUnified({
                     <button
                       onClick={nextStep}
                       disabled={!canProceedFromStep(currentStep)}
-                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                      className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-700"
                     >
                       Avançar
                       <ChevronRightIcon className="w-4 h-4" />
@@ -734,7 +635,7 @@ export default function MobileFlightFormUnified({
                     <button
                       onClick={nextStep}
                       disabled={!canProceedFromStep(currentStep)}
-                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                      className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-700"
                     >
                       Avançar
                       <ChevronRightIcon className="w-4 h-4" />
@@ -758,13 +659,13 @@ export default function MobileFlightFormUnified({
                 <div className="space-y-4">
                   {/* Budget Selection */}
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Faixa de Orçamento</h3>
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Faixa de Orçamento por Noite</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { value: 'economy', label: 'Econômico', range: 'R$ 500 - 1.500', icon: '💰' },
-                        { value: 'standard', label: 'Padrão', range: 'R$ 1.500 - 3.000', icon: '💳' },
-                        { value: 'premium', label: 'Premium', range: 'R$ 3.000 - 5.000', icon: '💎' },
-                        { value: 'luxury', label: 'Luxo', range: 'R$ 5.000+', icon: '👑' }
+                        { value: 'economy', label: 'Econômico', range: 'R$ 50 - 150', icon: '💰' },
+                        { value: 'standard', label: 'Padrão', range: 'R$ 150 - 300', icon: '💳' },
+                        { value: 'premium', label: 'Premium', range: 'R$ 300 - 500', icon: '💎' },
+                        { value: 'luxury', label: 'Luxo', range: 'R$ 500+', icon: '👑' }
                       ].map((budget) => (
                         <button
                           key={budget.value}
@@ -793,7 +694,7 @@ export default function MobileFlightFormUnified({
                     <textarea
                       value={formData.preferences}
                       onChange={(e) => setFormData(prev => ({ ...prev, preferences: e.target.value }))}
-                      placeholder="Horário preferido, companhia aérea, necessidades especiais..."
+                      placeholder="Localização preferida, tipo de quarto, amenidades especiais..."
                       rows={3}
                       className="w-full px-4 py-3 text-sm rounded-lg border-2 border-gray-200 focus:border-purple-500 resize-none"
                     />
@@ -842,7 +743,7 @@ export default function MobileFlightFormUnified({
                     <button
                       onClick={nextStep}
                       disabled={!canProceedFromStep(currentStep)}
-                      className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 hover:bg-blue-700"
+                      className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-700"
                     >
                       Avançar
                       <ChevronRightIcon className="w-4 h-4" />
@@ -880,65 +781,49 @@ export default function MobileFlightFormUnified({
                   transition={{ duration: 0.5, delay: 0.6 }}
                   className="space-y-4"
                 >
-                  {/* Complete Flight Summary */}
+                  {/* Complete Hotel Summary */}
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                        <PaperAirplaneIcon className="w-5 h-5 text-white" />
+                        <BuildingOffice2Icon className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-green-900">Sua Cotação de Voo</h3>
+                        <h3 className="text-sm font-bold text-green-900">Sua Reserva de Hotel</h3>
                         <p className="text-xs text-green-700">
-                          {formData.origin?.city} ({formData.origin?.iataCode}) → {formData.destination?.city} ({formData.destination?.iataCode})
+                          {formData.destination}
                         </p>
                       </div>
                     </div>
                     
                     <div className="space-y-3">
-                      {/* Trip Type & Dates */}
+                      {/* Hotel Details */}
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="text-center p-2 bg-white/50 rounded-lg">
-                          <div className="font-semibold text-green-800">Tipo de Viagem</div>
+                          <div className="font-semibold text-green-800">Check-in</div>
                           <div className="text-green-600">
-                            {formData.tripType === 'round-trip' ? 'Ida e volta' : 
-                             formData.tripType === 'one-way' ? 'Só ida' : 'Múltiplas cidades'}
+                            {formData.checkinDate && new Date(formData.checkinDate).toLocaleDateString('pt-BR')}
                           </div>
                         </div>
                         <div className="text-center p-2 bg-white/50 rounded-lg">
-                          <div className="font-semibold text-green-800">Classe</div>
-                          <div className="text-green-600 capitalize">{formData.travelClass}</div>
+                          <div className="font-semibold text-green-800">Check-out</div>
+                          <div className="text-green-600">
+                            {formData.checkoutDate && new Date(formData.checkoutDate).toLocaleDateString('pt-BR')}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Dates */}
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="text-center p-2 bg-white/50 rounded-lg">
-                          <div className="font-semibold text-green-800">Partida</div>
-                          <div className="text-green-600">
-                            {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
-                          </div>
-                        </div>
-                        {formData.returnDate && (
-                          <div className="text-center p-2 bg-white/50 rounded-lg">
-                            <div className="font-semibold text-green-800">Retorno</div>
-                            <div className="text-green-600">
-                              {new Date(formData.returnDate).toLocaleDateString('pt-BR')}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Passengers */}
+                      {/* Rooms & Guests */}
                       <div className="bg-white/50 rounded-lg p-3">
-                        <div className="font-semibold text-green-800 mb-2 text-xs">Passageiros</div>
-                        <div className="flex gap-4 text-xs">
-                          <span className="text-green-600">{formData.passengers.adults} Adulto(s)</span>
-                          {formData.passengers.children > 0 && (
-                            <span className="text-green-600">{formData.passengers.children} Criança(s)</span>
+                        <div className="font-semibold text-green-800 mb-2 text-xs">Acomodação</div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-green-600">{formData.rooms} Quarto(s)</span>
+                          <span className="text-green-600">{formData.adults} Adulto(s)</span>
+                          {formData.children > 0 && (
+                            <span className="text-green-600">{formData.children} Criança(s)</span>
                           )}
-                          {formData.passengers.infants > 0 && (
-                            <span className="text-green-600">{formData.passengers.infants} Bebê(s)</span>
-                          )}
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-xs text-green-600 capitalize">Categoria: {formData.hotelCategory}</span>
                         </div>
                       </div>
                     </div>
@@ -952,13 +837,13 @@ export default function MobileFlightFormUnified({
                     className="bg-blue-50 rounded-xl p-4 border border-blue-200"
                   >
                     <div className="text-center space-y-2">
-                      <div className="text-lg">🎯</div>
+                      <div className="text-lg">🏨</div>
                       <h4 className="text-sm font-bold text-blue-900">Nossa Promessa</h4>
                       <div className="space-y-1 text-xs text-blue-700">
                         <p>✅ Resposta garantida em até 2 horas</p>
-                        <p>💎 Atendimento especializado personalizado</p>
-                        <p>💰 Melhores preços do mercado</p>
-                        <p>🛡️ Suporte completo durante sua viagem</p>
+                        <p>🏨 Melhores hotéis e tarifas</p>
+                        <p>💰 Reservas sem taxas extras</p>
+                        <p>🛡️ Suporte durante sua estadia</p>
                       </div>
                     </div>
                   </motion.div>
@@ -983,10 +868,10 @@ export default function MobileFlightFormUnified({
                           <div className="bg-white/50 rounded-lg p-3">
                             <div className="font-semibold text-purple-800 mb-1 text-xs">Faixa de Orçamento</div>
                             <div className="text-purple-700 text-xs capitalize">
-                              {formData.budget === 'economy' && '💰 Econômico (R$ 500 - 1.500)'}
-                              {formData.budget === 'standard' && '💳 Padrão (R$ 1.500 - 3.000)'}
-                              {formData.budget === 'premium' && '💎 Premium (R$ 3.000 - 5.000)'}
-                              {formData.budget === 'luxury' && '👑 Luxo (R$ 5.000+)'}
+                              {formData.budget === 'economy' && '💰 Econômico (R$ 50 - 150 por noite)'}
+                              {formData.budget === 'standard' && '💳 Padrão (R$ 150 - 300 por noite)'}
+                              {formData.budget === 'premium' && '💎 Premium (R$ 300 - 500 por noite)'}
+                              {formData.budget === 'luxury' && '👑 Luxo (R$ 500+ por noite)'}
                             </div>
                           </div>
                         )}
@@ -1041,44 +926,31 @@ export default function MobileFlightFormUnified({
                     <div className="text-xs text-slate-700 space-y-2">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <strong className="text-slate-800">📍 Rota:</strong>
-                          <br />{formData.origin?.city} → {formData.destination?.city}
+                          <strong className="text-slate-800">🏨 Destino:</strong>
+                          <br />{formData.destination}
                         </div>
                         <div>
-                          <strong className="text-slate-800">📅 Datas:</strong>
+                          <strong className="text-slate-800">📅 Período:</strong>
                           <br />
-                          Ida: {formData.departureDate && new Date(formData.departureDate).toLocaleDateString('pt-BR')}
-                          {formData.returnDate && (
-                            <><br />Volta: {new Date(formData.returnDate).toLocaleDateString('pt-BR')}</>
+                          {formData.checkinDate && formData.checkoutDate && (
+                            <>
+                              {new Date(formData.checkinDate).toLocaleDateString('pt-BR')} - {new Date(formData.checkoutDate).toLocaleDateString('pt-BR')}
+                              <br />
+                              ({formData.checkinDate && formData.checkoutDate ? 
+                                Math.ceil((new Date(formData.checkoutDate).getTime() - new Date(formData.checkinDate).getTime()) / (1000 * 3600 * 24)) 
+                                : 0} noite{formData.checkinDate && formData.checkoutDate && 
+                                Math.ceil((new Date(formData.checkoutDate).getTime() - new Date(formData.checkinDate).getTime()) / (1000 * 3600 * 24)) !== 1 ? 's' : ''})
+                            </>
                           )}
                         </div>
                       </div>
                       
                       <div className="pt-2 border-t border-gray-200">
                         <div className="flex justify-between items-center">
-                          <span><strong>👥 Total Passageiros:</strong> {formData.passengers.adults + formData.passengers.children + formData.passengers.infants}</span>
-                          <span><strong>✈️ Classe:</strong> {formData.travelClass}</span>
+                          <span><strong>🏨 Quartos:</strong> {formData.rooms}</span>
+                          <span><strong>👥 Hóspedes:</strong> {formData.adults + formData.children}</span>
                         </div>
                       </div>
-
-                      {stepFlow === 'extended' && (formData.budget || formData.urgente || formData.flexivelDatas) && (
-                        <div className="pt-2 border-t border-gray-200">
-                          <strong className="text-slate-800">🎯 Preferências:</strong>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {formData.budget && (
-                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
-                                {formData.budget}
-                              </span>
-                            )}
-                            {formData.urgente && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Urgente</span>
-                            )}
-                            {formData.flexivelDatas && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Flexível</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
 
                       <div className="pt-2 border-t border-gray-200 text-center">
                         <p className="text-slate-600">
@@ -1108,12 +980,12 @@ export default function MobileFlightFormUnified({
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                           className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Enviando solicitação...
+                        Enviando...
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2">
-                        <PaperAirplaneIcon className="w-5 h-5" />
-                        Enviar Solicitação Final
+                        <BuildingOffice2Icon className="w-5 h-5" />
+                        Solicitar Cotação de Hotel
                       </div>
                     )}
                     
@@ -1122,18 +994,13 @@ export default function MobileFlightFormUnified({
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
                       initial={{ x: '-100%' }}
                       animate={{ x: '100%' }}
-                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                     />
                   </motion.button>
-
-                  {/* Disclaimer */}
-                  <p className="text-xs text-gray-500 text-center mt-4 leading-relaxed">
-                    Ao enviar, você concorda com nossos termos de serviço. 
-                    Sua cotação será processada e você receberá uma resposta detalhada em seu email.
-                  </p>
                 </motion.div>
               </div>
             )}
+            
           </motion.div>
         </AnimatePresence>
       </div>

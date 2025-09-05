@@ -46,6 +46,10 @@ import { cities } from '@/data/cities';
 // Mobile-specific imports
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
 import MobileFlightFormUnified from '@/components/mobile/MobileFlightFormUnified';
+import MobileHotelFormUnified from '@/components/mobile/MobileHotelFormUnified';
+import MobileCarFormUnified from '@/components/mobile/MobileCarFormUnified';
+import MobileTourFormUnified from '@/components/mobile/MobileTourFormUnified';
+import MobileInsuranceFormUnified from '@/components/mobile/MobileInsuranceFormUnified';
 // Enterprise hydration-safe hooks
 import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
 // CSS Module for cleaner styling
@@ -202,6 +206,10 @@ export default function Home() {
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [exitIntentEmail, setExitIntentEmail] = useState('');
   const [showMobileFlightForm, setShowMobileFlightForm] = useState(false);
+  const [showMobileHotelForm, setShowMobileHotelForm] = useState(false);
+  const [showMobileCarForm, setShowMobileCarForm] = useState(false);
+  const [showMobileTourForm, setShowMobileTourForm] = useState(false);
+  const [showMobileInsuranceForm, setShowMobileInsuranceForm] = useState(false);
   // Removed mobile-specific state to fix hook rule violations
 
   // Social proof notifications data
@@ -1029,7 +1037,9 @@ export default function Home() {
         <div className={styles.mobileHeader}>
           <div className={styles.mobileHeaderContent}>
             <div className={styles.mobileLogoContainer}>
-              <Logo variant="logo-only" size="sm" />
+              <Link href="/" className="block">
+                <Logo variant="logo-only" size="sm" />
+              </Link>
             </div>
             <button className={styles.mobileHamburgerButton}>
               <Bars3Icon className={styles.mobileHamburgerIcon} />
@@ -1085,12 +1095,23 @@ export default function Home() {
 
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
-              onClick={() => {
-                const formSection = document.querySelector('form');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🏨 Hotéis button clicked - showMobileHotelForm:', showMobileHotelForm);
+                setShowMobileHotelForm(true);
+                
+                // Analytics tracking
+                if (typeof window !== 'undefined' && window.gtag) {
+                  window.gtag('event', 'mobile_hotel_form_open', {
+                    event_category: 'engagement',
+                    event_label: 'hoteis',
+                    value: 1
+                  });
                 }
               }}
+              style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>🏨</div>
               <span className={styles.mobileServiceLabel}>Hotéis</span>
@@ -1100,12 +1121,23 @@ export default function Home() {
             {/* Row 2: Carros and Tours */}
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
-              onClick={() => {
-                const formSection = document.querySelector('form');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🚗 Carros button clicked - showMobileCarForm:', showMobileCarForm);
+                setShowMobileCarForm(true);
+                
+                // Analytics tracking
+                if (typeof window !== 'undefined' && window.gtag) {
+                  window.gtag('event', 'mobile_car_form_open', {
+                    event_category: 'engagement',
+                    event_label: 'carros',
+                    value: 1
+                  });
                 }
               }}
+              style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>🚗</div>
               <span className={styles.mobileServiceLabel}>Carros</span>
@@ -1114,12 +1146,23 @@ export default function Home() {
 
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
-              onClick={() => {
-                const formSection = document.querySelector('form');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🎯 Tours button clicked - showMobileTourForm:', showMobileTourForm);
+                setShowMobileTourForm(true);
+                
+                // Analytics tracking
+                if (typeof window !== 'undefined' && window.gtag) {
+                  window.gtag('event', 'mobile_tour_form_open', {
+                    event_category: 'engagement',
+                    event_label: 'tours',
+                    value: 1
+                  });
                 }
               }}
+              style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>🎯</div>
               <span className={styles.mobileServiceLabel}>Tours</span>
@@ -1129,12 +1172,23 @@ export default function Home() {
             {/* Row 3: Seguro - FULL WIDTH */}
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton} ${styles.serviceButtonFullWidth}`}
-              onClick={() => {
-                const formSection = document.querySelector('form');
-                if (formSection) {
-                  formSection.scrollIntoView({ behavior: 'smooth' });
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🛡️ Seguro button clicked - showMobileInsuranceForm:', showMobileInsuranceForm);
+                setShowMobileInsuranceForm(true);
+                
+                // Analytics tracking
+                if (typeof window !== 'undefined' && window.gtag) {
+                  window.gtag('event', 'mobile_insurance_form_open', {
+                    event_category: 'engagement',
+                    event_label: 'seguro',
+                    value: 1
+                  });
                 }
               }}
+              style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>🛡️</div>
               <div className={styles.mobileServiceContent}>
@@ -1185,7 +1239,19 @@ export default function Home() {
       {/* Fixed Bottom Navigation - Overlay (outside document flow) */}
       <div className={styles.mobileBottomNav}>
         <div className={styles.mobileBottomNavContent}>
-          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}>
+          <button 
+            className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
+            onClick={() => {
+              // Close all mobile forms and navigate to home
+              setShowMobileFlightForm(false);
+              setShowMobileHotelForm(false);
+              setShowMobileCarForm(false);
+              setShowMobileTourForm(false);
+              setShowMobileInsuranceForm(false);
+              // Smooth scroll to top for better UX
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
             <HomeIcon className={styles.mobileNavTabIcon} />
             <span className={styles.mobileNavTabLabel}>Home</span>
           </button>
@@ -1196,13 +1262,47 @@ export default function Home() {
             <ChatIcon className={styles.mobileNavTabIcon} />
             <span className={styles.mobileNavTabLabel}>Chat</span>
           </button>
-          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
-            <HeartIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Favoritos</span>
+          <button 
+            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
+            onClick={() => {
+              // Close all other forms and open Flight form
+              setShowMobileHotelForm(false);
+              setShowMobileCarForm(false);
+              setShowMobileTourForm(false);
+              setShowMobileInsuranceForm(false);
+              setShowMobileFlightForm(true);
+            }}
+          >
+            <FlightIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Voos</span>
           </button>
-          <button className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}>
-            <UserIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Perfil</span>
+          <button 
+            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
+            onClick={() => {
+              // Close all other forms and open Hotel form
+              setShowMobileFlightForm(false);
+              setShowMobileCarForm(false);
+              setShowMobileTourForm(false);
+              setShowMobileInsuranceForm(false);
+              setShowMobileHotelForm(true);
+            }}
+          >
+            <HotelIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Hotel</span>
+          </button>
+          <button 
+            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
+            onClick={() => {
+              // Close all other forms and open Car form
+              setShowMobileFlightForm(false);
+              setShowMobileHotelForm(false);
+              setShowMobileTourForm(false);
+              setShowMobileInsuranceForm(false);
+              setShowMobileCarForm(true);
+            }}
+          >
+            <CarIcon className={styles.mobileNavTabIcon} />
+            <span className={styles.mobileNavTabLabel}>Car</span>
           </button>
         </div>
       </div>
@@ -3730,12 +3830,18 @@ export default function Home() {
 
         {/* Mobile Flight Form - Full Screen Overlay */}
         {showMobileFlightForm && (
-          <div className="fixed inset-0 z-50 bg-white flex flex-col">
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col" style={{ height: '100vh', overscrollBehavior: 'contain' }}>
             {/* Platform Header - Consistent across all steps */}
-            <div className={styles.mobileHeader}>
+            <div className={styles.mobileHeader} style={{ flexShrink: 0 }}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Logo variant="logo-only" size="sm" />
+                  <Link 
+                    href="/" 
+                    className="block"
+                    onClick={() => setShowMobileFlightForm(false)}
+                  >
+                    <Logo variant="logo-only" size="sm" />
+                  </Link>
                 </div>
                 <button 
                   className={styles.mobileHamburgerButton}
@@ -3746,8 +3852,8 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Flight Form Content - Full viewport with navigation */}
-            <div className="flex-1 flex flex-col h-full min-h-0">
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto pt-4 px-2" style={{ WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'contain' }}>
               <MobileFlightFormUnified
                 mode="premium"
                 stepFlow="extended"
@@ -3761,7 +3867,179 @@ export default function Home() {
                   // Show success message or redirect
                   alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
                 }}
-                className="h-full"
+                className=""
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Hotel Form - Full Screen Overlay */}
+        {showMobileHotelForm && (
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+            {/* Platform Header - Consistent across all steps */}
+            <div className={styles.mobileHeader}>
+              <div className={styles.mobileHeaderContent}>
+                <div className={styles.mobileLogoContainer}>
+                  <Link 
+                    href="/" 
+                    className="block"
+                    onClick={() => setShowMobileHotelForm(false)}
+                  >
+                    <Logo variant="logo-only" size="sm" />
+                  </Link>
+                </div>
+                <button 
+                  className={styles.mobileHamburgerButton}
+                  onClick={() => setShowMobileHotelForm(false)}
+                >
+                  <Bars3Icon className={styles.mobileHamburgerIcon} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto pt-4 px-2">
+              <MobileHotelFormUnified
+                mode="premium"
+                onClose={() => setShowMobileHotelForm(false)}
+                onSubmit={(data) => {
+                  console.log('✅ Hotel form submitted:', data);
+                  // Handle form submission - could integrate with existing API
+                  setShowMobileHotelForm(false);
+                  
+                  // Show success message or redirect
+                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                }}
+                className=""
+                />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Car Form - Full Screen Overlay */}
+        {showMobileCarForm && (
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+            {/* Platform Header - Consistent across all steps */}
+            <div className={styles.mobileHeader}>
+              <div className={styles.mobileHeaderContent}>
+                <div className={styles.mobileLogoContainer}>
+                  <Link 
+                    href="/" 
+                    className="block"
+                    onClick={() => setShowMobileCarForm(false)}
+                  >
+                    <Logo variant="logo-only" size="sm" />
+                  </Link>
+                </div>
+                <button 
+                  className={styles.mobileHamburgerButton}
+                  onClick={() => setShowMobileCarForm(false)}
+                >
+                  <Bars3Icon className={styles.mobileHamburgerIcon} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto pt-4 px-2">
+              <MobileCarFormUnified
+                mode="premium"
+                onClose={() => setShowMobileCarForm(false)}
+                onSubmit={(data) => {
+                  console.log('✅ Car form submitted:', data);
+                  // Handle form submission - could integrate with existing API
+                  setShowMobileCarForm(false);
+                  
+                  // Show success message or redirect
+                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                }}
+                className=""
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Tour Form - Full Screen Overlay */}
+        {showMobileTourForm && (
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+            {/* Platform Header - Consistent across all steps */}
+            <div className={styles.mobileHeader}>
+              <div className={styles.mobileHeaderContent}>
+                <div className={styles.mobileLogoContainer}>
+                  <Link 
+                    href="/" 
+                    className="block"
+                    onClick={() => setShowMobileTourForm(false)}
+                  >
+                    <Logo variant="logo-only" size="sm" />
+                  </Link>
+                </div>
+                <button 
+                  className={styles.mobileHamburgerButton}
+                  onClick={() => setShowMobileTourForm(false)}
+                >
+                  <Bars3Icon className={styles.mobileHamburgerIcon} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto pt-4 px-2">
+              <MobileTourFormUnified
+                mode="premium"
+                onClose={() => setShowMobileTourForm(false)}
+                onSubmit={(data) => {
+                  console.log('✅ Tour form submitted:', data);
+                  // Handle form submission - could integrate with existing API
+                  setShowMobileTourForm(false);
+                  
+                  // Show success message or redirect
+                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                }}
+                className=""
+                />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Insurance Form - Full Screen Overlay */}
+        {showMobileInsuranceForm && (
+          <div className="fixed inset-0 z-[100] bg-white flex flex-col">
+            {/* Platform Header - Consistent across all steps */}
+            <div className={styles.mobileHeader}>
+              <div className={styles.mobileHeaderContent}>
+                <div className={styles.mobileLogoContainer}>
+                  <Link 
+                    href="/" 
+                    className="block"
+                    onClick={() => setShowMobileInsuranceForm(false)}
+                  >
+                    <Logo variant="logo-only" size="sm" />
+                  </Link>
+                </div>
+                <button 
+                  className={styles.mobileHamburgerButton}
+                  onClick={() => setShowMobileInsuranceForm(false)}
+                >
+                  <Bars3Icon className={styles.mobileHamburgerIcon} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Form Content Area */}
+            <div className="flex-1 overflow-y-auto pt-4 px-2">
+              <MobileInsuranceFormUnified
+                mode="premium"
+                onClose={() => setShowMobileInsuranceForm(false)}
+                onSubmit={(data) => {
+                  console.log('✅ Insurance form submitted:', data);
+                  // Handle form submission - could integrate with existing API
+                  setShowMobileInsuranceForm(false);
+                  
+                  // Show success message or redirect
+                  alert('Solicitação enviada com sucesso! Entraremos em contato em breve.');
+                }}
+                className=""
               />
             </div>
           </div>
@@ -3771,6 +4049,6 @@ export default function Home() {
         <div className="desktop-footer-visible">
           <LiveSiteFooter />
         </div>
-    </>
-  );
+      </>
+    );
 }
