@@ -26,7 +26,7 @@ import {
   Bars3Icon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInputSimple';
+import PhoneInput from '@/components/PhoneInput';
 import MobileFlightFormUnified from './MobileFlightFormUnified';
 import MobileHotelForm from './MobileHotelForm';
 import MobileCarForm from './MobileCarForm';

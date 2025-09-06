@@ -1,0 +1,291 @@
+/* ULTRATHINK: Premium City Autocomplete Styles */
+
+/* Component Wrapper */
+.city-autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+/* Mobile Form Integration */
+@media (max-width: 768px) {
+  .city-autocomplete-wrapper {
+    z-index: 10;
+    isolation: isolate;
+  }
+}
+
+/* Label Styling */
+.city-autocomplete-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.city-autocomplete-label-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Input Field */
+.city-autocomplete-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  background: white;
+  outline: none;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.city-autocomplete-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.city-autocomplete-input.error {
+  border-color: #ef4444;
+}
+
+/* Error Message */
+.city-autocomplete-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Desktop Dropdown */
+.city-dropdown-desktop {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  z-index: 50000;
+  max-height: 280px;
+  overflow-y: auto;
+  animation: slideDown 0.3s ease-out;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Mobile Dropdown - Expands Downward with Overlap */
+.city-dropdown-mobile {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #3b82f6;
+  border-radius: 16px;
+  box-shadow: 
+    0 25px 75px rgba(0, 0, 0, 0.25),
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 99999;
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: slideDownMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.city-dropdown-mobile::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile Backdrop */
+.city-dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 99998;
+  animation: fadeIn 0.3s ease;
+}
+
+/* City Item */
+.city-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.city-item:last-child {
+  border-bottom: none;
+}
+
+.city-item:hover {
+  background: #f3f4f6;
+}
+
+.city-item.selected {
+  background: #f3f4f6;
+}
+
+/* Mobile City Item - Enhanced Touch Targets */
+.city-item-mobile {
+  padding: 18px 20px;
+  min-height: 68px;
+  gap: 16px;
+  border-radius: 12px;
+  margin: 2px 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.city-item-mobile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.city-item-mobile:hover::before,
+.city-item-mobile:active::before {
+  opacity: 1;
+}
+
+.city-item-mobile:active {
+  transform: scale(0.98);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.city-item-mobile:focus {
+  background: rgba(59, 130, 246, 0.08);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.city-item-mobile:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* City Flag */
+.city-flag {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.city-flag-mobile {
+  font-size: 24px;
+}
+
+/* City Info */
+.city-info {
+  flex: 1;
+}
+
+.city-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.city-name-mobile {
+  font-size: 16px;
+}
+
+.city-details {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.city-details-mobile {
+  font-size: 13px;
+}
+
+/* Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownMobile {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Touch Optimizations */
+@media (max-width: 768px) {
+  .city-autocomplete-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    -webkit-appearance: none;
+  }
+  
+  .city-dropdown-mobile {
+    margin-top: 8px;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .city-autocomplete-input {
+    border-width: 3px;
+  }
+  
+  .city-dropdown-desktop,
+  .city-dropdown-mobile {
+    border-width: 3px;
+  }
+}
+
+/* Dark Mode Support - Disabled to ensure consistent light theme */
+/* Dark mode styles removed to prevent automatic dark mode activation */

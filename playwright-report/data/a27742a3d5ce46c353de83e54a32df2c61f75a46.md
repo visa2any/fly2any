@@ -1,0 +1,74 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - link "Fly2Any" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img "Fly2Any" [ref=e10] [cursor=pointer]
+        - button [ref=e11] [cursor=pointer]:
+          - img [ref=e12] [cursor=pointer]
+      - generic [ref=e14]:
+        - heading "Onde vamos hoje?" [level=1] [ref=e15]
+        - generic [ref=e16]:
+          - generic [ref=e19]: Promoções ativas
+          - generic [ref=e21]: ✨ Até 10% OFF
+      - generic [ref=e23]:
+        - button "✈️ Voos Passagens aéreas Popular" [ref=e24] [cursor=pointer]:
+          - generic: ✈️
+          - generic: Voos
+          - generic: Passagens aéreas
+          - generic: Popular
+        - button "🏨 Hotéis Hospedagem" [ref=e25] [cursor=pointer]:
+          - generic: 🏨
+          - generic: Hotéis
+          - generic: Hospedagem
+        - button "🚗 Carros Aluguel" [ref=e26] [cursor=pointer]:
+          - generic: 🚗
+          - generic: Carros
+          - generic: Aluguel
+        - button "🎯 Tours Experiências" [ref=e27] [cursor=pointer]:
+          - generic: 🎯
+          - generic: Tours
+          - generic: Experiências
+        - button "🛡️ Seguro Viagem Proteção completa" [ref=e28] [cursor=pointer]:
+          - generic: 🛡️
+          - generic [ref=e29] [cursor=pointer]:
+            - generic: Seguro Viagem
+            - generic: Proteção completa
+      - generic [ref=e32]:
+        - generic [ref=e33]: ⭐15K+
+        - generic [ref=e34]: ✓4.9
+        - generic [ref=e35]: ✨ Gratuito
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: 🔒
+          - generic [ref=e40]: 100% Seguro
+        - generic [ref=e41]:
+          - generic [ref=e42]: ⚡
+          - generic [ref=e43]: 2h Resposta
+        - generic [ref=e44]:
+          - generic [ref=e45]: ✨
+          - generic [ref=e46]: Cotação Grátis
+    - generic [ref=e48]:
+      - button "Home" [ref=e49] [cursor=pointer]:
+        - img [ref=e50] [cursor=pointer]
+        - generic [ref=e52] [cursor=pointer]: Home
+      - button "Chat" [ref=e53] [cursor=pointer]:
+        - img [ref=e54] [cursor=pointer]
+        - generic [ref=e56] [cursor=pointer]: Chat
+      - button "Voos" [ref=e57] [cursor=pointer]:
+        - img [ref=e58] [cursor=pointer]
+        - generic [ref=e60] [cursor=pointer]: Voos
+      - button "Hotel" [ref=e61] [cursor=pointer]:
+        - img [ref=e62] [cursor=pointer]
+        - generic [ref=e64] [cursor=pointer]: Hotel
+      - button "Car" [ref=e65] [cursor=pointer]:
+        - img [ref=e66] [cursor=pointer]
+        - generic [ref=e68] [cursor=pointer]: Car
+  - button "Open Next.js Dev Tools" [ref=e74] [cursor=pointer]:
+    - img [ref=e75] [cursor=pointer]
+  - alert [ref=e78]
+```

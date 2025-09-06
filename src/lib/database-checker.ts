@@ -189,13 +189,11 @@ Reinicie após corrigir: npm run dev
         )
       `;
       
-      // Criar índices
-      await sql`
-        CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
-        CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
-        CREATE INDEX IF NOT EXISTS idx_leads_source ON leads(source);
-        CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at);
-      `;
+      // Criar índices (separadamente para Neon PostgreSQL)
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_source ON leads(source)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at)`;
       
       console.log('[DB-CHECKER] ✅ Tabelas inicializadas!');
       return true;

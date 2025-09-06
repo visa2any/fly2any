@@ -35,24 +35,58 @@ const nextConfig: NextConfig = {
     dirs: ['src'],
   },
   
-  // Enterprise-grade webpack configuration with enhanced stability
-  webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
+  // 🚀 ULTRATHINK: Enterprise-grade webpack configuration with React Server Components optimization
+  webpack: (config: any, { dev, isServer, buildId }: { dev: boolean; isServer: boolean; buildId: string }) => {
     const path = require('path');
     
-    // Enhanced error handling and build stability
+    // ULTRATHINK: Advanced error handling and build stability for React 19
     config.stats = {
       errorDetails: true,
       errors: true,
-      warnings: false,
+      warnings: dev,
+      chunks: false,
+      modules: false,
+      chunkModules: false,
+      colors: true,
+      reasons: dev,
+      usedExports: true,
+      providedExports: true,
+      optimizationBailout: dev,
+      chunkOrigins: false,
     };
     
-    // Prevent build cache corruption
-    config.cache = {
-      type: 'filesystem',
-      allowCollectingMemory: true,
-      buildDependencies: {
-        config: [__filename],
-      },
+    // ULTRATHINK: Advanced cache configuration with React Server Components support
+    if (dev) {
+      config.cache = {
+        type: 'memory',
+        maxGenerations: 1,
+        cacheUnaffected: true,
+      };
+    } else {
+      config.cache = {
+        type: 'filesystem',
+        allowCollectingMemory: true,
+        maxMemoryGenerations: 1,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        version: `fly2any-v2-${buildId}`,
+        cacheDirectory: path.resolve('.next/cache/webpack'),
+        buildDependencies: {
+          config: [__filename],
+          tsconfig: [path.resolve('./tsconfig.json')],
+        },
+        hashAlgorithm: 'xxhash64',
+        store: 'pack',
+        compression: 'gzip',
+      };
+    }
+    
+    // ULTRATHINK: Enhanced React Server Components and dynamic import handling
+    config.experiments = {
+      ...config.experiments,
+      layers: true,
+      cacheUnaffected: dev, // Only enable in development for compatibility with usedExports
+      futureDefaults: false,
+      topLevelAwait: true,
     };
     
     // React consistency aliases - temporarily disabled for build fix
@@ -132,16 +166,136 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // Module resolution
-    config.resolve.extensions = ['.tsx', '.ts', '.jsx', '.js', '.json'];
-    config.resolve.modules = [
-      path.resolve(__dirname, 'node_modules'),
-      'node_modules'
-    ];
+    // ULTRATHINK: Revolutionary module resolution with React Server Components support
+    config.resolve = {
+      ...config.resolve,
+      extensions: ['.tsx', '.ts', '.jsx', '.js', '.json', '.mjs', '.wasm'],
+      modules: [
+        path.resolve(__dirname, 'src'),
+        path.resolve(__dirname, 'node_modules'),
+        'node_modules'
+      ],
+      preferRelative: true,
+      symlinks: false, // Disable symlinks for better compatibility
+      mainFields: isServer ? ['main', 'module'] : ['browser', 'module', 'main'],
+      conditionNames: isServer ? ['node', 'import', 'require'] : ['browser', 'module', 'import', 'require'],
+      // ULTRATHINK: Advanced alias resolution for React Server Components
+      alias: {
+        ...config.resolve.alias,
+        '@': path.resolve(__dirname, 'src'),
+        '~': path.resolve(__dirname),
+        // Let Next.js handle React Server Components resolution naturally
+      },
+    };
 
-    // Server-side externals
+    // ULTRATHINK: Advanced chunk loading configuration for React Server Components
+    if (!isServer) {
+      // Enhanced chunk loading strategies for browser with RSC compatibility
+      config.output = {
+        ...config.output,
+        chunkLoadingGlobal: '__webpack_chunks__',
+        chunkFormat: 'array-push',
+        chunkLoading: 'jsonp',
+        crossOriginLoading: false,
+        globalObject: 'globalThis',
+        hashFunction: dev ? 'xxhash64' : 'deterministic',
+        pathinfo: dev,
+        // ULTRATHINK: Enhanced chunk loading for React Server Components
+        chunkLoadTimeout: 120000,
+        enabledChunkLoadingTypes: ['jsonp', 'import-scripts'],
+      };
+      
+      // ULTRATHINK: Advanced optimization for dynamic imports and React Server Components
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: dev ? 'named' : 'deterministic',
+        chunkIds: dev ? 'named' : 'deterministic',
+        mangleWasmImports: true,
+        removeAvailableModules: !dev,
+        removeEmptyChunks: true,
+        mergeDuplicateChunks: true,
+        flagIncludedChunks: !dev,
+        providedExports: true,
+        usedExports: !dev, // Disable in dev mode when using cacheUnaffected
+        sideEffects: false,
+        innerGraph: true,
+        realContentHash: !dev,
+        // Enhanced runtime chunk configuration
+        runtimeChunk: dev ? false : {
+          name: 'runtime'
+        },
+      };
+    }
+
+    // ULTRATHINK: Server-side externals with React Server Components optimization
     if (isServer) {
-      config.externals = [...(config.externals || [])];
+      const externals = [...(config.externals || [])];
+      
+      // Enhanced externals configuration for React Server Components
+      config.externals = [
+        ...externals,
+        // Optimize React Server Components dependencies
+        {
+          '@prisma/client': 'commonjs @prisma/client',
+          'critters': 'commonjs critters',
+        }
+      ];
+      
+      // ULTRATHINK: Enhanced React Server Components configuration
+      config.resolve.conditionNames = ['react-server', 'node', 'import', 'require'];
+      
+      // Server-specific optimizations
+      config.optimization = {
+        ...config.optimization,
+        minimize: false, // Don't minimize server code
+        splitChunks: false, // No chunk splitting on server
+        concatenateModules: false,
+      };
+    }
+
+    // ULTRATHINK: Enhanced plugin configuration for React Server Components
+    const { webpack } = require('next/dist/compiled/webpack/webpack');
+    
+    config.plugins.push(
+      // Improved error handling for dynamic imports
+      new webpack.DefinePlugin({
+        __REACT_SERVER_COMPONENTS__: JSON.stringify(!isServer),
+        __WEBPACK_BUILD_ID__: JSON.stringify(buildId),
+        __WEBPACK_CHUNK_LOAD_TIMEOUT__: JSON.stringify(120000),
+      }),
+      
+      // Enhanced module federation for better chunk loading
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      })
+    );
+
+    // ULTRATHINK: Advanced React Server Components error handling
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.optimize.LimitChunkCountPlugin({
+          maxChunks: dev ? 1000 : 50, // Prevent chunk fragmentation
+        })
+      );
+      
+      // Enhanced chunk loading error handling
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'react-server-dom-webpack/client': false,
+      };
+    }
+
+    // ULTRATHINK: Advanced development-specific optimizations
+    if (dev) {
+      // Enhanced HMR and error overlay configuration (let Next.js handle devtool)
+      config.optimization.removeAvailableModules = false;
+      config.optimization.removeEmptyChunks = false;
+      config.optimization.splitChunks = false;
+      
+      // Better error reporting for dynamic imports
+      config.stats.errorStack = true;
+      config.stats.moduleTrace = true;
     }
 
     return config;
@@ -236,10 +390,9 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Transpile packages for ESM compatibility
+  // ULTRATHINK: Enhanced transpile packages for ESM compatibility
   transpilePackages: [
     '@headlessui/react',
-    '@aws-sdk/client-ses',
     '@radix-ui/react-avatar',
     '@radix-ui/react-checkbox',
     '@radix-ui/react-dialog',
@@ -250,16 +403,58 @@ const nextConfig: NextConfig = {
     '@radix-ui/react-slot',
     '@radix-ui/react-switch',
     '@radix-ui/react-tabs',
-    '@radix-ui/react-tooltip'
+    '@radix-ui/react-tooltip',
+    'framer-motion'
   ],
 
-  // Server external packages (Next.js 15+ format)
-  serverExternalPackages: ['@prisma/client'],
+  // ULTRATHINK: Advanced server external packages (Next.js 15+ format)
+  serverExternalPackages: [
+    '@prisma/client',
+    '@aws-sdk/client-ses',
+    'bcryptjs',
+    'nodemailer'
+  ],
   
-  // Experimental features optimized for build stability
+  // ULTRATHINK: Advanced experimental features for React Server Components and Next.js 15
   experimental: {
-    // Optimize bundle loading
-    optimizePackageImports: ['@headlessui/react', '@heroicons/react'],
+    // Enhanced bundle loading optimization
+    optimizePackageImports: [
+      '@headlessui/react',
+      '@heroicons/react', 
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+      'clsx',
+      'date-fns'
+    ],
+    
+    // ULTRATHINK: Valid Next.js 15 experimental features
+    optimizeCss: true,
+    esmExternals: true,
+    webpackBuildWorker: true,
+    
+    // Enhanced React features (disabled until stable)
+    reactCompiler: false,
+    ppr: false, // Partial Prerendering
+    
+    // ULTRATHINK: Advanced memory and performance management
+    memoryBasedWorkersCount: true,
+    workerThreads: true,
+    
+    // Enhanced development and build performance
+    parallelServerBuildTraces: true,
+    parallelServerCompiles: true,
+    
+    // ULTRATHINK: Advanced CPU utilization
+    cpus: Math.max(1, (require('os').cpus()?.length ?? 1) - 1),
   },
   
   // Enhanced build output configuration

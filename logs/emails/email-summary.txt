@@ -78,3 +78,220 @@ File: 2025-09-04T17-22-16-892Z-vilmar-at-teste.com.html
 ================================================================================
 No text content
 
+
+================================================================================
+Date: 2025-09-05T05:08:59.676Z
+To: info@fly2any.com
+Subject: 🚨 Novo Lead - Jo�o Test Silva - S�o Paulo, Brasil → Paris, Fran�a
+File: 2025-09-05T05-08-59-673Z-info-at-fly2any.com.html
+================================================================================
+
+NOVO LEAD RECEBIDO!
+
+INFORMAÇÕES DO CLIENTE:
+Nome: Jo�o Test Silva
+Email: joao.test@example.com
+WhatsApp: 11999887766
+Telefone: Não informado
+
+DETALHES DA VIAGEM:
+Origem: S�o Paulo, Brasil
+Destino: Paris, Fran�a
+Data Ida: 14/12/2024
+Data Volta: 19/12/2024
+Serviços: voos
+
+
+
+Lead ID: lead_1757048936982_9k7eilzdg
+Recebido em: 05/09/2025, 02:08:57
+
+Acesse o painel admin: https://fly2any.com/admin
+
+
+
+================================================================================
+Date: 2025-09-05T05:09:00.253Z
+To: joao.test@example.com
+Subject: ✅ Recebemos seu pedido de orçamento - Fly2Any
+File: 2025-09-05T05-09-00-251Z-joao.test-at-example.com.html
+================================================================================
+No text content
+
+
+================================================================================
+Date: 2025-09-05T15:55:25.484Z
+To: info@fly2any.com
+Subject: 🚨 Novo Lead - Eu Eu - A definir → A definir
+File: 2025-09-05T15-55-25-480Z-info-at-fly2any.com.html
+================================================================================
+
+🎯 NOVO LEAD DE ALTA PRIORIDADE!
+==================================================
+
+👤 INFORMAÇÕES DO CLIENTE:
+Nome: Eu Eu
+Email: eu@eu.com
+WhatsApp: Não informado
+Telefone: 111111111111
+Fonte: mobile_car_form_unified_premium
+
+✈️ DETALHES DA VIAGEM:
+Origem: A definir
+Destino: A definir
+Tipo: ida-volta
+Data Partida: Não informado
+Data Retorno: Não informado
+Serviços: voos
+
+👥 PASSAGEIROS:
+Total: 1
+Adultos: 1
+Crianças: 0
+Bebês: 0
+
+🎯 PREFERÊNCIAS:
+Classe: economica
+
+
+
+⚡ AÇÃO URGENTE: Entre em contato nas próximas 2 horas!
+
+Painel Admin: https://fly2any.com/admin/leads/modern
+Email Cliente: mailto:eu@eu.com
+
+Lead ID: lead_1757087721446_knkmxbywo
+Recebido: 05/09/2025, 12:55:22
+
+© 2025 Fly2Any - Sistema Inteligente de Leads
+
+
+
+================================================================================
+Date: 2025-09-05T15:55:25.988Z
+To: eu@eu.com
+Subject: ✅ Recebemos seu pedido de orçamento - Fly2Any
+File: 2025-09-05T15-55-25-983Z-eu-at-eu.com.html
+================================================================================
+No text content
+
+
+================================================================================
+Date: 2025-09-05T18:38:39.736Z
+To: info@fly2any.com
+Subject: 🚨 Novo Lead - Teste Novo - A definir → A definir
+File: 2025-09-05T18-38-39-732Z-info-at-fly2any.com.html
+================================================================================
+
+🎯 NOVO LEAD DE ALTA PRIORIDADE!
+==================================================
+
+👤 INFORMAÇÕES DO CLIENTE:
+Nome: Teste Novo
+Email: eu@teste.com
+WhatsApp: Não informado
+Telefone: 13154065717
+Fonte: mobile_hotel_form_unified_premium
+
+✈️ DETALHES DA VIAGEM:
+Origem: A definir
+Destino: A definir
+Tipo: ida-volta
+Data Partida: Não informado
+Data Retorno: Não informado
+Serviços: voos
+
+👥 PASSAGEIROS:
+Total: 1
+Adultos: 1
+Crianças: 0
+Bebês: 0
+
+🎯 PREFERÊNCIAS:
+Classe: economica
+
+
+📝 OBSERVAÇÕES:
+teste
+
+
+⚡ AÇÃO URGENTE: Entre em contato nas próximas 2 horas!
+
+Painel Admin: https://fly2any.com/admin/leads/modern
+Email Cliente: mailto:eu@teste.com
+
+Lead ID: lead_1757097516393_yymi4nhr7
+Recebido: 05/09/2025, 15:38:37
+
+© 2025 Fly2Any - Sistema Inteligente de Leads
+
+
+
+================================================================================
+Date: 2025-09-05T18:38:40.372Z
+To: eu@teste.com
+Subject: ✅ Recebemos seu pedido de orçamento - Fly2Any
+File: 2025-09-05T18-38-40-369Z-eu-at-teste.com.html
+================================================================================
+No text content
+
+
+================================================================================
+Date: 2025-09-05T19:45:27.376Z
+To: info@fly2any.com
+Subject: 🚨 Novo Lead - Vilmar Figueiredo - A definir → A definir
+File: 2025-09-05T19-45-27-370Z-info-at-fly2any.com.html
+================================================================================
+
+🎯 NOVO LEAD DE ALTA PRIORIDADE!
+==================================================
+
+👤 INFORMAÇÕES DO CLIENTE:
+Nome: Vilmar Figueiredo
+Email: eu@gmail.com
+WhatsApp: Não informado
+Telefone: 13154061717
+Fonte: mobile_hotel_form_unified_premium
+
+✈️ DETALHES DA VIAGEM:
+Origem: A definir
+Destino: A definir
+Tipo: ida-volta
+Data Partida: Não informado
+Data Retorno: Não informado
+Serviços: voos
+
+👥 PASSAGEIROS:
+Total: 1
+Adultos: 1
+Crianças: 0
+Bebês: 0
+
+🎯 PREFERÊNCIAS:
+Classe: economica
+
+
+📝 OBSERVAÇÕES:
+teste
+
+
+⚡ AÇÃO URGENTE: Entre em contato nas próximas 2 horas!
+
+Painel Admin: https://fly2any.com/admin/leads/modern
+Email Cliente: mailto:eu@gmail.com
+
+Lead ID: lead_1757101524213_bm2oxkj3k
+Recebido: 05/09/2025, 16:45:25
+
+© 2025 Fly2Any - Sistema Inteligente de Leads
+
+
+
+================================================================================
+Date: 2025-09-05T19:45:27.907Z
+To: eu@gmail.com
+Subject: ✅ Recebemos seu pedido de orçamento - Fly2Any
+File: 2025-09-05T19-45-27-903Z-eu-at-gmail.com.html
+================================================================================
+No text content
+

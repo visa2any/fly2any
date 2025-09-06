@@ -1,0 +1,814 @@
+{
+  "viewport": {
+    "width": 375,
+    "height": 667
+  },
+  "scroll": {
+    "x": 0,
+    "y": 0
+  },
+  "elements": [
+    {
+      "type": "button",
+      "index": 0,
+      "text": "Quero!",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 1,
+      "text": "Não, obrigado",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 2,
+      "text": "✕",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 3,
+      "text": "",
+      "classes": "page_mobileHamburgerButton__6ZLAJ",
+      "id": "",
+      "rect": {
+        "x": 315,
+        "y": 4.1875,
+        "width": 44,
+        "height": 44
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 4,
+      "text": "✈️VoosPassagens aéreasPopular",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 169.40625,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 5,
+      "text": "🏨HotéisHospedagem",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 193.5,
+        "y": 169.40625,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 6,
+      "text": "🚗CarrosAluguel",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 267.234375,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 7,
+      "text": "🎯ToursExperiências",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 193.5,
+        "y": 267.234375,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 8,
+      "text": "🛡️Seguro ViagemProteção completa",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W page_serviceButtonFullWidth__M1sR3",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 365.0625,
+        "width": 340,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 9,
+      "text": "Home",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabActive__n8VJz",
+      "id": "",
+      "rect": {
+        "x": 16,
+        "y": 610.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "button",
+      "index": 10,
+      "text": "Chat",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabInactive__c1Ni9",
+      "id": "",
+      "rect": {
+        "x": 84.59375,
+        "y": 612.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "button",
+      "index": 11,
+      "text": "Voos",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabInactive__c1Ni9",
+      "id": "",
+      "rect": {
+        "x": 153.1875,
+        "y": 612.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "button",
+      "index": 12,
+      "text": "Hotel",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabInactive__c1Ni9",
+      "id": "",
+      "rect": {
+        "x": 221.78125,
+        "y": 612.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "button",
+      "index": 13,
+      "text": "Car",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabInactive__c1Ni9",
+      "id": "",
+      "rect": {
+        "x": 290.375,
+        "y": 612.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "button",
+      "index": 14,
+      "text": "🇧🇷 PT",
+      "classes": "flex items-center gap-2 text-white hover:text-purple-200 transition-colors text-sm font-medium",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 15,
+      "text": "🇧🇷 PT",
+      "classes": "text-white hover:text-purple-200 text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/10 transition-all",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 16,
+      "text": "",
+      "classes": "text-white hover:text-purple-200 p-2 rounded-lg hover:bg-white/10 transition-all",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 17,
+      "text": "Save up to $250 - Free Quote",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 18,
+      "text": "🚀 ABRIR APP PREMIUM 🚀",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 19,
+      "text": "VoosPopular",
+      "classes": "\n                                    page_serviceButton__kz94S\n                                    page_desktopServiceButton__Ykr2Y\n                                    \n                                    \n                                    \n                                  ",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 20,
+      "text": "Hotéis",
+      "classes": "\n                                    page_serviceButton__kz94S\n                                    page_desktopServiceButton__Ykr2Y\n                                    \n                                    \n                                    \n                                  ",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 21,
+      "text": "Carros",
+      "classes": "\n                                    page_serviceButton__kz94S\n                                    page_desktopServiceButton__Ykr2Y\n                                    \n                                    \n                                    \n                                  ",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 22,
+      "text": "Passeios",
+      "classes": "\n                                    page_serviceButton__kz94S\n                                    page_desktopServiceButton__Ykr2Y\n                                    \n                                    \n                                    \n                                  ",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "button",
+      "index": 23,
+      "text": "Seguro",
+      "classes": "\n                                    page_serviceButton__kz94S\n                                    page_desktopServiceButton__Ykr2Y\n                                    \n                                    \n                                    page_serviceButtonFullWidth__M1sR3\n                                  ",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      },
+      "visible": false,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 0,
+      "tag": "HTML",
+      "text": "// ULTRATHINK: Desktop height protection shield\n              (function() {\n                if (type",
+      "classes": "__variable_e8ce0c __variable_51684b",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 17,
+      "tag": "BODY",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "font-inter antialiased",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 19,
+      "tag": "DIV",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 47,
+      "tag": "DIV",
+      "text": "Onde vamos hoje?Promoções ativas✨ Até 10% OFF✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗Carros",
+      "classes": "page_mobileAppContainer__nP_Ug",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 66,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_mobileServicesSection__N7K2f",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 153.40625,
+        "width": 375,
+        "height": 313.484375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 67,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_servicesGrid__plSir page_mobileServicesGrid__ijJqX",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 169.40625,
+        "width": 340,
+        "height": 281.484375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 68,
+      "tag": "BUTTON",
+      "text": "✈️VoosPassagens aéreasPopular",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 169.40625,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 70,
+      "tag": "SPAN",
+      "text": "Voos",
+      "classes": "page_mobileServiceLabel__fK10o",
+      "id": "",
+      "rect": {
+        "x": 83.65625,
+        "y": 218.984375,
+        "width": 31.6875,
+        "height": 15.59375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 107,
+      "tag": "DIV",
+      "text": "HomeChatVoosHotelCar",
+      "classes": "page_mobileBottomNav__76FY_",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 620.3125,
+        "width": 375,
+        "height": 46.6875
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 108,
+      "tag": "DIV",
+      "text": "HomeChatVoosHotelCar",
+      "classes": "page_mobileBottomNavContent__WwN4_",
+      "id": "",
+      "rect": {
+        "x": 8,
+        "y": 612.15625,
+        "width": 359,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 117,
+      "tag": "BUTTON",
+      "text": "Voos",
+      "classes": "page_mobileNavTab__Ysd_o page_mobileNavTabInactive__c1Ni9",
+      "id": "",
+      "rect": {
+        "x": 153.1875,
+        "y": 612.15625,
+        "width": 68.59375,
+        "height": 64
+      },
+      "visible": true,
+      "inViewport": false
+    },
+    {
+      "type": "service-element",
+      "keyword": "voos",
+      "index": 120,
+      "tag": "SPAN",
+      "text": "Voos",
+      "classes": "page_mobileNavTabLabel__S8Ihm",
+      "id": "",
+      "rect": {
+        "x": 174.796875,
+        "y": 650.15625,
+        "width": 25.375,
+        "height": 16
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 0,
+      "tag": "HTML",
+      "text": "// ULTRATHINK: Desktop height protection shield\n              (function() {\n                if (type",
+      "classes": "__variable_e8ce0c __variable_51684b",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 17,
+      "tag": "BODY",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "font-inter antialiased",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 19,
+      "tag": "DIV",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 47,
+      "tag": "DIV",
+      "text": "Onde vamos hoje?Promoções ativas✨ Até 10% OFF✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗Carros",
+      "classes": "page_mobileAppContainer__nP_Ug",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 66,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_mobileServicesSection__N7K2f",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 153.40625,
+        "width": 375,
+        "height": 313.484375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 67,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_servicesGrid__plSir page_mobileServicesGrid__ijJqX",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 169.40625,
+        "width": 340,
+        "height": 281.484375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 73,
+      "tag": "BUTTON",
+      "text": "🏨HotéisHospedagem",
+      "classes": "page_serviceButton__kz94S page_mobileServiceButton__6ez6W",
+      "id": "",
+      "rect": {
+        "x": 193.5,
+        "y": 169.40625,
+        "width": 164,
+        "height": 85.828125
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "hotéis",
+      "index": 75,
+      "tag": "SPAN",
+      "text": "Hotéis",
+      "classes": "page_mobileServiceLabel__fK10o",
+      "id": "",
+      "rect": {
+        "x": 255.34375,
+        "y": 218.984375,
+        "width": 40.3125,
+        "height": 15.59375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 0,
+      "tag": "HTML",
+      "text": "// ULTRATHINK: Desktop height protection shield\n              (function() {\n                if (type",
+      "classes": "__variable_e8ce0c __variable_51684b",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 17,
+      "tag": "BODY",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "font-inter antialiased",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 19,
+      "tag": "DIV",
+      "text": "🎉Ótima escolha!Mais 12 pessoas fizeram isso hoje ✈️Espere! Não perca essa oportunidadeReceba um des",
+      "classes": "",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 47,
+      "tag": "DIV",
+      "text": "Onde vamos hoje?Promoções ativas✨ Até 10% OFF✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗Carros",
+      "classes": "page_mobileAppContainer__nP_Ug",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 667
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 66,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_mobileServicesSection__N7K2f",
+      "id": "",
+      "rect": {
+        "x": 0,
+        "y": 153.40625,
+        "width": 375,
+        "height": 313.484375
+      },
+      "visible": true,
+      "inViewport": true
+    },
+    {
+      "type": "service-element",
+      "keyword": "carros",
+      "index": 67,
+      "tag": "DIV",
+      "text": "✈️VoosPassagens aéreasPopular🏨HotéisHospedagem🚗CarrosAluguel🎯ToursExperiências🛡️Seguro ViagemPro",
+      "classes": "page_servicesGrid__plSir page_mobileServicesGrid__ijJqX",
+      "id": "",
+      "rect": {
+        "x": 17.5,
+        "y": 169.40625,
+        "width": 340,
+        "height": 281.484375
+      },
+      "visible": true,
+      "inViewport": true
+    }
+  ]
+}

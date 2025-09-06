@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-09-06T01:04:36.636Z",
+  "testResults": [
+    {
+      "cardType": "voos",
+      "buttonText": "✈️VoosPassagens aéreasPopular",
+      "clickSuccessful": false,
+      "error": "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button.page_serviceButton__kz94S.page_mobileServiceButton__6ez6W:has-text(\"✈️VoosPassagens aéreas\")' is not a valid selector.\n    at eval (eval at evaluate (:291:30), <anonymous>:2:35)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "behaviorType": "error"
+    },
+    {
+      "cardType": "hoteis",
+      "buttonText": "🏨HotéisHospedagem",
+      "clickSuccessful": false,
+      "error": "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button.page_serviceButton__kz94S.page_mobileServiceButton__6ez6W:has-text(\"🏨HotéisHospedagem\")' is not a valid selector.\n    at eval (eval at evaluate (:291:30), <anonymous>:2:35)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "behaviorType": "error"
+    },
+    {
+      "cardType": "carros",
+      "buttonText": "🚗CarrosAluguel",
+      "clickSuccessful": false,
+      "error": "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button.page_serviceButton__kz94S.page_mobileServiceButton__6ez6W:has-text(\"🚗CarrosAluguel\")' is not a valid selector.\n    at eval (eval at evaluate (:291:30), <anonymous>:2:35)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "behaviorType": "error"
+    },
+    {
+      "cardType": "tours",
+      "buttonText": "🎯ToursExperiências",
+      "clickSuccessful": false,
+      "error": "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button.page_serviceButton__kz94S.page_mobileServiceButton__6ez6W:has-text(\"🎯ToursExperiências\")' is not a valid selector.\n    at eval (eval at evaluate (:291:30), <anonymous>:2:35)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "behaviorType": "error"
+    },
+    {
+      "cardType": "seguro",
+      "buttonText": "🛡️Seguro ViagemProteção completa",
+      "clickSuccessful": false,
+      "error": "page.evaluate: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button.page_serviceButton__kz94S.page_mobileServiceButton__6ez6W:has-text(\"🛡️Seguro ViagemProteção completa\")' is not a valid selector.\n    at eval (eval at evaluate (:291:30), <anonymous>:2:35)\n    at UtilityScript.evaluate (<anonymous>:293:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "behaviorType": "error"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "working": 0,
+    "broken": 0,
+    "partial": 0,
+    "errors": 5,
+    "workingCards": [],
+    "brokenCards": [],
+    "partialCards": [],
+    "errorCards": [
+      "voos",
+      "hoteis",
+      "carros",
+      "tours",
+      "seguro"
+    ]
+  }
+}

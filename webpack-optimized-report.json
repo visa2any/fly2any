@@ -1,0 +1,136 @@
+{
+  "timestamp": "2025-09-05T14:13:08.250Z",
+  "testDuration": "~30 seconds",
+  "summary": {
+    "totalMessages": 13,
+    "totalErrors": 4,
+    "totalWarnings": 2,
+    "webpackErrors": 3,
+    "hydrationErrors": 0,
+    "reactErrors": 0,
+    "phoneInputFound": false
+  },
+  "details": {
+    "webpackErrors": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:47.834Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.487Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.849Z"
+      }
+    ],
+    "hydrationErrors": [],
+    "reactErrors": [],
+    "allErrors": [
+      {
+        "type": "pageerror",
+        "text": "TypeError: Cannot read properties of null (reading 'style')",
+        "stack": "TypeError: Cannot read properties of null (reading 'style')\n    at protectDesktopScrolling (http://localhost:3000/:18:32)\n    at http://localhost:3000/:27:19\n    at http://localhost:3000/:59:17",
+        "timestamp": "2025-09-05T14:12:45.175Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:47.834Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.487Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.849Z"
+      }
+    ],
+    "allWarnings": [
+      {
+        "type": "warning",
+        "text": "Image with src \"/fly2any-logo.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+        "timestamp": "2025-09-05T14:12:48.462Z"
+      },
+      {
+        "type": "warning",
+        "text": "Detected `scroll-behavior: smooth` on the `<html>` element. In a future version, Next.js will no longer automatically disable smooth scrolling during route transitions. To prepare for this change, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior",
+        "timestamp": "2025-09-05T14:12:59.907Z"
+      }
+    ],
+    "recentMessages": [
+      {
+        "type": "debug",
+        "text": "📊 No tracking pixels configured - skipping initialization",
+        "timestamp": "2025-09-05T14:12:45.249Z"
+      },
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+        "timestamp": "2025-09-05T14:12:47.342Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:47.834Z"
+      },
+      {
+        "type": "log",
+        "text": "🚀 LiveSiteHeader is rendering!",
+        "timestamp": "2025-09-05T14:12:48.383Z"
+      },
+      {
+        "type": "log",
+        "text": "🚀 LiveSiteFooter is rendering!",
+        "timestamp": "2025-09-05T14:12:48.386Z"
+      },
+      {
+        "type": "warning",
+        "text": "Image with src \"/fly2any-logo.png\" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: \"auto\"' or 'height: \"auto\"' to maintain the aspect ratio.",
+        "timestamp": "2025-09-05T14:12:48.462Z"
+      },
+      {
+        "type": "log",
+        "text": "[Fast Refresh] rebuilding",
+        "timestamp": "2025-09-05T14:12:48.798Z"
+      },
+      {
+        "type": "log",
+        "text": "[Fast Refresh] done in 1072ms",
+        "timestamp": "2025-09-05T14:12:49.869Z"
+      },
+      {
+        "type": "log",
+        "text": "[Fast Refresh] rebuilding",
+        "timestamp": "2025-09-05T14:12:54.885Z"
+      },
+      {
+        "type": "log",
+        "text": "[Fast Refresh] done in 3034ms",
+        "timestamp": "2025-09-05T14:12:58.487Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.487Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "timestamp": "2025-09-05T14:12:58.849Z"
+      },
+      {
+        "type": "warning",
+        "text": "Detected `scroll-behavior: smooth` on the `<html>` element. In a future version, Next.js will no longer automatically disable smooth scrolling during route transitions. To prepare for this change, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior",
+        "timestamp": "2025-09-05T14:12:59.907Z"
+      }
+    ]
+  }
+}

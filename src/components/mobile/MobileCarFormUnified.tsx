@@ -18,7 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CarIcon } from '@/components/Icons';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInputSimple';
+import PhoneInput from '@/components/PhoneInput';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import { cities } from '@/data/cities';
 import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';

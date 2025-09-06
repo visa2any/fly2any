@@ -245,7 +245,7 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
           <div className="text-center">
-            <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <CheckCircleIcon className="w-16 h-16 text-primary-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Obrigado!</h2>
             <p className="text-gray-600 mb-4">
               Recebemos seus dados e entraremos em contato em breve com as melhores opções para sua viagem.
@@ -817,8 +817,8 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
           {step === 6 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <CheckCircleIcon className="w-8 h-8 text-green-600" />
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CheckCircleIcon className="w-8 h-8 text-primary-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">Finalizando</h3>
                 <p className="text-gray-600">Última oportunidade para nos contar mais detalhes</p>
@@ -926,7 +926,7 @@ export default function LeadCapture({ isOpen, onClose, context = 'form', initial
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

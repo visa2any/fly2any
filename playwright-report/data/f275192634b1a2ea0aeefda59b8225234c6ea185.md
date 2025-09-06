@@ -1,0 +1,200 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - link "Fly2Any" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img "Fly2Any" [ref=e10] [cursor=pointer]
+        - button [ref=e11] [cursor=pointer]:
+          - img [ref=e12] [cursor=pointer]
+      - generic [ref=e14]:
+        - heading "Onde vamos hoje?" [level=1] [ref=e15]
+        - generic [ref=e16]:
+          - generic [ref=e19]: Promoções ativas
+          - generic [ref=e21]: ✨ Até 10% OFF
+      - generic [ref=e23]:
+        - button "✈️ Voos Passagens aéreas Popular" [active] [ref=e24] [cursor=pointer]:
+          - generic: ✈️
+          - generic: Voos
+          - generic: Passagens aéreas
+          - generic: Popular
+        - button "🏨 Hotéis Hospedagem" [ref=e25] [cursor=pointer]:
+          - generic: 🏨
+          - generic: Hotéis
+          - generic: Hospedagem
+        - button "🚗 Carros Aluguel" [ref=e26] [cursor=pointer]:
+          - generic: 🚗
+          - generic: Carros
+          - generic: Aluguel
+        - button "🎯 Tours Experiências" [ref=e27] [cursor=pointer]:
+          - generic: 🎯
+          - generic: Tours
+          - generic: Experiências
+        - button "🛡️ Seguro Viagem Proteção completa" [ref=e28] [cursor=pointer]:
+          - generic: 🛡️
+          - generic [ref=e29] [cursor=pointer]:
+            - generic: Seguro Viagem
+            - generic: Proteção completa
+      - generic [ref=e32]:
+        - generic [ref=e33]: ⭐15K+
+        - generic [ref=e34]: ✓4.9
+        - generic [ref=e35]: ✨ Gratuito
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: 🔒
+          - generic [ref=e40]: 100% Seguro
+        - generic [ref=e41]:
+          - generic [ref=e42]: ⚡
+          - generic [ref=e43]: 2h Resposta
+        - generic [ref=e44]:
+          - generic [ref=e45]: ✨
+          - generic [ref=e46]: Cotação Grátis
+    - generic [ref=e48]:
+      - button "Home" [ref=e49] [cursor=pointer]:
+        - img [ref=e50] [cursor=pointer]
+        - generic [ref=e52] [cursor=pointer]: Home
+      - button "Chat" [ref=e53] [cursor=pointer]:
+        - img [ref=e54] [cursor=pointer]
+        - generic [ref=e56] [cursor=pointer]: Chat
+      - button "Voos" [ref=e57] [cursor=pointer]:
+        - img [ref=e58] [cursor=pointer]
+        - generic [ref=e60] [cursor=pointer]: Voos
+      - button "Hotel" [ref=e61] [cursor=pointer]:
+        - img [ref=e62] [cursor=pointer]
+        - generic [ref=e64] [cursor=pointer]: Hotel
+      - button "Car" [ref=e65] [cursor=pointer]:
+        - img [ref=e66] [cursor=pointer]
+        - generic [ref=e68] [cursor=pointer]: Car
+    - generic [ref=e69]:
+      - generic [ref=e71]:
+        - link "Fly2Any" [ref=e73] [cursor=pointer]:
+          - /url: /
+          - img "Fly2Any" [ref=e76] [cursor=pointer]
+        - button [ref=e77] [cursor=pointer]:
+          - img [ref=e78] [cursor=pointer]
+      - generic [ref=e84]:
+        - generic [ref=e86]:
+          - img [ref=e88]
+          - generic [ref=e90]:
+            - heading "Detalhes do Voo" [level=2] [ref=e91]
+            - paragraph [ref=e92]: Configure sua viagem ideal
+        - generic [ref=e93]:
+          - heading "Tipo de Viagem" [level=3] [ref=e94]
+          - generic [ref=e95]:
+            - button "↔️ Ida e volta" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97] [cursor=pointer]:
+                - generic [ref=e98] [cursor=pointer]: ↔️
+                - generic [ref=e99] [cursor=pointer]: Ida e volta
+            - button "→ Somente ida" [ref=e100] [cursor=pointer]:
+              - generic [ref=e101] [cursor=pointer]:
+                - generic [ref=e102] [cursor=pointer]: →
+                - generic [ref=e103] [cursor=pointer]: Somente ida
+        - generic [ref=e104]:
+          - heading "Rota" [level=3] [ref=e105]
+          - generic [ref=e106]:
+            - generic [ref=e108]:
+              - textbox "🛫 De onde?" [ref=e109]
+              - img [ref=e110]
+            - button [ref=e113] [cursor=pointer]:
+              - img [ref=e114] [cursor=pointer]
+            - generic [ref=e117]:
+              - textbox "🛬 Para onde?" [ref=e118]
+              - img [ref=e119]
+        - generic [ref=e121]:
+          - heading "Datas" [level=3] [ref=e122]
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: 📅 Ida
+              - textbox [ref=e126]
+            - generic [ref=e127]:
+              - generic [ref=e128]: 📅 Volta
+              - textbox [ref=e129]
+          - generic [ref=e130] [cursor=pointer]:
+            - checkbox "Datas flexíveis (+/- 3 dias)" [ref=e131]
+            - generic [ref=e132] [cursor=pointer]: Datas flexíveis (+/- 3 dias)
+        - generic [ref=e133]:
+          - heading "Passageiros" [level=3] [ref=e134]
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - generic [ref=e137]:
+                - generic [ref=e138]: 👤
+                - generic [ref=e139]: Adultos
+              - generic [ref=e140]:
+                - button "-" [disabled] [ref=e141]
+                - generic [ref=e142]: "1"
+                - button "+" [ref=e143] [cursor=pointer]
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - generic [ref=e146]: 🧒
+                - generic [ref=e147]: Crianças
+              - generic [ref=e148]:
+                - button "-" [disabled] [ref=e149]
+                - generic [ref=e150]: "0"
+                - button "+" [ref=e151] [cursor=pointer]
+            - generic [ref=e152]:
+              - generic [ref=e153]:
+                - generic [ref=e154]: 👶
+                - generic [ref=e155]: Bebês
+              - generic [ref=e156]:
+                - button "-" [disabled] [ref=e157]
+                - generic [ref=e158]: "0"
+                - button "+" [ref=e159] [cursor=pointer]
+        - generic [ref=e160]:
+          - heading "Classe de Viagem" [level=3] [ref=e161]
+          - generic [ref=e162]:
+            - button "💺 Econômica" [ref=e163] [cursor=pointer]:
+              - generic [ref=e164] [cursor=pointer]:
+                - generic [ref=e165] [cursor=pointer]: 💺
+                - generic [ref=e166] [cursor=pointer]: Econômica
+            - button "🎯 Premium" [ref=e167] [cursor=pointer]:
+              - generic [ref=e168] [cursor=pointer]:
+                - generic [ref=e169] [cursor=pointer]: 🎯
+                - generic [ref=e170] [cursor=pointer]: Premium
+            - button "💼 Executiva" [ref=e171] [cursor=pointer]:
+              - generic [ref=e172] [cursor=pointer]:
+                - generic [ref=e173] [cursor=pointer]: 💼
+                - generic [ref=e174] [cursor=pointer]: Executiva
+            - button "👑 Primeira" [ref=e175] [cursor=pointer]:
+              - generic [ref=e176] [cursor=pointer]:
+                - generic [ref=e177] [cursor=pointer]: 👑
+                - generic [ref=e178] [cursor=pointer]: Primeira
+        - generic [ref=e180]:
+          - button "Voltar" [disabled] [ref=e181]:
+            - img [ref=e182]
+            - text: Voltar
+          - generic [ref=e184]: 1 de 4
+          - button "Avançar" [disabled] [ref=e185]:
+            - text: Avançar
+            - img [ref=e186]
+      - generic [ref=e189]:
+        - button "Voos" [ref=e190] [cursor=pointer]:
+          - img [ref=e191] [cursor=pointer]
+          - generic [ref=e193] [cursor=pointer]: Voos
+        - button "Hotel" [ref=e194] [cursor=pointer]:
+          - img [ref=e195] [cursor=pointer]
+          - generic [ref=e197] [cursor=pointer]: Hotel
+        - button "Carro" [ref=e198] [cursor=pointer]:
+          - img [ref=e199] [cursor=pointer]
+          - generic [ref=e201] [cursor=pointer]: Carro
+        - button "Tour" [ref=e202] [cursor=pointer]:
+          - img [ref=e203] [cursor=pointer]
+          - generic [ref=e205] [cursor=pointer]: Tour
+        - button "Seguro" [ref=e206] [cursor=pointer]:
+          - img [ref=e207] [cursor=pointer]
+          - generic [ref=e209] [cursor=pointer]: Seguro
+  - generic [ref=e214] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e215] [cursor=pointer]:
+      - img [ref=e216] [cursor=pointer]
+    - generic [ref=e219] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e220] [cursor=pointer]:
+        - generic [ref=e221] [cursor=pointer]:
+          - generic [ref=e222] [cursor=pointer]: "0"
+          - generic [ref=e223] [cursor=pointer]: "1"
+        - generic [ref=e224] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e225] [cursor=pointer]:
+        - img [ref=e226] [cursor=pointer]
+  - alert [ref=e228]
+```

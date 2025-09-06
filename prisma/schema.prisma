@@ -1,0 +1,312 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id                   String    @id @default(cuid())
+  customer_id          String?
+  nome                 String
+  email                String
+  whatsapp             String
+  origem               String?
+  destino              String?
+  data_partida         String?
+  data_retorno         String?
+  numero_passageiros   Int?
+  tipo_viagem          String?
+  selected_services    String?   @default("[]")
+  precisa_hospedagem   Boolean?  @default(false)
+  precisa_transporte   Boolean?  @default(false)
+  orcamento_total      String?
+  prioridade_orcamento String?
+  source               String?
+  status               String?   @default("novo")
+  priority             String?   @default("media")
+  assigned_to          String?
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at           DateTime? @default(now()) @updatedAt @db.Timestamp(6)
+  full_data            String?   @default("{}")
+  telefone             String?
+  sobrenome            String?
+  classe_viagem        String?
+  companhia_preferida  String?
+  horario_preferido    String?
+  escalas              String?
+  flexibilidade_datas  Boolean?  @default(false)
+  tipo_hospedagem      String?
+  categoria_hospedagem String?
+  tipo_transporte      String?
+  experiencia_viagem   String?
+  motivo_viagem        String?
+  preferencia_contato  String?
+  melhor_horario       String?
+  como_conheceu        String?
+  receber_promocoes    Boolean?  @default(false)
+  observacoes          String?
+  necessidade_especial String?
+  user_agent           String?
+  page_url             String?
+  ip_address           String?
+  session_id           String?
+  cpf                  String?
+  data_nascimento      String?
+  cidade               String?
+  estado               String?
+  pais                 String?
+
+  @@index([created_at], map: "idx_leads_created_at")
+  @@index([customer_id], map: "idx_leads_customer_id")
+  @@index([email], map: "idx_leads_email")
+  @@index([source], map: "idx_leads_source")
+  @@index([status], map: "idx_leads_status")
+  @@map("leads")
+}
+
+model chat_conversations {
+  id                String    @id
+  customer_id       String?
+  lead_id           String?
+  session_id        String
+  status            String?   @default("active")
+  channel           String?   @default("website")
+  is_human_assisted Boolean?  @default(false)
+  agent_id          String?
+  transfer_reason   String?
+  user_agent        String?
+  ip                String?
+  page_url          String?
+  started_at        DateTime? @default(now()) @db.Timestamp(6)
+  last_message_at   DateTime? @default(now()) @db.Timestamp(6)
+  closed_at         DateTime? @db.Timestamp(6)
+  metadata          String?   @default("{}")
+
+  @@index([session_id], map: "idx_conversations_session_id")
+}
+
+model chat_messages {
+  id              String    @id
+  conversation_id String
+  content         String
+  sender          String
+  type            String?   @default("text")
+  metadata        String?   @default("{}")
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  read_at         DateTime? @db.Timestamp(6)
+
+  @@index([conversation_id], map: "idx_messages_conversation_id")
+}
+
+model chat_sessions {
+  id         String    @id @db.VarChar(100)
+  user_id    String?   @db.VarChar(100)
+  status     String?   @default("active") @db.VarChar(20)
+  user_name  String?   @db.VarChar(100)
+  user_email String?   @db.VarChar(100)
+  user_phone String?   @db.VarChar(50)
+  intent     String?   @db.VarChar(100)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model customers {
+  id                   String    @id
+  nome                 String
+  email                String    @unique
+  whatsapp             String
+  cpf                  String?
+  data_nascimento      String?
+  cidade               String?
+  estado               String?
+  pais                 String?
+  experiencia_viagem   String?
+  motivo_viagem        String?
+  prioridade_orcamento String?
+  classe_viagem        String?
+  preferencia_contato  String?
+  melhor_horario       String?
+  como_conheceu        String?
+  receber_promocoes    Boolean?  @default(true)
+  observacoes          String?
+  necessidade_especial String?
+  status               String?   @default("lead")
+  tags                 String?   @default("[]")
+  score                Int?      @default(0)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at           DateTime? @default(now()) @db.Timestamp(6)
+  last_contact_at      DateTime? @db.Timestamp(6)
+
+  @@index([email], map: "idx_customers_email")
+  @@index([status], map: "idx_customers_status")
+}
+
+model email_campaigns {
+  id                    String                  @id @db.VarChar(255)
+  name                  String                  @db.VarChar(255)
+  subject               String                  @db.VarChar(500)
+  template_type         String?                 @default("promotional") @db.VarChar(50)
+  html_content          String?
+  text_content          String?
+  status                String?                 @default("draft") @db.VarChar(50)
+  created_at            DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?               @default(now()) @db.Timestamp(6)
+  total_recipients      Int?                    @default(0)
+  total_sent            Int?                    @default(0)
+  total_delivered       Int?                    @default(0)
+  total_opened          Int?                    @default(0)
+  total_clicked         Int?                    @default(0)
+  total_bounced         Int?                    @default(0)
+  total_unsubscribed    Int?                    @default(0)
+  email_tracking_events email_tracking_events[]
+
+  @@index([status], map: "idx_email_campaigns_status")
+}
+
+model email_contacts {
+  id                String    @id @db.VarChar(255)
+  email             String    @unique @db.VarChar(255)
+  nome              String    @db.VarChar(255)
+  sobrenome         String?   @db.VarChar(255)
+  telefone          String?   @db.VarChar(50)
+  segmento          String?   @default("geral") @db.VarChar(100)
+  tags              Json?     @default("[]")
+  status            String?   @default("ativo") @db.VarChar(50)
+  email_status      String?   @default("not_sent") @db.VarChar(50)
+  last_email_sent   DateTime? @db.Timestamp(6)
+  unsubscribe_token String?   @db.VarChar(255)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([email], map: "idx_email_contacts_email")
+  @@index([email_status], map: "idx_email_contacts_email_status")
+  @@index([segmento], map: "idx_email_contacts_segmento")
+  @@index([status], map: "idx_email_contacts_status")
+}
+
+model email_sends {
+  id                    String                  @id @db.VarChar(255)
+  campaign_id           String?                 @db.VarChar(255)
+  contact_id            String?                 @db.VarChar(255)
+  email                 String                  @db.VarChar(255)
+  status                String?                 @default("pending") @db.VarChar(50)
+  message_id            String?                 @db.VarChar(255)
+  sent_at               DateTime?               @db.Timestamp(6)
+  delivered_at          DateTime?               @db.Timestamp(6)
+  opened_at             DateTime?               @db.Timestamp(6)
+  clicked_at            DateTime?               @db.Timestamp(6)
+  failed_reason         String?
+  created_at            DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at            DateTime?               @default(now()) @db.Timestamp(6)
+  retry_count           Int?                    @default(0)
+  retry_after           DateTime?               @db.Timestamp(6)
+  email_tracking_events email_tracking_events[]
+
+  @@index([campaign_id], map: "idx_email_sends_campaign_id")
+  @@index([contact_id], map: "idx_email_sends_contact_id")
+  @@index([status], map: "idx_email_sends_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model email_tracking_events {
+  id              String           @id @db.VarChar(255)
+  send_id         String?          @db.VarChar(255)
+  campaign_id     String?          @db.VarChar(255)
+  contact_email   String           @db.VarChar(255)
+  event_type      String           @db.VarChar(20)
+  event_data      Json?
+  ip_address      String?          @db.Inet
+  user_agent      String?
+  location        String?          @db.VarChar(255)
+  timestamp       DateTime?        @default(now()) @db.Timestamp(6)
+  created_at      DateTime?        @default(now()) @db.Timestamp(6)
+  email_campaigns email_campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  email_sends     email_sends?     @relation(fields: [send_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([campaign_id], map: "idx_tracking_campaign_id")
+  @@index([event_type], map: "idx_tracking_event_type")
+  @@index([send_id], map: "idx_tracking_send_id")
+  @@index([timestamp], map: "idx_tracking_timestamp")
+}
+
+model leads_unified {
+  id                   String    @id
+  created_at           DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime? @default(now()) @db.Timestamptz(6)
+  source               String    @default("website")
+  status               String    @default("novo")
+  nome                 String
+  email                String
+  whatsapp             String?
+  telefone             String?
+  sobrenome            String?
+  origem               String?
+  destino              String?
+  data_partida         DateTime? @db.Date
+  data_retorno         DateTime? @db.Date
+  tipo_viagem          String?
+  numero_passageiros   Int?      @default(1)
+  adultos              Int?      @default(1)
+  criancas             Int?      @default(0)
+  bebes                Int?      @default(0)
+  classe_viagem        String?   @default("economica")
+  companhia_preferida  String?
+  horario_preferido    String?
+  escalas              String?
+  orcamento_total      String?
+  orcamento_aproximado String?
+  flexibilidade_datas  Boolean?  @default(false)
+  selected_services    Json?     @default("[]")
+  observacoes          String?
+  full_data            Json?     @default("{}")
+
+  @@index([created_at], map: "idx_leads_unified_created_at")
+  @@index([email], map: "idx_leads_unified_email")
+  @@index([selected_services], map: "idx_leads_unified_selected_services", type: Gin)
+  @@index([status], map: "idx_leads_unified_status")
+}
+
+model support_tickets {
+  id              String    @id
+  customer_id     String?
+  lead_id         String?
+  conversation_id String?
+  subject         String
+  description     String?
+  status          String?   @default("open")
+  priority        String?   @default("normal")
+  assigned_to     String?
+  department      String?   @default("sales")
+  source          String?   @default("chat")
+  tags            String?   @default("[]")
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+  resolved_at     DateTime? @db.Timestamp(6)
+  custom_fields   String?   @default("{}")
+
+  @@index([customer_id], map: "idx_tickets_customer_id")
+  @@index([status], map: "idx_tickets_status")
+}
+
+model whatsapp_followups {
+  id            Int       @id @default(autoincrement())
+  rule_id       String    @db.VarChar(255)
+  phone         String    @db.VarChar(50)
+  lead_data     Json?
+  trigger_data  Json?
+  scheduled_for DateTime  @db.Timestamp(6)
+  max_attempts  Int?      @default(1)
+  attempts      Int?      @default(0)
+  status        String?   @default("pending") @db.VarChar(20)
+  sent_at       DateTime? @db.Timestamp(6)
+  failed_at     DateTime? @db.Timestamp(6)
+  last_sent_at  DateTime? @db.Timestamp(6)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([phone], map: "idx_whatsapp_followups_phone")
+  @@index([scheduled_for, status], map: "idx_whatsapp_followups_scheduled")
+}

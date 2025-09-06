@@ -243,9 +243,9 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
 
   if (submitSuccess) {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-6">
+      <div className="h-screen bg-gradient-to-br from-primary-50 to-blue-100 flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center transform animate-bounce">
-          <div className="text-green-500 text-6xl mb-6 animate-pulse">🎉</div>
+          <div className="text-primary-500 text-6xl mb-6 animate-pulse">🎉</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Perfeito!</h2>
           <p className="text-gray-600 mb-6">
             Sua cotação foi enviada com sucesso! Nossa equipe entrará em contato em breve com as melhores ofertas.
@@ -356,7 +356,7 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
                       {getServiceIcon(service.serviceType)}
                       <span className="text-sm font-medium text-gray-800">{getServiceName(service.serviceType)}</span>
                       {service.completed && (
-                        <CheckIcon className="w-4 h-4 text-green-500" />
+                        <CheckIcon className="w-4 h-4 text-primary-500" />
                       )}
                       <button
                         onClick={() => removeService(index)}
@@ -419,7 +419,7 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
                       
                       {isSelected && (
                         <div className="absolute top-2 right-2">
-                          <CheckIcon className="w-5 h-5 text-green-600" />
+                          <CheckIcon className="w-5 h-5 text-primary-600" />
                         </div>
                       )}
                     </button>
@@ -623,7 +623,7 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
                     <div key={index} className="flex items-center space-x-3">
                       {getServiceIcon(service.serviceType)}
                       <span className="font-medium text-gray-700">{getServiceName(service.serviceType)}</span>
-                      {service.completed && <CheckIcon className="w-4 h-4 text-green-500" />}
+                      {service.completed && <CheckIcon className="w-4 h-4 text-primary-500" />}
                     </div>
                   ))}
                 </div>
@@ -681,12 +681,12 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+              <div className="bg-gradient-to-r from-primary-50 to-blue-50 p-4 rounded-xl border border-primary-200">
                 <div className="flex items-start space-x-3">
-                  <div className="text-green-500 text-xl">🔒</div>
+                  <div className="text-primary-500 text-xl">🔒</div>
                   <div>
-                    <h5 className="font-semibold text-green-800 mb-1">Seus dados estão seguros</h5>
-                    <p className="text-sm text-green-700">
+                    <h5 className="font-semibold text-primary-800 mb-1">Seus dados estão seguros</h5>
+                    <p className="text-sm text-primary-700">
                       Utilizamos criptografia de ponta e não compartilhamos suas informações com terceiros.
                     </p>
                   </div>
@@ -753,7 +753,7 @@ const LeadCaptureSimple = memo(function LeadCaptureSimple({ isOpen, onClose, con
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !formData.nome || !formData.email || !formData.whatsapp}
-              className="px-4 py-3 md:px-6 text-sm md:text-base bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              className="px-4 py-3 md:px-6 text-sm md:text-base bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

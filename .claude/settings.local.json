@@ -327,7 +327,14 @@
       "Read(/C:\\Users\\Power\\fly2any\\src\\app/**)",
       "Bash(cat:*)",
       "Read(//d/Users/vilma/fly2any/src/components/mobile/**)",
-      "Read(//d/Users/vilma/fly2any/**)"
+      "Read(//d/Users/vilma/fly2any/**)",
+      "Bash(npx prisma generate:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx prisma:*)",
+      "Read(//c/**)",
+      "Bash(echo $HOME)",
+      "Bash(echo $PROFILE)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

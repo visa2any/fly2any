@@ -21,7 +21,7 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import CityAutocomplete from '../CityAutocomplete';
-import PhoneInput from '@/components/PhoneInputSimple';
+import PhoneInput from '@/components/PhoneInput';
 import { cities } from '@/data/cities';
 
 interface InsuranceFormData {

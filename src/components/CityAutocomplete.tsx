@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LocationIcon } from './Icons';
 import { City } from '@/data/cities';
+import '@/styles/city-autocomplete.css';
 
 interface CityAutocompleteProps {
   value: string;
@@ -15,7 +18,16 @@ interface CityAutocompleteProps {
   className?: string;
 }
 
+// ULTRATHINK: Normalize string for accent-insensitive search
+const normalizeString = (str: string): string => {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+};
+
 export default function CityAutocomplete({
+  value,
   onChange,
   placeholder,
   label,
@@ -26,17 +38,101 @@ export default function CityAutocomplete({
 }: CityAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(value || '');
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isMobile, setIsMobile] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // ULTRATHINK: Advanced Mobile Detection (from AirportAutocomplete)
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileViewport = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isMobileUserAgent = /iPhone|iPad|iPod|Android|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+      
+      setIsMobile(isMobileViewport || isTouchDevice || isMobileUserAgent);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Initialize portal container
+  useEffect(() => {
+    setPortalContainer(document.body);
+  }, []);
+
+  // Calculate dropdown position for portal rendering
+  const calculateDropdownPosition = useCallback(() => {
+    if (!wrapperRef.current) return;
+
+    const containerRect = wrapperRef.current.getBoundingClientRect();
+    const inputRect = inputRef.current?.getBoundingClientRect();
+    
+    if (!inputRect) return;
+
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = Math.min(320, Math.max(filteredCities.length, 1) * 68 + 40);
+    
+    const spaceBelow = viewportHeight - inputRect.bottom;
+    const spaceAbove = inputRect.top;
+
+    let top, maxHeight;
+    
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow + 50) {
+      // Position above input
+      setDropdownPosition('top');
+      top = inputRect.top - dropdownHeight - 8;
+      maxHeight = Math.min(dropdownHeight, inputRect.top - 20);
+    } else {
+      // Position below input  
+      setDropdownPosition('bottom');
+      top = inputRect.bottom + 8;
+      maxHeight = Math.min(dropdownHeight, spaceBelow - 20);
+    }
+
+    setDropdownStyle({
+      position: 'fixed',
+      top: `${Math.max(10, top)}px`,
+      left: `${inputRect.left}px`,
+      width: `${inputRect.width}px`,
+      maxHeight: `${maxHeight}px`,
+      zIndex: 11000
+    });
+  }, [filteredCities.length]);
+
+  // Recalculate position when dropdown opens or results change
+  useEffect(() => {
+    if (isOpen) {
+      calculateDropdownPosition();
+    }
+  }, [isOpen, filteredCities.length, calculateDropdownPosition]);
+
+  // Sync with external value prop
+  useEffect(() => {
+    setInputValue(value || '');
+  }, [value]);
 
   useEffect(() => {
     if (inputValue.length >= 3) {
-      const filtered = cities.filter(city =>
-        city.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-        city.code.toLowerCase().includes(inputValue.toLowerCase())
-      ).slice(0, 6); // Mostrar no máximo 6 sugestões
+      const normalizedInput = normalizeString(inputValue);
+      
+      const filtered = cities.filter(city => {
+        const normalizedName = normalizeString(city.name);
+        const normalizedCode = normalizeString(city.code);
+        const normalizedCountry = normalizeString(city.country);
+        
+        return normalizedName.includes(normalizedInput) ||
+               normalizedCode.includes(normalizedInput) ||
+               normalizedCountry.includes(normalizedInput);
+      }).slice(0, 6);
       
       setFilteredCities(filtered);
       setIsOpen(filtered.length > 0);
@@ -48,16 +144,34 @@ export default function CityAutocomplete({
   }, [inputValue, cities]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    onChange(''); // Limpar valor selecionado quando digitando
+    const value = e.target.value;
+    setInputValue(value);
+    onChange(value);
   };
 
   const handleCitySelect = (city: City) => {
-    setInputValue(`${city.name} (${city.code})`);
-    onChange(city.code);
+    const selectedText = `${city.name} (${city.code})`;
+    setInputValue(selectedText);
+    onChange(selectedText);
     setIsOpen(false);
-    setSelectedIndex(-1);
+    setFilteredCities([]);
+    
+    // ULTRATHINK: Haptic feedback for mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(30);
+    }
+    
+    inputRef.current?.blur();
+  };
+
+  const handleBlur = () => {
+    // Delay closing to allow click events to fire
+    // Longer delay on mobile for better touch interaction
+    const delay = isMobile ? 300 : 150;
+    setTimeout(() => {
+      setIsOpen(false);
+      setFilteredCities([]);
+    }, delay);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -66,55 +180,58 @@ export default function CityAutocomplete({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex((prev: any) => 
-          prev < filteredCities.length - 1 ? prev + 1 : 0
+        setSelectedIndex((prevIndex) =>
+          prevIndex < filteredCities.length - 1 ? prevIndex + 1 : prevIndex
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex((prev: any) => 
-          prev > 0 ? prev - 1 : filteredCities.length - 1
-        );
+        setSelectedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : -1));
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0 && filteredCities[selectedIndex]) {
+        if (selectedIndex >= 0 && selectedIndex < filteredCities.length) {
           handleCitySelect(filteredCities[selectedIndex]);
         }
         break;
       case 'Escape':
+        e.preventDefault();
         setIsOpen(false);
-        setSelectedIndex(-1);
         break;
     }
   };
 
-  // Fechar dropdown quando clicar fora
+  // Handle virtual keyboard on mobile
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (inputRef.current && !inputRef.current.contains(event.target as Node) &&
-          listRef.current && !listRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+    if (!isMobile) return;
+
+    const handleResize = () => {
+      if (isOpen) {
+        // Recalculate position when virtual keyboard opens/closes
+        setTimeout(calculateDropdownPosition, 100);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isOpen) {
+        calculateDropdownPosition();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isOpen, calculateDropdownPosition, isMobile]);
 
   return (
-    <div className={className} style={{ position: 'relative', width: '100%' }}>
+    <div ref={wrapperRef} className={`city-autocomplete-wrapper ${className}`}>
       {label && (
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '14px',
-          fontWeight: '500',
-          color: '#374151',
-          marginBottom: '8px'
-        }}>
-          <LocationIcon style={{ width: '14px', height: '14px', color: iconColor }} />
+        <label className="city-autocomplete-label">
+          <LocationIcon className="city-autocomplete-label-icon" />
           {label}
         </label>
       )}
@@ -125,98 +242,108 @@ export default function CityAutocomplete({
         value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         placeholder={placeholder}
         autoComplete="off"
-        style={{
-          width: '100%',
-          padding: '14px 16px',
-          border: error ? '2px solid #ef4444' : '2px solid #e5e7eb',
-          borderRadius: '12px',
-          fontSize: '16px',
-          background: 'white',
-          outline: 'none',
-          transition: 'all 0.3s ease'
-        }}
+        className={`city-autocomplete-input ${error ? 'error' : ''}`}
         onFocus={() => {
           if (inputValue.length >= 3 && filteredCities.length > 0) {
             setIsOpen(true);
+          }
+          // On mobile, add extra delay to ensure dropdown positioning
+          if (isMobile) {
+            setTimeout(calculateDropdownPosition, 150);
           }
         }}
       />
 
       {error && (
-        <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+        <span className="city-autocomplete-error">
           {error}
         </span>
       )}
 
-      {/* Dropdown de sugestões */}
-      {isOpen && filteredCities.length > 0 && (
-        <div
-          ref={listRef}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: 'white',
-            border: '2px solid #e5e7eb',
-            borderTop: 'none',
-            borderRadius: '0 0 12px 12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-            zIndex: 11000,
-            maxHeight: '240px',
-            overflowY: 'auto'
-          }}
-        >
-          {filteredCities.map((city, index) => (
-            <div
-              key={city.code}
-              onClick={() => handleCitySelect(city)}
+      {/* ULTRATHINK: Portal-Based Dropdown (from AirportAutocomplete) */}
+      {portalContainer && createPortal(
+        <AnimatePresence>
+          {isOpen && filteredCities.length > 0 && (
+            <motion.div
+              ref={listRef}
+              initial={{ opacity: 0, scale: 0.95, y: dropdownPosition === 'bottom' ? -10 : 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: dropdownPosition === 'bottom' ? -10 : 10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="overflow-y-auto"
               style={{
-                padding: '12px 16px',
-                cursor: 'pointer',
-                background: index === selectedIndex ? '#f3f4f6' : 'white',
-                borderBottom: index < filteredCities.length - 1 ? '1px solid #f3f4f6' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                transition: 'background 0.2s ease'
+                ...dropdownStyle,
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(226,232,240,0.8)',
+                borderRadius: isMobile ? '16px' : '12px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.15), inset 3px 3px 6px rgba(255,255,255,0.9), inset -3px -3px 6px rgba(226,232,240,0.4)',
+                pointerEvents: 'auto'
               }}
-              onMouseEnter={() => setSelectedIndex(index)}
             >
-              <span style={{ fontSize: '20px' }}>{city.flag}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '600', color: '#1f2937' }}>
-                  {city.name}
-                </div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                  {city.code} • {city.country}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Dica de uso */}
-      {inputValue.length > 0 && inputValue.length < 3 && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          background: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderTop: 'none',
-          borderRadius: '0 0 8px 8px',
-          padding: '8px 12px',
-          fontSize: '12px',
-          color: '#6b7280',
-          zIndex: 999
-        }}>
-          Digite pelo menos 3 letras para ver sugestões
-        </div>
+              {filteredCities.map((city, index) => (
+                <motion.button
+                  key={`${city.code}-${index}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCitySelect(city);
+                  }}
+                  onTouchStart={(e: any) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchEnd={(e: any) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCitySelect(city);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className={`
+                    w-full text-left focus:outline-none transition-all duration-200 border-b last:border-b-0 touch-manipulation
+                    ${isMobile 
+                      ? 'px-4 py-3 min-h-[68px]' 
+                      : 'px-3 py-3 min-h-[58px]'
+                    }
+                  `}
+                  style={{
+                    borderBottom: index < filteredCities.length - 1 ? '1px solid rgba(226,232,240,0.4)' : 'none',
+                    background: selectedIndex === index 
+                      ? 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.06))' 
+                      : 'transparent'
+                  }}
+                  onMouseEnter={() => !isMobile && setSelectedIndex(index)}
+                  onMouseLeave={() => !isMobile && setSelectedIndex(-1)}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`${isMobile ? 'text-2xl' : 'text-xl'} flex-shrink-0`}>
+                      {city.flag}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-bold text-gray-900 ${isMobile ? 'text-base' : 'text-sm'}`}>
+                        {city.name}
+                      </div>
+                      <div className={`text-gray-600 ${isMobile ? 'text-sm' : 'text-xs'} mt-1`}>
+                        {city.code} • {city.country}
+                      </div>
+                    </div>
+                  </div>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        portalContainer
       )}
     </div>
   );

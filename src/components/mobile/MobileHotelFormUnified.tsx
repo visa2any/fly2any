@@ -19,7 +19,7 @@ import {
   BuildingOffice2Icon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInputSimple';
+import PhoneInput from '@/components/PhoneInput';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 import { cities } from '@/data/cities';
