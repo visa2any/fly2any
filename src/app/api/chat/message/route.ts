@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UnifiedAIAssistant } from '@/lib/chat/unified-ai-assistant';
 
-// Initialize AI assistant (in production, this would be a singleton)
-const aiAssistant = new UnifiedAIAssistant();
+// Lazy-loaded AI assistant to avoid initialization during build time
+let aiAssistant: UnifiedAIAssistant | null = null;
+
+const getAIAssistant = () => {
+  if (!aiAssistant) {
+    aiAssistant = new UnifiedAIAssistant();
+  }
+  return aiAssistant;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Process message with AI assistant
-    const response = await aiAssistant.processMessage(
+    const response = await getAIAssistant().processMessage(
       sessionId,
       message,
       userId,

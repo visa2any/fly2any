@@ -7,7 +7,6 @@ import dynamic from 'next/dynamic';
 // Dynamically import ClientOnly to ensure it's only loaded on client
 const ClientOnly = dynamic(() => import('./ClientOnly'), {
   ssr: false,
-  loading: () => null
 });
 
 interface SessionWrapperProps {

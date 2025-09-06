@@ -269,8 +269,14 @@ async function checkFileSystemHealth(): Promise<SystemHealthCheck> {
   const startTime = Date.now();
   
   try {
-    const fs = await import('fs').catch(() => null);
-    const path = await import('path').catch(() => null);
+    let fs: any = null;
+    let path: any = null;
+    try {
+      fs = await import('fs');
+      path = await import('path');
+    } catch (error) {
+      // Dynamic imports failed, fs and path remain null
+    }
     
     if (!fs || !path) {
       return {

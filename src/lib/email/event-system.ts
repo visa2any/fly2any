@@ -409,8 +409,15 @@ export class AutomationEventSystem {
   }
 }
 
-// Export singleton instance
-export const eventSystem = new AutomationEventSystem();
+// Lazy-loaded singleton to avoid initialization during build time
+let _eventSystemInstance: AutomationEventSystem | null = null;
+
+export const getEventSystem = (): AutomationEventSystem => {
+  if (!_eventSystemInstance) {
+    _eventSystemInstance = new AutomationEventSystem();
+  }
+  return _eventSystemInstance;
+};
 
 // Helper function to trigger events from anywhere in the application
 export async function triggerAutomationEvent(
@@ -419,7 +426,7 @@ export async function triggerAutomationEvent(
   data: Record<string, any>,
   source: string = 'application'
 ): Promise<void> {
-  await eventSystem.emit({
+  await getEventSystem().emit({
     type: eventType,
     userId,
     data,

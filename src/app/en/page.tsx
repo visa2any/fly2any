@@ -33,8 +33,7 @@ import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 
-// Safe empty function for build serialization - proper serializable function
-const emptyFunction = () => {};
+// Removed emptyFunction to prevent DataCloneError during build serialization
 
 interface ServiceFormData {
   serviceType: 'flights' | 'hotels' | 'cars' | 'tours' | 'insurance';
@@ -1773,7 +1772,7 @@ export default function EnglishHomePage() {
         {/* Interactive Components */}
         <FloatingChat />
         <ChatAgent />
-        <LeadCaptureSimple isOpen={false} onClose={emptyFunction} />
+        {/* LeadCaptureSimple removed to prevent DataCloneError during build - will be conditionally rendered by other components when needed */}
         <NewsletterCapture />
         <ExitIntentPopup />
 

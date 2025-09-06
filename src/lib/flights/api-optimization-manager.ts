@@ -35,7 +35,7 @@ export class ApiOptimizationManager {
 
   private constructor() {
     // Lazy initialization to avoid issues in browser environment
-    this.amadeusClient = null as any;
+    this.amadeusClient = {} as any;
     
     // Cleanup cache every 10 minutes (only in browser)
     if (typeof window !== 'undefined') {

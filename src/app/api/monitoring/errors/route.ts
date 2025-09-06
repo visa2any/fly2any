@@ -158,8 +158,14 @@ async function storeErrorReport(errorReport: ErrorReport): Promise<void> {
     // In a production environment, store in your database
     // For now, we'll use a simple file-based storage as fallback
     
-    const fs = await import('fs').catch(() => null);
-    const path = await import('path').catch(() => null);
+    let fs: any = null;
+    let path: any = null;
+    try {
+      fs = await import('fs');
+      path = await import('path');
+    } catch (error) {
+      // Dynamic imports failed, fs and path remain null
+    }
     
     if (fs && path) {
       const logsDir = path.join(process.cwd(), 'logs');
@@ -279,8 +285,14 @@ async function getErrorReports(filters: {
   limit: number;
 }): Promise<ErrorReport[]> {
   try {
-    const fs = await import('fs').catch(() => null);
-    const path = await import('path').catch(() => null);
+    let fs: any = null;
+    let path: any = null;
+    try {
+      fs = await import('fs');
+      path = await import('path');
+    } catch (error) {
+      // Dynamic imports failed, fs and path remain null
+    }
     
     if (!fs || !path) {
       return [];

@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAmadeusClient } from '@/lib/flights/amadeus-client';
 import { validateAirportSearchQuery, cleanAirportSearchQuery } from '@/lib/flights/validators';
-import { usAirportSearch } from '@/lib/airports/us-airport-search';
+import { getUSAirportSearch } from '@/lib/airports/us-airport-search';
 
 /**
  * GET /api/flights/airports?keyword=LAX
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // 1. Search US airports database (instant results)
-      const usResults = await usAirportSearch.searchAirports(cleanedKeyword, {
+      const usResults = await getUSAirportSearch().searchAirports(cleanedKeyword, {
         limit: Math.min(limit, 15),
         includeInternational,
         includeRegional,
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
       console.error('❌ Airport search processing error:', searchError);
       
       // Final fallback to basic US airports
-      const fallbackResults = await usAirportSearch.searchAirports(cleanedKeyword, { limit: 5 });
+      const fallbackResults = await getUSAirportSearch().searchAirports(cleanedKeyword, { limit: 5 });
       
       return NextResponse.json({
         success: true,

@@ -10,7 +10,7 @@ import crypto from 'crypto';
 // Force this API route to use Node.js runtime to support crypto operations
 export const runtime = 'nodejs';
 import { prisma } from '@/lib/database/prisma';
-import { eventSystem } from '@/lib/email/event-system';
+import { getEventSystem } from '@/lib/email/event-system';
 import { getExtendedEmailLogField, createSafeUserUpdate } from '@/lib/database/email-status-handler';
 
 interface MailgunWebhookEvent {
@@ -423,7 +423,7 @@ async function processUserEngagementEvent(
     // Trigger automation events for user engagement
     switch (eventType) {
       case 'opened':
-        await eventSystem.onEmailOpened(user.id, {
+        await getEventSystem().onEmailOpened(user.id, {
           templateId: emailLog.template || 'unknown',
           messageId: emailLog.providerMessageId || eventData.id,
           campaignId: emailLog.campaignId,
@@ -435,7 +435,7 @@ async function processUserEngagementEvent(
         break;
 
       case 'clicked':
-        await eventSystem.onEmailClicked(user.id, {
+        await getEventSystem().onEmailClicked(user.id, {
           templateId: emailLog.template || 'unknown',
           messageId: emailLog.providerMessageId || eventData.id,
           campaignId: emailLog.campaignId,

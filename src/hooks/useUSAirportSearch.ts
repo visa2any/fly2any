@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { usAirportSearch } from '../lib/airports/us-airport-search';
+import { getUSAirportSearch } from '../lib/airports/us-airport-search';
 import { POPULAR_US_ROUTES } from '../lib/airports/us-airports-database';
 
 export interface AirportSearchResult {
@@ -146,7 +146,7 @@ export function useUSAirportSearch(
         // 1. First try local US airports database (instant)
         let localResults: AirportSearchResult[] = [];
         try {
-          const usResults = await usAirportSearch.searchAirports(trimmedQuery, {
+          const usResults = await getUSAirportSearch().searchAirports(trimmedQuery, {
             limit: maxResults,
             includeInternational,
             includeRegional,
@@ -271,7 +271,7 @@ export function useUSAirportSearch(
     
     return popularCodes
       .map(code => {
-        const airport = usAirportSearch.getAirportByCode(code);
+        const airport = getUSAirportSearch().getAirportByCode(code);
         if (airport) {
           return {
             iataCode: airport.iataCode,
@@ -300,7 +300,7 @@ export function useUSAirportSearch(
    * Get airport by IATA code
    */
   const getAirportByCode = useCallback((iataCode: string): AirportSearchResult | null => {
-    const airport = usAirportSearch.getAirportByCode(iataCode);
+    const airport = getUSAirportSearch().getAirportByCode(iataCode);
     if (airport) {
       return {
         iataCode: airport.iataCode,
@@ -334,14 +334,14 @@ export function useUSAirportSearch(
    * Check if route is domestic US
    */
   const isDomesticRoute = useCallback((origin: string, destination: string): boolean => {
-    return usAirportSearch.isDomesticRoute(origin, destination);
+    return getUSAirportSearch().isDomesticRoute(origin, destination);
   }, []);
 
   /**
    * Get timezone difference between airports
    */
   const getTimezoneDifference = useCallback((origin: string, destination: string): number => {
-    return usAirportSearch.getTimezoneDifference(origin, destination);
+    return getUSAirportSearch().getTimezoneDifference(origin, destination);
   }, []);
 
   /**

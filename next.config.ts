@@ -188,8 +188,8 @@ const nextConfig: NextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
     
-    // ULTRATHINK: Advanced CPU utilization
-    cpus: Math.max(1, (require('os').cpus()?.length ?? 1) - 1),
+    // ULTRATHINK: Advanced CPU utilization  
+    cpus: Math.max(1, 4 - 1),
   },
   
   // Enhanced build output configuration
@@ -220,5 +220,9 @@ const nextConfig: NextConfig = {
     },
   },
 };
+
+// 🔧 TEMPORARY FIX: Force dynamic rendering to resolve DataCloneError
+// This bypasses static generation that's causing serialization issues
+export const dynamic = 'force-dynamic';
 
 export default nextConfig;

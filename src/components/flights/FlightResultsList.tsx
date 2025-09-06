@@ -206,10 +206,10 @@ export default function FlightResultsList({
   });
   
   // 🚀 ADVANCED ENGINES
-  const persuasionEngine = useRef(null as any); // Will be implemented when PersuasionEngine exists
-  const socialProofEngine = useRef(null as any); // Will be implemented when SocialProofEngine exists
-  const priceTracker = useRef(null as any); // Will be implemented when PriceTracker exists
-  const recommendationEngine = useRef(null as any); // Will be implemented when RecommendationEngine exists
+  const persuasionEngine = useRef({ trackInteraction: (...args: any[]) => {} }); // Will be implemented when PersuasionEngine exists
+  const socialProofEngine = useRef({ trackInteraction: (...args: any[]) => {}, learnFromFavorite: (...args: any[]) => {} }); // Will be implemented when SocialProofEngine exists
+  const priceTracker = useRef({ startTracking: (...args: any[]) => {}, stopTracking: (...args: any[]) => {} }); // Will be implemented when PriceTracker exists
+  const recommendationEngine = useRef({ generateRecommendations: (...args: any[]) => [], personalizeOffers: (...args: any[]) => [], trackInteraction: (...args: any[]) => {}, learnFromFavorite: (...args: any[]) => {} }); // Will be implemented when RecommendationEngine exists
   const gamificationEngine = useRef(new GamificationEngine());
   // SuperAmadeusClient removed from client-side - API calls handled by server endpoints
 

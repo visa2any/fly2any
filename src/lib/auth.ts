@@ -301,7 +301,7 @@ export const authOptions: NextAuthConfig = {
         console.warn('[NextAuth Warning]', code);
       }
     },
-    debug: () => {}, // Disable debug logging
+    debug: undefined, // Disable debug logging
   }
 };
 
