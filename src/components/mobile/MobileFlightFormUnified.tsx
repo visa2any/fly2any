@@ -410,7 +410,7 @@ export default function MobileFlightFormUnified({
   // ========================================================================================
 
   return (
-    <div className={`flex flex-col ${modeStyles.container} ${className}`}>
+    <div className={`flex flex-col h-full ${modeStyles.container} ${className}`}>
       
 
       {/* MAIN CONTENT AREA */}
