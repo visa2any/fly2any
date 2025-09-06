@@ -342,21 +342,21 @@ export default function MobileInsuranceForm({ onUpdate, initialData, className =
 
                 <div className="bg-neutral-50 rounded-xl p-4">
                   <h5 className="font-medium text-neutral-900 mb-3">Coberturas Adicionais (opcionais)</h5>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {coverageOptions.map((coverage) => (
-                      <label key={coverage.key} className="flex items-start gap-3 p-2 hover:bg-white rounded-lg transition-colors duration-200">
+                      <label key={coverage.key} className="flex items-start gap-2 p-2 hover:bg-white rounded-lg transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={formData[coverage.key as keyof typeof formData] as boolean}
                           onChange={(e) => updateFormData(coverage.key, e.target.checked)}
-                          className="w-5 h-5 rounded border-neutral-300 text-success-600 focus:ring-success-500 mt-0.5"
+                          className="w-4 h-4 rounded border-neutral-300 text-success-600 focus:ring-success-500 mt-1"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-lg">{coverage.icon}</span>
-                            <span className="text-sm font-medium text-neutral-900">{coverage.label}</span>
+                            <span className="text-base">{coverage.icon}</span>
+                            <span className="text-xs font-medium text-neutral-900 leading-tight">{coverage.label}</span>
                           </div>
-                          <p className="text-xs text-neutral-500 mt-1">{coverage.description}</p>
+                          <p className="text-xs text-neutral-500 leading-tight">{coverage.description}</p>
                         </div>
                       </label>
                     ))}
@@ -377,66 +377,66 @@ export default function MobileInsuranceForm({ onUpdate, initialData, className =
                 <div className="space-y-4">
                   <div className="bg-neutral-50 rounded-xl p-4">
                     <h5 className="font-medium text-neutral-900 mb-3">Condições Especiais</h5>
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors duration-200">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={formData.gestante}
                           onChange={(e) => updateFormData('gestante', e.target.checked)}
-                          className="w-5 h-5 rounded border-neutral-300 text-success-600 focus:ring-success-500"
+                          className="w-4 h-4 rounded border-neutral-300 text-success-600 focus:ring-success-500"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🤰</span>
-                          <span className="text-sm text-neutral-700">Alguma viajante está grávida</span>
+                          <span className="text-base">🤰</span>
+                          <span className="text-xs text-neutral-700 leading-tight">Alguma viajante está grávida</span>
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors duration-200">
+                      <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={formData.praticaEsportes}
                           onChange={(e) => updateFormData('praticaEsportes', e.target.checked)}
-                          className="w-5 h-5 rounded border-neutral-300 text-success-600 focus:ring-success-500"
+                          className="w-4 h-4 rounded border-neutral-300 text-success-600 focus:ring-success-500"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🏃</span>
-                          <span className="text-sm text-neutral-700">Praticaremos esportes ou atividades de risco</span>
+                          <span className="text-base">🏃</span>
+                          <span className="text-xs text-neutral-700 leading-tight">Praticaremos esportes ou atividades de risco</span>
                         </div>
                       </label>
 
                       {formData.praticaEsportes && (
-                        <div className="ml-8">
+                        <div className="ml-6">
                           <input
                             type="text"
                             value={formData.esportesEspecificos}
                             onChange={(e) => updateFormData('esportesEspecificos', e.target.value)}
-                            placeholder="Especifique os esportes: ski, mergulho, escalada..."
-                            className="w-full px-3 py-2 rounded-lg border border-neutral-200 focus:border-success-500 focus:ring-1 focus:ring-success-500/20 transition-all duration-200 text-sm"
+                            placeholder="Especifique: ski, mergulho, escalada..."
+                            className="w-full px-3 py-2 rounded-lg border border-neutral-200 focus:border-success-500 focus:ring-1 focus:ring-success-500/20 transition-all duration-200 text-xs"
                           />
                         </div>
                       )}
 
-                      <label className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors duration-200">
+                      <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={formData.condicoesPreexistentes}
                           onChange={(e) => updateFormData('condicoesPreexistentes', e.target.checked)}
-                          className="w-5 h-5 rounded border-neutral-300 text-success-600 focus:ring-success-500"
+                          className="w-4 h-4 rounded border-neutral-300 text-success-600 focus:ring-success-500"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">💊</span>
-                          <span className="text-sm text-neutral-700">Algum viajante tem condições de saúde pré-existentes</span>
+                          <span className="text-base">💊</span>
+                          <span className="text-xs text-neutral-700 leading-tight">Condições de saúde pré-existentes</span>
                         </div>
                       </label>
 
                       {formData.condicoesPreexistentes && (
-                        <div className="ml-8">
+                        <div className="ml-6">
                           <textarea
                             value={formData.condicoesDetalhes}
                             onChange={(e) => updateFormData('condicoesDetalhes', e.target.value)}
-                            placeholder="Descreva as condições: diabetes, hipertensão, problemas cardíacos..."
-                            rows={3}
-                            className="w-full px-3 py-2 rounded-lg border border-neutral-200 focus:border-success-500 focus:ring-1 focus:ring-success-500/20 transition-all duration-200 text-sm resize-none"
+                            placeholder="Descreva: diabetes, hipertensão, problemas cardíacos..."
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-lg border border-neutral-200 focus:border-success-500 focus:ring-1 focus:ring-success-500/20 transition-all duration-200 text-xs resize-none"
                           />
                         </div>
                       )}
@@ -499,9 +499,9 @@ export default function MobileInsuranceForm({ onUpdate, initialData, className =
                   </div>
                 </label>
 
-                <div className="bg-success-50 rounded-xl p-4">
-                  <h5 className="font-medium text-success-900 mb-2">✅ O que está incluso:</h5>
-                  <ul className="space-y-1 text-sm text-success-800">
+                <div className="bg-success-50 rounded-xl p-3">
+                  <h5 className="font-medium text-success-900 mb-2 text-sm">✅ O que está incluso:</h5>
+                  <ul className="grid grid-cols-1 gap-1 text-xs text-success-800 leading-tight">
                     <li>• Despesas médicas e hospitalares no exterior</li>
                     <li>• Regresso sanitário em caso de emergência</li>
                     <li>• Cobertura para COVID-19 (nos planos premium)</li>

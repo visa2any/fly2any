@@ -335,22 +335,22 @@ export default function MobileTourForm({ onUpdate, initialData, className = '' }
 
                 <div className="bg-neutral-50 rounded-xl p-4">
                   <h5 className="font-medium text-neutral-900 mb-3">Serviços Inclusos (opcionais)</h5>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { key: 'guiaLocal', label: 'Guia Local', icon: '👨‍🏫' },
                       { key: 'transporteIncluso', label: 'Transporte Incluso', icon: '🚌' },
                       { key: 'refeicoes', label: 'Refeições', icon: '🍽️' },
                       { key: 'fotografo', label: 'Fotógrafo Profissional', icon: '📸' }
                     ].map((service) => (
-                      <label key={service.key} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-colors duration-200">
+                      <label key={service.key} className="flex items-center gap-2 p-2 hover:bg-white rounded-lg transition-colors duration-200">
                         <input
                           type="checkbox"
                           checked={formData[service.key as keyof typeof formData] as boolean}
                           onChange={(e) => updateFormData(service.key, e.target.checked)}
-                          className="w-5 h-5 rounded border-neutral-300 text-warning-600 focus:ring-warning-500"
+                          className="w-4 h-4 rounded border-neutral-300 text-warning-600 focus:ring-warning-500"
                         />
-                        <span className="text-lg">{service.icon}</span>
-                        <span className="text-sm text-neutral-700">{service.label}</span>
+                        <span className="text-base">{service.icon}</span>
+                        <span className="text-xs text-neutral-700 leading-tight">{service.label}</span>
                       </label>
                     ))}
                   </div>
