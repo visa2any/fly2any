@@ -25,7 +25,7 @@ export {
 export type { USAirport } from './us-airports-database';
 
 // Search service exports
-export { usAirportSearch } from './us-airport-search';
+export { getUSAirportSearch } from './us-airport-search';
 export type { 
   AirportSearchResult as USAirportSearchResult,
   AirportSearchOptions as USAirportSearchOptions 

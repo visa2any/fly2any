@@ -171,7 +171,7 @@ export default function EnterpriseDatePicker({
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
   // Add empty cells for proper calendar layout
-  const startPadding = Array(monthStart.getDay()).fill(null);
+  const startPadding = Array(monthStart.getDay()).fill(0);
   const allDays = [...startPadding, ...calendarDays];
   
   // Navigation handlers

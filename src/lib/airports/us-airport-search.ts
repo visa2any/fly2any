@@ -223,7 +223,7 @@ class USAirportSearchService {
     if (len1 === 0) return len2 === 0 ? 1 : 0;
     if (len2 === 0) return 0;
 
-    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(null));
+    const matrix = Array(len1 + 1).fill(0).map(() => Array(len2 + 1).fill(0));
 
     for (let i = 0; i <= len1; i++) matrix[i][0] = i;
     for (let j = 0; j <= len2; j++) matrix[0][j] = j;
@@ -547,6 +547,15 @@ class USAirportSearchService {
   }
 }
 
-// Export singleton instance
-export const usAirportSearch = new USAirportSearchService();
-export default usAirportSearch;
+// Lazy-loaded singleton to avoid initialization during build time
+let _instance: USAirportSearchService | null = null;
+
+export const getUSAirportSearch = (): USAirportSearchService => {
+  if (!_instance) {
+    _instance = new USAirportSearchService();
+  }
+  return _instance;
+};
+
+// Export lazy getter as default to avoid immediate initialization
+export default getUSAirportSearch;
