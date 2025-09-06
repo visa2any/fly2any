@@ -569,12 +569,19 @@ export const marketingEngine = new MarketingPsychologyEngine()
 
 // Export helper functions for components
 export function useMarketingPsychology() {
+  // Create serialization-safe function references
   return {
-    trackBehavior: marketingEngine.trackUserBehavior.bind(marketingEngine),
-    trackConversion: marketingEngine.trackConversionEvent.bind(marketingEngine),
-    createLead: marketingEngine.createHubSpotLead.bind(marketingEngine),
-    generateMessage: marketingEngine.generatePsychologyMessage.bind(marketingEngine),
-    calculateDiscount: marketingEngine.calculateOptimalDiscount.bind(marketingEngine),
-    getFunnel: marketingEngine.getConversionFunnel.bind(marketingEngine)
+    trackBehavior: (userId: string, behaviorType: string, metadata?: any) => 
+      marketingEngine.trackUserBehavior(userId, behaviorType, metadata),
+    trackConversion: (userId: string, eventType: string, value?: number) => 
+      marketingEngine.trackConversionEvent(userId, eventType, value),
+    createLead: (leadData: any) => 
+      marketingEngine.createHubSpotLead(leadData),
+    generateMessage: (trigger: string, context?: any) => 
+      marketingEngine.generatePsychologyMessage(trigger, context),
+    calculateDiscount: (basePrice: number, userProfile?: any) => 
+      marketingEngine.calculateOptimalDiscount(basePrice, userProfile),
+    getFunnel: (userId: string) => 
+      marketingEngine.getConversionFunnel(userId)
   }
 }

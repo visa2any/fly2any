@@ -331,11 +331,16 @@ if (typeof window !== 'undefined') {
 
 // Utility function for React components
 export function useOfflineFormSubmission() {
+  // Create serialization-safe function references
   return {
-    submitForm: offlineFormHandler.submitForm.bind(offlineFormHandler),
-    getQueueStatus: offlineFormHandler.getQueueStatus.bind(offlineFormHandler),
-    processQueue: offlineFormHandler.processQueue.bind(offlineFormHandler),
-    clearQueue: offlineFormHandler.clearQueue.bind(offlineFormHandler)
+    submitForm: (formData: FormData, endpoint: string, metadata?: any) => 
+      offlineFormHandler.submitForm(formData, endpoint, metadata),
+    getQueueStatus: () => 
+      offlineFormHandler.getQueueStatus(),
+    processQueue: () => 
+      offlineFormHandler.processQueue(),
+    clearQueue: () => 
+      offlineFormHandler.clearQueue()
   };
 }
 

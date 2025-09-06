@@ -17,7 +17,7 @@ export function useSafeState<T>(initialState: T | (() => T), hookName?: string):
   
   return useSafeHook(
     () => useState(initialState),
-    [initialState as T, () => {}], // fallback state with serializable function
+    [initialState as T, (value: T | ((prev: T) => T)) => { /* no-op setter for SSG fallback */ }], // fallback state with explicit no-op
     hookName || 'useState'
   );
 }
