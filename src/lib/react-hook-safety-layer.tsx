@@ -12,12 +12,15 @@ const { useState, useEffect, useCallback, useMemo, useRef, useContext } = React;
 import { useReactRuntime, useSafeHook } from './enterprise-react-runtime';
 
 // ENTERPRISE: Safe useState wrapper
+// Create a reusable no-op setter to avoid inline function serialization issues
+const noOpSetter = () => { /* no-op setter for SSG fallback */ };
+
 export function useSafeState<T>(initialState: T | (() => T), hookName?: string): [T, (value: T | ((prev: T) => T)) => void] {
   const runtimeContext = useReactRuntime();
   
   return useSafeHook(
     () => useState(initialState),
-    [initialState as T, (value: T | ((prev: T) => T)) => { /* no-op setter for SSG fallback */ }], // fallback state with explicit no-op
+    [initialState as T, noOpSetter], // fallback state with reusable no-op
     hookName || 'useState'
   );
 }

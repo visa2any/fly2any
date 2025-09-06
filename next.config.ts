@@ -221,6 +221,9 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Enhanced build output configuration
+nextConfig.output = process.env.NODE_ENV === 'production' ? 'standalone' : undefined;
+
 // 🔧 TEMPORARY FIX: Force dynamic rendering to resolve DataCloneError
 // This bypasses static generation that's causing serialization issues
 export const dynamic = 'force-dynamic';

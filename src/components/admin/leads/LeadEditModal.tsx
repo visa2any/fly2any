@@ -1,6 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+
+// Create reusable no-op functions to avoid serialization issues
+const defaultOnCreateTag = () => {};
+const defaultOnUpdateTag = () => {};
+const defaultOnDeleteTag = () => {};
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,9 +95,9 @@ export function LeadEditModal({
   onSave, 
   isLoading = false,
   availableTags = [],
-  onCreateTag = () => {},
-  onUpdateTag = () => {},
-  onDeleteTag = () => {}
+  onCreateTag = defaultOnCreateTag,
+  onUpdateTag = defaultOnUpdateTag,
+  onDeleteTag = defaultOnDeleteTag
 }: LeadEditModalProps) {
   const [formData, setFormData] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('details');

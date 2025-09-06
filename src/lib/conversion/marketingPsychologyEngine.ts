@@ -12,10 +12,10 @@ export function useMarketingPsychology() {
 }
 
 export const marketingEngine = {
-  trackUserBehavior: () => Promise.resolve(),
-  trackConversionEvent: () => Promise.resolve(),
-  createHubSpotLead: () => Promise.resolve(),
-  generatePsychologyMessage: () => '',
-  calculateOptimalDiscount: () => 0,
-  getConversionFunnel: () => ({ funnel: [], conversionRate: 0 })
+  trackUserBehavior: (...args: any[]) => Promise.resolve(),
+  trackConversionEvent: (...args: any[]) => Promise.resolve(),
+  createHubSpotLead: (...args: any[]) => Promise.resolve(),
+  generatePsychologyMessage: (...args: any[]) => '',
+  calculateOptimalDiscount: (...args: any[]) => 0,
+  getConversionFunnel: (...args: any[]) => ({ funnel: [], conversionRate: 0 })
 }

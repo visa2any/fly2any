@@ -52,9 +52,8 @@ export interface TravelStore extends SearchState, CartState, UserState {
   updateInventory: (updates: any) => void;
 }
 
-// Mock implementation
-const mockStore: TravelStore = {
-  // State
+// Mock state data (serializable)
+const mockState = {
   isSearching: false,
   searchParams: {},
   searchResults: null,
@@ -66,8 +65,10 @@ const mockStore: TravelStore = {
   isAuthenticated: false,
   userId: null,
   userPreferences: {},
-  
-  // Actions (all no-op but serializable)
+};
+
+// Mock action functions (defined separately to avoid serialization issues)
+const mockActions = {
   setSearchParams: () => {},
   setSearchResults: () => {},
   setSearching: () => {},
@@ -95,12 +96,20 @@ const mockStore: TravelStore = {
   updateInventory: () => {},
 };
 
-// Mock hooks
-export const useTravelStore = () => mockStore;
-export const useSearchState = () => mockStore;
-export const useCartState = () => mockStore;
-export const useUserState = () => mockStore;
-export const useNotificationState = () => mockStore;
-export const useConversionState = () => mockStore;
+// Create store dynamically to avoid serialization of functions
+const createMockStore = (): TravelStore => ({
+  ...mockState,
+  ...mockActions,
+});
+
+const mockStore = createMockStore();
+
+// Mock hooks (create new instances to avoid serialization)
+export const useTravelStore = () => createMockStore();
+export const useSearchState = () => createMockStore();
+export const useCartState = () => createMockStore();
+export const useUserState = () => createMockStore();
+export const useNotificationState = () => createMockStore();
+export const useConversionState = () => createMockStore();
 
 export default mockStore;

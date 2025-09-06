@@ -1,6 +1,10 @@
 'use client';
 
 import React from 'react';
+
+// Create reusable no-op functions to avoid serialization issues
+const defaultOnBulkAddTags = () => {};
+const defaultOnBulkRemoveTags = () => {};
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,8 +60,8 @@ export function BulkActions({
   onBulkExport,
   onBulkEmail,
   onBulkWhatsApp,
-  onBulkAddTags = () => {},
-  onBulkRemoveTags = () => {},
+  onBulkAddTags = defaultOnBulkAddTags,
+  onBulkRemoveTags = defaultOnBulkRemoveTags,
   availableTags = []
 }: BulkActionsProps) {
   if (selectedLeads.length === 0) {
