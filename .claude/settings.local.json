@@ -334,7 +334,9 @@
       "Read(//c/**)",
       "Bash(echo $HOME)",
       "Bash(echo $PROFILE)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
