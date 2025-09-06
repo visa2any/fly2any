@@ -47,7 +47,6 @@
     "@whiskeysockets/baileys": "^6.7.2",
     "autoprefixer": "10.4.17",
     "aws-sdk": "^2.1691.0",
-    "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
