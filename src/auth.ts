@@ -96,24 +96,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
-    async authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnAdmin = nextUrl.pathname.startsWith('/admin');
-      const isOnLogin = nextUrl.pathname === '/admin/login';
-      
-      // Allow access to login page
-      if (isOnLogin) {
-        return true;
-      }
-      
-      // Protect admin routes
-      if (isOnAdmin) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      }
-      
-      return true;
-    },
   },
   secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024',
 })
