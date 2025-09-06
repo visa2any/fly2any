@@ -50,6 +50,7 @@ import MobileHotelFormUnified from '@/components/mobile/MobileHotelFormUnified';
 import MobileCarFormUnified from '@/components/mobile/MobileCarFormUnified';
 import MobileTourFormUnified from '@/components/mobile/MobileTourFormUnified';
 import MobileInsuranceFormUnified from '@/components/mobile/MobileInsuranceFormUnified';
+import MobileSuccessModal from '@/components/mobile/MobileSuccessModal';
 // Enterprise hydration-safe hooks
 import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
 // CSS Module for cleaner styling
@@ -212,6 +213,16 @@ export default function Home() {
   const [showMobileCarForm, setShowMobileCarForm] = useState(false);
   const [showMobileTourForm, setShowMobileTourForm] = useState(false);
   const [showMobileInsuranceForm, setShowMobileInsuranceForm] = useState(false);
+  
+  // Mobile Success Modal State
+  const [showMobileSuccessModal, setShowMobileSuccessModal] = useState(false);
+  const [mobileSuccessData, setMobileSuccessData] = useState<{
+    nome?: string;
+    email?: string;
+    servicos?: string[];
+    leadId?: string;
+  }>({});
+  
   // Removed mobile-specific state to fix hook rule violations
 
   // Social proof notifications data
@@ -603,10 +614,19 @@ export default function Home() {
       
       console.log(`✅ [MOBILE ${serviceType.toUpperCase()}] Lead submitted successfully:`, result.data?.leadId);
       
-      // Close form and show success
+      // Close form and show mobile success modal
       formStateSetter(false);
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 5000);
+      
+      // Set success modal data
+      setMobileSuccessData({
+        nome: leadData.nome,
+        email: leadData.email,
+        servicos: [serviceType],
+        leadId: result.data?.leadId || `FLY${Date.now()}`
+      });
+      
+      // Show mobile success modal
+      setShowMobileSuccessModal(true);
       
       // Optional: Scroll to top smoothly
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4571,6 +4591,13 @@ export default function Home() {
         <div className="desktop-footer-visible">
           <LiveSiteFooter />
         </div>
+        
+        {/* Mobile Success Modal - ULTRATHINK Mobile Optimized */}
+        <MobileSuccessModal
+          isOpen={showMobileSuccessModal}
+          onClose={() => setShowMobileSuccessModal(false)}
+          leadData={mobileSuccessData}
+        />
       </>
     );
 }

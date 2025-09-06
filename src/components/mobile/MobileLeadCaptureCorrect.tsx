@@ -32,7 +32,7 @@ import MobileHotelForm from './MobileHotelForm';
 import MobileCarForm from './MobileCarForm';
 import MobileTourForm from './MobileTourForm';
 import MobileInsuranceForm from './MobileInsuranceForm';
-import PremiumSuccessModal from './PremiumSuccessModal';
+import MobileSuccessModal from './MobileSuccessModal';
 import Logo from '@/components/Logo';
 
 interface ServiceData {
@@ -1481,7 +1481,7 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
       </div>
 
       {/* Premium Success Modal - ULTRATHINK Enhancement */}
-      <PremiumSuccessModal
+      <MobileSuccessModal
         isOpen={showSuccessModal}
         onClose={() => {
           setShowSuccessModal(false);
@@ -1493,8 +1493,8 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
         leadData={successData}
       />
 
-      {/* ULTRATHINK: Premium Error Modal */}
-      <PremiumSuccessModal
+      {/* ULTRATHINK: Mobile Error Modal - TODO: Create dedicated error modal */}
+      <MobileSuccessModal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
         leadData={{

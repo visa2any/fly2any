@@ -43,6 +43,7 @@ interface PhoneInputProps {
   required?: boolean;
   label?: string;
   defaultCountry?: string;
+  className?: string;
 }
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
@@ -54,7 +55,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   touched,
   required = false,
   label,
-  defaultCountry = 'BR'
+  defaultCountry = 'BR',
+  className
 }) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(
     countries.find(c => c.code === defaultCountry) || countries[0]
@@ -139,7 +141,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   );
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={className} style={{ position: 'relative' }}>
       {label && (
         <label style={{ 
           display: 'block', 
