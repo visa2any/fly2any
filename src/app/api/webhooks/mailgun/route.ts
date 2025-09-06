@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import crypto from 'crypto';
+
+// Force this API route to use Node.js runtime to support crypto operations
+export const runtime = 'nodejs';
 import { prisma } from '@/lib/database/prisma';
 import { eventSystem } from '@/lib/email/event-system';
 import { getExtendedEmailLogField, createSafeUserUpdate } from '@/lib/database/email-status-handler';

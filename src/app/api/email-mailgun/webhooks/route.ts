@@ -3,6 +3,9 @@ import crypto from 'crypto';
 import { prisma } from '@/lib/database/prisma';
 import { createSafeEmailLogUpdate, createSafeUserUpdate } from '@/lib/database/email-status-handler';
 
+// Force this API route to use Node.js runtime to support crypto operations
+export const runtime = 'nodejs';
+
 /**
  * 🎯 MAILGUN WEBHOOK HANDLER
  * Handles delivery, bounce, complaint, and other email events

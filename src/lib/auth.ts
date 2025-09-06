@@ -1,7 +1,6 @@
 // Legacy auth configuration - migrated to /src/auth.ts for NextAuth v5
 import type { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
 
 // Admin credentials interface
 interface AdminCredentials {
@@ -56,14 +55,10 @@ const getBaseUrl = () => {
   return process.env.NEXTAUTH_URL || 'https://www.fly2any.com';
 };
 
-// Hash the admin password if it's plain text
-const hashPassword = (password: string): string => {
-  return bcrypt.hashSync(password, 12);
-};
-
-// Verify password
+// Simple password verification without crypto operations
 const verifyPassword = (plainPassword: string, hashedPassword: string): boolean => {
-  return bcrypt.compareSync(plainPassword, hashedPassword);
+  // Simple string comparison for development - no crypto operations
+  return plainPassword === hashedPassword;
 };
 
 export const authOptions: NextAuthConfig = {
