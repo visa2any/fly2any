@@ -35,24 +35,6 @@ const nextConfig: NextConfig = {
     dirs: ['src'],
   },
   
-  // Simplified webpack configuration for better performance
-  webpack: (config: any, { dev, isServer }: { dev: boolean; isServer: boolean }) => {
-    // Node.js polyfills for client-side builds
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-        stream: false,
-        url: false,
-        querystring: false,
-      };
-    }
-
-    return config;
-  },
   
   // Security headers configuration
   async headers() {
