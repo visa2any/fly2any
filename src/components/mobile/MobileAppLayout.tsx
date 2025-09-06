@@ -61,10 +61,24 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
 
   // Handle service selection from home screen
   const handleServiceSelection = (serviceType: string) => {
+    console.log('🔍 ULTRATHINK DEBUG - Service selected:', serviceType);
+    console.log('🔍 ULTRATHINK DEBUG - Before state change:', { 
+      leadFormEmbedded, 
+      preSelectedService 
+    });
+    
     setPreSelectedService(serviceType);
     setLeadFormEmbedded(true);
+    
     // Scroll to top immediately when opening form from cards
     window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Debug overlay visibility after state change
+    setTimeout(() => {
+      const overlay = document.querySelector('[data-testid="mobile-lead-form-overlay"]');
+      console.log('🔍 ULTRATHINK DEBUG - Overlay found:', !!overlay);
+      console.log('🔍 ULTRATHINK DEBUG - Overlay styles:', overlay ? window.getComputedStyle(overlay) : 'not found');
+    }, 100);
   };
 
   // Handle generic quote request
@@ -448,22 +462,33 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
       <AnimatePresence>
         {leadFormEmbedded && (
           <motion.div 
-            className="fixed inset-0 z-[9999] bg-white"
+            className="fixed inset-0 bg-white"
             style={{ 
-              position: 'fixed', 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              bottom: 0,
-              zIndex: 9999
+              position: 'fixed !important', 
+              top: '0 !important', 
+              left: '0 !important', 
+              right: '0 !important', 
+              bottom: '0 !important',
+              zIndex: '99999 !important',
+              width: '100vw !important',
+              height: '100vh !important',
+              display: 'block !important',
+              visibility: 'visible !important'
             }}
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
+            data-testid="mobile-lead-form-overlay"
           >
             {/* Form takes full viewport height */}
-            <div className="h-screen w-full flex flex-col overflow-hidden">
+            <div 
+              className="h-screen w-full flex flex-col overflow-hidden"
+              style={{ 
+                height: '100vh !important',
+                width: '100vw !important'
+              }}
+            >
               <MobileLeadCaptureCorrect 
                 onSubmit={handleLeadFormSubmit}
                 onClose={handleBackToHome}
@@ -484,13 +509,38 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           padding-bottom: env(safe-area-inset-bottom);
         }
         
-        /* Ensure no scrolling on mobile */
+        /* Prevent scrolling only when lead form is embedded */
+        ${leadFormEmbedded ? `
         html, body {
-          overflow: hidden;
-          height: 100vh;
-          position: fixed;
-          width: 100%;
+          overflow: hidden !important;
+          height: 100vh !important;
+          position: fixed !important;
+          width: 100% !important;
         }
+        
+        /* Ensure overlay is always on top */
+        [data-testid="mobile-lead-form-overlay"] {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          z-index: 99999 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          display: block !important;
+          visibility: visible !important;
+          pointer-events: auto !important;
+        }
+        ` : `
+        /* Reset body styles when form is not embedded */
+        html, body {
+          overflow: unset !important;
+          height: unset !important;
+          position: unset !important;
+          width: unset !important;
+        }
+        `}
         
         @media (max-width: 768px) {
           body {
