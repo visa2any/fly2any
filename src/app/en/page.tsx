@@ -33,6 +33,9 @@ import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
 import { cities } from '@/data/cities';
 
+// Safe empty function for build serialization - proper serializable function
+const emptyFunction = () => {};
+
 interface ServiceFormData {
   serviceType: 'flights' | 'hotels' | 'cars' | 'tours' | 'insurance';
   completed: boolean;
@@ -1770,7 +1773,7 @@ export default function EnglishHomePage() {
         {/* Interactive Components */}
         <FloatingChat />
         <ChatAgent />
-        <LeadCaptureSimple isOpen={false} onClose={() => {}} />
+        <LeadCaptureSimple isOpen={false} onClose={emptyFunction} />
         <NewsletterCapture />
         <ExitIntentPopup />
 

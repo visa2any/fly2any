@@ -67,7 +67,7 @@ const mockStore: TravelStore = {
   userId: null,
   userPreferences: {},
   
-  // Actions (all no-op)
+  // Actions (all no-op but serializable)
   setSearchParams: () => {},
   setSearchResults: () => {},
   setSearching: () => {},

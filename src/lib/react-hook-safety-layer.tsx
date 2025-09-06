@@ -17,7 +17,7 @@ export function useSafeState<T>(initialState: T | (() => T), hookName?: string):
   
   return useSafeHook(
     () => useState(initialState),
-    [initialState as T, () => {}], // fallback state
+    [initialState as T, () => {}], // fallback state with serializable function
     hookName || 'useState'
   );
 }
@@ -123,7 +123,7 @@ export function useSafePathname(): string {
 // ENTERPRISE: Safe Router Hook (replaces useRouter)
 export function useSafeRouter() {
   const runtimeContext = useReactRuntime();
-  const [router, setRouter] = useSafeState<any>(null, 'SafeRouter');
+  const [router, setRouter] = useSafeState<any>({}, 'SafeRouter');
 
   useSafeEffect(() => {
     if (!runtimeContext.isServerSide && runtimeContext.state.hasValidContext) {
@@ -239,7 +239,7 @@ export function useSafeMobileDetection(): boolean {
 export function useSafeFormHandling<T>(initialState: T, onSubmit?: (data: T) => Promise<void>) {
   const [formData, setFormData] = useSafeState<T>(initialState, 'SafeFormHandling');
   const [isSubmitting, setIsSubmitting] = useSafeState(false, 'SafeFormSubmitting');
-  const [submitError, setSubmitError] = useSafeState<string | null>(null, 'SafeFormError');
+  const [submitError, setSubmitError] = useSafeState<string | null>('', 'SafeFormError');
 
   const handleSubmit = useSafeCallback(async (e?: React.FormEvent) => {
     if (e) {
@@ -250,7 +250,7 @@ export function useSafeFormHandling<T>(initialState: T, onSubmit?: (data: T) => 
 
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
+      setSubmitError('');
 
       if (onSubmit) {
         await onSubmit(formData);
@@ -274,7 +274,7 @@ export function useSafeFormHandling<T>(initialState: T, onSubmit?: (data: T) => 
     handleSubmit,
     isSubmitting,
     submitError,
-    clearError: () => setSubmitError(null)
+    clearError: () => setSubmitError('')
   };
 }
 
