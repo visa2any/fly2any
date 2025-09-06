@@ -1,4 +1,7 @@
 'use client';
+export const dynamic = 'force-dynamic';
+
+// Force dynamic rendering to avoid DataCloneError during build
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import Link from 'next/link';

@@ -58,7 +58,7 @@ export interface UseSouthAmericaAirportSearchReturn {
   
   // Quick access methods
   getPopularAirports: () => SouthAmericaAirportSearchResult[];
-  getAirportByCode: (iataCode: string) => SouthAmericaAirportSearchResult | null;
+  getAirportByCode: (iataCode: string) => SouthAmericaAirportSearchResult | undefined;
   getPopularRoutes: () => Array<{ from: string; to: string; route: string; popularity: number }>;
   
   // Helper methods
@@ -315,7 +315,7 @@ export function useSouthAmericaAirportSearch(
             timezone: airport.timezone
           };
         }
-        return null;
+        return undefined;
       })
       .filter(Boolean) as SouthAmericaAirportSearchResult[];
   }, []);
@@ -323,7 +323,7 @@ export function useSouthAmericaAirportSearch(
   /**
    * Get airport by IATA code
    */
-  const getAirportByCode = useCallback((iataCode: string): SouthAmericaAirportSearchResult | null => {
+  const getAirportByCode = useCallback((iataCode: string): SouthAmericaAirportSearchResult | undefined => {
     const airport = southAmericaAirportSearch.getAirportByCode(iataCode);
     if (airport) {
       return {
@@ -346,7 +346,7 @@ export function useSouthAmericaAirportSearch(
         timezone: airport.timezone
       };
     }
-    return null;
+    return undefined;
   }, []);
 
   /**

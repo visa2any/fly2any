@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, ChangeEvent } from 'react';
 import Link from 'next/link';

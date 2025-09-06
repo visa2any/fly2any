@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 /**
  * Seat Selection Page - Interactive seat map

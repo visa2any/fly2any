@@ -56,7 +56,7 @@ export interface UseUSAirportSearchReturn {
   
   // Quick access methods
   getPopularAirports: () => AirportSearchResult[];
-  getAirportByCode: (iataCode: string) => AirportSearchResult | null;
+  getAirportByCode: (iataCode: string) => AirportSearchResult | undefined;
   getPopularRoutes: () => Array<{ from: string; to: string; route: string; popularity: number }>;
   
   // Helper methods
@@ -299,7 +299,7 @@ export function useUSAirportSearch(
   /**
    * Get airport by IATA code
    */
-  const getAirportByCode = useCallback((iataCode: string): AirportSearchResult | null => {
+  const getAirportByCode = useCallback((iataCode: string): AirportSearchResult | undefined => {
     const airport = getUSAirportSearch().getAirportByCode(iataCode);
     if (airport) {
       return {
@@ -320,7 +320,7 @@ export function useUSAirportSearch(
         coordinates: airport.coordinates
       };
     }
-    return null;
+    return undefined;
   }, []);
 
   /**

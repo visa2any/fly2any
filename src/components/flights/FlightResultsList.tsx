@@ -342,9 +342,9 @@ export default function FlightResultsList({
   }, []);
   
   // More helper functions implemented within component for proper scope access
-  const generateTimingAdvice = useCallback((offer: ProcessedFlightOffer, searchData: any): AIInsight | null => {
+  const generateTimingAdvice = useCallback((offer: ProcessedFlightOffer, searchData: any): AIInsight | undefined => {
     // Implementation for timing advice
-    return null;
+    return undefined;
   }, []);
   
   const generateSegmentInsights = useCallback((segment: ProcessedSegment) => {

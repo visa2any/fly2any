@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { CampaignManager, Campaign, CampaignType, CampaignStatus, AudienceConfig, ScheduleConfig, ABTestConfig } from '@/lib/email/campaign-manager';

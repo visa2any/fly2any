@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 /**
  * 🚀 ULTRA-ADVANCED Flight Search System - US MARKET OPTIMIZED

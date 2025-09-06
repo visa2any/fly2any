@@ -2,6 +2,9 @@ import React from 'react';
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 
+// ULTRATHINK: Force dynamic rendering globally to prevent DataCloneError
+export const dynamic = 'force-dynamic';
+
 import Image from "next/image";
 import { Providers } from "@/components/providers";
 // ULTRATHINK ENTERPRISE: Advanced hydration safety components

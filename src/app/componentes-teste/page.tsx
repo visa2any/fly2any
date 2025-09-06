@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 import React from 'react';
 
 import SocialProof from '@/components/ui/social-proof'

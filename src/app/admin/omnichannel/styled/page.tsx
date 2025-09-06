@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import StyledOmnichannelDashboard from '@/components/omnichannel/StyledOmnichannelDashboard';

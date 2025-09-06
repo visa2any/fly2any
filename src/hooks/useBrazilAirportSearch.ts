@@ -56,7 +56,7 @@ export interface UseBrazilAirportSearchReturn {
   
   // Quick access methods
   getPopularAirports: () => BrazilAirportSearchResult[];
-  getAirportByCode: (iataCode: string) => BrazilAirportSearchResult | null;
+  getAirportByCode: (iataCode: string) => BrazilAirportSearchResult | undefined;
   getPopularRoutes: () => Array<{ from: string; to: string; route: string; popularity: number }>;
   
   // Helper methods
@@ -296,7 +296,7 @@ export function useBrazilAirportSearch(
             timezone: airport.timezone
           };
         }
-        return null;
+        return undefined;
       })
       .filter(Boolean) as BrazilAirportSearchResult[];
   }, []);
@@ -304,7 +304,7 @@ export function useBrazilAirportSearch(
   /**
    * Get airport by IATA code
    */
-  const getAirportByCode = useCallback((iataCode: string): BrazilAirportSearchResult | null => {
+  const getAirportByCode = useCallback((iataCode: string): BrazilAirportSearchResult | undefined => {
     const airport = brazilAirportSearch.getAirportByCode(iataCode);
     if (airport) {
       return {
@@ -326,7 +326,7 @@ export function useBrazilAirportSearch(
         timezone: airport.timezone
       };
     }
-    return null;
+    return undefined;
   }, []);
 
   /**
