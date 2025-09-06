@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(do sed -i 's/fill(null)/fill(0)/g' \"$file\")"
+      "Bash(do sed -i 's/fill(null)/fill(0)/g' \"$file\")",
+      "Bash(npx next:*)"
     ],
     "deny": [],
     "ask": []
