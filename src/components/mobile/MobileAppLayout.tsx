@@ -462,18 +462,18 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
       <AnimatePresence>
         {leadFormEmbedded && (
           <motion.div 
-            className="fixed inset-0 bg-white"
+            className="fixed inset-0 bg-white z-[99999]"
             style={{ 
-              position: 'fixed !important', 
-              top: '0 !important', 
-              left: '0 !important', 
-              right: '0 !important', 
-              bottom: '0 !important',
-              zIndex: '99999 !important',
-              width: '100vw !important',
-              height: '100vh !important',
-              display: 'block !important',
-              visibility: 'visible !important'
+              position: 'fixed', 
+              top: 0, 
+              left: 0, 
+              right: 0, 
+              bottom: 0,
+              zIndex: 99999,
+              width: '100vw',
+              height: '100vh',
+              display: 'block',
+              visibility: 'visible'
             }}
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
@@ -485,8 +485,8 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
             <div 
               className="h-screen w-full flex flex-col overflow-hidden"
               style={{ 
-                height: '100vh !important',
-                width: '100vw !important'
+                height: '100vh',
+                width: '100vw'
               }}
             >
               <MobileLeadCaptureCorrect 
@@ -518,7 +518,7 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           width: 100% !important;
         }
         
-        /* Ensure overlay is always on top */
+        /* Ensure overlay is always on top with maximum specificity */
         [data-testid="mobile-lead-form-overlay"] {
           position: fixed !important;
           top: 0 !important;
@@ -531,6 +531,16 @@ export default function MobileAppLayout({ children }: MobileAppLayoutProps) {
           display: block !important;
           visibility: visible !important;
           pointer-events: auto !important;
+          background-color: white !important;
+        }
+        
+        /* Ensure overlay container has proper dimensions */
+        [data-testid="mobile-lead-form-overlay"] > div {
+          height: 100vh !important;
+          width: 100vw !important;
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
         }
         ` : `
         /* Reset body styles when form is not embedded */
