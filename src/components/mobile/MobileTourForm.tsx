@@ -135,7 +135,7 @@ export default function MobileTourForm({ onUpdate, initialData, className = '' }
   };
 
   return (
-    <div className={`bg-white rounded-2xl shadow-neu-lg border border-neutral-200 overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-2xl shadow-neu-lg border border-neutral-200 ${className}`}>
       {/* Enhanced Header */}
       <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white p-4">
         <div className="flex items-center gap-3 mb-2">
