@@ -46,8 +46,7 @@ export default function AdminLoginPage() {
         const session = await Promise.race([sessionPromise, timeoutPromise]);
         if (session && typeof session === 'object' && session !== null && 'user' in session && session.user) {
           console.log('✅ [LOGIN] User already logged in, redirecting...');
-          // Use hard redirect to ensure middleware sees the session
-          window.location.href = callbackUrl;
+          router.replace(callbackUrl);
           return;
         }
       } catch (error) {
@@ -104,40 +103,12 @@ export default function AdminLoginPage() {
         console.log('✅ Login bem-sucedido!');
         console.log('🔄 NextAuth URL de retorno:', result.url);
         
-        // Wait for session to be properly established before redirect
-        console.log('✅ Login bem-sucedido! Aguardando sessão...');
-        
-        // Wait for session establishment and then redirect
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        const waitForSession = async () => {
-          attempts++;
-          try {
-            const session = await getSession();
-            if (session && session.user) {
-              console.log('✅ Sessão estabelecida! Redirecionando...');
-              const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
-              // Force a hard redirect to ensure middleware sees the session
-              window.location.href = targetUrl;
-              return;
-            }
-          } catch (error) {
-            console.warn('⚠️ Erro verificando sessão:', error);
-          }
-          
-          if (attempts < maxAttempts) {
-            console.log(`🔄 Tentativa ${attempts}/${maxAttempts} - Aguardando sessão...`);
-            setTimeout(waitForSession, 500);
-          } else {
-            console.log('⚠️ Timeout aguardando sessão. Forçando redirect...');
-            const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
-            window.location.href = targetUrl;
-          }
-        };
-        
-        // Start the session wait process
-        setTimeout(waitForSession, 500);
+        // Simple redirect without session polling
+        console.log('✅ Login bem-sucedido! Redirecionando...');
+        setTimeout(() => {
+          const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
+          router.push(targetUrl);
+        }, 1000);
       } else {
         console.error('❌ Resultado inesperado:', result);
         setError('Erro inesperado. Tente novamente.');

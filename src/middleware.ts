@@ -18,14 +18,34 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     
-    // Check for session token in cookies to determine if user is authenticated
-    const sessionToken = request.cookies.get('next-auth.session-token') || 
-                        request.cookies.get('__Secure-next-auth.session-token');
+    // Check for NextAuth v5 session tokens (multiple possible cookie names)
+    const possibleSessionCookies = [
+      'authjs.session-token',           // NextAuth v5 standard
+      'next-auth.session-token',        // NextAuth v4 fallback
+      '__Secure-next-auth.session-token', // Secure version
+      '__Secure-authjs.session-token',  // NextAuth v5 secure
+      'next-auth.csrf-token',           // CSRF token indicates active session
+      'authjs.csrf-token'               // NextAuth v5 CSRF
+    ];
     
-    if (sessionToken && sessionToken.value) {
-      console.log('✅ [MIDDLEWARE] Session token found, allowing admin access');
+    let sessionFound = false;
+    for (const cookieName of possibleSessionCookies) {
+      const cookie = request.cookies.get(cookieName);
+      if (cookie && cookie.value) {
+        console.log(`✅ [MIDDLEWARE] Session token found (${cookieName}), allowing admin access`);
+        sessionFound = true;
+        break;
+      }
+    }
+    
+    if (sessionFound) {
       return NextResponse.next();
     }
+    
+    // Debug: Log all cookies for troubleshooting
+    console.log('🔍 [MIDDLEWARE] Available cookies:', 
+      Array.from(request.cookies.getAll()).map(c => `${c.name}=${c.value.substring(0, 20)}...`)
+    );
     
     // No session found, redirect to login
     console.log('🔄 [MIDDLEWARE] No session found, redirecting to login');

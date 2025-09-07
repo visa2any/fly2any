@@ -23,7 +23,9 @@
       "Bash(timeout 30 npm run dev)",
       "Bash(tasklist:*)",
       "WebSearch",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
