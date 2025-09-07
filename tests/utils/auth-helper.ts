@@ -330,10 +330,11 @@ export class AuthHelper {
       }
     } catch (error) {
       console.error('❌ [AUTH-HELPER] Error validating authentication state:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         isAuthenticated: false,
         user: null,
-        sessionData: { error: error.message, timestamp: new Date() }
+        sessionData: { error: errorMessage, timestamp: new Date() }
       };
     }
   }
