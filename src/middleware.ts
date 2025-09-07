@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// Simple middleware without NextAuth dependency to avoid Edge Runtime issues
+// Improved middleware that allows authenticated users to access admin pages
 export function middleware(request: NextRequest) {
   const { nextUrl } = request;
   
@@ -18,8 +18,17 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     
-    // For other admin routes, redirect to login - let the page handle auth check
-    console.log('🔄 [MIDDLEWARE] Redirecting to login for admin route');
+    // Check for session token in cookies to determine if user is authenticated
+    const sessionToken = request.cookies.get('next-auth.session-token') || 
+                        request.cookies.get('__Secure-next-auth.session-token');
+    
+    if (sessionToken && sessionToken.value) {
+      console.log('✅ [MIDDLEWARE] Session token found, allowing admin access');
+      return NextResponse.next();
+    }
+    
+    // No session found, redirect to login
+    console.log('🔄 [MIDDLEWARE] No session found, redirecting to login');
     const loginUrl = new URL('/admin/login', nextUrl.origin);
     loginUrl.searchParams.set('callbackUrl', nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
