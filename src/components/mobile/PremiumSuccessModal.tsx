@@ -114,8 +114,8 @@ export default function PremiumSuccessModal({ isOpen, onClose, leadData }: Premi
               delay: 0.1
             }}
             className="relative w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden"
-            style={{ maxHeight: '280px' }}
             style={{
+              maxHeight: '280px',
               background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
             }}
