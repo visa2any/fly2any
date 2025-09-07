@@ -150,7 +150,7 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
 
   // Close dropdown when clicking outside and manage body scroll for mobile
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (isDropdownOpen && 
           dropdownRef.current && 
           buttonRef.current &&
@@ -158,11 +158,27 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
           !buttonRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
         setSearchTerm('');
+        // Restore body scrolling when closing
+        if (isMobile) {
+          document.body.style.overflow = '';
+        }
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isDropdownOpen) {
+        setIsDropdownOpen(false);
+        setSearchTerm('');
+        if (isMobile) {
+          document.body.style.overflow = '';
+        }
       }
     };
 
     if (isDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
       
       // Prevent body scrolling on mobile when dropdown is open
       if (isMobile) {
@@ -171,6 +187,8 @@ const PhoneInputSimple: React.FC<PhoneInputSimpleProps> = ({
       
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+        document.removeEventListener('keydown', handleEscapeKey);
         // Restore body scrolling
         if (isMobile) {
           document.body.style.overflow = '';

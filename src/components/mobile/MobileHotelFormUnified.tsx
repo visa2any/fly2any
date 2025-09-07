@@ -19,7 +19,7 @@ import {
   BuildingOffice2Icon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInput';
+import PhoneInputSimple from '@/components/PhoneInputSimple';
 import CityAutocomplete from '@/components/CityAutocomplete';
 import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
 import { cities } from '@/data/cities';
@@ -265,6 +265,11 @@ export default function MobileHotelFormUnified({
   // =====================
 
   const handleSubmit = async () => {
+    // Clear any previous error states
+    setErrorMessage('');
+    setShowErrorModal(false);
+    setShowSuccessModal(false);
+    
     // ULTRATHINK: Enhanced Frontend Validation
     const validation = validateFormData();
     if (!validation.isValid) {
@@ -343,7 +348,9 @@ export default function MobileHotelFormUnified({
         navigator.vibrate([100, 50, 100]);
       }
 
-      // Show success modal instead of alert
+      // Show success modal and clear any error states
+      setErrorMessage('');
+      setShowErrorModal(false);
       setShowSuccessModal(true);
 
     } catch (error) {
@@ -669,13 +676,14 @@ export default function MobileHotelFormUnified({
 
                   <div>
                     <label className="text-xs font-semibold text-gray-700 mb-2 block">Telefone *</label>
-                    <PhoneInput
+                    <PhoneInputSimple
                       value={formData.contactInfo.phone}
                       onChange={(value) => setFormData(prev => ({
                         ...prev,
                         contactInfo: { ...prev.contactInfo, phone: value }
                       }))}
                       className="w-full"
+                      placeholder="Seu telefone"
                       required
                     />
                   </div>
@@ -1085,14 +1093,29 @@ export default function MobileHotelFormUnified({
         }}
       />
 
-      <PremiumSuccessModal
-        isOpen={showErrorModal}
-        onClose={() => setShowErrorModal(false)}
-        leadData={{
-          nome: errorMessage,
-          servicos: []
-        }}
-      />
+      {/* Error Modal - Simple Alert Style */}
+      {showErrorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-red-600 text-xl">❌</span>
+              </div>
+              <h3 className="text-lg font-bold text-red-600 mb-2">Erro</h3>
+              <p className="text-sm text-gray-600 mb-4">{errorMessage}</p>
+              <button
+                onClick={() => {
+                  setShowErrorModal(false);
+                  setErrorMessage('');
+                }}
+                className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium"
+              >
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
