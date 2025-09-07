@@ -48,6 +48,9 @@
     "node_modules_backup_2", 
     "node_modules_backup_3",
     "backups",
-    "node_modules/@types/nodemailer/lib/ses-transport"
+    "node_modules/@types/nodemailer/lib/ses-transport",
+    "tests",
+    "playwright.config.ts",
+    "*.backup"
   ]
 }
