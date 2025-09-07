@@ -12,7 +12,16 @@
     "build": "next build",
     "start": "node node_modules/next/dist/bin/next start",
     "lint": "node node_modules/next/dist/bin/next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "npx playwright test",
+    "test:auth": "node tests/run-auth-tests.js",
+    "test:auth:quick": "node tests/run-auth-tests.js quick",
+    "test:auth:csrf": "node tests/run-auth-tests.js csrf",
+    "test:auth:performance": "node tests/run-auth-tests.js performance",
+    "test:auth:visual": "node tests/run-auth-tests.js visual",
+    "test:auth:monitoring": "node tests/run-auth-tests.js monitoring",
+    "test:auth:network": "node tests/run-auth-tests.js network",
+    "test:auth:report": "npx playwright show-report tests/reports/html"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.876.0",

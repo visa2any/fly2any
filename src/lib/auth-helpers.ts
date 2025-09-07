@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { auth } from '@/auth';
-import { authOptions } from '@/lib/auth';
 
 /**
  * Verifica se o usuário está autenticado em uma API route
  */
 export async function verifyAdminAuth(request: NextRequest) {
   try {
-    const token = await getToken({ 
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024'
-    });
+    const session = await auth();
     
-    if (!token || token.role !== 'admin') {
+    if (!session?.user || (session.user as any).role !== 'admin') {
       return {
         isAuthenticated: false,
         error: 'Acesso não autorizado',
@@ -24,9 +19,9 @@ export async function verifyAdminAuth(request: NextRequest) {
     return {
       isAuthenticated: true,
       user: {
-        id: token.id as string,
-        email: token.email as string,
-        role: token.role as string
+        id: (session.user as any).id as string,
+        email: session.user.email as string,
+        role: (session.user as any).role as string
       }
     };
   } catch (error) {

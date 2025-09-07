@@ -20,7 +20,10 @@
       "Bash(taskkill:*)",
       "Bash(npx kill-port:*)",
       "Bash(node:*)",
-      "Bash(timeout 30 npm run dev)"
+      "Bash(timeout 30 npm run dev)",
+      "Bash(tasklist:*)",
+      "WebSearch",
+      "Bash(npx playwright:*)"
     ],
     "deny": [],
     "ask": []
