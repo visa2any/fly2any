@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -19,13 +19,22 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/admin';
+  
+  // Track if component is mounted to prevent hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check if user is already logged in with timeout
   useEffect(() => {
+    // Only run session check after component is mounted
+    if (!isMounted) return;
+    
     const checkSession = async (): Promise<void> => {
       try {
         // Add timeout to prevent hanging
@@ -37,6 +46,7 @@ export default function AdminLoginPage() {
         const session = await Promise.race([sessionPromise, timeoutPromise]);
         if (session && typeof session === 'object' && session !== null && 'user' in session && session.user) {
           console.log('✅ [LOGIN] User already logged in, redirecting...');
+          // Use router.push instead of direct window manipulation
           router.replace(callbackUrl);
           return;
         }
@@ -49,7 +59,7 @@ export default function AdminLoginPage() {
     };
 
     checkSession();
-  }, [router, callbackUrl]);
+  }, [router, callbackUrl, isMounted]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -94,15 +104,12 @@ export default function AdminLoginPage() {
         console.log('✅ Login bem-sucedido!');
         console.log('🔄 NextAuth URL de retorno:', result.url);
         
-        // Let NextAuth handle the redirect naturally
-        // Just give it a moment to process the session
+        // Use router for navigation instead of direct window manipulation
+        console.log('✅ Login bem-sucedido! Redirecionando...');
         setTimeout(() => {
-          // Check if we're still on login page
-          if (window.location.pathname === '/admin/login') {
-            console.log('🔄 Ainda na página de login, forçando redirecionamento...');
-            const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
-            window.location.href = targetUrl;
-          }
+          // Use Next.js router for safe navigation
+          const targetUrl = callbackUrl.startsWith('/') ? callbackUrl : '/admin';
+          router.replace(targetUrl);
         }, 1000);
       } else {
         console.error('❌ Resultado inesperado:', result);
@@ -119,13 +126,15 @@ export default function AdminLoginPage() {
     }
   };
 
-  // Show loading while checking session
-  if (isChecking) {
+  // Show loading while checking session (only after mounted to prevent hydration mismatch)
+  if (!isMounted || isChecking) {
     return (
       <div className="admin-login-container">
         <div className="admin-loading">
           <div className="admin-spinner" style={{ width: '48px', height: '48px' }}></div>
-          <p style={{ marginTop: '16px', color: 'var(--admin-text-secondary)' }}>Verificando sessão...</p>
+          <p style={{ marginTop: '16px', color: 'var(--admin-text-secondary)' }}>
+            {!isMounted ? 'Carregando...' : 'Verificando sessão...'}
+          </p>
         </div>
       </div>
     );
