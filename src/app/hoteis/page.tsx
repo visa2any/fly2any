@@ -971,7 +971,7 @@ function HoteisContent() {
               <div className="max-w-4xl mx-auto px-4">
                 <ErrorMessage 
                   message={state.error}
-                  onClose={() => updateState({ error: <React.Fragment />})}
+                  onClose={() => updateState({ error: null })}
                 />
               </div>
             )}
