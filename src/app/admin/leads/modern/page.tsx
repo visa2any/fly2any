@@ -605,7 +605,7 @@ export default function ModernLeadsPage() {
         body: JSON.stringify({
           action: 'assign',
           leadIds: selectedLeads,
-          data: { assignedTo: assignTo === 'unassigned' ? null : assignTo }
+          data: { assignedTo: assignTo === 'unassigned' ? <React.Fragment /> : assignTo }
         })
       });
 
@@ -1580,7 +1580,7 @@ export default function ModernLeadsPage() {
                           {Object.entries(serviceConfig).map(([key, config]) => {
                             const stats = serviceStats[key] || { count: 0, revenue: 0, avgDeal: 0, conversion: 0 };
                             
-                            if (stats.count === 0) return null;
+                            if (stats.count === 0) return <React.Fragment />; // Fixed: DataCloneError
                             
                             return (
                               <div key={key} className="admin-card">

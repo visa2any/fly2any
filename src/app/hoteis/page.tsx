@@ -883,8 +883,7 @@ function HoteisContent() {
       selectedHotel: null,
       selectedRate: null,
       isLoading: false,
-      error: null
-    });
+      error: <React.Fragment />});
   }, [updateState]);
 
   const handleBackToDetails = useCallback(() => {
@@ -892,8 +891,7 @@ function HoteisContent() {
       view: 'details',
       selectedRate: null,
       isLoading: false,
-      error: null
-    });
+      error: <React.Fragment />});
   }, [updateState]);
 
   // Funções de comparação
@@ -973,7 +971,7 @@ function HoteisContent() {
               <div className="max-w-4xl mx-auto px-4">
                 <ErrorMessage 
                   message={state.error}
-                  onClose={() => updateState({ error: null })}
+                  onClose={() => updateState({ error: <React.Fragment />})}
                 />
               </div>
             )}
@@ -1392,7 +1390,7 @@ function HoteisContent() {
         );
 
       default:
-        return null;
+        return <React.Fragment />; // Fixed: DataCloneError
     }
   };
 

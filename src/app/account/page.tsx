@@ -129,7 +129,7 @@ export default function AccountPage() {
   }
 
   if (!session) {
-    return null;
+    return <React.Fragment />; // Fixed: DataCloneError
   }
 
   const tabs = [

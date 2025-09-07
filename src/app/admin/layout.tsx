@@ -138,7 +138,7 @@ function AdminLayoutContent({
   
   // Don't render admin layout if not authenticated
   if (!session) {
-    return null;
+    return <React.Fragment />; // Fixed: DataCloneError
   }
 
   const isActive = (href: string, exact?: boolean) => {

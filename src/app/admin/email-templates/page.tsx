@@ -101,7 +101,7 @@ export default function EmailTemplatesPage() {
       return saved ? JSON.parse(saved) : null;
     } catch (error) {
       console.error('Erro ao carregar templates salvos:', error);
-      return null;
+      return <React.Fragment />; // Fixed: DataCloneError
     }
   };
 
