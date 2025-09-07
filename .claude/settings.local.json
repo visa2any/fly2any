@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(do sed -i 's/fill(null)/fill(0)/g' \"$file\")",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(cp:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(rm:*)",
+      "Bash(npm run build:*)",
+      "Bash(pkill:*)",
+      "Bash(timeout 30 npm run build)",
+      "Bash(git add:*)",
+      "Bash(timeout 60 npm run build)"
     ],
     "deny": [],
     "ask": []

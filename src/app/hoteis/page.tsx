@@ -883,7 +883,7 @@ function HoteisContent() {
       selectedHotel: null,
       selectedRate: null,
       isLoading: false,
-      error: <React.Fragment />});
+      error: null});
   }, [updateState]);
 
   const handleBackToDetails = useCallback(() => {
@@ -891,7 +891,7 @@ function HoteisContent() {
       view: 'details',
       selectedRate: null,
       isLoading: false,
-      error: <React.Fragment />});
+      error: null});
   }, [updateState]);
 
   // Funções de comparação
