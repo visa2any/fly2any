@@ -787,8 +787,8 @@ test.describe('Automated Error Detection System', () => {
     console.log('✅ [ERROR-TEST] Critical issue alerting test completed');
   });
 
-  // Helper method for CSRF analysis
-  getMostCommonPattern(errors: DetectedError[]): string | null {
+  // Helper function for CSRF analysis
+  function getMostCommonPattern(errors: DetectedError[]): string | null {
     if (errors.length === 0) return null;
     
     const patternCounts = {};
