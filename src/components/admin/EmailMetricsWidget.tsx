@@ -32,7 +32,7 @@ export default function EmailMetricsWidget() {
 
   const fetchMetrics = async (): Promise<void> => {
     try {
-      const response = await fetch(`/api/admin/email-analytics/metrics?timeRange=${timeRange}`);
+      const response = await fetch(`/api/email-marketing/v2?action=metrics&timeRange=${timeRange}`);
       if (response.ok) {
         const data = await response.json();
         setMetrics(data);
@@ -211,7 +211,7 @@ export default function EmailMetricsWidget() {
             <div className="pt-3 border-t border-gray-200">
               <div className="flex gap-2">
                 <button 
-                  onClick={() => window.open('/admin/email-analytics', '_blank')}
+                  onClick={() => window.open('/admin/email-marketing/v2', '_blank')}
                   className="flex-1 py-2 px-3 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition-colors"
                 >
                   View Details

@@ -55,6 +55,30 @@ export async function GET(request: NextRequest) {
       case 'webhook_logs':
         return handleWebhookLogs(searchParams);
       
+      case 'realtime':
+        return handleRealtime(searchParams);
+      
+      case 'alerts':
+        return handleAlerts(searchParams);
+      
+      case 'metrics':
+        return handleMetrics(searchParams);
+      
+      case 'stats':
+        return handleStats(searchParams);
+      
+      case 'contacts':
+        return handleContacts(searchParams);
+      
+      case 'campaigns':
+        return handleCampaigns(searchParams);
+      
+      case 'checkDeliverability':
+        return handleDeliverabilityCheck();
+      
+      case 'getDomainReputation':
+        return handleDomainReputation(searchParams);
+      
       default:
         return NextResponse.json({ 
           success: false, 
@@ -596,3 +620,135 @@ async function handleGetABTestResults(searchParams: URLSearchParams) { return Ne
 async function handleGetActivity(searchParams: URLSearchParams) { return NextResponse.json({ success: true, data: [] }); }
 async function handleGetTemplate(searchParams: URLSearchParams) { return NextResponse.json({ success: true, data: {} }); }
 async function handleWebhookLogs(searchParams: URLSearchParams) { return NextResponse.json({ success: true, data: [] }); }
+
+// New handlers for dashboard widgets
+async function handleRealtime(searchParams: URLSearchParams) {
+  const mockData = {
+    emailsInQueue: Math.floor(Math.random() * 50) + 10,
+    emailsProcessingPerMinute: Math.floor(Math.random() * 200) + 50,
+    lastEmailSent: new Date(Date.now() - Math.random() * 60000).toISOString(),
+    systemHealth: ['healthy', 'warning', 'critical'][Math.floor(Math.random() * 3)],
+    apiRateLimitUsage: Math.random() * 100,
+    webhookEventsProcessed: Math.floor(Math.random() * 500) + 100,
+    providerStatus: [
+      {
+        provider: 'Mailgun',
+        status: 'healthy',
+        latency: Math.floor(Math.random() * 50) + 20
+      },
+      {
+        provider: 'SendGrid',
+        status: Math.random() > 0.8 ? 'warning' : 'healthy',
+        latency: Math.floor(Math.random() * 80) + 30
+      }
+    ]
+  };
+  
+  return NextResponse.json({
+    success: true,
+    data: mockData
+  });
+}
+
+async function handleAlerts(searchParams: URLSearchParams) {
+  const limit = parseInt(searchParams.get('limit') || '10');
+  const resolved = searchParams.get('resolved') === 'true';
+  
+  const mockAlerts = Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
+    id: `alert-${i}`,
+    severity: ['critical', 'warning', 'info'][Math.floor(Math.random() * 3)],
+    title: `Alert ${i + 1}`,
+    message: `This is a mock alert message ${i + 1}`,
+    createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
+    timeSinceCreated: `${Math.floor(Math.random() * 24)}h ago`,
+    isRecent: Math.random() > 0.3
+  }));
+  
+  return NextResponse.json({
+    success: true,
+    alerts: mockAlerts
+  });
+}
+
+async function handleMetrics(searchParams: URLSearchParams) {
+  const timeRange = searchParams.get('timeRange') || '7d';
+  
+  const mockMetrics = {
+    totalSent: Math.floor(Math.random() * 10000) + 1000,
+    delivered: Math.floor(Math.random() * 9500) + 900,
+    opened: Math.floor(Math.random() * 3000) + 300,
+    clicked: Math.floor(Math.random() * 800) + 50,
+    deliveryRate: 95 + Math.random() * 4.9,
+    openRate: 20 + Math.random() * 15,
+    clickRate: 2 + Math.random() * 8,
+    bounceRate: Math.random() * 5
+  };
+  
+  return NextResponse.json({
+    success: true,
+    data: mockMetrics
+  });
+}
+
+async function handleStats(searchParams: URLSearchParams) {
+  const mockStats = {
+    totalContacts: Math.floor(Math.random() * 10000) + 5000,
+    segmentStats: {
+      'VIP Customers': 1250,
+      'New Subscribers': 890,
+      'Regular Users': 2340
+    },
+    campaignsSent: Math.floor(Math.random() * 100) + 50,
+    avgOpenRate: `${(20 + Math.random() * 15).toFixed(1)}%`,
+    avgClickRate: `${(2 + Math.random() * 8).toFixed(1)}%`
+  };
+  
+  return NextResponse.json({
+    success: true,
+    data: mockStats
+  });
+}
+
+async function handleContacts(searchParams: URLSearchParams) {
+  const mockContacts = Array.from({ length: 50 }, (_, i) => ({
+    id: `contact-${i}`,
+    firstName: `User ${i}`,
+    lastName: `Test ${i}`,
+    email: `user${i}@example.com`,
+    status: ['active', 'unsubscribed', 'bounced'][Math.floor(Math.random() * 3)],
+    tags: [`tag-${Math.floor(Math.random() * 5)}`, `category-${Math.floor(Math.random() * 3)}`],
+    subscribedAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+    lastActivity: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    engagementScore: Math.floor(Math.random() * 100)
+  }));
+  
+  return NextResponse.json({
+    success: true,
+    data: {
+      contacts: mockContacts,
+      total: 50,
+      page: 1,
+      limit: 50
+    }
+  });
+}
+
+async function handleCampaigns(searchParams: URLSearchParams) {
+  const mockCampaigns = Array.from({ length: 10 }, (_, i) => ({
+    id: `campaign-${i}`,
+    name: `Campaign ${i + 1}`,
+    template_type: ['newsletter', 'promotional', 'welcome'][Math.floor(Math.random() * 3)],
+    total_sent: Math.floor(Math.random() * 1000) + 100,
+    total_opened: Math.floor(Math.random() * 300) + 20,
+    total_clicked: Math.floor(Math.random() * 50) + 5,
+    created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    status: ['completed', 'sending', 'draft'][Math.floor(Math.random() * 3)]
+  }));
+  
+  return NextResponse.json({
+    success: true,
+    data: {
+      campaigns: mockCampaigns
+    }
+  });
+}

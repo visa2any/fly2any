@@ -211,11 +211,11 @@ export default function AdminDashboard() {
           <div className="p-5">
             <div className="grid grid-cols-2 gap-3">
               <button 
-                onClick={() => window.open('/admin/email-analytics', '_blank')}
+                onClick={() => window.open('/admin/email-marketing/v2', '_blank')}
                 className="flex flex-col items-center justify-center h-16 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 gap-1"
               >
                 <span className="text-lg">📧</span>
-                <span className="text-sm font-medium">Email</span>
+                <span className="text-sm font-medium">Email Pro</span>
               </button>
               <button className="flex flex-col items-center justify-center h-16 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 gap-1">
                 <span className="text-lg">📊</span>

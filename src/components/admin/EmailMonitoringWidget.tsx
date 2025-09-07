@@ -49,8 +49,8 @@ export default function EmailMonitoringWidget() {
   const fetchMonitoringData = async (): Promise<void> => {
     try {
       const [monitoringRes, alertsRes] = await Promise.all([
-        fetch('/api/admin/email-analytics/realtime'),
-        fetch('/api/admin/email-analytics/alerts?limit=3&resolved=false')
+        fetch('/api/email-marketing/v2?action=realtime'),
+        fetch('/api/email-marketing/v2?action=alerts&limit=3&resolved=false')
       ]);
 
       if (monitoringRes.ok) {
