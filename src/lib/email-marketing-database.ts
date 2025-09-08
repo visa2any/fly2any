@@ -330,7 +330,6 @@ export class EmailMarketingDatabase {
       `;
 
       // Indexes for performance
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_customer_id ON email_contacts(customer_id)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(email_status)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_events_contact_id ON email_events(contact_id)`;
@@ -410,30 +409,29 @@ export class EmailMarketingDatabase {
           fromDate.setDate(now.getDate() - 7);
       }
 
-      // Get total active contacts
+      // Get total active contacts (not_sent, sent, opened are all usable)
       const contactsResult = await sql`
         SELECT COUNT(*) as total 
         FROM email_contacts 
-        WHERE email_status = 'active'
+        WHERE email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')
       `;
       
       // Get campaigns sent in time range
       const campaignsResult = await sql`
         SELECT COUNT(*) as total 
         FROM email_campaigns 
-        WHERE status = 'sent' 
-        AND sent_at >= ${fromDate.toISOString()}
+        WHERE status IN ('sent', 'completed')
+        AND updated_at >= ${fromDate.toISOString()}
       `;
 
-      // Get segment stats (using tags from customers)
+      // Get segment stats (using segmento from email_contacts)
       const segmentResult = await sql`
         SELECT 
-          COALESCE(TRIM('"' FROM json_array_elements_text(CASE WHEN c.tags = '' OR c.tags = '[]' THEN '["Sem Segmento"]' ELSE c.tags END)), 'Sem Segmento') as segment,
+          COALESCE(segmento, 'Sem Segmento') as segment,
           COUNT(*) as count
-        FROM customers c
-        JOIN email_contacts ec ON c.id = ec.customer_id
-        WHERE ec.email_status = 'active' AND c.receber_promocoes = true
-        GROUP BY segment
+        FROM email_contacts 
+        WHERE email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')
+        GROUP BY segmento
         ORDER BY count DESC
         LIMIT 5
       `;
@@ -445,8 +443,8 @@ export class EmailMarketingDatabase {
           SUM(total_opened) as total_opened,
           SUM(total_clicked) as total_clicked
         FROM email_campaigns
-        WHERE status = 'sent'
-        AND sent_at >= ${fromDate.toISOString()}
+        WHERE status IN ('sent', 'completed')
+        AND updated_at >= ${fromDate.toISOString()}
       `;
 
       const totalContacts = parseInt(contactsResult.rows[0]?.total || '0');
@@ -498,14 +496,22 @@ export class EmailMarketingDatabase {
       let paramIndex = 1;
 
       if (filters?.status) {
-        whereClause += ` AND ec.email_status = $${paramIndex}`;
-        params.push(filters.status);
-        paramIndex++;
+        if (filters.status === 'active') {
+          // Treat 'active' as all usable contacts
+          whereClause += ` AND ec.email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')`;
+        } else {
+          whereClause += ` AND ec.email_status = $${paramIndex}`;
+          params.push(filters.status);
+          paramIndex++;
+        }
+      } else {
+        // By default, show only usable contacts
+        whereClause += ` AND ec.email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')`;
       }
 
       if (filters?.segment && filters.segment !== 'all') {
-        whereClause += ` AND c.tags LIKE $${paramIndex}`;
-        params.push(`%"${filters.segment}"%`);
+        whereClause += ` AND ec.segmento = $${paramIndex}`;
+        params.push(filters.segment);
         paramIndex++;
       }
 
@@ -513,7 +519,6 @@ export class EmailMarketingDatabase {
       const countQuery = `
         SELECT COUNT(*) as total 
         FROM email_contacts ec
-        JOIN customers c ON ec.customer_id = c.id
         ${whereClause}
       `;
       const countResult = await sql.query(countQuery, params);
@@ -526,12 +531,11 @@ export class EmailMarketingDatabase {
       const contactsQuery = `
         SELECT 
           ec.*,
-          c.nome,
-          c.cidade,
-          c.estado,
-          c.tags as customer_tags
+          ec.nome,
+          ec.sobrenome,
+          ec.segmento,
+          ec.tags
         FROM email_contacts ec
-        JOIN customers c ON ec.customer_id = c.id
         ${whereClause}
         ORDER BY ec.created_at DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -541,14 +545,14 @@ export class EmailMarketingDatabase {
       
       const contacts: EmailContact[] = contactsResult.rows.map(row => ({
         id: row.id,
-        customer_id: row.customer_id,
+        customer_id: row.customer_id || row.id,
         email: row.email,
-        first_name: row.first_name || row.nome,
-        last_name: row.last_name,
+        first_name: row.nome,
+        last_name: row.sobrenome,
         email_status: row.email_status,
-        subscription_date: new Date(row.subscription_date),
+        subscription_date: new Date(row.subscription_date || row.created_at),
         unsubscribe_date: row.unsubscribe_date ? new Date(row.unsubscribe_date) : undefined,
-        tags: JSON.parse(row.customer_tags || '[]'),
+        tags: JSON.parse(row.tags || '[]'),
         custom_fields: JSON.parse(row.custom_fields || '{}'),
         total_emails_sent: row.total_emails_sent || 0,
         total_emails_opened: row.total_emails_opened || 0,
