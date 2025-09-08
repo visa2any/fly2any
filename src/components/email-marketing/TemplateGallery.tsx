@@ -91,7 +91,11 @@ export default function TemplateGallery({ onTemplateSelect, className = "" }: Te
     thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMzAgMTAwSDE3MFY2MEgxMzBWMTAwWiIgZmlsbD0iI0Q1REJEQiIvPgo8L3N2Zz4K',
     html: dbTemplate.html_content,
     subject: dbTemplate.subject,
-    variables: dbTemplate.variables ? dbTemplate.variables.split(',').map((v: string) => v.trim()) : [],
+    variables: Array.isArray(dbTemplate.variables) 
+      ? dbTemplate.variables 
+      : (typeof dbTemplate.variables === 'string' && dbTemplate.variables 
+        ? dbTemplate.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v) 
+        : []),
     industry: getIndustryFromCategory(dbTemplate.category),
     rating: 4.8, // Default rating
     downloads: dbTemplate.usage_count || 0,
