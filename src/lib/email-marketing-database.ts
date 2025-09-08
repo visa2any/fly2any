@@ -710,4 +710,149 @@ export class EmailMarketingDatabase {
       throw error;
     }
   }
+
+  // Get recent email events for activity feed
+  static async getRecentEvents(filters?: {
+    limit?: number;
+    offset?: number;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+    eventType?: string;
+    contactId?: string;
+    campaignId?: string;
+  }): Promise<EmailEvent[]> {
+    try {
+      const { 
+        limit = 50, 
+        offset = 0, 
+        sortBy = 'created_at', 
+        sortOrder = 'DESC',
+        eventType,
+        contactId,
+        campaignId
+      } = filters || {};
+
+      let query = `
+        SELECT 
+          e.*, 
+          c.email as contact_email,
+          c.first_name as contact_first_name,
+          camp.name as campaign_name
+        FROM email_events e
+        LEFT JOIN email_contacts c ON e.contact_id = c.id
+        LEFT JOIN email_campaigns camp ON e.campaign_id = camp.id
+        WHERE 1=1
+      `;
+
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (eventType) {
+        query += ` AND e.event_type = $${paramIndex}`;
+        params.push(eventType);
+        paramIndex++;
+      }
+
+      if (contactId) {
+        query += ` AND e.contact_id = $${paramIndex}`;
+        params.push(contactId);
+        paramIndex++;
+      }
+
+      if (campaignId) {
+        query += ` AND e.campaign_id = $${paramIndex}`;
+        params.push(campaignId);
+        paramIndex++;
+      }
+
+      query += ` ORDER BY e.${sortBy} ${sortOrder}`;
+      query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(limit, offset);
+
+      const result = await sql.query(query, params);
+      
+      return result.rows.map((row: any) => ({
+        id: row.id,
+        contact_id: row.contact_id,
+        campaign_id: row.campaign_id,
+        event_type: row.event_type,
+        event_data: row.event_data ? JSON.parse(row.event_data) : {},
+        ip_address: row.ip_address,
+        user_agent: row.user_agent,
+        link_url: row.link_url,
+        mailgun_event_id: row.mailgun_event_id,
+        mailgun_message_id: row.mailgun_message_id,
+        created_at: row.created_at,
+        // Additional fields for UI display
+        contact_email: row.contact_email,
+        contact_first_name: row.contact_first_name,
+        campaign_name: row.campaign_name
+      }));
+    } catch (error) {
+      console.error('Error fetching recent events:', error);
+      throw error;
+    }
+  }
+
+  // Get email templates
+  static async getTemplates(filters?: {
+    category?: string;
+    isActive?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ templates: any[], categories: string[] }> {
+    try {
+      const { category, isActive = true, limit = 50, offset = 0 } = filters || {};
+
+      let query = `
+        SELECT * FROM email_templates
+        WHERE is_active = $1
+      `;
+      const params: any[] = [isActive];
+      let paramIndex = 2;
+
+      if (category && category !== 'All') {
+        query += ` AND category = $${paramIndex}`;
+        params.push(category);
+        paramIndex++;
+      }
+
+      query += ` ORDER BY usage_count DESC, created_at DESC`;
+      query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(limit, offset);
+
+      const templates = await sql.query(query, params);
+
+      // Get distinct categories
+      const categoriesResult = await sql`
+        SELECT DISTINCT category 
+        FROM email_templates 
+        WHERE is_active = true
+        ORDER BY category
+      `;
+      const categories = categoriesResult.rows.map((row: any) => row.category);
+
+      return {
+        templates: templates.rows.map((template: any) => ({
+          id: template.id,
+          name: template.name,
+          category: template.category,
+          description: template.description,
+          thumbnail: template.thumbnail_url,
+          html: template.html_content,
+          text: template.text_content,
+          subject: template.subject,
+          variables: template.variables ? JSON.parse(template.variables) : [],
+          industry: template.industry,
+          usageCount: template.usage_count,
+          createdAt: template.created_at,
+          updatedAt: template.updated_at
+        })),
+        categories
+      };
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      throw error;
+    }
+  }
 }
