@@ -263,8 +263,9 @@ export default function TemplateGallery({ onTemplateSelect, className = "" }: Te
           </div>
         ))}
       </div>
+      )}
       
-      {filteredTemplates.length === 0 && (
+      {!loading && filteredTemplates.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <div className="text-4xl mb-4">🎨</div>
           <p className="text-lg mb-2">Nenhum template encontrado</p>
