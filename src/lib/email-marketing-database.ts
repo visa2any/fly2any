@@ -846,7 +846,7 @@ export class EmailMarketingDatabase {
           html: template.html_content,
           text: template.text_content,
           subject: template.subject,
-          variables: template.variables ? JSON.parse(template.variables) : [],
+          variables: template.variables ? template.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v) : [],
           industry: template.industry,
           usageCount: template.usage_count,
           createdAt: template.created_at,

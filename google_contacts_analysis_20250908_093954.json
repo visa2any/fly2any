@@ -1,0 +1,413 @@
+{
+  "total_contacts": 25521,
+  "data_completeness": {
+    "Labels": {
+      "filled_count": 25521,
+      "empty_count": 0,
+      "completeness_percentage": 100.0
+    },
+    "First Name": {
+      "filled_count": 25495,
+      "empty_count": 26,
+      "completeness_percentage": 99.9
+    },
+    "Last Name": {
+      "filled_count": 24613,
+      "empty_count": 908,
+      "completeness_percentage": 96.44
+    },
+    "Phone 1 - Value": {
+      "filled_count": 24450,
+      "empty_count": 1071,
+      "completeness_percentage": 95.8
+    },
+    "Phone 1 - Label": {
+      "filled_count": 15813,
+      "empty_count": 9708,
+      "completeness_percentage": 61.96
+    },
+    "E-mail 1 - Label": {
+      "filled_count": 5443,
+      "empty_count": 20078,
+      "completeness_percentage": 21.33
+    },
+    "E-mail 1 - Value": {
+      "filled_count": 5443,
+      "empty_count": 20078,
+      "completeness_percentage": 21.33
+    },
+    "Middle Name": {
+      "filled_count": 5031,
+      "empty_count": 20490,
+      "completeness_percentage": 19.71
+    },
+    "Website 1 - Label": {
+      "filled_count": 4594,
+      "empty_count": 20927,
+      "completeness_percentage": 18.0
+    },
+    "Website 1 - Value": {
+      "filled_count": 4594,
+      "empty_count": 20927,
+      "completeness_percentage": 18.0
+    },
+    "Phone 2 - Value": {
+      "filled_count": 1320,
+      "empty_count": 24201,
+      "completeness_percentage": 5.17
+    },
+    "Phone 2 - Label": {
+      "filled_count": 1215,
+      "empty_count": 24306,
+      "completeness_percentage": 4.76
+    },
+    "Address 1 - Formatted": {
+      "filled_count": 1114,
+      "empty_count": 24407,
+      "completeness_percentage": 4.37
+    },
+    "Address 1 - Label": {
+      "filled_count": 1113,
+      "empty_count": 24408,
+      "completeness_percentage": 4.36
+    },
+    "Address 1 - Street": {
+      "filled_count": 1026,
+      "empty_count": 24495,
+      "completeness_percentage": 4.02
+    },
+    "Birthday": {
+      "filled_count": 928,
+      "empty_count": 24593,
+      "completeness_percentage": 3.64
+    },
+    "Address 1 - City": {
+      "filled_count": 690,
+      "empty_count": 24831,
+      "completeness_percentage": 2.7
+    },
+    "Address 1 - Region": {
+      "filled_count": 647,
+      "empty_count": 24874,
+      "completeness_percentage": 2.54
+    },
+    "Address 1 - Postal Code": {
+      "filled_count": 620,
+      "empty_count": 24901,
+      "completeness_percentage": 2.43
+    },
+    "Notes": {
+      "filled_count": 579,
+      "empty_count": 24942,
+      "completeness_percentage": 2.27
+    },
+    "E-mail 2 - Label": {
+      "filled_count": 257,
+      "empty_count": 25264,
+      "completeness_percentage": 1.01
+    },
+    "E-mail 2 - Value": {
+      "filled_count": 259,
+      "empty_count": 25262,
+      "completeness_percentage": 1.01
+    },
+    "Phone 3 - Value": {
+      "filled_count": 163,
+      "empty_count": 25358,
+      "completeness_percentage": 0.64
+    },
+    "Phone 3 - Label": {
+      "filled_count": 150,
+      "empty_count": 25371,
+      "completeness_percentage": 0.59
+    },
+    "Organization Name": {
+      "filled_count": 44,
+      "empty_count": 25477,
+      "completeness_percentage": 0.17
+    },
+    "Photo": {
+      "filled_count": 29,
+      "empty_count": 25492,
+      "completeness_percentage": 0.11
+    },
+    "Address 1 - Country": {
+      "filled_count": 28,
+      "empty_count": 25493,
+      "completeness_percentage": 0.11
+    },
+    "Phone 4 - Value": {
+      "filled_count": 21,
+      "empty_count": 25500,
+      "completeness_percentage": 0.08
+    },
+    "Address 1 - Extended Address": {
+      "filled_count": 20,
+      "empty_count": 25501,
+      "completeness_percentage": 0.08
+    },
+    "Name Prefix": {
+      "filled_count": 17,
+      "empty_count": 25504,
+      "completeness_percentage": 0.07
+    },
+    "E-mail 3 - Label": {
+      "filled_count": 18,
+      "empty_count": 25503,
+      "completeness_percentage": 0.07
+    },
+    "E-mail 3 - Value": {
+      "filled_count": 18,
+      "empty_count": 25503,
+      "completeness_percentage": 0.07
+    },
+    "Phone 4 - Label": {
+      "filled_count": 19,
+      "empty_count": 25502,
+      "completeness_percentage": 0.07
+    },
+    "Organization Title": {
+      "filled_count": 12,
+      "empty_count": 25509,
+      "completeness_percentage": 0.05
+    },
+    "Address 2 - Label": {
+      "filled_count": 13,
+      "empty_count": 25508,
+      "completeness_percentage": 0.05
+    },
+    "Address 2 - Formatted": {
+      "filled_count": 13,
+      "empty_count": 25508,
+      "completeness_percentage": 0.05
+    },
+    "Address 2 - Street": {
+      "filled_count": 13,
+      "empty_count": 25508,
+      "completeness_percentage": 0.05
+    },
+    "Address 1 - PO Box": {
+      "filled_count": 9,
+      "empty_count": 25512,
+      "completeness_percentage": 0.04
+    },
+    "Name Suffix": {
+      "filled_count": 5,
+      "empty_count": 25516,
+      "completeness_percentage": 0.02
+    },
+    "Address 2 - City": {
+      "filled_count": 5,
+      "empty_count": 25516,
+      "completeness_percentage": 0.02
+    },
+    "Address 2 - Region": {
+      "filled_count": 6,
+      "empty_count": 25515,
+      "completeness_percentage": 0.02
+    },
+    "Address 2 - Postal Code": {
+      "filled_count": 5,
+      "empty_count": 25516,
+      "completeness_percentage": 0.02
+    },
+    "Relation 1 - Label": {
+      "filled_count": 6,
+      "empty_count": 25515,
+      "completeness_percentage": 0.02
+    },
+    "Relation 1 - Value": {
+      "filled_count": 6,
+      "empty_count": 25515,
+      "completeness_percentage": 0.02
+    },
+    "Phonetic First Name": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Phonetic Middle Name": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Phonetic Last Name": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Nickname": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "File As": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Organization Department": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Phone 5 - Label": {
+      "filled_count": 1,
+      "empty_count": 25520,
+      "completeness_percentage": 0.0
+    },
+    "Phone 5 - Value": {
+      "filled_count": 1,
+      "empty_count": 25520,
+      "completeness_percentage": 0.0
+    },
+    "Address 2 - PO Box": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Address 2 - Country": {
+      "filled_count": 0,
+      "empty_count": 25521,
+      "completeness_percentage": 0.0
+    },
+    "Address 2 - Extended Address": {
+      "filled_count": 1,
+      "empty_count": 25520,
+      "completeness_percentage": 0.0
+    },
+    "Website 2 - Label": {
+      "filled_count": 1,
+      "empty_count": 25520,
+      "completeness_percentage": 0.0
+    },
+    "Website 2 - Value": {
+      "filled_count": 1,
+      "empty_count": 25520,
+      "completeness_percentage": 0.0
+    }
+  },
+  "phone_patterns": {
+    "total_phone_numbers": 25955,
+    "unique_phone_numbers": 23945,
+    "country_codes": {
+      "Brazil (+55)": 801,
+      "No country code": 7856,
+      "US/Canada (+1)": 11534,
+      "US/Canada (1 format)": 5648,
+      "Brazil (55 format)": 94,
+      "Other (+352)": 1,
+      "Other (+351)": 5,
+      "Other (+447)": 2,
+      "Other (+523)": 1,
+      "Other (+860)": 1,
+      "Other (+861)": 3,
+      "Other (+337)": 1,
+      "Other (+031)": 1,
+      "Other (+652)": 1,
+      "Other (+52)": 1,
+      "Other (+567)": 1,
+      "Other (+627)": 1,
+      "Other (+491)": 2,
+      "Other (+918)": 1
+    },
+    "phone_formats": {
+      "Brazilian format": 793,
+      "Numeric only": 13836,
+      "US format": 11064,
+      "Other format": 262
+    },
+    "contacts_with_phones": 24450,
+    "phone_completeness_percentage": 95.8
+  },
+  "geographic_distribution": {
+    "Brazil": 854,
+    "Unknown/Other": 8489,
+    "United States": 16178
+  },
+  "label_analysis": {
+    "total_labeled_contacts": 25521,
+    "unlabeled_contacts": 0,
+    "multi_label_contacts": 13243,
+    "starred_contacts": 7,
+    "label_distribution": {
+      "* myContacts": 25521,
+      "CT LIST 1": 4748,
+      "CT LIST 2": 4679,
+      "Travel from USA to Brazil in Portuguese": 3704,
+      "Travel": 2443,
+      "Travel from Brazil to USA": 405,
+      "Money Transfers to Brazil": 401,
+      "Money Remmitance": 338,
+      "Imported on 7/19": 331,
+      "NY": 330,
+      "Renovação de Passaportes": 199,
+      "Travel from USA to Brazil": 80,
+      "Travel in USA": 77,
+      "Recem Cadastrados pelo Site": 66,
+      "Travel from USA to Brazil in English": 58,
+      "NJ": 55,
+      "Imported on 7/19 1": 55,
+      "Brazilian Visa": 47,
+      "Traducoes": 22,
+      "Procuração": 19,
+      "* starred": 7,
+      "FL LIST 1": 3,
+      "NAO ATENDEU": 1,
+      "NOVO CONTATO": 1
+    },
+    "total_unique_labels": 24
+  },
+  "business_vs_personal": {
+    "business_contacts": 71,
+    "personal_contacts": 54,
+    "ambiguous_contacts": 25396,
+    "business_percentage": 0.28,
+    "personal_percentage": 0.21,
+    "top_business_names": [
+      "@medium_heloisa",
+      "AB EQUIPMENT SPECIALISTS FL",
+      "Advocacia Antônio Samuel - Santander",
+      "ANA C DOS SANTOS DA SI VINCENT",
+      "Andreia - Corretora 4Imob",
+      "Antonio Afolgueral",
+      "Assistência Técnica Jacuzzi Eletrotec",
+      "Avenue Securities",
+      "Barbearia Man’s - Higor",
+      "Betânia"
+    ],
+    "top_personal_names": [
+      "✨Lisa Santos ✨",
+      "🌺Rebeca🌺 G",
+      "👮🏻‍♀️🔪💀Rafa Silva 👄💉",
+      "Adriele Ovelar 💖",
+      "AGUINALDO TRINDADE LIMA FL",
+      "Ana ✨",
+      "CAROINA SOLEDAD VILLALBA NARVAES N/A",
+      "Cintia 💋",
+      "CLAUDIA RENATA TRINDADE N/A",
+      "ELIANE CANDADA BARBOSA"
+    ]
+  },
+  "data_quality": {
+    "contacts_with_key_data": 25474,
+    "contacts_with_phone_or_email": 25205,
+    "complete_contacts": 25188,
+    "key_data_percentage": 99.82,
+    "phone_or_email_percentage": 98.76,
+    "complete_contacts_percentage": 98.7
+  },
+  "name_analysis": {
+    "contacts_with_first_name": 25495,
+    "contacts_with_last_name": 24613,
+    "contacts_with_both_names": 24604,
+    "contacts_with_nicknames": 0,
+    "contacts_with_emojis": 14,
+    "contacts_with_organizations": 44,
+    "average_name_length": 10.04,
+    "name_character_analysis": {}
+  },
+  "contact_richness": {
+    "average_field_completeness": 10.41
+  }
+}

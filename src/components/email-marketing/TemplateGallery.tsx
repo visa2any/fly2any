@@ -37,12 +37,77 @@ const defaultTemplates: EmailTemplate[] = [
 ];
 
 export default function TemplateGallery({ onTemplateSelect, className = "" }: TemplateGalleryProps) {
-  const [templates, setTemplates] = useState<EmailTemplate[]>(defaultTemplates);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const categories = ['All', ...Array.from(new Set(templates.map(t => t.category)))];
+  // Fetch templates from database
+  useEffect(() => {
+    fetchTemplates();
+  }, [selectedCategory]);
+
+  const fetchTemplates = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/email-marketing/v2?action=templates&category=${selectedCategory}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform database templates to component format
+        const transformedTemplates = data.data.templates.map(transformDbTemplate);
+        setTemplates(transformedTemplates);
+        
+        // Set categories from API
+        const allCategories = ['All', ...data.data.categories];
+        setCategories(allCategories);
+      } else {
+        // Fallback to default templates if API fails
+        console.warn('Failed to load templates from database, using defaults');
+        setTemplates(defaultTemplates);
+        setCategories(['All', ...Array.from(new Set(defaultTemplates.map(t => t.category)))]);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      setError('Erro ao carregar templates');
+      // Fallback to default templates
+      setTemplates(defaultTemplates);
+      setCategories(['All', ...Array.from(new Set(defaultTemplates.map(t => t.category)))]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform database template to component format
+  const transformDbTemplate = (dbTemplate: any): EmailTemplate => ({
+    id: dbTemplate.id,
+    name: dbTemplate.name,
+    category: dbTemplate.category,
+    description: dbTemplate.description || 'Template profissional',
+    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMzAgMTAwSDE3MFY2MEgxMzBWMTAwWiIgZmlsbD0iI0Q1REJEQiIvPgo8L3N2Zz4K',
+    html: dbTemplate.html_content,
+    subject: dbTemplate.subject,
+    variables: dbTemplate.variables ? dbTemplate.variables.split(',').map((v: string) => v.trim()) : [],
+    industry: getIndustryFromCategory(dbTemplate.category),
+    rating: 4.8, // Default rating
+    downloads: dbTemplate.usage_count || 0,
+    createdAt: dbTemplate.created_at ? new Date(dbTemplate.created_at) : new Date()
+  });
+
+  const getIndustryFromCategory = (category: string): string => {
+    const industryMap: Record<string, string> = {
+      'Welcome': 'General',
+      'Newsletter': 'Technology', 
+      'Promotional': 'E-commerce',
+      'promotional': 'Travel', 
+      'Event': 'Events'
+    };
+    return industryMap[category] || 'General';
+  };
   
   const filteredTemplates = templates.filter(template => {
     const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
@@ -76,6 +141,7 @@ export default function TemplateGallery({ onTemplateSelect, className = "" }: Te
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
               />
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -83,23 +149,60 @@ export default function TemplateGallery({ onTemplateSelect, className = "" }: Te
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
+                  disabled={loading}
                   className={`px-4 py-2 rounded-lg transition-colors ${
                     selectedCategory === category
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {category}
                 </button>
               ))}
             </div>
           </div>
+          
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-red-500">⚠️</span>
+                <span className="text-red-700">{error}</span>
+                <button 
+                  onClick={fetchTemplates}
+                  className="ml-auto text-red-600 hover:text-red-800 underline"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredTemplates.map(template => (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* Loading skeletons */}
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden animate-pulse">
+              <div className="aspect-video bg-gray-200"></div>
+              <div className="p-4">
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded mb-3 w-2/3"></div>
+                <div className="flex justify-between">
+                  <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  <div className="h-3 bg-gray-200 rounded w-20"></div>
+                </div>
+              </div>
+              <div className="px-4 pb-4">
+                <div className="h-8 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredTemplates.map(template => (
           <div
             key={template.id}
             className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"

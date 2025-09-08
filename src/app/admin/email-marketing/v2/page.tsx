@@ -39,6 +39,7 @@ export default function EmailMarketingV2Page() {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
 
   // Handle URL tab parameter changes
   useEffect(() => {
@@ -188,14 +189,45 @@ export default function EmailMarketingV2Page() {
       case 'campaigns':
         return (
           <div className="space-y-6">
+            {/* Template Selection Indicator */}
+            {selectedTemplate && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-lg">
+                      🎨
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        Template Selecionado: {selectedTemplate.name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {selectedTemplate.description} • Categoria: {selectedTemplate.category}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTemplate(null)}
+                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-white rounded-lg transition-colors"
+                    title="Remover template"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
             <CampaignBuilder 
+              initialTemplate={selectedTemplate || undefined}
               onSave={(campaign) => {
                 setCampaigns([...campaigns, campaign]);
                 fetchCampaigns();
+                setSelectedTemplate(null); // Clear template after saving
               }}
               onSend={(campaign) => {
                 // Handle campaign send
                 fetchStats();
+                setSelectedTemplate(null); // Clear template after sending
               }}
             />
           </div>
@@ -243,7 +275,8 @@ export default function EmailMarketingV2Page() {
         return (
           <TemplateGallery 
             onTemplateSelect={(template) => {
-              // Navigate to campaign builder with selected template
+              // Store selected template and navigate to campaign builder
+              setSelectedTemplate(template);
               setActiveTab('campaigns');
             }}
           />

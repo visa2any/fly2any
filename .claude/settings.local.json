@@ -27,7 +27,12 @@
       "Bash(git commit:*)",
       "Bash(npx tsc:*)",
       "Bash(npm install:*)",
-      "WebFetch(domain:documentation.mailgun.com)"
+      "WebFetch(domain:documentation.mailgun.com)",
+      "Bash(dir:*)",
+      "Read(//c/Users/Power/Downloads/**)",
+      "Bash(awk:*)",
+      "Bash(python:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

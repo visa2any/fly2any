@@ -21,7 +21,12 @@
     "test:auth:visual": "node tests/run-auth-tests.js visual",
     "test:auth:monitoring": "node tests/run-auth-tests.js monitoring",
     "test:auth:network": "node tests/run-auth-tests.js network",
-    "test:auth:report": "npx playwright show-report tests/reports/html"
+    "test:auth:report": "npx playwright show-report tests/reports/html",
+    "import-contacts": "tsx scripts/import-contacts.ts",
+    "import-contacts:validate": "tsx scripts/import-contacts.ts validate",
+    "import-contacts:dry-run": "tsx scripts/import-contacts.ts dry-run",
+    "import-contacts:import": "tsx scripts/import-contacts.ts import",
+    "import-contacts:stats": "tsx scripts/import-contacts.ts stats"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.876.0",

@@ -1,0 +1,35 @@
+GOOGLE CONTACTS STATISTICAL ANALYSIS SUMMARY
+==================================================
+
+TOTAL CONTACTS: 25,521
+CSV COLUMNS: 57
+
+TOP DATA COMPLETENESS:
+  Labels: 100.0% (25,521 contacts)
+  First Name: 99.9% (25,495 contacts)
+  Last Name: 96.44% (24,613 contacts)
+  Phone 1 - Value: 95.8% (24,450 contacts)
+  Phone 1 - Label: 61.96% (15,813 contacts)
+  E-mail 1 - Label: 21.33% (5,443 contacts)
+  E-mail 1 - Value: 21.33% (5,443 contacts)
+  Middle Name: 19.71% (5,031 contacts)
+  Website 1 - Label: 18.0% (4,594 contacts)
+  Website 1 - Value: 18.0% (4,594 contacts)
+
+PHONE NUMBER ANALYSIS:
+  Total phone numbers: 25,955
+  Contacts with phones: 24,450
+  Phone completeness: 95.8%
+
+GEOGRAPHIC DISTRIBUTION:
+  Brazil: 854 contacts
+  Unknown/Other: 8,489 contacts
+  United States: 16,178 contacts
+
+BUSINESS VS PERSONAL:
+  Business: 71 (0.28%)
+  Personal: 54 (0.21%)
+
+DATA QUALITY:
+  Complete contacts: 25,188 (98.7%)
+  Contacts with phone/email: 25,205 (98.76%)
