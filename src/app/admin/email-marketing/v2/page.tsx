@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { analytics } from '@/lib/analytics-client';
 import { Contact, Campaign, EmailTemplate, Segment, AutomationWorkflow } from '@/lib/email-marketing/utils';
 import { useEmailMarketingShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -28,6 +29,8 @@ interface Stats {
 }
 
 export default function EmailMarketingV2Page() {
+  const searchParams = useSearchParams();
+  
   // State management
   const [activeTab, setActiveTab] = useState<'dashboard' | 'campaigns' | 'automation' | 'segments' | 'analytics' | 'templates' | 'deliverability' | 'testing'>('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
@@ -35,8 +38,15 @@ export default function EmailMarketingV2Page() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Handle URL tab parameter changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['dashboard', 'campaigns', 'automation', 'segments', 'analytics', 'templates', 'deliverability', 'testing'].includes(tabParam)) {
+      setActiveTab(tabParam as typeof activeTab);
+    }
+  }, [searchParams]);
 
   // Initialize analytics and load data
   useEffect(() => {
@@ -62,7 +72,7 @@ export default function EmailMarketingV2Page() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/email-marketing?action=stats');
+      const response = await fetch('/api/email-marketing/v2?action=stats');
       const data = await response.json();
       if (data.success && data.data) {
         setStats(data.data);
@@ -74,7 +84,7 @@ export default function EmailMarketingV2Page() {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('/api/email-marketing?action=contacts');
+      const response = await fetch('/api/email-marketing/v2?action=contacts');
       const data = await response.json();
       if (data.success && data.data && Array.isArray(data.data.contacts)) {
         setContacts(data.data.contacts);
@@ -86,7 +96,7 @@ export default function EmailMarketingV2Page() {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch('/api/email-marketing?action=campaigns');
+      const response = await fetch('/api/email-marketing/v2?action=campaigns');
       const data = await response.json();
       if (data.success && data.data.campaigns) {
         const formattedCampaigns = data.data.campaigns.map((campaign: any) => ({
@@ -113,7 +123,7 @@ export default function EmailMarketingV2Page() {
     onNewCampaign: () => setActiveTab('campaigns'),
     onViewContacts: () => setActiveTab('segments'),
     onViewAnalytics: () => setActiveTab('analytics'),
-    onToggleSidebar: () => setSidebarExpanded(!sidebarExpanded),
+    onToggleSidebar: () => {}, // Sidebar is handled by main admin layout
     onShowKeyboardHelp: () => setShowKeyboardHelp(true),
     onRefresh: loadInitialData,
     onSelectAll: () => setSelectedContacts(contacts.map(c => c.id || '')),
@@ -255,121 +265,71 @@ export default function EmailMarketingV2Page() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ${sidebarExpanded ? 'w-64' : 'w-16'} flex flex-col`}>
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            {sidebarExpanded && (
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">📧 Email Marketing</h1>
-                <p className="text-xs text-gray-600">Professional Platform</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {navTabs.find(tab => tab.id === activeTab)?.icon} {navTabs.find(tab => tab.id === activeTab)?.name}
+            </h2>
+            <p className="text-gray-600 text-sm">
+              {navTabs.find(tab => tab.id === activeTab)?.description}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Contact selection info */}
+            {selectedContacts.length > 0 && (
+              <div className="text-sm text-blue-600 font-medium">
+                {selectedContacts.length} contatos selecionados
               </div>
             )}
-            <button
-              onClick={() => setSidebarExpanded(!sidebarExpanded)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              {sidebarExpanded ? '◀' : '▶'}
-            </button>
+            
+            {/* Quick actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('campaigns')}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg font-medium"
+              >
+                ➕ Nova Campanha
+              </button>
+              
+              <button
+                onClick={() => setShowKeyboardHelp(true)}
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                title="Atalhos do teclado (Ctrl+?)"
+              >
+                ⌨️
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {navTabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              title={sidebarExpanded ? '' : tab.description}
-            >
-              <span className="text-xl">{tab.icon}</span>
-              {sidebarExpanded && (
-                <div className="flex-1">
-                  <div className="font-medium">{tab.name}</div>
-                  <div className="text-xs text-gray-500">{tab.description}</div>
-                </div>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* Footer Actions */}
-        <div className="p-2 border-t border-gray-200 space-y-1">
-          <button
-            onClick={() => setShowKeyboardHelp(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-left"
-            title={sidebarExpanded ? '' : 'Atalhos do teclado'}
-          >
-            <span className="text-lg">⌨️</span>
-            {sidebarExpanded && <span className="text-sm">Atalhos (Ctrl+?)</span>}
-          </button>
-          
-          <button
-            onClick={loadInitialData}
-            disabled={loading}
-            className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors text-left disabled:opacity-50"
-            title={sidebarExpanded ? '' : 'Atualizar dados'}
-          >
-            <span className="text-lg">{loading ? '⏳' : '🔄'}</span>
-            {sidebarExpanded && <span className="text-sm">Atualizar</span>}
-          </button>
+        {/* Tab Navigation */}
+        <div className="mt-4 border-t pt-4">
+          <nav className="flex space-x-1 overflow-x-auto">
+            {navTabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.name}</span>
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {navTabs.find(tab => tab.id === activeTab)?.icon} {navTabs.find(tab => tab.id === activeTab)?.name}
-              </h2>
-              <p className="text-gray-600 text-sm">
-                {navTabs.find(tab => tab.id === activeTab)?.description}
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Contact selection info */}
-              {selectedContacts.length > 0 && (
-                <div className="text-sm text-blue-600 font-medium">
-                  {selectedContacts.length} contatos selecionados
-                </div>
-              )}
-              
-              {/* Quick actions */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('campaigns')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg font-medium"
-                >
-                  ➕ Nova Campanha
-                </button>
-                
-                <button
-                  onClick={() => setShowKeyboardHelp(true)}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
-                  title="Atalhos do teclado (Ctrl+?)"
-                >
-                  ⌨️
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {renderTabContent()}
-        </div>
+      {/* Content Area */}
+      <div className="p-6">
+        {renderTabContent()}
       </div>
 
       {/* Keyboard Shortcuts Help Modal */}

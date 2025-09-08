@@ -1,0 +1,38 @@
+🔥 QUICK DNS SETUP FOR MAILGUN VERIFICATION 🔥
+
+=== CRITICAL: ADD THESE 5 RECORDS TO fly2any.com DNS ===
+
+1. 🔐 DKIM (TXT Record):
+   Host: krs._domainkey.mail.fly2any.com
+   Value: k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDa+2BqqxF2lYUfihcVlnZQeKFT2LIg0uoFumf5gR6Zw1gzJp2d1Ecjzy1e8sdA9VcDTaRjUJAyCGzmIxOBo//K5AksYCAcHIWQNChWrDi4NPZrZIa3OhSeCOqoxidBQUqgoX6+yMoH3MRU9l2zxA1pY7SLIK1cSfMrsox9NNnO6QIDAQAB
+
+2. 🛡️ SPF (TXT Record):
+   Host: mail.fly2any.com
+   Value: v=spf1 include:mailgun.org ~all
+
+3. 📬 MX Record 1:
+   Host: mail.fly2any.com
+   Value: mxa.mailgun.org
+   Priority: 10
+
+4. 📬 MX Record 2:
+   Host: mail.fly2any.com
+   Value: mxb.mailgun.org
+   Priority: 10
+
+5. 📊 CNAME Tracking:
+   Host: email.mail.fly2any.com
+   Value: mailgun.org
+
+=== AFTER ADDING RECORDS ===
+⏱️  Wait: 15 minutes - 24 hours for DNS propagation
+✅ Test: curl -X POST "http://localhost:3000/api/email-marketing/v2?action=check_domain_status"
+🚀 Result: Domain status changes from "unverified" to "verified"
+🎯 Unlock: Professional email sending to unlimited recipients!
+
+=== QUICK TEST COMMANDS ===
+Check SPF: nslookup -type=txt mail.fly2any.com
+Check DKIM: nslookup -type=txt krs._domainkey.mail.fly2any.com
+Check MX: nslookup -type=mx mail.fly2any.com
+
+🎉 Once verified, your email marketing system is ready for enterprise-scale professional campaigns!

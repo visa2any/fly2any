@@ -15,12 +15,6 @@ const navigation = [
     exact: true
   },
   {
-    name: 'Omnichannel',
-    href: '/admin/omnichannel-test',
-    icon: '🌐',
-    badge: '12'
-  },
-  {
     name: 'Leads',
     href: '/admin/leads',
     icon: '🎯',
@@ -38,10 +32,52 @@ const navigation = [
     icon: '👥'
   },
   {
-    name: 'Phone Management',
-    href: '/admin/phone-management',
-    icon: '📱',
-    badge: '14K'
+    name: 'Email Marketing Pro',
+    href: '/admin/email-marketing/v2',
+    icon: '📧',
+    badge: 'V2',
+    submenu: [
+      {
+        name: 'Dashboard',
+        href: '/admin/email-marketing/v2?tab=dashboard',
+        icon: '📊'
+      },
+      {
+        name: 'Campanhas',
+        href: '/admin/email-marketing/v2?tab=campaigns',
+        icon: '🚀'
+      },
+      {
+        name: 'Automação',
+        href: '/admin/email-marketing/v2?tab=automation',
+        icon: '⚡'
+      },
+      {
+        name: 'Segmentos',
+        href: '/admin/email-marketing/v2?tab=segments',
+        icon: '🎯'
+      },
+      {
+        name: 'Analytics',
+        href: '/admin/email-marketing/v2?tab=analytics',
+        icon: '📈'
+      },
+      {
+        name: 'Templates',
+        href: '/admin/email-marketing/v2?tab=templates',
+        icon: '📨'
+      },
+      {
+        name: 'Entregabilidade',
+        href: '/admin/email-marketing/v2?tab=deliverability',
+        icon: '✅'
+      },
+      {
+        name: 'Testes A/B',
+        href: '/admin/email-marketing/v2?tab=testing',
+        icon: '🧪'
+      }
+    ]
   },
   {
     name: 'Campanhas',
@@ -49,26 +85,21 @@ const navigation = [
     icon: '🚀'
   },
   {
-    name: 'Email Marketing',
-    href: '/admin/email-marketing',
-    icon: '📧',
-    badge: 'GRÁTIS'
-  },
-  {
-    name: 'Templates Email',
-    href: '/admin/email-templates',
-    icon: '📨'
-  },
-  {
     name: 'WhatsApp',
     href: '/admin/whatsapp',
     icon: '💬'
   },
   {
-    name: 'Suporte',
-    href: '/admin/support',
-    icon: '🛠️',
-    badge: '3'
+    name: 'Phone Management',
+    href: '/admin/phone-management',
+    icon: '📱',
+    badge: '14K'
+  },
+  {
+    name: 'Omnichannel',
+    href: '/admin/omnichannel-test',
+    icon: '🌐',
+    badge: '12'
   },
   {
     name: 'Analytics',
@@ -76,10 +107,10 @@ const navigation = [
     icon: '📈'
   },
   {
-    name: 'Teste Gmail',
-    href: '/admin/test-gmail',
-    icon: '🧪',
-    badge: 'TEST'
+    name: 'Suporte',
+    href: '/admin/support',
+    icon: '🛠️',
+    badge: '3'
   },
   {
     name: 'Configurações',
@@ -96,18 +127,13 @@ function AdminLayoutContent({
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return; // Still loading
-    
-    if (!session && pathname !== '/admin/login') {
-      router.push('/admin/login');
-    }
-  }, [session, status, pathname, router]);
+  // Note: Authentication redirects are handled by middleware
+  // No need to redirect here to avoid conflicts
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -122,6 +148,11 @@ function AdminLayoutContent({
     }
   };
 
+  // Don't render admin layout for login page
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+  
   // Show loading while checking session
   if (status === 'loading') {
     return (
@@ -131,21 +162,23 @@ function AdminLayoutContent({
     );
   }
 
-  // Don't render admin layout for login page or if not authenticated
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
-  }
-  
-  // Don't render admin layout if not authenticated
-  if (!session) {
-    return <React.Fragment />; // Fixed: DataCloneError
-  }
-
   const isActive = (href: string, exact?: boolean) => {
     if (exact) {
       return pathname === href;
     }
     return pathname.startsWith(href);
+  };
+
+  const toggleMenu = (menuName: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuName) 
+        ? prev.filter(name => name !== menuName)
+        : [...prev, menuName]
+    );
+  };
+
+  const isMenuExpanded = (menuName: string) => {
+    return expandedMenus.includes(menuName);
   };
 
   return (
@@ -174,35 +207,97 @@ function AdminLayoutContent({
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="space-y-1 px-2">
             {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isActive(item.href, item.exact)
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className="text-lg mr-3 flex-shrink-0">{item.icon}</span>
-                {sidebarExpanded && (
-                  <div className="flex-1 flex items-center justify-between">
-                    <span className="truncate">{item.name}</span>
-                    {item.badge && (
-                      <span className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        isActive(item.href, item.exact)
-                          ? 'bg-white/20 text-white'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {item.badge}
-                      </span>
+              <div key={item.name}>
+                {/* Main Menu Item */}
+                {(item as any).submenu ? (
+                  <button
+                    onClick={() => {
+                      if (sidebarExpanded) {
+                        toggleMenu(item.name);
+                      }
+                    }}
+                    className={`w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      isActive(item.href, item.exact)
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="text-lg mr-3 flex-shrink-0">{item.icon}</span>
+                    {sidebarExpanded && (
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="truncate">{item.name}</span>
+                        <div className="flex items-center gap-2">
+                          {item.badge && (
+                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                              isActive(item.href, item.exact)
+                                ? 'bg-white/20 text-white'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {item.badge}
+                            </span>
+                          )}
+                          <span className={`transform transition-transform ${isMenuExpanded(item.name) ? 'rotate-90' : ''}`}>
+                            ▶
+                          </span>
+                        </div>
+                      </div>
                     )}
+                    {!sidebarExpanded && item.badge && (
+                      <span className="absolute left-10 top-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      isActive(item.href, item.exact)
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span className="text-lg mr-3 flex-shrink-0">{item.icon}</span>
+                    {sidebarExpanded && (
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="truncate">{item.name}</span>
+                        {item.badge && (
+                          <span className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full ${
+                            isActive(item.href, item.exact)
+                              ? 'bg-white/20 text-white'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {!sidebarExpanded && item.badge && (
+                      <span className="absolute left-10 top-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    )}
+                  </Link>
+                )}
+
+                {/* Submenu */}
+                {(item as any).submenu && sidebarExpanded && isMenuExpanded(item.name) && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {(item as any).submenu.map((subItem: any) => (
+                      <Link
+                        key={subItem.name}
+                        href={subItem.href}
+                        className={`group flex items-center px-3 py-1.5 text-sm rounded-md transition-all duration-200 ${
+                          pathname.includes(subItem.href.split('?')[0]) && new URLSearchParams(window.location.search).get('tab') === subItem.href.split('tab=')[1]
+                            ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-500'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <span className="text-sm mr-3 flex-shrink-0">{subItem.icon}</span>
+                        <span className="truncate">{subItem.name}</span>
+                      </Link>
+                    ))}
                   </div>
                 )}
-                {!sidebarExpanded && item.badge && (
-                  <span className="absolute left-10 top-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
-              </Link>
+              </div>
             ))}
           </div>
         </nav>

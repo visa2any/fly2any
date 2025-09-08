@@ -152,10 +152,10 @@ export class EmailTrackingSystem {
       const metrics = await this.getCampaignMetrics(campaignId);
       
       await EmailCampaignsDB.updateStats(campaignId, {
-        total_delivered: metrics.delivered,
-        total_opened: metrics.opened,
-        total_clicked: metrics.clicked,
-        total_bounced: metrics.bounced
+        totalDelivered: metrics.delivered,
+        totalOpened: metrics.opened,
+        totalClicked: metrics.clicked,
+        totalBounced: metrics.bounced
       });
     } catch (error) {
       console.error('❌ Erro ao atualizar métricas da campanha:', error);

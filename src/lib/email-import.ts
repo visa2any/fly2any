@@ -342,7 +342,7 @@ class EmailImportService {
         telefone: contact.telefone || '',
         segmento: contact.segmento || 'geral',
         tags: Array.isArray(contact.tags) ? contact.tags : [],
-        status: 'ativo' as const,
+        status: 'active' as const,
         email_status: 'not_sent' as const,
         unsubscribe_token: generateUnsubscribeToken()
       }));

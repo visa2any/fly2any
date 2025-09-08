@@ -51,7 +51,7 @@ export interface AnalyticsData {
 }
 
 class EmailMarketingAPI {
-  private baseUrl = '/api/email-marketing';
+  private baseUrl = '/api/email-marketing/v2';
   
   // Generic fetch wrapper with error handling
   private async fetch<T>(

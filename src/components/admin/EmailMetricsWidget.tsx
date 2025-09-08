@@ -48,7 +48,8 @@ export default function EmailMetricsWidget() {
     fetchMetrics();
   }, [timeRange]);
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | undefined | null) => {
+    if (num == null || num === undefined) return '0';
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
@@ -129,7 +130,7 @@ export default function EmailMetricsWidget() {
                   <EyeIcon className="h-5 w-5 text-green-600" />
                 </div>
                 <div className="text-2xl font-bold text-green-900">
-                  {metrics.openRate.toFixed(1)}%
+                  {(metrics.openRate || 0).toFixed(1)}%
                 </div>
                 <div className="text-sm text-green-600">Open Rate</div>
               </div>
@@ -139,7 +140,7 @@ export default function EmailMetricsWidget() {
                   <CursorArrowRippleIcon className="h-5 w-5 text-purple-600" />
                 </div>
                 <div className="text-2xl font-bold text-purple-900">
-                  {metrics.clickRate.toFixed(1)}%
+                  {(metrics.clickRate || 0).toFixed(1)}%
                 </div>
                 <div className="text-sm text-purple-600">Click Rate</div>
               </div>
@@ -149,7 +150,7 @@ export default function EmailMetricsWidget() {
                   ✅
                 </div>
                 <div className="text-2xl font-bold text-emerald-900">
-                  {metrics.deliveryRate.toFixed(1)}%
+                  {(metrics.deliveryRate || 0).toFixed(1)}%
                 </div>
                 <div className="text-sm text-emerald-600">Delivery</div>
               </div>
@@ -180,7 +181,7 @@ export default function EmailMetricsWidget() {
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm text-gray-600">Bounce Rate</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{metrics.bounceRate.toFixed(1)}%</span>
+                  <span className="text-sm font-medium">{(metrics.bounceRate || 0).toFixed(1)}%</span>
                   <div className={`flex items-center ${metrics.bounceRate < 5 ? 'text-green-600' : 'text-red-600'}`}>
                     {metrics.bounceRate < 5 ? 
                       <ArrowTrendingDownIcon className="h-4 w-4" /> :

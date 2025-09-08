@@ -162,7 +162,7 @@ export default function EmailMonitoringWidget() {
                   <span className="text-sm font-medium text-blue-900">Queue</span>
                 </div>
                 <div className="text-xl font-bold text-blue-900">
-                  {monitoringData.emailsInQueue}
+                  {monitoringData.emailsInQueue || 0}
                 </div>
                 <div className="text-xs text-blue-600">emails pending</div>
               </div>
@@ -173,7 +173,7 @@ export default function EmailMonitoringWidget() {
                   <span className="text-sm font-medium text-green-900">Processing</span>
                 </div>
                 <div className="text-xl font-bold text-green-900">
-                  {monitoringData.emailsProcessingPerMinute}
+                  {monitoringData.emailsProcessingPerMinute || 0}
                 </div>
                 <div className="text-xs text-green-600">per minute</div>
               </div>
@@ -183,21 +183,27 @@ export default function EmailMonitoringWidget() {
             <div>
               <div className="text-sm font-medium text-gray-700 mb-2">Email Providers</div>
               <div className="space-y-2">
-                {monitoringData.providerStatus.map((provider, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        provider.status === 'healthy' ? 'bg-green-500' :
-                        provider.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}></div>
-                      <span className="text-sm font-medium">{provider.provider}</span>
+                {monitoringData.providerStatus && monitoringData.providerStatus.length > 0 ? (
+                  monitoringData.providerStatus.map((provider, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          provider.status === 'healthy' ? 'bg-green-500' :
+                          provider.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}></div>
+                        <span className="text-sm font-medium">{provider.provider || 'Unknown Provider'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <WifiIcon className="h-3 w-3" />
+                        <span>{provider.latency || 0}ms</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <WifiIcon className="h-3 w-3" />
-                      <span>{provider.latency}ms</span>
-                    </div>
+                  ))
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg text-center">
+                    <div className="text-sm text-gray-600">No provider data available</div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -205,15 +211,15 @@ export default function EmailMonitoringWidget() {
             <div>
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="font-medium text-gray-700">API Usage</span>
-                <span className="text-gray-600">{monitoringData.apiRateLimitUsage.toFixed(1)}%</span>
+                <span className="text-gray-600">{(monitoringData.apiRateLimitUsage || 0).toFixed(1)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className={`h-2 rounded-full ${
-                    monitoringData.apiRateLimitUsage < 70 ? 'bg-green-500' :
-                    monitoringData.apiRateLimitUsage < 90 ? 'bg-yellow-500' : 'bg-red-500'
+                    (monitoringData.apiRateLimitUsage || 0) < 70 ? 'bg-green-500' :
+                    (monitoringData.apiRateLimitUsage || 0) < 90 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}
-                  style={{ width: `${monitoringData.apiRateLimitUsage}%` }}
+                  style={{ width: `${monitoringData.apiRateLimitUsage || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -250,7 +256,7 @@ export default function EmailMonitoringWidget() {
             {/* Last Activity */}
             <div className="pt-3 border-t border-gray-200">
               <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>Last email sent: {formatTimestamp(monitoringData.lastEmailSent)}</span>
+                <span>Last email sent: {monitoringData.lastEmailSent ? formatTimestamp(monitoringData.lastEmailSent) : 'Never'}</span>
                 <span>Updated: {formatTimestamp(lastRefresh.toISOString())}</span>
               </div>
             </div>

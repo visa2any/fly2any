@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { emailMarketingLogger, LogLevel, EmailEvent } from '@/lib/email-marketing-logger';
+import { emailMarketingLogger, LogLevel, EmailEvent, EmailEventTypes } from '@/lib/email-marketing-logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         // Campaign performance
         const campaignPerformance = Object.entries(stats.byCampaign).map(([campaignId, count]) => ({
           campaignId,
-          events: count,
+          events: Number(count) || 0,
           lastActivity: new Date().toISOString() // Would need actual timestamp from logs
         })).sort((a, b) => b.events - a.events).slice(0, 10);
 
@@ -289,19 +289,19 @@ async function getCampaignSpecificLogs(campaignId: string, hours: number) {
       
       // Update email metrics
       switch (entry.event) {
-        case EmailEvent.EMAIL_SENT:
+        case EmailEventTypes.SENT:
           emailMetrics.sent++;
           break;
-        case EmailEvent.EMAIL_FAILED:
+        case EmailEventTypes.FAILED:
           emailMetrics.failed++;
           break;
-        case EmailEvent.EMAIL_OPENED:
+        case EmailEventTypes.OPENED:
           emailMetrics.opened++;
           break;
-        case EmailEvent.EMAIL_CLICKED:
+        case EmailEventTypes.CLICKED:
           emailMetrics.clicked++;
           break;
-        case EmailEvent.EMAIL_BOUNCED:
+        case EmailEventTypes.BOUNCED:
           emailMetrics.bounced++;
           break;
       }
@@ -353,20 +353,20 @@ async function getPerformanceMetrics(hours: number) {
   
   // Email throughput (emails per hour)
   const emailEvents = [
-    EmailEvent.EMAIL_SENT,
-    EmailEvent.EMAIL_FAILED,
-    EmailEvent.EMAIL_BOUNCED
+    EmailEventTypes.SENT,
+    EmailEventTypes.FAILED,
+    EmailEventTypes.BOUNCED
   ];
   const emailCount = emailEvents.reduce((sum, event) => sum + (stats.byEvent[event] || 0), 0);
   const emailsPerHour = Math.round(emailCount / hours);
   
   // Campaign efficiency
-  const campaignEvents = stats.byEvent[EmailEvent.CAMPAIGN_COMPLETED] || 0;
+  const campaignEvents = stats.byEvent['campaign_completed'] || 0;
   const avgEmailsPerCampaign = campaignEvents > 0 ? Math.round(emailCount / campaignEvents) : 0;
   
   // Success rates
-  const sentEmails = stats.byEvent[EmailEvent.EMAIL_SENT] || 0;
-  const failedEmails = stats.byEvent[EmailEvent.EMAIL_FAILED] || 0;
+  const sentEmails = stats.byEvent[EmailEventTypes.SENT] || 0;
+  const failedEmails = stats.byEvent[EmailEventTypes.FAILED] || 0;
   const successRate = (sentEmails + failedEmails) > 0 ? (sentEmails / (sentEmails + failedEmails) * 100) : 0;
   
   return {
@@ -380,20 +380,20 @@ async function getPerformanceMetrics(hours: number) {
     throughput: {
       emailsSent: sentEmails,
       emailsFailed: failedEmails,
-      emailsOpened: stats.byEvent[EmailEvent.EMAIL_OPENED] || 0,
-      emailsClicked: stats.byEvent[EmailEvent.EMAIL_CLICKED] || 0,
-      rateLimits: stats.byEvent[EmailEvent.RATE_LIMITED] || 0
+      emailsOpened: stats.byEvent[EmailEventTypes.OPENED] || 0,
+      emailsClicked: stats.byEvent[EmailEventTypes.CLICKED] || 0,
+      rateLimits: stats.byEvent['rate_limited'] || 0
     },
     campaigns: {
-      created: stats.byEvent[EmailEvent.CAMPAIGN_CREATED] || 0,
-      started: stats.byEvent[EmailEvent.CAMPAIGN_STARTED] || 0,
-      completed: stats.byEvent[EmailEvent.CAMPAIGN_COMPLETED] || 0,
-      failed: stats.byEvent[EmailEvent.CAMPAIGN_FAILED] || 0,
-      paused: stats.byEvent[EmailEvent.CAMPAIGN_PAUSED] || 0
+      created: stats.byEvent['campaign_created'] || 0,
+      started: stats.byEvent['campaign_started'] || 0,
+      completed: stats.byEvent['campaign_completed'] || 0,
+      failed: stats.byEvent['campaign_failed'] || 0,
+      paused: stats.byEvent['campaign_paused'] || 0
     },
     retries: {
-      scheduled: stats.byEvent[EmailEvent.RETRY_SCHEDULED] || 0,
-      attempted: stats.byEvent[EmailEvent.RETRY_ATTEMPTED] || 0
+      scheduled: stats.byEvent['retry_scheduled'] || 0,
+      attempted: stats.byEvent['retry_attempted'] || 0
     },
     timeRange: `Last ${hours} hours`,
     generatedAt: new Date().toISOString()
@@ -467,19 +467,19 @@ export async function POST(request: NextRequest) {
         // Create a test log entry
         switch (level) {
           case 'debug':
-            emailMarketingLogger.debug(event, message, { campaignId });
+            emailMarketingLogger.debug(`${event}: ${message}`, { campaignId });
             break;
           case 'info':
-            emailMarketingLogger.info(event, message, { campaignId });
+            emailMarketingLogger.info(`${event}: ${message}`, { campaignId });
             break;
           case 'warn':
-            emailMarketingLogger.warn(event, message, { campaignId });
+            emailMarketingLogger.warn(`${event}: ${message}`, { campaignId });
             break;
           case 'error':
-            emailMarketingLogger.error(event, message, { campaignId });
+            emailMarketingLogger.error(`${event}: ${message}`, { campaignId });
             break;
           case 'critical':
-            emailMarketingLogger.critical(event, message, { campaignId });
+            emailMarketingLogger.critical(`${event}: ${message}`, { campaignId });
             break;
         }
 

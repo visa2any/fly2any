@@ -7,9 +7,11 @@ import {
   generateUnsubscribeToken,
   EmailContact,
   EmailCampaign,
-  processEmailRetries
+  processEmailRetries,
+  EmailContactsDBExtended,
+  EmailCampaignsDBExtended
 } from '@/lib/email-marketing-db';
-import { emailMarketingLogger, EmailEvent, LogLevel } from '@/lib/email-marketing-logger';
+import { emailMarketingLogger, EmailEvent, LogLevel, EmailEventTypes } from '@/lib/email-marketing-logger';
 import { EmailTrackingSystem, initEmailTracking } from '@/lib/email-tracking';
 import { sql } from '@vercel/postgres';
 import nodemailer from 'nodemailer';
@@ -148,8 +150,7 @@ async function loadSavedTemplates() {
       : 'https://www.fly2any.com'; // URL de produção CORRETA
     
     emailMarketingLogger.debug(
-      EmailEvent.TEMPLATE_LOADED,
-      'Loading email templates from API',
+      'Loading email templates from API - TEMPLATE_LOADED',
       { metadata: { baseUrl } }
     );
     console.log('🔄 Carregando templates de:', baseUrl);
@@ -651,14 +652,15 @@ export async function POST(request: NextRequest) {
         // Preparar contatos para inserção
         const contactsToInsert = contactsData.map((contact: any) => ({
           email: contact.email,
-          nome: contact.nome || contact.name || 'Cliente',
-          sobrenome: contact.sobrenome || contact.lastName || '',
-          telefone: contact.telefone || contact.phone || '',
-          segmento: contact.segmento || 'geral',
+          firstName: contact.nome || contact.name || 'Cliente',
+          lastName: contact.sobrenome || contact.lastName || '',
           tags: Array.isArray(contact.tags) ? contact.tags : (contact.tags ? contact.tags.split(';') : []),
-          status: 'ativo' as const,
-          email_status: 'not_sent' as const,
-          unsubscribe_token: generateUnsubscribeToken()
+          status: 'active' as const,
+          unsubscribeToken: generateUnsubscribeToken(),
+          metadata: {
+            telefone: contact.telefone || contact.phone || '',
+            segmento: contact.segmento || 'geral'
+          }
         }));
 
         const result = await EmailContactsDB.bulkCreate(contactsToInsert);
@@ -702,17 +704,16 @@ export async function POST(request: NextRequest) {
         const campaign = await EmailCampaignsDB.create({
           name: name || 'Nova Campanha',
           subject: finalSubject,
-          template_type: templateType || 'promotional',
-          html_content: finalHtmlContent,
-          text_content: textContent || '',
+          templateType: templateType || 'promotional',
+          htmlContent: finalHtmlContent,
+          textContent: textContent || '',
           status: 'draft',
-          total_recipients: 0,
-          total_sent: 0,
-          total_delivered: 0,
-          total_opened: 0,
-          total_clicked: 0,
-          total_bounced: 0,
-          total_unsubscribed: 0
+          totalSent: 0,
+          totalDelivered: 0,
+          totalOpened: 0,
+          totalClicked: 0,
+          totalBounced: 0,
+          totalUnsubscribed: 0
         });
         
         return NextResponse.json({
@@ -877,11 +878,10 @@ export async function POST(request: NextRequest) {
         // Criar registros de envio
         const sendPromises = contacts.map(contact => 
           EmailSendsDB.create({
-            campaign_id: campaignId,
-            contact_id: contact.id,
-            email: contact.email,
+            campaignId: campaignId,
+            contactId: contact.id!,
             status: 'pending',
-            retry_count: 0
+            retryCount: 0
           })
         );
         
@@ -934,7 +934,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Buscar contatos para os envios pendentes
-        const contactIds = pendingOnly.map(send => send.contact_id);
+        const contactIds = pendingOnly.map(send => send.contactId);
         const contacts: EmailContact[] = [];
         
         for (const contactId of contactIds) {
@@ -974,17 +974,16 @@ export async function POST(request: NextRequest) {
         const campaign = await EmailCampaignsDB.create({
           name: `${templateType.charAt(0).toUpperCase() + templateType.slice(1)} - ${new Date().toLocaleDateString('pt-BR')}`,
           subject: template.subject,
-          template_type: templateType as any,
-          html_content: template.html,
-          text_content: '',
+          templateType: templateType as any,
+          htmlContent: template.html,
+          textContent: '',
           status: 'draft',
-          total_recipients: 0,
-          total_sent: 0,
-          total_delivered: 0,
-          total_opened: 0,
-          total_clicked: 0,
-          total_bounced: 0,
-          total_unsubscribed: 0
+          totalSent: 0,
+          totalDelivered: 0,
+          totalOpened: 0,
+          totalClicked: 0,
+          totalBounced: 0,
+          totalUnsubscribed: 0
         });
 
         // Enviar campanha
@@ -1344,8 +1343,8 @@ export async function GET(request: NextRequest) {
             
             // Encontrar o send específico e atualizar
             const sends = await EmailSendsDB.findByCampaign(campaignId);
-            const send = sends.find(s => s.contact_id === contactId);
-            if (send) {
+            const send = sends.find(s => s.contactId === contactId);
+            if (send && send.id) {
               await EmailSendsDB.updateStatus(send.id, 'opened', { opened_at: new Date() });
             }
           }
@@ -1394,8 +1393,8 @@ export async function GET(request: NextRequest) {
             
             // Encontrar o send específico e atualizar
             const sends = await EmailSendsDB.findByCampaign(campaignId);
-            const send = sends.find(s => s.contact_id === contactId);
-            if (send) {
+            const send = sends.find(s => s.contactId === contactId);
+            if (send && send.id) {
               await EmailSendsDB.updateStatus(send.id, 'clicked', { clicked_at: new Date() });
             }
           }
@@ -1523,8 +1522,8 @@ export async function GET(request: NextRequest) {
           // Buscar envios por campanha
           const campaignDetails = await Promise.all(
             campaigns.map(async (campaign) => {
-              const sends = await EmailSendsDB.findByCampaign(campaign.id);
-              const sendStats = await EmailSendsDB.getCampaignStats(campaign.id);
+              const sends = campaign.id ? await EmailSendsDB.findByCampaign(campaign.id) : [];
+              const sendStats = campaign.id ? await EmailSendsDB.getCampaignStats(campaign.id) : null;
               return {
                 ...campaign,
                 sends: sends.length,
@@ -1547,10 +1546,10 @@ export async function GET(request: NextRequest) {
               retryStats: {
                 eligibleForRetry: failedForRetry.length,
                 details: failedForRetry.map(send => ({
-                  email: send.email,
-                  retryCount: send.retry_count,
-                  retryAfter: send.retry_after,
-                  failedReason: send.failed_reason
+                  campaignId: send.campaignId,
+                  contactId: send.contactId,
+                  retryCount: send.retryCount,
+                  failedReason: send.failureReason
                 }))
               }
             }
@@ -1613,7 +1612,7 @@ async function executeAutoRestart() {
         console.log(`🔍 Verificando campanha: ${campaign.name} (${campaign.id})`);
         
         // Buscar envios pendentes desta campanha
-        const sends = await EmailSendsDB.findByCampaign(campaign.id);
+        const sends = campaign.id ? await EmailSendsDB.findByCampaign(campaign.id) : [];
         const pendingSends = sends.filter(send => send.status === 'pending');
         
         console.log(`📧 Campanha ${campaign.name}: ${pendingSends.length} envios pendentes`);
@@ -1624,7 +1623,7 @@ async function executeAutoRestart() {
         }
         
         // 3. Buscar contatos para os envios pendentes
-        const contactIds = pendingSends.map(send => send.contact_id);
+        const contactIds = pendingSends.map(send => send.contactId);
         const contacts: EmailContact[] = [];
         
         for (const contactId of contactIds) {
@@ -1643,13 +1642,15 @@ async function executeAutoRestart() {
         
         // 4. Reiniciar processo de envio assíncrono
         console.log(`🔄 Reiniciando campanha: ${campaign.name}`);
-        await EmailCampaignsDB.updateStatus(campaign.id, 'sending');
+        if (campaign.id) {
+          await EmailCampaignsDB.updateStatus(campaign.id, 'sending');
+        }
         
         // Processar de forma assíncrona (não aguardar conclusão)
         processCampaignSends(campaign, contacts, pendingSends).catch(error => {
           console.error(`❌ Erro no reprocessamento da campanha ${campaign.name}:`, error);
           // Em caso de erro, marcar como pausada novamente
-          EmailCampaignsDB.updateStatus(campaign.id, 'paused').catch(e => 
+          campaign.id && EmailCampaignsDB.updateStatus(campaign.id, 'paused').catch(e => 
             console.error('Erro ao atualizar status para paused:', e)
           );
         });
@@ -1728,15 +1729,12 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   const campaignStartTime = Date.now();
   
   emailMarketingLogger.info(
-    EmailEvent.CAMPAIGN_STARTED,
-    'Campaign processing started',
+    'Campaign processing started - CAMPAIGN_STARTED',
     {
       campaignId: campaign.id,
-      metadata: {
-        campaignName: campaign.name,
-        contactCount: contacts.length,
-        status: campaign.status
-      }
+      campaignName: campaign.name,
+      contactCount: contacts.length,
+      status: campaign.status
     }
   );
   
@@ -1744,19 +1742,19 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   
   if (!credentials || !credentials.email || !credentials.password) {
     emailMarketingLogger.critical(
-      EmailEvent.CREDENTIALS_LOADED,
-      'Gmail credentials not configured - campaign paused',
+      'Gmail credentials not configured - campaign paused - CREDENTIALS_LOADED',
       { campaignId: campaign.id }
     );
     console.error('❌ Credenciais Gmail não configuradas');
     // Marcar campanha como paused para reprocessamento posterior
-    await EmailCampaignsDB.updateStatus(campaign.id, 'paused');
+    if (campaign.id) {
+      await EmailCampaignsDB.updateStatus(campaign.id, 'paused');
+    }
     return;
   }
   
   emailMarketingLogger.info(
-    EmailEvent.CREDENTIALS_LOADED,
-    'Gmail credentials loaded successfully',
+    'Gmail credentials loaded successfully - CREDENTIALS_LOADED',
     { campaignId: campaign.id, metadata: { email: credentials?.email || 'unknown' } }
   );
 
@@ -1764,12 +1762,14 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   const heartbeatInterval = setInterval(async () => {
     try {
       // Atualizar timestamp da campanha a cada 2 minutos para indicar que está ativa
-      await EmailCampaignsDB.updateTimestamp(campaign.id);
+      if (campaign.id) {
+        await EmailCampaignsDB.updateTimestamp(campaign.id);
+      }
       
       emailMarketingLogger.logHeartbeat(
-        campaign.id,
-        'active',
+        campaign.id || 'unknown',
         {
+          status: 'active',
           uptime: Date.now() - campaignStartTime,
           memoryUsage: process.memoryUsage().heapUsed,
           contactsProcessed: contacts.length
@@ -1779,8 +1779,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
       console.log(`💓 Heartbeat: Campanha ${campaign.name} ainda ativa`);
     } catch (error) {
       emailMarketingLogger.error(
-        EmailEvent.HEARTBEAT,
-        'Heartbeat failed',
+        'Heartbeat failed - HEARTBEAT',
         { campaignId: campaign.id, error: error as Error }
       );
       console.error('❌ Erro no heartbeat:', error);
@@ -1812,13 +1811,13 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   // 🔍 Verificar conectividade antes de iniciar envios
   try {
     await transporter.verify();
-    emailMarketingLogger.logCampaignStart(campaign.id, {
+    emailMarketingLogger.logCampaignStart(campaign.id || 'unknown', {
       message: 'SMTP transporter verificado com sucesso',
       credentials: credentials?.email || 'unknown'
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    emailMarketingLogger.logEmailError(campaign.id, 'transporter_verification', '', errorMessage);
+    emailMarketingLogger.logEmailError(campaign.id || 'unknown', 'transporter_verification', '', errorMessage);
     return NextResponse.json({
       success: false,
       error: 'Falha na verificação SMTP: ' + errorMessage
@@ -1838,16 +1837,13 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   await executeAutoRetry();
   
   emailMarketingLogger.info(
-    EmailEvent.CAMPAIGN_STARTED,
-    'Campaign email sending initiated',
+    'Campaign email sending initiated - CAMPAIGN_STARTED',
     {
       campaignId: campaign.id,
-      metadata: {
-        totalContacts: contacts.length,
-        batchSize,
-        batchDelay: batchDelayMs,
-        rateLimit: `${batchSize} emails per ${batchDelayMs/1000}s`
-      }
+      totalContacts: contacts.length,
+      batchSize,
+      batchDelay: batchDelayMs,
+      rateLimit: `${batchSize} emails per ${batchDelayMs/1000}s`
     }
   );
   
@@ -1862,16 +1858,13 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     const batchIndex = Math.floor(i/batchSize) + 1;
     
     emailMarketingLogger.info(
-      EmailEvent.BATCH_STARTED,
-      `Batch ${batchIndex} processing started`,
+      `Batch ${batchIndex} processing started - BATCH_STARTED`,
       {
         campaignId: campaign.id,
-        metadata: {
-          batchIndex,
-          batchSize: batch.length,
-          totalBatches: Math.ceil(contacts.length / batchSize),
-          progress: `${Math.round(((i + batch.length) / contacts.length) * 100)}%`
-        }
+        batchIndex,
+        batchSize: batch.length,
+        totalBatches: Math.ceil(contacts.length / batchSize),
+        progress: `${Math.round(((i + batch.length) / contacts.length) * 100)}%`
       }
     );
     
@@ -1883,17 +1876,19 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         const emailSend = batchSends[index];
         
         // Personalizar HTML com dados do contato
-        let personalizedHtml = (campaign.html_content || '')
-          .replace(/{{nome}}/g, contact.nome)
+        let personalizedHtml = (campaign.htmlContent || '')
+          .replace(/{{nome}}/g, contact.firstName || contact.email.split('@')[0])
           .replace(/{{email}}/g, contact.email)
-          .replace(/{{unsubscribe_url}}/g, `https://www.fly2any.com/unsubscribe?token=${contact.unsubscribe_token}`);
+          .replace(/{{unsubscribe_url}}/g, `https://www.fly2any.com/unsubscribe?token=${contact.unsubscribeToken}`);
         
         // Injetar tracking completo (pixels + links rastreáveis)
-        personalizedHtml = EmailTrackingSystem.injectTrackingIntoEmail(
-          personalizedHtml, 
-          emailSend.id, 
-          campaign.id
-        );
+        if (campaign.id) {
+          personalizedHtml = EmailTrackingSystem.injectTrackingIntoEmail(
+            personalizedHtml, 
+            emailSend.id, 
+            campaign.id
+          );
+        }
         
         // Enviar email com envelope e headers customizados para melhor tracking
         const result = await transporter.sendMail({
@@ -1910,26 +1905,30 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         });
         
         // Atualizar status do contato
-        await EmailContactsDB.updateEmailStatus(contact.id, 'sent', new Date());
+        if (contact.id) {
+          await EmailContactsDB.updateEmailStatus(contact.id, 'sent');
+        }
         
         // 🎯 Registrar evento de envio no tracking
-        await EmailTrackingSystem.trackEvent({
-          send_id: emailSend.id,
-          campaign_id: campaign.id,
-          contact_email: contact.email,
-          event_type: 'sent',
-          event_data: {
-            message_id: result?.messageId || 'unknown',
-            timestamp: new Date().toISOString()
-          }
-        });
+        if (campaign.id) {
+          await EmailTrackingSystem.trackEvent({
+            send_id: emailSend.id,
+            campaign_id: campaign.id,
+            contact_email: contact.email,
+            event_type: 'sent',
+            event_data: {
+              message_id: result?.messageId || 'unknown',
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
         
         // 📈 LOG DETALHADO DE SUCESSO
         emailMarketingLogger.logEmailSuccess(
-          campaign.id,
-          contact.id,
-          contact.email,
+          campaign.id || 'unknown',
+          contact.id || 'unknown',
           {
+            email: contact.email,
             messageId: result?.messageId || 'unknown',
             processingTime: Date.now() - batchStartTime,
             retryCount: emailSend.retry_count || 0
@@ -1955,11 +1954,11 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
         
         // 📈 LOG DETALHADO DE FALHA
         emailMarketingLogger.logEmailFailure(
-          campaign.id,
-          contact.id,
-          contact.email,
-          error as Error,
+          campaign.id || 'unknown',
+          contact.id || 'unknown',
+          errorMessage,
           {
+            email: contact.email,
             retryCount: emailSend.retry_count,
             willRetry: isRetryable && emailSend.retry_count < 4
           }
@@ -1978,7 +1977,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
           const retryDelays = [1, 5, 15, 60]; // minutos
           const delayMinutes = retryDelays[Math.min(emailSend.retry_count, retryDelays.length - 1)];
           
-          await EmailSendsDB.scheduleRetry(emailSend.id, emailSend.retry_count, errorMessage);
+          await EmailSendsDB.scheduleRetry(emailSend.id, delayMinutes * 60);
           
           console.log(`🔄 RETRY AGENDADO - ${contact.email}:`, {
             tentativa: emailSend.retry_count + 1,
@@ -1991,7 +1990,9 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
             failed_reason: errorMessage
           });
           
-          await EmailContactsDB.updateEmailStatus(contact.id, 'failed');
+          if (contact.id) {
+            await EmailContactsDB.updateEmailStatus(contact.id, 'failed');
+          }
           
           console.error(`❌ FALHA DEFINITIVA - ${contact.email}:`, {
             tentativas: emailSend.retry_count + 1,
@@ -2025,14 +2026,9 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
     const batchProcessingTime = Date.now() - batchStartTime;
     
     emailMarketingLogger.logBatchProcessing(
-      campaign.id,
-      batchIndex,
+      campaign.id || 'unknown',
       batch.length,
-      {
-        successes: batchSuccesses,
-        failures: batchFailures,
-        processingTime: batchProcessingTime
-      }
+      batchSuccesses
     );
     
     console.log(`📦 LOTE ${batchIndex} FINALIZADO:`, {
@@ -2047,9 +2043,8 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
       const nextBatch = Math.floor(i/batchSize) + 2;
       
       emailMarketingLogger.logRateLimited(
-        campaign.id,
-        batchDelayMs,
-        `Rate limiting delay between batch ${batchIndex} and ${nextBatch}`
+        'batch-processor',
+        batchDelayMs
       );
       
       console.log(`⏸️ Aguardando ${batchDelayMs/1000} segundos antes do lote ${nextBatch}...`);
@@ -2058,12 +2053,16 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   }
 
   // Atualizar estatísticas da campanha
-  await EmailCampaignsDB.updateStats(campaign.id, {
-    total_recipients: contacts.length,
-    total_sent: successCount
-  });
+  if (campaign.id) {
+    await EmailCampaignsDB.updateStats(campaign.id, {
+      totalRecipients: contacts.length,
+      totalSent: successCount
+    });
+  }
   
-  await EmailCampaignsDB.updateStatus(campaign.id, 'completed');
+  if (campaign.id) {
+    await EmailCampaignsDB.updateStatus(campaign.id, 'completed');
+  }
 
   // 📈 LOG FINAL DETALHADO DA CAMPANHA
   const totalEmails = contacts.length;
@@ -2071,7 +2070,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   const campaignDuration = Date.now() - campaignStartTime;
   
   emailMarketingLogger.logCampaignMetrics(
-    campaign.id,
+    campaign.id || 'unknown',
     {
       totalEmails,
       successCount,
@@ -2083,16 +2082,13 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   );
   
   emailMarketingLogger.info(
-    EmailEvent.CAMPAIGN_COMPLETED,
-    'Campaign processing completed successfully',
+    'Campaign processing completed successfully - CAMPAIGN_COMPLETED',
     {
-      campaignId: campaign.id,
-      metadata: {
-        campaignName: campaign.name,
-        finalStatus: 'completed',
-        totalProcessed: totalEmails,
-        successRate: `${successRate.toFixed(1)}%`
-      },
+      campaignId: campaign.id || 'unknown',
+      campaignName: campaign.name,
+      finalStatus: 'completed',
+      totalProcessed: totalEmails,
+      successRate: `${successRate.toFixed(1)}%`,
       duration: campaignDuration
     }
   );
@@ -2110,8 +2106,7 @@ async function processCampaignSends(campaign: EmailCampaign, contacts: EmailCont
   cleanup();
   
   emailMarketingLogger.info(
-    EmailEvent.CAMPAIGN_COMPLETED,
-    'Campaign cleanup completed',
+    'Campaign cleanup completed - CAMPAIGN_COMPLETED',
     { campaignId: campaign.id, duration: Date.now() - campaignStartTime }
   );
 }
