@@ -156,7 +156,7 @@ export default function SalesPageOptimizer({
     }
 
     // Track in Google Analytics or other platforms
-    if (typeof gtag !== 'undefined') {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'conversion', {
         event_category: 'Sales',
         event_label: conversionType,
@@ -352,7 +352,7 @@ export function useConversionOptimization(pageType: string, route?: string) {
     }));
 
     // Send to analytics
-    if (typeof gtag !== 'undefined') {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'conversion', {
         event_category: 'Sales',
         event_label: type,
