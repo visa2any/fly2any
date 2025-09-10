@@ -495,3 +495,7 @@ export interface UserPreferences {
   showAdvancedFeatures: boolean;
   keyboardShortcuts: boolean;
 }
+
+// Type aliases for backwards compatibility
+export type EmailContact = ContactProfile;
+export type CampaignData = Campaign;
