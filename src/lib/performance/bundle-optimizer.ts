@@ -121,7 +121,6 @@ export class BundleOptimizer {
     // Register non-critical components for dynamic loading with proper webpack magic comments
     registry.set('chart.js', () => import(/* webpackChunkName: "chart-js" */ 'chart.js'));
     registry.set('recharts', () => import(/* webpackChunkName: "recharts" */ 'recharts'));
-    // registry.set('framer-motion', () => import(/* webpackChunkName: "framer-motion" */ 'framer-motion')); // Removed due to Next.js client boundary issue
     registry.set('react-chartjs-2', () => import(/* webpackChunkName: "react-chartjs" */ 'react-chartjs-2'));
     registry.set('@tiptap/react', () => import(/* webpackChunkName: "tiptap" */ '@tiptap/react'));
     registry.set('jspdf', () => import(/* webpackChunkName: "jspdf" */ 'jspdf'));
