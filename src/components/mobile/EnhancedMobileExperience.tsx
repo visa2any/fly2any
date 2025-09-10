@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mobileOptimizer } from '@/lib/performance/mobile-optimizer';
 import { imageOptimizer } from '@/lib/performance/image-optimizer';
-import { bundleOptimizer } from '@/lib/performance/bundle-optimizer';
+import { BundleOptimizer } from '@/lib/performance/bundle-optimizer';
 import { haptic } from '@/lib/mobile/haptic-feedback';
 import { TouchButton, TouchInput, SwipeableCard, LoadingSpinner, SuccessAnimation } from './MicroInteractions';
 import PullToRefresh from './PullToRefresh';
@@ -48,7 +48,7 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
       mobileOptimizer.addResourceHints();
 
       // Load mobile-specific chunks
-      await bundleOptimizer.loadMobileComponents();
+      await BundleOptimizer.getInstance().loadMobileComponents();
       
       // Preload critical images
       await imageOptimizer.preloadImages([
@@ -62,7 +62,7 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
       }
 
       // Setup service worker caching
-      bundleOptimizer.setupServiceWorkerCaching();
+      BundleOptimizer.getInstance().setupServiceWorkerCaching();
 
       setIsInitialized(true);
       
