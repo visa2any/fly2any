@@ -127,7 +127,7 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
                       : 'bg-gray-100 text-gray-900 rounded-bl-none'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <div className="text-sm">{message.content}</div>
                   <div className="flex items-center gap-1 mt-1">
                     <Clock size={10} className="opacity-60" />
                     <span className="text-xs opacity-60">

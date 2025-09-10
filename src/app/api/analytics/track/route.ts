@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { sql } from '@vercel/postgres';
+
+// Runtime configuration to prevent build-time execution
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Validation schema for tracking events
 const TrackingEventSchema = z.object({
@@ -32,7 +35,13 @@ const TrackingEventSchema = z.object({
 
 // Create analytics_events table if it doesn't exist
 async function ensureAnalyticsTable() {
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return;
+  }
+  
   try {
+    const { sql } = await import('@vercel/postgres');
     await sql`
       CREATE TABLE IF NOT EXISTS analytics_events (
         id SERIAL PRIMARY KEY,
@@ -76,6 +85,9 @@ async function ensureAnalyticsTable() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Lazy load @vercel/postgres  
+    const { sql } = await import('@vercel/postgres');
+    
     // Ensure table exists
     await ensureAnalyticsTable();
 
@@ -177,6 +189,8 @@ export async function GET(request: NextRequest) {
   const event_name = searchParams.get('event') || null;
   
   try {
+    // Lazy load @vercel/postgres
+    const { sql } = await import('@vercel/postgres');
 
     await ensureAnalyticsTable();
 

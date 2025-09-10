@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { EmailMarketingDatabase } from '@/lib/email-marketing-database';
 import { mailgunService } from '@/lib/mailgun-service';
 import { DatabaseService } from '@/lib/database';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Helper function to ensure tables exist
 async function ensureTablesExist() {
@@ -120,7 +122,16 @@ export async function POST(request: NextRequest) {
   const action = searchParams.get('action');
   
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON format' },
+        { status: 400 }
+      );
+    }
     
     switch (action) {
       case 'create_segment':
@@ -262,18 +273,16 @@ export async function DELETE(request: NextRequest) {
 
 // PRODUCTION Handler functions with real database operations
 
-// Initialize tables on first API call
-let tablesInitialized = false;
+// Initialize tables on first API call with better error handling
 async function ensureTablesInitialized() {
-  if (!tablesInitialized) {
-    try {
-      await EmailMarketingDatabase.initializeEmailTables();
-      await EmailMarketingDatabase.syncCustomersToEmailContacts();
-      tablesInitialized = true;
-      console.log('✅ Email marketing database initialized');
-    } catch (error) {
-      console.error('❌ Database initialization failed:', error);
-    }
+  try {
+    await EmailMarketingDatabase.initializeEmailTables();
+    await EmailMarketingDatabase.syncCustomersToEmailContacts();
+    await EmailMarketingDatabase.initializeDefaultTemplates();
+    console.log('✅ Email marketing database initialized');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    // Don't throw error - let operations continue with fallback handling
   }
 }
 
@@ -388,6 +397,7 @@ async function handleGetWorkflows(searchParams: URLSearchParams) {
     await ensureTablesExist();
     
     // Get real email automations from database
+    const { sql } = await import('@vercel/postgres');
     const automations = await sql`
       SELECT * FROM email_automations 
       ORDER BY created_at DESC
@@ -879,6 +889,11 @@ async function handleCreateCampaign(body: any) {
     }
     
     // Create campaign in database
+    console.log('Creating campaign with data:', {
+      name, subject, content: content.substring(0, 50) + '...', 
+      template_type, from_email, from_name, created_by
+    });
+    
     const campaign = await EmailMarketingDatabase.createCampaign({
       name,
       subject,
@@ -931,9 +946,10 @@ async function handleCreateCampaign(body: any) {
     });
   } catch (error) {
     console.error('Error creating campaign:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to create campaign' 
+      error: `Failed to create campaign: ${errorMessage}` 
     }, { status: 500 });
   }
 }

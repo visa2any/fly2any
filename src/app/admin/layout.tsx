@@ -80,6 +80,12 @@ const navigation = [
     ]
   },
   {
+    name: 'Contact Diagnostics',
+    href: '/admin/contact-diagnostics',
+    icon: '🔧',
+    badge: 'FIX'
+  },
+  {
     name: 'Campanhas',
     href: '/admin/campaigns',
     icon: '🚀'

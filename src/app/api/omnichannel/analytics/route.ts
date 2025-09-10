@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/omnichannel/analytics - Analytics avançado do sistema omnichannel
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || '7d'; // 1d, 7d, 30d, 90d
     const agentId = searchParams.get('agent_id');

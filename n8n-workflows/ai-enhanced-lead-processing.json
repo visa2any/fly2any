@@ -1,0 +1,974 @@
+{
+  "name": "AI-Enhanced Lead Processing & Customer Journey",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-lead-processing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Lead Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/ai/lead-score",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.FLY2ANY_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Lead Webhook Trigger').first().json.whatsapp }}"
+            },
+            {
+              "name": "name",
+              "value": "={{ $('Lead Webhook Trigger').first().json.nome }}"
+            },
+            {
+              "name": "origem",
+              "value": "={{ $('Lead Webhook Trigger').first().json.origem }}"
+            },
+            {
+              "name": "destino",
+              "value": "={{ $('Lead Webhook Trigger').first().json.destino }}"
+            },
+            {
+              "name": "dataPartida",
+              "value": "={{ $('Lead Webhook Trigger').first().json.dataPartida }}"
+            },
+            {
+              "name": "dataRetorno",
+              "value": "={{ $('Lead Webhook Trigger').first().json.dataRetorno }}"
+            },
+            {
+              "name": "orcamentoAproximado",
+              "value": "={{ $('Lead Webhook Trigger').first().json.orcamentoTotal }}"
+            },
+            {
+              "name": "numeroPassageiros",
+              "value": "={{ $('Lead Webhook Trigger').first().json.numeroPassageiros }}"
+            },
+            {
+              "name": "selectedServices",
+              "value": "={{ $('Lead Webhook Trigger').first().json.selectedServices }}"
+            },
+            {
+              "name": "source",
+              "value": "{{ $('Lead Webhook Trigger').first().json.source || 'website' }}"
+            },
+            {
+              "name": "createdAt",
+              "value": "={{ $('Lead Webhook Trigger').first().json.createdAt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-lead-scoring",
+      "name": "AI Lead Scoring",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high-score",
+              "leftValue": "={{ $('AI Lead Scoring').first().json.data.totalScore }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "score-routing",
+      "name": "AI Score Routing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/whatsapp/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Lead Webhook Trigger').first().json.whatsapp }}"
+            },
+            {
+              "name": "message",
+              "value": "🎉 Olá {{ $('Lead Webhook Trigger').first().json.nome }}! Recebemos sua solicitação para {{ $('Lead Webhook Trigger').first().json.destino }} e já estamos preparando as melhores opções para você! Nossa equipe VIP entrará em contato em até 1 hora. ✈️"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "vip-whatsapp",
+      "name": "VIP WhatsApp Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/email-marketing/v2/send-campaign",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "{{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "template",
+              "value": "high_value_lead_welcome"
+            },
+            {
+              "name": "personalizations",
+              "value": {
+                "name": "={{ $('Lead Webhook Trigger').first().json.nome }}",
+                "destination": "={{ $('Lead Webhook Trigger').first().json.destino }}",
+                "budget": "={{ $('Lead Webhook Trigger').first().json.orcamentoTotal }}",
+                "leadScore": "={{ $('AI Lead Scoring').first().json.data.totalScore }}",
+                "conversionProbability": "={{ Math.round($('AI Lead Scoring').first().json.data.predictions.conversionProbability * 100) }}%"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "vip-email",
+      "name": "VIP Email Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/support/tickets",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $('Lead Webhook Trigger').first().json.nome }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Lead Webhook Trigger').first().json.whatsapp }}"
+            },
+            {
+              "name": "subject",
+              "value": "High-Value Lead: {{ $('Lead Webhook Trigger').first().json.destino }} - Score: {{ $('AI Lead Scoring').first().json.data.totalScore }}"
+            },
+            {
+              "name": "message",
+              "value": "🚨 LEAD ALTA PRIORIDADE (Score: {{ $('AI Lead Scoring').first().json.data.totalScore }}/100)\n\n👤 Cliente: {{ $('Lead Webhook Trigger').first().json.nome }}\n📧 Email: {{ $('Lead Webhook Trigger').first().json.email }}\n📱 WhatsApp: {{ $('Lead Webhook Trigger').first().json.whatsapp }}\n✈️ Destino: {{ $('Lead Webhook Trigger').first().json.destino }}\n💰 Orçamento: R$ {{ $('Lead Webhook Trigger').first().json.orcamentoTotal }}\n📅 Data: {{ $('Lead Webhook Trigger').first().json.dataPartida }}\n\n🤖 IA Recomenda:\n- Probabilidade conversão: {{ Math.round($('AI Lead Scoring').first().json.data.predictions.conversionProbability * 100) }}%\n- Valor estimado: R$ {{ $('AI Lead Scoring').first().json.data.predictions.estimatedValue }}\n- Tempo para conversão: {{ $('AI Lead Scoring').first().json.data.predictions.timeToConversion }} dias\n- Canal preferido: {{ $('AI Lead Scoring').first().json.data.predictions.preferredChannel }}\n\n📋 Próximas ações sugeridas:\n{{ $('AI Lead Scoring').first().json.data.nextActions.map(action => '- ' + action.action).join('\\n') }}"
+            },
+            {
+              "name": "priority",
+              "value": "high"
+            },
+            {
+              "name": "department",
+              "value": "sales"
+            },
+            {
+              "name": "source",
+              "value": "ai_lead_processing"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-priority-ticket",
+      "name": "Create Priority Sales Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "medium-score",
+              "leftValue": "={{ $('AI Lead Scoring').first().json.data.totalScore }}",
+              "rightValue": 50,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "not-high-score",
+              "leftValue": "={{ $('AI Lead Scoring').first().json.data.totalScore }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "medium-score-routing",
+      "name": "Medium Score Routing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/email-marketing/v2/send-campaign",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "template",
+              "value": "medium_value_lead_nurture"
+            },
+            {
+              "name": "personalizations",
+              "value": {
+                "name": "={{ $('Lead Webhook Trigger').first().json.nome }}",
+                "destination": "={{ $('Lead Webhook Trigger').first().json.destino }}",
+                "leadScore": "={{ $('AI Lead Scoring').first().json.data.totalScore }}"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "medium-email",
+      "name": "Medium Priority Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 240,
+        "unit": "minutes"
+      },
+      "id": "follow-up-delay",
+      "name": "4 Hour Follow-up Delay",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/whatsapp/send",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Lead Webhook Trigger').first().json.whatsapp }}"
+            },
+            {
+              "name": "message",
+              "value": "Oi {{ $('Lead Webhook Trigger').first().json.nome }}! 😊 Viu nosso email sobre {{ $('Lead Webhook Trigger').first().json.destino }}? Preparei algumas opções especiais que podem te interessar. Tem uns minutinhos para conversarmos?"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "follow-up-whatsapp",
+      "name": "Follow-up WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/email-marketing/v2/add-to-segment",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "segmentName",
+              "value": "low_score_nurture"
+            },
+            {
+              "name": "tags",
+              "value": ["low-score", "needs-nurturing", "education-sequence"]
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "low-score-segment",
+      "name": "Add to Low Score Nurture Segment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-3.5-turbo"
+            },
+            {
+              "name": "messages",
+              "value": [
+                {
+                  "role": "system",
+                  "content": "You are a travel industry AI assistant. Generate personalized travel recommendations and insights based on customer data."
+                },
+                {
+                  "role": "user", 
+                  "content": "Generate personalized travel insights for:\n- Name: {{ $('Lead Webhook Trigger').first().json.nome }}\n- Destination: {{ $('Lead Webhook Trigger').first().json.destino }}\n- Budget: {{ $('Lead Webhook Trigger').first().json.orcamentoTotal }}\n- Travel Date: {{ $('Lead Webhook Trigger').first().json.dataPartida }}\n- Lead Score: {{ $('AI Lead Scoring').first().json.data.totalScore }}/100\n\nProvide 3 personalized recommendations and identify 2 upsell opportunities."
+                }
+              ]
+            },
+            {
+              "name": "max_tokens",
+              "value": 300
+            },
+            {
+              "name": "temperature",
+              "value": 0.7
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-personalization",
+      "name": "AI Personalization Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/customers/{{ $('Lead Webhook Trigger').first().json.customerId || 'new' }}/ai-insights",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "leadScore",
+              "value": "={{ $('AI Lead Scoring').first().json.data }}"
+            },
+            {
+              "name": "aiRecommendations",
+              "value": "={{ $('AI Personalization Engine').first().json.choices[0].message.content }}"
+            },
+            {
+              "name": "workflowExecutionId",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "processedAt",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "store-ai-insights",
+      "name": "Store AI Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-whatsapp",
+              "leftValue": "={{ $('Lead Webhook Trigger').first().json.whatsapp }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "whatsapp-check",
+      "name": "Has WhatsApp?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 60,
+        "unit": "minutes"
+      },
+      "id": "vip-delay",
+      "name": "1 Hour VIP Delay",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/ai/conversation-starter",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "customerId",
+              "value": "={{ $('Lead Webhook Trigger').first().json.customerId }}"
+            },
+            {
+              "name": "leadScore",
+              "value": "={{ $('AI Lead Scoring').first().json.data.totalScore }}"
+            },
+            {
+              "name": "personalizations",
+              "value": "={{ $('AI Personalization Engine').first().json.choices[0].message.content }}"
+            },
+            {
+              "name": "channel",
+              "value": "whatsapp"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "smart-conversation-starter",
+      "name": "Smart Conversation Starter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  \"success\": true,\n  \"leadId\": $('Lead Webhook Trigger').first().json.leadId,\n  \"customerId\": $('Lead Webhook Trigger').first().json.customerId,\n  \"leadScore\": $('AI Lead Scoring').first().json.data.totalScore,\n  \"grade\": $('AI Lead Scoring').first().json.data.grade,\n  \"conversionProbability\": $('AI Lead Scoring').first().json.data.predictions.conversionProbability,\n  \"estimatedValue\": $('AI Lead Scoring').first().json.data.predictions.estimatedValue,\n  \"actions\": {\n    \"emailSent\": $('VIP Email Campaign').first()?.json ? true : ($('Medium Priority Email').first()?.json ? true : false),\n    \"whatsappSent\": $('VIP WhatsApp Message').first()?.json ? true : ($('Follow-up WhatsApp').first()?.json ? true : false),\n    \"ticketCreated\": $('Create Priority Sales Ticket').first()?.json ? true : false,\n    \"segmentAdded\": $('Add to Low Score Nurture Segment').first()?.json ? true : false\n  },\n  \"aiInsights\": {\n    \"personalizations\": $('AI Personalization Engine').first()?.json?.choices[0]?.message?.content,\n    \"conversationStarter\": $('Smart Conversation Starter').first()?.json\n  },\n  \"executionId\": $execution.id,\n  \"processedAt\": new Date().toISOString()\n} }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1440,
+        "unit": "minutes"
+      },
+      "id": "nurture-delay",
+      "name": "24 Hour Nurture Delay",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{ $('Lead Webhook Trigger').first().json.baseUrl }}/api/email-marketing/v2/send-campaign",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Lead Webhook Trigger').first().json.email }}"
+            },
+            {
+              "name": "template",
+              "value": "educational_travel_tips"
+            },
+            {
+              "name": "personalizations",
+              "value": {
+                "name": "={{ $('Lead Webhook Trigger').first().json.nome }}",
+                "destination": "={{ $('Lead Webhook Trigger').first().json.destino }}"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "educational-email",
+      "name": "Educational Email Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1340,
+        800
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Lead Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Lead Scoring": {
+      "main": [
+        [
+          {
+            "node": "AI Score Routing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Medium Score Routing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Score Routing": {
+      "main": [
+        [
+          {
+            "node": "VIP WhatsApp Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "VIP Email Campaign",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Priority Sales Ticket",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Personalization Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VIP Email Campaign": {
+      "main": [
+        [
+          {
+            "node": "1 Hour VIP Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Medium Score Routing": {
+      "main": [
+        [
+          {
+            "node": "Medium Priority Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add to Low Score Nurture Segment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Medium Priority Email": {
+      "main": [
+        [
+          {
+            "node": "4 Hour Follow-up Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 Hour Follow-up Delay": {
+      "main": [
+        [
+          {
+            "node": "Follow-up WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Follow-up WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Low Score Nurture Segment": {
+      "main": [
+        [
+          {
+            "node": "24 Hour Nurture Delay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Personalization Engine": {
+      "main": [
+        [
+          {
+            "node": "Store AI Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store AI Insights": {
+      "main": [
+        [
+          {
+            "node": "Has WhatsApp?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has WhatsApp?": {
+      "main": [
+        [
+          {
+            "node": "Smart Conversation Starter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Hour VIP Delay": {
+      "main": [
+        [
+          {
+            "node": "Store AI Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Conversation Starter": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "24 Hour Nurture Delay": {
+      "main": [
+        [
+          {
+            "node": "Educational Email Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Educational Email Campaign": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ai-enhanced-v2.0",
+  "meta": {
+    "instanceId": "fly2any-ai-workflows",
+    "description": "AI-Enhanced Lead Processing with intelligent scoring, personalization, and automated nurturing based on customer behavior and predictive analytics."
+  },
+  "id": "ai-enhanced-lead-processing",
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "ai-powered",
+      "name": "AI Powered"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z", 
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "lead-management",
+      "name": "Lead Management"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z", 
+      "id": "customer-journey",
+      "name": "Customer Journey"
+    }
+  ]
+}

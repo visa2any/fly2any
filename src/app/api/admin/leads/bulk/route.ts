@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseChecker } from '@/lib/database-checker';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Comprehensive bulk operations endpoint
 export async function POST(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { action, leadIds, data } = await request.json();
 
     // Check database connection
@@ -166,6 +169,7 @@ export async function PUT(request: NextRequest) {
 // Bulk delete leads
 export async function DELETE(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { leadIds } = await request.json();
 
     if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {

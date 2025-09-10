@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OmnichannelAPI from '@/lib/omnichannel-api';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Utility function to ensure omnichannel tables exist
 async function ensureTablesExist() {
   try {
     // Check if conversations table exists
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -26,6 +29,7 @@ async function ensureTablesExist() {
 }
 
 async function createOmnichannelTables() {
+  const { sql } = await import('@vercel/postgres');
   console.log('📝 Creating customers table...');
   // 1. Create customers table first (no dependencies)
   await sql`

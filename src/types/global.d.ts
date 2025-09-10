@@ -185,6 +185,12 @@ declare module 'react' {
 
 // Global type fixes
 declare global {
+  // Google Analytics gtag function
+  function gtag(command: 'config' | 'event' | 'js' | 'set', targetId: string | Date, config?: {[key: string]: any}): void;
+  
+  // Facebook Pixel fbq function
+  function fbq(...args: any[]): void;
+
   namespace JSX {
     interface IntrinsicElements {
       [elemName: string]: any

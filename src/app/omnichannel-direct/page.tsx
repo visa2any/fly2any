@@ -2,29 +2,20 @@
 export const dynamic = 'force-dynamic';
 
 import React from 'react';
+import { Metadata } from 'next';
 
 export default function OmnichannelDirectPage() {
   return (
-    <html lang="pt-BR">
-      <head>
-        <title>Central Omnichannel - Fly2Any</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            body, html {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
-              background: #f8fafc;
-              min-height: 100vh;
-              color: #0f172a;
-              line-height: 1.5;
-              -webkit-font-smoothing: antialiased;
-            }
+    <>
+      <style jsx global>{`
+        .omnichannel-page {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+          background: #f8fafc;
+          min-height: 100vh;
+          color: #0f172a;
+          line-height: 1.5;
+          -webkit-font-smoothing: antialiased;
+        }
             
             .container {
               width: 100%;
@@ -499,10 +490,10 @@ export default function OmnichannelDirectPage() {
                 padding: 16px;
               }
             }
-          `
-        }} />
-      </head>
-      <body>
+          `}
+        </style>
+      
+      <div className="omnichannel-page">
         <div className="container">
           {/* Top Bar */}
           <div className="topbar">
@@ -703,7 +694,7 @@ export default function OmnichannelDirectPage() {
             </div>
           </div>
         </div>
-      </body>
-    </html>
+      </div>
+    </>
   );
 }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 
 // Get specific ticket details
 export async function GET(
@@ -7,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const resolvedParams = await params;
     const ticketId = parseInt(resolvedParams.id);
     
@@ -111,6 +114,7 @@ export async function PATCH(
     
     values.push(ticketId);
     
+    const { sql } = await import('@vercel/postgres');
     const result = await sql.query(updateQuery, values);
 
     if (result.rows.length === 0) {
@@ -130,7 +134,8 @@ export async function PATCH(
         'closed': 'Ticket fechado'
       };
 
-      await sql`
+      const { sql: sqlInsert } = await import('@vercel/postgres');
+      await sqlInsert`
         INSERT INTO ticket_messages (
           ticket_id,
           sender_type,
@@ -190,6 +195,7 @@ export async function DELETE(
     const ticketId = parseInt(resolvedParams.id);
     
     // Soft delete by setting status to 'deleted'
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       UPDATE support_tickets 
       SET 

@@ -1,0 +1,1130 @@
+{
+  "timestamp": "2025-09-09T14:33:44.312Z",
+  "baseUrl": "http://localhost:3000",
+  "interfaces": {
+    "/admin/omnichannel/modern": {
+      "name": "Modern Omnichannel Interface",
+      "path": "/admin/omnichannel/modern",
+      "accessible": true,
+      "loadTime": 14914,
+      "errors": [],
+      "warnings": [
+        "No Main content area found with selector: main",
+        "No Navigation element found with selector: nav",
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 0,
+          "found": false
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 0,
+          "found": false
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 1,
+          "found": true
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 2,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 2,
+          "found": true
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 1,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_modern_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_modern_interaction.png",
+          "description": "After clicking: "
+        }
+      ]
+    },
+    "/admin/omnichannel": {
+      "name": "Standard Omnichannel Interface",
+      "path": "/admin/omnichannel",
+      "accessible": true,
+      "loadTime": 3430,
+      "errors": [
+        {
+          "type": "Console Error",
+          "message": "In HTML, %s cannot be a child of <%s>.%s\nThis will cause a hydration error.%s <html> div  \n\n  ...\n    <HTTPAccessFallbackBoundary notFound={[...]} forbidden={undefined} unauthorized={undefined}>\n      <HTTPAccessFallbackErrorBoundary pathname=\"/admin/omn...\" notFound={[...]} forbidden={undefined} ...>\n        <RedirectBoundary>\n          <RedirectErrorBoundary router={{...}}>\n            <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>\n              <ClientSegmentRoot Component={function AdminLayout} slots={{...}} params={{}}>\n                <AdminLayout params={Promise}>\n                  <SessionWrapper>\n                    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>\n                      <AdminLayoutContent>\n                        <div className=\"min-h-scre...\">\n                          <aside>\n                          <main className=\"flex-1 fle...\">\n                            <header>\n>                           <div className=\"flex-1 overflow-y-auto\">\n                              ...\n                                <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} ...>\n                                  <OmnichannelLayout>\n>                                   <html lang=\"pt-BR\">\n",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. div <html>",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. html html html",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. head head head",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. body body body",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        }
+      ],
+      "warnings": [
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Heading elements found with selector: h1, h2, h3",
+        "No Input elements found with selector: input",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Central Omnichannel - Fly2Any",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 1,
+          "found": true
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 2,
+          "found": true
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 0,
+          "found": false
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 9,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 0,
+          "found": false
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 20,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_interaction.png",
+          "description": "After clicking: 📊"
+        }
+      ]
+    },
+    "/admin/omnichannel/premium": {
+      "name": "Premium Interface",
+      "path": "/admin/omnichannel/premium",
+      "accessible": true,
+      "loadTime": 6368,
+      "errors": [
+        {
+          "type": "Console Error",
+          "message": "In HTML, %s cannot be a child of <%s>.%s\nThis will cause a hydration error.%s <html> div  \n\n  ...\n    <HTTPAccessFallbackBoundary notFound={[...]} forbidden={undefined} unauthorized={undefined}>\n      <HTTPAccessFallbackErrorBoundary pathname=\"/admin/omn...\" notFound={[...]} forbidden={undefined} ...>\n        <RedirectBoundary>\n          <RedirectErrorBoundary router={{...}}>\n            <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>\n              <ClientSegmentRoot Component={function AdminLayout} slots={{...}} params={{}}>\n                <AdminLayout params={Promise}>\n                  <SessionWrapper>\n                    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>\n                      <AdminLayoutContent>\n                        <div className=\"min-h-scre...\">\n                          <aside>\n                          <main className=\"flex-1 fle...\">\n                            <header>\n>                           <div className=\"flex-1 overflow-y-auto\">\n                              ...\n                                <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} ...>\n                                  <OmnichannelLayout>\n>                                   <html lang=\"pt-BR\">\n",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. div <html>",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. html html html",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. head head head",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. body body body",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        }
+      ],
+      "warnings": [
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Heading elements found with selector: h1, h2, h3",
+        "No Input elements found with selector: input",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Central Omnichannel - Fly2Any",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 1,
+          "found": true
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 2,
+          "found": true
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 0,
+          "found": false
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 9,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 0,
+          "found": false
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 20,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_premium_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_premium_interaction.png",
+          "description": "After clicking: 📊\nDashboard"
+        }
+      ]
+    },
+    "/admin/omnichannel/styled": {
+      "name": "Styled Interface",
+      "path": "/admin/omnichannel/styled",
+      "accessible": true,
+      "loadTime": 14336,
+      "errors": [
+        {
+          "type": "Console Error",
+          "message": "%o\n\n%s NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChild (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:19938:22)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13331:17)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13552:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14043:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11) The above error occurred in the <style> component. It was handled by the <ErrorBoundaryHandler> error boundary.",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/react-client-callbacks/error-boundary-callbacks.js",
+            "lineNumber": 67,
+            "columnNumber": 24
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChild (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:19938:22)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13331:17)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13552:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14043:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://localhost:3000/api/omnichannel/dashboard",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "ClientFetchError: Failed to fetch. Read more at https://errors.authjs.dev#autherror\n    at fetchData (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/lib/client.js:49:22)\n    at async getSession (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react.js:123:21)\n    at async SessionProvider.useEffect (webpack-internal:///(app-pages-browser)/./node_modules/next-auth/react.js:289:51)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Error fetching conversations: TypeError: Failed to fetch\n    at fetchConversations (webpack-internal:///(app-pages-browser)/./src/components/omnichannel/ForceStyledDashboard.tsx:55:36)\n    at ForceStyledDashboard.useEffect.fetchData (webpack-internal:///(app-pages-browser)/./src/components/omnichannel/ForceStyledDashboard.tsx:26:27)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to fetch email metrics: TypeError: Failed to fetch\n    at fetchMetrics (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:27:36)\n    at EmailMetricsWidget.useEffect (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:40:13)\n    at Object.react_stack_bottom_frame (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:23638:20)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitHookEffectListMount (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12296:29)\n    at commitHookPassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12417:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14338:13)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "In HTML, %s cannot be a child of <%s>.%s\nThis will cause a hydration error.%s <html> div  \n\n  ...\n    <HTTPAccessFallbackBoundary notFound={[...]} forbidden={undefined} unauthorized={undefined}>\n      <HTTPAccessFallbackErrorBoundary pathname=\"/admin/omn...\" notFound={[...]} forbidden={undefined} ...>\n        <RedirectBoundary>\n          <RedirectErrorBoundary router={{...}}>\n            <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>\n              <ClientSegmentRoot Component={function AdminLayout} slots={{...}} params={{}}>\n                <AdminLayout params={Promise}>\n                  <SessionWrapper>\n                    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>\n                      <AdminLayoutContent>\n                        <div className=\"min-h-scre...\">\n                          <aside>\n                          <main className=\"flex-1 fle...\">\n                            <header>\n>                           <div className=\"flex-1 overflow-y-auto\">\n                              ...\n                                <InnerLayoutRouter url=\"/admin/omn...\" tree={[...]} cacheNode={{lazyData:null, ...}} ...>\n                                  <OmnichannelLayout>\n>                                   <html lang=\"pt-BR\">\n",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. div <html>",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. html html html",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. head head head",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "You are mounting a new %s component when a previous one has not first unmounted. It is an error to render more than one %s component at a time and attributes and children of these components will likely fail in unpredictable ways. Please only render a single instance of <%s> and if you need to mount a new one, ensure any previous ones have unmounted first. body body body",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://localhost:3000/api/omnichannel/dashboard",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://localhost:3000/api/omnichannel/conversations",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "%o\n\n%s NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChild (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:19938:22)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13331:17)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13552:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14043:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11) The above error occurred in the <style> component. It was handled by the <ErrorBoundaryHandler> error boundary.",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/react-client-callbacks/error-boundary-callbacks.js",
+            "lineNumber": 67,
+            "columnNumber": 24
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.\n    at removeChild (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:19938:22)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13331:17)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13286:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13405:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13430:11)\n    at recursivelyTraverseDeletionEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13236:9)\n    at commitDeletionEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13389:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13552:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13791:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14043:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)\n    at commitMutationEffectsOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13575:11)\n    at recursivelyTraverseMutationEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13563:11)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        }
+      ],
+      "warnings": [
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Heading elements found with selector: h1, h2, h3",
+        "No Input elements found with selector: input",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Central Omnichannel - Fly2Any",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 1,
+          "found": true
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 2,
+          "found": true
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 0,
+          "found": false
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 9,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 0,
+          "found": false
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 20,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_styled_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel_styled_interaction.png",
+          "description": "After clicking: 📊"
+        }
+      ]
+    },
+    "/admin/omnichannel-test": {
+      "name": "Test Interface",
+      "path": "/admin/omnichannel-test",
+      "accessible": true,
+      "loadTime": 6588,
+      "errors": [
+        {
+          "type": "Console Error",
+          "message": "Failed to fetch email metrics: TypeError: Failed to fetch\n    at fetchMetrics (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:27:36)\n    at EmailMetricsWidget.useEffect (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:40:13)\n    at Object.react_stack_bottom_frame (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:23638:20)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitHookEffectListMount (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12296:29)\n    at commitHookPassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12417:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14338:13)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://localhost:3000/api/omnichannel/dashboard",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://localhost:3000/api/omnichannel/conversations?limit=50",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "warnings": [
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Heading elements found with selector: h1, h2, h3",
+        "No Input elements found with selector: input",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 1,
+          "found": true
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 2,
+          "found": true
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 0,
+          "found": false
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 7,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 0,
+          "found": false
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 18,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel-test_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_admin_omnichannel-test_interaction.png",
+          "description": "After clicking: 📊\nDashboard"
+        }
+      ]
+    },
+    "/omnichannel-direct": {
+      "name": "Direct Access Interface",
+      "path": "/omnichannel-direct",
+      "accessible": true,
+      "loadTime": 6159,
+      "errors": [
+        {
+          "type": "Console Error",
+          "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "location": {
+            "url": "http://localhost:3000/sounds/notification.mp3",
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "Failed to fetch email metrics: TypeError: Failed to fetch\n    at fetchMetrics (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:27:36)\n    at EmailMetricsWidget.useEffect (webpack-internal:///(app-pages-browser)/./src/components/admin/EmailMetricsWidget.tsx:40:13)\n    at Object.react_stack_bottom_frame (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:23638:20)\n    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:873:30)\n    at commitHookEffectListMount (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12296:29)\n    at commitHookPassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:12417:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14338:13)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14341:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14331:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)\n    at commitPassiveMountOnFiber (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14465:11)\n    at recursivelyTraversePassiveMountEffects (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14311:11)",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        },
+        {
+          "type": "Console Error",
+          "message": "A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:\n\n- A server/client branch `if (typeof window !== 'undefined')`.\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\n- Date formatting in a user's locale which doesn't match the server.\n- External changing data without sending a snapshot of it along with the HTML.\n- Invalid HTML tag nesting.\n\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\n\n%s%s https://react.dev/link/hydration-mismatch \n\n  ...\n    <RenderFromTemplateContext>\n      <ScrollAndFocusHandler segmentPath={[...]}>\n        <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>\n          <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>\n            <LoadingBoundary loading={null}>\n              <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>\n                <RedirectBoundary>\n                  <RedirectErrorBoundary router={{...}}>\n                    <InnerLayoutRouter url=\"/omnichann...\" tree={[...]} cacheNode={{lazyData:null, ...}} ...>\n                      <ClientPageRoot Component={function OmnichannelDirectPage} searchParams={{}} params={{}}>\n                        <OmnichannelDirectPage params={Promise} searchParams={Promise}>\n                          <html\n+                           lang=\"pt-BR\"\n-                           lang=\"en\"\n-                           className=\"__variable_e8ce0c __variable_51684b\"\n                          >\n                            <head>\n                              <title>\n                              <meta>\n                              <style\n                                dangerouslySetInnerHTML={{\n+                                 __html: \"\\n            * {\\n              margin: 0;\\n              padding: 0;\\n   ...\"\n-                                 __html: \"@font-face{font-family:'__nextjs-Geist';font-style:normal;font-weight:400 6...\"\n                                }}\n                              >\n                            <body\n-                             className=\"font-inter antialiased\"\n                            >\n                      ...\n",
+          "location": {
+            "url": "webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js",
+            "lineNumber": 56,
+            "columnNumber": 31
+          }
+        }
+      ],
+      "warnings": [
+        "No Main content area found with selector: main",
+        "No Navigation element found with selector: nav",
+        "No Main role element found with selector: [role=\"main\"]",
+        "No Input elements found with selector: input",
+        "No Test ID elements found with selector: [data-testid]",
+        "No Communication interface elements found with selector: .communication-center, .omnichannel, .chat-interface"
+      ],
+      "elements": {
+        "title": "Central Omnichannel - Fly2Any",
+        "Body element": {
+          "selector": "body",
+          "count": 1,
+          "found": true
+        },
+        "Main content area": {
+          "selector": "main",
+          "count": 0,
+          "found": false
+        },
+        "Navigation element": {
+          "selector": "nav",
+          "count": 0,
+          "found": false
+        },
+        "Main role element": {
+          "selector": "[role=\"main\"]",
+          "count": 0,
+          "found": false
+        },
+        "Heading elements": {
+          "selector": "h1, h2, h3",
+          "count": 5,
+          "found": true
+        },
+        "Interactive buttons": {
+          "selector": "button",
+          "count": 4,
+          "found": true
+        },
+        "Input elements": {
+          "selector": "input",
+          "count": 0,
+          "found": false
+        },
+        "Test ID elements": {
+          "selector": "[data-testid]",
+          "count": 0,
+          "found": false
+        },
+        "Communication interface elements": {
+          "selector": ".communication-center, .omnichannel, .chat-interface",
+          "count": 0,
+          "found": false
+        },
+        "Feature: WhatsApp Integration": {
+          "selector": "[data-channel=\"whatsapp\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Email Integration": {
+          "selector": "[data-channel=\"email\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Chat Interface": {
+          "selector": "[data-channel=\"chat\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Phone Integration": {
+          "selector": "[data-channel=\"phone\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Social Media Integration": {
+          "selector": "[data-channel=\"social\"]",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Conversation List": {
+          "selector": ".conversation-list, .chat-list",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Customer 360 View": {
+          "selector": ".customer-profile, .customer-360",
+          "count": 0,
+          "found": false
+        },
+        "Feature: AI Assistant Features": {
+          "selector": ".ai-assistant, .ai-suggestions",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Analytics Dashboard": {
+          "selector": ".analytics-dashboard",
+          "count": 0,
+          "found": false
+        },
+        "Feature: Workflow Automation": {
+          "selector": ".workflow-automation",
+          "count": 0,
+          "found": false
+        },
+        "Interactive Elements": {
+          "selector": "button, a[href], [role=\"button\"]",
+          "count": 5,
+          "found": true
+        }
+      },
+      "screenshots": [
+        {
+          "type": "initial",
+          "path": "./test-screenshots/communication-center/_omnichannel-direct_initial.png",
+          "description": "Initial page load"
+        },
+        {
+          "type": "interaction",
+          "path": "./test-screenshots/communication-center/_omnichannel-direct_interaction.png",
+          "description": "After clicking: ← Admin"
+        }
+      ]
+    }
+  },
+  "navigation": {
+    "successful": [
+      "/admin/omnichannel/modern",
+      "/admin/omnichannel",
+      "/admin/omnichannel/premium",
+      "/admin/omnichannel/styled",
+      "/admin/omnichannel-test",
+      "/omnichannel-direct"
+    ],
+    "failed": [],
+    "loadTimes": {
+      "/admin/omnichannel/modern": 9201,
+      "/admin/omnichannel": 3845,
+      "/admin/omnichannel/premium": 3387,
+      "/admin/omnichannel/styled": 4046,
+      "/admin/omnichannel-test": 3954,
+      "/omnichannel-direct": 3396
+    }
+  },
+  "audit": {
+    "performance": {
+      "totalLoadTime": 2078
+    },
+    "accessibility": {
+      "ARIA Labels": {
+        "count": 0,
+        "present": false
+      },
+      "ARIA Roles": {
+        "count": 0,
+        "present": false
+      },
+      "Image Alt Text": {
+        "count": 0,
+        "present": false
+      },
+      "Button Descriptions": {
+        "count": 0,
+        "present": false
+      },
+      "Tab Index": {
+        "count": 0,
+        "present": false
+      },
+      "Input Labels": {
+        "count": 0,
+        "present": false
+      },
+      "Semantic HTML": {
+        "count": 0,
+        "present": false
+      }
+    },
+    "recommendations": [
+      "Add ARIA labels for better accessibility"
+    ]
+  },
+  "summary": {
+    "totalInterfaces": 6,
+    "accessibleInterfaces": 6,
+    "accessibilityRate": "100.0%",
+    "totalErrors": 31,
+    "totalWarnings": 31,
+    "testCompleted": "2025-09-09T14:35:40.439Z"
+  }
+}

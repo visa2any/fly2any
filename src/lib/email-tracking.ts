@@ -4,7 +4,7 @@
  */
 
 import { sql } from '@vercel/postgres';
-import { EmailSendsDB, EmailCampaignsDB } from './email-marketing-db';
+import { EmailMarketingDatabase } from './email-marketing-database';
 
 export interface TrackingEvent {
   id: string;
@@ -140,7 +140,26 @@ export class EmailTrackingSystem {
     }
 
     if (Object.keys(updateData).length > 0) {
-      await EmailSendsDB.updateStatus(sendId, eventType as any, updateData);
+      // Update email send status using V2 database system
+      const currentTime = new Date().toISOString();
+      
+      // Base update
+      await sql`
+        UPDATE email_sends 
+        SET status = ${eventType}, updated_at = ${currentTime}
+        WHERE id = ${sendId}
+      `;
+      
+      // Additional updates based on event type
+      if (eventType === 'delivered') {
+        await sql`UPDATE email_sends SET delivered_at = ${currentTime} WHERE id = ${sendId}`;
+      } else if (eventType === 'opened') {
+        await sql`UPDATE email_sends SET opened_at = ${currentTime} WHERE id = ${sendId}`;
+      } else if (eventType === 'clicked') {
+        await sql`UPDATE email_sends SET clicked_at = ${currentTime} WHERE id = ${sendId}`;
+      } else if (eventType === 'bounced') {
+        await sql`UPDATE email_sends SET failure_reason = ${updateData.failed_reason || 'Email bounced'} WHERE id = ${sendId}`;
+      }
     }
   }
 
@@ -151,12 +170,16 @@ export class EmailTrackingSystem {
     try {
       const metrics = await this.getCampaignMetrics(campaignId);
       
-      await EmailCampaignsDB.updateStats(campaignId, {
-        totalDelivered: metrics.delivered,
-        totalOpened: metrics.opened,
-        totalClicked: metrics.clicked,
-        totalBounced: metrics.bounced
-      });
+      // Update campaign metrics using V2 database system
+      await sql`
+        UPDATE email_campaigns 
+        SET total_delivered = ${metrics.delivered},
+            total_opened = ${metrics.opened},
+            total_clicked = ${metrics.clicked},
+            total_bounced = ${metrics.bounced},
+            updated_at = ${new Date().toISOString()}
+        WHERE id = ${campaignId}
+      `;
     } catch (error) {
       console.error('❌ Erro ao atualizar métricas da campanha:', error);
     }

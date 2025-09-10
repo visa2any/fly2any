@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-09-09T05:54:14.620Z",
+  "testResults": {
+    "setup": {
+      "pageLoad": "PASS",
+      "editorFound": "FAIL",
+      "editorSelector": "NONE"
+    },
+    "editorNotFound": "FAIL"
+  },
+  "errors": [],
+  "performance": {},
+  "htmlOutput": {},
+  "productionReadiness": 3,
+  "routes_tested": [
+    {
+      "route": "http://localhost:3001/admin/email-marketing/v2",
+      "status": "success"
+    }
+  ]
+}

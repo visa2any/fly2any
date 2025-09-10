@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 
 // Webhook endpoint for N8N automations
 export async function POST(request: NextRequest) {
@@ -53,6 +56,7 @@ async function processTicketEvent(eventData: any) {
 
 async function handleHumanTransfer(sessionId: string, userInfo: any, transferReason?: string) {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Create support ticket
     const ticketResult = await sql`
       INSERT INTO support_tickets (
@@ -102,6 +106,7 @@ async function handleHumanTransfer(sessionId: string, userInfo: any, transferRea
 
 async function handleNewLead(userInfo: any, leadData: any) {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Create high priority ticket for new leads
     const ticketResult = await sql`
       INSERT INTO support_tickets (
@@ -144,6 +149,7 @@ async function handleNewLead(userInfo: any, leadData: any) {
 
 async function handleHighPriority(eventData: any) {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Handle high priority events (VIP customers, urgent requests, etc.)
     const ticketResult = await sql`
       INSERT INTO support_tickets (
@@ -189,6 +195,7 @@ async function handleHighPriority(eventData: any) {
 
 async function handleWhatsAppNewConversation(eventData: any) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { phone, message, contactName } = eventData.data;
 
     // Create ticket for new WhatsApp conversation
@@ -240,6 +247,7 @@ async function notifyAgents(notification: any) {
     });
 
     // Also save notification in database
+    const { sql } = await import('@vercel/postgres');
     await sql`
       INSERT INTO notifications (
         type,

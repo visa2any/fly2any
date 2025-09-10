@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { whatsappService } from '@/lib/whatsapp';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 
 interface SendMessageRequest {
   to: string;
@@ -12,6 +15,7 @@ interface SendMessageRequest {
 
 async function initializeWhatsAppTables() {
   try {
+    const { sql } = await import('@vercel/postgres');
     // WhatsApp conversations table
     await sql`
       CREATE TABLE IF NOT EXISTS whatsapp_conversations (
@@ -54,6 +58,7 @@ async function initializeWhatsAppTables() {
 
 async function saveMessage(phone: string, content: string, direction: 'inbound' | 'outbound', messageType: string = 'text', whatsappId?: string) {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Get or create conversation
     let conversationResult = await sql`
       SELECT id FROM whatsapp_conversations WHERE phone = ${phone}
@@ -164,6 +169,7 @@ export async function POST(request: NextRequest) {
 // Get conversation history
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { searchParams } = new URL(request.url);
     const phone = searchParams.get('phone');
     const limit = parseInt(searchParams.get('limit') || '50');

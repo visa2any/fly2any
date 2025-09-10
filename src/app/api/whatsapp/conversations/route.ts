@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 
 // Get WhatsApp conversations
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'active';
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -46,6 +50,7 @@ export async function GET(request: NextRequest) {
 // Create or update WhatsApp conversation
 export async function POST(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const body = await request.json();
     const { phone, name, status = 'active' } = body;
 

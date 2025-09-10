@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 interface AlertRule {
   id: string;
@@ -60,6 +62,7 @@ const DEFAULT_ALERT_RULES: AlertRule[] = [
 
 async function initializeAlertSystem() {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Create alerts table
     await sql`
       CREATE TABLE IF NOT EXISTS performance_alerts (
@@ -107,6 +110,7 @@ async function initializeAlertSystem() {
 }
 
 async function calculateMetrics(periodHours: number) {
+  const { sql } = await import('@vercel/postgres');
   const startTime = new Date(Date.now() - periodHours * 60 * 60 * 1000);
 
   // Get total events and conversions
@@ -137,6 +141,7 @@ async function calculateMetrics(periodHours: number) {
 }
 
 async function checkAlertRules(): Promise<AlertTrigger[]> {
+  const { sql } = await import('@vercel/postgres');
   const triggeredAlerts: AlertTrigger[] = [];
 
   // Get active alert rules
@@ -301,6 +306,7 @@ export async function POST(request: NextRequest) {
 // Get alert history
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     await initializeAlertSystem();
     
     const { searchParams } = new URL(request.url);
@@ -341,6 +347,7 @@ export async function GET(request: NextRequest) {
 // Resolve an alert
 export async function PATCH(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { alert_id } = await request.json();
     
     await sql`

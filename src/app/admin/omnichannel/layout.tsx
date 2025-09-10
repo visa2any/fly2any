@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 
@@ -7,189 +9,49 @@ export default function OmnichannelLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
-      <head>
-        <title>Central Omnichannel - Fly2Any</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              min-height: 100vh;
-              color: #333;
-            }
-            
-            .omni-container {
-              width: 100%;
-              min-height: 100vh;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              padding: 0;
-              margin: 0;
-            }
-            
-            .omni-header {
-              background: rgba(255, 255, 255, 0.95);
-              backdrop-filter: blur(20px);
-              border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-              padding: 24px;
-              position: sticky;
-              top: 0;
-              z-index: 100;
-            }
-            
-            .omni-header-content {
-              max-width: 1200px;
-              margin: 0 auto;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            }
-            
-            .omni-logo-area {
-              display: flex;
-              align-items: center;
-              gap: 16px;
-            }
-            
-            .omni-logo {
-              width: 64px;
-              height: 64px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              border-radius: 16px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-              transform: rotate(-3deg);
-              font-size: 28px;
-              color: white;
-            }
-            
-            .omni-title {
-              font-size: 32px;
-              font-weight: 800;
-              color: #1e293b;
-              margin: 0;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-            }
-            
-            .omni-subtitle {
-              font-size: 16px;
-              color: #64748b;
-              margin: 4px 0 0 0;
-              font-weight: 500;
-            }
-            
-            .omni-actions {
-              display: flex;
-              align-items: center;
-              gap: 16px;
-            }
-            
-            .omni-status {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 12px 20px;
-              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-              border-radius: 25px;
-              color: white;
-              box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-              font-size: 14px;
-              font-weight: 600;
-            }
-            
-            .omni-status-dot {
-              width: 8px;
-              height: 8px;
-              background: #34d399;
-              border-radius: 50%;
-              animation: pulse 2s infinite;
-            }
-            
-            @keyframes pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.7; }
-            }
-            
-            .omni-btn {
-              padding: 12px 24px;
-              background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-              color: white;
-              border: none;
-              border-radius: 12px;
-              font-size: 14px;
-              font-weight: 600;
-              cursor: pointer;
-              box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
-              transition: all 0.3s ease;
-              text-decoration: none;
-              display: inline-block;
-            }
-            
-            .omni-btn:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
-            }
-            
-            .omni-content {
-              max-width: 1200px;
-              margin: 0 auto;
-              padding: 32px 24px;
-            }
-          `
-        }} />
-      </head>
-      <body>
-        <div className="omni-container">
-          <div className="omni-header">
-            <div className="omni-header-content">
-              <div className="omni-logo-area">
-                <div className="omni-logo">
-                  <Image
-                    src="/fly2any-logo.png"
-                    alt="Fly2Any"
-                    width={80}
-                    height={32}
-                    className="object-contain"
-                  />
-                </div>
-                <div>
-                  <h1 className="omni-title">Central Omnichannel Premium</h1>
-                  <p className="omni-subtitle">
-                    Gerencie todas as conversas com design premium e funcionalidades avançadas
-                  </p>
-                </div>
-              </div>
-              
-              <div className="omni-actions">
-                <div className="omni-status">
-                  <div className="omni-status-dot"></div>
-                  Sistema Online
-                </div>
-                <a href="/admin" className="omni-btn">
-                  ← Voltar Admin
-                </a>
+    <div className="w-full min-h-screen bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-0 m-0">
+      <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-xl border-b border-border/20 shadow-lg p-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-xl flex items-center justify-center shadow-md shadow-primary/20 -rotate-1 flex-shrink-0">
+              <Image
+                src="/fly2any-logo.png"
+                alt="Fly2Any"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent m-0 leading-tight">
+                  Fly2Any Central Omnichannel Premium
+                </h1>
+                <p className="text-muted-foreground text-xs mt-0.5 font-medium hidden sm:block leading-tight">
+                  Gerencie todas as conversas com design premium e funcionalidades avançadas
+                </p>
               </div>
             </div>
           </div>
           
-          <div className="omni-content">
-            {children}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 rounded-full text-white shadow-md shadow-green-500/20 text-xs font-semibold">
+              <div className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse"></div>
+              <span className="hidden sm:inline">Sistema</span> Online
+            </div>
+            <a 
+              href="/admin" 
+              className="px-4 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-xs font-semibold shadow-md shadow-orange-500/20 hover:shadow-orange-500/30 transition-all duration-300 no-underline hover:scale-[1.02] flex items-center gap-1"
+            >
+              ← <span className="hidden sm:inline">Voltar</span> Admin
+            </a>
           </div>
         </div>
-      </body>
-    </html>
+      </header>
+        
+      <div className="w-full">
+        {children}
+      </div>
+    </div>
   );
 }

@@ -1,0 +1,149 @@
+{
+  "timestamp": "2025-09-10T13:31:52.658Z",
+  "domain": "fly2any.com",
+  "tests": [
+    {
+      "name": "DNS A - fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:52.932Z"
+    },
+    {
+      "name": "DNS CNAME - www.fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:53.136Z"
+    },
+    {
+      "name": "DNS AAAA - fly2any.com",
+      "passed": false,
+      "details": "*** Nenhum registro IPv6 address (AAAA) dispon�vel para fly2any.com\r\r\n",
+      "timestamp": "2025-09-10T13:31:53.477Z"
+    },
+    {
+      "name": "DNS TXT - fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:53.617Z"
+    },
+    {
+      "name": "DNS NS - fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:53.752Z"
+    },
+    {
+      "name": "HTTP Main website",
+      "passed": true,
+      "details": "Status: 308, Time: 414ms",
+      "timestamp": "2025-09-10T13:31:54.168Z"
+    },
+    {
+      "name": "HTTP WWW subdomain",
+      "passed": true,
+      "details": "Status: 200, Time: 335ms",
+      "timestamp": "2025-09-10T13:31:54.503Z"
+    },
+    {
+      "name": "HTTP API health endpoint",
+      "passed": false,
+      "details": "Status: 503, Time: 1980ms",
+      "timestamp": "2025-09-10T13:31:56.483Z"
+    },
+    {
+      "name": "HTTP HTTP redirect test",
+      "passed": true,
+      "details": "Status: 308, Time: 45ms",
+      "timestamp": "2025-09-10T13:31:56.530Z"
+    },
+    {
+      "name": "DNS Resolution Time",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:56.649Z"
+    },
+    {
+      "name": "HTTPS Response Time",
+      "passed": true,
+      "details": "254ms (A+)",
+      "timestamp": "2025-09-10T13:31:56.903Z"
+    },
+    {
+      "name": "CDN Cache Performance",
+      "passed": true,
+      "details": "222ms (A+)",
+      "timestamp": "2025-09-10T13:31:57.126Z"
+    },
+    {
+      "name": "Security SSL Certificate",
+      "passed": true,
+      "details": "Issuer: Unknown, Valid until: Unknown",
+      "timestamp": "2025-09-10T13:31:57.211Z"
+    },
+    {
+      "name": "Security HTTPS Redirect",
+      "passed": true,
+      "details": "Status: 308",
+      "timestamp": "2025-09-10T13:31:57.252Z"
+    },
+    {
+      "name": "Security Security Headers",
+      "passed": false,
+      "details": "Headers: strict-transport-security",
+      "timestamp": "2025-09-10T13:31:57.490Z"
+    },
+    {
+      "name": "Security CAA Records",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\nunknown query type: CAA\r\n",
+      "timestamp": "2025-09-10T13:31:57.644Z"
+    },
+    {
+      "name": "Email MX - mail.fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:57.781Z"
+    },
+    {
+      "name": "Email TXT - mail.fly2any.com",
+      "passed": false,
+      "details": "N�o � resposta autoritativa:\r\r\n",
+      "timestamp": "2025-09-10T13:31:58.135Z"
+    },
+    {
+      "name": "Email CNAME - krs._domainkey.mail.fly2any.com",
+      "passed": false,
+      "details": "Servidor:  dns.google\r\nAddress:  8.8.8.8\r\n\r\nfly2any.com\r\n\tprimary name server = ns1.dns-parking.com\r\n\tresponsible mail addr = dns.hostinger.com\r\n\tserial  = 2025090916\r\n\trefresh = 10000 (2 hours 46 mins 40 secs)\r\n\tretry   = 2400 (40 mins)\r\n\texpire  = 604800 (7 days)\r\n\tdefault TTL = 600 (10 mins)",
+      "timestamp": "2025-09-10T13:31:58.438Z"
+    },
+    {
+      "name": "CDN CDN Headers",
+      "passed": true,
+      "details": "Found: x-vercel-cache, server",
+      "timestamp": "2025-09-10T13:31:58.834Z"
+    },
+    {
+      "name": "CDN Geographic Routing",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2025-09-10T13:31:59.050Z"
+    },
+    {
+      "name": "CDN Cache Performance",
+      "passed": false,
+      "details": "First: 71ms, Second: 111ms",
+      "timestamp": "2025-09-10T13:32:00.239Z"
+    },
+    {
+      "name": "CDN Edge Functions",
+      "passed": true,
+      "details": "Edge response: 200",
+      "timestamp": "2025-09-10T13:32:00.521Z"
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 10,
+    "warnings": 3
+  }
+}

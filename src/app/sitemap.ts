@@ -457,49 +457,163 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  // ULTRATHINK: Brazilian Diaspora City Pages
-  // Import city data for sitemap generation
+  // 🎯 ULTRATHINK: SERVICE AREA BUSINESS - Online-Only SEO Strategy
+  // Import city and neighborhood data for comprehensive sitemap generation
   const { brazilianDiaspora } = require('@/lib/data/brazilian-diaspora')
+  const { brazilianNeighborhoods } = require('@/lib/data/brazilian-neighborhoods')
   
-  const brazilianCityPages: MetadataRoute.Sitemap = []
+  const communityPages: MetadataRoute.Sitemap = []
   
-  // Generate all city pages for all languages
+  // 1. PRIORITY BOOST: Brazilian City Community Pages (Service Area Focus)
   brazilianDiaspora.forEach((city: any) => {
-    const basePriority = city.priority === 'ultra-high' ? 0.95 : 
-                        city.priority === 'high' ? 0.90 : 0.85
+    const basePriority = city.priority === 'ultra-high' ? 0.98 : 
+                        city.priority === 'high' ? 0.95 : 0.90
     
+    // Higher priority for community service pages
     // Portuguese (default and explicit)
-    brazilianCityPages.push(
+    communityPages.push(
       {
         url: `${baseUrl}/cidade/${city.id}`,
         lastModified: currentDate,
-        changeFrequency: 'weekly' as const,
+        changeFrequency: 'daily' as const, // Increased frequency for community engagement
         priority: basePriority,
       },
       {
         url: `${baseUrl}/pt/cidade/${city.id}`,
         lastModified: currentDate,
-        changeFrequency: 'weekly' as const,
+        changeFrequency: 'daily' as const,
         priority: basePriority,
       }
     )
     
-    // English
-    brazilianCityPages.push({
+    // English (Service Area Business focus)
+    communityPages.push({
       url: `${baseUrl}/en/city/${city.id}`,
       lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: basePriority - 0.05,
+      changeFrequency: 'daily' as const,
+      priority: basePriority - 0.02, // Minimal reduction for SAB strategy
     })
     
-    // Spanish
-    brazilianCityPages.push({
+    // Spanish (Latino community engagement)
+    communityPages.push({
       url: `${baseUrl}/es/ciudad/${city.id}`,
       lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: basePriority - 0.05,
+      changeFrequency: 'daily' as const,
+      priority: basePriority - 0.02,
     })
+
+    // 🚀 NEW: Community Service Pages (Online-Only Focus)
+    communityPages.push(
+      {
+        url: `${baseUrl}/community/${city.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'daily' as const,
+        priority: basePriority + 0.01, // Higher than city pages
+      },
+      {
+        url: `${baseUrl}/virtual-consultation/${city.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'hourly' as const,
+        priority: basePriority + 0.02, // Highest priority for virtual services
+      },
+      {
+        url: `${baseUrl}/brazilian-community/${city.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'daily' as const,
+        priority: basePriority,
+      }
+    )
   })
 
-  return [...mainPages, ...staticPages, ...usMarketPages, ...servicePages, ...cotacaoPages, ...usBlogPosts, ...blogPosts, ...brazilianCityPages]
+  // 2. NEW: Hyperlocal Neighborhood Pages (Service Area Expansion)
+  brazilianNeighborhoods.forEach((neighborhood: any) => {
+    const neighborhoodPriority = neighborhood.priority === 'ultra-high' ? 0.92 :
+                                 neighborhood.priority === 'high' ? 0.88 : 0.83
+    
+    // Trilingual neighborhood pages
+    communityPages.push(
+      {
+        url: `${baseUrl}/neighborhood/${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: neighborhoodPriority,
+      },
+      {
+        url: `${baseUrl}/pt/bairro/${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: neighborhoodPriority,
+      },
+      {
+        url: `${baseUrl}/en/neighborhood/${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: neighborhoodPriority - 0.03,
+      },
+      {
+        url: `${baseUrl}/es/barrio/${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: neighborhoodPriority - 0.03,
+      }
+    )
+
+    // Service-specific neighborhood pages
+    communityPages.push(
+      {
+        url: `${baseUrl}/virtual-travel-${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'daily' as const,
+        priority: neighborhoodPriority + 0.02,
+      },
+      {
+        url: `${baseUrl}/brazilian-travel-${neighborhood.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'daily' as const,
+        priority: neighborhoodPriority + 0.01,
+      }
+    )
+  })
+
+  // 3. COMMUNITY ENGAGEMENT CONTENT (Online-Only Strategy)
+  const communityEngagementPages = [
+    {
+      url: `${baseUrl}/brazilian-community-events`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.94,
+    },
+    {
+      url: `${baseUrl}/virtual-brazil-travel-consultation`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.96, // High priority for virtual services
+    },
+    {
+      url: `${baseUrl}/brazilian-cultural-calendar`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.93,
+    },
+    {
+      url: `${baseUrl}/community-testimonials`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.91,
+    },
+    {
+      url: `${baseUrl}/brazilian-diaspora-travel-guide`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.92,
+    },
+    {
+      url: `${baseUrl}/whatsapp-travel-support`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95, // High priority for instant communication
+    }
+  ]
+
+  return [...mainPages, ...staticPages, ...usMarketPages, ...servicePages, ...cotacaoPages, ...usBlogPosts, ...blogPosts, ...communityPages, ...communityEngagementPages]
 }

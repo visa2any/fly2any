@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,97 +46,78 @@ const Timeline360: React.FC<Timeline360Props> = ({ customerId }) => {
   const [filter, setFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
 
-  const fetchCustomer360Data = async (): Promise<void> => {
+  const fetchCustomer360Data = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       
       const response = await fetch(`/api/customers/${customerId}/360`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
       
-      if (result.success) {
-        // Converter strings de data para objetos Date
+      if (result.success && result.data) {
+        // Converter strings de data para objetos Date com validação
         const data = result.data;
-        data.firstContact = new Date(data.firstContact);
-        data.lastContact = new Date(data.lastContact);
-        data.timeline = data.timeline.map((event: TimelineEvent) => ({
-          ...event,
-          timestamp: new Date(event.timestamp)
-        }));
+        try {
+          data.firstContact = data.firstContact ? new Date(data.firstContact) : new Date();
+          data.lastContact = data.lastContact ? new Date(data.lastContact) : new Date();
+          data.timeline = Array.isArray(data.timeline) ? data.timeline.map((event: TimelineEvent) => ({
+            ...event,
+            timestamp: event.timestamp ? new Date(event.timestamp) : new Date()
+          })) : [];
+        } catch (dateError) {
+          console.error('Error parsing dates:', dateError);
+        }
         
         setCustomerData(data);
       } else {
         console.error('Error fetching customer 360 data:', result.error);
-        
-        // Fallback para dados mock em caso de erro
-        const mockData: Customer360Data = {
-          id: customerId,
-          name: 'Cliente Mock',
-          email: 'mock@email.com',
-          phone: '+55 11 99999-9999',
-          status: 'customer',
-          totalInteractions: 5,
-          totalBookings: 1,
-          totalSpent: 5000,
-          firstContact: new Date('2023-01-15'),
-          lastContact: new Date('2024-01-20'),
-          conversationCount: 2,
-          averageResponseTime: 2.5,
-          customerSatisfaction: 4.5,
-          preferredChannels: ['whatsapp'],
-          timeline: [
-            {
-              id: '1',
-              type: 'message',
-              title: 'Primeira mensagem via WhatsApp',
-              description: 'Cliente iniciou conversa perguntando sobre pacotes',
-              timestamp: new Date('2024-01-20T10:30:00'),
-              channel: 'whatsapp',
-              agent: 'Sistema'
-            }
-          ]
-        };
-        setCustomerData(mockData);
+        setMockData();
       }
     } catch (error) {
       console.error('Error fetching customer 360 data:', error);
-      
-      // Fallback para dados mock em caso de erro
-      const mockData: Customer360Data = {
-        id: customerId,
-        name: 'Cliente Mock',
-        email: 'mock@email.com',
-        phone: '+55 11 99999-9999',
-        status: 'customer',
-        totalInteractions: 5,
-        totalBookings: 1,
-        totalSpent: 5000,
-        firstContact: new Date('2023-01-15'),
-        lastContact: new Date('2024-01-20'),
-        conversationCount: 2,
-        averageResponseTime: 2.5,
-        customerSatisfaction: 4.5,
-        preferredChannels: ['whatsapp'],
-        timeline: [
-          {
-            id: '1',
-            type: 'message',
-            title: 'Primeira mensagem via WhatsApp',
-            description: 'Cliente iniciou conversa perguntando sobre pacotes',
-            timestamp: new Date('2024-01-20T10:30:00'),
-            channel: 'whatsapp',
-            agent: 'Sistema'
-          }
-        ]
-      };
-      setCustomerData(mockData);
+      setMockData();
     } finally {
       setLoading(false);
     }
+  }, [customerId]);
+
+  const setMockData = () => {
+    const mockData: Customer360Data = {
+      id: customerId,
+      name: 'Cliente Mock',
+      email: 'mock@email.com',
+      phone: '+55 11 99999-9999',
+      status: 'customer',
+      totalInteractions: 5,
+      totalBookings: 1,
+      totalSpent: 5000,
+      firstContact: new Date('2023-01-15'),
+      lastContact: new Date('2024-01-20'),
+      conversationCount: 2,
+      averageResponseTime: 2.5,
+      customerSatisfaction: 4.5,
+      preferredChannels: ['whatsapp'],
+      timeline: [
+        {
+          id: '1',
+          type: 'message',
+          title: 'Primeira mensagem via WhatsApp',
+          description: 'Cliente iniciou conversa perguntando sobre pacotes',
+          timestamp: new Date('2024-01-20T10:30:00'),
+          channel: 'whatsapp',
+          agent: 'Sistema'
+        }
+      ]
+    };
+    setCustomerData(mockData);
   };
 
   useEffect(() => {
     fetchCustomer360Data();
-  }, [customerId]);
+  }, [customerId, fetchCustomer360Data]);
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -193,9 +174,9 @@ const Timeline360: React.FC<Timeline360Props> = ({ customerId }) => {
     }).format(date);
   };
 
-  const filteredTimeline = customerData?.timeline.filter(event => {
+  const filteredTimeline = customerData?.timeline?.filter?.(event => {
     if (filter === 'all') return true;
-    return event.type === filter;
+    return event?.type === filter;
   }) || [];
 
   if (loading) {
@@ -221,17 +202,17 @@ const Timeline360: React.FC<Timeline360Props> = ({ customerId }) => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              {customerData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {customerData?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{customerData.name}</h2>
-              <p className="text-gray-500">{customerData.email}</p>
+              <h2 className="text-2xl font-bold text-gray-900">{customerData?.name || 'Unknown Customer'}</h2>
+              <p className="text-gray-500">{customerData?.email || 'No email'}</p>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="outline" className="text-xs">
                   {customerData.status.toUpperCase()}
                 </Badge>
                 <span className="text-sm text-gray-500">
-                  Cliente desde {formatDateTime(customerData.firstContact)}
+                  Cliente desde {formatDateTime(customerData?.firstContact || new Date())}
                 </span>
               </div>
             </div>

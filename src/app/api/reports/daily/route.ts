@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 interface DailyReport {
   date: string;
@@ -24,6 +26,8 @@ interface DailyReport {
 }
 
 async function generateDailyReport(date: string): Promise<DailyReport> {
+  const { sql } = await import('@vercel/postgres');
+  
   // Get total events for the day
   const totalEventsResult = await sql`
     SELECT COUNT(*) as total_events
@@ -158,6 +162,8 @@ async function sendEmailReport(report: DailyReport) {
 }
 
 async function storeReport(report: DailyReport) {
+  const { sql } = await import('@vercel/postgres');
+  
   try {
     // Create daily_reports table if it doesn't exist
     await sql`
@@ -267,6 +273,7 @@ export async function POST(request: NextRequest) {
 // Get historical daily reports
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '30');
     

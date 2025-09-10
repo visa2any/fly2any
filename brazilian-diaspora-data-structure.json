@@ -1,0 +1,307 @@
+{
+  "brazilianDiaspora": {
+    "globalOverview": {
+      "totalWorldwidePop": "4-5 million",
+      "largestCommunities": ["USA", "Portugal", "Japan", "Paraguay", "UK", "Italy", "Germany", "Spain"],
+      "estimatedBy": "Brazilian Ministry of Foreign Affairs 2023-2024"
+    },
+    "unitedStates": {
+      "totalPopulation": "2,085,000 (Brazilian Embassy) / 1,775,000 (Ministry of Foreign Affairs)",
+      "topCitiesByPopulation": {
+        "newYork": {
+          "population": "500,000",
+          "neighborhoods": ["Astoria, Queens", "Newark Ironbound District (NJ)", "Little Brazil areas"],
+          "culturalCenters": ["Brazilian Consulate General NYC", "Casa Brasil Cultural Center"],
+          "media": ["Brazilian Voice newspaper", "Portuguese Times"],
+          "businesses": ["Brazilian restaurants in Manhattan", "Astoria Brazilian community"],
+          "churches": ["Nossa Senhora de Fátima", "Brazilian evangelical churches"],
+          "searchTerms": ["brazilian community nyc", "restaurante brasileiro", "comunidade brasileira nova york"]
+        },
+        "boston": {
+          "population": "420,000 (Greater Boston)",
+          "neighborhoods": ["Framingham (highest % Brazilians in MA)", "Somerville (largest absolute numbers)", "Cambridge", "Marlborough", "Milford"],
+          "culturalCenters": ["Brazilian Consulate General Boston", "Brazilian American Center"],
+          "media": ["WJFD 97.3 FM Portuguese radio", "Portuguese Times", "Brazilian Press"],
+          "businesses": ["Brazilian restaurants on Cambridge St", "Brazilian supermarkets", "Construction companies"],
+          "churches": ["St. Anthony's Shrine (Portuguese/Brazilian)", "Brazilian evangelical churches"],
+          "searchTerms": ["brazilian community boston", "framingham brasileiros", "comunidade brasileira massachusetts"],
+          "flightRoutes": ["Logan (BOS) to São Paulo (GRU)", "Boston to Rio (GIG)"]
+        },
+        "miami": {
+          "population": "400,000",
+          "neighborhoods": ["Brickell", "Aventura", "Coral Gables", "Doral", "Sunny Isles"],
+          "culturalCenters": ["Brazilian Consulate General Miami", "Brazilian American Chamber of Commerce"],
+          "media": ["Gazeta Brazilian News", "Brazilian Voice Florida"],
+          "businesses": ["Little Brazil restaurant", "Brazilian steakhouses", "Real estate agencies"],
+          "churches": ["Paróquia Nossa Senhora da Paz", "Brazilian evangelical churches"],
+          "searchTerms": ["brazilian community miami", "brasileiros em miami", "comunidade brasileira florida"],
+          "flightRoutes": ["Miami (MIA) to São Paulo (GRU)", "Miami to Rio (GIG)", "Miami to Brasília (BSB)"]
+        },
+        "orlando": {
+          "population": "190,000",
+          "neighborhoods": ["International Drive area", "Brazilian concentrated areas"],
+          "culturalCenters": ["Brazilian Consulate Orlando"],
+          "media": ["Brazilian community publications"],
+          "businesses": ["Brazilian restaurants", "Tourism services", "Brazilian travel agencies"],
+          "churches": ["Brazilian churches serving tourist and resident populations"],
+          "searchTerms": ["brazilian community orlando", "brasileiros orlando", "comunidade brasileira disney"],
+          "flightRoutes": ["Orlando (MCO) to São Paulo (GRU)", "Orlando to Rio (GIG)"]
+        },
+        "atlanta": {
+          "population": "120,000",
+          "neighborhoods": ["Marietta", "Alpharetta", "Brazilian suburban communities"],
+          "culturalCenters": ["Brazilian Consulate Atlanta"],
+          "media": ["Local Brazilian community media"],
+          "businesses": ["Brazilian restaurants", "Construction companies", "Service businesses"],
+          "churches": ["Brazilian evangelical and Catholic churches"],
+          "searchTerms": ["brazilian community atlanta", "brasileiros atlanta", "comunidade brasileira georgia"]
+        },
+        "losAngeles": {
+          "population": "120,000",
+          "neighborhoods": ["West LA", "Santa Monica", "Brazilian artist communities"],
+          "culturalCenters": ["Brazilian Consulate Los Angeles", "Brazil California Chamber of Commerce"],
+          "media": ["Soul Brasil Magazine", "Brazilian community publications"],
+          "businesses": ["Brazilian restaurants", "Entertainment industry", "Beach communities"],
+          "churches": ["Brazilian churches in LA area"],
+          "searchTerms": ["brazilian community la", "brasileiros los angeles", "comunidade brasileira california"],
+          "flightRoutes": ["LAX to São Paulo (GRU)", "LAX to Rio (GIG)"]
+        }
+      },
+      "otherSignificantCities": {
+        "newark": {
+          "population": "50,000+ (part of NYC metro)",
+          "neighborhoods": ["Ironbound District - Little Portugal/Brazil"],
+          "description": "Historic Portuguese-speaking community, significant Brazilian presence"
+        },
+        "sanFrancisco": {
+          "population": "40,000+",
+          "neighborhoods": ["Mission District", "East Bay communities"]
+        },
+        "chicago": {
+          "population": "35,000+",
+          "neighborhoods": ["Northwest Side", "Suburban communities"]
+        },
+        "washington": {
+          "population": "30,000+",
+          "neighborhoods": ["Northern Virginia", "Montgomery County MD"]
+        },
+        "philadelphia": {
+          "population": "25,000+",
+          "neighborhoods": ["Northeast Philadelphia", "South Jersey suburbs"]
+        }
+      },
+      "byState": {
+        "florida": "590,000 (largest)",
+        "newYork": "500,000",
+        "massachusetts": "420,000",
+        "california": "300,000+",
+        "newJersey": "150,000+",
+        "georgia": "120,000+"
+      },
+      "consulates": [
+        "New York", "Boston", "Miami", "Orlando", "Los Angeles", "Atlanta", "Chicago", "Houston", "San Francisco", "Washington DC"
+      ]
+    },
+    "europe": {
+      "totalPopulation": "1,600,000+ (2023)",
+      "portugal": {
+        "population": "513,000 (2023) / 368,449 (resident Brazilians - 35.3% of foreign population)",
+        "mainCities": ["Lisbon", "Porto", "Faro"],
+        "neighborhoods": ["Central Lisbon", "Amadora", "Almada"],
+        "culturalCenters": ["Casa do Brasil de Lisboa", "Brazilian Embassy"],
+        "media": ["Portuguese and Brazilian media overlap", "SIC and RTP coverage"],
+        "searchTerms": ["brasileiros em portugal", "comunidade brasileira lisboa", "visto brasileiro portugal"],
+        "flightRoutes": ["Lisbon (LIS) to São Paulo (GRU)", "Lisbon to Rio (GIG)", "Porto to Brazilian cities"],
+        "languagePreference": "Portuguese dominant, similar to Brazilian Portuguese"
+      },
+      "unitedKingdom": {
+        "population": "220,000 (2021)",
+        "mainCities": ["London", "Manchester", "Birmingham"],
+        "neighborhoods": ["Elephant and Castle (London)", "Stockwell", "Brent"],
+        "culturalCenters": ["Brazilian Embassy London", "Brazilian associations"],
+        "media": ["Folha de S.Paulo international", "Brazilian community publications"],
+        "searchTerms": ["brazilian community london", "brasileiros em Londres", "comunidade brasileira UK"],
+        "flightRoutes": ["London Heathrow (LHR) to São Paulo (GRU)", "London to Rio (GIG)"],
+        "languagePreference": "Portuguese for community, English for mainstream integration"
+      },
+      "italy": {
+        "population": "162,000 (2021)",
+        "mainCities": ["Milan", "Rome", "Bologna"],
+        "neighborhoods": ["Brazilian communities in Northern Italy"],
+        "culturalCenters": ["Brazilian Embassy Rome", "Brazilian consulates"],
+        "searchTerms": ["brasileiros na italia", "comunidade brasileira milano"],
+        "flightRoutes": ["Rome (FCO) to São Paulo", "Milan to Brazilian cities"],
+        "languagePreference": "Portuguese within community, Italian for integration"
+      },
+      "germany": {
+        "population": "138,955 (2022)",
+        "mainCities": ["Berlin", "Munich", "Frankfurt", "Hamburg"],
+        "neighborhoods": ["Brazilian expat communities"],
+        "culturalCenters": ["Brazilian Embassy Berlin", "Goethe Institut partnerships"],
+        "searchTerms": ["brasileiros na alemanha", "comunidade brasileira berlin"],
+        "flightRoutes": ["Frankfurt (FRA) to São Paulo (GRU)", "Munich to São Paulo"],
+        "languagePreference": "Portuguese within community, German for professional life"
+      },
+      "spain": {
+        "population": "100,000+ (estimated)",
+        "mainCities": ["Madrid", "Barcelona", "Valencia"],
+        "culturalCenters": ["Brazilian Embassy Madrid"],
+        "searchTerms": ["brasileiros na espanha", "comunidade brasileira madrid"],
+        "flightRoutes": ["Madrid (MAD) to São Paulo", "Barcelona to Brazilian cities"],
+        "languagePreference": "Portuguese dominant, Spanish widely understood"
+      }
+    },
+    "asia": {
+      "japan": {
+        "population": "267,456 (2009 post-crisis) / Previously 300,000+ (2008)",
+        "dekasegiPopulation": "Peak 300,000 (2008)",
+        "mainCities": ["Tokyo", "Nagoya", "Osaka", "Hamamatsu", "Gunma Prefecture"],
+        "neighborhoods": ["Toyota City", "Oizumi (Gunma)", "Hamamatsu industrial areas"],
+        "culturalCenters": ["Brazilian Embassy Tokyo", "Nikkei associations", "CIATE (Center for Information and Support for Foreign Workers)"],
+        "media": ["International Press (Portuguese)", "Nova Visão newspaper", "Radio IPB"],
+        "businesses": ["Brazilian restaurants", "Import/export", "Industrial work agencies"],
+        "churches": ["Catholic churches with Portuguese services", "Brazilian evangelical churches"],
+        "searchTerms": ["dekasegi", "brasileiros no japao", "comunidade brasileira tokyo", "trabalhador brasileiro japao"],
+        "flightRoutes": ["Tokyo Narita (NRT) to São Paulo (GRU)", "Tokyo to Rio (GIG)", "Nagoya to São Paulo"],
+        "languagePreference": "Portuguese dominant (many don't speak fluent Japanese), Japanese for work/official matters",
+        "culturalNotes": "Large Carnival celebration in Tokyo (largest outside Brazil), dekasegi workers, Portuguese is 3rd most spoken foreign language"
+      }
+    },
+    "northAmerica": {
+      "canada": {
+        "population": "122,000 (total estimate) / 55,000 (alternative estimate)",
+        "mainCities": ["Toronto", "Montreal", "Vancouver", "Calgary", "Brampton"],
+        "toronto": {
+          "population": "60,000+",
+          "neighborhoods": ["Portugal Village", "Little Portugal", "College Street"],
+          "culturalCenters": ["Brazilian Consulate Toronto", "Portugal Village cultural center"],
+          "media": ["Portuguese-Canadian media", "Correio Português"],
+          "searchTerms": ["brazilian community toronto", "brasileiros toronto", "portugal village toronto"]
+        },
+        "montreal": {
+          "population": "25,000+ (part of 60,000 Portuguese-speaking community)",
+          "neighborhoods": ["Portuguese Quarter", "Brazilian integrated areas"],
+          "culturalCenters": ["Portuguese Consulate Montreal"],
+          "searchTerms": ["brasileiros montreal", "comunidade brasileira quebec"]
+        },
+        "vancouver": {
+          "population": "20,000+",
+          "neighborhoods": ["Portuguese communities", "Brazilian integration areas"],
+          "searchTerms": ["brazilian community vancouver", "brasileiros vancouver"]
+        },
+        "languagePreference": "Portuguese within community (219,275 Portuguese speakers in Canada), English/French for integration",
+        "flightRoutes": ["Toronto (YYZ) to São Paulo (GRU)", "Montreal to São Paulo", "Vancouver to Brazilian cities"]
+      }
+    },
+    "oceania": {
+      "australia": {
+        "population": "60,000 (consulate estimate 2020) / 46,720 born in Brazil + 24,377 ancestry (2021 census)",
+        "mainCities": ["Sydney", "Melbourne", "Brisbane", "Perth"],
+        "sydney": {
+          "population": "30,000+ (about half of Australian Brazilian population)",
+          "neighborhoods": ["Inner West suburbs (earlier immigrants)", "Beach suburbs: Manly, Curl Curl, Dee Why, Bondi (recent professionals)"],
+          "culturalCenters": ["Brazilian Consulate General Sydney", "Brazilian associations"],
+          "demographics": "Two waves: earlier working class, recent highly educated professionals",
+          "searchTerms": ["brazilian community sydney", "brasileiros sydney", "brazilian bondi beach"]
+        },
+        "melbourne": {
+          "population": "15,000+",
+          "neighborhoods": ["Brazilian professional communities"],
+          "culturalCenters": ["Brazilian Honorary Consul Melbourne"],
+          "searchTerms": ["brazilian community melbourne", "brasileiros melbourne"]
+        },
+        "languagePreference": "Portuguese within community, English for integration",
+        "flightRoutes": ["Sydney (SYD) to São Paulo (GRU)", "Melbourne to São Paulo", "Brisbane to Brazilian cities"],
+        "consulates": ["Embassy in Canberra", "Consulate-General Sydney", "Honorary Consuls in Adelaide, Brisbane, Darwin, Hobart, Melbourne, Perth"]
+      }
+    },
+    "southAmerica": {
+      "paraguay": {
+        "population": "350,000-400,000 (Brasiguayos)",
+        "mainRegions": ["Eastern Paraguay (border region)", "Ciudad del Este", "Foz do Iguaçu border area"],
+        "demographics": "Brazilian settlers and Paraguayan citizens of Brazilian origin",
+        "culturalCenters": ["Brazilian Consulate Asunción", "Border cultural centers"],
+        "economy": "Agriculture (soy farming), cross-border trade",
+        "languagePreference": "Portuguese dominant, Spanish for official matters",
+        "searchTerms": ["brasiguayos", "brasileiros paraguai", "ciudad del este brasileiros"],
+        "flightRoutes": ["Asunción to São Paulo (GRU)", "Cross-border land transport dominant"]
+      },
+      "argentina": {
+        "population": "50,000+ (estimated)",
+        "mainCities": ["Buenos Aires", "Córdoba", "Mendoza"],
+        "culturalCenters": ["Brazilian Embassy Buenos Aires"],
+        "searchTerms": ["brasileiros argentina", "comunidade brasileira buenos aires"],
+        "languagePreference": "Portuguese within community, Spanish for integration"
+      }
+    },
+    "globalLanguagePatterns": {
+      "primaryLanguageUsage": {
+        "portugueseDominant": ["Portugal", "Paraguay", "Japan (within community)", "All Brazilian communities internally"],
+        "bilingualIntegration": ["USA", "Canada", "UK", "Germany", "Italy", "Spain", "Australia"],
+        "trilingualAreas": ["Canada (Portuguese/English/French)", "Switzerland (Portuguese/German/French/Italian)"]
+      },
+      "searchBehaviorPatterns": {
+        "portuguese": [
+          "brasileiros em [country]",
+          "comunidade brasileira [city]",
+          "restaurante brasileiro",
+          "igreja brasileira",
+          "consulado brasileiro",
+          "voo para brasil",
+          "enviar dinheiro brasil"
+        ],
+        "english": [
+          "brazilian community [city]",
+          "brazilian restaurants near me",
+          "flights to brazil",
+          "brazilian consulate",
+          "portuguese lessons",
+          "money transfer brazil"
+        ],
+        "localLanguage": [
+          "Adapted versions of above in German, Spanish, Italian, French, Japanese"
+        ]
+      },
+      "dialectConsiderations": {
+        "portugal": "European Portuguese vs Brazilian Portuguese - some adaptation needed",
+        "otherCountries": "Brazilian Portuguese dominant in communities",
+        "businessCommunication": "Standard Brazilian Portuguese preferred"
+      }
+    },
+    "flightRoutes": {
+      "majorBrazilianGateways": {
+        "GRU": "São Paulo-Guarulhos International (primary international hub)",
+        "GIG": "Rio de Janeiro-Galeão International",
+        "BSB": "Brasília International",
+        "REC": "Recife International",
+        "FOR": "Fortaleza International",
+        "SSA": "Salvador International"
+      },
+      "popularInternationalRoutes": {
+        "toUSA": ["GRU-MIA", "GRU-JFK", "GIG-MIA", "GRU-LAX", "GRU-BOS", "GRU-ORD"],
+        "toEurope": ["GRU-LIS", "GIG-LIS", "GRU-LHR", "GRU-CDG", "GRU-FCO", "GRU-MAD"],
+        "toAsia": ["GRU-NRT", "GRU-ICN", "GRU-DOH"],
+        "toCanada": ["GRU-YYZ", "GIG-YYZ"],
+        "toAustralia": ["GRU-SYD (via connections)", "GRU-MEL (via connections)"]
+      }
+    },
+    "culturalAndBusinessCenters": {
+      "consulates": {
+        "USA": ["New York", "Boston", "Miami", "Orlando", "Los Angeles", "Atlanta", "Chicago", "Houston", "San Francisco", "Washington DC"],
+        "europe": ["London", "Lisbon", "Paris", "Rome", "Berlin", "Madrid", "Amsterdam"],
+        "asia": ["Tokyo", "Seoul", "Shanghai", "Dubai"],
+        "oceania": ["Sydney", "Canberra"],
+        "americas": ["Toronto", "Montreal", "Buenos Aires", "Asunción"]
+      },
+      "culturalCenters": ["Casa do Brasil (various cities)", "Brazilian-American Cultural Centers", "Carnival organizations", "Capoeira schools", "Brazilian music schools"],
+      "businessAssociations": ["Brazilian-American Chambers of Commerce", "Brazil-Canada Trade associations", "Brazilian business networks"],
+      "religiousInstitutions": ["Catholic churches with Portuguese services", "Brazilian evangelical churches", "Umbanda/Candomblé centers"]
+    },
+    "mediaLandscape": {
+      "newspapers": ["Brazilian Voice", "Portuguese Times", "Gazeta Brazilian News", "Brazilian Press"],
+      "radio": ["WJFD 97.3 FM (Boston)", "WSRO 650 AM (Framingham)", "Portuguese radio networks"],
+      "television": ["Brazilian TV channels", "Portuguese international broadcasts", "Globo International"],
+      "digital": ["Brazilian community websites", "WhatsApp groups", "Facebook communities", "YouTube channels"]
+    }
+  }
+}

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Get messages for a specific ticket
 export async function GET(
@@ -7,6 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const resolvedParams = await params;
     const ticketId = parseInt(resolvedParams.id);
     
@@ -45,6 +48,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const resolvedParams = await params;
     const ticketId = parseInt(resolvedParams.id);
     const body = await request.json();
@@ -122,6 +126,8 @@ export async function POST(
 
 async function notifyCustomer(ticketId: number, message: string) {
   try {
+    const { sql } = await import('@vercel/postgres');
+    
     // Get ticket info for notification
     const ticketResult = await sql`
       SELECT user_email, user_phone, user_name, subject, source

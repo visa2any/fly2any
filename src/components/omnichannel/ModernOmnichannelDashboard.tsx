@@ -143,38 +143,6 @@ const ModernOmnichannelDashboard: React.FC<ModernOmnichannelDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header Premium */}
-      <div className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xl">🌐</span>
-                </div>
-                Central Omnichannel
-              </h1>
-              <p className="text-slate-600 mt-2">
-                Centralize todas as conversas em um só lugar - WhatsApp, Email, Chat Web e mais
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-green-700">Sistema Online</span>
-              </div>
-              <Button 
-                variant="outline" 
-                className="bg-white hover:bg-slate-50 border-slate-300"
-              >
-                ⚙️ Configurações
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Premium Cards */}
         {stats && (

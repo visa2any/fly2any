@@ -43,6 +43,9 @@ import FloatingChat from '@/components/FloatingChat';
 import LeadCaptureSimple from '@/components/LeadCaptureSimple';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
+import { CountdownTimer } from '@/components/conversion/CountdownTimer';
+import { SocialProofNotification } from '@/components/conversion/SocialProofNotification';
+import ConversionExitPopup from '@/components/conversion/ExitIntentPopup';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
@@ -1537,12 +1540,82 @@ export default function Home() {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}>
               </div>
+              {/* High-Converting Headline with Urgency */}
+              <div style={{
+                background: 'linear-gradient(135deg, #ff6b35, #f7931e)',
+                color: 'white',
+                padding: '8px 20px',
+                borderRadius: '50px',
+                fontSize: '14px',
+                fontWeight: '700',
+                marginBottom: '16px',
+                display: 'inline-block',
+                animation: 'pulse 2s infinite',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                🔥 OFERTA LIMITADA - TERMINA EM 24H
+              </div>
+              
               <h1 className={`${styles.heroTitle} ${isMobileDevice ? styles.mobileHeroTitle : ''}`}>
-                Fly2Any, sua ponte aérea entre EUA, Brasil e o Mundo!
+                Economize até R$ 3.500 na Sua Passagem para o Brasil!
               </h1>
               <p className={`${styles.heroSubtitle} ${isMobileDevice ? styles.mobileHeroSubtitle : ''}`}>
-                Conectando americanos, brasileiros e outras nacionalidades ao Brasil e ao mundo com atendimento personalizado, preços exclusivos e 21 anos de experiência.
+                <strong>21 anos</strong> conectando brasileiros aos melhores preços. <strong>5.000+ clientes satisfeitos</strong> já economizaram milhares com nosso atendimento especializado em português.
               </p>
+              
+              {/* Immediate Value Props */}
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '16px',
+                marginTop: '24px',
+                marginBottom: '32px'
+              }}>
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '2px solid #22c55e',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#22c55e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  ✅ Sem Taxa de Agência
+                </div>
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '2px solid #22c55e',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#22c55e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  ✅ Atendimento 24/7 em Português
+                </div>
+                <div style={{
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '2px solid #22c55e',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#22c55e',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  ✅ Melhor Preço Garantido
+                </div>
+              </div>
               
               {/* Trust Indicators */}
               <div style={{
@@ -3448,30 +3521,65 @@ export default function Home() {
             padding: isMobileDevice ? '0 20px' : '0 32px'
           }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+              {/* Trust Building Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                color: 'white',
+                padding: '12px 24px',
+                borderRadius: '50px',
+                fontSize: '16px',
+                fontWeight: '700',
+                marginBottom: '32px',
+                display: 'inline-block',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                🏆 LÍDER EM VIAGENS USA-BRASIL DESDE 2003
+              </div>
+              
               <h2 style={{
-                fontSize: isMobileDevice ? '18px' : '56px',
+                fontSize: isMobileDevice ? '24px' : '56px',
                 fontWeight: '800',
                 color: colors.secondary.gray900,
                 fontFamily: 'Poppins, sans-serif',
-                margin: isMobileDevice ? '0 0 12px 0' : '0 0 24px 0',
+                margin: isMobileDevice ? '0 0 16px 0' : '0 0 24px 0',
                 letterSpacing: '-0.02em',
-                lineHeight: '1.3'
+                lineHeight: '1.2'
               }}>
                 Por que 
                 <span style={{
-                  color: colors.accent.orange
+                  color: colors.accent.orange,
+                  textDecoration: 'underline',
+                  textDecorationColor: colors.accent.orange
                 }}> 5.000+ Brasileiros </span>
-                Confiam na Fly2Any?
+                Economizaram Milhares Conosco?
               </h2>
+              
               <p style={{
-                fontSize: '20px',
-                color: colors.secondary.gray600,
+                fontSize: isMobileDevice ? '18px' : '22px',
+                color: colors.secondary.gray700,
+                maxWidth: '700px',
+                margin: '0 auto 40px auto',
+                lineHeight: '1.6',
+                fontWeight: '500'
+              }}>
+                <strong>21 anos de experiência</strong> conectando famílias brasileiras com o melhor atendimento em português e preços que <strong>nenhuma outra agência consegue igualar</strong>.
+              </p>
+              
+              {/* Urgency Message */}
+              <div style={{
+                background: 'linear-gradient(135deg, #dc2626, #ef4444)',
+                color: 'white',
+                padding: '16px 32px',
+                borderRadius: '12px',
                 maxWidth: '600px',
                 margin: '0 auto 32px auto',
-                lineHeight: '1.6'
+                fontSize: '16px',
+                fontWeight: '600',
+                animation: 'pulse 2s infinite'
               }}>
-                Discover what makes Fly2Any the #1 choice for USA-Brazil travel
-              </p>
+                ⚡ ÚLTIMA SEMANA: 347 brasileiros já garantiram suas passagens com desconto exclusivo!
+              </div>
               
               {/* Price Anchoring Widget */}
               <div style={{

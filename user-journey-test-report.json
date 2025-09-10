@@ -1,0 +1,46 @@
+{
+  "startTime": "2025-09-09T05:49:39.147Z",
+  "testsPassed": 0,
+  "testsFailed": 1,
+  "errors": [
+    {
+      "context": "Homepage Load",
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-09-09T05:50:13.720Z"
+    },
+    {
+      "context": "Main Test Flow",
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n",
+      "timestamp": "2025-09-09T05:50:13.723Z"
+    }
+  ],
+  "warnings": [],
+  "performanceMetrics": {
+    "Homepage Load": 30545
+  },
+  "screenshots": [],
+  "userJourneySteps": [
+    {
+      "timestamp": "2025-09-09T05:49:39.151Z",
+      "step": "🚀 Starting Complete User Journey Testing",
+      "status": "START",
+      "duration": null
+    },
+    {
+      "timestamp": "2025-09-09T05:49:43.173Z",
+      "step": "1️⃣ Testing System Access & Authentication",
+      "status": "INFO",
+      "duration": null
+    },
+    {
+      "timestamp": "2025-09-09T05:50:15.512Z",
+      "step": "📊 User Journey Testing Completed",
+      "status": "COMPLETE",
+      "duration": null
+    }
+  ],
+  "endTime": "2025-09-09T05:50:15.512Z",
+  "duration": 36365,
+  "totalTests": 1,
+  "successRate": "0.00"
+}

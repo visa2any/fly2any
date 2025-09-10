@@ -1,4 +1,5 @@
-import { EmailCampaignsDB, EmailSendsDB } from '@/lib/email-marketing-db';
+import { EmailMarketingDatabase } from '@/lib/email-marketing-database';
+import { sql } from '@vercel/postgres';
 
 // Helper function to ensure tables exist
 async function ensureTablesExist() {
@@ -17,8 +18,8 @@ export async function executeAutoRestart() {
     console.log('🚀 Iniciando auto-restart de campanhas pausadas...');
     
     // 1. Buscar campanhas pausadas
-    const allCampaigns = await EmailCampaignsDB.findAll();
-    const pausedCampaigns = allCampaigns.filter(c => c.status === 'paused');
+    const allCampaigns = await EmailMarketingDatabase.getEmailCampaigns(1000);
+    const pausedCampaigns = allCampaigns.filter((c: any) => c.status === 'paused');
     
     console.log(`📊 Encontradas ${pausedCampaigns.length} campanhas pausadas`);
     
@@ -47,14 +48,21 @@ export async function executeAutoRestart() {
           console.log(`⚠️ Campanha sem ID, pulando...`);
           continue;
         }
-        const allSends = await EmailSendsDB.findByCampaign(campaign.id);
-        const pendingSends = allSends.filter(send => send.status === 'pending');
+        const pendingSendsResult = await sql`
+          SELECT * FROM email_sends 
+          WHERE campaign_id = ${campaign.id} AND status = 'pending'
+        `;
+        const pendingSends = pendingSendsResult.rows;
         
         console.log(`📨 Campanha ${campaign.id}: ${pendingSends.length} envios pendentes`);
         
         if (pendingSends.length > 0) {
           // Reativar a campanha
-          await EmailCampaignsDB.updateStatus(campaign.id, 'sending');
+          await sql`
+            UPDATE email_campaigns 
+            SET status = 'sending', updated_at = ${new Date().toISOString()}
+            WHERE id = ${campaign.id}
+          `;
           
           console.log(`✅ Campanha ${campaign.id} reativada com ${pendingSends.length} envios pendentes`);
           

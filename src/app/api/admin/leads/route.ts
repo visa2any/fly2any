@@ -1,12 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DatabaseService } from '@/lib/database';
-import { DatabaseFallback } from '@/lib/database-fallback';
-import { LeadService } from '@/lib/services/lead-service';
-import { DatabaseChecker } from '@/lib/database-checker';
-import { verifyAdminAuth, createUnauthorizedResponse } from '@/lib/auth-helpers';
+
+// Runtime configuration flag
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   try {
+    // Lazy load all modules to prevent build-time execution
+    const { verifyAdminAuth, createUnauthorizedResponse } = await import('@/lib/auth-helpers');
+    const getDatabaseChecker = async () => {
+      const { DatabaseChecker } = await import('@/lib/database-checker');
+      return DatabaseChecker;
+    };
+    const getDatabaseService = async () => {
+      const { DatabaseService } = await import('@/lib/database');
+      return DatabaseService;
+    };
+    const getLeadService = async () => {
+      const { LeadService } = await import('@/lib/services/lead-service');
+      return LeadService;
+    };
+    const getDatabaseFallback = async () => {
+      const { DatabaseFallback } = await import('@/lib/database-fallback');
+      return DatabaseFallback;
+    };
+    
     // Verificar autenticação
     const auth = await verifyAdminAuth(request);
     if (!auth.isAuthenticated) {
@@ -19,6 +42,7 @@ export async function GET(request: NextRequest) {
     const stats = searchParams.get('stats') === 'true';
 
     // Check database status first
+    const DatabaseChecker = await getDatabaseChecker();
     const dbStatus = await DatabaseChecker.checkConnection();
     console.log('[ADMIN] Database status:', dbStatus);
     
@@ -26,6 +50,7 @@ export async function GET(request: NextRequest) {
       // Use real database
       console.log('[ADMIN] Using real database...');
       try {
+        const DatabaseService = await getDatabaseService();
         await DatabaseChecker.initializeTables();
         
         if (stats) {
@@ -51,6 +76,7 @@ export async function GET(request: NextRequest) {
     // Fallback to cache if database not available
     try {
       console.log('[ADMIN] Using cache fallback...');
+      const LeadService = await getLeadService();
       if (stats) {
         const cacheStats = LeadService.getStatsFromCache();
         console.log('[ADMIN] Cache stats:', JSON.stringify(cacheStats, null, 2));
@@ -76,6 +102,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Try database as fallback
+      const DatabaseService = await getDatabaseService();
       await DatabaseService.initializeTables();
       
       if (stats) {
@@ -92,6 +119,7 @@ export async function GET(request: NextRequest) {
       
       // Usar fallback para arquivo JSON
       try {
+        const DatabaseFallback = await getDatabaseFallback();
         const fallbackLeads = await DatabaseFallback.getLeadsFromFile();
         
         if (stats) {
@@ -165,6 +193,7 @@ export async function GET(request: NextRequest) {
         // Try cache as final fallback
         try {
           console.log('[ADMIN] Trying cache fallback...');
+          const LeadService = await getLeadService();
           if (stats) {
             const cacheStats = LeadService.getStatsFromCache();
             console.log('[ADMIN] Cache stats:', JSON.stringify(cacheStats, null, 2));
@@ -206,7 +235,19 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   try {
+    // Lazy load all modules to prevent build-time execution
+    const { verifyAdminAuth, createUnauthorizedResponse } = await import('@/lib/auth-helpers');
+    const getDatabaseService = async () => {
+      const { DatabaseService } = await import('@/lib/database');
+      return DatabaseService;
+    };
+    
     // Verificar autenticação
     const auth = await verifyAdminAuth(request);
     if (!auth.isAuthenticated) {
@@ -218,6 +259,7 @@ export async function POST(request: NextRequest) {
     if (action === 'export') {
       try {
         // Inicializar tabelas se necessário
+        const DatabaseService = await getDatabaseService();
         await DatabaseService.initializeTables();
         
         // Exportar todos os leads

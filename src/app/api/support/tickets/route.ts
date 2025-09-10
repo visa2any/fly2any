@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 interface CreateTicketRequest {
   sessionId?: string;
@@ -21,6 +23,7 @@ interface CreateTicketRequest {
 
 async function initializeSupportTables() {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Support tickets table
     await sql`
       CREATE TABLE IF NOT EXISTS support_tickets (
@@ -93,6 +96,7 @@ async function initializeSupportTables() {
 
 export async function POST(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     await initializeSupportTables();
     
     const body: CreateTicketRequest = await request.json();
@@ -217,6 +221,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const { sql } = await import('@vercel/postgres');
     await initializeSupportTables();
     
     const { searchParams } = new URL(request.url);
@@ -329,6 +334,7 @@ export async function GET(request: NextRequest) {
 
 async function createTicketNotifications(ticketId: number, priority: string, department: string, ticketInfo: any) {
   try {
+    const { sql } = await import('@vercel/postgres');
     const notificationTitle = `Novo Ticket #${ticketId} - ${priority.toUpperCase()}`;
     const notificationMessage = `${ticketInfo.name} (${ticketInfo.source}) - ${ticketInfo.subject}`;
 

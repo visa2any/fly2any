@@ -401,7 +401,7 @@ export class AIContentGenerator {
     return info[language as keyof typeof info] || info.en;
   }
 
-  private calculateSEOScore(content: string, keywords: string[]): number {
+  protected calculateSEOScore(content: string, keywords: string[]): number {
     let score = 0;
     const wordCount = content.split(' ').length;
     
@@ -428,7 +428,7 @@ export class AIContentGenerator {
     return Math.min(100, score);
   }
 
-  private calculateReadingTime(content: string): number {
+  protected calculateReadingTime(content: string): number {
     const words = content.split(' ').length;
     return Math.ceil(words / 200); // Average reading speed: 200 words per minute
   }

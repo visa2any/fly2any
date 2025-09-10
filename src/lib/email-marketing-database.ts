@@ -479,16 +479,13 @@ export class EmailMarketingDatabase {
           'contact_' || c.id,
           c.id,
           c.email,
-          c.nome,
-          CASE 
-            WHEN c.receber_promocoes = true AND c.status != 'inativo' THEN 'active'
-            ELSE 'unsubscribed'
-          END,
-          c.created_at,
+          c.name,
+          'active',
+          COALESCE(c.created_at, CURRENT_TIMESTAMP),
           '[]'::jsonb,
           0,
-          c.created_at,
-          c.updated_at
+          COALESCE(c.created_at, CURRENT_TIMESTAMP),
+          COALESCE(c.updated_at, CURRENT_TIMESTAMP)
         FROM customers c
         WHERE c.email IS NOT NULL
         AND NOT EXISTS (
@@ -662,12 +659,11 @@ export class EmailMarketingDatabase {
       // Get segment stats (joining with customers table to get segmento)
       const segmentResult = await sql`
         SELECT 
-          COALESCE(c.status, 'Sem Segmento') as segment,
+          COALESCE(ec.email_status, 'Ativos') as segment,
           COUNT(*) as count
         FROM email_contacts ec
-        LEFT JOIN customers c ON ec.customer_id = c.id
         WHERE ec.email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')
-        GROUP BY c.status
+        GROUP BY ec.email_status
         ORDER BY count DESC
         LIMIT 5
       `;
@@ -755,7 +751,7 @@ export class EmailMarketingDatabase {
       const countQuery = `
         SELECT COUNT(*) as total 
         FROM email_contacts ec
-        LEFT JOIN customers c ON ec.customer_id = c.id
+        LEFT JOIN customers c ON ec.customer_id::text = c.id::text
         ${whereClause}
       `;
       const countResult = await sql.query(countQuery, params);
@@ -768,12 +764,12 @@ export class EmailMarketingDatabase {
       const contactsQuery = `
         SELECT 
           ec.*,
-          c.nome,
+          c.name,
           c.email as customer_email,
-          c.status as segmento,
-          c.tags
+          'active' as segmento,
+          '[]' as tags
         FROM email_contacts ec
-        LEFT JOIN customers c ON ec.customer_id = c.id
+        LEFT JOIN customers c ON ec.customer_id::text = c.id::text
         ${whereClause}
         ORDER BY ec.created_at DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

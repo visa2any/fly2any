@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 interface ChatMessage {
   id: string;
@@ -142,6 +144,7 @@ Responda como uma brasileira experiente em Miami que entende perfeitamente as ne
 
 async function initializeChatTables() {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Chat sessions table
     await sql`
       CREATE TABLE IF NOT EXISTS chat_sessions (
@@ -184,6 +187,7 @@ async function initializeChatTables() {
 
 async function saveMessage(sessionId: string, content: string, sender: 'user' | 'agent', messageType: string = 'text', metadata?: ChatMetadata) {
   try {
+    const { sql } = await import('@vercel/postgres');
     await sql`
       INSERT INTO chat_messages (session_id, content, sender, message_type, metadata)
       VALUES (${sessionId}, ${content}, ${sender}, ${messageType}, ${JSON.stringify(metadata || {})})
@@ -195,6 +199,7 @@ async function saveMessage(sessionId: string, content: string, sender: 'user' | 
 
 async function updateSession(sessionId: string, userInfo?: UserInfo, intent?: string) {
   try {
+    const { sql } = await import('@vercel/postgres');
     await sql`
       INSERT INTO chat_sessions (id, user_name, user_email, user_phone, intent)
       VALUES (${sessionId}, ${userInfo?.name || null}, ${userInfo?.email || null}, ${userInfo?.phone || null}, ${intent || null})

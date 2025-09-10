@@ -12,6 +12,8 @@ import HydrationErrorBoundary from "@/components/enterprise/HydrationErrorBounda
 import HydrationValidator from "@/components/enterprise/HydrationValidator";
 import GlobalMobileStyles from "@/components/GlobalMobileStyles";
 import "@/lib/enterprise/HydrationMonitor"; // Auto-initialize monitoring
+// Performance optimization imports
+import "@/lib/performance/performance-monitor"; // Auto-initialize performance monitoring
 import "./globals.css";
 
 const inter = Inter({

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import { whatsappService } from '@/lib/whatsapp';
 import { WhatsAppOmnichannel } from '@/lib/omnichannel-api';
 import { WhatsAppLeadExtractor } from '@/lib/whatsapp-lead-extractor';
 import { scheduleLeadFollowUp } from '@/lib/whatsapp-follow-up';
-import { sql } from '@vercel/postgres';
+
 
 // Webhook to receive incoming WhatsApp messages
 export async function POST(request: NextRequest) {
@@ -117,6 +119,7 @@ async function handleIncomingMessage(message: any, contacts?: any[]) {
 
 async function saveIncomingMessage(phone: string, content: string, contactName: string, whatsappId?: string) {
   try {
+    const { sql } = await import('@vercel/postgres');
     // Get or create conversation
     let conversationResult = await sql`
       SELECT id FROM whatsapp_conversations WHERE phone = ${phone}
@@ -152,6 +155,7 @@ async function saveIncomingMessage(phone: string, content: string, contactName: 
 
 async function checkIfNewConversation(phone: string): Promise<boolean> {
   try {
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       SELECT COUNT(*) as message_count
       FROM whatsapp_messages 
@@ -245,6 +249,7 @@ async function processLeadExtraction(phone: string, currentMessage: string, cont
     console.log(`🧠 Processando extração de lead para ${phone}...`);
 
     // Buscar histórico de mensagens recentes desta conversa
+    const { sql } = await import('@vercel/postgres');
     const messagesResult = await sql`
       SELECT content, created_at
       FROM whatsapp_messages 

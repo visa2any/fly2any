@@ -1,0 +1,146 @@
+{
+  "timestamp": "2025-09-09T15:50:19.677Z",
+  "serverUrl": "http://localhost:3001",
+  "totalInterfaces": 6,
+  "results": [
+    {
+      "name": "Modern Interface (Recommended)",
+      "url": "http://localhost:3001/admin/omnichannel/modern",
+      "key": "modern",
+      "status": 200,
+      "loadTime": 5717,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Good",
+      "features": [
+        "Interactive buttons working"
+      ],
+      "issues": [],
+      "screenshots": [
+        "modern_initial.png",
+        "modern_final.png"
+      ],
+      "productionReady": false
+    },
+    {
+      "name": "Premium Interface",
+      "url": "http://localhost:3001/admin/omnichannel/premium",
+      "key": "premium",
+      "status": 200,
+      "loadTime": 7538,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Excellent",
+      "features": [],
+      "issues": [
+        "Button interaction failed"
+      ],
+      "screenshots": [
+        "premium_initial.png",
+        "premium_final.png"
+      ],
+      "productionReady": false
+    },
+    {
+      "name": "Styled Interface",
+      "url": "http://localhost:3001/admin/omnichannel/styled",
+      "key": "styled",
+      "status": 200,
+      "loadTime": 13929,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Outstanding",
+      "features": [
+        "Navigation elements (2)",
+        "Header section",
+        "Interactive buttons working"
+      ],
+      "issues": [],
+      "screenshots": [
+        "styled_initial.png",
+        "styled_final.png"
+      ],
+      "productionReady": false
+    },
+    {
+      "name": "Standard Interface",
+      "url": "http://localhost:3001/admin/omnichannel",
+      "key": "standard",
+      "status": 200,
+      "loadTime": 25709,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Outstanding",
+      "features": [
+        "Navigation elements (2)",
+        "Header section",
+        "Interactive buttons working"
+      ],
+      "issues": [],
+      "screenshots": [
+        "standard_initial.png",
+        "standard_final.png"
+      ],
+      "productionReady": false
+    },
+    {
+      "name": "Test Interface",
+      "url": "http://localhost:3001/admin/omnichannel-test",
+      "key": "test",
+      "status": 200,
+      "loadTime": 14943,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Outstanding",
+      "features": [
+        "Navigation elements (2)",
+        "Header section",
+        "Interactive buttons working"
+      ],
+      "issues": [],
+      "screenshots": [
+        "test_initial.png",
+        "test_final.png"
+      ],
+      "productionReady": false
+    },
+    {
+      "name": "Direct Access Interface",
+      "url": "http://localhost:3001/omnichannel-direct",
+      "key": "direct",
+      "status": 200,
+      "loadTime": 11628,
+      "errors": [
+        "Generic error detected"
+      ],
+      "databaseConnected": true,
+      "uiQuality": "Excellent",
+      "features": [
+        "Conversations list container",
+        "Sidebar/side panel",
+        "Interactive buttons working"
+      ],
+      "issues": [],
+      "screenshots": [
+        "direct_initial.png",
+        "direct_final.png"
+      ],
+      "productionReady": false
+    }
+  ],
+  "summary": {
+    "working": 6,
+    "withErrors": 6,
+    "productionReady": 0
+  }
+}

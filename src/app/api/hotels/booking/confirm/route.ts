@@ -8,10 +8,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { sql } from '@vercel/postgres';
 import { liteApiClient } from '@/lib/hotels/liteapi-client';
 import { sendEmail } from '@/lib/email';
 import type { BookingResponse, APIResponse, Guest, ContactInfo } from '@/types/hotels';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // Validation schemas
 const guestSchema = z.object({
@@ -184,6 +186,7 @@ async function createHotelLead(
     };
 
     // Insert into leads table
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       INSERT INTO leads (
         nome, email, telefone, whatsapp, 
@@ -219,6 +222,7 @@ async function storeHotelBooking(
   specialRequests?: string
 ): Promise<number> {
   try {
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       INSERT INTO hotel_bookings (
         lead_id, liteapi_booking_id, hotel_id, hotel_name, hotel_location,
@@ -351,6 +355,7 @@ async function sendBookingNotifications(
  * POST /api/hotels/booking/confirm
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const { sql } = await import('@vercel/postgres');
   const startTime = Date.now();
   const requestId = crypto.randomUUID();
 
@@ -553,7 +558,4 @@ export async function OPTIONS(): Promise<NextResponse> {
   });
 }
 
-// Export configuration
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// Configuration already exported at top of file
