@@ -194,10 +194,71 @@ export interface EmailAutomation {
 }
 
 export class EmailMarketingDatabase {
+  private static _isInitialized = false;
+  private static _initPromise: Promise<void> | null = null;
   
-  // Initialize all email marketing tables
+  // Retry helper for database operations
+  private static async retryOperation<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    delayMs: number = 1000
+  ): Promise<T> {
+    let lastError: Error;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Don't retry on certain errors
+        if (error instanceof Error && (
+          error.message.includes('permission denied') ||
+          error.message.includes('authentication failed') ||
+          error.message.includes('invalid credentials')
+        )) {
+          throw error;
+        }
+        
+        console.warn(`Database operation failed (attempt ${attempt}/${maxRetries}):`, error);
+        
+        if (attempt < maxRetries) {
+          const delay = delayMs * Math.pow(2, attempt - 1); // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw new Error(`Database operation failed after ${maxRetries} attempts: ${lastError!.message}`);
+  }
+  
+  // Initialize all email marketing tables (singleton pattern)
   static async initializeEmailTables(): Promise<void> {
+    // Return existing initialization promise if already in progress
+    if (this._initPromise) {
+      return this._initPromise;
+    }
+    
+    // Return immediately if already initialized
+    if (this._isInitialized) {
+      return Promise.resolve();
+    }
+    
+    // Start initialization and store the promise
+    this._initPromise = this._performInitialization();
+    
     try {
+      await this._initPromise;
+      this._isInitialized = true;
+    } catch (error) {
+      this._initPromise = null; // Reset on failure
+      throw error;
+    }
+  }
+  
+  private static async _performInitialization(): Promise<void> {
+    try {
+
       // Email Campaigns
       await sql`
         CREATE TABLE IF NOT EXISTS email_campaigns (
@@ -230,6 +291,16 @@ export class EmailMarketingDatabase {
         )
       `;
 
+      // Add missing columns to existing email_campaigns table if they don't exist
+      try {
+        await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS sent_at TIMESTAMP`;
+        await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS mailgun_campaign_id TEXT`;
+        await sql`ALTER TABLE email_campaigns ADD COLUMN IF NOT EXISTS mailgun_message_id TEXT`;
+      } catch (error) {
+        // Ignore errors for columns that already exist
+        console.log('⚠️  Some email_campaigns columns may already exist');
+      }
+
       // Email Contacts (linked to existing customers)
       await sql`
         CREATE TABLE IF NOT EXISTS email_contacts (
@@ -254,6 +325,27 @@ export class EmailMarketingDatabase {
           FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
         )
       `;
+
+      // Add missing columns to existing email_contacts table if they don't exist
+      try {
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS customer_id TEXT`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS first_name TEXT`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS last_name TEXT`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS engagement_score INTEGER DEFAULT 0`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS unsubscribe_date TIMESTAMP`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS tags TEXT DEFAULT '[]'`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS custom_fields TEXT DEFAULT '{}'`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS total_emails_sent INTEGER DEFAULT 0`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS total_emails_opened INTEGER DEFAULT 0`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS total_emails_clicked INTEGER DEFAULT 0`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS last_email_opened_at TIMESTAMP`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS last_email_clicked_at TIMESTAMP`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS email_status TEXT DEFAULT 'active'`;
+      } catch (error) {
+        // Ignore errors for columns that already exist
+        console.log('⚠️  Some email_contacts columns may already exist');
+      }
 
       // Email Events Tracking
       await sql`
@@ -329,14 +421,25 @@ export class EmailMarketingDatabase {
         )
       `;
 
-      // Indexes for performance
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(email_status)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_events_contact_id ON email_events(contact_id)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_events_campaign_id ON email_events(campaign_id)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_events_type ON email_events(event_type)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)`;
-      await sql`CREATE INDEX IF NOT EXISTS idx_email_segments_active ON email_segments(is_active)`;
+      // Indexes for performance (wrapped in try-catch to handle any issues gracefully)
+      try {
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(email_status)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_events_contact_id ON email_events(contact_id)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_events_campaign_id ON email_events(campaign_id)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_events_type ON email_events(event_type)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_email_segments_active ON email_segments(is_active)`;
+        
+        // Create customer_id index only if the column exists
+        try {
+          await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_customer_id ON email_contacts(customer_id)`;
+        } catch (customerIdIndexError) {
+          console.warn('⚠️  customer_id index not created (column may not exist)');
+        }
+      } catch (indexError) {
+        console.warn('⚠️  Some indexes could not be created:', indexError);
+      }
       
       console.log('✅ Email Marketing database tables initialized successfully');
     } catch (error) {
@@ -344,10 +447,29 @@ export class EmailMarketingDatabase {
       throw error;
     }
   }
+  
+  // Reset initialization state (for testing purposes)
+  static resetInitialization(): void {
+    this._isInitialized = false;
+    this._initPromise = null;
+  }
 
   // Sync existing customers to email contacts
   static async syncCustomersToEmailContacts(): Promise<number> {
     try {
+      // First check if email_contacts table has the required columns
+      const columnsCheck = await sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'email_contacts'
+        AND column_name IN ('customer_id', 'first_name', 'engagement_score')
+      `;
+      
+      if (columnsCheck.rows.length < 3) {
+        console.log('⚠️  Email contacts table structure is incomplete, skipping sync');
+        return 0;
+      }
+      
       const result = await sql`
         INSERT INTO email_contacts (
           id, customer_id, email, first_name, email_status, 
@@ -363,8 +485,8 @@ export class EmailMarketingDatabase {
             ELSE 'unsubscribed'
           END,
           c.created_at,
-          c.tags,
-          c.score,
+          '[]'::jsonb,
+          0,
           c.created_at,
           c.updated_at
         FROM customers c
@@ -378,7 +500,120 @@ export class EmailMarketingDatabase {
       return result.rowCount || 0;
     } catch (error) {
       console.error('❌ Error syncing customers to email contacts:', error);
-      throw error;
+      // Don't throw error, just log it and return 0
+      return 0;
+    }
+  }
+
+  // Initialize default email templates
+  static async initializeDefaultTemplates(): Promise<number> {
+    try {
+      const defaultTemplates = [
+        {
+          id: 'template_welcome_001',
+          name: 'Boas-vindas - Fly2Any',
+          description: 'Template de boas-vindas para novos clientes',
+          category: 'welcome',
+          subject: 'Bem-vindo à Fly2Any! ✈️',
+          html_content: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #2563eb;">Bem-vindo à Fly2Any!</h1>
+              <p>Olá {{first_name}},</p>
+              <p>É um prazer ter você conosco! Somos especialistas em tornar suas viagens inesquecíveis.</p>
+              <p>Nossa equipe está sempre pronta para ajudar você a encontrar as melhores opções de voo, hospedagem e experiências.</p>
+              <p>Em breve, você receberá ofertas exclusivas e dicas de viagem personalizadas.</p>
+              <p>Boa viagem!</p>
+              <p><strong>Equipe Fly2Any</strong></p>
+            </div>
+          `,
+          text_content: 'Bem-vindo à Fly2Any! É um prazer ter você conosco.',
+          variables: ['first_name'],
+          created_by: 'system',
+          is_active: true
+        },
+        {
+          id: 'template_newsletter_001',
+          name: 'Newsletter - Ofertas da Semana',
+          description: 'Newsletter semanal com ofertas especiais',
+          category: 'newsletter',
+          subject: 'Ofertas Imperdíveis da Semana! ✈️',
+          html_content: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #2563eb;">Ofertas da Semana</h1>
+              <p>Olá {{first_name}},</p>
+              <p>Não perca essas oportunidades incríveis de viagem!</p>
+              <h2>Destinos em Promoção:</h2>
+              <ul>
+                <li>Paris - A partir de R$ 2.500</li>
+                <li>Nova York - A partir de R$ 3.200</li>
+                <li>Lisboa - A partir de R$ 2.800</li>
+              </ul>
+              <p>Entre em contato conosco para mais detalhes!</p>
+              <p><strong>Equipe Fly2Any</strong></p>
+            </div>
+          `,
+          text_content: 'Ofertas da semana: Paris R$ 2.500, Nova York R$ 3.200, Lisboa R$ 2.800',
+          variables: ['first_name'],
+          created_by: 'system',
+          is_active: true
+        },
+        {
+          id: 'template_followup_001',
+          name: 'Follow-up - Cotação',
+          description: 'Follow-up para clientes que solicitaram cotação',
+          category: 'follow_up',
+          subject: 'Sua cotação de viagem está pronta!',
+          html_content: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #2563eb;">Sua Cotação Fly2Any</h1>
+              <p>Olá {{first_name}},</p>
+              <p>Preparamos uma cotação especial para sua viagem!</p>
+              <p>Nossa equipe analisou suas preferências e encontrou as melhores opções para você.</p>
+              <p>Entre em contato conosco para ver todos os detalhes da sua cotação personalizada.</p>
+              <p>Estamos ansiosos para tornar sua viagem realidade!</p>
+              <p><strong>Equipe Fly2Any</strong></p>
+            </div>
+          `,
+          text_content: 'Sua cotação está pronta! Entre em contato para ver os detalhes.',
+          variables: ['first_name'],
+          created_by: 'system',
+          is_active: true
+        }
+      ];
+
+      let insertedCount = 0;
+      
+      for (const template of defaultTemplates) {
+        try {
+          // Check if template already exists
+          const existingTemplate = await sql`
+            SELECT id FROM email_templates WHERE id = ${template.id}
+          `;
+          
+          if (existingTemplate.rows.length === 0) {
+            await sql`
+              INSERT INTO email_templates (
+                id, name, description, category, subject, html_content, text_content,
+                variables, usage_count, created_by, created_at, updated_at, is_active
+              ) VALUES (
+                ${template.id}, ${template.name}, ${template.description}, ${template.category},
+                ${template.subject}, ${template.html_content}, ${template.text_content},
+                ${JSON.stringify(template.variables)}, 0, ${template.created_by},
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ${template.is_active}
+              )
+            `;
+            insertedCount++;
+          }
+        } catch (templateError) {
+          console.warn(`⚠️  Could not insert template ${template.id}:`, templateError);
+        }
+      }
+      
+      console.log(`✅ Initialized ${insertedCount} default email templates`);
+      return insertedCount;
+    } catch (error) {
+      console.error('❌ Error initializing default templates:', error);
+      return 0;
     }
   }
 
@@ -421,17 +656,18 @@ export class EmailMarketingDatabase {
         SELECT COUNT(*) as total 
         FROM email_campaigns 
         WHERE status IN ('sent', 'completed')
-        AND updated_at >= ${fromDate.toISOString()}
+        AND (sent_at >= ${fromDate.toISOString()} OR updated_at >= ${fromDate.toISOString()})
       `;
 
-      // Get segment stats (using segmento from email_contacts)
+      // Get segment stats (joining with customers table to get segmento)
       const segmentResult = await sql`
         SELECT 
-          COALESCE(segmento, 'Sem Segmento') as segment,
+          COALESCE(c.status, 'Sem Segmento') as segment,
           COUNT(*) as count
-        FROM email_contacts 
-        WHERE email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')
-        GROUP BY segmento
+        FROM email_contacts ec
+        LEFT JOIN customers c ON ec.customer_id = c.id
+        WHERE ec.email_status NOT IN ('failed', 'bounced', 'unsubscribed', 'complained')
+        GROUP BY c.status
         ORDER BY count DESC
         LIMIT 5
       `;
@@ -444,7 +680,7 @@ export class EmailMarketingDatabase {
           SUM(total_clicked) as total_clicked
         FROM email_campaigns
         WHERE status IN ('sent', 'completed')
-        AND updated_at >= ${fromDate.toISOString()}
+        AND (sent_at >= ${fromDate.toISOString()} OR updated_at >= ${fromDate.toISOString()})
       `;
 
       const totalContacts = parseInt(contactsResult.rows[0]?.total || '0');
@@ -510,7 +746,7 @@ export class EmailMarketingDatabase {
       }
 
       if (filters?.segment && filters.segment !== 'all') {
-        whereClause += ` AND ec.segmento = $${paramIndex}`;
+        whereClause += ` AND c.status = $${paramIndex}`;
         params.push(filters.segment);
         paramIndex++;
       }
@@ -519,6 +755,7 @@ export class EmailMarketingDatabase {
       const countQuery = `
         SELECT COUNT(*) as total 
         FROM email_contacts ec
+        LEFT JOIN customers c ON ec.customer_id = c.id
         ${whereClause}
       `;
       const countResult = await sql.query(countQuery, params);
@@ -531,11 +768,12 @@ export class EmailMarketingDatabase {
       const contactsQuery = `
         SELECT 
           ec.*,
-          ec.nome,
-          ec.sobrenome,
-          ec.segmento,
-          ec.tags
+          c.nome,
+          c.email as customer_email,
+          c.status as segmento,
+          c.tags
         FROM email_contacts ec
+        LEFT JOIN customers c ON ec.customer_id = c.id
         ${whereClause}
         ORDER BY ec.created_at DESC
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -546,9 +784,9 @@ export class EmailMarketingDatabase {
       const contacts: EmailContact[] = contactsResult.rows.map(row => ({
         id: row.id,
         customer_id: row.customer_id || row.id,
-        email: row.email,
-        first_name: row.nome,
-        last_name: row.sobrenome,
+        email: row.email || row.customer_email,
+        first_name: row.first_name || row.nome,
+        last_name: row.last_name,
         email_status: row.email_status,
         subscription_date: new Date(row.subscription_date || row.created_at),
         unsubscribe_date: row.unsubscribe_date ? new Date(row.unsubscribe_date) : undefined,
@@ -616,7 +854,7 @@ export class EmailMarketingDatabase {
 
   // Create new campaign
   static async createCampaign(campaignData: Omit<EmailCampaign, 'id' | 'created_at' | 'updated_at'>): Promise<EmailCampaign> {
-    try {
+    return this.retryOperation(async () => {
       const id = `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
 
@@ -644,10 +882,7 @@ export class EmailMarketingDatabase {
         created_at: now,
         updated_at: now
       };
-    } catch (error) {
-      console.error('Error creating campaign:', error);
-      throw error;
-    }
+    }, 3, 1000);
   }
 
   // Track email events
@@ -846,7 +1081,32 @@ export class EmailMarketingDatabase {
           html: template.html_content,
           text: template.text_content,
           subject: template.subject,
-          variables: template.variables ? template.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v) : [],
+          variables: (() => {
+            try {
+              // Handle all possible variable formats safely
+              if (!template.variables) return [];
+              
+              if (typeof template.variables === 'string') {
+                // Handle JSON string format
+                if (template.variables.startsWith('[') || template.variables.startsWith('{')) {
+                  const parsed = JSON.parse(template.variables);
+                  return Array.isArray(parsed) ? parsed.filter(v => v && typeof v === 'string') : [];
+                }
+                // Handle comma-separated string format
+                return template.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v);
+              }
+              
+              if (Array.isArray(template.variables)) {
+                // Already an array, filter for valid strings
+                return template.variables.filter((v: unknown): v is string => Boolean(v) && typeof v === 'string');
+              }
+              
+              return [];
+            } catch (error) {
+              console.warn(`Template ${template.id}: Failed to parse variables`, error);
+              return [];
+            }
+          })(),
           industry: template.industry,
           usageCount: template.usage_count,
           createdAt: template.created_at,
