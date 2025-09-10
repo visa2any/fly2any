@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     esmExternals: true,
   },
   
+  // CRITICAL FIX: Prevent API routes from being statically analyzed during build
+  skipMiddlewareUrlNormalize: true,
+  trailingSlash: false,
+  
   // Enhanced webpack configuration for stability and performance
   webpack: (config, { dev, isServer }) => {
     // Performance optimization: Enable build caching in development, disable parallelism issues in production
