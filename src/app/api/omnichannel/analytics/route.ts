@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
 
 // Estatísticas de conversas
 async function getConversationStats(days: number, agentId?: string | null, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ agentId, channel, department });
   
   const result = await sql`
@@ -110,6 +111,7 @@ async function getConversationStats(days: number, agentId?: string | null, chann
 
 // Estatísticas de mensagens
 async function getMessageStats(days: number, agentId?: string | null, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ agentId, channel, department });
   
   const result = await sql`
@@ -138,6 +140,7 @@ async function getMessageStats(days: number, agentId?: string | null, channel?: 
 
 // Estatísticas de tempo de resposta
 async function getResponseTimeStats(days: number, agentId?: string | null, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ agentId, channel, department });
   
   const result = await sql`
@@ -180,6 +183,7 @@ async function getResponseTimeStats(days: number, agentId?: string | null, chann
 
 // Breakdown por canal
 async function getChannelBreakdown(days: number, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const departmentFilter = department ? `AND department = '${department}'` : '';
   
   const result = await sql`
@@ -209,6 +213,7 @@ async function getChannelBreakdown(days: number, department?: string | null) {
 
 // Performance dos agentes
 async function getAgentPerformance(days: number, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const departmentFilter = department ? `AND c.department = '${department}'` : '';
   
   const result = await sql`
@@ -251,6 +256,7 @@ async function getAgentPerformance(days: number, department?: string | null) {
 
 // Distribuição por hora
 async function getHourlyDistribution(days: number, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ channel, department });
   
   const result = await sql`
@@ -293,6 +299,7 @@ async function getSatisfactionStats(days: number, agentId?: string | null, depar
 
 // Estatísticas de conversão
 async function getConversionStats(days: number, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ channel, department });
   
   const result = await sql`
@@ -322,6 +329,7 @@ async function getConversionStats(days: number, channel?: string | null, departm
 
 // Tendências comparativas
 async function getTrends(days: number, agentId?: string | null, channel?: string | null, department?: string | null) {
+  const { sql } = await import('@vercel/postgres');
   const filters = buildFilters({ agentId, channel, department });
   
   // Comparar com período anterior
