@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { sql } = await import('@vercel/postgres');
     // Verificar se o email existe na base
     const checkResult = await sql`
       SELECT email FROM email_contacts WHERE email = ${email.toLowerCase()}
@@ -73,6 +76,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const { sql } = await import('@vercel/postgres');
     const result = await sql`
       SELECT email, status, unsubscribed_at
       FROM email_contacts 

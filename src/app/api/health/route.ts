@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
 import { DatabaseFallback } from '@/lib/database-fallback';
 import { promises as fs } from 'fs';
 import path from 'path';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 interface HealthCheck {
   service: string;
@@ -32,6 +34,7 @@ async function checkDatabase(): Promise<HealthCheck> {
   
   try {
     // Test PostgreSQL connection
+    const { sql } = await import('@vercel/postgres');
     await sql`SELECT 1`;
     
     return {

@@ -2,11 +2,16 @@ import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
 import Credentials from "next-auth/providers/credentials"
 
-// Admin credentials
-const ADMIN_CREDENTIALS = {
-  email: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
-  password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
-}
+// CRITICAL FIX: Prevent build-time execution for NextAuth v5 beta
+const getAdminCredentials = () => {
+  // Only access process.env during runtime, not build time
+  if (typeof process === 'undefined') return { email: '', password: '' };
+  
+  return {
+    email: process.env.ADMIN_EMAIL || 'admin@fly2any.com',
+    password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
+  };
+};
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -27,6 +32,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.error('❌ [AUTH] Missing credentials');
           return null;
         }
+
+        // Get admin credentials at runtime
+        const ADMIN_CREDENTIALS = getAdminCredentials();
 
         // Check admin credentials
         if (credentials.email === ADMIN_CREDENTIALS.email) {
@@ -61,8 +69,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     }),
     GitHub({
-      clientId: process.env.AUTH_GITHUB_ID || "placeholder_github_id",
-      clientSecret: process.env.AUTH_GITHUB_SECRET || "placeholder_github_secret",
+      clientId: typeof process !== 'undefined' ? (process.env.AUTH_GITHUB_ID || "placeholder_github_id") : "placeholder_github_id",
+      clientSecret: typeof process !== 'undefined' ? (process.env.AUTH_GITHUB_SECRET || "placeholder_github_secret") : "placeholder_github_secret",
     })
   ],
   session: {
@@ -96,5 +104,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024',
+  secret: typeof process !== 'undefined' ? (process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024') : 'fly2any-super-secret-key-2024',
 })
