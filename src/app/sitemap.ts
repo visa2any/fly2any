@@ -457,5 +457,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  return [...mainPages, ...staticPages, ...usMarketPages, ...servicePages, ...cotacaoPages, ...usBlogPosts, ...blogPosts]
+  // ULTRATHINK: Brazilian Diaspora City Pages
+  // Import city data for sitemap generation
+  const { brazilianDiaspora } = require('@/lib/data/brazilian-diaspora')
+  
+  const brazilianCityPages: MetadataRoute.Sitemap = []
+  
+  // Generate all city pages for all languages
+  brazilianDiaspora.forEach((city: any) => {
+    const basePriority = city.priority === 'ultra-high' ? 0.95 : 
+                        city.priority === 'high' ? 0.90 : 0.85
+    
+    // Portuguese (default and explicit)
+    brazilianCityPages.push(
+      {
+        url: `${baseUrl}/cidade/${city.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: basePriority,
+      },
+      {
+        url: `${baseUrl}/pt/cidade/${city.id}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: basePriority,
+      }
+    )
+    
+    // English
+    brazilianCityPages.push({
+      url: `${baseUrl}/en/city/${city.id}`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: basePriority - 0.05,
+    })
+    
+    // Spanish
+    brazilianCityPages.push({
+      url: `${baseUrl}/es/ciudad/${city.id}`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: basePriority - 0.05,
+    })
+  })
+
+  return [...mainPages, ...staticPages, ...usMarketPages, ...servicePages, ...cotacaoPages, ...usBlogPosts, ...blogPosts, ...brazilianCityPages]
 }

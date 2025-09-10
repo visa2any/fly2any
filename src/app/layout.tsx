@@ -94,6 +94,33 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta name="theme-color" content="#FFFFFF" />
         
+        {/* AI Crawler Optimization Tags */}
+        <meta name="ai-content-type" content="travel-agency" />
+        <meta name="ai-service-category" content="flight-booking, hotel-reservation, travel-insurance" />
+        <meta name="ai-geographic-focus" content="USA, Brazil, Latin America, Global" />
+        <meta name="ai-languages" content="en, pt, es, fr" />
+        <meta name="ai-expertise" content="Brazil travel specialist, USA-based, International flights" />
+        
+        {/* Global SEO Enhancement */}
+        <meta name="geo.region" content="US" />
+        <meta name="geo.placename" content="United States" />
+        <meta name="geo.position" content="25.7617;-80.1918" />
+        <meta name="ICBM" content="25.7617, -80.1918" />
+        <meta name="language" content="en-US" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
+        <meta name="revisit-after" content="7 days" />
+        
+        {/* Enhanced Search Engine Instructions */}
+        <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        
+        {/* International Targeting */}
+        <meta name="audience" content="all" />
+        <meta name="target" content="all" />
+        <meta name="coverage" content="worldwide" />
+        
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_ID && process.env.NEXT_PUBLIC_GA_ID !== 'G-XXXXXXXXXX' && (
           <>
@@ -211,23 +238,33 @@ export default function RootLayout({
               (function() {
                 if (typeof window !== 'undefined') {
                   function protectDesktopScrolling() {
-                    // Only apply on desktop (width > 768px)
-                    if (window.innerWidth > 768) {
-                      const html = document.documentElement;
-                      const body = document.body;
-                      
-                      // Remove any inline styles that constrain height
-                      if (html.style.height === '100vh' || html.style.minHeight === '100vh') {
-                        html.style.height = 'auto';
-                        html.style.minHeight = 'auto';
-                        html.style.maxHeight = 'none';
+                    try {
+                      // Only apply on desktop (width > 768px)
+                      if (window.innerWidth > 768) {
+                        const html = document.documentElement;
+                        const body = document.body;
+                        
+                        // ✅ Add null checks for DOM elements
+                        if (!html || !body) {
+                          return; // Exit if DOM elements not ready
+                        }
+                        
+                        // ✅ Safe access to style properties with additional checks
+                        if (html.style && (html.style.height === '100vh' || html.style.minHeight === '100vh')) {
+                          html.style.height = 'auto';
+                          html.style.minHeight = 'auto';
+                          html.style.maxHeight = 'none';
+                        }
+                        
+                        if (body.style && (body.style.height === '100vh' || body.style.minHeight === '100vh')) {
+                          body.style.height = 'auto';
+                          body.style.minHeight = 'auto';
+                          body.style.maxHeight = 'none';
+                        }
                       }
-                      
-                      if (body.style.height === '100vh' || body.style.minHeight === '100vh') {
-                        body.style.height = 'auto';
-                        body.style.minHeight = 'auto';
-                        body.style.maxHeight = 'none';
-                      }
+                    } catch (error) {
+                      // ✅ Silently handle any DOM access errors during hydration
+                      console.debug('protectDesktopScrolling: DOM not ready yet');
                     }
                   }
                   
@@ -254,14 +291,23 @@ export default function RootLayout({
                       });
                     });
                     
-                    observer.observe(document.documentElement, { 
-                      attributes: true, 
-                      attributeFilter: ['style'] 
-                    });
-                    observer.observe(document.body, { 
-                      attributes: true, 
-                      attributeFilter: ['style'] 
-                    });
+                    // ✅ Safe observer setup with null checks
+                    try {
+                      if (document.documentElement) {
+                        observer.observe(document.documentElement, { 
+                          attributes: true, 
+                          attributeFilter: ['style'] 
+                        });
+                      }
+                      if (document.body) {
+                        observer.observe(document.body, { 
+                          attributes: true, 
+                          attributeFilter: ['style'] 
+                        });
+                      }
+                    } catch (error) {
+                      console.debug('MutationObserver setup: DOM not ready yet');
+                    }
                   }
                 }
               })();

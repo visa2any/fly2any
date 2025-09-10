@@ -1,0 +1,105 @@
+{
+  "name": "Fly2Any - Brazil Travel Specialists",
+  "short_name": "Fly2Any",
+  "description": "Expert travel agency specializing in flights to Brazil. Serving USA, Brazil, and worldwide. Best prices for flights, hotels, cars, and tours.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["travel", "business", "lifestyle"],
+  "iarc_rating_id": "e58c174a-81d2-5c3c-32cc-34b8de4a52e9",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Fly2Any Desktop - Book Your Brazil Trip"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Fly2Any Mobile - Travel to Brazil"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Flight to Brazil",
+      "short_name": "Flights",
+      "description": "Search flights from USA to Brazil",
+      "url": "/cotacao/voos?destino=brasil",
+      "icons": [{ "src": "/icons/flight-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Hotels in Brazil",
+      "short_name": "Hotels",
+      "description": "Find hotels in Brazil",
+      "url": "/cotacao/hoteis?destino=brasil",
+      "icons": [{ "src": "/icons/hotel-icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Get Quote",
+      "short_name": "Quote",
+      "description": "Get a free travel quote",
+      "url": "/cotacao",
+      "icons": [{ "src": "/icons/quote-icon.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+fly2any",
+      "url": "/protocol?url=%s"
+    }
+  ]
+}

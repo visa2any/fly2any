@@ -1216,9 +1216,9 @@ export default function Home() {
 
         {/* Hero Section - 15vh */}
         <div className={styles.mobileHero}>
-          <h1 className={styles.mobileHeroTitle}>
+          <h2 className={styles.mobileHeroTitle}>
             Onde vamos hoje?
-          </h1>
+          </h2>
           <div className={styles.mobilePromoWrapper}>
             <div className={`${styles.mobilePromoBadge} ${styles.mobilePromoBadgeGreen}`}>
               <div className={styles.promoPulse}></div>
@@ -1583,10 +1583,10 @@ export default function Home() {
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: isMobileDevice ? '6px' : '8px' }}>
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.2)',
+                    background: 'rgba(59, 130, 246, 0.2)',
                     padding: '8px',
                     borderRadius: '8px',
-                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
                   }}>
                     <UsersIcon style={{ width: '16px', height: '16px', color: colors.accent.green }} />
                   </div>
@@ -1939,7 +1939,6 @@ export default function Home() {
                 {/* Desktop: Keep the original form below */}
 
                 <form onSubmit={handleSubmit} className="desktop-form-visible" style={{ 
-                  border: '2px solid green',
                   padding: '20px',
                   borderRadius: '8px'
                 }}>
