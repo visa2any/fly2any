@@ -1,3 +1,6 @@
+// ULTRA-MINIMAL FILE - NO MODULE-LEVEL EXECUTION  
+// All imports and functionality moved inside request handlers to prevent build-time execution
+
 /**
  * Hotel Details API Endpoint
  * GET /api/hotels/[id]
@@ -6,25 +9,55 @@
  * Includes rates, reviews, amenities, and images
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { liteApiClient } from '@/lib/hotels/liteapi-client';
-import type { Hotel, APIResponse } from '@/types/hotels';
+// No module-level imports - all moved to dynamic imports inside functions
 
 // Cache for hotel details (longer TTL since details change less frequently)
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes - Reduzido de 15min para melhor atualização
-const detailsCache = new Map<string, { data: any; timestamp: number }>();
 
-// Validation schema for query parameters
-const detailsQuerySchema = z.object({
-  checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  adults: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(8)).optional(),
-  children: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(0).max(8)).optional(),
-  rooms: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(5)).optional(),
-  currency: z.string().length(3).default('USD'),
-  includeRates: z.string().default('true').transform(val => val === 'true')
-});
+// Lazy loaded dependencies - prevent module-level execution
+let detailsCache: Map<string, { data: any; timestamp: number }> | null = null;
+let liteApiClient: any = null;
+let z: any = null;
+
+// Get cache instance lazily
+function getDetailsCache() {
+  if (!detailsCache) {
+    detailsCache = new Map<string, { data: any; timestamp: number }>();
+  }
+  return detailsCache;
+}
+
+// Get LiteAPI client lazily  
+async function getLiteApiClient() {
+  if (!liteApiClient) {
+    const { liteApiClient: client } = await import('@/lib/hotels/liteapi-client');
+    liteApiClient = client;
+  }
+  return liteApiClient;
+}
+
+// Get Zod instance lazily
+async function getZod() {
+  if (!z) {
+    const zodModule = await import('zod');
+    z = zodModule.z;
+  }
+  return z;
+}
+
+// Get validation schema lazily
+async function getDetailsQuerySchema() {
+  const zodInstance = await getZod();
+  return zodInstance.object({
+    checkIn: zodInstance.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    checkOut: zodInstance.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    adults: zodInstance.string().transform((val: string) => parseInt(val, 10)).pipe(zodInstance.number().min(1).max(8)).optional(),
+    children: zodInstance.string().transform((val: string) => parseInt(val, 10)).pipe(zodInstance.number().min(0).max(8)).optional(),
+    rooms: zodInstance.string().transform((val: string) => parseInt(val, 10)).pipe(zodInstance.number().min(1).max(5)).optional(),
+    currency: zodInstance.string().length(3).default('USD'),
+    includeRates: zodInstance.string().default('true').transform((val: string) => val === 'true')
+  });
+}
 
 /**
  * Transform LiteAPI hotel response to our Hotel type
@@ -221,9 +254,17 @@ function generateCacheKey(hotelId: string, params: any): string {
  * GET /api/hotels/[id]
  */
 export async function GET(
-  request: NextRequest,
+  request: any,
   { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+): Promise<any> {
+  // Dynamic imports to prevent module-level execution
+  const { NextResponse } = await import('next/server');
+  
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   const startTime = Date.now();
   const requestId = crypto.randomUUID();
   const resolvedParams = await params;
@@ -252,9 +293,11 @@ export async function GET(
 
     let validatedParams;
     try {
+      const detailsQuerySchema = await getDetailsQuerySchema();
       validatedParams = detailsQuerySchema.parse(rawParams);
     } catch (error) {
-      if (error instanceof z.ZodError) {
+      const zodInstance = await getZod();
+      if (error instanceof zodInstance.ZodError) {
         return NextResponse.json({
           status: 'error',
           data: null,
@@ -275,7 +318,8 @@ export async function GET(
 
     // Check cache
     const cacheKey = generateCacheKey(hotelId, validatedParams);
-    const cachedResult = detailsCache.get(cacheKey);
+    const cache = getDetailsCache();
+    const cachedResult = cache.get(cacheKey);
     
     if (cachedResult && isCacheValid(cachedResult)) {
       console.log(`[${requestId}] Returning cached hotel details`);
@@ -306,7 +350,8 @@ export async function GET(
 
     // Get hotel details from LiteAPI
     console.log(`[${requestId}] Fetching hotel details from LiteAPI`);
-    const liteApiResponse = await liteApiClient.getHotelDetails(hotelId, liteApiParams);
+    const client = await getLiteApiClient();
+    const liteApiResponse = await client.getHotelDetails(hotelId, liteApiParams);
 
     if (!liteApiResponse || !liteApiResponse.data) {
       return NextResponse.json({
@@ -328,7 +373,7 @@ export async function GET(
     if (validatedParams.includeRates && liteApiParams && (!hotel.rates || hotel.rates.length === 0)) {
       try {
         console.log(`[${requestId}] Fetching rates separately`);
-        const ratesResponse = await liteApiClient.getHotelRates(hotelId, {
+        const ratesResponse = await client.getHotelRates(hotelId, {
           checkIn: liteApiParams.checkIn!,
           checkOut: liteApiParams.checkOut!,
           adults: liteApiParams.adults || 2,
@@ -411,16 +456,16 @@ export async function GET(
     }
 
     // Cache the result
-    detailsCache.set(cacheKey, {
+    cache.set(cacheKey, {
       data: hotel,
       timestamp: Date.now()
     });
 
     // Clean old cache entries
-    if (detailsCache.size > 500) {
-      const entries = Array.from(detailsCache.entries());
+    if (cache.size > 500) {
+      const entries = Array.from(cache.entries());
       const outdated = entries.filter(([, entry]) => !isCacheValid(entry));
-      outdated.forEach(([key]) => detailsCache.delete(key));
+      outdated.forEach(([key]) => cache.delete(key));
     }
 
     const processingTime = Date.now() - startTime;
@@ -481,7 +526,15 @@ export async function GET(
 /**
  * OPTIONS /api/hotels/[id] - CORS preflight
  */
-export async function OPTIONS(): Promise<NextResponse> {
+export async function OPTIONS(): Promise<any> {
+  // Dynamic imports to prevent module-level execution
+  const { NextResponse } = await import('next/server');
+  
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   return new NextResponse(null, {
     status: 200,
     headers: {

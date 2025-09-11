@@ -1,6 +1,11 @@
 // ULTRA-MINIMAL FILE - NO MODULE-LEVEL EXECUTION
 // All imports and functionality moved inside request handlers to prevent build-time execution
 
+// Build-time execution prevention - must be first
+if (typeof process === 'undefined' || !process.env.NODE_ENV) {
+  throw new Error('Build time execution prevented in analytics track route');
+}
+
 // Runtime configuration - moved inside functions to prevent module-level execution
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

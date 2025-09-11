@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { mobileOptimizer } from '@/lib/performance/mobile-optimizer';
 import { imageOptimizer } from '@/lib/performance/image-optimizer';
 import { BundleOptimizer } from '@/lib/performance/bundle-optimizer';
@@ -13,6 +12,20 @@ import SmartKeyboard from './SmartKeyboard';
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring';
 import { useScrollAnimation, useOptimizedAnimations } from '@/hooks/useAnimations';
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/mobile/animation-utils';
+
+// Dynamic import for framer-motion to prevent webpack build errors
+let motion: any;
+let AnimatePresence: any;
+
+// Load framer-motion dynamically
+const loadFramerMotion = async () => {
+  if (!motion) {
+    const framerMotion = await import('framer-motion');
+    motion = framerMotion.motion;
+    AnimatePresence = framerMotion.AnimatePresence;
+  }
+  return { motion, AnimatePresence };
+};
 
 interface EnhancedMobileExperienceProps {
   children: React.ReactNode;
@@ -31,6 +44,7 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
+  const [framerMotionLoaded, setFramerMotionLoaded] = useState(false);
   
   const { metrics, measurePerformance } = usePerformanceMonitoring({
     enabled: enablePerformanceMonitoring,
@@ -39,6 +53,13 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
 
   const { shouldAnimate } = useOptimizedAnimations();
   const { ref, controls, isInView } = useScrollAnimation();
+
+  // Load framer-motion dynamically
+  useEffect(() => {
+    loadFramerMotion().then(() => {
+      setFramerMotionLoaded(true);
+    });
+  }, []);
 
   // Initialize enhanced mobile features
   useEffect(() => {
@@ -106,24 +127,25 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
     <SmartKeyboard>
       <div className="min-h-screen bg-gray-50 relative overflow-hidden">
         {/* Welcome Animation */}
-        <AnimatePresence>
-          {showWelcomeAnimation && (
-            <motion.div
-              className="fixed inset-0 bg-gradient-to-br from-blue-600 to-purple-600 z-50 flex items-center justify-center"
-              variants={welcomeVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <div className="text-center text-white">
-                <motion.div
-                  className="w-20 h-20 mx-auto mb-4"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 360, 0],
-                  }}
-                  transition={{
-                    duration: 2,
+        {framerMotionLoaded && AnimatePresence ? (
+          <AnimatePresence>
+            {showWelcomeAnimation && motion && (
+              <motion.div
+                className="fixed inset-0 bg-gradient-to-br from-blue-600 to-purple-600 z-50 flex items-center justify-center"
+                variants={welcomeVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <div className="text-center text-white">
+                  <motion.div
+                    className="w-20 h-20 mx-auto mb-4"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 360, 0],
+                    }}
+                    transition={{
+                      duration: 2,
                     repeat: 1,
                     ease: "easeInOut",
                   }}
@@ -132,48 +154,63 @@ export const EnhancedMobileExperience: React.FC<EnhancedMobileExperienceProps> =
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </motion.div>
-                <motion.h1
-                  className="text-2xl font-bold mb-2"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                >
-                  Fly2Any
-                </motion.h1>
-                <motion.p
-                  className="text-lg opacity-90"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                >
-                  Experiência Móvel Premium
-                </motion.p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  <motion.h1
+                    className="text-2xl font-bold mb-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.6 }}
+                  >
+                    Fly2Any
+                  </motion.h1>
+                  <motion.p
+                    className="text-lg opacity-90"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.6 }}
+                  >
+                    Experiência Móvel Premium
+                  </motion.p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ) : null}
 
         {/* Main Content */}
         {isInitialized && (
-          <motion.div
-            ref={ref as React.RefObject<HTMLDivElement>}
-            className="relative z-10"
-            variants={shouldAnimate ? fadeInUp : undefined}
-            initial="initial"
-            animate={controls}
-          >
-            {enablePullToRefresh && onRefresh ? (
-              <PullToRefresh onRefresh={handleRefresh}>
-                {children}
-              </PullToRefresh>
+          <>
+            {framerMotionLoaded && motion ? (
+              <motion.div
+                ref={ref as React.RefObject<HTMLDivElement>}
+                className="relative z-10"
+                variants={shouldAnimate ? fadeInUp : undefined}
+                initial="initial"
+                animate={controls}
+              >
+                {enablePullToRefresh && onRefresh ? (
+                  <PullToRefresh onRefresh={handleRefresh}>
+                    {children}
+                  </PullToRefresh>
+                ) : (
+                  children
+                )}
+              </motion.div>
             ) : (
-              children
+              <div ref={ref as React.RefObject<HTMLDivElement>} className="relative z-10">
+                {enablePullToRefresh && onRefresh ? (
+                  <PullToRefresh onRefresh={handleRefresh}>
+                    {children}
+                  </PullToRefresh>
+                ) : (
+                  children
+                )}
+              </div>
             )}
-          </motion.div>
+          </>
         )}
 
         {/* Performance Metrics Display (Development Only) */}
-        {process.env.NODE_ENV === 'development' && metrics && (
+        {process.env.NODE_ENV === 'development' && metrics && framerMotionLoaded && motion && (
           <motion.div
             className="fixed bottom-4 right-4 bg-black bg-opacity-80 text-white p-3 rounded-lg text-xs z-50"
             initial={{ opacity: 0, scale: 0.8 }}
