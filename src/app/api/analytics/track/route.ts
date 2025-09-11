@@ -1,104 +1,103 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+// ULTRA-MINIMAL FILE - NO MODULE-LEVEL EXECUTION
+// All imports and functionality moved inside request handlers to prevent build-time execution
 
-// Runtime configuration to prevent build-time execution
+// Runtime configuration - moved inside functions to prevent module-level execution
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Validation schema for tracking events
-const TrackingEventSchema = z.object({
-  event_name: z.string(),
-  value: z.number().optional(),
-  currency: z.string().default('USD'),
-  campaign_source: z.string().optional(),
-  campaign_medium: z.string().optional(),
-  campaign_name: z.string().optional(),
-  campaign_content: z.string().optional(),
-  campaign_term: z.string().optional(),
-  gclid: z.string().optional(),
-  fbclid: z.string().optional(),
-  msclkid: z.string().optional(),
-  page_path: z.string().optional(),
-  user_agent: z.string().optional(),
-  timestamp: z.string(),
-  session_id: z.string().optional(),
-  landing_page: z.string().optional(),
-  referrer: z.string().optional(),
-  lead_data: z.object({
-    name: z.string().optional(),
-    email: z.string().optional(),
-    phone: z.string().optional(),
-    route: z.string().optional(),
-    message: z.string().optional(),
-  }).optional(),
-});
-
-// Create analytics_events table if it doesn't exist
-async function ensureAnalyticsTable() {
-  // Prevent execution during build time
-  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
-    return;
-  }
+export async function POST(request: any) {
+  // Dynamic imports to prevent module-level execution
+  const { NextResponse } = await import('next/server');
   
-  try {
-    const { sql } = await import('@vercel/postgres');
-    await sql`
-      CREATE TABLE IF NOT EXISTS analytics_events (
-        id SERIAL PRIMARY KEY,
-        event_name VARCHAR(100) NOT NULL,
-        value DECIMAL(10,2),
-        currency VARCHAR(3) DEFAULT 'USD',
-        campaign_source VARCHAR(100),
-        campaign_medium VARCHAR(100),
-        campaign_name VARCHAR(200),
-        campaign_content VARCHAR(200),
-        campaign_term VARCHAR(200),
-        gclid VARCHAR(200),
-        fbclid VARCHAR(200),
-        msclkid VARCHAR(200),
-        page_path VARCHAR(500),
-        user_agent TEXT,
-        session_id VARCHAR(100),
-        landing_page VARCHAR(500),
-        referrer VARCHAR(500),
-        lead_name VARCHAR(100),
-        lead_email VARCHAR(100),
-        lead_phone VARCHAR(50),
-        lead_route VARCHAR(200),
-        lead_message TEXT,
-        ip_address INET,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
-
-    // Create indexes for better performance
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON analytics_events(created_at);
-      CREATE INDEX IF NOT EXISTS idx_analytics_events_event_name ON analytics_events(event_name);
-      CREATE INDEX IF NOT EXISTS idx_analytics_events_campaign_source ON analytics_events(campaign_source);
-      CREATE INDEX IF NOT EXISTS idx_analytics_events_gclid ON analytics_events(gclid);
-    `;
-  } catch (error) {
-    console.error('Error creating analytics table:', error);
-  }
-}
-
-export async function POST(request: NextRequest) {
   // Prevent execution during build time
   if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
     return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
   }
   
   try {
-    // Lazy load @vercel/postgres  
+    // Lazy load all dependencies
     const { sql } = await import('@vercel/postgres');
+    const { z } = await import('zod');
+    
+    // Create analytics table function - completely inside request handler
+    async function ensureAnalyticsTable() {
+      try {
+        await sql`
+          CREATE TABLE IF NOT EXISTS analytics_events (
+            id SERIAL PRIMARY KEY,
+            event_name VARCHAR(100) NOT NULL,
+            value DECIMAL(10,2),
+            currency VARCHAR(3) DEFAULT 'USD',
+            campaign_source VARCHAR(100),
+            campaign_medium VARCHAR(100),
+            campaign_name VARCHAR(200),
+            campaign_content VARCHAR(200),
+            campaign_term VARCHAR(200),
+            gclid VARCHAR(200),
+            fbclid VARCHAR(200),
+            msclkid VARCHAR(200),
+            page_path VARCHAR(500),
+            user_agent TEXT,
+            session_id VARCHAR(100),
+            landing_page VARCHAR(500),
+            referrer VARCHAR(500),
+            lead_name VARCHAR(100),
+            lead_email VARCHAR(100),
+            lead_phone VARCHAR(50),
+            lead_route VARCHAR(200),
+            lead_message TEXT,
+            ip_address INET,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          )
+        `;
+
+        await sql`
+          CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON analytics_events(created_at);
+          CREATE INDEX IF NOT EXISTS idx_analytics_events_event_name ON analytics_events(event_name);
+          CREATE INDEX IF NOT EXISTS idx_analytics_events_campaign_source ON analytics_events(campaign_source);
+          CREATE INDEX IF NOT EXISTS idx_analytics_events_gclid ON analytics_events(gclid);
+        `;
+      } catch (error) {
+        console.error('Error creating analytics table:', error);
+      }
+    }
+    
+    // Zod schema factory function - prevents module-level execution
+    function getTrackingEventSchema() {
+      return z.object({
+        event_name: z.string(),
+        value: z.number().optional(),
+        currency: z.string().default('USD'),
+        campaign_source: z.string().optional(),
+        campaign_medium: z.string().optional(),
+        campaign_name: z.string().optional(),
+        campaign_content: z.string().optional(),
+        campaign_term: z.string().optional(),
+        gclid: z.string().optional(),
+        fbclid: z.string().optional(),
+        msclkid: z.string().optional(),
+        page_path: z.string().optional(),
+        user_agent: z.string().optional(),
+        timestamp: z.string(),
+        session_id: z.string().optional(),
+        landing_page: z.string().optional(),
+        referrer: z.string().optional(),
+        lead_data: z.object({
+          name: z.string().optional(),
+          email: z.string().optional(),
+          phone: z.string().optional(),
+          route: z.string().optional(),
+          message: z.string().optional(),
+        }).optional(),
+      });
+    }
     
     // Ensure table exists
     await ensureAnalyticsTable();
 
     // Parse and validate request body
     const body = await request.json();
-    const validatedData = TrackingEventSchema.parse(body);
+    const validatedData = getTrackingEventSchema().parse(body);
 
     // Get client IP
     const forwarded = request.headers.get('x-forwarded-for');
@@ -157,7 +156,6 @@ export async function POST(request: NextRequest) {
       ) RETURNING id
     `;
 
-    // Log successful tracking
     console.log(`📊 Analytics event tracked: ${validatedData.event_name}`, {
       id: result.rows[0].id,
       value: validatedData.value,
@@ -171,11 +169,14 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    // Dynamic import for NextResponse in catch block too
+    const { NextResponse } = await import('next/server');
     console.error('Analytics tracking error:', error);
     
-    if (error instanceof z.ZodError) {
+    // Check for Zod validation error by checking error properties
+    if (error && typeof error === 'object' && 'issues' in error) {
       return NextResponse.json(
-        { error: 'Invalid data format', details: error.format() },
+        { error: 'Invalid data format', details: (error as any).format?.() || error },
         { status: 400 }
       );
     }
@@ -187,8 +188,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint for analytics data (for dashboard)
-export async function GET(request: NextRequest) {
+export async function GET(request: any) {
+  // Dynamic imports to prevent module-level execution
+  const { NextResponse } = await import('next/server');
+  
   // Prevent execution during build time
   if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
     return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
@@ -202,14 +205,45 @@ export async function GET(request: NextRequest) {
     // Lazy load @vercel/postgres
     const { sql } = await import('@vercel/postgres');
 
-    await ensureAnalyticsTable();
+    // Ensure table exists - inline function
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS analytics_events (
+          id SERIAL PRIMARY KEY,
+          event_name VARCHAR(100) NOT NULL,
+          value DECIMAL(10,2),
+          currency VARCHAR(3) DEFAULT 'USD',
+          campaign_source VARCHAR(100),
+          campaign_medium VARCHAR(100),
+          campaign_name VARCHAR(200),
+          campaign_content VARCHAR(200),
+          campaign_term VARCHAR(200),
+          gclid VARCHAR(200),
+          fbclid VARCHAR(200),
+          msclkid VARCHAR(200),
+          page_path VARCHAR(500),
+          user_agent TEXT,
+          session_id VARCHAR(100),
+          landing_page VARCHAR(500),
+          referrer VARCHAR(500),
+          lead_name VARCHAR(100),
+          lead_email VARCHAR(100),
+          lead_phone VARCHAR(50),
+          lead_route VARCHAR(200),
+          lead_message TEXT,
+          ip_address INET,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+    } catch (tableError) {
+      console.error('Error creating analytics table:', tableError);
+    }
 
     // First check if table has any data
     const countResult = await sql`SELECT COUNT(*) as count FROM analytics_events`;
     const hasData = countResult.rows[0].count > 0;
 
     if (!hasData) {
-      // Return empty but successful response
       return NextResponse.json({
         success: true,
         data: [],
