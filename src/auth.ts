@@ -13,7 +13,14 @@ const getAdminCredentials = () => {
   };
 };
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// Lazy NextAuth configuration to prevent build-time execution
+const getNextAuthConfig = () => {
+  // Prevent configuration during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return null;
+  }
+  
+  return NextAuth({
   providers: [
     Credentials({
       name: "credentials",
@@ -105,4 +112,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   secret: typeof process !== 'undefined' ? (process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024') : 'fly2any-super-secret-key-2024',
-})
+});
+};
+
+// Lazy exports that get NextAuth configuration at runtime
+export const getHandlers = () => {
+  const config = getNextAuthConfig();
+  return config ? config.handlers : { GET: () => new Response('Build time execution prevented', { status: 503 }), POST: () => new Response('Build time execution prevented', { status: 503 }) };
+};
+
+export const getSignIn = () => {
+  const config = getNextAuthConfig();
+  return config ? config.signIn : () => Promise.reject('Build time execution prevented');
+};
+
+export const getSignOut = () => {
+  const config = getNextAuthConfig();
+  return config ? config.signOut : () => Promise.reject('Build time execution prevented');
+};
+
+export const getAuth = () => {
+  const config = getNextAuthConfig();
+  return config ? config.auth : () => Promise.resolve(null);
+};
+
+// Legacy exports for compatibility (will get runtime configuration)
+export const handlers = getHandlers();
+export const signIn = getSignIn();
+export const signOut = getSignOut();
+export const auth = getAuth();

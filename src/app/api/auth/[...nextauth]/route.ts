@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
     return new Response('Build time execution prevented', { status: 503 });
   }
   
-  const { handlers } = await import("@/auth");
+  const { getHandlers } = await import("@/auth");
+  const handlers = getHandlers();
   return handlers.GET(request);
 }
 
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     return new Response('Build time execution prevented', { status: 503 });
   }
   
-  const { handlers } = await import("@/auth");
+  const { getHandlers } = await import("@/auth");
+  const handlers = getHandlers();
   return handlers.POST(request);
 }
