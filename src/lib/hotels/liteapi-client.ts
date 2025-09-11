@@ -3,7 +3,17 @@
  * Handles all interactions with LiteAPI v3.0
  */
 
-import { z } from 'zod';
+// Lazy loaded dependencies - prevent module-level execution
+let z: any = null;
+
+// Get Zod instance lazily
+async function getZod() {
+  if (!z) {
+    const zodModule = await import('zod');
+    z = zodModule.z;
+  }
+  return z;
+}
 
 // Configuration
 const config = {
@@ -454,63 +464,102 @@ class LiteAPIClient {
   }
 }
 
-// Singleton instance
-export const liteApiClient = new LiteAPIClient();
-
-// Cache for static data
-const staticDataCache = new Map<string, { data: any; timestamp: number }>();
+// Lazy loaded instances - prevent module-level execution
+let liteApiClientInstance: LiteAPIClient | null = null;
+let staticDataCache: Map<string, { data: any; timestamp: number }> | null = null;
 const STATIC_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+// Get LiteAPIClient instance lazily
+function getLiteAPIClientInstance(): LiteAPIClient {
+  if (!liteApiClientInstance) {
+    liteApiClientInstance = new LiteAPIClient();
+  }
+  return liteApiClientInstance;
+}
+
+// Get static data cache lazily
+function getStaticDataCache() {
+  if (!staticDataCache) {
+    staticDataCache = new Map<string, { data: any; timestamp: number }>();
+  }
+  return staticDataCache;
+}
+
+// Export singleton instance
+export const liteApiClient = {
+  get searchHotels() { return getLiteAPIClientInstance().searchHotels.bind(getLiteAPIClientInstance()); },
+  get getHotelDetails() { return getLiteAPIClientInstance().getHotelDetails.bind(getLiteAPIClientInstance()); },
+  get getHotelRates() { return getLiteAPIClientInstance().getHotelRates.bind(getLiteAPIClientInstance()); },
+  get prebookHotel() { return getLiteAPIClientInstance().prebookHotel.bind(getLiteAPIClientInstance()); },
+  get confirmBooking() { return getLiteAPIClientInstance().confirmBooking.bind(getLiteAPIClientInstance()); },
+  get getBooking() { return getLiteAPIClientInstance().getBooking.bind(getLiteAPIClientInstance()); },
+  get cancelBooking() { return getLiteAPIClientInstance().cancelBooking.bind(getLiteAPIClientInstance()); },
+  get getPopularDestinations() { return getLiteAPIClientInstance().getPopularDestinations.bind(getLiteAPIClientInstance()); },
+  get searchDestinations() { return getLiteAPIClientInstance().searchDestinations.bind(getLiteAPIClientInstance()); },
+  get getHotelContent() { return getLiteAPIClientInstance().getHotelContent.bind(getLiteAPIClientInstance()); },
+  get getHotelReviews() { return getLiteAPIClientInstance().getHotelReviews.bind(getLiteAPIClientInstance()); },
+  get getHotelFacilities() { return getLiteAPIClientInstance().getHotelFacilities.bind(getLiteAPIClientInstance()); },
+  get getHotelChains() { return getLiteAPIClientInstance().getHotelChains.bind(getLiteAPIClientInstance()); },
+  get getHotelTypes() { return getLiteAPIClientInstance().getHotelTypes.bind(getLiteAPIClientInstance()); },
+  get searchHotelsSemantics() { return getLiteAPIClientInstance().searchHotelsSemantics.bind(getLiteAPIClientInstance()); },
+  get getMinimumRates() { return getLiteAPIClientInstance().getMinimumRates.bind(getLiteAPIClientInstance()); }
+};
 
 // Helper function to get cached static data
 export async function getCachedStaticData<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-  const cached = staticDataCache.get(key);
+  const cache = getStaticDataCache();
+  const cached = cache.get(key);
   if (cached && Date.now() - cached.timestamp < STATIC_CACHE_TTL) {
     return cached.data;
   }
   
   const data = await fetcher();
-  staticDataCache.set(key, { data, timestamp: Date.now() });
+  cache.set(key, { data, timestamp: Date.now() });
   return data;
 }
 
-// Validation schemas
-export const searchParamsSchema = z.object({
-  destination: z.string().min(1, 'Destination is required'),
-  destinationType: z.enum(['city', 'hotel', 'airport', 'coordinates']).default('city'),
-  checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-in date format'),
-  checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-out date format'),
-  adults: z.number().min(1, 'At least 1 adult required').max(8, 'Maximum 8 adults'),
-  children: z.number().min(0).max(8).optional(),
-  childrenAges: z.array(z.number().min(0).max(17)).optional(),
-  rooms: z.number().min(1, 'At least 1 room required').max(5, 'Maximum 5 rooms'),
-  currency: z.string().length(3).default('USD'),
-  minPrice: z.number().positive().optional(),
-  maxPrice: z.number().positive().optional(),
-  starRating: z.array(z.number().min(1).max(5)).optional(),
-  guestRating: z.number().min(1).max(10).optional(),
-  sortBy: z.enum(['price', 'rating', 'distance', 'stars']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
-  limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0)
-}).refine(data => {
-  const checkIn = new Date(data.checkIn);
-  const checkOut = new Date(data.checkOut);
-  return checkOut > checkIn;
-}, {
-  message: 'Check-out date must be after check-in date',
-  path: ['checkOut']
-}).refine(data => {
-  const checkIn = new Date(data.checkIn);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return checkIn >= today;
-}, {
-  message: 'Check-in date must be today or later',
-  path: ['checkIn']
-});
+// Get validation schema lazily
+async function getSearchParamsSchema() {
+  const zodInstance = await getZod();
+  return zodInstance.object({
+    destination: zodInstance.string().min(1, 'Destination is required'),
+    destinationType: zodInstance.enum(['city', 'hotel', 'airport', 'coordinates']).default('city'),
+    checkIn: zodInstance.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-in date format'),
+    checkOut: zodInstance.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid check-out date format'),
+    adults: zodInstance.number().min(1, 'At least 1 adult required').max(8, 'Maximum 8 adults'),
+    children: zodInstance.number().min(0).max(8).optional(),
+    childrenAges: zodInstance.array(zodInstance.number().min(0).max(17)).optional(),
+    rooms: zodInstance.number().min(1, 'At least 1 room required').max(5, 'Maximum 5 rooms'),
+    currency: zodInstance.string().length(3).default('USD'),
+    minPrice: zodInstance.number().positive().optional(),
+    maxPrice: zodInstance.number().positive().optional(),
+    starRating: zodInstance.array(zodInstance.number().min(1).max(5)).optional(),
+    guestRating: zodInstance.number().min(1).max(10).optional(),
+    sortBy: zodInstance.enum(['price', 'rating', 'distance', 'stars']).optional(),
+    sortOrder: zodInstance.enum(['asc', 'desc']).optional(),
+    limit: zodInstance.number().min(1).max(100).default(20),
+    offset: zodInstance.number().min(0).default(0)
+  }).refine((data: any) => {
+    const checkIn = new Date(data.checkIn);
+    const checkOut = new Date(data.checkOut);
+    return checkOut > checkIn;
+  }, {
+    message: 'Check-out date must be after check-in date',
+    path: ['checkOut']
+  }).refine((data: any) => {
+    const checkIn = new Date(data.checkIn);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return checkIn >= today;
+  }, {
+    message: 'Check-in date must be today or later',
+    path: ['checkIn']
+  });
+}
 
 // Helper function to validate search params
-export function validateSearchParams(params: any): LiteAPISearchParams {
+export async function validateSearchParams(params: any): Promise<LiteAPISearchParams> {
+  const searchParamsSchema = await getSearchParamsSchema();
   return searchParamsSchema.parse(params);
 }
 
