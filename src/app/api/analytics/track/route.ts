@@ -84,6 +84,11 @@ async function ensureAnalyticsTable() {
 }
 
 export async function POST(request: NextRequest) {
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   try {
     // Lazy load @vercel/postgres  
     const { sql } = await import('@vercel/postgres');
@@ -184,6 +189,11 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint for analytics data (for dashboard)
 export async function GET(request: NextRequest) {
+  // Prevent execution during build time
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    return NextResponse.json({ error: 'Build time execution prevented' }, { status: 503 });
+  }
+  
   const { searchParams } = new URL(request.url);
   const days = parseInt(searchParams.get('days') || '30');
   const event_name = searchParams.get('event') || null;
