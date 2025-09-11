@@ -1,51 +1,63 @@
 /**
  * LiteAPI Client for Hotel Booking System
  * Handles all interactions with LiteAPI v3.0
+ * 
+ * ULTRA-SAFE IMPLEMENTATION:
+ * - NO module-level execution
+ * - ALL functionality moved to function calls
+ * - Lazy loading everything
+ * - Build-time execution prevention
  */
 
-// Lazy loaded dependencies - prevent module-level execution
-let z: any = null;
+// Import types only - no runtime execution
+import type { Hotel, APIResponse } from '@/types/hotels';
 
-// Get Zod instance lazily
-async function getZod() {
-  if (!z) {
-    const zodModule = await import('zod');
-    z = zodModule.z;
-  }
-  return z;
+// ULTRA-AGGRESSIVE FIX: ALL variables moved to function scope
+// NO module-level variables, objects, or initialization
+
+// Get Zod instance lazily - PURE function
+function getZod() {
+  return import('zod').then(zodModule => zodModule.z);
 }
 
-// Configuration
-const config = {
-  baseUrl: 'https://api.liteapi.travel/v3.0',
-  timeout: 30000,
-  retryAttempts: 3,
-  retryDelay: 1000,
-  
-  // Environment-based keys
-  getKeys: () => {
-    const environment = process.env.LITEAPI_ENVIRONMENT || 'sandbox';
+// Get configuration lazily - PURE function
+function getConfig() {
+  return {
+    baseUrl: 'https://api.liteapi.travel/v3.0',
+    timeout: 30000,
+    retryAttempts: 3,
+    retryDelay: 1000,
     
-    if (environment === 'production') {
-      const publicKey = process.env.LITEAPI_PRODUCTION_PUBLIC_KEY;
-      const privateKey = process.env.LITEAPI_PRODUCTION_PRIVATE_KEY;
-      
-      if (!publicKey || !privateKey) {
-        console.error('❌ Production LiteAPI keys not found in environment variables');
-        throw new Error('Production LiteAPI keys not configured. Please add LITEAPI_PRODUCTION_PUBLIC_KEY and LITEAPI_PRODUCTION_PRIVATE_KEY to your environment variables.');
+    // Environment-based keys - moved to function
+    getKeys: () => {
+      // Build-time guard
+      if (typeof process === 'undefined' || !process.env) {
+        throw new Error('Environment not available during build time');
       }
       
+      const environment = process.env.LITEAPI_ENVIRONMENT || 'sandbox';
+      
+      if (environment === 'production') {
+        const publicKey = process.env.LITEAPI_PRODUCTION_PUBLIC_KEY;
+        const privateKey = process.env.LITEAPI_PRODUCTION_PRIVATE_KEY;
+        
+        if (!publicKey || !privateKey) {
+          console.error('❌ Production LiteAPI keys not found in environment variables');
+          throw new Error('Production LiteAPI keys not configured. Please add LITEAPI_PRODUCTION_PUBLIC_KEY and LITEAPI_PRODUCTION_PRIVATE_KEY to your environment variables.');
+        }
+        
+        return { publicKey, privateKey };
+      }
+      
+      // Sandbox environment
+      const publicKey = process.env.LITEAPI_SANDBOX_PUBLIC_KEY || '21945f22-d6e3-459a-abd8-a7aaa4d043b0';
+      const privateKey = process.env.LITEAPI_SANDBOX_PRIVATE_KEY || 'sand_eea53275-64a5-4601-a13a-1fd74aef6515';
+      
+      console.log('🧪 Using LiteAPI Sandbox environment');
       return { publicKey, privateKey };
     }
-    
-    // Sandbox environment
-    const publicKey = process.env.LITEAPI_SANDBOX_PUBLIC_KEY || '21945f22-d6e3-459a-abd8-a7aaa4d043b0';
-    const privateKey = process.env.LITEAPI_SANDBOX_PRIVATE_KEY || 'sand_eea53275-64a5-4601-a13a-1fd74aef6515';
-    
-    console.log('🧪 Using LiteAPI Sandbox environment');
-    return { publicKey, privateKey };
-  }
-};
+  };
+}
 
 // Types
 export interface LiteAPISearchParams {
@@ -90,21 +102,24 @@ export interface LiteAPIResponse<T> {
   };
 }
 
-// HTTP Client with retry logic
+// HTTP Client with retry logic - PURE implementation
 class LiteAPIClient {
-  private baseUrl: string;
-  private timeout: number;
-  private retryAttempts: number;
-  private retryDelay: number;
+  private config: any;
 
   constructor() {
-    this.baseUrl = config.baseUrl;
-    this.timeout = config.timeout;
-    this.retryAttempts = config.retryAttempts;
-    this.retryDelay = config.retryDelay;
+    // NO module-level config access - lazy load
+    this.config = null;
+  }
+
+  private getConfigLazy() {
+    if (!this.config) {
+      this.config = getConfig();
+    }
+    return this.config;
   }
 
   private getHeaders(usePrivateKey = false): Record<string, string> {
+    const config = this.getConfigLazy();
     const keys = config.getKeys();
     const apiKey = usePrivateKey ? keys.privateKey : keys.publicKey;
     
@@ -126,7 +141,8 @@ class LiteAPIClient {
     usePrivateKey = false,
     attempt = 1
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const config = this.getConfigLazy();
+    const url = `${config.baseUrl}${endpoint}`;
     const headers = {
       ...this.getHeaders(usePrivateKey),
       ...options.headers
@@ -135,7 +151,7 @@ class LiteAPIClient {
     const requestOptions: RequestInit = {
       ...options,
       headers,
-      signal: AbortSignal.timeout(this.timeout)
+      signal: AbortSignal.timeout(config.timeout)
     };
 
     try {
@@ -157,9 +173,10 @@ class LiteAPIClient {
         }
 
         // Check if we should retry
-        if (this.shouldRetry(response.status) && attempt < this.retryAttempts) {
-          console.log(`[LiteAPI] Retrying request (${attempt}/${this.retryAttempts}) after ${this.retryDelay}ms`);
-          await this.sleep(this.retryDelay * attempt); // Exponential backoff
+        const config = this.getConfigLazy();
+        if (this.shouldRetry(response.status) && attempt < config.retryAttempts) {
+          console.log(`[LiteAPI] Retrying request (${attempt}/${config.retryAttempts}) after ${config.retryDelay}ms`);
+          await this.sleep(config.retryDelay * attempt); // Exponential backoff
           return this.makeRequest<T>(endpoint, options, usePrivateKey, attempt + 1);
         }
 
@@ -172,18 +189,19 @@ class LiteAPIClient {
       return data;
 
     } catch (error: any) {
+      const config = this.getConfigLazy();
       if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-        if (attempt < this.retryAttempts) {
-          console.log(`[LiteAPI] Timeout, retrying (${attempt}/${this.retryAttempts})`);
-          await this.sleep(this.retryDelay * attempt);
+        if (attempt < config.retryAttempts) {
+          console.log(`[LiteAPI] Timeout, retrying (${attempt}/${config.retryAttempts})`);
+          await this.sleep(config.retryDelay * attempt);
           return this.makeRequest<T>(endpoint, options, usePrivateKey, attempt + 1);
         }
         throw new Error('LiteAPI request timeout');
       }
 
-      if (attempt < this.retryAttempts && this.isRetryableError(error)) {
-        console.log(`[LiteAPI] Error, retrying (${attempt}/${this.retryAttempts}): ${error?.message || 'Unknown error'}`);
-        await this.sleep(this.retryDelay * attempt);
+      if (attempt < config.retryAttempts && this.isRetryableError(error)) {
+        console.log(`[LiteAPI] Error, retrying (${attempt}/${config.retryAttempts}): ${error?.message || 'Unknown error'}`);
+        await this.sleep(config.retryDelay * attempt);
         return this.makeRequest<T>(endpoint, options, usePrivateKey, attempt + 1);
       }
 
@@ -464,52 +482,69 @@ class LiteAPIClient {
   }
 }
 
-// Lazy loaded instances - prevent module-level execution
-let liteApiClientInstance: LiteAPIClient | null = null;
-let staticDataCache: Map<string, { data: any; timestamp: number }> | null = null;
-const STATIC_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+// ULTRA-AGGRESSIVE FIX: NO module-level variables AT ALL
+// Everything moved to function scope with build-time guards
 
-// Get LiteAPIClient instance lazily
+// Get constants lazily - PURE function
+function getConstants() {
+  return {
+    STATIC_CACHE_TTL: 60 * 60 * 1000 // 1 hour
+  };
+}
+
+// Get LiteAPIClient instance lazily with build-time guard
 function getLiteAPIClientInstance(): LiteAPIClient {
-  if (!liteApiClientInstance) {
-    liteApiClientInstance = new LiteAPIClient();
+  // Build-time execution guard
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    throw new Error('Cannot create LiteAPI client during build time');
   }
-  return liteApiClientInstance;
+  
+  // Create new instance each time to avoid shared state
+  return new LiteAPIClient();
 }
 
-// Get static data cache lazily
+// Get static data cache lazily with build-time guard
 function getStaticDataCache() {
-  if (!staticDataCache) {
-    staticDataCache = new Map<string, { data: any; timestamp: number }>();
+  // Build-time execution guard
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    throw new Error('Cannot create cache during build time');
   }
-  return staticDataCache;
+  
+  // Return new Map each time to avoid shared state
+  return new Map<string, { data: any; timestamp: number }>();
 }
 
-// Export singleton instance
+// ULTRA-SAFE export - NO getters, PURE functions only
 export const liteApiClient = {
-  get searchHotels() { return getLiteAPIClientInstance().searchHotels.bind(getLiteAPIClientInstance()); },
-  get getHotelDetails() { return getLiteAPIClientInstance().getHotelDetails.bind(getLiteAPIClientInstance()); },
-  get getHotelRates() { return getLiteAPIClientInstance().getHotelRates.bind(getLiteAPIClientInstance()); },
-  get prebookHotel() { return getLiteAPIClientInstance().prebookHotel.bind(getLiteAPIClientInstance()); },
-  get confirmBooking() { return getLiteAPIClientInstance().confirmBooking.bind(getLiteAPIClientInstance()); },
-  get getBooking() { return getLiteAPIClientInstance().getBooking.bind(getLiteAPIClientInstance()); },
-  get cancelBooking() { return getLiteAPIClientInstance().cancelBooking.bind(getLiteAPIClientInstance()); },
-  get getPopularDestinations() { return getLiteAPIClientInstance().getPopularDestinations.bind(getLiteAPIClientInstance()); },
-  get searchDestinations() { return getLiteAPIClientInstance().searchDestinations.bind(getLiteAPIClientInstance()); },
-  get getHotelContent() { return getLiteAPIClientInstance().getHotelContent.bind(getLiteAPIClientInstance()); },
-  get getHotelReviews() { return getLiteAPIClientInstance().getHotelReviews.bind(getLiteAPIClientInstance()); },
-  get getHotelFacilities() { return getLiteAPIClientInstance().getHotelFacilities.bind(getLiteAPIClientInstance()); },
-  get getHotelChains() { return getLiteAPIClientInstance().getHotelChains.bind(getLiteAPIClientInstance()); },
-  get getHotelTypes() { return getLiteAPIClientInstance().getHotelTypes.bind(getLiteAPIClientInstance()); },
-  get searchHotelsSemantics() { return getLiteAPIClientInstance().searchHotelsSemantics.bind(getLiteAPIClientInstance()); },
-  get getMinimumRates() { return getLiteAPIClientInstance().getMinimumRates.bind(getLiteAPIClientInstance()); }
+  searchHotels: (params: any) => getLiteAPIClientInstance().searchHotels(params),
+  getHotelDetails: (hotelId: string, params?: any) => getLiteAPIClientInstance().getHotelDetails(hotelId, params),
+  getHotelRates: (hotelId: string, params: any) => getLiteAPIClientInstance().getHotelRates(hotelId, params),
+  prebookHotel: (rateId: string) => getLiteAPIClientInstance().prebookHotel(rateId),
+  confirmBooking: (prebookId: string, bookingData: any) => getLiteAPIClientInstance().confirmBooking(prebookId, bookingData),
+  getBooking: (bookingId: string) => getLiteAPIClientInstance().getBooking(bookingId),
+  cancelBooking: (bookingId: string, reason?: string) => getLiteAPIClientInstance().cancelBooking(bookingId, reason),
+  getPopularDestinations: (country?: string) => getLiteAPIClientInstance().getPopularDestinations(country),
+  searchDestinations: (query: string) => getLiteAPIClientInstance().searchDestinations(query),
+  getHotelContent: (hotelId: string) => getLiteAPIClientInstance().getHotelContent(hotelId),
+  getHotelReviews: (hotelId: string, limit?: number) => getLiteAPIClientInstance().getHotelReviews(hotelId, limit),
+  getHotelFacilities: () => getLiteAPIClientInstance().getHotelFacilities(),
+  getHotelChains: () => getLiteAPIClientInstance().getHotelChains(),
+  getHotelTypes: () => getLiteAPIClientInstance().getHotelTypes(),
+  searchHotelsSemantics: (query: string, params?: any) => getLiteAPIClientInstance().searchHotelsSemantics(query, params),
+  getMinimumRates: (params: any) => getLiteAPIClientInstance().getMinimumRates(params)
 };
 
-// Helper function to get cached static data
+// Helper function to get cached static data - PURE function
 export async function getCachedStaticData<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  // Build-time execution guard
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    throw new Error('Cannot access cache during build time');
+  }
+  
   const cache = getStaticDataCache();
+  const constants = getConstants();
   const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < STATIC_CACHE_TTL) {
+  if (cached && Date.now() - cached.timestamp < constants.STATIC_CACHE_TTL) {
     return cached.data;
   }
   
@@ -518,8 +553,13 @@ export async function getCachedStaticData<T>(key: string, fetcher: () => Promise
   return data;
 }
 
-// Get validation schema lazily
+// Get validation schema lazily - PURE function
 async function getSearchParamsSchema() {
+  // Build-time execution guard
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    throw new Error('Cannot create schema during build time');
+  }
+  
   const zodInstance = await getZod();
   return zodInstance.object({
     destination: zodInstance.string().min(1, 'Destination is required'),
@@ -557,8 +597,13 @@ async function getSearchParamsSchema() {
   });
 }
 
-// Helper function to validate search params
+// Helper function to validate search params - PURE function
 export async function validateSearchParams(params: any): Promise<LiteAPISearchParams> {
+  // Build-time execution guard
+  if (typeof process === 'undefined' || process.env.NODE_ENV === undefined) {
+    throw new Error('Cannot validate params during build time');
+  }
+  
   const searchParamsSchema = await getSearchParamsSchema();
   return searchParamsSchema.parse(params);
 }

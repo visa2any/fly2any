@@ -415,10 +415,10 @@ export async function GET(
           status: 'error',
           data: null,
           message: 'Invalid query parameters',
-          errors: error.issues.map(err => ({
-            field: err.path.join('.'),
-            message: err.message
-          })),
+          errors: (error as any).issues?.map((err: any) => ({
+            field: err.path?.join('.') || '',
+            message: err.message || 'Invalid parameter'
+          })) || [],
           metadata: {
             requestId,
             timestamp: new Date().toISOString(),

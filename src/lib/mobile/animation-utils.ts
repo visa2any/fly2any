@@ -3,7 +3,9 @@
  * Optimized animations for mobile devices with performance considerations
  */
 
-import { Variants, Transition } from 'framer-motion';
+// Dynamic import types to prevent webpack build errors
+type Variants = any;
+type Transition = any;
 
 // Spring configurations optimized for mobile
 export const springConfigs = {

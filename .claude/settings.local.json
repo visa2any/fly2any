@@ -61,7 +61,9 @@
       "Bash(do echo \"=== Checking sql usage in $file ===\")",
       "Bash(do echo \"=== Adding lazy loading to $file ===\")",
       "Bash(grep:*)",
-      "Bash(do echo \"=== Adding lazy loading to functions in $file ===\")"
+      "Bash(do echo \"=== Adding lazy loading to functions in $file ===\")",
+      "Bash(/bashes)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
