@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckIcon,
   XMarkIcon,
@@ -22,7 +21,16 @@ interface MobileSuccessModalProps {
 }
 
 export default function MobileSuccessModal({ isOpen, onClose, leadData }: MobileSuccessModalProps) {
+  const [motion, setMotion] = useState<any>(null);
+  const [AnimatePresence, setAnimatePresence] = useState<any>(null);
   const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    import('framer-motion').then(({ motion, AnimatePresence }) => {
+      setMotion(() => motion);
+      setAnimatePresence(() => AnimatePresence);
+    });
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,7 +58,7 @@ export default function MobileSuccessModal({ isOpen, onClose, leadData }: Mobile
     seguro: '🛡️'
   };
 
-  return (
+  return motion && AnimatePresence ? (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -239,5 +247,102 @@ export default function MobileSuccessModal({ isOpen, onClose, leadData }: Mobile
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  ) : isOpen ? (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3" style={{ background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(6px)' }}>
+      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-white/20 overflow-hidden" style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.96) 100%)',
+        maxHeight: '80vh'
+      }}>
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
+        >
+          <XMarkIcon className="w-4 h-4 text-neutral-600" />
+        </button>
+        <div className="p-6 text-center">
+          <div className="relative mx-auto mb-4 w-16 h-16">
+            <div className="absolute inset-0 bg-gradient-to-br from-success-400 to-success-600 rounded-full shadow-lg" />
+            <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
+              <CheckIcon className="w-6 h-6 text-success-600" strokeWidth={3} />
+            </div>
+          </div>
+          <h2 className="text-xl font-bold text-primary-600 mb-2">Solicitação Enviada! 🎉</h2>
+          <p className="text-neutral-600 mb-4 text-sm leading-relaxed">
+            {leadData?.nome ? (
+              <>Obrigado, <span className="font-semibold text-primary-600">{leadData.nome}</span>!</>
+            ) : (
+              'Sua solicitação foi enviada!'
+            )}
+          </p>
+          {leadData?.servicos && leadData.servicos.length > 0 && (
+            <div className="mb-4 p-3 bg-gradient-to-r from-primary-50/80 to-accent-50/80 rounded-xl border border-primary-100/50">
+              <div className="flex flex-wrap gap-1 justify-center">
+                {leadData.servicos.slice(0, 3).map((servico, index) => (
+                  <span
+                    key={servico}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-white/80 rounded-full text-xs font-medium text-primary-700 shadow-sm"
+                  >
+                    <span>{serviceEmojis[servico as keyof typeof serviceEmojis] || '✨'}</span>
+                    {servico.charAt(0).toUpperCase() + servico.slice(1)}
+                  </span>
+                ))}
+                {leadData.servicos.length > 3 && (
+                  <span className="text-xs text-neutral-500">+{leadData.servicos.length - 3} mais</span>
+                )}
+              </div>
+            </div>
+          )}
+          <div className="space-y-2 mb-4">
+            {[
+              { icon: CheckIcon, text: 'Recebido', completed: true },
+              { icon: ClockIcon, text: 'Em análise', completed: currentStep >= 1 },
+              { icon: PhoneIcon, text: 'Retorno até 2h', completed: currentStep >= 2 }
+            ].map((step, index) => (
+              <div
+                key={index}
+                className={`flex items-center gap-2 text-sm transition-all duration-300 ${
+                  step.completed ? 'text-success-700' : 'text-neutral-400'
+                }`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                  step.completed ? 'bg-success-500 text-white' : 'bg-neutral-200 text-neutral-500'
+                }`}>
+                  <step.icon className="w-3 h-3" strokeWidth={2} />
+                </div>
+                <span className="font-medium">{step.text}</span>
+              </div>
+            ))}
+          </div>
+          {leadData?.leadId && (
+            <div className="mb-4 p-2 bg-neutral-50 rounded-lg">
+              <p className="text-xs text-neutral-500">Protocolo</p>
+              <p className="font-mono text-sm font-semibold text-neutral-700">{leadData.leadId}</p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <button
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg transition-all duration-200"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <SparklesIcon className="w-4 h-4" />
+                Continuar
+              </div>
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="w-full text-neutral-600 py-2 px-4 rounded-lg font-medium text-sm hover:bg-neutral-50 transition-colors"
+            >
+              Voltar ao Início
+            </button>
+          </div>
+          <div className="mt-4 pt-4 border-t border-neutral-200/50 text-center">
+            <p className="text-xs text-neutral-500">
+              Fly2Any - Sua viagem dos sonhos ✈️
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
 }

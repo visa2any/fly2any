@@ -1,35 +1,69 @@
 'use client';
 
-import { useAnimation, useInView } from 'framer-motion';
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimationUtils, springConfigs } from '@/lib/mobile/animation-utils';
+
+// Dynamic framer-motion imports to prevent webpack build errors
+let useAnimation: any;
+let useInView: any;
+
+// Load framer-motion hooks dynamically
+const loadFramerMotionHooks = async () => {
+  if (!useAnimation) {
+    const framerMotion = await import('framer-motion');
+    useAnimation = framerMotion.useAnimation;
+    useInView = framerMotion.useInView;
+  }
+  return { useAnimation, useInView };
+};
 
 // Hook for scroll-triggered animations
 export function useScrollAnimation(threshold: number = 0.3) {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { 
-    once: true, 
-    margin: `${-((1 - threshold) * 100)}%` 
-  });
-  const controls = useAnimation();
+  const [isInView, setIsInView] = useState(false);
+  const [controls, setControls] = useState<any>(null);
 
   useEffect(() => {
-    if (isInView) {
+    loadFramerMotionHooks().then(() => {
+      if (useInView && useAnimation) {
+        const inView = useInView(ref, { 
+          once: true, 
+          margin: `${-((1 - threshold) * 100)}%` 
+        });
+        const animationControls = useAnimation();
+        setIsInView(inView);
+        setControls(animationControls);
+      }
+    });
+  }, [threshold]);
+
+  useEffect(() => {
+    if (isInView && controls) {
       controls.start('animate');
     }
   }, [isInView, controls]);
 
-  return { ref, controls, isInView };
+  return { ref, controls: controls || { start: () => {} }, isInView };
 }
 
 // Hook for staggered list animations
 export function useStaggeredAnimation(itemCount: number, delay: number = 0.1) {
   const [isVisible, setIsVisible] = useState(false);
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
+
+  useEffect(() => {
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
 
   const startAnimation = () => {
     setIsVisible(true);
-    controls.start('animate');
+    if (controls) {
+      controls.start('animate');
+    }
   };
 
   // Fix: AnimationUtils is a type-only import, use direct animation config
@@ -45,7 +79,7 @@ export function useStaggeredAnimation(itemCount: number, delay: number = 0.1) {
   };
 
   return {
-    controls,
+    controls: controls || { start: () => {} },
     containerVariants,
     startAnimation,
     isVisible,
@@ -55,7 +89,15 @@ export function useStaggeredAnimation(itemCount: number, delay: number = 0.1) {
 // Hook for touch animations
 export function useTouchAnimation() {
   const [isPressed, setIsPressed] = useState(false);
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
+
+  useEffect(() => {
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
 
   const handleTouchStart = () => {
     setIsPressed(true);
@@ -84,47 +126,73 @@ export function useTouchAnimation() {
 
 // Hook for loading animations
 export function useLoadingAnimation(isLoading: boolean) {
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
 
   useEffect(() => {
-    if (isLoading) {
-      controls.start('animate');
-    } else {
-      controls.stop();
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (controls) {
+      if (isLoading) {
+        controls.start('animate');
+      } else {
+        controls.stop();
+      }
     }
   }, [isLoading, controls]);
 
-  return controls;
+  return controls || { start: () => {}, stop: () => {} };
 }
 
 // Hook for success/error animations
 export function useStatusAnimation() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
+
+  useEffect(() => {
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
 
   const showSuccess = () => {
     setStatus('success');
-    controls.start('animate');
+    if (controls) {
+      controls.start('animate');
+    }
   };
 
   const showError = () => {
     setStatus('error');
-    controls.start('animate');
+    if (controls) {
+      controls.start('animate');
+    }
   };
 
   const showLoading = () => {
     setStatus('loading');
-    controls.start('animate');
+    if (controls) {
+      controls.start('animate');
+    }
   };
 
   const reset = () => {
     setStatus('idle');
-    controls.stop();
+    if (controls) {
+      controls.stop();
+    }
   };
 
   return {
     status,
-    controls,
+    controls: controls || { start: () => {}, stop: () => {} },
     showSuccess,
     showError,
     showLoading,
@@ -222,21 +290,33 @@ export function useTypewriterAnimation(text: string, speed: number = 50) {
 // Hook for page transitions
 export function usePageTransition() {
   const [isExiting, setIsExiting] = useState(false);
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
+
+  useEffect(() => {
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
 
   const exitPage = async (callback?: () => void) => {
     setIsExiting(true);
-    await controls.start('exit');
+    if (controls) {
+      await controls.start('exit');
+    }
     callback?.();
   };
 
   const enterPage = async (): Promise<void> => {
     setIsExiting(false);
-    await controls.start('animate');
+    if (controls) {
+      await controls.start('animate');
+    }
   };
 
   return {
-    controls,
+    controls: controls || { start: () => Promise.resolve() },
     isExiting,
     exitPage,
     enterPage,
@@ -246,47 +326,63 @@ export function usePageTransition() {
 // Hook for gesture-based animations
 export function useGestureAnimation() {
   const [gesture, setGesture] = useState<'idle' | 'swipe-left' | 'swipe-right' | 'pinch'>('idle');
-  const controls = useAnimation();
+  const [controls, setControls] = useState<any>(null);
+
+  useEffect(() => {
+    loadFramerMotionHooks().then(() => {
+      if (useAnimation) {
+        setControls(useAnimation());
+      }
+    });
+  }, []);
 
   const handleSwipeLeft = () => {
     setGesture('swipe-left');
-    controls.start({
-      x: -100,
-      opacity: 0.5,
-      transition: { duration: 0.3 },
-    });
+    if (controls) {
+      controls.start({
+        x: -100,
+        opacity: 0.5,
+        transition: { duration: 0.3 },
+      });
+    }
   };
 
   const handleSwipeRight = () => {
     setGesture('swipe-right');
-    controls.start({
-      x: 100,
-      opacity: 0.5,
-      transition: { duration: 0.3 },
-    });
+    if (controls) {
+      controls.start({
+        x: 100,
+        opacity: 0.5,
+        transition: { duration: 0.3 },
+      });
+    }
   };
 
   const handlePinch = (scale: number) => {
     setGesture('pinch');
-    controls.start({
-      scale,
-      transition: { duration: 0.1 },
-    });
+    if (controls) {
+      controls.start({
+        scale,
+        transition: { duration: 0.1 },
+      });
+    }
   };
 
   const resetGesture = () => {
     setGesture('idle');
-    controls.start({
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      transition: { type: "spring", damping: 15, stiffness: 300 },
-    });
+    if (controls) {
+      controls.start({
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        transition: { type: "spring", damping: 15, stiffness: 300 },
+      });
+    }
   };
 
   return {
     gesture,
-    controls,
+    controls: controls || { start: () => {} },
     handleSwipeLeft,
     handleSwipeRight,
     handlePinch,

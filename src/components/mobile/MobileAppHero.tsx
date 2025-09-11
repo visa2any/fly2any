@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 // Removed useMobileUtils import to fix React hook rule violations
 
 interface MobileAppHeroProps {
@@ -10,6 +9,13 @@ interface MobileAppHeroProps {
 
 export default function MobileAppHero({ children }: MobileAppHeroProps) {
   // Mobile component assumes mobile context - removed conditional rendering
+  const [motion, setMotion] = useState<any>(null);
+
+  useEffect(() => {
+    import('framer-motion').then(({ motion }) => {
+      setMotion(() => motion);
+    });
+  }, []);
 
   return (
     <div 
@@ -33,56 +39,92 @@ export default function MobileAppHero({ children }: MobileAppHeroProps) {
         
         {/* Compact Title Section - Minimal Space */}
         <div className="px-4 pt-3 pb-2">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <h1 className="text-xl font-bold text-white mb-1 leading-tight">
-              Sua próxima viagem
-            </h1>
-            <p className="text-sm text-white/90 font-medium">
-              Encontre voos incríveis • USA → Brasil
-            </p>
-          </motion.div>
+          {motion ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center"
+            >
+              <h1 className="text-xl font-bold text-white mb-1 leading-tight">
+                Sua próxima viagem
+              </h1>
+              <p className="text-sm text-white/90 font-medium">
+                Encontre voos incríveis • USA → Brasil
+              </p>
+            </motion.div>
+          ) : (
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-white mb-1 leading-tight">
+                Sua próxima viagem
+              </h1>
+              <p className="text-sm text-white/90 font-medium">
+                Encontre voos incríveis • USA → Brasil
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Form Section - Takes Remaining Space */}
         <div className="flex-1 px-1">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="h-full"
-          >
-            {children}
-          </motion.div>
+          {motion ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="h-full"
+            >
+              {children}
+            </motion.div>
+          ) : (
+            <div className="h-full">
+              {children}
+            </div>
+          )}
         </div>
 
         {/* Integrated Micro Footer - Minimal Space */}
         <div className="px-4 pb-2">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="flex items-center justify-center space-x-4 text-xs text-white/70"
-          >
-            <div className="flex items-center gap-1">
-              <span className="text-white/90">🇺🇸</span>
-              <span>USA Company</span>
+          {motion ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="flex items-center justify-center space-x-4 text-xs text-white/70"
+            >
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">🇺🇸</span>
+                <span>USA Company</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">🛡️</span>
+                <span>Secure</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">⭐</span>
+                <span>4.9/5</span>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="flex items-center justify-center space-x-4 text-xs text-white/70">
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">🇺🇸</span>
+                <span>USA Company</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">🛡️</span>
+                <span>Secure</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <span className="text-white/90">⭐</span>
+                <span>4.9/5</span>
+              </div>
             </div>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <span className="text-white/90">🛡️</span>
-              <span>Secure</span>
-            </div>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <span className="text-white/90">⭐</span>
-              <span>4.9/5</span>
-            </div>
-          </motion.div>
+          )}
         </div>
       </div>
 

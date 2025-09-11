@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
 
 interface InfiniteScrollProps<T> {
   items: T[];
@@ -32,7 +31,14 @@ export function InfiniteScroll<T>({
   itemHeight,
   overscan = 5,
 }: InfiniteScrollProps<T>) {
+  const [motion, setMotion] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    import('framer-motion').then(({ motion }) => {
+      setMotion(() => motion);
+    });
+  }, []);
   const scrollElementRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
@@ -103,7 +109,7 @@ export function InfiniteScroll<T>({
     return () => element.removeEventListener('scroll', handleScroll);
   }, [items, itemHeight, overscan]);
 
-  const defaultLoadingComponent = (
+  const defaultLoadingComponent = motion ? (
     <div className="flex items-center justify-center py-8 space-x-2">
       <motion.div
         className="w-2 h-2 bg-blue-600 rounded-full"
@@ -143,9 +149,16 @@ export function InfiniteScroll<T>({
       />
       <span className="ml-3 text-sm text-gray-600">Carregando mais...</span>
     </div>
+  ) : (
+    <div className="flex items-center justify-center py-8 space-x-2">
+      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+      <span className="ml-3 text-sm text-gray-600">Carregando mais...</span>
+    </div>
   );
 
-  const defaultEmptyComponent = (
+  const defaultEmptyComponent = motion ? (
     <motion.div
       className="flex flex-col items-center justify-center py-16 text-center"
       initial={{ opacity: 0, y: 20 }}
@@ -160,9 +173,19 @@ export function InfiniteScroll<T>({
       <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
       <p className="text-gray-500">Não há itens para exibir no momento.</p>
     </motion.div>
+  ) : (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-4.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
+      <p className="text-gray-500">Não há itens para exibir no momento.</p>
+    </div>
   );
 
-  const defaultErrorComponent = (
+  const defaultErrorComponent = motion ? (
     <motion.div
       className="flex flex-col items-center justify-center py-8 text-center"
       initial={{ opacity: 0, scale: 0.95 }}
@@ -188,6 +211,27 @@ export function InfiniteScroll<T>({
         Tentar novamente
       </button>
     </motion.div>
+  ) : (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+      </div>
+      <h3 className="text-sm font-medium text-gray-900 mb-1">Erro ao carregar</h3>
+      <p className="text-sm text-gray-500 mb-3">{error}</p>
+      <button
+        onClick={() => {
+          setError(null);
+          onLoadMore().catch((err) => {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido');
+          });
+        }}
+        className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+      >
+        Tentar novamente
+      </button>
+    </div>
   );
 
   if (items.length === 0 && !loading) {
@@ -209,15 +253,24 @@ export function InfiniteScroll<T>({
             }}
           >
             {visibleItems.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                style={{ height: itemHeight }}
-              >
-                {renderItem(item, index)}
-              </motion.div>
+              motion ? (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  style={{ height: itemHeight }}
+                >
+                  {renderItem(item, index)}
+                </motion.div>
+              ) : (
+                <div
+                  key={index}
+                  style={{ height: itemHeight }}
+                >
+                  {renderItem(item, index)}
+                </div>
+              )
             ))}
           </div>
         </div>
@@ -227,14 +280,20 @@ export function InfiniteScroll<T>({
       {!itemHeight && (
         <div className="space-y-2">
           {items.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-            >
-              {renderItem(item, index)}
-            </motion.div>
+            motion ? (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
+              >
+                {renderItem(item, index)}
+              </motion.div>
+            ) : (
+              <div key={index}>
+                {renderItem(item, index)}
+              </div>
+            )
           ))}
         </div>
       )}
@@ -244,14 +303,20 @@ export function InfiniteScroll<T>({
         {error && (errorComponent || defaultErrorComponent)}
         {loading && !error && (loadingComponent || defaultLoadingComponent)}
         {!hasMore && !loading && !error && items.length > 0 && (
-          <motion.div
-            className="text-center py-8 text-sm text-gray-500"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            Não há mais itens para carregar.
-          </motion.div>
+          motion ? (
+            <motion.div
+              className="text-center py-8 text-sm text-gray-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              Não há mais itens para carregar.
+            </motion.div>
+          ) : (
+            <div className="text-center py-8 text-sm text-gray-500">
+              Não há mais itens para carregar.
+            </div>
+          )
         )}
       </div>
     </div>

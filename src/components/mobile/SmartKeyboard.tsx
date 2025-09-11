@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 
 interface SmartKeyboardProps {
   children: React.ReactNode;
@@ -16,8 +15,15 @@ export const SmartKeyboard: React.FC<SmartKeyboardProps> = ({
   resizeDelay = 300,
   className = '',
 }) => {
+  const [motion, setMotion] = useState<any>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    import('framer-motion').then(({ motion }) => {
+      setMotion(() => motion);
+    });
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const initialViewportHeight = useRef<number>(0);
 
@@ -101,7 +107,7 @@ export const SmartKeyboard: React.FC<SmartKeyboardProps> = ({
     return () => document.removeEventListener('focusin', handleFocusIn);
   }, [isKeyboardOpen]);
 
-  return (
+  return motion ? (
     <motion.div
       ref={containerRef}
       className={`${className} transition-all duration-300`}
@@ -126,6 +132,27 @@ export const SmartKeyboard: React.FC<SmartKeyboardProps> = ({
         />
       )}
     </motion.div>
+  ) : (
+    <div
+      ref={containerRef}
+      className={`${className} transition-all duration-300`}
+      style={{
+        overflow: 'hidden',
+        height: adjustViewport && isKeyboardOpen 
+          ? `calc(100vh - ${keyboardHeight}px)` 
+          : '100vh',
+      }}
+    >
+      {children}
+      
+      {/* Keyboard spacer */}
+      {isKeyboardOpen && (
+        <div
+          style={{ height: keyboardHeight }}
+          className="bg-transparent"
+        />
+      )}
+    </div>
   );
 };
 
@@ -163,9 +190,16 @@ export const KeyboardOptimizedInput = React.forwardRef<
   suggestions = [],
   ...props
 }, ref) => {
+  const [motion, setMotion] = useState<any>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    import('framer-motion').then(({ motion }) => {
+      setMotion(() => motion);
+    });
+  }, []);
 
   // Smart input mode detection
   const getOptimalInputMode = () => {
@@ -268,39 +302,62 @@ export const KeyboardOptimizedInput = React.forwardRef<
 
         {/* Suggestions dropdown */}
         {showSuggestions && filteredSuggestions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto"
-          >
-            {filteredSuggestions.map((suggestion, index) => (
-              <motion.button
-                key={suggestion}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-blue-50 focus:outline-none transition-colors"
-                onClick={() => handleSuggestionClick(suggestion)}
-                whileHover={{ x: 4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span className="text-gray-900">{suggestion}</span>
-              </motion.button>
-            ))}
-          </motion.div>
+          motion ? (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto"
+            >
+              {filteredSuggestions.map((suggestion, index) => (
+                <motion.button
+                  key={suggestion}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-blue-50 focus:outline-none transition-colors"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  whileHover={{ x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <span className="text-gray-900">{suggestion}</span>
+                </motion.button>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+              {filteredSuggestions.map((suggestion, index) => (
+                <button
+                  key={suggestion}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-blue-50 focus:outline-none transition-colors"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  <span className="text-gray-900">{suggestion}</span>
+                </button>
+              ))}
+            </div>
+          )
         )}
       </div>
 
       {error && (
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-2 text-sm text-red-600 flex items-center gap-1"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-          {error}
-        </motion.p>
+        motion ? (
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-2 text-sm text-red-600 flex items-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            {error}
+          </motion.p>
+        ) : (
+          <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            {error}
+          </p>
+        )
       )}
     </div>
   );
