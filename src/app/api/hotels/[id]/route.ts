@@ -9,6 +9,119 @@
  * Includes rates, reviews, amenities, and images
  */
 
+// Define types inline to avoid import dependencies - ULTRA-SAFE APPROACH
+interface Hotel {
+  id: string;
+  name: string;
+  description: string;
+  starRating: number;
+  guestRating?: number;
+  reviewCount?: number;
+  location: {
+    address: {
+      street?: string;
+      city: string;
+      state?: string;
+      country: string;
+      postal_code?: string;
+    };
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    };
+    landmarks?: Array<{
+      name: string;
+      distance: number;
+      unit: string;
+      type: string;
+    }>;
+  };
+  images: Array<{
+    url: string;
+    description: string;
+    width?: number;
+    height?: number;
+    isMain: boolean;
+  }>;
+  amenities: Array<{
+    id: string;
+    name: string;
+    category: string;
+    icon?: string;
+    description?: string;
+    isFree: boolean;
+  }>;
+  policies: {
+    checkIn: string;
+    checkOut: string;
+    children?: string;
+    pets?: string;
+    extraBeds?: string;
+    smoking?: string;
+  };
+  rates?: Array<{
+    id: string;
+    rateId: string;
+    roomType: any;
+    boardType: string;
+    price: {
+      amount: number;
+      currency: string;
+      formatted: string;
+    };
+    originalPrice?: {
+      amount: number;
+      currency: string;
+      formatted: string;
+    };
+    discountPercentage?: number;
+    currency: string;
+    isRefundable: boolean;
+    isFreeCancellation: boolean;
+    cancellationDeadline?: string;
+    maxOccupancy: number;
+    availableRooms: number;
+    totalPrice: {
+      amount: number;
+      currency: string;
+      formatted: string;
+    };
+    taxes: Array<any>;
+    fees: Array<any>;
+    paymentOptions: Array<any>;
+    promotions: Array<any>;
+  }>;
+  lowestRate?: {
+    amount: number;
+    currency: string;
+    formatted: string;
+  };
+  highlights?: string[];
+  chainName?: string;
+  hotelClass?: string;
+  contact?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+  };
+  sustainability?: {
+    level: number;
+    certifications: string[];
+  };
+}
+
+interface APIResponse<T> {
+  status: 'success' | 'error';
+  data: T;
+  message?: string;
+  errors?: Array<{ field: string; message: string }>;
+  metadata?: {
+    requestId: string;
+    timestamp: string;
+    processingTime: number;
+  };
+}
+
 // No module-level imports - all moved to dynamic imports inside functions
 
 // Cache for hotel details (longer TTL since details change less frequently)
@@ -62,7 +175,7 @@ async function getDetailsQuerySchema() {
 /**
  * Transform LiteAPI hotel response to our Hotel type
  */
-function transformHotelDetails(liteApiHotel: any, includeRates = true): Hotel {
+function transformHotelDetails(liteApiHotel: any, includeRates = true): any {
   return {
     id: liteApiHotel.id,
     name: liteApiHotel.name,
