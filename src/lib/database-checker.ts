@@ -5,8 +5,6 @@
  * Fornece orientações para configuração.
  */
 
-import { sql } from '@vercel/postgres';
-
 export interface DatabaseStatus {
   connected: boolean;
   configured: boolean;
@@ -41,6 +39,8 @@ export class DatabaseChecker {
     
     // Testar conexão
     try {
+      // Lazy load @vercel/postgres to prevent build-time execution
+      const { sql } = await import('@vercel/postgres');
       await sql`SELECT 1 as test`;
       console.log('[DB-CHECKER] ✅ Banco conectado com sucesso!');
       
@@ -164,6 +164,9 @@ Reinicie após corrigir: npm run dev
   static async initializeTables(): Promise<boolean> {
     try {
       console.log('[DB-CHECKER] Inicializando tabelas...');
+      
+      // Lazy load @vercel/postgres to prevent build-time execution
+      const { sql } = await import('@vercel/postgres');
       
       // Criar tabela de leads
       await sql`
