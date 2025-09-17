@@ -11,7 +11,7 @@ import { storeBookingData } from '@/lib/database/bookings';
 import { smsService } from '@/lib/sms/sms-service';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_...', {
-  apiVersion: '2025-07-30.basil',
+  apiVersion: '2025-08-27.basil',
 });
 
 export async function POST(request: NextRequest) {
