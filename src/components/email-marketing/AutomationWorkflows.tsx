@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   AutomationWorkflow,
   WorkflowTrigger,
   WorkflowAction,
   formatDateShort
-} from '@/lib/email-marketing/utils';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
+} from '../../lib/email-marketing/utils';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
 
 interface AutomationWorkflowsProps {
   className?: string;

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Contact, exportToCSV } from '@/lib/email-marketing/utils';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
+import * as React from 'react';
+import { useState } from 'react';
+import { Contact, exportToCSV } from '../../lib/email-marketing/utils';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
 
 interface ImportExportWizardProps {
   contacts?: Contact[];

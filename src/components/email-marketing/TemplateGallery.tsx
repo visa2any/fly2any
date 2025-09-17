@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { EmailTemplate } from '@/lib/email-marketing/utils';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { EmailTemplate } from '../../lib/email-marketing/utils';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
 
 interface TemplateGalleryProps {
   onTemplateSelect?: (template: EmailTemplate) => void;

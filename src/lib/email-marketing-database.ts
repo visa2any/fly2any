@@ -571,6 +571,47 @@ export class EmailMarketingDatabase {
     }
   }
 
+  // Add new email contact
+  static async addEmailContact(contactData: {
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    customer_id?: string;
+  }): Promise<any> {
+    try {
+      const contactId = 'contact_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+      await sql`
+        INSERT INTO email_contacts (
+          id, customer_id, email, first_name, last_name,
+          email_status, subscription_date, tags, engagement_score
+        ) VALUES (
+          ${contactId},
+          ${contactData.customer_id || null},
+          ${contactData.email},
+          ${contactData.first_name || null},
+          ${contactData.last_name || null},
+          'active',
+          ${new Date().toISOString()},
+          '[]',
+          0
+        )
+        ON CONFLICT (email) DO NOTHING
+      `;
+
+      return {
+        id: contactId,
+        email: contactData.email,
+        first_name: contactData.first_name,
+        last_name: contactData.last_name,
+        email_status: 'active'
+      };
+    } catch (error) {
+      console.error('Error adding email contact:', error);
+      throw error;
+    }
+  }
+
   // Get real campaigns from database
   static async getEmailCampaigns(limit: number = 50): Promise<EmailCampaign[]> {
     try {

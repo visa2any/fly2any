@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,13 +16,13 @@ import {
   Filler
 } from 'chart.js';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
-import { 
+import {
   Campaign,
   formatNumber,
   calculateRate,
-  formatDateShort 
-} from '@/lib/email-marketing/utils';
-import { emailMarketingAPI, AnalyticsData } from '@/lib/email-marketing/api';
+  formatDateShort
+} from '../../lib/email-marketing/utils';
+import { emailMarketingAPI, AnalyticsData } from '../../lib/email-marketing/api';
 
 ChartJS.register(
   CategoryScale,

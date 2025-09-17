@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
-import { 
-  EmailTemplate, 
+import * as React from 'react';
+import { useState, useRef, useCallback } from 'react';
+import {
+  EmailTemplate,
   generateCampaignName,
   replaceTemplateVariables,
   extractTemplateVariables,
   validateTemplate
-} from '@/lib/email-marketing/utils';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
-import { useAutoSave } from '@/hooks/useAutoSave';
-import { AutoSaveStatus } from '@/components/ui/AutoSaveStatus';
+} from '../../lib/email-marketing/utils';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
+import { useAutoSave } from '../../hooks/useAutoSave';
+import AutoSaveStatus from './AutoSaveStatus';
 
 interface CampaignBuilderProps {
   onSave?: (campaign: any) => void;
@@ -482,7 +483,7 @@ export default function CampaignBuilder({
               <h2 className="text-xl font-bold text-gray-900">
                 📧 Campaign Builder
               </h2>
-              <AutoSaveStatus autoSave={autoSave as any} />
+              <AutoSaveStatus autoSave={autoSave} />
             </div>
             
             <div className="flex items-center gap-3">

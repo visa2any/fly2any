@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ContactProfile, ActivityEvent, ContactNote, ContactTag } from '@/lib/email-marketing/types';
+import * as React from 'react';
+import { useState } from 'react';
+import { ContactProfile, ActivityEvent, ContactNote, ContactTag } from '../../lib/email-marketing/types';
 import { format, formatDistanceToNow } from 'date-fns';
 
 interface ContactProfileProps {

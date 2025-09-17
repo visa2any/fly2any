@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Contact, 
   Segment, 
   SegmentCondition, 
   segmentContacts,
   formatNumber 
-} from '@/lib/email-marketing/utils';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
+} from '../../lib/email-marketing/utils';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
 
 interface SegmentationEngineProps {
   contacts?: Contact[];

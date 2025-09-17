@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { emailMarketingAPI } from '@/lib/email-marketing/api';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { emailMarketingAPI } from '../../lib/email-marketing/api';
 
 interface DeliverabilityToolsProps {
   className?: string;
