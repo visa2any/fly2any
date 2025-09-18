@@ -377,18 +377,15 @@ export class EmailMarketingDatabase {
           id, customer_id, email, first_name, email_status, 
           subscription_date, tags, engagement_score, created_at, updated_at
         )
-        SELECT 
+        SELECT
           'contact_' || c.id,
           c.id,
           c.email,
           c.name,
-          CASE 
-            WHEN c.receber_promocoes = true AND c.status != 'inativo' THEN 'active'
-            ELSE 'unsubscribed'
-          END,
+          'active', -- Default all customers to active status
           c.created_at,
-          c.tags,
-          c.score,
+          '[]'::jsonb, -- Empty tags array
+          0, -- Default engagement score
           c.created_at,
           c.updated_at
         FROM customers c
@@ -578,17 +575,29 @@ export class EmailMarketingDatabase {
         unsubscribe_date: row.unsubscribe_date ? new Date(row.unsubscribe_date) : undefined,
         tags: (() => {
           try {
-            return JSON.parse(row.tags || '[]');
+            // Handle PostgreSQL JSONB type or string
+            if (typeof row.tags === 'object' && row.tags !== null) {
+              return Array.isArray(row.tags) ? row.tags : [];
+            }
+            if (typeof row.tags === 'string' && row.tags && row.tags !== '[]') {
+              return JSON.parse(row.tags);
+            }
+            return [];
           } catch (e) {
-            console.warn('Invalid JSON in tags:', row.tags);
             return [];
           }
         })(),
         custom_fields: (() => {
           try {
-            return JSON.parse(row.custom_fields || '{}');
+            // Handle PostgreSQL JSONB type or string
+            if (typeof row.custom_fields === 'object' && row.custom_fields !== null) {
+              return row.custom_fields;
+            }
+            if (typeof row.custom_fields === 'string' && row.custom_fields && row.custom_fields !== '{}') {
+              return JSON.parse(row.custom_fields);
+            }
+            return {};
           } catch (e) {
-            console.warn('Invalid JSON in custom_fields:', row.custom_fields);
             return {};
           }
         })(),
@@ -785,20 +794,27 @@ export class EmailMarketingDatabase {
         `;
       }
 
-      // Update campaign stats
+      // Update campaign stats (using safe parameterized queries)
       if (eventData.campaign_id) {
-        const updateField = eventData.event_type === 'sent' ? 'total_sent' :
-                          eventData.event_type === 'delivered' ? 'total_delivered' :
-                          eventData.event_type === 'opened' ? 'total_opened' :
-                          eventData.event_type === 'clicked' ? 'total_clicked' :
-                          eventData.event_type === 'bounced' ? 'total_bounced' :
-                          eventData.event_type === 'unsubscribed' ? 'total_unsubscribed' : null;
-
-        if (updateField) {
-          await sql.query(
-            `UPDATE email_campaigns SET ${updateField} = ${updateField} + 1, updated_at = $1 WHERE id = $2`,
-            [now.toISOString(), eventData.campaign_id]
-          );
+        switch (eventData.event_type) {
+          case 'sent':
+            await sql`UPDATE email_campaigns SET total_sent = total_sent + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
+          case 'delivered':
+            await sql`UPDATE email_campaigns SET total_delivered = total_delivered + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
+          case 'opened':
+            await sql`UPDATE email_campaigns SET total_opened = total_opened + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
+          case 'clicked':
+            await sql`UPDATE email_campaigns SET total_clicked = total_clicked + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
+          case 'bounced':
+            await sql`UPDATE email_campaigns SET total_bounced = total_bounced + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
+          case 'unsubscribed':
+            await sql`UPDATE email_campaigns SET total_unsubscribed = total_unsubscribed + 1, updated_at = ${now.toISOString()} WHERE id = ${eventData.campaign_id}`;
+            break;
         }
       }
     } catch (error) {
