@@ -1315,7 +1315,7 @@ async function handleImportContacts(body: any) {
       total: contacts.length,
       imported: 0,
       skipped: 0,
-      errors: []
+      errors: [] as string[]
     };
 
     for (const contactData of contacts) {
@@ -1343,9 +1343,9 @@ async function handleImportContacts(body: any) {
         });
 
         results.imported++;
-      } catch (error) {
+      } catch (error: any) {
         results.skipped++;
-        results.errors.push(`Failed to import ${contactData.email}: ${error.message}`);
+        results.errors.push(`Failed to import ${contactData.email}: ${error?.message || 'Unknown error'}`);
       }
     }
 
