@@ -178,7 +178,13 @@ export default function EmailMarketingV2Page() {
             )}
 
             {/* Import/Export Wizard */}
-            <ImportExportWizard contacts={contacts} />
+            <ImportExportWizard
+              contacts={contacts}
+              onImportComplete={() => {
+                fetchStats();
+                fetchContacts();
+              }}
+            />
 
             {/* Recent Activity Feed */}
             <ActivityFeed />

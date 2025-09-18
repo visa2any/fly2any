@@ -8,9 +8,10 @@ import { emailMarketingAPI } from '../../lib/email-marketing/api';
 interface ImportExportWizardProps {
   contacts?: Contact[];
   className?: string;
+  onImportComplete?: () => void;
 }
 
-export default function ImportExportWizard({ contacts = [], className = "" }: ImportExportWizardProps) {
+export default function ImportExportWizard({ contacts = [], className = "", onImportComplete }: ImportExportWizardProps) {
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<any>(null);
@@ -20,11 +21,16 @@ export default function ImportExportWizard({ contacts = [], className = "" }: Im
 
   const handleImport = async () => {
     if (!importFile) return;
-    
+
     setLoading(true);
     try {
       const result = await emailMarketingAPI.importContacts(importFile);
       setImportResult(result);
+
+      // If import was successful, notify parent to refresh data
+      if (result.success && onImportComplete) {
+        onImportComplete();
+      }
     } catch (error) {
       console.error('Import error:', error);
     }
