@@ -1269,11 +1269,10 @@ async function handleAddContact(body: any) {
     const contactData = {
       email,
       first_name: first_name || '',
-      last_name: last_name || '',
-      tags: tags || [],
-      custom_fields: custom_fields || {}
+      last_name: last_name || ''
     };
 
+    // Note: tags and custom_fields are stored separately if needed
     const result = await EmailMarketingDatabase.addEmailContact(contactData);
 
     return NextResponse.json({
@@ -1337,9 +1336,7 @@ async function handleImportContacts(body: any) {
         await EmailMarketingDatabase.addEmailContact({
           email: contactData.email,
           first_name: contactData.first_name || '',
-          last_name: contactData.last_name || '',
-          tags: contactData.tags || [],
-          custom_fields: contactData.custom_fields || {}
+          last_name: contactData.last_name || ''
         });
 
         results.imported++;
