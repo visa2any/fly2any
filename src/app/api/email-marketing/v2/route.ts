@@ -146,7 +146,13 @@ export async function POST(request: NextRequest) {
       
       case 'create_ab_test':
         return handleCreateABTest(body);
-      
+
+      case 'add_contact':
+        return handleAddContact(body);
+
+      case 'import_contacts':
+        return handleImportContacts(body);
+
       case 'start_ab_test':
         return handleStartABTest(searchParams);
       
@@ -1235,4 +1241,124 @@ async function handleAddAuthorizedRecipient(body: any) {
     success: result.success,
     message: result.message
   });
+}
+
+// Add a single contact
+async function handleAddContact(body: any) {
+  const { email, first_name, last_name, tags, custom_fields } = body;
+
+  if (!email) {
+    return NextResponse.json({
+      success: false,
+      error: 'Email address is required'
+    }, { status: 400 });
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return NextResponse.json({
+      success: false,
+      error: 'Invalid email format'
+    }, { status: 400 });
+  }
+
+  try {
+    await ensureTablesExist();
+
+    const contactData = {
+      email,
+      first_name: first_name || '',
+      last_name: last_name || '',
+      tags: tags || [],
+      custom_fields: custom_fields || {}
+    };
+
+    const result = await EmailMarketingDatabase.addEmailContact(contactData);
+
+    return NextResponse.json({
+      success: true,
+      data: result,
+      message: 'Contact added successfully'
+    });
+  } catch (error) {
+    console.error('Error adding contact:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to add contact'
+    }, { status: 500 });
+  }
+}
+
+// Import multiple contacts (CSV or JSON)
+async function handleImportContacts(body: any) {
+  const { contacts, source = 'manual' } = body;
+
+  if (!contacts || !Array.isArray(contacts)) {
+    return NextResponse.json({
+      success: false,
+      error: 'Contacts array is required'
+    }, { status: 400 });
+  }
+
+  if (contacts.length === 0) {
+    return NextResponse.json({
+      success: false,
+      error: 'At least one contact is required'
+    }, { status: 400 });
+  }
+
+  try {
+    await ensureTablesExist();
+
+    const results = {
+      total: contacts.length,
+      imported: 0,
+      skipped: 0,
+      errors: []
+    };
+
+    for (const contactData of contacts) {
+      try {
+        if (!contactData.email) {
+          results.skipped++;
+          results.errors.push(`Missing email for contact: ${JSON.stringify(contactData)}`);
+          continue;
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contactData.email)) {
+          results.skipped++;
+          results.errors.push(`Invalid email format: ${contactData.email}`);
+          continue;
+        }
+
+        await EmailMarketingDatabase.addEmailContact({
+          email: contactData.email,
+          first_name: contactData.first_name || '',
+          last_name: contactData.last_name || '',
+          tags: contactData.tags || [],
+          custom_fields: contactData.custom_fields || {}
+        });
+
+        results.imported++;
+      } catch (error) {
+        results.skipped++;
+        results.errors.push(`Failed to import ${contactData.email}: ${error.message}`);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: results,
+      message: `Import completed. ${results.imported} contacts imported, ${results.skipped} skipped.`
+    });
+  } catch (error) {
+    console.error('Error importing contacts:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to import contacts'
+    }, { status: 500 });
+  }
 }

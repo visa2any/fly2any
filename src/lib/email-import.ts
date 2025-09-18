@@ -319,50 +319,53 @@ class EmailImportService {
   // Salvar contatos via API do email-marketing (conecta com o sistema real)
   private async saveContactsViaAPI(contacts: ImportedContact[]): Promise<void> {
     try {
-      console.log(`📡 Salvando ${contacts.length} contatos via API email-marketing...`);
-      
-      // Preparar dados no formato correto para a API
-      const contactsData = contacts.map(contact => ({
-        email: contact.email,
-        nome: contact.nome,
-        sobrenome: contact.sobrenome,
-        telefone: contact.telefone,
-        segmento: contact.segmento || 'geral',
-        tags: contact.tags || []
-      }));
-      
-      // Usar import direto da API sem HTTP calls (mais eficiente e confiável)
-      const { EmailContactsDB, generateUnsubscribeToken } = await import('@/lib/email-marketing-db');
-      
-      // Preparar contatos para inserção direta no banco
-      const contactsToInsert = contactsData.map((contact: any) => ({
-        email: contact.email,
-        nome: contact.nome || 'Cliente',
-        sobrenome: contact.sobrenome || '',
-        telefone: contact.telefone || '',
-        segmento: contact.segmento || 'geral',
-        tags: Array.isArray(contact.tags) ? contact.tags : [],
-        status: 'active' as const,
-        email_status: 'not_sent' as const,
-        unsubscribe_token: generateUnsubscribeToken()
-      }));
-      
-      // Usar o método bulkCreate da API que já está implementado
-      const result = await EmailContactsDB.bulkCreate(contactsToInsert);
-      
-      console.log(`✅ Importação concluída com sucesso!`);
-      console.log(`📊 ${result.inserted} contatos importados`);
-      console.log(`🔄 ${result.duplicates} duplicatas ignoradas`);
-      if (result.errors.length > 0) {
-        console.log(`⚠️ ${result.errors.length} erros encontrados`);
-        result.errors.forEach(error => console.log(`   - ${error}`));
+      console.log(`📡 Salvando ${contacts.length} contatos via EMAIL MARKETING DATABASE...`);
+
+      // Usar o sistema principal EmailMarketingDatabase que a dashboard já usa
+      const { EmailMarketingDatabase } = await import('@/lib/email-marketing-database');
+
+      // Ensure tables exist first
+      await EmailMarketingDatabase.initializeEmailTables();
+
+      let imported = 0;
+      let duplicates = 0;
+      const errors: string[] = [];
+
+      // Process each contact individually using the main database system
+      for (const contact of contacts) {
+        try {
+          await EmailMarketingDatabase.addEmailContact({
+            email: contact.email,
+            first_name: contact.nome,
+            last_name: contact.sobrenome,
+            nome: contact.nome,
+            sobrenome: contact.sobrenome,
+            segmento: contact.segmento || 'geral',
+            customer_id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          });
+          imported++;
+        } catch (error: any) {
+          if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+            duplicates++;
+          } else {
+            errors.push(`Erro ao salvar ${contact.email}: ${error.message}`);
+          }
+        }
       }
-      
+
+      console.log(`✅ Importação concluída com sucesso!`);
+      console.log(`📊 ${imported} contatos importados`);
+      console.log(`🔄 ${duplicates} duplicatas ignoradas`);
+      if (errors.length > 0) {
+        console.log(`⚠️ ${errors.length} erros encontrados`);
+        errors.forEach(error => console.log(`   - ${error}`));
+      }
+
       return;
-      
+
     } catch (error) {
-      console.error('❌ Erro ao salvar via API:', error);
-      
+      console.error('❌ Erro ao salvar via EmailMarketingDatabase:', error);
+
       // Fallback: tentar HTTP call
       console.log('🔄 Tentando fallback via HTTP...');
       await this.saveContactsViaHTTP(contacts);
@@ -417,12 +420,12 @@ class EmailImportService {
     segments: Record<string, number>;
   }> {
     try {
-      const { EmailContactsDB } = await import('@/lib/email-marketing-db');
-      const stats = await EmailContactsDB.getStats();
-      
+      const { EmailMarketingDatabase } = await import('@/lib/email-marketing-database');
+      const stats = await EmailMarketingDatabase.getEmailMarketingStats('30d');
+
       return {
         total: stats.totalContacts,
-        segments: stats.bySegmento || {}
+        segments: stats.segmentStats || {}
       };
     } catch (error) {
       console.error('Erro ao obter estatísticas:', error);
@@ -433,25 +436,25 @@ class EmailImportService {
   // Obter contatos por segmento via API
   async getContactsBySegment(segment?: string): Promise<ImportedContact[]> {
     try {
-      const { EmailContactsDB } = await import('@/lib/email-marketing-db');
-      
+      const { EmailMarketingDatabase } = await import('@/lib/email-marketing-database');
+
       const filters: any = {
-        status: 'ativo'
+        status: 'active'
       };
-      
+
       if (segment) {
-        filters.segmento = segment;
+        filters.segment = segment;
       }
-      
-      const contacts = await EmailContactsDB.findAll(filters);
-      
-      return contacts.map((contact: any) => ({
+
+      const result = await EmailMarketingDatabase.getEmailContacts(filters);
+
+      return result.contacts.map((contact: any) => ({
         email: contact.email,
-        nome: contact.nome,
-        sobrenome: contact.sobrenome,
-        telefone: contact.telefone,
+        nome: contact.first_name || '',
+        sobrenome: contact.last_name || '',
+        telefone: contact.phone || '',
         cidade: undefined, // Não existe na estrutura atual
-        segmento: contact.segmento,
+        segmento: contact.segment || 'geral',
         tags: Array.isArray(contact.tags) ? contact.tags : []
       }));
     } catch (error) {

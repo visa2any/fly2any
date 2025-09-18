@@ -235,9 +235,12 @@ export class EmailMarketingDatabase {
         CREATE TABLE IF NOT EXISTS email_contacts (
           id TEXT PRIMARY KEY,
           customer_id TEXT NOT NULL,
-          email TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
           first_name TEXT,
           last_name TEXT,
+          nome TEXT,
+          sobrenome TEXT,
+          segmento TEXT DEFAULT 'geral',
           email_status TEXT DEFAULT 'active',
           subscription_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           unsubscribe_date TIMESTAMP,
@@ -250,8 +253,7 @@ export class EmailMarketingDatabase {
           last_email_clicked_at TIMESTAMP,
           engagement_score INTEGER DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `;
 
@@ -332,16 +334,38 @@ export class EmailMarketingDatabase {
       // Indexes for performance
       await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_email ON email_contacts(email)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_status ON email_contacts(email_status)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_email_contacts_segmento ON email_contacts(segmento)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_events_contact_id ON email_events(contact_id)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_events_campaign_id ON email_events(campaign_id)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_events_type ON email_events(event_type)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_campaigns_status ON email_campaigns(status)`;
       await sql`CREATE INDEX IF NOT EXISTS idx_email_segments_active ON email_segments(is_active)`;
-      
+
+      // Add missing columns if they don't exist (migration)
+      await this.addMissingColumns();
+
       console.log('✅ Email Marketing database tables initialized successfully');
     } catch (error) {
       console.error('❌ Error initializing email marketing tables:', error);
       throw error;
+    }
+  }
+
+  // Add missing columns to existing tables (migration)
+  static async addMissingColumns(): Promise<void> {
+    try {
+      // Add missing columns to email_contacts table if they don't exist
+      try {
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS nome TEXT`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS sobrenome TEXT`;
+        await sql`ALTER TABLE email_contacts ADD COLUMN IF NOT EXISTS segmento TEXT DEFAULT 'geral'`;
+        console.log('✅ Added missing columns to email_contacts table');
+      } catch (error) {
+        console.log('Note: Some columns may already exist:', error);
+      }
+    } catch (error) {
+      console.error('❌ Error adding missing columns:', error);
+      // Don't throw, this is just a migration
     }
   }
 
@@ -357,7 +381,7 @@ export class EmailMarketingDatabase {
           'contact_' || c.id,
           c.id,
           c.email,
-          c.nome,
+          c.name,
           CASE 
             WHEN c.receber_promocoes = true AND c.status != 'inativo' THEN 'active'
             ELSE 'unsubscribed'
@@ -552,8 +576,22 @@ export class EmailMarketingDatabase {
         email_status: row.email_status,
         subscription_date: new Date(row.subscription_date || row.created_at),
         unsubscribe_date: row.unsubscribe_date ? new Date(row.unsubscribe_date) : undefined,
-        tags: JSON.parse(row.tags || '[]'),
-        custom_fields: JSON.parse(row.custom_fields || '{}'),
+        tags: (() => {
+          try {
+            return JSON.parse(row.tags || '[]');
+          } catch (e) {
+            console.warn('Invalid JSON in tags:', row.tags);
+            return [];
+          }
+        })(),
+        custom_fields: (() => {
+          try {
+            return JSON.parse(row.custom_fields || '{}');
+          } catch (e) {
+            console.warn('Invalid JSON in custom_fields:', row.custom_fields);
+            return {};
+          }
+        })(),
         total_emails_sent: row.total_emails_sent || 0,
         total_emails_opened: row.total_emails_opened || 0,
         total_emails_clicked: row.total_emails_clicked || 0,
@@ -576,6 +614,9 @@ export class EmailMarketingDatabase {
     email: string;
     first_name?: string;
     last_name?: string;
+    nome?: string;
+    sobrenome?: string;
+    segmento?: string;
     customer_id?: string;
   }): Promise<any> {
     try {
@@ -583,27 +624,37 @@ export class EmailMarketingDatabase {
 
       await sql`
         INSERT INTO email_contacts (
-          id, customer_id, email, first_name, last_name,
+          id, customer_id, email, first_name, last_name, nome, sobrenome, segmento,
           email_status, subscription_date, tags, engagement_score
         ) VALUES (
           ${contactId},
-          ${contactData.customer_id || null},
+          ${contactData.customer_id || contactId},
           ${contactData.email},
-          ${contactData.first_name || null},
-          ${contactData.last_name || null},
+          ${contactData.first_name || contactData.nome || null},
+          ${contactData.last_name || contactData.sobrenome || null},
+          ${contactData.nome || contactData.first_name || null},
+          ${contactData.sobrenome || contactData.last_name || null},
+          ${contactData.segmento || 'geral'},
           'active',
           ${new Date().toISOString()},
           '[]',
           0
         )
-        ON CONFLICT (email) DO NOTHING
+        ON CONFLICT (email) DO UPDATE SET
+          nome = EXCLUDED.nome,
+          sobrenome = EXCLUDED.sobrenome,
+          segmento = EXCLUDED.segmento,
+          updated_at = CURRENT_TIMESTAMP
       `;
 
       return {
         id: contactId,
         email: contactData.email,
-        first_name: contactData.first_name,
-        last_name: contactData.last_name,
+        first_name: contactData.first_name || contactData.nome,
+        last_name: contactData.last_name || contactData.sobrenome,
+        nome: contactData.nome || contactData.first_name,
+        sobrenome: contactData.sobrenome || contactData.last_name,
+        segmento: contactData.segmento || 'geral',
         email_status: 'active'
       };
     } catch (error) {
