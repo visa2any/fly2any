@@ -1,6 +1,5 @@
 import NextAuth from "next-auth"
-import GitHub from "next-auth/providers/github"
-import Credentials from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials"
 
 // Admin credentials
 const ADMIN_CREDENTIALS = {
@@ -8,9 +7,9 @@ const ADMIN_CREDENTIALS = {
   password: process.env.ADMIN_PASSWORD || 'fly2any2024!'
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export default NextAuth({
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -29,72 +28,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // Check admin credentials
-        if (credentials.email === ADMIN_CREDENTIALS.email) {
-          console.log('🔍 [AUTH] Validating admin user');
-          console.log('🔍 [AUTH] Expected password:', ADMIN_CREDENTIALS.password);
-          console.log('🔍 [AUTH] Provided password:', credentials.password);
-          
-          // Handle escaped characters in environment variables
-          const cleanPassword = ADMIN_CREDENTIALS.password.replace(/\\!/g, '!');
-          const isValidPassword = credentials.password === cleanPassword || 
-                                 credentials.password === ADMIN_CREDENTIALS.password;
-          
-          if (!isValidPassword) {
-            console.error('❌ [AUTH] Invalid admin password');
-            console.error('❌ [AUTH] Expected (clean):', cleanPassword);
-            console.error('❌ [AUTH] Expected (raw):', ADMIN_CREDENTIALS.password);
-            console.error('❌ [AUTH] Provided:', credentials.password);
-            return null;
-          }
-
-          console.log('✅ [AUTH] Admin authorized successfully');
+        if (credentials.email === ADMIN_CREDENTIALS.email &&
+            credentials.password === ADMIN_CREDENTIALS.password) {
+          console.log('✅ [AUTH] Admin login successful');
           return {
-            id: '1',
+            id: 'admin',
             email: ADMIN_CREDENTIALS.email,
             name: 'Administrator',
             role: 'admin'
           };
         }
 
-        console.error('❌ [AUTH] Email not found:', credentials.email);
+        console.error('❌ [AUTH] Invalid credentials provided');
         return null;
       }
-    }),
-    GitHub({
-      clientId: process.env.AUTH_GITHUB_ID || "placeholder_github_id",
-      clientSecret: process.env.AUTH_GITHUB_SECRET || "placeholder_github_secret",
     })
   ],
-  session: {
-    strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours
-    updateAge: 60 * 60, // Update every hour
-  },
   pages: {
     signIn: '/admin/login',
-    error: '/admin/login',
+    error: '/admin/login'
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        token.accessToken = account.access_token;
-        token.userId = user.id;
-        token.role = (user as any).role || 'user';
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token.userId) {
-        session.user.id = token.userId as string;
-      }
-      if (token.role) {
-        (session.user as any).role = token.role;
-      }
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
+      if (token?.role) {
+        session.user.role = token.role;
       }
       return session;
-    },
+    }
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fly2any-super-secret-key-2024',
+  secret: process.env.NEXTAUTH_SECRET || 'fly2any-dev-secret-2024',
+  debug: process.env.NODE_ENV === 'development'
 })
+
+export { default as auth } from "next-auth"
