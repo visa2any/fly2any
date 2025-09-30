@@ -10,6 +10,9 @@ const nextConfig = {
   compress: true,
   // swcMinify removed - deprecated in Next.js 15.x (SWC is default)
 
+  // Next.js 15.1.0 External packages configuration
+  serverExternalPackages: ['@react-email/render', 'resend'],
+
   // Optimized experimental features
   experimental: {
     optimizeCss: true,
@@ -23,7 +26,6 @@ const nextConfig = {
       'zod'
     ],
     webpackBuildWorker: true,
-    serverComponentsExternalPackages: ['@react-email/render', 'resend'],
   },
 
   // Re-enable image optimization with Sharp
@@ -40,6 +42,15 @@ const nextConfig = {
 
   // Optimized webpack configuration for enterprise deployment
   webpack: (config, { dev, isServer }) => {
+    // Next.js 15.1.0 - Eliminate server reference errors in client components
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'private-next-rsc-server-reference': false,
+        'private-next-rsc-action-encryption': false,
+        'server-only': false,
+      };
+    }
     // Optimized production settings
     config.optimization = {
       ...config.optimization,
