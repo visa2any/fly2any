@@ -19,7 +19,7 @@ import {
   LanguageIcon
 } from '@heroicons/react/24/outline';
 import CityAutocomplete from '../CityAutocomplete';
-import PhoneInput from '@/components/PhoneInput';
+import PhoneInputSimple from '@/components/PhoneInputSimple';
 import { cities } from '@/data/cities';
 
 interface TourFormData {
@@ -53,6 +53,7 @@ interface MobileTourFormProps {
   onClose: () => void;
   onSubmit?: (data: TourFormData) => void;
   mode?: 'compact' | 'premium' | 'embedded';
+  showNavigation?: boolean;
   className?: string;
 }
 
@@ -695,7 +696,7 @@ const MobileTourFormUnified: React.FC<MobileTourFormProps> = ({
                       <PhoneIcon className="w-4 h-4 mr-2 text-amber-500" />
                       Telefone/WhatsApp
                     </label>
-                    <PhoneInput
+                    <PhoneInputSimple
                       value={formData.phone}
                       onChange={(value) => handleInputChange('phone', value)}
                       placeholder="(11) 99999-9999"

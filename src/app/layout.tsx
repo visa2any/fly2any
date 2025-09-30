@@ -637,7 +637,6 @@ export default function RootLayout({
           enableGoogleSGE={true}
           language="pt"
           businessType="travel-agency"
-          currentPage="homepage"
         />
         {/* <UltraThinkReactPatch /> */}
         <Providers>

@@ -338,9 +338,6 @@ class EmailImportService {
             email: contact.email,
             first_name: contact.nome,
             last_name: contact.sobrenome,
-            nome: contact.nome,
-            sobrenome: contact.sobrenome,
-            segmento: contact.segmento || 'geral',
             customer_id: `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
           });
           imported++;

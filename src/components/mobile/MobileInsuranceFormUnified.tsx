@@ -21,7 +21,7 @@ import {
   PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import CityAutocomplete from '../CityAutocomplete';
-import PhoneInput from '@/components/PhoneInput';
+import PhoneInputSimple from '@/components/PhoneInputSimple';
 import { cities } from '@/data/cities';
 
 interface InsuranceFormData {
@@ -55,6 +55,7 @@ interface MobileInsuranceFormProps {
   onClose: () => void;
   onSubmit?: (data: InsuranceFormData) => void;
   mode?: 'compact' | 'premium' | 'embedded';
+  showNavigation?: boolean;
   className?: string;
 }
 
@@ -746,7 +747,7 @@ const MobileInsuranceFormUnified: React.FC<MobileInsuranceFormProps> = ({
                       <PhoneIcon className="w-4 h-4 mr-2 text-green-500" />
                       Telefone/WhatsApp
                     </label>
-                    <PhoneInput
+                    <PhoneInputSimple
                       value={formData.phone}
                       onChange={(value) => handleInputChange('phone', value)}
                       placeholder="(11) 99999-9999"
