@@ -587,23 +587,6 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
                     countryCode: '+55'
                   }
                 }}
-                unifiedFormData={{
-                  currentStep: 1,
-                  currentServiceIndex: 0,
-                  serviceType: 'voos',
-                  serviceDetails: formData.serviceData,
-                  budgetRange: formData.budget || 'standard',
-                  specialPreferences: formData.preferencias || '',
-                  isUrgent: formData.urgente,
-                  hasFlexibleDates: formData.flexivelDatas,
-                  firstName: formData.nome.split(' ')[0] || '',
-                  lastName: formData.nome.split(' ').slice(1).join(' ') || '',
-                  email: formData.email,
-                  phone: formData.telefone,
-                  countryCode: '+55',
-                  agreedToTerms: false,
-                  marketingOptIn: false
-                }}
                 className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
             )}
@@ -1068,23 +1051,6 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
                     phone: formData.telefone,
                     countryCode: '+55'
                   }
-                }}
-                unifiedFormData={{
-                  currentStep: 1,
-                  currentServiceIndex: 0,
-                  serviceType: 'voos',
-                  serviceDetails: formData.serviceData,
-                  budgetRange: formData.budget || 'standard',
-                  specialPreferences: formData.preferencias || '',
-                  isUrgent: formData.urgente,
-                  hasFlexibleDates: formData.flexivelDatas,
-                  firstName: formData.nome.split(' ')[0] || '',
-                  lastName: formData.nome.split(' ').slice(1).join(' ') || '',
-                  email: formData.email,
-                  phone: formData.telefone,
-                  countryCode: '+55',
-                  agreedToTerms: false,
-                  marketingOptIn: false
                 }}
                 className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
