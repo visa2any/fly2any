@@ -46,7 +46,6 @@ import ExitIntentPopup from '@/components/ExitIntentPopup';
 import HydrationSafeServiceCards from '@/components/HydrationSafeServiceCards';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
-import MobileAppLayout from '@/components/mobile/MobileAppLayout';
 import MobileUnifiedLeadForm from '@/components/mobile/MobileUnifiedLeadForm';
 import MobileFlightFormUnified from '@/components/mobile/MobileFlightFormUnified';
 import MobileHotelFormUnified from '@/components/mobile/MobileHotelFormUnified';
@@ -54,6 +53,7 @@ import MobileCarFormUnified from '@/components/mobile/MobileCarFormUnified';
 import MobileTourFormUnified from '@/components/mobile/MobileTourFormUnified';
 import MobileInsuranceFormUnified from '@/components/mobile/MobileInsuranceFormUnified';
 import MobileSuccessModal from '@/components/mobile/MobileSuccessModal';
+import UnifiedMobileBottomNav from '@/components/mobile/UnifiedMobileBottomNav';
 // AI 2025 SEO OPTIMIZATION
 import AI2025FAQ from '@/components/seo/AI2025FAQ';
 // Enterprise hydration-safe hooks
@@ -1304,9 +1304,7 @@ useEffect(() => {
         <div className={styles.mobileHeader}>
           <div className={styles.mobileHeaderContent}>
             <div className={styles.mobileLogoContainer}>
-              <Link href="/" className="block">
-                <Logo variant="logo-only" size="sm" />
-              </Link>
+              <Logo variant="logo-only" size="sm" clickable={true} href="/" />
             </div>
             <button className={styles.mobileHamburgerButton}>
               <Bars3Icon className={styles.mobileHamburgerIcon} />
@@ -1460,76 +1458,43 @@ useEffect(() => {
 
       </div>
 
-      {/* Fixed Bottom Navigation - Overlay (outside document flow) */}
-      <div className={styles.mobileBottomNav}>
-        <div className={styles.mobileBottomNavContent}>
-          <button 
-            className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-            onClick={() => {
-              // Close all mobile forms and navigate to home
-              setShowMobileFlightForm(false);
-              setShowMobileHotelForm(false);
-              setShowMobileCarForm(false);
-              setShowMobileTourForm(false);
-              setShowMobileInsuranceForm(false);
-              // Smooth scroll to top for better UX
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            <HomeIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Home</span>
-          </button>
-          <button 
-            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
-            onClick={() => window.open('https://wa.me/551151944717', '_blank')}
-          >
-            <ChatIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Chat</span>
-          </button>
-          <button 
-            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
-            onClick={() => {
-              // Close all other forms and open Flight form
-              setShowMobileHotelForm(false);
-              setShowMobileCarForm(false);
-              setShowMobileTourForm(false);
-              setShowMobileInsuranceForm(false);
-              setShowMobileFlightForm(true);
-            }}
-          >
-            <FlightIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Voos</span>
-          </button>
-          <button 
-            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
-            onClick={() => {
-              // Close all other forms and open Hotel form
-              setShowMobileFlightForm(false);
-              setShowMobileCarForm(false);
-              setShowMobileTourForm(false);
-              setShowMobileInsuranceForm(false);
-              setShowMobileHotelForm(true);
-            }}
-          >
-            <HotelIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Hotel</span>
-          </button>
-          <button 
-            className={`${styles.mobileNavTab} ${styles.mobileNavTabInactive}`}
-            onClick={() => {
-              // Close all other forms and open Car form
-              setShowMobileFlightForm(false);
-              setShowMobileHotelForm(false);
-              setShowMobileTourForm(false);
-              setShowMobileInsuranceForm(false);
-              setShowMobileCarForm(true);
-            }}
-          >
-            <CarIcon className={styles.mobileNavTabIcon} />
-            <span className={styles.mobileNavTabLabel}>Car</span>
-          </button>
-        </div>
-      </div>
+      {/* Fixed Bottom Navigation - Unified Component - Only show on main page */}
+      {!showMobileFlightForm && !showMobileHotelForm && !showMobileCarForm && !showMobileTourForm && !showMobileInsuranceForm && (
+        <UnifiedMobileBottomNav
+          activeTab="home"
+          onHomeClick={() => {
+            setShowMobileFlightForm(false);
+            setShowMobileHotelForm(false);
+            setShowMobileCarForm(false);
+            setShowMobileTourForm(false);
+            setShowMobileInsuranceForm(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+          onVoosClick={() => {
+            setShowMobileHotelForm(false);
+            setShowMobileCarForm(false);
+            setShowMobileTourForm(false);
+            setShowMobileInsuranceForm(false);
+            setShowMobileFlightForm(true);
+          }}
+          onHotelClick={() => {
+            setShowMobileFlightForm(false);
+            setShowMobileCarForm(false);
+            setShowMobileTourForm(false);
+            setShowMobileInsuranceForm(false);
+            setShowMobileHotelForm(true);
+          }}
+          onCarClick={() => {
+            setShowMobileFlightForm(false);
+            setShowMobileHotelForm(false);
+            setShowMobileTourForm(false);
+            setShowMobileInsuranceForm(false);
+            setShowMobileCarForm(true);
+          }}
+          className="md:hidden"
+        />
+      )}
 
       {/* Desktop Content - CSS Media Query Controlled */}
       <div className="desktop-content-container">
@@ -4221,13 +4186,12 @@ useEffect(() => {
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Link 
-                    href="/" 
-                    className="block"
-                    onClick={() => setShowMobileFlightForm(false)}
-                  >
-                    <Logo variant="logo-only" size="sm" />
-                  </Link>
+                  <Logo
+                    variant="logo-only"
+                    size="sm"
+                    clickable={true}
+                    href="/"
+                  />
                 </div>
                 <button 
                   className={styles.mobileHamburgerButton}
@@ -4243,7 +4207,7 @@ useEffect(() => {
               <MobileFlightFormUnified
                 mode="premium"
                 stepFlow="extended"
-                showNavigation={true}
+                showNavigation={false}
                 onClose={() => setShowMobileFlightForm(false)}
                 onSubmit={(data) => {
                   handleMobileLeadSubmit(data, 'voos', setShowMobileFlightForm);
@@ -4253,64 +4217,40 @@ useEffect(() => {
             </div>
             
             {/* Bottom Navigation in Flight Form */}
-            <div className={styles.mobileBottomNav}>
-              <div className={styles.mobileBottomNavContent}>
-                <button 
-                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-                  onClick={() => {
-                    setShowMobileFlightForm(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  <FlightIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Voos</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileFlightForm(false);
-                    setShowMobileHotelForm(true);
-                  }}
-                >
-                  <HotelIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Hotel</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileFlightForm(false);
-                    setShowMobileCarForm(true);
-                  }}
-                >
-                  <CarIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Carro</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileFlightForm(false);
-                    setShowMobileTourForm(true);
-                  }}
-                >
-                  <TourIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Tour</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileFlightForm(false);
-                    setShowMobileInsuranceForm(true);
-                  }}
-                >
-                  <InsuranceIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Seguro</span>
-                </button>
-              </div>
-            </div>
+            <UnifiedMobileBottomNav
+              activeTab="voos"
+              onHomeClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              onVoosClick={() => {
+                setShowMobileFlightForm(true);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onHotelClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(true);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onCarClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(true);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              className="md:hidden"
+            />
           </div>
         )}
 
@@ -4321,15 +4261,14 @@ useEffect(() => {
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Link 
-                    href="/" 
-                    className="block"
-                    onClick={() => setShowMobileHotelForm(false)}
-                  >
-                    <Logo variant="logo-only" size="sm" />
-                  </Link>
+                  <Logo
+                    variant="logo-only"
+                    size="sm"
+                    clickable={true}
+                    href="/"
+                  />
                 </div>
-                <button 
+                <button
                   className={styles.mobileHamburgerButton}
                   onClick={() => setShowMobileHotelForm(false)}
                 >
@@ -4342,6 +4281,7 @@ useEffect(() => {
             <div className={styles.mobileFormContentWithPadding}>
               <MobileHotelFormUnified
                 mode="premium"
+                showNavigation={false}
                 onClose={() => setShowMobileHotelForm(false)}
                 onSubmit={(data) => {
                   handleMobileLeadSubmit(data, 'hoteis', setShowMobileHotelForm);
@@ -4351,64 +4291,40 @@ useEffect(() => {
             </div>
             
             {/* Bottom Navigation in Hotel Form */}
-            <div className={styles.mobileBottomNav}>
-              <div className={styles.mobileBottomNavContent}>
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileHotelForm(false);
-                    setShowMobileFlightForm(true);
-                  }}
-                >
-                  <FlightIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Voos</span>
-                </button>
-
-                <button 
-                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-                  onClick={() => {
-                    setShowMobileHotelForm(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  <HotelIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Hotel</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileHotelForm(false);
-                    setShowMobileCarForm(true);
-                  }}
-                >
-                  <CarIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Carro</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileHotelForm(false);
-                    setShowMobileTourForm(true);
-                  }}
-                >
-                  <TourIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Tour</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileHotelForm(false);
-                    setShowMobileInsuranceForm(true);
-                  }}
-                >
-                  <InsuranceIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Seguro</span>
-                </button>
-              </div>
-            </div>
+            <UnifiedMobileBottomNav
+              activeTab="hotel"
+              onHomeClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              onVoosClick={() => {
+                setShowMobileFlightForm(true);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onHotelClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(true);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onCarClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(true);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              className="md:hidden"
+            />
           </div>
         )}
 
@@ -4419,15 +4335,14 @@ useEffect(() => {
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Link 
-                    href="/" 
-                    className="block"
-                    onClick={() => setShowMobileCarForm(false)}
-                  >
-                    <Logo variant="logo-only" size="sm" />
-                  </Link>
+                  <Logo
+                    variant="logo-only"
+                    size="sm"
+                    clickable={true}
+                    href="/"
+                  />
                 </div>
-                <button 
+                <button
                   className={styles.mobileHamburgerButton}
                   onClick={() => setShowMobileCarForm(false)}
                 >
@@ -4435,11 +4350,12 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            
+
             {/* Form Content Area */}
             <div className="flex-1 overflow-y-auto pt-4 px-2">
               <MobileCarFormUnified
                 mode="premium"
+                showNavigation={false}
                 onClose={() => setShowMobileCarForm(false)}
                 onSubmit={(data) => {
                   handleMobileLeadSubmit(data, 'carros', setShowMobileCarForm);
@@ -4449,64 +4365,40 @@ useEffect(() => {
             </div>
             
             {/* Bottom Navigation in Car Form */}
-            <div className={styles.mobileBottomNav}>
-              <div className={styles.mobileBottomNavContent}>
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileCarForm(false);
-                    setShowMobileFlightForm(true);
-                  }}
-                >
-                  <FlightIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Voos</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileCarForm(false);
-                    setShowMobileHotelForm(true);
-                  }}
-                >
-                  <HotelIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Hotel</span>
-                </button>
-
-                <button 
-                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-                  onClick={() => {
-                    setShowMobileCarForm(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  <CarIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Carro</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileCarForm(false);
-                    setShowMobileTourForm(true);
-                  }}
-                >
-                  <TourIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Tour</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileCarForm(false);
-                    setShowMobileInsuranceForm(true);
-                  }}
-                >
-                  <InsuranceIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Seguro</span>
-                </button>
-              </div>
-            </div>
+            <UnifiedMobileBottomNav
+              activeTab="car"
+              onHomeClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              onVoosClick={() => {
+                setShowMobileFlightForm(true);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onHotelClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(true);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onCarClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(true);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              className="md:hidden"
+            />
           </div>
         )}
 
@@ -4517,15 +4409,14 @@ useEffect(() => {
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Link 
-                    href="/" 
-                    className="block"
-                    onClick={() => setShowMobileTourForm(false)}
-                  >
-                    <Logo variant="logo-only" size="sm" />
-                  </Link>
+                  <Logo
+                    variant="logo-only"
+                    size="sm"
+                    clickable={true}
+                    href="/"
+                  />
                 </div>
-                <button 
+                <button
                   className={styles.mobileHamburgerButton}
                   onClick={() => setShowMobileTourForm(false)}
                 >
@@ -4533,11 +4424,12 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            
+
             {/* Form Content Area */}
             <div className="flex-1 overflow-y-auto pt-4 px-2">
               <MobileTourFormUnified
                 mode="premium"
+                showNavigation={false}
                 onClose={() => setShowMobileTourForm(false)}
                 onSubmit={(data) => {
                   handleMobileLeadSubmit(data, 'passeios', setShowMobileTourForm);
@@ -4547,64 +4439,40 @@ useEffect(() => {
             </div>
             
             {/* Bottom Navigation in Tour Form */}
-            <div className={styles.mobileBottomNav}>
-              <div className={styles.mobileBottomNavContent}>
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileTourForm(false);
-                    setShowMobileFlightForm(true);
-                  }}
-                >
-                  <FlightIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Voos</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileTourForm(false);
-                    setShowMobileHotelForm(true);
-                  }}
-                >
-                  <HotelIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Hotel</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileTourForm(false);
-                    setShowMobileCarForm(true);
-                  }}
-                >
-                  <CarIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Carro</span>
-                </button>
-
-                <button 
-                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-                  onClick={() => {
-                    setShowMobileTourForm(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  <TourIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Tour</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileTourForm(false);
-                    setShowMobileInsuranceForm(true);
-                  }}
-                >
-                  <InsuranceIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Seguro</span>
-                </button>
-              </div>
-            </div>
+            <UnifiedMobileBottomNav
+              activeTab="home"
+              onHomeClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              onVoosClick={() => {
+                setShowMobileFlightForm(true);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onHotelClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(true);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onCarClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(true);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              className="md:hidden"
+            />
           </div>
         )}
 
@@ -4615,15 +4483,14 @@ useEffect(() => {
             <div className={styles.mobileHeader}>
               <div className={styles.mobileHeaderContent}>
                 <div className={styles.mobileLogoContainer}>
-                  <Link 
-                    href="/" 
-                    className="block"
-                    onClick={() => setShowMobileInsuranceForm(false)}
-                  >
-                    <Logo variant="logo-only" size="sm" />
-                  </Link>
+                  <Logo
+                    variant="logo-only"
+                    size="sm"
+                    clickable={true}
+                    href="/"
+                  />
                 </div>
-                <button 
+                <button
                   className={styles.mobileHamburgerButton}
                   onClick={() => setShowMobileInsuranceForm(false)}
                 >
@@ -4631,11 +4498,12 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            
+
             {/* Form Content Area */}
             <div className="flex-1 overflow-y-auto pt-4 px-2">
               <MobileInsuranceFormUnified
                 mode="premium"
+                showNavigation={false}
                 onClose={() => setShowMobileInsuranceForm(false)}
                 onSubmit={(data) => {
                   handleMobileLeadSubmit(data, 'seguro', setShowMobileInsuranceForm);
@@ -4645,64 +4513,40 @@ useEffect(() => {
             </div>
             
             {/* Bottom Navigation in Insurance Form */}
-            <div className={styles.mobileBottomNav}>
-              <div className={styles.mobileBottomNavContent}>
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileInsuranceForm(false);
-                    setShowMobileFlightForm(true);
-                  }}
-                >
-                  <FlightIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Voos</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileInsuranceForm(false);
-                    setShowMobileHotelForm(true);
-                  }}
-                >
-                  <HotelIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Hotel</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileInsuranceForm(false);
-                    setShowMobileCarForm(true);
-                  }}
-                >
-                  <CarIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Carro</span>
-                </button>
-
-                <button 
-                  className={styles.mobileNavTab}
-                  onClick={() => {
-                    setShowMobileInsuranceForm(false);
-                    setShowMobileTourForm(true);
-                  }}
-                >
-                  <TourIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Tour</span>
-                </button>
-
-                <button 
-                  className={`${styles.mobileNavTab} ${styles.mobileNavTabActive}`}
-                  onClick={() => {
-                    setShowMobileInsuranceForm(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  <InsuranceIcon className={styles.mobileNavTabIcon} />
-                  <span className={styles.mobileNavTabLabel}>Seguro</span>
-                </button>
-              </div>
-            </div>
+            <UnifiedMobileBottomNav
+              activeTab="home"
+              onHomeClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onChatClick={() => window.open('https://wa.me/551151944717', '_blank')}
+              onVoosClick={() => {
+                setShowMobileFlightForm(true);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onHotelClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(true);
+                setShowMobileCarForm(false);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              onCarClick={() => {
+                setShowMobileFlightForm(false);
+                setShowMobileHotelForm(false);
+                setShowMobileCarForm(true);
+                setShowMobileTourForm(false);
+                setShowMobileInsuranceForm(false);
+              }}
+              className="md:hidden"
+            />
           </div>
         )}
 

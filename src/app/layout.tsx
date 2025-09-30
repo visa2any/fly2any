@@ -627,8 +627,10 @@ export default function RootLayout({
             }),
           }}
         />
-
-        {/* AI 2025 SEARCH OPTIMIZATION */}
+      </head>
+      <body className="font-inter antialiased">
+        <GlobalMobileStyles />
+        {/* AI 2025 SEARCH OPTIMIZATION - Moved from head to body to prevent hydration error */}
         <AI2025SearchOptimizer
           enableChatGPTCitations={true}
           enablePerplexityOptimization={true}
@@ -637,9 +639,6 @@ export default function RootLayout({
           businessType="travel-agency"
           currentPage="homepage"
         />
-      </head>
-      <body className="font-inter antialiased">
-        <GlobalMobileStyles />
         {/* <UltraThinkReactPatch /> */}
         <Providers>
           {/*
