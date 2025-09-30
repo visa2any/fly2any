@@ -26,7 +26,7 @@ import {
   Bars3Icon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInput';
+import PhoneInputSimple from '@/components/PhoneInputSimple';
 import MobileFlightFormUnified from './MobileFlightFormUnified';
 import MobileHotelForm from './MobileHotelForm';
 import MobileCarForm from './MobileCarForm';
@@ -116,35 +116,35 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
       id: 'voos',
       name: 'Passagens Aéreas',
       icon: '✈️',
-      description: 'Voos nacionais e internacionais',
+      description: 'Passagens com melhor preço garantido',
       color: 'from-primary-500 to-primary-600'
     },
     {
       id: 'hoteis',
       name: 'Hotéis',
       icon: '🏨',
-      description: 'Hospedagem em destinos nacionais e internacionais',
+      description: 'Hospedagem premium em todo mundo',
       color: 'from-emerald-500 to-emerald-600'
     },
     {
       id: 'carros',
       name: 'Aluguel de Carros',
       icon: '🚗',
-      description: 'Veículos para suas viagens',
+      description: 'Carros sem taxa extra e cancelamento grátis',
       color: 'from-purple-500 to-purple-600'
     },
     {
       id: 'passeios',
       name: 'Passeios & Tours',
       icon: '🎯',
-      description: 'Experiências e roteiros personalizados',
+      description: 'Experiências exclusivas e roteiros VIP',
       color: 'from-warning-500 to-warning-600'
     },
     {
       id: 'seguro',
       name: 'Seguro Viagem',
       icon: '🛡️',
-      description: 'Proteção para sua viagem',
+      description: 'Proteção 24h mundial com cobertura total',
       color: 'from-success-500 to-success-600'
     }
   ];
@@ -294,7 +294,8 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
   const isServiceStep = ['voos', 'hoteis', 'carros', 'passeios', 'seguro'].includes(currentStep);
   
   // ULTRATHINK: Identify ultra-premium forms that have built-in navigation
-  const isUltraPremiumStep = ['voos'].includes(currentStep);
+  // FIXED: Removed 'voos' to restore Voltar button functionality
+  const isUltraPremiumStep = ([] as StepType[]).includes(currentStep);
   
   // Enhanced step helpers
   const getStepLabel = () => {
@@ -319,16 +320,18 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
 
   return (
     <div className={`h-full bg-gradient-to-br from-neutral-50 to-neutral-100 ${className} flex flex-col`}>
-      {/* CONSISTENT WHITE HEADER - Hidden when embedded or for Ultra-Premium Forms */}
-      {!isEmbedded && !isUltraPremiumStep && (
+      {/* CONSISTENT WHITE HEADER - ULTRATHINK: Show compact version when embedded */}
+      {!isUltraPremiumStep && (
         <div className="md:hidden sticky top-0 z-50">
-          {/* Modern Status Bar with Enhanced UX */}
-          <div className="h-safe-top bg-gradient-to-r from-primary-600 to-primary-700 relative">
-            <div className="absolute inset-0 bg-black/5"></div>
-          </div>
-          
-          {/* WHITE HEADER - Fly2Any Main Header */}
-          <div className="bg-white shadow-neu-md border-b border-neutral-200/50">
+          {/* Modern Status Bar with Enhanced UX - Compact when embedded */}
+          {!isEmbedded && (
+            <div className="h-safe-top bg-gradient-to-r from-primary-600 to-primary-700 relative">
+              <div className="absolute inset-0 bg-black/5"></div>
+            </div>
+          )}
+
+          {/* WHITE HEADER - Fly2Any Main Header - Compact when embedded */}
+          <div className={`bg-white shadow-neu-md border-b border-neutral-200/50 ${isEmbedded ? 'py-1' : ''}`}>
             <div className="flex items-center justify-between px-2 py-1">
               {/* Left Section - Logo */}
               <div className="flex items-center gap-3">
@@ -353,9 +356,9 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
         </div>
       )}
       
-      {/* CLEAN STEP NAVIGATION - Hidden when embedded or for Ultra-Premium Forms */}
-      {!isEmbedded && !isUltraPremiumStep && (
-        <div className="md:hidden sticky z-40 bg-white/95 backdrop-blur-sm border-b border-neutral-200/50 shadow-sm mobile-step-nav-position">
+      {/* CLEAN STEP NAVIGATION - ULTRATHINK: Always show for better UX, even when embedded */}
+      {!isUltraPremiumStep && (
+        <div className={`md:hidden sticky bg-white/95 backdrop-blur-sm border-b border-neutral-200/50 shadow-sm mobile-step-nav-position ${isEmbedded ? 'z-[99997]' : 'z-40'}`}>
           <div className="px-4 py-2">
             {/* Step Title and Progress */}
             <div className="flex items-center justify-between mb-2">
@@ -543,7 +546,7 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Telefone *
                     </label>
-                    <PhoneInput
+                    <PhoneInputSimple
                       value={formData.telefone}
                       onChange={(value) => setFormData({ ...formData, telefone: value })}
                       className="w-full"
@@ -573,8 +576,34 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
             {/* Service-specific Forms - Multi-Step Wizard */}
             {currentStep === 'voos' && (
               <MobileFlightFormUnified
-                onSearch={(data) => handleServiceUpdate('voos', data)}
-                initialData={formData.serviceData.voos}
+                onSubmit={(data) => handleServiceUpdate('voos', data)}
+                initialData={{
+                  ...formData.serviceData.voos,
+                  contactInfo: {
+                    firstName: formData.nome.split(' ')[0] || '',
+                    lastName: formData.nome.split(' ').slice(1).join(' ') || '',
+                    email: formData.email,
+                    phone: formData.telefone,
+                    countryCode: '+55'
+                  }
+                }}
+                unifiedFormData={{
+                  currentStep: 1,
+                  currentServiceIndex: 0,
+                  serviceType: 'voos',
+                  serviceDetails: formData.serviceData,
+                  budgetRange: formData.budget || 'standard',
+                  specialPreferences: formData.preferencias || '',
+                  isUrgent: formData.urgente,
+                  hasFlexibleDates: formData.flexivelDatas,
+                  firstName: formData.nome.split(' ')[0] || '',
+                  lastName: formData.nome.split(' ').slice(1).join(' ') || '',
+                  email: formData.email,
+                  phone: formData.telefone,
+                  countryCode: '+55',
+                  agreedToTerms: false,
+                  marketingOptIn: false
+                }}
                 className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
             )}
@@ -999,7 +1028,7 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Telefone *
                     </label>
-                    <PhoneInput
+                    <PhoneInputSimple
                       value={formData.telefone}
                       onChange={(value) => setFormData({ ...formData, telefone: value })}
                       className="w-full"
@@ -1029,8 +1058,34 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
             {/* Service-specific Forms - Multi-Step Wizard */}
             {currentStep === 'voos' && (
               <MobileFlightFormUnified
-                onSearch={(data) => handleServiceUpdate('voos', data)}
-                initialData={formData.serviceData.voos}
+                onSubmit={(data) => handleServiceUpdate('voos', data)}
+                initialData={{
+                  ...formData.serviceData.voos,
+                  contactInfo: {
+                    firstName: formData.nome.split(' ')[0] || '',
+                    lastName: formData.nome.split(' ').slice(1).join(' ') || '',
+                    email: formData.email,
+                    phone: formData.telefone,
+                    countryCode: '+55'
+                  }
+                }}
+                unifiedFormData={{
+                  currentStep: 1,
+                  currentServiceIndex: 0,
+                  serviceType: 'voos',
+                  serviceDetails: formData.serviceData,
+                  budgetRange: formData.budget || 'standard',
+                  specialPreferences: formData.preferencias || '',
+                  isUrgent: formData.urgente,
+                  hasFlexibleDates: formData.flexivelDatas,
+                  firstName: formData.nome.split(' ')[0] || '',
+                  lastName: formData.nome.split(' ').slice(1).join(' ') || '',
+                  email: formData.email,
+                  phone: formData.telefone,
+                  countryCode: '+55',
+                  agreedToTerms: false,
+                  marketingOptIn: false
+                }}
                 className="rounded-2xl shadow-neu-lg border border-neutral-200"
               />
             )}
@@ -1287,7 +1342,7 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
 
       {/* OPTIMAL UX: Step Navigation Controls - Always Visible Above Bottom Menu */}
       {currentStep !== 'finalizacao' && (
-        <div className="fixed bottom-20 left-0 right-0 z-40 bg-gradient-to-r from-white to-neutral-50 border-t border-neutral-200 shadow-neu-lg backdrop-blur-md">
+        <div className={`fixed left-0 right-0 bg-gradient-to-r from-white to-neutral-50 border-t border-neutral-200 shadow-neu-lg backdrop-blur-md ${isEmbedded ? 'bottom-16 z-[99997]' : 'bottom-20 z-40'} min-h-[80px]`}>
           <div className="px-4 py-3">
             <div className="flex gap-3">
               {getPrevStep() && (
@@ -1393,8 +1448,8 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
         </div>
       )}
 
-      {/* Enhanced Bottom App Navigation - Optimized UX */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/50 shadow-lg z-50">
+      {/* Enhanced Bottom App Navigation - ULTRATHINK: Always show but adjust z-index */}
+      <div className={`md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-neutral-200/50 shadow-lg ${isEmbedded ? 'z-[99998]' : 'z-50'}`}>
         <div className="safe-area-bottom">
           <div className="flex items-center justify-around py-3 px-4">
           <motion.button
@@ -1478,7 +1533,7 @@ export default function MobileLeadCaptureCorrect({ onSubmit, onClose, preSelecte
           </motion.button>
           </div>
         </div>
-      </div>
+        </div>
 
       {/* Premium Success Modal - ULTRATHINK Enhancement */}
       <MobileSuccessModal

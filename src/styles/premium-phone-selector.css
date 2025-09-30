@@ -238,7 +238,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9997;
+  z-index: 99997 !important;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease;
@@ -246,13 +246,13 @@
 
 /* Mobile-Optimized Centered Dropdown */
 .phone-dropdown-mobile-centered {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   width: calc(100vw - 40px);
   max-width: 380px;
-  z-index: 9999;
+  z-index: 99999 !important;
   max-height: 70vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -397,7 +397,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 11000;
+  z-index: 99998 !important;
   max-height: 420px;
   overflow-y: auto;
   margin-top: 8px;
