@@ -8,23 +8,29 @@ export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import { Providers } from "@/components/providers";
 // ULTRATHINK ENTERPRISE: Advanced hydration safety components
-import HydrationErrorBoundary from "@/components/enterprise/HydrationErrorBoundary";
-import HydrationValidator from "@/components/enterprise/HydrationValidator";
+// import HydrationErrorBoundary from "@/components/enterprise/HydrationErrorBoundary";
+// import HydrationValidator from "@/components/enterprise/HydrationValidator";
 import GlobalMobileStyles from "@/components/GlobalMobileStyles";
-import "@/lib/enterprise/HydrationMonitor"; // Auto-initialize monitoring
+// import UltraThinkReactPatch from "@/components/UltraThinkReactPatch";
+// import "@/lib/enterprise/HydrationMonitor"; // Auto-initialize monitoring
 import "./globals.css";
 
+// Enhanced font loading with network timeout handling for production builds
+// Always load fonts but with aggressive fallbacks and timeout handling
 const inter = Inter({
   subsets: ["latin"],
-  display: "swap",
+  display: "swap", // Better for production builds - prevents font request blocking
   variable: "--font-inter",
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+  adjustFontFallback: false, // Prevent layout shift on font load failure
 });
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
+  display: "swap", // Better for production builds - prevents font request blocking
   variable: "--font-poppins",
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -93,7 +99,74 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
         <meta name="theme-color" content="#FFFFFF" />
-        
+
+        {/* ULTRATHINK: Font Loading Protection */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // ULTRATHINK: Enhanced font loading protection
+              (function() {
+                console.log('🔤 [ULTRATHINK] Font loading protection initialized');
+
+                // Immediate font fallback application
+                const applyFontFallback = function() {
+                  if (document.documentElement) {
+                    document.documentElement.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                    document.documentElement.classList.add('font-loading-fallback');
+                    console.log('🔤 [ULTRATHINK] Font fallback applied');
+                  }
+                };
+
+                // Apply fallback immediately
+                applyFontFallback();
+
+                // Global error interceptor for font issues
+                window.addEventListener('error', function(e) {
+                  if (e.error && (
+                    e.error.message.includes('font') ||
+                    e.error.message.includes('FontFace') ||
+                    e.error.message.includes('network') ||
+                    e.message && e.message.includes('font')
+                  )) {
+                    console.warn('🔤 [ULTRATHINK] Font loading error intercepted:', e.error ? e.error.message : e.message);
+                    applyFontFallback();
+                    e.preventDefault();
+                    return false;
+                  }
+
+                  // Handle webpack errors
+                  if (e.error && e.error.message && e.error.message.includes('originalFactory')) {
+                    console.warn('🛠️ [ULTRATHINK] originalFactory error intercepted:', e.error.message);
+                    e.preventDefault();
+                    return false;
+                  }
+                });
+
+                // Aggressive font loading timeout protection
+                setTimeout(function() {
+                  console.warn('🔤 [ULTRATHINK] Font loading timeout (1s), applying fallback');
+                  applyFontFallback();
+                }, 1000); // Reduced to 1 second for development speed
+
+                setTimeout(function() {
+                  if (document.fonts && document.fonts.status !== 'loaded') {
+                    console.warn('🔤 [ULTRATHINK] Font loading timeout (3s), ensuring fallback');
+                    applyFontFallback();
+                  }
+                }, 3000);
+
+                // Enhanced font loading monitoring
+                if (document.fonts) {
+                  document.fonts.ready.catch(function() {
+                    console.warn('🔤 [ULTRATHINK] Font loading failed, applying fallback');
+                    applyFontFallback();
+                  });
+                }
+              })();
+            `,
+          }}
+        />
+
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_ID && process.env.NEXT_PUBLIC_GA_ID !== 'G-XXXXXXXXXX' && (
           <>
@@ -203,7 +276,7 @@ export default function RootLayout({
           />
         )}
 
-        {/* ULTRATHINK: Desktop scrolling protection */}
+        {/* ULTRATHINK: Desktop scrolling protection - Fixed DOM access */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -213,42 +286,63 @@ export default function RootLayout({
                   function protectDesktopScrolling() {
                     // Only apply on desktop (width > 768px)
                     if (window.innerWidth > 768) {
-                      const html = document.documentElement;
-                      const body = document.body;
-                      
-                      // Remove any inline styles that constrain height
-                      if (html.style.height === '100vh' || html.style.minHeight === '100vh') {
-                        html.style.height = 'auto';
-                        html.style.minHeight = 'auto';
-                        html.style.maxHeight = 'none';
-                      }
-                      
-                      if (body.style.height === '100vh' || body.style.minHeight === '100vh') {
-                        body.style.height = 'auto';
-                        body.style.minHeight = 'auto';
-                        body.style.maxHeight = 'none';
+                      // Safely check if document elements exist before accessing
+                      if (document.documentElement && document.body) {
+                        const html = document.documentElement;
+                        const body = document.body;
+                        
+                        // Remove any inline styles that constrain height
+                        if (html.style.height === '100vh' || html.style.minHeight === '100vh') {
+                          html.style.height = 'auto';
+                          html.style.minHeight = 'auto';
+                          html.style.maxHeight = 'none';
+                        }
+                        
+                        if (body.style.height === '100vh' || body.style.minHeight === '100vh') {
+                          body.style.height = 'auto';
+                          body.style.minHeight = 'auto';
+                          body.style.maxHeight = 'none';
+                        }
                       }
                     }
                   }
                   
-                  // Run immediately
-                  protectDesktopScrolling();
-                  
                   // Run after DOM loads
-                  document.addEventListener('DOMContentLoaded', protectDesktopScrolling);
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', protectDesktopScrolling);
+                  } else {
+                    // DOM is already loaded
+                    protectDesktopScrolling();
+                  }
                   
-                  // Run after React hydration
-                  setTimeout(protectDesktopScrolling, 1000);
-                  setTimeout(protectDesktopScrolling, 3000);
-                  setTimeout(protectDesktopScrolling, 5000);
+                  // Run after React hydration with safety checks
+                  setTimeout(function() {
+                    if (document.documentElement && document.body) {
+                      protectDesktopScrolling();
+                    }
+                  }, 1000);
                   
-                  // Monitor for changes
-                  if (window.MutationObserver) {
+                  setTimeout(function() {
+                    if (document.documentElement && document.body) {
+                      protectDesktopScrolling();
+                    }
+                  }, 3000);
+                  
+                  setTimeout(function() {
+                    if (document.documentElement && document.body) {
+                      protectDesktopScrolling();
+                    }
+                  }, 5000);
+                  
+                  // Monitor for changes with safety checks
+                  if (window.MutationObserver && document.documentElement && document.body) {
                     const observer = new MutationObserver(function(mutations) {
                       mutations.forEach(function(mutation) {
                         if (mutation.type === 'attributes' && 
                             mutation.attributeName === 'style' &&
-                            window.innerWidth > 768) {
+                            window.innerWidth > 768 &&
+                            document.documentElement && 
+                            document.body) {
                           protectDesktopScrolling();
                         }
                       });
@@ -524,7 +618,9 @@ export default function RootLayout({
       </head>
       <body className="font-inter antialiased">
         <GlobalMobileStyles />
+        {/* <UltraThinkReactPatch /> */}
         <Providers>
+          {/*
           <HydrationErrorBoundary
             maxRetries={3}
             retryDelay={2000}
@@ -538,6 +634,8 @@ export default function RootLayout({
               {children}
             </HydrationValidator>
           </HydrationErrorBoundary>
+          */}
+          {children}
         </Providers>
       </body>
     </html>

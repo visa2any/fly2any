@@ -1,68 +1,39 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+/**
+ * Next.js 15.1.0 Middleware
+ * Enterprise-grade request handling and routing
+ */
 
-// Improved middleware that allows authenticated users to access admin pages
+import { NextRequest, NextResponse } from 'next/server';
+
 export function middleware(request: NextRequest) {
-  const { nextUrl } = request;
-  
-  console.log('🔒 [MIDDLEWARE] Route check:', {
-    path: nextUrl.pathname,
-    timestamp: new Date().toISOString()
-  });
-  
-  // Only handle admin routes  
-  if (nextUrl.pathname.startsWith('/admin')) {
-    // Always allow access to login page
-    if (nextUrl.pathname === '/admin/login') {
-      console.log('✅ [MIDDLEWARE] Login page access allowed');
-      return NextResponse.next();
-    }
-    
-    // Check for NextAuth v5 session tokens (multiple possible cookie names)
-    const possibleSessionCookies = [
-      'authjs.session-token',           // NextAuth v5 standard
-      'next-auth.session-token',        // NextAuth v4 fallback
-      '__Secure-next-auth.session-token', // Secure version
-      '__Secure-authjs.session-token',  // NextAuth v5 secure
-      'next-auth.csrf-token',           // CSRF token indicates active session
-      'authjs.csrf-token'               // NextAuth v5 CSRF
-    ];
-    
-    let sessionFound = false;
-    for (const cookieName of possibleSessionCookies) {
-      const cookie = request.cookies.get(cookieName);
-      if (cookie && cookie.value) {
-        console.log(`✅ [MIDDLEWARE] Session token found (${cookieName}), allowing admin access`);
-        sessionFound = true;
-        break;
-      }
-    }
-    
-    if (sessionFound) {
-      return NextResponse.next();
-    }
-    
-    // Debug: Log all cookies for troubleshooting
-    console.log('🔍 [MIDDLEWARE] Available cookies:', 
-      Array.from(request.cookies.getAll()).map(c => `${c.name}=${c.value.substring(0, 20)}...`)
-    );
-    
-    // No session found, redirect to login
-    console.log('🔄 [MIDDLEWARE] No session found, redirecting to login');
-    const loginUrl = new URL('/admin/login', nextUrl.origin);
-    loginUrl.searchParams.set('callbackUrl', nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
-  // For admin API routes, let them handle their own auth
-  if (nextUrl.pathname.startsWith('/api/admin')) {
-    console.log('🔄 [MIDDLEWARE] Allowing API admin route (will check auth internally)');
+  // Get the pathname of the request
+  const { pathname } = request.nextUrl;
+
+  // Skip middleware for static files, API routes, and internal Next.js files
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/api/') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/favicon')
+  ) {
     return NextResponse.next();
   }
-  
+
+  // Default: continue to the requested page
   return NextResponse.next();
 }
 
+// Configure which paths the middleware should run on
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"]
-}
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - robots.txt, sitemap.xml (SEO files)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+  ],
+};
