@@ -10,5 +10,8 @@ export const revalidate = 0
 export const maxDuration = 30
 export const fetchCache = 'force-no-store'
 
-// NextAuth v5 beta standard pattern
-export const { GET, POST } = NextAuth(authConfig)
+// NextAuth v5 beta - correct handlers export pattern
+const nextAuth = NextAuth(authConfig)
+
+export const GET = nextAuth.handlers.GET
+export const POST = nextAuth.handlers.POST
