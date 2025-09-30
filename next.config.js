@@ -8,7 +8,7 @@ const nextConfig = {
 
   // Enable production optimizations
   compress: true,
-  swcMinify: true, // Re-enable SWC minifier for better performance
+  // swcMinify removed - deprecated in Next.js 15.x (SWC is default)
 
   // Optimized experimental features
   experimental: {
@@ -23,6 +23,7 @@ const nextConfig = {
       'zod'
     ],
     webpackBuildWorker: true,
+    serverComponentsExternalPackages: ['@react-email/render', 'resend'],
   },
 
   // Re-enable image optimization with Sharp
@@ -87,6 +88,12 @@ const nextConfig = {
     config.resolve.alias = {
       '@': require('path').resolve(__dirname, 'src'),
       // Windows path fix for @react-email/render with correct conditional exports
+      '@react-email/render': require('path').resolve(__dirname, 'node_modules/@react-email/render'),
+    }
+
+    // Additional fallbacks for production builds
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
       '@react-email/render': require('path').resolve(__dirname, 'node_modules/@react-email/render'),
     }
 
