@@ -217,45 +217,44 @@ export default function MobileUnifiedLeadForm({
   const handleServiceFormSubmit = useCallback(async (serviceSpecificData: any) => {
     console.log('📋 Service form data received:', serviceSpecificData);
 
-    // CRITICAL FIX: Wait for state updates to complete before proceeding
-    await new Promise(resolve => {
-      // Extract contact information from service data if available
-      const contactInfo = serviceSpecificData?.contactInfo || {};
+    // Extract contact information from service data if available
+    const contactInfo = serviceSpecificData?.contactInfo || {};
 
-      // Update service details AND contact information in unified form data
-      setFormData(prev => {
-        const updatedData = {
-          ...prev,
-          serviceDetails: {
-            ...prev.serviceDetails,
-            [currentService.serviceType]: serviceSpecificData
-          },
-          // CRITICAL FIX: Update contact fields from service form data
-          firstName: contactInfo.firstName || prev.firstName,
-          lastName: contactInfo.lastName || prev.lastName,
-          email: contactInfo.email || prev.email,
-          phone: contactInfo.phone || prev.phone,
-          countryCode: contactInfo.countryCode || prev.countryCode
-        };
+    // CRITICAL FIX: Create updated serviceDetails object to pass directly
+    const updatedServiceDetails = {
+      ...formData.serviceDetails,
+      [currentService.serviceType]: serviceSpecificData
+    };
 
-        // Debug log to verify contact data extraction
-        console.log('🔧 [DEBUG] Contact info extracted:', {
-          firstName: updatedData.firstName,
-          lastName: updatedData.lastName,
-          email: updatedData.email,
-          phone: updatedData.phone,
-          source: 'handleServiceFormSubmit'
-        });
+    // Update form data state
+    setFormData(prev => {
+      const updatedData = {
+        ...prev,
+        serviceDetails: updatedServiceDetails,
+        // CRITICAL FIX: Update contact fields from service form data
+        firstName: contactInfo.firstName || prev.firstName,
+        lastName: contactInfo.lastName || prev.lastName,
+        email: contactInfo.email || prev.email,
+        phone: contactInfo.phone || prev.phone,
+        countryCode: contactInfo.countryCode || prev.countryCode
+      };
 
-        // Use setTimeout to ensure state is updated before resolving
-        setTimeout(resolve, 0);
-        return updatedData;
+      // Debug log to verify contact data extraction
+      console.log('🔧 [DEBUG] Contact info extracted:', {
+        firstName: updatedData.firstName,
+        lastName: updatedData.lastName,
+        email: updatedData.email,
+        phone: updatedData.phone,
+        serviceDetails: updatedData.serviceDetails,
+        source: 'handleServiceFormSubmit'
       });
+
+      return updatedData;
     });
 
     // If it's a single service and we're on the last step, complete the submission
     if (!hasMultipleServices && formData.currentStep === 4) {
-      await handleFinalSubmission(serviceSpecificData);
+      await handleFinalSubmission(serviceSpecificData, updatedServiceDetails);
     } else {
       // Move to next step or next service
       if (formData.currentStep < 4) {
@@ -270,13 +269,13 @@ export default function MobileUnifiedLeadForm({
           serviceType: selectedServices[prev.currentServiceIndex + 1].serviceType
         }));
       } else {
-        // Final submission
-        await handleFinalSubmission(serviceSpecificData);
+        // Final submission - CRITICAL FIX: Pass updated serviceDetails directly
+        await handleFinalSubmission(serviceSpecificData, updatedServiceDetails);
       }
     }
-  }, [currentService, hasMultipleServices, formData.currentStep, isLastService, selectedServices]);
+  }, [currentService, hasMultipleServices, formData.currentStep, formData.serviceDetails, isLastService, selectedServices]);
 
-  const handleFinalSubmission = useCallback(async (finalData: any) => {
+  const handleFinalSubmission = useCallback(async (finalData: any, updatedServiceDetails?: any) => {
     // CRITICAL FIX: Prevent double submission
     if (isSubmitting) {
       console.log('⚠️ [DEBUG] Submission already in progress, ignoring duplicate request');
@@ -286,8 +285,9 @@ export default function MobileUnifiedLeadForm({
     setIsSubmitting(true);
 
     try {
-      // CRITICAL FIX: Get current form data from state at submission time
+      // CRITICAL FIX: Use passed serviceDetails or fallback to state
       const currentFormData = { ...formData };
+      const serviceDetailsToUse = updatedServiceDetails || currentFormData.serviceDetails;
 
       // Extract any additional contact info from finalData
       const additionalContactInfo = finalData?.contactInfo || {};
@@ -304,6 +304,7 @@ export default function MobileUnifiedLeadForm({
       // Debug log to verify final form data before submission
       console.log('🚀 [DEBUG] Final form data before submission:', {
         ...finalContactInfo,
+        serviceDetails: serviceDetailsToUse,
         source: 'handleFinalSubmission'
       });
 
@@ -322,8 +323,8 @@ export default function MobileUnifiedLeadForm({
         servicos: selectedServices.map(service => service.serviceType),
         selectedServices: selectedServices.map(service => service.serviceType),
 
-        // Additional form data
-        serviceDetails: currentFormData.serviceDetails,
+        // Additional form data - CRITICAL FIX: Use passed serviceDetails
+        serviceDetails: serviceDetailsToUse,
         budgetRange: currentFormData.budgetRange,
         observacoes: currentFormData.specialPreferences,
         urgente: currentFormData.isUrgent,
