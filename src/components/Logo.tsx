@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -7,14 +8,18 @@ interface LogoProps {
   variant?: 'default' | 'white' | 'compact' | 'logo-only';
   headingLevel?: 'h1' | 'div';
   className?: string;
+  clickable?: boolean;
+  href?: string;
 }
 
-export default function Logo({ 
-  size = 'md', 
-  showText = true, 
-  variant = 'default', 
+export default function Logo({
+  size = 'md',
+  showText = true,
+  variant = 'default',
   headingLevel = 'h1',
-  className = ''
+  className = '',
+  clickable = true,
+  href = '/'
 }: LogoProps) {
   const sizes = {
     sm: { logo: 96, text: 32, tagline: 16 },
@@ -22,7 +27,7 @@ export default function Logo({
     lg: { logo: 192, text: 64, tagline: 24 },
     xl: { logo: 288, text: 96, tagline: 32 }
   };
-  
+
   const currentSize = sizes[size];
   const isWhite = variant === 'white';
   const isCompact = variant === 'compact';
@@ -32,10 +37,10 @@ export default function Logo({
   // Se for logo-only, force showText = false
   const shouldShowText = isLogoOnly ? false : showText;
 
-  return (
-    <div className={`flex items-center ${shouldShowText ? 'gap-3' : 'gap-0'} ${className}`}>
+  const logoContent = (
+    <div className={`flex items-center ${shouldShowText ? 'gap-3' : 'gap-0'} ${clickable ? 'cursor-pointer hover:opacity-80 transition-opacity duration-200' : ''}`}>
       {/* Fly2Any Official Logo */}
-      <div 
+      <div
         className={`relative ${isCompact ? '' : 'drop-shadow-lg'}`}
         style={{
           width: `${currentSize.logo}px`,
@@ -44,7 +49,7 @@ export default function Logo({
       >
         <Image
           src="/fly2any-logo.png"
-          alt="Fly2Any"
+          alt="Fly2Any - Voltar ao Início"
           fill
           sizes="(max-width: 768px) 150px, (max-width: 1200px) 200px, 250px"
           className="object-contain"
@@ -58,10 +63,10 @@ export default function Logo({
       {/* Typography - Only for shouldShowText */}
       {shouldShowText && !isCompact && (
         <div>
-          <HeadingTag 
+          <HeadingTag
             className={`font-bold font-sans m-0 leading-tight tracking-tight ${
-              isWhite 
-                ? 'text-gray-800' 
+              isWhite
+                ? 'text-gray-800'
                 : 'text-white drop-shadow-md'
             }`}
             style={{
@@ -74,6 +79,21 @@ export default function Logo({
           </HeadingTag>
         </div>
       )}
+    </div>
+  );
+
+  // If clickable, wrap in Link, otherwise return plain content
+  if (clickable) {
+    return (
+      <Link href={href} className={className} title="Fly2Any - Voltar ao Início">
+        {logoContent}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={className}>
+      {logoContent}
     </div>
   );
 }

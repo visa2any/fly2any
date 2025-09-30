@@ -85,7 +85,15 @@ export const WhatsAppChat: React.FC<WhatsAppChatProps> = ({ hotelId, className =
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          // Open chat in new window for mobile users
+          if (window.innerWidth <= 768) {
+            const chatUrl = '/chat'; // You can customize this URL or use a dedicated chat page
+            window.open(chatUrl, '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
+          } else {
+            setIsOpen(true);
+          }
+        }}
         className={`fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 ${
           isOpen ? 'hidden' : 'flex'
         } items-center justify-center ${className}`}
