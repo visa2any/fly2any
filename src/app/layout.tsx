@@ -11,6 +11,8 @@ import { Providers } from "@/components/providers";
 // import HydrationErrorBoundary from "@/components/enterprise/HydrationErrorBoundary";
 // import HydrationValidator from "@/components/enterprise/HydrationValidator";
 import GlobalMobileStyles from "@/components/GlobalMobileStyles";
+// AI 2025 SEO OPTIMIZATION COMPONENTS
+import AI2025SearchOptimizer from "@/components/seo/AI2025SearchOptimizer";
 // import UltraThinkReactPatch from "@/components/UltraThinkReactPatch";
 // import "@/lib/enterprise/HydrationMonitor"; // Auto-initialize monitoring
 import "./globals.css";
@@ -35,9 +37,9 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://fly2any.com'),
-  title: "Fly2Any - Brazil Travel Specialists | Flights to Brazil",
-  description: "Expert travel agency specializing in trips to Brazil. Flights, hotels, cars, tours and travel insurance. Free quote in 2 hours! Serving Americans, Latinos, and Brazilians.",
-  keywords: "flights to brazil, brazil travel, brazil vacation, travel to brazil, brazil travel specialists, voos brasil, viajes brasil, passagens aereas",
+  title: "Fly2Any - Brazil Travel Specialists | Expert Flights, Hotels & Tours to Brazil",
+  description: "🇧🇷 Expert travel agency specializing in Brazil trips since 2014. Affordable flights, premium hotels, rental cars, guided tours & travel insurance. 10+ years experience serving Americans, Latinos, and Brazilians. Free quote in 2 hours! ✈️🏨🚗",
+  keywords: "flights to brazil, brazil travel experts, brazil vacation packages, travel to brazil from usa, brazil travel specialists, voos brasil baratos, viajes brasil económicos, passagens aereas promocionais, how to travel to brazil, best time to visit brazil, brazil travel guide, são paulo flights, rio de janeiro hotels, brazil travel insurance, fly2any reviews, american travel to brazil, brazilian diaspora travel, miami to brazil flights, new york to brazil",
   authors: [{ name: "Fly2Any" }],
   creator: "Fly2Any",
   publisher: "Fly2Any",
@@ -81,6 +83,16 @@ export const metadata: Metadata = {
   },
   other: {
     "google-site-verification": "googlee27e970cfffea3f0",
+    // AI 2025 OPTIMIZATION META TAGS
+    "chatgpt-content-type": "travel-information",
+    "ai-citation-ready": "true",
+    "perplexity-optimized": "true",
+    "google-sge-enhanced": "true",
+    "llm-friendly": "true",
+    "voice-search-optimized": "true",
+    "ai-content-authority": "travel-expert-brazil",
+    "expertise-verification": "10-years-experience",
+    "community-validated": "true",
   },
 };
 
@@ -614,6 +626,16 @@ export default function RootLayout({
               }
             }),
           }}
+        />
+
+        {/* AI 2025 SEARCH OPTIMIZATION */}
+        <AI2025SearchOptimizer
+          enableChatGPTCitations={true}
+          enablePerplexityOptimization={true}
+          enableGoogleSGE={true}
+          language="pt"
+          businessType="travel-agency"
+          currentPage="homepage"
         />
       </head>
       <body className="font-inter antialiased">

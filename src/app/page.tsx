@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import Link from 'next/link';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
 import { 
@@ -40,18 +40,22 @@ import { AirportSelection } from '@/types/flights';
 import DatePicker from '@/components/DatePicker';
 import PhoneInput from '@/components/PhoneInputSimple';
 import FloatingChat from '@/components/FloatingChat';
-import LeadCaptureSimple from '@/components/LeadCaptureSimple';
+import LeadCapture from '@/components/LeadCapture';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import ExitIntentPopup from '@/components/ExitIntentPopup';
+import HydrationSafeServiceCards from '@/components/HydrationSafeServiceCards';
 import { cities } from '@/data/cities';
 // Mobile-specific imports
 import MobileAppLayout from '@/components/mobile/MobileAppLayout';
+import MobileUnifiedLeadForm from '@/components/mobile/MobileUnifiedLeadForm';
 import MobileFlightFormUnified from '@/components/mobile/MobileFlightFormUnified';
 import MobileHotelFormUnified from '@/components/mobile/MobileHotelFormUnified';
 import MobileCarFormUnified from '@/components/mobile/MobileCarFormUnified';
 import MobileTourFormUnified from '@/components/mobile/MobileTourFormUnified';
 import MobileInsuranceFormUnified from '@/components/mobile/MobileInsuranceFormUnified';
 import MobileSuccessModal from '@/components/mobile/MobileSuccessModal';
+// AI 2025 SEO OPTIMIZATION
+import AI2025FAQ from '@/components/seo/AI2025FAQ';
 // Enterprise hydration-safe hooks
 import { useHydrationSafeRandom } from '@/hooks/useHydrationSafeRandom';
 // CSS Module for cleaner styling
@@ -130,8 +134,8 @@ interface FormData {
 }
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isVisible, setIsVisible] = useState(false);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const [isVisible, setIsVisible] = useState(true);
   
   // Safe mobile detection - no SSR/hydration issues
   const [isMobileDevice, setIsMobileDevice] = useState(false);
@@ -140,6 +144,14 @@ export default function Home() {
   
   // Show premium app form automatically on mobile only
   const [showLeadCapture, setShowLeadCapture] = useState(false);
+
+  
+// EMERGENCY FIX: Hydration safety
+const [isClient, setIsClient] = useState(false);
+
+useEffect(() => {
+  setIsClient(true);
+}, []);
   
   // ULTRATHINK ENTERPRISE: Hydration-safe random number for social proof
   const socialProofCount = useHydrationSafeRandom({
@@ -148,6 +160,9 @@ export default function Home() {
     fallback: 12, // Professional fallback number for SSR
     delay: 100 // Small delay for smooth UX transition
   });
+
+
+
 
   // Safe mobile detection after hydration
   useEffect(() => {
@@ -214,6 +229,8 @@ export default function Home() {
   const [showMobileCarForm, setShowMobileCarForm] = useState(false);
   const [showMobileTourForm, setShowMobileTourForm] = useState(false);
   const [showMobileInsuranceForm, setShowMobileInsuranceForm] = useState(false);
+  // NEW: Unified Mobile Form State
+  const [showMobileUnifiedForm, setShowMobileUnifiedForm] = useState(false);
   
   // Mobile Success Modal State
   const [showMobileSuccessModal, setShowMobileSuccessModal] = useState(false);
@@ -316,28 +333,15 @@ export default function Home() {
     setTouchedFields((prev: any) => ({ ...prev, [name]: true }));
   };
 
-  // Calculate progress percentage
-  const getProgressPercentage = () => {
-    const totalSteps = 3;
-    
-    // Add progress within current step
-    let stepProgress = 0;
-    if (currentStep === 1) {
-      stepProgress = formData.selectedServices.length > 0 ? 0.5 : 0;
-    } else if (currentStep === 2) {
-      const service = getCurrentService();
-      if (service) {
-        const fields = ['origem', 'destino', 'dataIda'];
-        const filledFields = fields.filter(field => service[field as keyof ServiceFormData]);
-        stepProgress = fields.length > 0 ? (filledFields.length / fields.length) : 0;
-      }
-    } else if (currentStep === 3) {
-      const fields = ['nome', 'email', 'telefone'];
-      const filledFields = fields.filter(field => formData[field as keyof FormData]);
-      stepProgress = fields.length > 0 ? (filledFields.length / fields.length) : 0;
+  // Calculate progress percentage - EXACT MATCH TO ONLINE VERSION
+  const getProgressPercentage = (): number => {
+    switch(currentStep) {
+      case 1: return 0;
+      case 2: return 33;
+      case 3: return 67;
+      case 4: return 100;
+      default: return 0;
     }
-    
-    return Math.min(100, totalSteps > 0 ? (((currentStep - 1) / totalSteps) + (stepProgress / totalSteps)) * 100 : 0);
   };
 
   // Check if current step is valid
@@ -364,6 +368,9 @@ export default function Home() {
              !validateField('nome', formData.nome) &&
              !validateField('email', formData.email) &&
              !validateField('whatsapp', formData.whatsapp);
+    } else if (currentStep === 4) {
+      // Step 4 is always valid if we reached it (confirmation step)
+      return true;
     }
     return false;
   };
@@ -449,6 +456,76 @@ export default function Home() {
     setIsAddingService(false);
   };
 
+  // MULTISTEP FORM: Service selection handler
+  const handleServiceSelection = (serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro') => {
+    try {
+      console.log(`🎯 MULTISTEP: ${serviceType} service selected - adding to form`);
+
+      // Haptic feedback
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+
+      // Mobile-specific routing: Use unified mobile form for better UX
+      if (isMobileDevice) {
+        console.log(`📱 MOBILE: Adding ${serviceType} to unified mobile form`);
+
+        // Add service to the form data first
+        const isAlreadySelected = formData.selectedServices.some(s => s.serviceType === serviceType);
+        if (!isAlreadySelected) {
+          addNewService(serviceType);
+        }
+
+        // Close all existing mobile forms first
+        setShowMobileFlightForm(false);
+        setShowMobileHotelForm(false);
+        setShowMobileCarForm(false);
+        setShowMobileTourForm(false);
+        setShowMobileInsuranceForm(false);
+
+        // Open the unified mobile form
+        setShowMobileUnifiedForm(true);
+
+        // Scroll to top for better mobile UX
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Analytics for mobile routing
+        if (typeof window !== 'undefined' && window.gtag) {
+          window.gtag('event', 'mobile_unified_form_opened', {
+            event_category: 'mobile_ux',
+            event_label: serviceType,
+            value: 1
+          });
+        }
+
+        return; // Exit early for mobile users
+      }
+
+      // Desktop users continue with multistep form
+      console.log(`🖥️ DESKTOP: Adding ${serviceType} to multistep form`);
+
+      // Check if service is already selected
+      const isAlreadySelected = formData.selectedServices.some(s => s.serviceType === serviceType);
+
+      if (!isAlreadySelected) {
+        addNewService(serviceType);
+      } else {
+        console.log(`🔄 Service ${serviceType} already selected`);
+      }
+
+      // Analytics
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'multistep_service_selected', {
+          event_category: 'form_progress',
+          event_label: serviceType,
+          value: 1
+        });
+      }
+    } catch (error) {
+      console.error('Service selection error:', error);
+    }
+  };
+
   const removeService = (index: number) => {
     setFormData((prev: any) => ({
       ...prev,
@@ -513,86 +590,86 @@ export default function Home() {
   };
 
   // Mobile lead submission handler - unified API integration
-  const handleMobileLeadSubmit = async (formData: any, serviceType: string, formStateSetter: (value: boolean) => void) => {
+  const handleMobileLeadSubmit = async (mobileFormData: any, serviceType: string, formStateSetter: (value: boolean) => void) => {
     console.log(`🚀 [MOBILE ${serviceType.toUpperCase()}] Starting lead submission...`);
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // Prepare lead data for API
       const leadData = {
         // Personal Information
-        nome: formData.nome || formData.nomeCompleto || '',
-        email: formData.email || '',
-        whatsapp: formData.whatsapp || formData.telefone || '',
-        telefone: formData.telefone || formData.whatsapp || '',
-        sobrenome: formData.sobrenome || '',
+        nome: mobileFormData.nome || mobileFormData.nomeCompleto || '',
+        email: mobileFormData.email || '',
+        whatsapp: mobileFormData.whatsapp || mobileFormData.telefone || '',
+        telefone: mobileFormData.telefone || mobileFormData.whatsapp || '',
+        sobrenome: mobileFormData.sobrenome || '',
         
         // Location Information - handle both string and airport object formats
         origem: (() => {
-          if (!formData.origem) return 'A definir';
-          if (typeof formData.origem === 'string') return formData.origem;
-          return `${formData.origem.city}, ${formData.origem.country} (${formData.origem.iataCode})`;
+          if (!mobileFormData.origem) return 'A definir';
+          if (typeof mobileFormData.origem === 'string') return mobileFormData.origem;
+          return `${mobileFormData.origem.city}, ${mobileFormData.origem.country} (${mobileFormData.origem.iataCode})`;
         })(),
         destino: (() => {
-          if (!formData.destino) return 'A definir';
-          if (typeof formData.destino === 'string') return formData.destino;
-          return `${formData.destino.city}, ${formData.destino.country} (${formData.destino.iataCode})`;
+          if (!mobileFormData.destino) return 'A definir';
+          if (typeof mobileFormData.destino === 'string') return mobileFormData.destino;
+          return `${mobileFormData.destino.city}, ${mobileFormData.destino.country} (${mobileFormData.destino.iataCode})`;
         })(),
         
         // Travel Information
         selectedServices: [serviceType],
-        tipoViagem: formData.tipoViagem || 'ida-volta',
-        dataPartida: formData.dataPartida || formData.dataIda || formData.checkin || formData.dataRetirada || formData.dataInicio || '',
-        dataRetorno: formData.dataRetorno || formData.dataVolta || formData.checkout || formData.dataDevolucao || formData.dataFim || '',
-        dataIda: formData.dataIda,
-        dataVolta: formData.dataVolta,
+        tipoViagem: mobileFormData.tipoViagem || 'ida-volta',
+        dataPartida: mobileFormData.dataPartida || mobileFormData.dataIda || mobileFormData.checkin || mobileFormData.dataRetirada || mobileFormData.dataInicio || '',
+        dataRetorno: mobileFormData.dataRetorno || mobileFormData.dataVolta || mobileFormData.checkout || mobileFormData.dataDevolucao || mobileFormData.dataFim || '',
+        dataIda: mobileFormData.dataIda,
+        dataVolta: mobileFormData.dataVolta,
         
         // Passenger Information
-        numeroPassageiros: formData.numeroPassageiros || formData.adultos || 1,
-        adultos: formData.adultos || 1,
-        criancas: formData.criancas || 0,
-        bebes: formData.bebes || 0,
+        numeroPassageiros: mobileFormData.numeroPassageiros || mobileFormData.adultos || 1,
+        adultos: mobileFormData.adultos || 1,
+        criancas: mobileFormData.criancas || 0,
+        bebes: mobileFormData.bebes || 0,
         
         // Service-specific data
-        classeViagem: formData.classeViagem || formData.classeVoo || 'economica',
-        classeVoo: formData.classeVoo || 'economica',
-        companhiaPreferida: formData.companhiaPreferida,
-        horarioPreferido: formData.horarioPreferido || 'qualquer',
-        escalas: formData.escalas || 'qualquer',
+        classeViagem: mobileFormData.classeViagem || mobileFormData.classeVoo || 'economica',
+        classeVoo: mobileFormData.classeVoo || 'economica',
+        companhiaPreferida: mobileFormData.companhiaPreferida,
+        horarioPreferido: mobileFormData.horarioPreferido || 'qualquer',
+        escalas: mobileFormData.escalas || 'qualquer',
         
         // Hotel-specific
-        numeroQuartos: formData.numeroQuartos,
-        categoriaHotel: formData.categoriaHotel,
-        
+        numeroQuartos: mobileFormData.numeroQuartos,
+        categoriaHotel: mobileFormData.categoriaHotel,
+
         // Car-specific
-        categoria: formData.categoria,
-        localRetirada: formData.localRetirada,
-        localDevolucao: formData.localDevolucao,
-        
+        categoria: mobileFormData.categoria,
+        localRetirada: mobileFormData.localRetirada,
+        localDevolucao: mobileFormData.localDevolucao,
+
         // Tour-specific
-        tipoTour: formData.tipoTour,
-        categoriaHospedagem: formData.categoriaHospedagem,
-        
+        tipoTour: mobileFormData.tipoTour,
+        categoriaHospedagem: mobileFormData.categoriaHospedagem,
+
         // Insurance-specific
-        tipoSeguro: formData.tipoSeguro,
-        cobertura: formData.cobertura,
+        tipoSeguro: mobileFormData.tipoSeguro,
+        cobertura: mobileFormData.cobertura,
         
         // Budget Information
-        orcamentoTotal: formData.orcamentoTotal || formData.orcamentoAproximado,
-        orcamentoAproximado: formData.orcamentoAproximado,
-        prioridadeOrcamento: formData.prioridadeOrcamento || 'custo_beneficio',
-        flexibilidadeDatas: formData.flexibilidadeDatas || false,
-        
+        orcamentoTotal: mobileFormData.orcamentoTotal || mobileFormData.orcamentoAproximado,
+        orcamentoAproximado: mobileFormData.orcamentoAproximado,
+        prioridadeOrcamento: mobileFormData.prioridadeOrcamento || 'custo_beneficio',
+        flexibilidadeDatas: mobileFormData.flexibilidadeDatas || false,
+
         // Additional Information
-        observacoes: formData.observacoes,
+        observacoes: mobileFormData.observacoes,
         
         // Source metadata
         source: 'mobile_app',
         serviceType: serviceType,
         
         // Raw data for debugging
-        fullData: formData
+        fullData: mobileFormData
       };
       
       console.log(`📊 [MOBILE ${serviceType.toUpperCase()}] Prepared lead data:`, leadData);
@@ -670,10 +747,16 @@ export default function Home() {
     e.stopPropagation(); // Prevent event bubbling
     
     // CRITICAL FIX: Only allow final form submission, prevent auto-advancement
-    // Form submission should only happen from the final step (step 4)
-    if (currentStep < 4) {
+    // Form submission should only happen from the final step (step 4) with valid data
+    if (currentStep !== 4) {
       console.log('🔄 [FORM DEBUG] Blocked form submission - not on final step. Current step:', currentStep);
       return; // Prevent any auto-advancement
+    }
+    
+    // Validate final step before submission
+    if (!isStepValid()) {
+      console.log('🔄 [FORM DEBUG] Blocked form submission - step validation failed');
+      return;
     }
     
     setIsSubmitting(true);
@@ -753,16 +836,31 @@ export default function Home() {
   const goToNextStep = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+    const nextStep = currentStep + 1;
+    if (nextStep <= 4) {
+      setCurrentStep(nextStep as 1 | 2 | 3 | 4);
+    } else {
+      handleSubmit(e); // Final submission after step 4
     }
   };
 
   const goToPreviousStep = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    const prevStep = currentStep - 1;
+    if (prevStep >= 1) {
+      setCurrentStep(prevStep as 1 | 2 | 3 | 4);
+    }
+  };
+
+  // Get button text based on current step
+  const getNextButtonText = (): string => {
+    switch(currentStep as number) {
+      case 1: return "Continuar";
+      case 2: return "Continuar";
+      case 3: return "Continuar ✓";
+      case 4: return "Enviar";
+      default: return "Continuar";
     }
   };
 
@@ -996,15 +1094,16 @@ export default function Home() {
       </div> {/* Close mobile-success div */}
 
       {/* Exit Intent Modal */}
-      <div className={showExitIntent ? 'exit-intent-visible' : 'exit-intent-hidden'}>
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 9999,
+      {showExitIntent && (
+        <div className="exit-intent-visible">
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1128,7 +1227,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div> {/* Close exit-intent div */}
+        </div>
+      )}
 
       {/* Social Proof Notification Widget - Desktop Only */}
       {!isMobileDevice && (
@@ -1237,26 +1337,10 @@ export default function Home() {
             <button 
               className={`${styles.serviceButton} ${styles.mobileServiceButton}`}
               onClick={(e) => {
+                console.log('🚀 VOOS BUTTON CLICKED - MULTISTEP FORM');
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🎯 Voos button clicked - showMobileFlightForm:', showMobileFlightForm);
-                
-                // Haptic feedback for mobile
-                if (navigator.vibrate) {
-                  navigator.vibrate(50);
-                }
-                
-                setShowMobileFlightForm(true);
-                
-                // Analytics tracking
-                if (typeof window !== 'undefined' && window.gtag) {
-                  window.gtag('event', 'mobile_flight_form_open', {
-                    event_category: 'engagement',
-                    event_label: 'voos',
-                    value: 1
-                  });
-                }
+                handleServiceSelection('voos');
               }}
               onTouchStart={(e) => {
                 e.currentTarget.style.transform = 'scale(0.95)';
@@ -1282,18 +1366,7 @@ export default function Home() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🏨 Hotéis button clicked - showMobileHotelForm:', showMobileHotelForm);
-                setShowMobileHotelForm(true);
-                
-                // Analytics tracking
-                if (typeof window !== 'undefined' && window.gtag) {
-                  window.gtag('event', 'mobile_hotel_form_open', {
-                    event_category: 'engagement',
-                    event_label: 'hoteis',
-                    value: 1
-                  });
-                }
+                handleServiceSelection('hoteis');
               }}
               style={{ touchAction: 'manipulation' }}
             >
@@ -1308,18 +1381,7 @@ export default function Home() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🚗 Carros button clicked - showMobileCarForm:', showMobileCarForm);
-                setShowMobileCarForm(true);
-                
-                // Analytics tracking
-                if (typeof window !== 'undefined' && window.gtag) {
-                  window.gtag('event', 'mobile_car_form_open', {
-                    event_category: 'engagement',
-                    event_label: 'carros',
-                    value: 1
-                  });
-                }
+                handleServiceSelection('carros');
               }}
               style={{ touchAction: 'manipulation' }}
             >
@@ -1333,18 +1395,7 @@ export default function Home() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🎯 Tours button clicked - showMobileTourForm:', showMobileTourForm);
-                setShowMobileTourForm(true);
-                
-                // Analytics tracking
-                if (typeof window !== 'undefined' && window.gtag) {
-                  window.gtag('event', 'mobile_tour_form_open', {
-                    event_category: 'engagement',
-                    event_label: 'tours',
-                    value: 1
-                  });
-                }
+                handleServiceSelection('passeios');
               }}
               style={{ touchAction: 'manipulation' }}
             >
@@ -1359,25 +1410,14 @@ export default function Home() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                console.log('🛡️ Seguro button clicked - showMobileInsuranceForm:', showMobileInsuranceForm);
-                setShowMobileInsuranceForm(true);
-                
-                // Analytics tracking
-                if (typeof window !== 'undefined' && window.gtag) {
-                  window.gtag('event', 'mobile_insurance_form_open', {
-                    event_category: 'engagement',
-                    event_label: 'seguro',
-                    value: 1
-                  });
-                }
+                handleServiceSelection('seguro');
               }}
               style={{ touchAction: 'manipulation' }}
             >
               <div className={styles.mobileServiceIcon}>🛡️</div>
               <div className={styles.mobileServiceContent}>
                 <span className={styles.mobileServiceLabel}>Seguro Viagem</span>
-                <span className={styles.mobileServiceSubtitle}>Proteção completa</span>
+                <span className={styles.mobileServiceSubtitle}>Proteção 24h mundial</span>
               </div>
             </button>
           </div>
@@ -1738,7 +1778,7 @@ export default function Home() {
                       fontSize: '12px',
                       fontWeight: '600'
                     }}>
-                      {Math.round((currentStep / 4) * 100)}%
+                      {Math.round(getProgressPercentage())}%
                     </div>
                   </div>
                 </div> {/* Close mobile-progress div */}
@@ -1903,6 +1943,24 @@ export default function Home() {
                         Contato
                       </span>
                     </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: currentStep >= 4 ? '#10b981' : colors.primary.gray200
+                      }}></div>
+                      <span style={{
+                        fontSize: '12px',
+                        color: currentStep >= 4 ? colors.accent.green : '#6b7280'
+                      }}>
+                        Confirmar
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1913,8 +1971,8 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => {
-                        console.log('🚀 Opening premium form manually');
-                        setShowLeadCapture(true);
+                        console.log('🚀 MANUAL TEST: Opening multistep form');
+                        handleServiceSelection('voos');
                       }}
                       style={{
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -1938,8 +1996,8 @@ export default function Home() {
                 </div> {/* Close mobile-test-button div */}
                 {/* Desktop: Keep the original form below */}
 
-                <form onSubmit={handleSubmit} className="desktop-form-visible" style={{ 
-                  border: '2px solid green',
+                <form onSubmit={handleSubmit} className="desktop-form-visible" style={{
+                  border: '0',
                   padding: '20px',
                   borderRadius: '8px'
                 }}>
@@ -2008,104 +2066,15 @@ export default function Home() {
                           )}
 
                           {/* Available Services */}
-                          <div className={`${styles.servicesGrid} ${isMobileDevice ? styles.mobileServicesGrid : styles.desktopServicesGrid}`}>
-                            {(['voos', 'hoteis', 'carros', 'passeios', 'seguro'] as const).map(serviceType => {
-                              const isSelected = formData.selectedServices.some(s => s.serviceType === serviceType);
-                              const isMaxServices = formData.selectedServices.length >= 5;
-                              
-                              return (
-                                <button 
-                                  key={serviceType}
-                                  type="button" 
-                                  onClick={(e) => {
-                                    // Enhanced mobile touch handling
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    
-                                    // Haptic feedback for mobile devices
-                                    if ('vibrate' in navigator) {
-                                      navigator.vibrate([30]);
-                                    }
-                                    
-                                    addNewService(serviceType);
-                                    
-                                    // Simple analytics tracking without mobile state dependencies
-                                    if (typeof window !== 'undefined' && window.gtag) {
-                                      window.gtag('event', 'service_selection', {
-                                        event_category: 'engagement',
-                                        event_label: serviceType,
-                                        value: 1
-                                      });
-                                    }
-                                  }}
-                                  onTouchStart={(e) => {
-                                    // Enhanced touch response for mobile
-                                    if (isMobileDevice) {
-                                      e.currentTarget.style.transform = 'scale(0.95)';
-                                    }
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    // Reset touch response
-                                    if (isMobileDevice) {
-                                      setTimeout(() => {
-                                        e.currentTarget.style.transform = '';
-                                      }, 100);
-                                    }
-                                  }} 
-                                  disabled={isSelected || (isMaxServices && !isSelected)}
-                                  className={`
-                                    ${styles.serviceButton}
-                                    ${isMobileDevice ? styles.mobileServiceButton : styles.desktopServiceButton}
-                                    ${isSelected ? styles.serviceButtonSelected : ''}
-                                    ${isSelected || isMaxServices ? styles.serviceButtonDisabled : ''}
-                                    ${serviceType === 'seguro' ? styles.serviceButtonFullWidth : ''}
-                                  `}
-                                >
-                                  {serviceType === 'voos' && (
-                                    <>
-                                      <FlightIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> 
-                                      Voos
-                                      <span style={{
-                                        position: 'absolute',
-                                        top: '-6px',
-                                        right: '-6px',
-                                        background: colors.accent.orange,
-                                        color: 'white',
-                                        fontSize: '9px',
-                                        padding: '2px 6px',
-                                        borderRadius: '8px',
-                                        fontWeight: '600',
-                                        boxShadow: `0 2px 4px ${colors.accent.orange}40`
-                                      }}>
-                                        Popular
-                                      </span>
-                                    </>
-                                  )}
-                                  {serviceType === 'hoteis' && (
-                                    <>
-                                      <HotelIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Hotéis
-                                    </>
-                                  )}
-                                  {serviceType === 'carros' && (
-                                    <>
-                                      <CarIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Carros
-                                    </>
-                                  )}
-                                  {serviceType === 'passeios' && (
-                                    <>
-                                      <TourIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Passeios
-                                    </>
-                                  )}
-                                  {serviceType === 'seguro' && (
-                                    <>
-                                      <InsuranceIcon className={`${styles.serviceIcon} ${isMobileDevice ? styles.mobileServiceIcon : styles.desktopServiceIcon}`} /> Seguro
-                                    </>
-                                  )}
-                                  {isSelected && <CheckIcon style={{ width: '14px', height: '14px', color: colors.accent.green }} />}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <HydrationSafeServiceCards
+                            onServiceClick={(serviceId) => {
+                              console.log(`🎯 COMPONENT: ${serviceId} card clicked!`);
+                              handleServiceSelection(serviceId as 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro');
+                            }}
+                            isMobile={isMobileDevice}
+                            selectedServices={formData.selectedServices}
+                            isAddingService={isAddingService}
+                          />
 
                           {/* Continue/Finish Buttons */}
                           {formData.selectedServices.length > 0 && !isAddingService && (
@@ -3292,6 +3261,93 @@ export default function Home() {
                         </div>
                       </div>
 
+                      {/* Trip Details Section */}
+                      <div style={{
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        marginTop: '24px',
+                        border: '1px solid #e2e8f0'
+                      }}>
+                        <h5 style={{ 
+                          margin: '0 0 16px 0', 
+                          color: '#374151', 
+                          fontSize: '16px', 
+                          fontWeight: '600' 
+                        }}>
+                          Detalhes da Viagem
+                        </h5>
+                        
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#374151' }}>
+                            Orçamento Aproximado (Opcional)
+                          </label>
+                          <select
+                            value={formData.orcamentoAproximado}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, orcamentoAproximado: e.target.value }))}
+                            style={{ 
+                              width: '100%', 
+                              padding: '12px', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              background: '#ffffff',
+                              fontSize: '14px'
+                            }}
+                          >
+                            <option value="">Selecione uma faixa de preço</option>
+                            <option value="ate-1000">Até $1.000</option>
+                            <option value="1000-2500">$1.000 - $2.500</option>
+                            <option value="2500-5000">$2.500 - $5.000</option>
+                            <option value="5000-10000">$5.000 - $10.000</option>
+                            <option value="acima-10000">Acima de $10.000</option>
+                            <option value="sem-preferencia">Sem preferência</option>
+                          </select>
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '8px', 
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                            color: '#374151'
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={formData.flexibilidadeDatas}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, flexibilidadeDatas: e.target.checked }))}
+                              style={{ 
+                                transform: 'scale(1.2)',
+                                accentColor: '#10b981'
+                              }}
+                            />
+                            Tenho flexibilidade nas datas (±3 dias)
+                          </label>
+                        </div>
+
+                        <div style={{ marginBottom: '0' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#374151' }}>
+                            Observações Adicionais (Opcional)
+                          </label>
+                          <textarea
+                            value={formData.observacoes}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: any) => ({ ...prev, observacoes: e.target.value }))}
+                            rows={3}
+                            style={{ 
+                              width: '100%', 
+                              padding: '12px', 
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              resize: 'vertical',
+                              fontFamily: 'inherit',
+                              fontSize: '14px'
+                            }}
+                            placeholder="Alguma preferência especial, necessidade específica ou informação adicional..."
+                          />
+                        </div>
+                      </div>
+
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
                         <button type="button" onClick={() => setCurrentStep(2)} style={{ 
                           padding: '8px 16px',
@@ -3302,13 +3358,13 @@ export default function Home() {
                         }}>
                           Voltar
                         </button>
-                        <button 
-                          type="button" 
-                          onClick={() => setCurrentStep(4)} 
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(4)}
                           disabled={!isStepValid()}
-                          style={{ 
+                          style={{
                             padding: '12px 24px',
-                            background: isStepValid() ? '#10b981' : '#9ca3af',
+                            background: isStepValid() ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#9ca3af',
                             color: 'white',
                             border: 'none',
                             borderRadius: '12px',
@@ -3319,114 +3375,178 @@ export default function Home() {
                             opacity: isStepValid() ? 1 : 0.6
                           }}
                         >
-                          Continuar ✓
+                          Revisar Pedido →
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Step 4: Trip Details */}
+                  {/* Step 4: Confirmation & Review */}
                   {currentStep === 4 && (
                     <div>
-                      <h4 style={{ margin: '0 0 16px 0', color: colors.secondary.gray800 }}>Detalhes da Viagem</h4>
-                      
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>
-                          Orçamento Aproximado (Opcional)
-                        </label>
-                        <select
-                          value={formData.orcamentoAproximado}
-                          onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData((prev: any) => ({ ...prev, orcamentoAproximado: e.target.value }))}
-                          style={{ 
-                            width: '100%', 
-                            padding: '8px', 
+                      <h4 style={{ margin: '0 0 24px 0', color: colors.secondary.gray800, textAlign: 'center' }}>
+                        Confirme Seu Pedido
+                      </h4>
+
+                      {/* Order Summary Card */}
+                      <div style={{
+                        background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+                        borderRadius: '16px',
+                        padding: '24px',
+                        marginBottom: '24px',
+                        border: '2px solid #0ea5e9',
+                        boxShadow: '0 8px 32px rgba(14, 165, 233, 0.1)'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                          <span style={{ fontSize: '32px' }}>🎯</span>
+                          <h3 style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            color: '#0369a1',
+                            margin: 0
+                          }}>
+                            Resumo da Sua Viagem
+                          </h3>
+                        </div>
+
+                        {/* Services Summary */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <h5 style={{
+                            margin: '0 0 12px 0',
+                            color: colors.secondary.gray700,
+                            fontSize: '16px',
+                            fontWeight: '600'
+                          }}>
+                            Serviços Solicitados ({formData.selectedServices.length})
+                          </h5>
+                          <div style={{ display: 'grid', gap: '12px' }}>
+                            {formData.selectedServices.map((service, index) => (
+                              <div key={index} style={{
+                                background: 'rgba(255, 255, 255, 0.8)',
+                                border: '1px solid #bae6fd',
+                                borderRadius: '12px',
+                                padding: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px'
+                              }}>
+                                <span style={{ fontSize: '24px' }}>
+                                  {service.serviceType === 'voos' && '✈️'}
+                                  {service.serviceType === 'hoteis' && '🏨'}
+                                  {service.serviceType === 'carros' && '🚗'}
+                                  {service.serviceType === 'passeios' && '🎯'}
+                                  {service.serviceType === 'seguro' && '🛡️'}
+                                </span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 600, color: '#0369a1', marginBottom: '4px' }}>
+                                    {service.serviceType.charAt(0).toUpperCase() + service.serviceType.slice(1)}
+                                  </div>
+                                  {service.origem && service.destino && (
+                                    <div style={{ fontSize: '14px', color: colors.secondary.gray600 }}>
+                                      {service.origem ? (typeof service.origem === 'string' ? service.origem : service.origem.name || service.origem.iataCode) : ''} → {service.destino ? (typeof service.destino === 'string' ? service.destino : service.destino.name || service.destino.iataCode) : ''}
+                                    </div>
+                                  )}
+                                  {service.dataIda && (
+                                    <div style={{ fontSize: '14px', color: colors.secondary.gray600 }}>
+                                      📅 {service.dataIda} {service.dataVolta && `- ${service.dataVolta}`}
+                                    </div>
+                                  )}
+                                </div>
+                                <CheckIcon style={{ width: '20px', height: '20px', color: colors.accent.green }} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div style={{
+                          background: 'rgba(255, 255, 255, 0.6)',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          marginBottom: '16px'
+                        }}>
+                          <h5 style={{ margin: '0 0 12px 0', color: '#0369a1', fontSize: '16px', fontWeight: '600' }}>
+                            Seus Dados
+                          </h5>
+                          <div style={{ display: 'grid', gap: '8px', fontSize: '14px' }}>
+                            <div><strong>Nome:</strong> {formData.nome}</div>
+                            <div><strong>Email:</strong> {formData.email}</div>
+                            <div><strong>WhatsApp:</strong> {formData.whatsapp}</div>
+                            {formData.telefone && <div><strong>Telefone:</strong> {formData.telefone}</div>}
+                            {formData.orcamentoAproximado && (
+                              <div><strong>Orçamento:</strong> {formData.orcamentoAproximado}</div>
+                            )}
+                            {formData.flexibilidadeDatas && (
+                              <div style={{ color: colors.accent.green }}>✓ Flexibilidade nas datas (±3 dias)</div>
+                            )}
+                            {formData.observacoes && (
+                              <div><strong>Observações:</strong> {formData.observacoes}</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Next Steps */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+                          border: '1px solid #10b981',
+                          borderRadius: '12px',
+                          padding: '16px'
+                        }}>
+                          <h5 style={{ margin: '0 0 8px 0', color: '#047857', fontSize: '16px', fontWeight: '600' }}>
+                            ✅ Próximos Passos
+                          </h5>
+                          <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', color: '#065f46' }}>
+                            <li>Enviaremos uma confirmação por email em até 5 minutos</li>
+                            <li>Nossa equipe entrará em contato via WhatsApp em até 2 horas</li>
+                            <li>Você receberá propostas personalizadas com preços exclusivos</li>
+                            <li>Aprovação e pagamento serão feitos com total segurança</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(3)}
+                          style={{
+                            padding: '12px 20px',
+                            background: '#f3f4f6',
                             border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            background: '#ffffff'
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500'
                           }}
                         >
-                          <option value="">Selecione uma faixa de preço</option>
-                          <option value="ate-1000">Até $1.000</option>
-                          <option value="1000-2500">$1.000 - $2.500</option>
-                          <option value="2500-5000">$2.500 - $5.000</option>
-                          <option value="5000-10000">$5.000 - $10.000</option>
-                          <option value="acima-10000">Acima de $10.000</option>
-                          <option value="sem-preferencia">Sem preferência</option>
-                        </select>
-                      </div>
-
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '8px', 
-                          cursor: 'pointer',
-                          fontWeight: 500
-                        }}>
-                          <input
-                            type="checkbox"
-                            checked={formData.flexibilidadeDatas}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setFormData((prev: any) => ({ ...prev, flexibilidadeDatas: e.target.checked }))}
-                            style={{ transform: 'scale(1.2)' }}
-                          />
-                          Tenho flexibilidade nas datas (±3 dias)
-                        </label>
-                      </div>
-
-                      <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>
-                          Observações Adicionais (Opcional)
-                        </label>
-                        <textarea
-                          value={formData.observacoes}
-                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData((prev: any) => ({ ...prev, observacoes: e.target.value }))}
-                          rows={3}
-                          style={{ 
-                            width: '100%', 
-                            padding: '8px', 
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            resize: 'vertical',
-                            fontFamily: 'inherit'
-                          }}
-                          placeholder="Alguma preferência especial, necessidade específica ou informação adicional..."
-                        />
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
-                        <button type="button" onClick={() => setCurrentStep(3)} style={{ 
-                          padding: '8px 16px',
-                          background: '#f3f4f6',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          cursor: 'pointer'
-                        }}>
-                          Voltar
+                          ← Voltar
                         </button>
-                        <button 
-                          type="submit" 
+                        <button
+                          type="submit"
                           disabled={isSubmitting}
-                          style={{ 
-                            padding: isMobileDevice ? '12px 16px' : '12px 24px',
+                          style={{
+                            flex: 1,
+                            padding: '16px 32px',
                             background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: isMobileDevice ? '8px' : '12px',
+                            borderRadius: '12px',
                             cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                            fontSize: isMobileDevice ? '13px' : '16px',
-                            fontWeight: '600',
+                            fontSize: '18px',
+                            fontWeight: '700',
                             transition: 'all 0.3s ease',
-                            boxShadow: !isSubmitting ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
-                            transform: isSubmitting ? 'scale(0.98)' : 'scale(1)',
-                            width: isMobileDevice ? '100%' : 'auto',
-                            minHeight: isMobileDevice ? '44px' : 'auto'
+                            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
                           }}
                         >
-                          {isSubmitting ? '🔄 Enviando...' : isMobileDevice ? '🚀 Enviar Cotação Grátis' : '🚀 Enviar Cotação'}
+                          {isSubmitting ? '🔄 Enviando Pedido...' : '🚀 Confirmar e Enviar'}
                         </button>
                       </div>
                     </div>
                   )}
+
+
                 </form>
               </div>
             </div>
@@ -4079,19 +4199,17 @@ export default function Home() {
           <FloatingChat />
         </div>
         
-        {/* Lead Capture Modal - Premium App Experience on Mobile Only */}
-        <div className="lead-capture-mobile-visible">
-          {showLeadCapture && (
-            <LeadCaptureSimple
-              isOpen={showLeadCapture}
-              onClose={() => {
-                console.log('🔒 Closing premium form');
-                setShowLeadCapture(false);
-              }}
-              context="mobile-app"
-            />
-          )}
-        </div> {/* Close lead-capture-mobile div */}
+        {/* Lead Capture Modal - Premium App Experience */}
+        {showLeadCapture && (
+          <LeadCapture
+            isOpen={showLeadCapture}
+            onClose={() => {
+              console.log('🔒 Closing premium form');
+              setShowLeadCapture(false);
+            }}
+            context="popup"
+          />
+        )}
 
         {/* Exit Intent Popup */}
         <ExitIntentPopup enabled={true} delay={60} />
@@ -4587,12 +4705,42 @@ export default function Home() {
             </div>
           </div>
         )}
-        
+
+        {/* NEW: Unified Mobile Form - Production Quality 4-Step Flow */}
+        <MobileUnifiedLeadForm
+          selectedServices={formData.selectedServices.map(service => ({
+            serviceType: service.serviceType,
+            completed: service.completed || false
+          }))}
+          onClose={() => {
+            setShowMobileUnifiedForm(false);
+            // Reset to initial state when closing
+            setFormData((prev: any) => ({
+              ...prev,
+              selectedServices: [],
+              currentServiceIndex: 0
+            }));
+            setCurrentStep(1);
+          }}
+          isOpen={showMobileUnifiedForm}
+        />
+
+        {/* AI 2025 FAQ SECTION - Optimized for Voice Search & AI Citations */}
+        <div className="ai-faq-section-container" style={{ marginTop: '60px', marginBottom: '40px' }}>
+          <AI2025FAQ
+            language="pt"
+            showSearch={true}
+            enableVoiceSearch={true}
+            categoryFilter={true}
+            maxVisible={20}
+          />
+        </div>
+
         {/* Footer - Desktop Only (Mobile has integrated footer in hero) */}
         <div className="desktop-footer-visible">
           <LiveSiteFooter />
         </div>
-        
+
         {/* Mobile Success Modal - ULTRATHINK Mobile Optimized */}
         <MobileSuccessModal
           isOpen={showMobileSuccessModal}
