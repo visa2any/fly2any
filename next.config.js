@@ -10,22 +10,13 @@ const nextConfig = {
   compress: true,
   // swcMinify removed - deprecated in Next.js 15.x (SWC is default)
 
-  // Next.js 15.1.0 External packages configuration
-  serverExternalPackages: ['@react-email/render', 'resend'],
+  // External packages handled via webpack configuration below
 
   // Optimized experimental features
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: [
-      '@radix-ui/react-icons',
-      'lucide-react',
-      'framer-motion',
-      'date-fns',
-      'react-hook-form',
-      '@hookform/resolvers',
-      'zod'
-    ],
-    webpackBuildWorker: true,
+    // Removed webpackBuildWorker to prevent build hangs
+    // webpackBuildWorker: true,
   },
 
   // Re-enable image optimization with Sharp
@@ -34,6 +25,7 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
     loader: 'default',
   },
+
 
   // Environment variables
   env: {
@@ -49,7 +41,30 @@ const nextConfig = {
         'private-next-rsc-server-reference': false,
         'private-next-rsc-action-encryption': false,
         'server-only': false,
+        '@opentelemetry/api': false,
+        '@opentelemetry/core': false,
+        '@opentelemetry/instrumentation': false,
       };
+    }
+
+    // Force externalize OpenTelemetry modules for production builds
+    if (!dev) {
+      config.externals = config.externals || [];
+      if (typeof config.externals === 'function') {
+        const originalExternals = config.externals;
+        config.externals = (context, request, callback) => {
+          if (request.includes('@opentelemetry')) {
+            return callback(null, `commonjs ${request}`);
+          }
+          return originalExternals(context, request, callback);
+        };
+      } else {
+        config.externals.push({
+          '@opentelemetry/api': 'commonjs @opentelemetry/api',
+          '@opentelemetry/core': 'commonjs @opentelemetry/core',
+          '@opentelemetry/instrumentation': 'commonjs @opentelemetry/instrumentation',
+        });
+      }
     }
     // Optimized production settings
     config.optimization = {
