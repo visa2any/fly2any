@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LeadServiceFixed as LeadService } from '@/lib/services/lead-service-fixed';
 import { CreateLeadInput } from '@/lib/schemas/lead';
 import { sendLeadNotification } from '@/lib/lead-notifications-fixed';
+import { sendConfirmationEmail } from '@/lib/email';
 
 // Types for the API
 interface APIResponse<T = unknown> {
@@ -90,6 +91,19 @@ async function processLeadAsync(leadData: any, requestId: string) {
     console.log(`destino: "${lead.destino}"`);
     console.log(`dataPartida: "${lead.dataPartida}"`);
     console.log(`dataRetorno: "${lead.dataRetorno}"`);
+    
+    // Check if fullData contains extracted serviceDetails
+    if (lead.fullData?.extractedServiceDetails) {
+      console.log('[NOTIFICATION DEBUG] Extracted serviceDetails found:');
+      console.log(JSON.stringify(lead.fullData.extractedServiceDetails, null, 2));
+    }
+    
+    // Check if original data had serviceDetails
+    if (lead.fullData?.originalInput?.serviceDetails) {
+      console.log('[NOTIFICATION DEBUG] Original serviceDetails found:');
+      console.log(JSON.stringify(lead.fullData.originalInput.serviceDetails, null, 2));
+    }
+    
     console.log('Full lead object:', JSON.stringify(lead, null, 2));
     
     // Send admin notification
@@ -124,8 +138,16 @@ async function processLeadAsync(leadData: any, requestId: string) {
         return { success: false, error: error.message };
       })
     );
-    
-    // Send to N8N webhook if configured
+
+    // Send customer confirmation email
+    promises.push(
+      sendConfirmationEmail(lead).catch(error => {
+        console.error(`[${requestId}] Customer confirmation failed:`, error);
+        return { success: false, error: error.message, service: 'customer_email' };
+      })
+    );
+
+    // Send to N8N webhook if configured (CRITICAL FIX: Non-blocking with enhanced error handling)
     if (process.env.N8N_WEBHOOK_LEAD) {
       promises.push(
         fetch(process.env.N8N_WEBHOOK_LEAD, {
@@ -137,36 +159,57 @@ async function processLeadAsync(leadData: any, requestId: string) {
             requestId,
             leadData
           }),
-          signal: AbortSignal.timeout(10000) // 10s timeout
+          signal: AbortSignal.timeout(8000) // Reduced timeout to 8s
         }).then(response => {
           if (!response.ok) {
-            throw new Error(`N8N webhook failed: ${response.status}`);
+            // CRITICAL FIX: Log but don't fail the lead creation
+            console.warn(`[${requestId}] N8N webhook returned ${response.status}, but lead creation continues`);
+            return { success: false, error: `HTTP ${response.status}`, service: 'n8n', nonBlocking: true };
           }
+          console.log(`[${requestId}] N8N webhook successful`);
           return { success: true, service: 'n8n' };
         }).catch(error => {
-          console.error(`[${requestId}] N8N webhook failed:`, error);
-          return { success: false, error: error.message, service: 'n8n' };
+          // CRITICAL FIX: Log warning instead of error, mark as non-blocking
+          console.warn(`[${requestId}] N8N webhook failed (non-blocking):`, error.message);
+          return { success: false, error: error.message, service: 'n8n', nonBlocking: true };
         })
       );
+    } else {
+      console.log(`[${requestId}] N8N webhook not configured, skipping`);
     }
     
     // Execute all async operations
     const results = await Promise.allSettled(promises);
     
-    // Log results for monitoring
+    // Log results for monitoring (CRITICAL FIX: Enhanced logging for debugging)
     const processingSummary = {
       requestId,
       totalOperations: results.length,
       successful: results.filter(r => r.status === 'fulfilled').length,
       failed: results.filter(r => r.status === 'rejected').length,
+      nonBlockingFailures: results.filter(r =>
+        r.status === 'fulfilled' &&
+        r.value &&
+        typeof r.value === 'object' &&
+        'nonBlocking' in r.value &&
+        r.value.nonBlocking
+      ).length,
       details: results.map((result, index) => ({
         operation: index === 0 ? 'email_notification' : 'n8n_webhook',
         status: result.status,
-        ...(result.status === 'fulfilled' ? { result: result.value } : { error: result.reason })
+        ...(result.status === 'fulfilled' ? {
+          result: result.value,
+          isNonBlockingFailure: result.value && typeof result.value === 'object' && 'nonBlocking' in result.value
+        } : { error: result.reason })
       }))
     };
-    
-    console.log(`[${requestId}] Async processing completed:`, processingSummary);
+
+    // CRITICAL FIX: Log at appropriate levels
+    if (processingSummary.failed > 0) {
+      console.warn(`[${requestId}] Async processing completed with some failures:`, processingSummary);
+    } else {
+      console.log(`[${requestId}] Async processing completed successfully:`, processingSummary);
+    }
     
     return processingSummary;
     

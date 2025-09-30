@@ -6,13 +6,14 @@
 import { sql } from '@vercel/postgres';
 import { DatabaseFallback } from '@/lib/database-fallback';
 import { LeadCache } from '@/lib/lead-cache';
-import { 
+import {
   UnifiedLead,
-  ServiceType, 
-  CreateLeadInput, 
-  UpdateLeadInput, 
-  LeadQueryParams, 
+  ServiceType,
+  CreateLeadInput,
+  UpdateLeadInput,
+  LeadQueryParams,
   LeadStats,
+  BudgetPriority,
   LEAD_VALIDATION_RULES,
   convertLegacyToUnified,
   normalizeTripType,
@@ -22,6 +23,7 @@ import {
   getFlightClass,
   getBudgetAmount
 } from '@/lib/schemas/lead';
+import { AirportSelection } from '@/types/flights';
 
 interface ValidationResult {
   isValid: boolean;
@@ -33,6 +35,57 @@ interface ServiceResult<T = unknown> {
   data?: T;
   error?: string;
   metadata?: Record<string, unknown>;
+}
+
+/**
+ * Helper function to convert AirportSelection to string format
+ */
+function convertAirportSelectionToString(airport: string | AirportSelection | null | undefined): string {
+  if (!airport) return 'A definir';
+
+  if (typeof airport === 'string') {
+    return airport;
+  }
+
+  if (typeof airport === 'object' && airport.city && airport.country) {
+    return `${airport.city}, ${airport.country}${airport.iataCode ? ` (${airport.iataCode})` : ''}`;
+  }
+
+  return 'A definir';
+}
+
+/**
+ * Helper function to normalize budget priority values
+ */
+function normalizeBudgetPriority(value: string | boolean | undefined): BudgetPriority | undefined {
+  if (!value) return undefined;
+
+  if (typeof value === 'boolean' && value === true) {
+    return 'conforto'; // Map urgency to 'conforto' priority
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.toLowerCase();
+    switch (normalized) {
+      case 'alta':
+      case 'high':
+      case 'urgente':
+        return 'conforto';
+      case 'media':
+      case 'medium':
+        return 'custo_beneficio';
+      case 'baixa':
+      case 'low':
+        return 'baixo_custo';
+      case 'luxo':
+      case 'luxury':
+        return 'luxo';
+      default:
+        return 'custo_beneficio'; // Default fallback
+    }
+  }
+
+  return undefined;
 }
 
 export class LeadServiceFixed {
@@ -79,15 +132,181 @@ export class LeadServiceFixed {
   }
 
   /**
+   * ENHANCED: Extract data from serviceDetails structure with improved mapping
+   */
+  private static extractServiceDetails(input: any): Partial<CreateLeadInput> {
+    const extracted: Partial<CreateLeadInput> = {};
+
+    // Debug log for troubleshooting
+    console.log('[Lead Service] Extracting service details from input:', {
+      hasServiceDetails: !!input.serviceDetails,
+      serviceDetailsKeys: input.serviceDetails ? Object.keys(input.serviceDetails) : [],
+      voosData: input.serviceDetails?.voos ? 'exists' : 'missing'
+    });
+
+    // Check if serviceDetails.voos exists (for flight data)
+    if (input.serviceDetails?.voos) {
+      const voos = input.serviceDetails.voos;
+      console.log('[Lead Service] Processing voos data:', voos);
+
+      // Extract origin data with multiple format support
+      if (voos.origin) {
+        extracted.origem = convertAirportSelectionToString(voos.origin);
+        console.log('[Lead Service] Extracted origem:', extracted.origem);
+      }
+
+      // Extract destination data with multiple format support
+      if (voos.destination) {
+        extracted.destino = convertAirportSelectionToString(voos.destination);
+        console.log('[Lead Service] Extracted destino:', extracted.destino);
+      }
+
+      // Extract dates with validation
+      if (voos.departureDate && voos.departureDate !== '') {
+        extracted.dataPartida = voos.departureDate;
+        extracted.dataIda = voos.departureDate;
+        console.log('[Lead Service] Extracted departure date:', extracted.dataPartida);
+      }
+
+      if (voos.returnDate && voos.returnDate !== '') {
+        extracted.dataRetorno = voos.returnDate;
+        extracted.dataVolta = voos.returnDate;
+        console.log('[Lead Service] Extracted return date:', extracted.dataRetorno);
+      }
+
+      // Extract trip type with improved mapping
+      if (voos.tripType) {
+        extracted.tipoViagem = voos.tripType === 'round-trip' ? 'ida-volta' :
+                             voos.tripType === 'one-way' ? 'so-ida' :
+                             voos.tripType === 'multi-city' ? 'multipla-cidade' : voos.tripType;
+        console.log('[Lead Service] Extracted trip type:', extracted.tipoViagem);
+      }
+
+      // Extract passenger information with enhanced logic
+      if (voos.passengers) {
+        if (typeof voos.passengers === 'number') {
+          extracted.numeroPassageiros = voos.passengers;
+          extracted.adultos = voos.passengers; // default all to adults
+        } else if (typeof voos.passengers === 'object') {
+          extracted.adultos = voos.passengers.adults || 1;
+          extracted.criancas = voos.passengers.children || 0;
+          extracted.bebes = voos.passengers.infants || 0;
+          extracted.numeroPassageiros = (voos.passengers.adults || 1) +
+                                       (voos.passengers.children || 0) +
+                                       (voos.passengers.infants || 0);
+          console.log('[Lead Service] Extracted passengers:', {
+            adults: extracted.adultos,
+            children: extracted.criancas,
+            infants: extracted.bebes,
+            total: extracted.numeroPassageiros
+          });
+        }
+      }
+
+      // Extract travel class with improved mapping
+      if (voos.travelClass) {
+        const classMapping = {
+          'economy': 'economica',
+          'premium': 'premium',
+          'business': 'executiva',
+          'first': 'primeira'
+        };
+        extracted.classeViagem = classMapping[voos.travelClass as keyof typeof classMapping] || voos.travelClass;
+        extracted.classeVoo = extracted.classeViagem;
+        console.log('[Lead Service] Extracted travel class:', extracted.classeViagem);
+      }
+
+      // Extract budget information
+      if (voos.budget) {
+        const budgetMapping = {
+          'economy': 'Econômico (R$ 500 - 1.500)',
+          'standard': 'Padrão (R$ 1.500 - 3.000)',
+          'premium': 'Premium (R$ 3.000 - 5.000)',
+          'luxury': 'Luxo (R$ 5.000+)'
+        };
+        extracted.orcamentoAproximado = budgetMapping[voos.budget as keyof typeof budgetMapping] || voos.budget;
+        console.log('[Lead Service] Extracted budget:', extracted.orcamentoAproximado);
+      }
+
+      // Extract preferences
+      if (voos.preferences && voos.preferences.trim()) {
+        extracted.observacoes = voos.preferences;
+        console.log('[Lead Service] Extracted preferences:', extracted.observacoes);
+      }
+
+      // Extract urgency flags
+      if (voos.urgente !== undefined) {
+        extracted.prioridadeOrcamento = normalizeBudgetPriority(voos.urgente);
+        console.log('[Lead Service] Extracted priority:', extracted.prioridadeOrcamento);
+      }
+
+      // Extract flexible dates
+      if (voos.flexivelDatas === true) {
+        extracted.flexibilidadeDatas = true;
+        console.log('[Lead Service] Extracted flexible dates: true');
+      }
+    }
+
+    // FALLBACK: Also check top-level for service data (alternative structure)
+    if (!extracted.origem && input.serviceData?.voos?.origin) {
+      const voos = input.serviceData.voos;
+
+      extracted.origem = convertAirportSelectionToString(voos.origin);
+      extracted.destino = convertAirportSelectionToString(voos.destination);
+    }
+
+    // FALLBACK: Check if data is in flightSearchParams (another structure)
+    if (!extracted.origem && input.flightSearchParams) {
+      const params = input.flightSearchParams;
+      if (params.originLocationCode) {
+        extracted.origem = params.originLocationCode;
+      }
+      if (params.destinationLocationCode) {
+        extracted.destino = params.destinationLocationCode;
+      }
+      if (params.departureDate) {
+        extracted.dataPartida = params.departureDate;
+      }
+      if (params.returnDate) {
+        extracted.dataRetorno = params.returnDate;
+      }
+      if (params.adults || params.children || params.infants) {
+        extracted.adultos = params.adults || 1;
+        extracted.criancas = params.children || 0;
+        extracted.bebes = params.infants || 0;
+        extracted.numeroPassageiros = (params.adults || 1) + (params.children || 0) + (params.infants || 0);
+      }
+    }
+
+    // Check for other service details (hotels, cars, etc.)
+    if (input.serviceDetails?.hoteis) {
+      extracted.precisaHospedagem = true;
+    }
+
+    if (input.serviceDetails?.carros) {
+      extracted.precisaTransporte = true;
+    }
+
+    console.log('[Lead Service] Final extracted data:', extracted);
+    return extracted;
+  }
+
+  /**
    * Transform input to unified lead with better defaults
    */
   static transformToUnifiedLead(input: CreateLeadInput): UnifiedLead {
     const now = new Date().toISOString();
     const id = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
+    // Extract data from serviceDetails if present
+    const extractedData = this.extractServiceDetails(input);
+    
+    // Merge extracted data with input, giving priority to extracted data
+    const mergedInput = { ...input, ...extractedData };
+    
     // Ensure we have valid services array
-    const services = Array.isArray(input.selectedServices) 
-      ? input.selectedServices.filter((s): s is ServiceType => 
+    const services = Array.isArray(mergedInput.selectedServices) 
+      ? mergedInput.selectedServices.filter((s): s is ServiceType => 
           ['voos', 'hoteis', 'carros', 'passeios', 'seguro', 'newsletter'].includes(s as ServiceType)
         )
       : ['voos'] as ServiceType[];
@@ -97,70 +316,65 @@ export class LeadServiceFixed {
       id,
       createdAt: now,
       updatedAt: now,
-      source: input.source || 'website',
+      source: mergedInput.source || 'website',
       status: 'novo',
       priority: 'media',
       
       // Personal information
-      nome: input.nome?.trim() || '',
-      email: input.email?.toLowerCase().trim() || '',
-      whatsapp: input.whatsapp?.replace(/\D/g, '') || '',
-      sobrenome: input.sobrenome?.trim(),
-      telefone: input.telefone?.replace(/\D/g, ''),
+      nome: mergedInput.nome?.trim() || '',
+      email: mergedInput.email?.toLowerCase().trim() || '',
+      whatsapp: mergedInput.whatsapp?.replace(/\D/g, '') || '',
+      sobrenome: mergedInput.sobrenome?.trim(),
+      telefone: mergedInput.telefone?.replace(/\D/g, ''),
       
-      // Location - with defaults (handle both string and airport object formats)
-      origem: (() => {
-        if (!input.origem) return 'A definir';
-        if (typeof input.origem === 'string') return input.origem.trim();
-        // Handle airport object
-        return `${input.origem.city}, ${input.origem.country} (${input.origem.iataCode})`;
-      })(),
-      destino: (() => {
-        if (!input.destino) return 'A definir';
-        if (typeof input.destino === 'string') return input.destino.trim();
-        // Handle airport object
-        return `${input.destino.city}, ${input.destino.country} (${input.destino.iataCode})`;
-      })(),
+      // Location - with better defaults (prioritize extracted data)
+      origem: convertAirportSelectionToString(mergedInput.origem),
+      destino: convertAirportSelectionToString(mergedInput.destino),
       
       // Travel information
       selectedServices: services,
-      tipoViagem: input.tipoViagem || 'ida-volta',
+      tipoViagem: mergedInput.tipoViagem || 'ida-volta',
       
-      // Dates - handle both formats
-      dataPartida: input.dataPartida || input.dataIda,
-      dataRetorno: input.dataRetorno || input.dataVolta,
-      dataIda: input.dataIda,
-      dataVolta: input.dataVolta,
+      // Dates - handle both formats (prioritize extracted data)
+      dataPartida: mergedInput.dataPartida || mergedInput.dataIda,
+      dataRetorno: mergedInput.dataRetorno || mergedInput.dataVolta,
+      dataIda: mergedInput.dataIda,
+      dataVolta: mergedInput.dataVolta,
       
-      // Passengers with defaults
-      numeroPassageiros: input.numeroPassageiros || getTotalPassengers(input as Partial<UnifiedLead>) || 1,
-      adultos: input.adultos || 1,
-      criancas: input.criancas || 0,
-      bebes: input.bebes || 0,
+      // Passengers with defaults (prioritize extracted data)
+      numeroPassageiros: mergedInput.numeroPassageiros || getTotalPassengers(mergedInput as Partial<UnifiedLead>) || 1,
+      adultos: mergedInput.adultos || 1,
+      criancas: mergedInput.criancas || 0,
+      bebes: mergedInput.bebes || 0,
       
-      // Flight preferences with defaults
-      classeViagem: input.classeViagem || input.classeVoo || 'economica',
-      classeVoo: input.classeVoo || 'economica',
-      companhiaPreferida: input.companhiaPreferida?.trim(),
-      horarioPreferido: input.horarioPreferido || 'qualquer',
-      escalas: input.escalas || 'qualquer',
+      // Flight preferences with defaults (prioritize extracted data)
+      classeViagem: mergedInput.classeViagem || mergedInput.classeVoo || 'economica',
+      classeVoo: mergedInput.classeVoo || 'economica',
+      companhiaPreferida: mergedInput.companhiaPreferida?.trim(),
+      horarioPreferido: mergedInput.horarioPreferido || 'qualquer',
+      escalas: mergedInput.escalas || 'qualquer',
       
       // Budget
-      orcamentoTotal: input.orcamentoTotal || input.orcamentoAproximado,
-      orcamentoAproximado: input.orcamentoAproximado,
-      flexibilidadeDatas: input.flexibilidadeDatas || false,
+      orcamentoTotal: mergedInput.orcamentoTotal || mergedInput.orcamentoAproximado,
+      orcamentoAproximado: mergedInput.orcamentoAproximado,
+      prioridadeOrcamento: normalizeBudgetPriority(mergedInput.prioridadeOrcamento),
+      flexibilidadeDatas: mergedInput.flexibilidadeDatas || false,
       
       // Additional info
-      observacoes: input.observacoes,
+      observacoes: mergedInput.observacoes,
       
       // Metadata
-      userAgent: input.userAgent,
-      ipAddress: input.ipAddress,
-      pageUrl: input.pageUrl,
-      sessionId: input.sessionId,
+      userAgent: mergedInput.userAgent,
+      ipAddress: mergedInput.ipAddress,
+      pageUrl: mergedInput.pageUrl,
+      sessionId: mergedInput.sessionId,
       
-      // Store full data for reference
-      fullData: input as any
+      // Store full data for reference (include both original and extracted)
+      fullData: {
+        originalInput: input,
+        extractedServiceDetails: extractedData,
+        mergedData: mergedInput
+      } as any
     };
   }
 
@@ -185,24 +399,25 @@ export class LeadServiceFixed {
           id, nome, email, whatsapp, telefone,
           origem, destino, data_partida, data_retorno,
           numero_passageiros, tipo_viagem, selected_services,
-          observacoes, source, status, created_at
+          observacoes, source, status, created_at, full_data
         ) VALUES (
-          ${lead.id}, 
-          ${lead.nome}, 
-          ${lead.email}, 
+          ${lead.id},
+          ${lead.nome},
+          ${lead.email},
           ${lead.whatsapp || ''},
           ${lead.telefone || null},
-          ${lead.origem || 'A definir'}, 
+          ${lead.origem || 'A definir'},
           ${lead.destino || 'A definir'},
-          ${lead.dataPartida || null}, 
+          ${lead.dataPartida || null},
           ${lead.dataRetorno || null},
-          ${lead.numeroPassageiros || 1}, 
+          ${lead.numeroPassageiros || 1},
           ${lead.tipoViagem || 'ida-volta'},
           ${JSON.stringify(lead.selectedServices || ['flight'])},
-          ${lead.observacoes || null}, 
-          ${lead.source || 'website'}, 
-          ${lead.status || 'novo'}, 
-          ${lead.createdAt}
+          ${lead.observacoes || null},
+          ${lead.source || 'website'},
+          ${lead.status || 'novo'},
+          ${lead.createdAt},
+          ${JSON.stringify(lead.fullData || lead)}
         )
       `;
       
