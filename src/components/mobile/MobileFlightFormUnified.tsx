@@ -19,7 +19,7 @@ import {
   PencilIcon
 } from '@heroicons/react/24/outline';
 import { trackFormSubmit, trackQuoteRequest } from '@/lib/analytics-safe';
-import PhoneInput from '@/components/PhoneInput';
+import PhoneInputSimple from '@/components/PhoneInputSimple';
 import AirportAutocomplete from '@/components/flights/AirportAutocomplete';
 import { AirportSelection } from '@/types/flights';
 import PremiumSuccessModal from '@/components/mobile/PremiumSuccessModal';
@@ -60,20 +60,47 @@ interface FlightFormData {
   };
 }
 
+interface UnifiedMobileFormData {
+  currentStep: 1 | 2 | 3 | 4;
+  currentServiceIndex: number;
+  serviceType: 'voos' | 'hoteis' | 'carros' | 'passeios' | 'seguro';
+  serviceDetails: Record<string, any>;
+  budgetRange: string;
+  specialPreferences: string;
+  isUrgent: boolean;
+  hasFlexibleDates: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  countryCode: string;
+  agreedToTerms: boolean;
+  marketingOptIn: boolean;
+}
+
 interface MobileFlightFormUnifiedProps {
   // Core functionality
   onSearch?: (data: FlightFormData) => void;
   onSubmit?: (data: FlightFormData) => void;
   onClose?: () => void;
-  
+
   // Configuration
   mode?: 'compact' | 'premium' | 'embedded';
   stepFlow?: 'basic' | 'extended'; // 3-step vs 4-step
   showNavigation?: boolean;
   className?: string;
-  
+
   // Initial data
   initialData?: Partial<FlightFormData>;
+
+  // Unified form system props (optional for backward compatibility)
+  currentStep?: 1 | 2 | 3 | 4;
+  onStepChange?: (step: 1 | 2 | 3 | 4) => void;
+  unifiedFormData?: UnifiedMobileFormData;
+  hasMultipleServices?: boolean;
+  isLastService?: boolean;
+  serviceIndex?: number;
+  totalServices?: number;
 }
 
 type StepType = 'travel' | 'budget-notes' | 'contact' | 'confirmation';
@@ -125,52 +152,76 @@ const designTokens = {
 // UNIFIED MOBILE FLIGHT FORM COMPONENT
 // ========================================================================================
 
-export default function MobileFlightFormUnified({ 
-  onSearch, 
+export default function MobileFlightFormUnified({
+  onSearch,
   onSubmit,
   onClose,
   mode = 'premium',
   stepFlow = 'extended',
   showNavigation = true,
   className = '',
-  initialData = {}
+  initialData = {},
+  // Unified form system props
+  currentStep: unifiedCurrentStep,
+  onStepChange,
+  unifiedFormData,
+  hasMultipleServices = false,
+  isLastService = true,
+  serviceIndex = 1,
+  totalServices = 1
 }: MobileFlightFormUnifiedProps) {
   
   // =====================
   // STATE MANAGEMENT
   // =====================
-  
-  const [currentStep, setCurrentStep] = useState<StepType>('travel');
+
+  // Use unified step management if available, otherwise use local state
+  const stepTypeMap: Record<number, StepType> = { 1: 'travel', 2: 'budget-notes', 3: 'contact', 4: 'confirmation' };
+  const stepNumberMap: Record<StepType, number> = { 'travel': 1, 'budget-notes': 2, 'contact': 3, 'confirmation': 4 };
+
+  const [localCurrentStep, setLocalCurrentStep] = useState<StepType>('travel');
+  const currentStep = unifiedCurrentStep ? stepTypeMap[unifiedCurrentStep] : localCurrentStep;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
-  const [formData, setFormData] = useState<FlightFormData>({
-    tripType: 'round-trip',
-    origin: null,
-    destination: null,
-    departureDate: '',
-    returnDate: '',
-    passengers: {
-      adults: 1,
-      children: 0,
-      infants: 0
-    },
-    travelClass: 'economy',
-    contactInfo: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      countryCode: '+55'
-    },
-    budget: 'standard',
-    preferences: '',
-    urgente: false,
-    flexivelDatas: false,
-    ...initialData
+  const [formData, setFormData] = useState<FlightFormData>(() => {
+    // Initialize with unified form data if available
+    const baseData = {
+      tripType: 'round-trip' as const,
+      origin: null,
+      destination: null,
+      departureDate: '',
+      returnDate: '',
+      passengers: {
+        adults: 1,
+        children: 0,
+        infants: 0
+      },
+      travelClass: 'economy' as const,
+      contactInfo: {
+        firstName: unifiedFormData?.firstName || '',
+        lastName: unifiedFormData?.lastName || '',
+        email: unifiedFormData?.email || '',
+        phone: unifiedFormData?.phone || '',
+        countryCode: unifiedFormData?.countryCode || '+55'
+      },
+      budget: 'standard' as const,
+      preferences: unifiedFormData?.specialPreferences || '',
+      urgente: unifiedFormData?.isUrgent || false,
+      flexivelDatas: unifiedFormData?.hasFlexibleDates || false,
+      ...initialData
+    };
+
+    // If we have service details for this service, merge them
+    if (unifiedFormData?.serviceDetails?.voos) {
+      return { ...baseData, ...unifiedFormData.serviceDetails.voos };
+    }
+
+    return baseData;
   });
 
   // =====================
@@ -231,11 +282,20 @@ export default function MobileFlightFormUnified({
   // =====================
   // NAVIGATION HANDLERS
   // =====================
-  
+
   const nextStep = () => {
-    const currentIndex = getCurrentStepIndex();
-    if (currentIndex < steps.length - 1 && canProceedFromStep(currentStep)) {
-      setCurrentStep(steps[currentIndex + 1].key as StepType);
+    const currentStepNumber = stepNumberMap[currentStep];
+    const nextStepNumber = currentStepNumber + 1;
+
+    if (nextStepNumber <= 4 && canProceedFromStep(currentStep)) {
+      if (onStepChange) {
+        // Use unified step change handler
+        onStepChange(nextStepNumber as 1 | 2 | 3 | 4);
+      } else {
+        // Use local step management
+        setLocalCurrentStep(stepTypeMap[nextStepNumber]);
+      }
+
       setActiveSection(null);
       if ('vibrate' in navigator) {
         navigator.vibrate([10, 40, 8]);
@@ -244,9 +304,18 @@ export default function MobileFlightFormUnified({
   };
 
   const prevStep = () => {
-    const currentIndex = getCurrentStepIndex();
-    if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1].key as StepType);
+    const currentStepNumber = stepNumberMap[currentStep];
+    const prevStepNumber = currentStepNumber - 1;
+
+    if (prevStepNumber >= 1) {
+      if (onStepChange) {
+        // Use unified step change handler
+        onStepChange(prevStepNumber as 1 | 2 | 3 | 4);
+      } else {
+        // Use local step management
+        setLocalCurrentStep(stepTypeMap[prevStepNumber]);
+      }
+
       setActiveSection(null);
       if ('vibrate' in navigator) {
         navigator.vibrate([5, 20, 5]);
@@ -274,25 +343,31 @@ export default function MobileFlightFormUnified({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
+
     try {
       // Track analytics
       trackFormSubmit(`flight_form_mobile_${mode}`);
       trackQuoteRequest({ services: ['voos'] });
 
-      // Prepare submission data
+      // If this is part of a unified form system, just pass data back to parent
+      if (unifiedFormData && onSubmit) {
+        console.log('📋 [Unified Form] Passing flight data back to unified form');
+        onSubmit(formData);
+        return;
+      }
+
+      // Otherwise, handle standalone submission
       const submissionData = {
         nome: `${formData.contactInfo.firstName} ${formData.contactInfo.lastName}`,
         email: formData.contactInfo.email,
         telefone: formData.contactInfo.phone,
+        whatsapp: formData.contactInfo.phone, // Use phone as WhatsApp
         servicos: ['voos'],
         serviceData: {
           voos: {
             ...formData,
             originAirport: formData.origin,
-            destinationAirport: formData.destination,
-            origin: formData.origin?.iataCode || '',
-            destination: formData.destination?.iataCode || ''
+            destinationAirport: formData.destination
           }
         },
         flightSearchParams: {
@@ -339,13 +414,13 @@ export default function MobileFlightFormUnified({
       if (onSubmit) {
         onSubmit(formData);
       }
-      
+
       if (onSearch) {
         onSearch(formData);
       }
 
       setShowSuccessModal(true);
-      
+
     } catch (error) {
       console.error('Error submitting flight form:', error);
       setErrorMessage('Erro ao enviar sua solicitação. Tente novamente.');
@@ -707,8 +782,8 @@ export default function MobileFlightFormUnified({
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 mb-2 block">Telefone *</label>
-                    <PhoneInput
+                    <label className="text-xs font-semibold text-gray-700 mb-2 block">Telefone/WhatsApp *</label>
+                    <PhoneInputSimple
                       value={formData.contactInfo.phone}
                       onChange={(value) => setFormData(prev => ({
                         ...prev,
@@ -717,6 +792,7 @@ export default function MobileFlightFormUnified({
                       className="w-full"
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">💬 Usaremos este número para WhatsApp também</p>
                   </div>
                 </div>
 
