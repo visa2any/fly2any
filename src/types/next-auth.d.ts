@@ -10,6 +10,7 @@ declare module 'next-auth' {
       email: string;
       name: string;
       role?: string;
+      loginTime?: number;
       image?: string | null;
     };
     accessToken?: string;
@@ -20,6 +21,7 @@ declare module 'next-auth' {
     email: string;
     name: string;
     role?: string;
+    loginTime?: number;
     image?: string | null;
   }
 }
@@ -30,6 +32,14 @@ declare module 'next-auth/jwt' {
     id?: string;
     userId?: string;
     role?: string;
+    loginTime?: number;
     accessToken?: string;
+  }
+}
+
+declare module '@auth/core/adapters' {
+  interface AdapterUser {
+    role?: string;
+    loginTime?: number;
   }
 }
