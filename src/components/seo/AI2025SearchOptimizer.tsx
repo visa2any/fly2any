@@ -419,24 +419,6 @@ export default function AI2025SearchOptimizer({
     document.body.appendChild(crawlerOptimizations);
   };
 
-  // Development display for monitoring
-  if (process.env.NODE_ENV === 'development' && isOptimized) {
-    return (
-      <div className="fixed top-4 right-4 bg-blue-900 bg-opacity-90 text-white p-3 rounded-lg text-xs max-w-xs z-50">
-        <h4 className="font-bold mb-2">🤖 AI 2025 SEO Status</h4>
-        <div className="space-y-1">
-          <div>Overall AI Score: <span className="font-bold text-green-400">{optimizationMetrics.overallAIScore}/100</span></div>
-          <div>ChatGPT Ready: {optimizationMetrics.chatgptCompatibility}/100</div>
-          <div>Perplexity Ready: {optimizationMetrics.perplexityScore}/100</div>
-          <div>Google SGE Ready: {optimizationMetrics.googleSGEReadiness}/100</div>
-          <div className="text-green-400 text-xs mt-2">
-            ✅ AI 2025 Optimized
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="ai-2025-seo-optimizer hidden">
       <span data-ai-seo-2025-version="1.0"></span>
