@@ -80,34 +80,34 @@ export default function Home() {
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl animate-pulse delay-700"></div>
       </div>
 
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-20 flex gap-2">
-        {(['en', 'pt', 'es'] as Language[]).map((language) => (
-          <button
-            key={language}
-            onClick={() => setLang(language)}
-            className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
-              lang === language
-                ? 'bg-white text-blue-600 shadow-lg'
-                : 'bg-white/20 text-white hover:bg-white/30'
-            }`}
-          >
-            {language.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         {/* Logo */}
-        <div className="mb-8 flex justify-center">
+        <div className="mb-6 flex justify-center">
           <Image
             src="/fly2any-logo.png"
             alt="Fly2Any Travel Logo"
             width={400}
             height={120}
-            className="w-full h-auto max-w-[250px] md:max-w-[320px] drop-shadow-2xl"
+            className="w-full h-auto max-w-[125px] md:max-w-[160px] drop-shadow-2xl"
             priority
           />
+        </div>
+
+        {/* Language Switcher - Below logo on mobile, top-right on desktop */}
+        <div className="mb-6 md:mb-0 md:absolute md:top-4 md:right-4 flex gap-2 justify-center">
+          {(['en', 'pt', 'es'] as Language[]).map((language) => (
+            <button
+              key={language}
+              onClick={() => setLang(language)}
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-sm md:text-base font-semibold transition-all duration-300 ${
+                lang === language
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              {language.toUpperCase()}
+            </button>
+          ))}
         </div>
 
         {/* Main Content */}
