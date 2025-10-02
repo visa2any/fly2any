@@ -1,7 +1,7 @@
 <svg width="200" height="50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50">
   <!-- Background -->
   <rect width="200" height="50" fill="#1e40af" rx="8"/>
-  
+
   <!-- Airplane icon -->
   <g transform="translate(15, 12)">
     <path d="M2 12 L10 8 L18 12 L10 16 Z" fill="#60a5fa" opacity="0.8"/>
@@ -9,17 +9,14 @@
     <path d="M6 12 L14 12" stroke="#e0e7ff" stroke-width="1"/>
     <circle cx="10" cy="12" r="1.5" fill="#ddd6fe"/>
   </g>
-  
+
   <!-- Main text "Fly2Any" -->
   <text x="45" y="32" fill="white" font-family="Arial, sans-serif" font-size="22" font-weight="bold">
     <tspan fill="#60a5fa">Fly</tspan><tspan fill="#fbbf24">2</tspan><tspan fill="white">Any</tspan>
   </text>
-  
-  <!-- Tagline -->
-  <text x="140" y="20" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="10" font-weight="normal">
-    Sua ponte
-  </text>
-  <text x="140" y="35" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="10" font-weight="normal">
-    para o Brasil
+
+  <!-- Tagline - Travel Experts -->
+  <text x="140" y="28" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="10" font-weight="normal">
+    Travel Experts
   </text>
 </svg>

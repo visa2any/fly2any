@@ -1,10 +1,15 @@
 # ✈️ Fly2Any Travel - Under Construction
 
-> **Especialistas em Voos Brasil-EUA desde 2014**
+> **Your Travel Experts - Based in USA**
 
-## 🚧 Status: Em Construção
+## 🚧 Status: Under Construction
 
-Nossa nova plataforma de viagens está sendo desenvolvida com as mais modernas tecnologias para oferecer o melhor serviço.
+Our new travel platform is being developed with the latest technologies to offer the best service.
+
+### 🌐 Multilingual Support
+- English
+- Portuguese
+- Spanish
 
 ## 📱 Entre em Contato
 
@@ -58,4 +63,4 @@ fly2any-fresh/
 
 ---
 
-© 2025 Fly2Any Travel - Especialistas Brasil-EUA desde 2014
+© 2025 Fly2Any Travel - Based in USA

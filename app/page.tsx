@@ -1,14 +1,79 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
+
+type Language = 'en' | 'pt' | 'es';
+
+const content = {
+  en: {
+    underConstruction: 'Under Construction',
+    title: 'Fly2Any Travel',
+    subtitle: 'Your Travel Experts',
+    description: 'We are preparing an amazing experience for you! Our new travel platform is being developed with the latest technologies to offer the best service.',
+    flights: 'Flights',
+    flightsDesc: 'Best prices and routes worldwide',
+    hotels: 'Hotels & Packages',
+    hotelsDesc: 'Accommodation and complete packages',
+    contactTitle: 'Meanwhile, get in touch:',
+    techFooter: 'Cutting-edge technology in development | Coming soon',
+    footer: '© 2025 Fly2Any Travel - Based in USA',
+  },
+  pt: {
+    underConstruction: 'Em Construção',
+    title: 'Fly2Any Travel',
+    subtitle: 'Seus Especialistas em Viagens',
+    description: 'Estamos preparando uma experiência incrível para você! Nossa nova plataforma de viagens está sendo desenvolvida com as mais modernas tecnologias para oferecer o melhor serviço.',
+    flights: 'Voos',
+    flightsDesc: 'Melhores preços e rotas pelo mundo',
+    hotels: 'Hotéis & Pacotes',
+    hotelsDesc: 'Hospedagem e pacotes completos',
+    contactTitle: 'Enquanto isso, entre em contato:',
+    techFooter: 'Tecnologia de ponta em desenvolvimento | Em breve disponível',
+    footer: '© 2025 Fly2Any Travel - Baseado nos EUA',
+  },
+  es: {
+    underConstruction: 'En Construcción',
+    title: 'Fly2Any Travel',
+    subtitle: 'Sus Expertos en Viajes',
+    description: '¡Estamos preparando una experiencia increíble para ti! Nuestra nueva plataforma de viajes está siendo desarrollada con las tecnologías más modernas para ofrecer el mejor servicio.',
+    flights: 'Vuelos',
+    flightsDesc: 'Mejores precios y rutas por el mundo',
+    hotels: 'Hoteles & Paquetes',
+    hotelsDesc: 'Alojamiento y paquetes completos',
+    contactTitle: 'Mientras tanto, contáctenos:',
+    techFooter: 'Tecnología de punta en desarrollo | Próximamente disponible',
+    footer: '© 2025 Fly2Any Travel - Con sede en EE.UU.',
+  },
+};
 
 export default function Home() {
+  const [lang, setLang] = useState<Language>('en');
+  const t = content[lang];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center p-4">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-white/5 rounded-full blur-3xl animate-pulse delay-700"></div>
+      </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        {(['en', 'pt', 'es'] as Language[]).map((language) => (
+          <button
+            key={language}
+            onClick={() => setLang(language)}
+            className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
+              lang === language
+                ? 'bg-white text-blue-600 shadow-lg'
+                : 'bg-white/20 text-white hover:bg-white/30'
+            }`}
+          >
+            {language.toUpperCase()}
+          </button>
+        ))}
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -34,38 +99,38 @@ export default function Home() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span>Em Construção</span>
+              <span>{t.underConstruction}</span>
             </div>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-            Fly2Any Travel
+            {t.title}
           </h1>
 
           <h2 className="text-2xl md:text-3xl font-semibold text-sky-600 mb-6">
-            Especialistas em Voos Brasil-EUA
+            {t.subtitle}
           </h2>
 
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Estamos preparando uma experiência incrível para você! Nossa nova plataforma de viagens está sendo desenvolvida com as mais modernas tecnologias para oferecer o melhor serviço.
+            {t.description}
           </p>
 
           <div className="grid md:grid-cols-2 gap-6 mb-10">
             <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-6 rounded-2xl">
               <div className="text-4xl mb-3">✈️</div>
-              <h3 className="font-bold text-lg text-gray-800">Voos Competitivos</h3>
-              <p className="text-gray-600 text-sm mt-2">Melhores preços e rotas para o Brasil</p>
+              <h3 className="font-bold text-lg text-gray-800">{t.flights}</h3>
+              <p className="text-gray-600 text-sm mt-2">{t.flightsDesc}</p>
             </div>
             <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-6 rounded-2xl">
               <div className="text-4xl mb-3">🏨</div>
-              <h3 className="font-bold text-lg text-gray-800">Hotéis & Pacotes</h3>
-              <p className="text-gray-600 text-sm mt-2">Hospedagem e pacotes completos</p>
+              <h3 className="font-bold text-lg text-gray-800">{t.hotels}</h3>
+              <p className="text-gray-600 text-sm mt-2">{t.hotelsDesc}</p>
             </div>
           </div>
 
           {/* Contact Information */}
           <div className="border-t border-gray-200 pt-8">
-            <p className="text-gray-700 font-semibold mb-4">Enquanto isso, entre em contato:</p>
+            <p className="text-gray-700 font-semibold mb-4">{t.contactTitle}</p>
 
             <div className="flex flex-col md:flex-row gap-4 justify-center items-center mb-6">
               <a
@@ -101,13 +166,13 @@ export default function Home() {
           </div>
 
           <p className="text-sm text-gray-500 mt-8">
-            🚀 Tecnologia de ponta em desenvolvimento | Em breve disponível
+            🚀 {t.techFooter}
           </p>
         </div>
 
         {/* Footer */}
         <p className="text-white/90 mt-8 text-sm">
-          © 2025 Fly2Any Travel - Especialistas Brasil-EUA desde 2014
+          {t.footer}
         </p>
       </div>
     </div>
