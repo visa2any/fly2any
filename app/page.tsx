@@ -79,13 +79,13 @@ export default function Home() {
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
-          <div className="bg-white rounded-3xl p-8 shadow-2xl backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-4 md:p-8 shadow-2xl backdrop-blur-sm max-w-xs md:max-w-md lg:max-w-lg">
             <Image
-              src="/fly2any-logo.svg"
-              alt="Fly2Any Logo"
-              width={200}
-              height={80}
-              className="mx-auto"
+              src="/fly2any-logo.png"
+              alt="Fly2Any Travel Logo"
+              width={400}
+              height={120}
+              className="w-full h-auto"
               priority
             />
           </div>
