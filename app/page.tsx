@@ -100,16 +100,14 @@ export default function Home() {
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
-          <div className="bg-gradient-to-br from-blue-50 to-sky-100 rounded-2xl p-3 md:p-5 shadow-2xl backdrop-blur-sm max-w-[250px] md:max-w-[320px]">
-            <Image
-              src="/fly2any-logo.png"
-              alt="Fly2Any Travel Logo"
-              width={400}
-              height={120}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
+          <Image
+            src="/fly2any-logo.png"
+            alt="Fly2Any Travel Logo"
+            width={400}
+            height={120}
+            className="w-full h-auto max-w-[250px] md:max-w-[320px] drop-shadow-2xl"
+            priority
+          />
         </div>
 
         {/* Main Content */}
