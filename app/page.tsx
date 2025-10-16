@@ -135,27 +135,27 @@ export default function Home() {
           </p>
 
           <div className="grid md:grid-cols-3 gap-4 mb-10">
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl">
+            <a href="/flights" className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
               <div className="text-4xl mb-3">✈️</div>
               <h3 className="font-bold text-base text-gray-800">{t.flights}</h3>
               <p className="text-gray-600 text-xs mt-1">{t.flightsDesc}</p>
-            </div>
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl">
+            </a>
+            <a href="/hotels" className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
               <div className="text-4xl mb-3">🏨</div>
               <h3 className="font-bold text-base text-gray-800">{t.hotels}</h3>
               <p className="text-gray-600 text-xs mt-1">{t.hotelsDesc}</p>
-            </div>
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl">
+            </a>
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl opacity-60">
               <div className="text-4xl mb-3">🚗</div>
               <h3 className="font-bold text-base text-gray-800">{t.carRentals}</h3>
               <p className="text-gray-600 text-xs mt-1">{t.carRentalsDesc}</p>
             </div>
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl">
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl opacity-60">
               <div className="text-4xl mb-3">🎫</div>
               <h3 className="font-bold text-base text-gray-800">{t.tours}</h3>
               <p className="text-gray-600 text-xs mt-1">{t.toursDesc}</p>
             </div>
-            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl">
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50 p-5 rounded-2xl opacity-60">
               <div className="text-4xl mb-3">🛡️</div>
               <h3 className="font-bold text-base text-gray-800">{t.insurance}</h3>
               <p className="text-gray-600 text-xs mt-1">{t.insuranceDesc}</p>

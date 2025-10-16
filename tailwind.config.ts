@@ -7,7 +7,93 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: {
+          50: '#E6F3FF',
+          100: '#CCE7FF',
+          200: '#99CFFF',
+          300: '#66B7FF',
+          400: '#339FFF',
+          500: '#0077E6', // Reduced saturation from #0087FF for less eye strain
+          600: '#006FDB',
+          700: '#0057B7',
+          800: '#003F93',
+          900: '#00276F',
+        },
+        secondary: {
+          50: '#FFF4E6',
+          100: '#FFE9CC',
+          200: '#FFD399',
+          300: '#FFBD66',
+          400: '#FFA733',
+          500: '#FF9100',
+          600: '#DB7A00',
+          700: '#B76300',
+          800: '#934C00',
+          900: '#6F3500',
+        },
+        neutral: {
+          50: '#F9FAFB',
+          100: '#F3F4F6',
+          200: '#E5E7EB',
+          300: '#D1D5DB',
+          400: '#9CA3AF',
+          500: '#6B7280',
+          600: '#4B5563',
+          700: '#374151',
+          800: '#1F2937',
+          900: '#111827',
+        },
+        success: '#00A699',
+        warning: '#FFAD1F',
+        error: '#E63946',
+        info: '#4CC3D9',
+      },
+      fontFamily: {
+        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        display: ['"Poppins"', '"Inter"', 'sans-serif'],
+      },
+      boxShadow: {
+        'primary': '0 10px 25px -5px rgba(0, 119, 230, 0.3)', // Updated to match new primary-500 color
+        'secondary': '0 10px 25px -5px rgba(255, 145, 0, 0.3)',
+      },
+      animation: {
+        'fadeIn': 'fadeIn 0.3s ease-in-out',
+        'slideUp': 'slideUp 0.3s ease-out',
+        'slideDown': 'slideDown 0.3s ease-out',
+        'scaleIn': 'scaleIn 0.2s ease-out',
+        'shimmer': 'shimmer 2s infinite',
+        'wiggle': 'wiggle 0.5s ease-in-out',
+      },
+      keyframes: {
+        fadeIn: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        slideUp: {
+          from: { transform: 'translateY(10px)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          from: { transform: 'translateY(-10px)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
+        },
+        scaleIn: {
+          from: { transform: 'scale(0.95)', opacity: '0' },
+          to: { transform: 'scale(1)', opacity: '1' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-10deg)' },
+          '75%': { transform: 'rotate(10deg)' },
+        },
+      },
+    },
   },
   plugins: [],
 };
