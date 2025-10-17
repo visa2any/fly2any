@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
+// Force dynamic rendering since this page relies on search params
+export const dynamic = 'force-dynamic';
+
 type Language = 'en' | 'pt' | 'es';
 
 const content = {
