@@ -275,9 +275,28 @@ export function AirportAutocomplete({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlightedIndex(prev => Math.max(prev - 1, -1));
-    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
-      handleSelectAirport(suggestions[highlightedIndex]);
+
+      // If an item is highlighted, use it
+      if (highlightedIndex >= 0 && suggestions[highlightedIndex]) {
+        handleSelectAirport(suggestions[highlightedIndex]);
+      }
+      // If no item highlighted but input looks like IATA code (2-4 letters), use it directly
+      else if (inputValue.length >= 2 && inputValue.length <= 4 && /^[a-zA-Z]+$/.test(inputValue)) {
+        const code = inputValue.toUpperCase().slice(0, 3);
+        handleSelectAirport({
+          code,
+          name: `${code} Airport`,
+          city: 'Unknown',
+          country: '',
+          emoji: '✈️',
+        });
+      }
+      // Otherwise just close dropdown (user can submit form with current value)
+      else {
+        setIsOpen(false);
+      }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
     }
@@ -432,18 +451,51 @@ export function AirportAutocomplete({
                 </button>
               ))}
 
-              {suggestions.length === 0 && inputValue.length > 0 && (
+              {/* Manual IATA Code Input - Allow any 3-letter code */}
+              {suggestions.length === 0 && inputValue.length >= 2 && inputValue.length <= 4 && (
+                <button
+                  onClick={() => {
+                    const code = inputValue.toUpperCase().slice(0, 3);
+                    handleSelectAirport({
+                      code,
+                      name: `${code} Airport`,
+                      city: 'Unknown',
+                      country: '',
+                      emoji: '✈️',
+                    });
+                  }}
+                  className={`w-full px-${variant === 'compact' ? '3' : '4'} py-${variant === 'compact' ? '3' : '4'} flex items-center gap-3 hover:bg-blue-50 transition-colors border-2 border-dashed border-blue-300 ${
+                    variant === 'compact' ? 'rounded-xl' : 'rounded-xl'
+                  } m-2`}
+                >
+                  <div className={`${sizeStyles[size].emojiBox} bg-gradient-to-br from-blue-100 to-blue-200 rounded-${variant === 'compact' ? 'lg' : 'xl'} flex items-center justify-center flex-shrink-0`}>
+                    ✈️
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className={`${sizeStyles[size].textSize} font-bold text-blue-600`}>
+                      Use "{inputValue.toUpperCase()}"
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Use this airport code directly
+                    </div>
+                  </div>
+                  <div className="text-blue-600 font-semibold">→</div>
+                </button>
+              )}
+
+              {suggestions.length === 0 && (inputValue.length === 0 || inputValue.length > 4) && (
                 <div className={`px-4 py-${variant === 'compact' ? '6' : '8'} text-center text-gray-400`}>
                   {variant === 'compact' ? (
                     <>
                       <Plane className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                      <div className="text-sm">No airports found</div>
+                      <div className="text-sm">Type an airport code</div>
+                      <div className="text-xs mt-1">Example: GRU, JFK, LAX</div>
                     </>
                   ) : (
                     <>
                       <div className="text-4xl mb-2">✈️</div>
-                      <div>No airports found</div>
-                      <div className="text-xs mt-2">Try searching by city name or airport code</div>
+                      <div>Type an airport code</div>
+                      <div className="text-xs mt-2">Example: GRU, JFK, LAX, CGH</div>
                     </>
                   )}
                 </div>
