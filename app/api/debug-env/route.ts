@@ -5,7 +5,15 @@ import { NextResponse } from 'next/server';
  * This endpoint helps diagnose why Amadeus API might be using mock data
  */
 export async function GET() {
-  const envStatus = {
+  const envStatus: {
+    AMADEUS_API_KEY: boolean;
+    AMADEUS_API_SECRET: boolean;
+    AMADEUS_ENVIRONMENT: string;
+    NODE_ENV: string | undefined;
+    runtime: string;
+    timestamp: string;
+    AMADEUS_API_KEY_PREVIEW?: string;
+  } = {
     AMADEUS_API_KEY: !!process.env.AMADEUS_API_KEY,
     AMADEUS_API_SECRET: !!process.env.AMADEUS_API_SECRET,
     AMADEUS_ENVIRONMENT: process.env.AMADEUS_ENVIRONMENT || 'not set',
