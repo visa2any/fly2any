@@ -195,6 +195,64 @@ class AmadeusAPI {
       const duration = 120 + Math.random() * 600; // 2-12 hours
       const stops = Math.random() > 0.6 ? 0 : Math.random() > 0.5 ? 1 : 2;
 
+      // Build itineraries array - include return flight if round-trip
+      const itineraries = [
+        // Outbound flight
+        {
+          duration: `PT${Math.floor(duration / 60)}H${Math.floor(duration % 60)}M`,
+          segments: Array.from({ length: stops + 1 }, (_, segIdx) => ({
+            departure: {
+              iataCode: segIdx === 0 ? params.origin : `${params.origin}${segIdx}`,
+              terminal: '1',
+              at: `${params.departureDate}T${String(8 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
+            },
+            arrival: {
+              iataCode: segIdx === stops ? params.destination : `${params.destination}${segIdx}`,
+              terminal: '2',
+              at: `${params.departureDate}T${String(10 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
+            },
+            carrierCode: airline,
+            number: String(100 + Math.floor(Math.random() * 900)),
+            aircraft: { code: '738' },
+            operating: { carrierCode: airline },
+            duration: `PT${Math.floor(duration / (stops + 1) / 60)}H${Math.floor((duration / (stops + 1)) % 60)}M`,
+            id: `${i + 1}_${segIdx + 1}`,
+            numberOfStops: 0,
+            blacklistedInEU: false,
+          })),
+        },
+      ];
+
+      // Add return flight if round-trip
+      if (params.returnDate) {
+        const returnDuration = 120 + Math.random() * 600;
+        const returnStops = Math.random() > 0.6 ? 0 : Math.random() > 0.5 ? 1 : 2;
+
+        itineraries.push({
+          duration: `PT${Math.floor(returnDuration / 60)}H${Math.floor(returnDuration % 60)}M`,
+          segments: Array.from({ length: returnStops + 1 }, (_, segIdx) => ({
+            departure: {
+              iataCode: segIdx === 0 ? params.destination : `${params.destination}${segIdx}`,
+              terminal: '1',
+              at: `${params.returnDate}T${String(8 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
+            },
+            arrival: {
+              iataCode: segIdx === returnStops ? params.origin : `${params.origin}${segIdx}`,
+              terminal: '2',
+              at: `${params.returnDate}T${String(10 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
+            },
+            carrierCode: airline,
+            number: String(100 + Math.floor(Math.random() * 900)),
+            aircraft: { code: '738' },
+            operating: { carrierCode: airline },
+            duration: `PT${Math.floor(returnDuration / (returnStops + 1) / 60)}H${Math.floor((returnDuration / (returnStops + 1)) % 60)}M`,
+            id: `${i + 1}_return_${segIdx + 1}`,
+            numberOfStops: 0,
+            blacklistedInEU: false,
+          })),
+        });
+      }
+
       mockFlights.push({
         type: 'flight-offer',
         id: `MOCK_${i + 1}`,
@@ -204,31 +262,7 @@ class AmadeusAPI {
         oneWay: !params.returnDate,
         lastTicketingDate: params.departureDate,
         numberOfBookableSeats: Math.floor(Math.random() * 9) + 1,
-        itineraries: [
-          {
-            duration: `PT${Math.floor(duration / 60)}H${Math.floor(duration % 60)}M`,
-            segments: Array.from({ length: stops + 1 }, (_, segIdx) => ({
-              departure: {
-                iataCode: segIdx === 0 ? params.origin : `${params.origin}${segIdx}`,
-                terminal: '1',
-                at: `${params.departureDate}T${String(8 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
-              },
-              arrival: {
-                iataCode: segIdx === stops ? params.destination : `${params.destination}${segIdx}`,
-                terminal: '2',
-                at: `${params.departureDate}T${String(10 + Math.floor(Math.random() * 12)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:00`,
-              },
-              carrierCode: airline,
-              number: String(100 + Math.floor(Math.random() * 900)),
-              aircraft: { code: '738' },
-              operating: { carrierCode: airline },
-              duration: `PT${Math.floor(duration / (stops + 1) / 60)}H${Math.floor((duration / (stops + 1)) % 60)}M`,
-              id: `${i + 1}_${segIdx + 1}`,
-              numberOfStops: 0,
-              blacklistedInEU: false,
-            })),
-          },
-        ],
+        itineraries,
         price: {
           currency: params.currencyCode || 'USD',
           total: basePrice.toFixed(2),
