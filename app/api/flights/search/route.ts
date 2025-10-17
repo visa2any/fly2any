@@ -396,4 +396,5 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export const runtime = 'edge';
+// Use Node.js runtime for Amadeus API (edge runtime has env var restrictions)
+export const runtime = 'nodejs';

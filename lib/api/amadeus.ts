@@ -36,6 +36,14 @@ class AmadeusAPI {
     this.baseUrl = this.environment === 'production'
       ? 'https://api.amadeus.com'
       : 'https://test.api.amadeus.com';
+
+    // Debug: Log API configuration (only show first few characters for security)
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials NOT loaded - will use mock data');
+    } else {
+      console.log(`✅ Amadeus API initialized (${this.environment} environment)`);
+      console.log(`   API Key: ${this.apiKey.substring(0, 10)}...`);
+    }
   }
 
   /**
