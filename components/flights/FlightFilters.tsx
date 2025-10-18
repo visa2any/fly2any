@@ -317,6 +317,12 @@ export default function FlightFilters({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
 
+  // Local state for price inputs (raw values while typing)
+  const [minPriceInput, setMinPriceInput] = useState<string>('');
+  const [maxPriceInput, setMaxPriceInput] = useState<string>('');
+  const [isMinFocused, setIsMinFocused] = useState(false);
+  const [isMaxFocused, setIsMaxFocused] = useState(false);
+
   // Calculate min/max price from flight data
   const priceRange = flightData.reduce(
     (acc, flight) => {
@@ -364,12 +370,14 @@ export default function FlightFilters({
 
   /**
    * Get dynamic step size based on price range
-   * Larger ranges use bigger steps for faster sliding
+   * Smoother steps for better user experience - OPTIMIZED FOR PRECISE CONTROL
    */
   function getDynamicStep(range: number): number {
-    if (range > 5000) return 50;
-    if (range > 2000) return 20;
-    return 10;
+    // Much smaller steps for smooth, precise dragging
+    if (range > 5000) return 25; // Was 50, now 25 (50% smoother)
+    if (range > 2000) return 10; // Was 20, now 10 (50% smoother)
+    if (range > 500) return 5;   // New tier for mid-range prices
+    return 1;                     // Was 10, now 1 for ultra-precise control
   }
 
   /**
@@ -382,7 +390,14 @@ export default function FlightFilters({
   // Update local filters when prop changes
   useEffect(() => {
     setLocalFilters(filters);
-  }, [filters]);
+    // Update input values when not focused
+    if (!isMinFocused) {
+      setMinPriceInput(filters.priceRange[0].toString());
+    }
+    if (!isMaxFocused) {
+      setMaxPriceInput(filters.priceRange[1].toString());
+    }
+  }, [filters, isMinFocused, isMaxFocused]);
 
   const handlePriceChange = (index: 0 | 1, value: number) => {
     const newRange: [number, number] = [...localFilters.priceRange] as [number, number];
@@ -615,7 +630,7 @@ export default function FlightFilters({
               style={{ top: '1rem', pointerEvents: 'none' }}
             ></div>
 
-            {/* Active Range Track - Smooth animated gradient */}
+            {/* Active Range Track - INSTANT FEEDBACK (no transition lag) */}
             <div
               className="absolute h-2 bg-gradient-to-r from-primary-500 via-primary-600 to-blue-600 rounded-full shadow-md"
               style={{
@@ -623,7 +638,7 @@ export default function FlightFilters({
                 left: `${((localFilters.priceRange[0] - minPrice) / (maxPrice - minPrice)) * 100}%`,
                 right: `${100 - ((localFilters.priceRange[1] - minPrice) / (maxPrice - minPrice)) * 100}%`,
                 pointerEvents: 'none',
-                transition: 'all 0.05s ease-out', // Ultra fast
+                // NO TRANSITION - instant visual feedback for buttery smooth drag
               }}
             ></div>
 
@@ -678,14 +693,32 @@ export default function FlightFilters({
             />
           </div>
 
-          {/* Price Inputs - EDITABLE with $ symbol */}
+          {/* Price Inputs - EDITABLE with $ symbol - FIXED AUTO-RESET BUG */}
           <div className="flex items-center justify-between gap-2 mt-1">
             <div className="flex-1 relative">
               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
               <input
                 type="text"
-                value={formatPrice(localFilters.priceRange[0])}
-                onChange={(e) => handlePriceInputChange(0, e.target.value)}
+                value={isMinFocused ? minPriceInput : formatPrice(localFilters.priceRange[0])}
+                onChange={(e) => {
+                  // While typing, update raw input state without formatting
+                  const raw = e.target.value.replace(/[^\d]/g, '');
+                  setMinPriceInput(raw);
+                }}
+                onFocus={() => {
+                  setIsMinFocused(true);
+                  setMinPriceInput(localFilters.priceRange[0].toString());
+                }}
+                onBlur={() => {
+                  setIsMinFocused(false);
+                  // Validate and update filter on blur
+                  if (minPriceInput.trim() !== '') {
+                    const value = parseInt(minPriceInput, 10);
+                    if (!isNaN(value)) {
+                      handlePriceChange(0, Math.max(minPrice, Math.min(maxPrice, value)));
+                    }
+                  }
+                }}
                 className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
                 placeholder={String(minPrice)}
                 aria-label="Minimum price"
@@ -696,8 +729,26 @@ export default function FlightFilters({
               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
               <input
                 type="text"
-                value={formatPrice(localFilters.priceRange[1])}
-                onChange={(e) => handlePriceInputChange(1, e.target.value)}
+                value={isMaxFocused ? maxPriceInput : formatPrice(localFilters.priceRange[1])}
+                onChange={(e) => {
+                  // While typing, update raw input state without formatting
+                  const raw = e.target.value.replace(/[^\d]/g, '');
+                  setMaxPriceInput(raw);
+                }}
+                onFocus={() => {
+                  setIsMaxFocused(true);
+                  setMaxPriceInput(localFilters.priceRange[1].toString());
+                }}
+                onBlur={() => {
+                  setIsMaxFocused(false);
+                  // Validate and update filter on blur
+                  if (maxPriceInput.trim() !== '') {
+                    const value = parseInt(maxPriceInput, 10);
+                    if (!isNaN(value)) {
+                      handlePriceChange(1, Math.max(minPrice, Math.min(maxPrice, value)));
+                    }
+                  }
+                }}
                 className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
                 placeholder={String(maxPrice)}
                 aria-label="Maximum price"
