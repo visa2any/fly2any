@@ -3,20 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AirportAutocomplete } from './AirportAutocomplete';
+import MultiAirportSelector, { Airport } from '@/components/common/MultiAirportSelector';
 import { PlaneTakeoff, PlaneLanding, Calendar, Users } from 'lucide-react';
 
 // Types
 type Language = 'en' | 'pt' | 'es';
 type TripType = 'roundtrip' | 'oneway';
 type TravelClass = 'economy' | 'premium' | 'business' | 'first';
-
-interface Airport {
-  code: string;
-  name: string;
-  city: string;
-  country: string;
-  emoji: string;
-}
 
 interface PassengerCounts {
   adults: number;
@@ -25,8 +18,8 @@ interface PassengerCounts {
 }
 
 interface FormData {
-  origin: string;
-  destination: string;
+  origin: string[];  // Array of airport codes
+  destination: string[];  // Array of airport codes
   departureDate: string;
   returnDate: string;
   passengers: PassengerCounts;
@@ -174,8 +167,8 @@ export default function FlightSearchForm({
   const [isPassengerDropdownOpen, setIsPassengerDropdownOpen] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
-    origin: '',
-    destination: '',
+    origin: [],  // Start with empty array
+    destination: [],  // Start with empty array
     departureDate: '',
     returnDate: '',
     passengers: {
@@ -217,12 +210,12 @@ export default function FlightSearchForm({
     const newErrors: Partial<Record<keyof FormData, string>> = {};
 
     // Origin validation
-    if (!formData.origin) {
+    if (!formData.origin || formData.origin.length === 0) {
       newErrors.origin = t.errors.originRequired;
     }
 
     // Destination validation
-    if (!formData.destination) {
+    if (!formData.destination || formData.destination.length === 0) {
       newErrors.destination = t.errors.destinationRequired;
     }
 
@@ -302,8 +295,8 @@ export default function FlightSearchForm({
 
     // Build query params
     const params = new URLSearchParams({
-      origin: formData.origin.split(' - ')[0], // Extract airport code
-      destination: formData.destination.split(' - ')[0],
+      origin: formData.origin.join(','), // Join multiple airport codes with comma
+      destination: formData.destination.join(','), // Join multiple airport codes with comma
       departureDate: formData.departureDate,
       adults: formData.passengers.adults.toString(),
       children: formData.passengers.children.toString(),
@@ -373,19 +366,20 @@ export default function FlightSearchForm({
         <div className="grid md:grid-cols-2 gap-4">
           {/* Origin */}
           <div>
-            <AirportAutocomplete
+            <MultiAirportSelector
               label={t.from}
               placeholder={t.fromPlaceholder}
               value={formData.origin}
-              onChange={(value) => {
-                setFormData({ ...formData, origin: value });
+              onChange={(codes, airports) => {
+                setFormData({ ...formData, origin: codes });
                 if (errors.origin) {
                   const newErrors = { ...errors };
                   delete newErrors.origin;
                   setErrors(newErrors);
                 }
               }}
-              icon={<PlaneTakeoff className="w-5 h-5" />}
+              maxDisplay={2}
+              lang={lang}
             />
             {errors.origin && (
               <p className="mt-1 text-sm text-red-600" role="alert">
@@ -396,20 +390,20 @@ export default function FlightSearchForm({
 
           {/* Destination */}
           <div>
-            <AirportAutocomplete
+            <MultiAirportSelector
               label={t.to}
               placeholder={t.toPlaceholder}
               value={formData.destination}
-              onChange={(value) => {
-                setFormData({ ...formData, destination: value });
+              onChange={(codes, airports) => {
+                setFormData({ ...formData, destination: codes });
                 if (errors.destination) {
                   const newErrors = { ...errors };
                   delete newErrors.destination;
                   setErrors(newErrors);
                 }
               }}
-              icon={<PlaneLanding className="w-5 h-5" />}
-              showExplore={true}
+              maxDisplay={2}
+              lang={lang}
             />
             {errors.destination && (
               <p className="mt-1 text-sm text-red-600" role="alert">
@@ -427,7 +421,7 @@ export default function FlightSearchForm({
               {t.departure}
             </label>
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               <input
                 type="date"
                 value={formData.departureDate}
@@ -461,7 +455,7 @@ export default function FlightSearchForm({
                 {t.return}
               </label>
               <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 <input
                   type="date"
                   value={formData.returnDate}

@@ -6,17 +6,21 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const origin = searchParams.get('originIataCode');
-    const destination = searchParams.get('destinationIataCode');
+    const originParam = searchParams.get('originIataCode');
+    const destinationParam = searchParams.get('destinationIataCode');
     const departureDate = searchParams.get('departureDate');
     const currencyCode = searchParams.get('currencyCode') || 'USD';
 
-    if (!origin || !destination || !departureDate) {
+    if (!originParam || !destinationParam || !departureDate) {
       return NextResponse.json(
         { error: 'Origin, destination, and departure date are required' },
         { status: 400 }
       );
     }
+
+    // Extract first airport code from comma-separated list
+    const origin = originParam.split(',')[0].trim();
+    const destination = destinationParam.split(',')[0].trim();
 
     // Generate cache key
     const cacheKey = generateCacheKey('price-analytics', {

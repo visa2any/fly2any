@@ -8,6 +8,12 @@ function extractCityCode(value: string | null): string {
 
   const trimmed = value.trim();
 
+  // Handle comma-separated codes (extract first code only)
+  if (trimmed.includes(',')) {
+    const firstCode = trimmed.split(',')[0].trim();
+    return extractCityCode(firstCode); // Recursively process first code
+  }
+
   // If already a 3-letter code, return as-is
   if (/^[A-Z]{3}$/i.test(trimmed)) {
     return trimmed.toUpperCase();

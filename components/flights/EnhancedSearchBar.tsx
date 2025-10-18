@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowRight } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
+import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
 
 interface PassengerCounts {
   adults: number;
@@ -14,8 +15,8 @@ interface PassengerCounts {
 }
 
 interface EnhancedSearchBarProps {
-  origin?: string;
-  destination?: string;
+  origin?: string;  // Can be single code "JFK" or comma-separated "JFK,EWR,LGA"
+  destination?: string;  // Can be single code "LAX" or comma-separated "LAX,SNA,ONT"
   departureDate?: string;
   returnDate?: string;
   passengers?: PassengerCounts;
@@ -31,6 +32,48 @@ interface Airport {
   emoji: string;
 }
 
+// Popular airports data (same as InlineAirportAutocomplete for consistency)
+const popularAirports: Airport[] = [
+  { code: 'JFK', name: 'John F. Kennedy Intl', city: 'New York', country: 'USA', emoji: '🗽' },
+  { code: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'USA', emoji: '🌴' },
+  { code: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK', emoji: '🇬🇧' },
+  { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', emoji: '🗼' },
+  { code: 'DXB', name: 'Dubai Intl', city: 'Dubai', country: 'UAE', emoji: '🏙️' },
+  { code: 'NRT', name: 'Narita Intl', city: 'Tokyo', country: 'Japan', emoji: '🗾' },
+  { code: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore', emoji: '🇸🇬' },
+  { code: 'MIA', name: 'Miami Intl', city: 'Miami', country: 'USA', emoji: '🏖️' },
+  { code: 'SFO', name: 'San Francisco Intl', city: 'San Francisco', country: 'USA', emoji: '🌉' },
+  { code: 'ORD', name: 'O\'Hare Intl', city: 'Chicago', country: 'USA', emoji: '🏙️' },
+  { code: 'YYZ', name: 'Toronto Pearson', city: 'Toronto', country: 'Canada', emoji: '🇨🇦' },
+  { code: 'BCN', name: 'Barcelona-El Prat', city: 'Barcelona', country: 'Spain', emoji: '🇪🇸' },
+  { code: 'FCO', name: 'Fiumicino', city: 'Rome', country: 'Italy', emoji: '🏛️' },
+  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt', country: 'Germany', emoji: '🇩🇪' },
+  { code: 'SYD', name: 'Kingsford Smith', city: 'Sydney', country: 'Australia', emoji: '🦘' },
+  { code: 'GRU', name: 'São Paulo/Guarulhos Intl', city: 'São Paulo', country: 'Brazil', emoji: '🇧🇷' },
+  { code: 'GIG', name: 'Rio de Janeiro/Galeão Intl', city: 'Rio de Janeiro', country: 'Brazil', emoji: '🏖️' },
+  { code: 'EZE', name: 'Ministro Pistarini Intl', city: 'Buenos Aires', country: 'Argentina', emoji: '🥩' },
+  { code: 'BOG', name: 'El Dorado Intl', city: 'Bogotá', country: 'Colombia', emoji: '☕' },
+  { code: 'LIM', name: 'Jorge Chávez Intl', city: 'Lima', country: 'Peru', emoji: '🦙' },
+  { code: 'SCL', name: 'Arturo Merino Benítez Intl', city: 'Santiago', country: 'Chile', emoji: '🏔️' },
+  { code: 'MEX', name: 'Mexico City Intl', city: 'Mexico City', country: 'Mexico', emoji: '🌮' },
+  { code: 'CUN', name: 'Cancún Intl', city: 'Cancún', country: 'Mexico', emoji: '🏝️' },
+  { code: 'PTY', name: 'Tocumen Intl', city: 'Panama City', country: 'Panama', emoji: '🚢' },
+  { code: 'SJO', name: 'Juan Santamaría Intl', city: 'San José', country: 'Costa Rica', emoji: '🌋' },
+  { code: 'GDL', name: 'Guadalajara Intl', city: 'Guadalajara', country: 'Mexico', emoji: '🎺' },
+  { code: 'PUJ', name: 'Punta Cana Intl', city: 'Punta Cana', country: 'Dominican Republic', emoji: '🏖️' },
+  { code: 'SJU', name: 'Luis Muñoz Marín Intl', city: 'San Juan', country: 'Puerto Rico', emoji: '🏝️' },
+  { code: 'NAS', name: 'Lynden Pindling Intl', city: 'Nassau', country: 'Bahamas', emoji: '🐠' },
+  { code: 'MBJ', name: 'Sangster Intl', city: 'Montego Bay', country: 'Jamaica', emoji: '🎵' },
+  { code: 'CUR', name: 'Curaçao Intl', city: 'Willemstad', country: 'Curaçao', emoji: '🎨' },
+];
+
+// Lookup airport by code
+function lookupAirportByCode(code: string): Airport | null {
+  if (!code) return null;
+  const upperCode = code.toUpperCase().trim();
+  return popularAirports.find(airport => airport.code === upperCode) || null;
+}
+
 const content = {
   en: {
     from: 'From',
@@ -40,7 +83,9 @@ const content = {
     travelers: 'Travelers',
     class: 'Class',
     search: 'Search Flights',
+    searching: 'Searching...',
     oneWay: 'One-way',
+    roundTrip: 'Round-trip',
     adults: 'Adults',
     children: 'Children',
     infants: 'Infants',
@@ -54,6 +99,13 @@ const content = {
     age18: '18+ years',
     age2to17: '2-17 years',
     ageUnder2: 'Under 2 years',
+    directOnly: 'Direct flights only',
+    errors: {
+      originRequired: 'Please select origin',
+      destinationRequired: 'Please select destination',
+      departureDateRequired: 'Please select departure date',
+      sameAirports: 'Origin and destination must be different',
+    },
   },
   pt: {
     from: 'De',
@@ -63,7 +115,9 @@ const content = {
     travelers: 'Viajantes',
     class: 'Classe',
     search: 'Buscar Voos',
+    searching: 'Buscando...',
     oneWay: 'Só ida',
+    roundTrip: 'Ida e volta',
     adults: 'Adultos',
     children: 'Crianças',
     infants: 'Bebês',
@@ -77,6 +131,13 @@ const content = {
     age18: '18+ anos',
     age2to17: '2-17 anos',
     ageUnder2: 'Menos de 2 anos',
+    directOnly: 'Apenas voos diretos',
+    errors: {
+      originRequired: 'Selecione a origem',
+      destinationRequired: 'Selecione o destino',
+      departureDateRequired: 'Selecione a data de ida',
+      sameAirports: 'Origem e destino devem ser diferentes',
+    },
   },
   es: {
     from: 'Desde',
@@ -86,7 +147,9 @@ const content = {
     travelers: 'Viajeros',
     class: 'Clase',
     search: 'Buscar Vuelos',
+    searching: 'Buscando...',
     oneWay: 'Solo ida',
+    roundTrip: 'Ida y vuelta',
     adults: 'Adultos',
     children: 'Niños',
     infants: 'Bebés',
@@ -100,6 +163,13 @@ const content = {
     age18: '18+ años',
     age2to17: '2-17 años',
     ageUnder2: 'Menos de 2 años',
+    directOnly: 'Solo vuelos directos',
+    errors: {
+      originRequired: 'Seleccione origen',
+      destinationRequired: 'Seleccione destino',
+      departureDateRequired: 'Seleccione fecha de salida',
+      sameAirports: 'Origen y destino deben ser diferentes',
+    },
   },
 };
 
@@ -115,27 +185,33 @@ export default function EnhancedSearchBar({
   const t = content[lang];
   const router = useRouter();
 
+  // Parse comma-separated airport codes into arrays
+  const parseAirportCodes = (codes: string): string[] => {
+    if (!codes) return [];
+    return codes.split(',').map(code => code.trim()).filter(code => code.length > 0);
+  };
+
   // Form state
-  const [origin, setOrigin] = useState(initialOrigin);
-  const [destination, setDestination] = useState(initialDestination);
-  const [originCode, setOriginCode] = useState('');
-  const [destinationCode, setDestinationCode] = useState('');
+  const [origin, setOrigin] = useState<string[]>(parseAirportCodes(initialOrigin));
+  const [destination, setDestination] = useState<string[]>(parseAirportCodes(initialDestination));
   const [departureDate, setDepartureDate] = useState(initialDepartureDate);
   const [returnDate, setReturnDate] = useState(initialReturnDate);
   const [passengers, setPassengers] = useState(initialPassengers);
   const [cabinClass, setCabinClass] = useState(initialCabinClass);
+  const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>(initialReturnDate ? 'roundtrip' : 'oneway');
+  const [directFlights, setDirectFlights] = useState(false);
 
   // UI state
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
-  const [showClassDropdown, setShowClassDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerType, setDatePickerType] = useState<'departure' | 'return'>('departure');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Refs
   const passengerRef = useRef<HTMLDivElement>(null);
-  const classRef = useRef<HTMLDivElement>(null);
   const departureDateRef = useRef<HTMLDivElement>(null);
   const returnDateRef = useRef<HTMLDivElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
@@ -146,9 +222,6 @@ export default function EnhancedSearchBar({
     const handleClickOutside = (event: MouseEvent) => {
       if (passengerRef.current && !passengerRef.current.contains(event.target as Node)) {
         setShowPassengerDropdown(false);
-      }
-      if (classRef.current && !classRef.current.contains(event.target as Node)) {
-        setShowClassDropdown(false);
       }
       if (originRef.current && !originRef.current.contains(event.target as Node)) {
         setShowOriginDropdown(false);
@@ -167,7 +240,6 @@ export default function EnhancedSearchBar({
     setShowOriginDropdown(false);
     setShowDestinationDropdown(false);
     setShowPassengerDropdown(false);
-    setShowClassDropdown(false);
     setShowDatePicker(false);
   };
 
@@ -195,20 +267,24 @@ export default function EnhancedSearchBar({
     });
   };
 
-  const handleOriginChange = (value: string, airport?: Airport) => {
-    setOrigin(value);
-    if (airport) {
-      setOriginCode(airport.code);
+  const handleOriginChange = (codes: string[], airports: MultiAirport[]) => {
+    setOrigin(codes);
+    // Clear error when user makes changes
+    if (errors.origin) {
+      const newErrors = { ...errors };
+      delete newErrors.origin;
+      setErrors(newErrors);
     }
-    console.log('Origin changed:', value, airport);
   };
 
-  const handleDestinationChange = (value: string, airport?: Airport) => {
-    setDestination(value);
-    if (airport) {
-      setDestinationCode(airport.code);
+  const handleDestinationChange = (codes: string[], airports: MultiAirport[]) => {
+    setDestination(codes);
+    // Clear error when user makes changes
+    if (errors.destination) {
+      const newErrors = { ...errors };
+      delete newErrors.destination;
+      setErrors(newErrors);
     }
-    console.log('Destination changed:', value, airport);
   };
 
   const handleDatePickerChange = (departure: string, returnDate?: string) => {
@@ -218,6 +294,12 @@ export default function EnhancedSearchBar({
     } else if (datePickerType === 'departure') {
       // Don't clear return date if only selecting departure
     }
+    // Clear date errors when user makes changes
+    if (errors.departureDate) {
+      const newErrors = { ...errors };
+      delete newErrors.departureDate;
+      setErrors(newErrors);
+    }
   };
 
   const handleOpenDatePicker = (type: 'departure' | 'return') => {
@@ -226,27 +308,65 @@ export default function EnhancedSearchBar({
     setShowDatePicker(true);
   };
 
+  // Validate form before search
+  const validateForm = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!origin || origin.length === 0) {
+      newErrors.origin = t.errors.originRequired;
+    }
+
+    if (!destination || destination.length === 0) {
+      newErrors.destination = t.errors.destinationRequired;
+    }
+
+    // Check if any origin code matches any destination code
+    if (origin && destination && origin.length > 0 && destination.length > 0) {
+      const hasOverlap = origin.some(code => destination.includes(code));
+      if (hasOverlap) {
+        newErrors.destination = t.errors.sameAirports;
+      }
+    }
+
+    if (!departureDate) {
+      newErrors.departureDate = t.errors.departureDateRequired;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSearch = () => {
-    // Use airport codes if available, otherwise fallback to the full value
-    const fromCode = originCode || origin;
-    const toCode = destinationCode || destination;
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
 
     const params = new URLSearchParams({
-      from: fromCode,
-      to: toCode,
+      from: origin.join(','),  // Join multiple codes with comma
+      to: destination.join(','),  // Join multiple codes with comma
       departure: formatDateForInput(departureDate),
       adults: passengers.adults.toString(),
       children: passengers.children.toString(),
       infants: passengers.infants.toString(),
       class: cabinClass,
+      direct: directFlights.toString(),
     });
 
-    if (returnDate) {
+    // Add return date for round trips
+    if (tripType === 'roundtrip' && returnDate) {
       params.append('return', formatDateForInput(returnDate));
     }
 
-    console.log('🔍 Searching with codes:', { from: fromCode, to: toCode });
+    console.log('🔍 Searching with params:', Object.fromEntries(params));
+
+    // Navigate to results page
     router.push(`/flights/results?${params.toString()}`);
+
+    // Reset loading after a short delay (navigation will happen)
+    setTimeout(() => setIsLoading(false), 1000);
   };
 
   return (
@@ -259,107 +379,158 @@ export default function EnhancedSearchBar({
           padding: `${spacing.lg} ${spacing.xl}`,
         }}
       >
-        {/* Desktop: Single-line horizontal layout (Priceline style) */}
-        <div className="hidden lg:flex items-stretch gap-3">
-          {/* Origin Airport */}
-          <div ref={originRef} className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.from}
-            </label>
-            <InlineAirportAutocomplete
+        {/* Desktop: Clean Single-line Layout */}
+        <div className="hidden lg:flex items-center gap-3">
+          {/* From Airport */}
+          <div ref={originRef} className="flex-1">
+            <MultiAirportSelector
+              label="From"
+              placeholder="Select airports"
               value={origin}
               onChange={handleOriginChange}
-              placeholder="New York (JFK)"
-              onClose={() => setShowOriginDropdown(false)}
+              maxDisplay={1}
+              lang={lang}
             />
+            {errors.origin && (
+              <p className="mt-1 text-xs text-red-600" role="alert">
+                {errors.origin}
+              </p>
+            )}
           </div>
 
-          {/* Swap Arrow */}
-          <div className="flex items-end pb-2.5">
+          {/* Swap Button */}
+          <div className="flex items-center">
             <button
+              type="button"
               onClick={() => {
                 const temp = origin;
-                const tempCode = originCode;
                 setOrigin(destination);
-                setOriginCode(destinationCode);
                 setDestination(temp);
-                setDestinationCode(tempCode);
               }}
-              className="p-2 text-gray-400 hover:text-[#0087FF] hover:bg-[#E6F3FF] rounded-lg transition-all duration-200 ease-in-out"
+              className="p-2.5 text-gray-400 hover:text-[#0087FF] hover:bg-blue-50 rounded-lg transition-all"
               aria-label="Swap airports"
+              title="Swap airports"
             >
-              <ArrowRight size={18} />
+              <ArrowLeftRight size={20} />
             </button>
           </div>
 
-          {/* Destination Airport */}
-          <div ref={destinationRef} className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.to}
-            </label>
-            <InlineAirportAutocomplete
+          {/* To Airport */}
+          <div ref={destinationRef} className="flex-1">
+            <MultiAirportSelector
+              label="To"
+              placeholder="Select airports"
               value={destination}
               onChange={handleDestinationChange}
-              placeholder="Los Angeles (LAX)"
-              onClose={() => setShowDestinationDropdown(false)}
+              maxDisplay={1}
+              lang={lang}
             />
+            {errors.destination && (
+              <p className="mt-1 text-xs text-red-600" role="alert">
+                {errors.destination}
+              </p>
+            )}
           </div>
 
-          {/* Departure Date */}
-          <div ref={departureDateRef} className="flex-1 min-w-[160px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.depart}
+          {/* Depart Date */}
+          <div ref={departureDateRef} className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Depart
             </label>
             <button
+              type="button"
               onClick={() => handleOpenDatePicker('departure')}
-              className="w-full text-left relative"
+              className="w-full text-left"
             >
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
-              <div className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-lg hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#E6F3FF] outline-none transition-all duration-200 ease-in-out text-sm font-semibold text-gray-900 cursor-pointer">
-                {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+              <div className={`relative w-full px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+                errors.departureDate ? 'border-red-500' : 'border-gray-300'
+              }`}>
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <span className="block pl-7 text-sm font-medium text-gray-900">
+                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                </span>
               </div>
             </button>
+            {errors.departureDate && (
+              <p className="mt-1 text-xs text-red-600" role="alert">
+                {errors.departureDate}
+              </p>
+            )}
           </div>
 
           {/* Return Date */}
-          <div ref={returnDateRef} className="flex-1 min-w-[160px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.return}
+          <div ref={returnDateRef} className="flex-1">
+            <label className="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
+              <span>Return</span>
+              <label className="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={tripType === 'oneway'}
+                  onChange={(e) => {
+                    setTripType(e.target.checked ? 'oneway' : 'roundtrip');
+                    if (e.target.checked) {
+                      setReturnDate('');
+                    }
+                  }}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                />
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">One-way</span>
+              </label>
             </label>
             <button
-              onClick={() => handleOpenDatePicker('return')}
-              className="w-full text-left relative"
+              type="button"
+              onClick={() => {
+                if (tripType === 'oneway') {
+                  setTripType('roundtrip');
+                }
+                handleOpenDatePicker('return');
+              }}
+              disabled={tripType === 'oneway'}
+              className="w-full text-left"
             >
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={18} />
-              <div className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-lg hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#E6F3FF] outline-none transition-all duration-200 ease-in-out text-sm font-semibold text-gray-900 cursor-pointer">
-                {returnDate ? formatDateForDisplay(returnDate) : t.oneWay}
+              <div className={`relative w-full px-4 py-3 border rounded-lg transition-all ${
+                tripType === 'oneway'
+                  ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                  : 'bg-white border-gray-300 hover:border-[#0087FF] cursor-pointer'
+              }`}>
+                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${tripType === 'oneway' ? 'text-gray-300' : 'text-gray-400'}`} size={18} />
+                <span className={`block pl-7 text-sm ${
+                  tripType === 'oneway'
+                    ? 'text-gray-400 italic'
+                    : returnDate
+                      ? 'font-medium text-gray-900'
+                      : 'text-gray-500'
+                }`}>
+                  {tripType === 'oneway' ? 'One-way trip' : returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                </span>
               </div>
             </button>
           </div>
 
-          {/* Passengers Dropdown */}
-          <div ref={passengerRef} className="relative flex-1 min-w-[140px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.travelers}
+          {/* Combined Travelers + Class Dropdown */}
+          <div ref={passengerRef} className="relative flex-shrink-0 w-52">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Travelers & Class
             </label>
             <button
+              type="button"
               onClick={() => {
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full flex items-center gap-2 pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-lg hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#E6F3FF] outline-none transition-all duration-200 ease-in-out text-sm font-semibold text-gray-900"
+              className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
             >
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <span className="flex-1 text-left">
-                {totalPassengers} {totalPassengers === 1 ? t.guest : t.guests}
+              <span className="block pl-7 text-sm font-medium text-gray-900 truncate pr-6">
+                {totalPassengers} {totalPassengers === 1 ? 'Guest' : 'Guests'}, {t[cabinClass]}
               </span>
-              <ChevronDown className={`text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
             </button>
 
             {showPassengerDropdown && (
               <div
                 className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-[80] animate-in fade-in slide-in-from-top-2 duration-200 p-3"
-                style={{ width: '260px' }}
+                style={{ width: '280px' }}
               >
                 {/* Adults */}
                 <div className="flex items-center justify-between mb-3">
@@ -369,7 +540,12 @@ export default function EnhancedSearchBar({
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handlePassengerChange('adults', -1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('adults', -1);
+                      }}
                       disabled={passengers.adults <= 1}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
@@ -379,7 +555,12 @@ export default function EnhancedSearchBar({
                       {passengers.adults}
                     </span>
                     <button
-                      onClick={() => handlePassengerChange('adults', 1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('adults', 1);
+                      }}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
@@ -395,7 +576,12 @@ export default function EnhancedSearchBar({
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handlePassengerChange('children', -1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('children', -1);
+                      }}
                       disabled={passengers.children <= 0}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
@@ -405,7 +591,12 @@ export default function EnhancedSearchBar({
                       {passengers.children}
                     </span>
                     <button
-                      onClick={() => handlePassengerChange('children', 1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('children', 1);
+                      }}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
@@ -421,7 +612,12 @@ export default function EnhancedSearchBar({
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handlePassengerChange('infants', -1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('infants', -1);
+                      }}
                       disabled={passengers.infants <= 0}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
@@ -431,11 +627,42 @@ export default function EnhancedSearchBar({
                       {passengers.infants}
                     </span>
                     <button
-                      onClick={() => handlePassengerChange('infants', 1)}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePassengerChange('infants', 1);
+                      }}
                       className="w-7 h-7 rounded-full border-2 border-gray-300 hover:border-[#0087FF] flex items-center justify-center text-gray-700 hover:text-[#0087FF] font-bold transition-all duration-200 ease-in-out text-sm hover:scale-105"
                     >
                       +
                     </button>
+                  </div>
+                </div>
+
+                {/* Cabin Class Section */}
+                <div className="border-t border-gray-200 pt-3 mb-3">
+                  <div className="font-semibold text-gray-900 text-xs mb-2">Cabin Class</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => setCabinClass(cls)}
+                        className={`px-2.5 py-2 rounded-lg border transition-all text-[10px] font-medium ${
+                          cabinClass === cls
+                            ? 'border-[#0087FF] bg-[#E6F3FF] text-[#0087FF]'
+                            : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {cls === 'economy' && '💺'}
+                        {cls === 'premium' && '✨'}
+                        {cls === 'business' && '💼'}
+                        {cls === 'first' && '👑'}
+                        {' '}
+                        {t[cls]}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -450,51 +677,26 @@ export default function EnhancedSearchBar({
             )}
           </div>
 
-          {/* Cabin Class Dropdown */}
-          <div ref={classRef} className="relative flex-1 min-w-[160px]">
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              {t.class}
-            </label>
-            <button
-              onClick={() => {
-                closeAllDropdowns();
-                setShowClassDropdown(!showClassDropdown);
-              }}
-              className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-lg hover:border-gray-300 focus:border-[#0087FF] focus:ring-2 focus:ring-[#E6F3FF] outline-none transition-all duration-200 ease-in-out text-sm font-semibold text-gray-900"
-            >
-              <span className="truncate">{t[cabinClass]}</span>
-              <ChevronDown className={`text-gray-400 flex-shrink-0 ml-2 transition-transform duration-200 ${showClassDropdown ? 'rotate-180' : ''}`} size={16} />
-            </button>
-
-            {showClassDropdown && (
-              <div className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-[80] min-w-[180px] py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
-                  <button
-                    key={cls}
-                    onClick={() => {
-                      setCabinClass(cls);
-                      setShowClassDropdown(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 transition-all duration-200 ease-in-out text-xs ${
-                      cabinClass === cls
-                        ? 'bg-[#E6F3FF] text-[#0087FF] font-semibold'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {t[cls]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Search Button */}
-          <div className="flex items-end">
+          <div className="flex-shrink-0">
+            <label className="block text-sm font-medium text-gray-700 mb-2 opacity-0">Search</label>
             <button
+              type="button"
               onClick={handleSearch}
-              className="px-8 py-2.5 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm whitespace-nowrap"
+              disabled={isLoading}
+              className="h-[50px] px-8 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              {t.search}
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <span>Search Flights</span>
+              )}
             </button>
           </div>
         </div>
@@ -512,42 +714,64 @@ export default function EnhancedSearchBar({
 
         {/* Mobile/Tablet: Stacked layout */}
         <div className="lg:hidden space-y-3">
+          {/* Trip Type Toggle */}
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setTripType('roundtrip');
+                if (errors.returnDate) {
+                  const newErrors = { ...errors };
+                  delete newErrors.returnDate;
+                  setErrors(newErrors);
+                }
+              }}
+              className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
+                tripType === 'roundtrip'
+                  ? 'bg-white text-[#0087FF] shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {t.roundTrip}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTripType('oneway');
+                setReturnDate('');
+              }}
+              className={`flex-1 px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
+                tripType === 'oneway'
+                  ? 'bg-white text-[#0087FF] shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {t.oneWay}
+            </button>
+          </div>
+
           {/* Airports */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.from}
-              </label>
-              <div className="relative">
-                <Plane className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  value={origin}
-                  onChange={(e) => handleOriginChange(e.target.value)}
-                  placeholder="JFK"
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.to}
-              </label>
-              <div className="relative">
-                <Plane className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  value={destination}
-                  onChange={(e) => handleDestinationChange(e.target.value)}
-                  placeholder="LAX"
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
-            </div>
+          <div className="space-y-3">
+            <MultiAirportSelector
+              label={t.from}
+              placeholder="Select airports"
+              value={origin}
+              onChange={handleOriginChange}
+              maxDisplay={2}
+              lang={lang}
+            />
+            <MultiAirportSelector
+              label={t.to}
+              placeholder="Select airports"
+              value={destination}
+              onChange={handleDestinationChange}
+              maxDisplay={2}
+              lang={lang}
+            />
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                 {t.depart}
@@ -563,59 +787,70 @@ export default function EnhancedSearchBar({
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.return}
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="date"
-                  value={formatDateForInput(returnDate)}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  min={formatDateForInput(departureDate)}
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 cursor-pointer"
-                />
+            {tripType === 'roundtrip' && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                  {t.return}
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="date"
+                    value={formatDateForInput(returnDate)}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    min={formatDateForInput(departureDate)}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 cursor-pointer"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Passengers & Class */}
-          <div className="grid grid-cols-2 gap-3">
-            <div ref={passengerRef} className="relative">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.travelers}
-              </label>
-              <button
-                onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full flex items-center gap-2 pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
-              >
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <span className="flex-1 text-left">{totalPassengers}</span>
-                <ChevronDown className="text-gray-400" size={14} />
-              </button>
-            </div>
-
-            <div ref={classRef} className="relative">
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.class}
-              </label>
-              <button
-                onClick={() => setShowClassDropdown(!showClassDropdown)}
-                className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
-              >
-                <span className="truncate text-xs">{t[cabinClass]}</span>
-                <ChevronDown className="text-gray-400 flex-shrink-0 ml-1" size={14} />
-              </button>
-            </div>
+          {/* Combined Travelers & Class */}
+          <div ref={passengerRef} className="relative">
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              Travelers & Class
+            </label>
+            <button
+              onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+              className="w-full flex items-center gap-2 pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
+            >
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <span className="flex-1 text-left truncate">{totalPassengers} {totalPassengers === 1 ? 'Guest' : 'Guests'}, {t[cabinClass]}</span>
+              <ChevronDown className="text-gray-400" size={14} />
+            </button>
           </div>
+
+          {/* Direct Flights Checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={directFlights}
+              onChange={(e) => setDirectFlights(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+            />
+            <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+              {t.directOnly}
+            </span>
+          </label>
 
           {/* Search Button */}
           <button
             onClick={handleSearch}
-            className="w-full py-3 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm"
+            disabled={isLoading}
+            className="w-full py-3 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {t.search}
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>{t.searching}</span>
+              </>
+            ) : (
+              <span>{t.search}</span>
+            )}
           </button>
         </div>
       </div>

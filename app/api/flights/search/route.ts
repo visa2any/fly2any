@@ -36,6 +36,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Parse comma-separated airport codes
+    const parseAirportCodes = (codes: string): string[] => {
+      return codes.split(',').map((code: string) => code.trim().toUpperCase()).filter((code: string) => code.length > 0);
+    };
+
+    const originCodes = parseAirportCodes(origin);
+    const destinationCodes = parseAirportCodes(destination);
+
+    if (originCodes.length === 0 || destinationCodes.length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid airport codes provided' },
+        { status: 400 }
+      );
+    }
+
     // Validate data types
     if (typeof adults !== 'number' || adults < 1 || adults > 9) {
       return NextResponse.json(
@@ -104,10 +119,20 @@ export async function POST(request: NextRequest) {
 
     const travelClass = body.travelClass ? travelClassMap[body.travelClass.toLowerCase()] : undefined;
 
+    // Log multi-airport search info
+    if (originCodes.length > 1 || destinationCodes.length > 1) {
+      console.log(`🔍 Multi-airport search: ${originCodes.join(',')} → ${destinationCodes.join(',')}`);
+    }
+
+    // For now, use first airport from each list
+    // TODO: Implement multi-airport API calls and result combination
+    const primaryOrigin = originCodes[0];
+    const primaryDestination = destinationCodes[0];
+
     // Build search parameters
     flightSearchParams = {
-      origin: origin.toUpperCase(),
-      destination: destination.toUpperCase(),
+      origin: primaryOrigin,
+      destination: primaryDestination,
       departureDate,
       returnDate: body.returnDate || undefined,
       adults,
@@ -119,8 +144,12 @@ export async function POST(request: NextRequest) {
       max: body.max || 50,
     };
 
-    // Generate cache key
-    cacheKey = generateFlightSearchKey(flightSearchParams);
+    // Generate cache key (include all airports in cache key)
+    cacheKey = generateFlightSearchKey({
+      ...flightSearchParams,
+      origin: originCodes.join(','),
+      destination: destinationCodes.join(','),
+    });
 
     // Try to get from cache
     const cached = await getCached<any>(cacheKey);
@@ -140,6 +169,8 @@ export async function POST(request: NextRequest) {
             sortedBy: sortBy,
             cached: true,
             cacheKey,
+            origins: originCodes,
+            destinations: destinationCodes,
           }
         },
         {
@@ -211,6 +242,8 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
         cached: false,
         cacheKey,
+        origins: originCodes,
+        destinations: destinationCodes,
       }
     };
 
