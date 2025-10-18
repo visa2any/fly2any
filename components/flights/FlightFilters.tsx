@@ -188,30 +188,115 @@ const timeRanges = {
   night: { start: 22, end: 6, icon: '🌙' },
 };
 
-// Airline codes mapping
+// Comprehensive Airline codes mapping - All major airlines worldwide
 const airlineNames: Record<string, string> = {
+  // North America
   AA: 'American Airlines',
-  DL: 'Delta',
-  UA: 'United',
-  WN: 'Southwest',
-  B6: 'JetBlue',
-  AS: 'Alaska',
-  NK: 'Spirit',
-  F9: 'Frontier',
-  G4: 'Allegiant',
-  HA: 'Hawaiian',
+  DL: 'Delta Air Lines',
+  UA: 'United Airlines',
+  WN: 'Southwest Airlines',
+  B6: 'JetBlue Airways',
+  AS: 'Alaska Airlines',
+  NK: 'Spirit Airlines',
+  F9: 'Frontier Airlines',
+  G4: 'Allegiant Air',
+  HA: 'Hawaiian Airlines',
   AC: 'Air Canada',
+  WS: 'WestJet',
   AM: 'Aeromexico',
+  Y4: 'Volaris',
+  VB: 'VivaAerobus',
+
+  // Europe
   BA: 'British Airways',
   AF: 'Air France',
   LH: 'Lufthansa',
   KL: 'KLM',
   IB: 'Iberia',
   AZ: 'ITA Airways',
-  TP: 'TAP Portugal',
-  LA: 'LATAM',
+  TP: 'TAP Air Portugal',
+  LX: 'Swiss International',
+  OS: 'Austrian Airlines',
+  SN: 'Brussels Airlines',
+  SK: 'Scandinavian Airlines',
+  AY: 'Finnair',
+  FR: 'Ryanair',
+  U2: 'easyJet',
+  W6: 'Wizz Air',
+  VY: 'Vueling',
+  EI: 'Aer Lingus',
+  LO: 'LOT Polish Airlines',
+  OK: 'Czech Airlines',
+  RO: 'Tarom',
+  JU: 'Air Serbia',
+
+  // Middle East
+  EK: 'Emirates',
+  QR: 'Qatar Airways',
+  EY: 'Etihad Airways',
+  MS: 'EgyptAir',
+  TK: 'Turkish Airlines',
+  SV: 'Saudia',
+  GF: 'Gulf Air',
+  WY: 'Oman Air',
+  RJ: 'Royal Jordanian',
+
+  // Asia-Pacific
+  SQ: 'Singapore Airlines',
+  CX: 'Cathay Pacific',
+  NH: 'ANA',
+  JL: 'Japan Airlines',
+  KE: 'Korean Air',
+  OZ: 'Asiana Airlines',
+  TG: 'Thai Airways',
+  MH: 'Malaysia Airlines',
+  GA: 'Garuda Indonesia',
+  PR: 'Philippine Airlines',
+  VN: 'Vietnam Airlines',
+  CI: 'China Airlines',
+  BR: 'EVA Air',
+  CZ: 'China Southern',
+  CA: 'Air China',
+  MU: 'China Eastern',
+  HU: 'Hainan Airlines',
+  AI: 'Air India',
+  '6E': 'IndiGo',
+  SG: 'SpiceJet',
+  QF: 'Qantas',
+  VA: 'Virgin Australia',
+  NZ: 'Air New Zealand',
+  FJ: 'Fiji Airways',
+
+  // South America
+  LA: 'LATAM Airlines',
   G3: 'Gol',
   AD: 'Azul',
+  AR: 'Aerolineas Argentinas',
+  CM: 'Copa Airlines',
+  AV: 'Avianca',
+  JJ: 'LATAM Brasil',
+
+  // Africa
+  ET: 'Ethiopian Airlines',
+  SA: 'South African Airways',
+  KQ: 'Kenya Airways',
+  AT: 'Royal Air Maroc',
+
+  // Low-cost carriers
+  Z0: 'easyJet Switzerland',
+  DS: 'easyJet Switzerland',
+  PC: 'Pegasus Airlines',
+  XY: 'flynas',
+  SL: 'Lion Air',
+  AK: 'AirAsia',
+  D7: 'AirAsia X',
+  FD: 'Thai AirAsia',
+  XT: 'Indonesia AirAsia X',
+  I5: 'AirAsia India',
+  TR: 'Scoot',
+  VJ: 'VietJet Air',
+  JQ: 'Jetstar Airways',
+  '3K': 'Jetstar Asia',
 };
 
 // Alliance member airlines mapping
@@ -328,6 +413,38 @@ export default function FlightFilters({
     }
 
     handlePriceChange(index, value);
+  };
+
+  /**
+   * Handle manual price input from text fields
+   * Auto-corrects invalid ranges (min > max) for best UX
+   */
+  const handlePriceInputChange = (index: 0 | 1, inputValue: string) => {
+    // Remove non-numeric characters except digits
+    const numericValue = inputValue.replace(/[^\d]/g, '');
+
+    if (numericValue === '') {
+      return; // Don't update if empty
+    }
+
+    let value = parseInt(numericValue, 10);
+
+    // Clamp to valid range
+    value = Math.max(minPrice, Math.min(maxPrice, value));
+
+    const newRange: [number, number] = [...localFilters.priceRange] as [number, number];
+    newRange[index] = value;
+
+    // Auto-correct: If min > max, adjust the other value
+    if (index === 0 && value > newRange[1]) {
+      newRange[1] = value; // Move max up to match min
+    } else if (index === 1 && value < newRange[0]) {
+      newRange[0] = value; // Move min down to match max
+    }
+
+    const updated = { ...localFilters, priceRange: newRange };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
   };
 
   const handleStopsToggle = (stop: 'direct' | '1-stop' | '2+-stops') => {
@@ -468,17 +585,17 @@ export default function FlightFilters({
     localFilters.connectionQuality.length > 0;
 
   const FilterContent = () => (
-    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-        <h3 className="font-bold text-gray-900" style={{ fontSize: typography.card.title.size }}>{t.filters}</h3>
+    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* Header - COMPACT */}
+      <div className="flex items-center justify-between pb-1.5 border-b border-gray-200">
+        <h3 className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{t.filters}</h3>
         {hasActiveFilters && (
           <button
             onClick={handleResetAll}
-            className="text-primary-600 hover:text-primary-700 font-semibold transition-colors flex items-center gap-1"
-            style={{ fontSize: typography.card.meta.size }}
+            className="text-primary-600 hover:text-primary-700 font-semibold transition-colors flex items-center gap-0.5"
+            style={{ fontSize: '11px' }}
           >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             {t.resetAll}
@@ -486,26 +603,31 @@ export default function FlightFilters({
         )}
       </div>
 
-      {/* Price Range - ENHANCED SMOOTH DUAL SLIDER */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.priceRange}</label>
-        <div style={{ paddingLeft: spacing.sm, paddingRight: spacing.sm }}>
-          {/* Dual Range Slider Container with better touch targets */}
-          <div className="relative pt-4 pb-8">
-            {/* Track Background */}
-            <div className="absolute w-full h-1.5 bg-gray-200 rounded-full" style={{ top: '1.5rem' }}></div>
-
-            {/* Active Range Track with gradient */}
+      {/* Price Range - ULTRA-COMPACT EDITABLE SLIDER */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.priceRange}</label>
+        <div style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+          {/* ULTRA-SMOOTH Dual Range Slider Container */}
+          <div className="relative pt-4 pb-6">
+            {/* Track Background - Clickable for easy interaction */}
             <div
-              className="absolute h-1.5 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-150"
+              className="absolute w-full h-2 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full shadow-inner cursor-pointer"
+              style={{ top: '1rem', pointerEvents: 'none' }}
+            ></div>
+
+            {/* Active Range Track - Smooth animated gradient */}
+            <div
+              className="absolute h-2 bg-gradient-to-r from-primary-500 via-primary-600 to-blue-600 rounded-full shadow-md"
               style={{
-                top: '1.5rem',
+                top: '1rem',
                 left: `${((localFilters.priceRange[0] - minPrice) / (maxPrice - minPrice)) * 100}%`,
                 right: `${100 - ((localFilters.priceRange[1] - minPrice) / (maxPrice - minPrice)) * 100}%`,
+                pointerEvents: 'none',
+                transition: 'all 0.05s ease-out', // Ultra fast
               }}
             ></div>
 
-            {/* Min Range Slider - FIXED Z-INDEX */}
+            {/* Min Range Slider - BUTTER-SMOOTH DRAGGING */}
             <input
               type="range"
               min={minPrice}
@@ -513,16 +635,24 @@ export default function FlightFilters({
               step={getDynamicStep(maxPrice - minPrice)}
               value={localFilters.priceRange[0]}
               onChange={(e) => handlePriceChangeWithHaptic(0, Number(e.target.value))}
-              className="price-range-slider absolute w-full appearance-none cursor-pointer bg-transparent"
+              className="price-range-slider-min absolute w-full appearance-none bg-transparent outline-none"
               style={{
-                top: '1rem',
-                zIndex: 3, // FIXED: Always below max thumb
-                height: '32px', // Larger touch area
+                top: '0.25rem',
+                zIndex: localFilters.priceRange[0] > (maxPrice - minPrice) * 0.5 ? 5 : 3,
+                height: '40px', // Compact but still grabbable
+                pointerEvents: 'auto',
+                cursor: 'pointer',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                touchAction: 'none',
+                WebkitTapHighlightColor: 'transparent',
               }}
               aria-label="Minimum price"
             />
 
-            {/* Max Range Slider - FIXED Z-INDEX */}
+            {/* Max Range Slider - BUTTER-SMOOTH DRAGGING */}
             <input
               type="range"
               min={minPrice}
@@ -530,37 +660,57 @@ export default function FlightFilters({
               step={getDynamicStep(maxPrice - minPrice)}
               value={localFilters.priceRange[1]}
               onChange={(e) => handlePriceChangeWithHaptic(1, Number(e.target.value))}
-              className="price-range-slider absolute w-full appearance-none cursor-pointer bg-transparent"
+              className="price-range-slider-max absolute w-full appearance-none bg-transparent outline-none"
               style={{
-                top: '1rem',
-                zIndex: 4, // FIXED: Always on top
-                height: '32px', // Larger touch area
+                top: '0.25rem',
+                zIndex: localFilters.priceRange[1] <= (maxPrice - minPrice) * 0.5 ? 5 : 4,
+                height: '40px', // Compact but still grabbable
+                pointerEvents: 'auto',
+                cursor: 'pointer',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                touchAction: 'none',
+                WebkitTapHighlightColor: 'transparent',
               }}
               aria-label="Maximum price"
             />
           </div>
 
-          {/* Price Labels - RESPONSIVE */}
-          <div className="flex items-center justify-between mt-1">
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 backdrop-blur-sm rounded-lg shadow-sm border border-primary-300 px-2 sm:px-3 py-1 sm:py-1.5 transition-all hover:shadow-md">
-              <span className="font-bold text-primary-700 text-xs sm:text-sm">
-                ${formatPrice(localFilters.priceRange[0])}
-              </span>
+          {/* Price Inputs - EDITABLE with $ symbol */}
+          <div className="flex items-center justify-between gap-2 mt-1">
+            <div className="flex-1 relative">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
+              <input
+                type="text"
+                value={formatPrice(localFilters.priceRange[0])}
+                onChange={(e) => handlePriceInputChange(0, e.target.value)}
+                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
+                placeholder={String(minPrice)}
+                aria-label="Minimum price"
+              />
             </div>
-            <span className="text-gray-400 font-semibold text-xs sm:text-sm mx-1">—</span>
-            <div className="bg-gradient-to-br from-primary-50 to-primary-100 backdrop-blur-sm rounded-lg shadow-sm border border-primary-300 px-2 sm:px-3 py-1 sm:py-1.5 transition-all hover:shadow-md">
-              <span className="font-bold text-primary-700 text-xs sm:text-sm">
-                ${formatPrice(localFilters.priceRange[1])}
-              </span>
+            <span className="text-gray-400 font-semibold text-xs flex-shrink-0">—</span>
+            <div className="flex-1 relative">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-primary-700 font-bold text-xs pointer-events-none">$</span>
+              <input
+                type="text"
+                value={formatPrice(localFilters.priceRange[1])}
+                onChange={(e) => handlePriceInputChange(1, e.target.value)}
+                className="w-full bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-300 rounded-md shadow-sm text-primary-700 font-bold text-xs pl-5 pr-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:shadow-md"
+                placeholder={String(maxPrice)}
+                aria-label="Maximum price"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Cabin Class Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.cabinClass}</label>
-        <div className="grid grid-cols-2 gap-2">
+      {/* Cabin Class Filter - COMPACT */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.cabinClass}</label>
+        <div className="grid grid-cols-2 gap-1.5">
           {[
             { value: 'ECONOMY' as const, label: t.economy, icon: '💺' },
             { value: 'PREMIUM_ECONOMY' as const, label: t.premiumEconomy, icon: '✨' },
@@ -569,12 +719,12 @@ export default function FlightFilters({
           ].map(({ value, label, icon }) => (
             <label
               key={value}
-              className={`flex flex-col items-center rounded-lg cursor-pointer transition-all duration-200 ${
+              className={`flex flex-col items-center rounded-md cursor-pointer transition-all duration-150 ${
                 localFilters.cabinClass.includes(value)
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px 4px' }}
             >
               <input
                 type="checkbox"
@@ -582,102 +732,102 @@ export default function FlightFilters({
                 onChange={() => handleCabinClassToggle(value)}
                 className="sr-only"
               />
-              <span style={{ fontSize: '18px', marginBottom: '2px' }}>{icon}</span>
-              <span className="font-medium text-gray-900 text-center" style={{ fontSize: '11px' }}>{label}</span>
+              <span style={{ fontSize: '16px', marginBottom: '1px' }}>{icon}</span>
+              <span className="font-medium text-gray-900 text-center" style={{ fontSize: '10px' }}>{label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {/* Fare Class Filter - Basic Economy */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.fareClass}</label>
+      {/* Fare Class Filter - COMPACT */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.fareClass}</label>
         <label
-          className={`flex items-center justify-between rounded-lg cursor-pointer transition-all duration-200 ${
+          className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
             localFilters.excludeBasicEconomy
-              ? 'bg-orange-50 border-2 border-orange-500'
+              ? 'bg-orange-50 border border-orange-500'
               : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
           }`}
-          style={{ padding: spacing.sm }}
+          style={{ padding: '6px 8px' }}
         >
-          <div className="flex items-center flex-1" style={{ gap: spacing.sm }}>
+          <div className="flex items-center flex-1" style={{ gap: '6px' }}>
             <input
               type="checkbox"
               checked={localFilters.excludeBasicEconomy}
               onChange={handleBasicEconomyToggle}
-              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-1 cursor-pointer"
+              className="w-3 h-3 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-1 cursor-pointer"
             />
             <div className="flex flex-col flex-1">
-              <div className="flex items-center gap-1.5">
-                <span style={{ fontSize: '16px' }}>⚠️</span>
-                <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.excludeBasicEconomy}</span>
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: '14px' }}>⚠️</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.excludeBasicEconomy}</span>
               </div>
-              <span className="text-gray-500 text-xs mt-0.5">{t.basicEconomyDesc}</span>
+              <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.basicEconomyDesc}</span>
             </div>
           </div>
         </label>
       </div>
 
-      {/* Baggage Included Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+      {/* Baggage Included Filter - COMPACT */}
+      <div>
         <label
-          className={`flex items-center justify-between rounded-lg cursor-pointer transition-all duration-200 ${
+          className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
             localFilters.baggageIncluded
-              ? 'bg-blue-50 border-2 border-blue-500'
+              ? 'bg-blue-50 border border-blue-500'
               : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
           }`}
-          style={{ padding: spacing.sm }}
+          style={{ padding: '6px 8px' }}
         >
-          <div className="flex items-center flex-1" style={{ gap: spacing.sm }}>
+          <div className="flex items-center flex-1" style={{ gap: '6px' }}>
             <input
               type="checkbox"
               checked={localFilters.baggageIncluded}
               onChange={handleBaggageToggle}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
+              className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
             />
             <div className="flex flex-col flex-1">
-              <div className="flex items-center gap-1.5">
-                <span style={{ fontSize: '16px' }}>🧳</span>
-                <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.baggageIncluded}</span>
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: '14px' }}>🧳</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.baggageIncluded}</span>
               </div>
-              <span className="text-gray-500 text-xs mt-0.5">{t.baggageIncludedDesc}</span>
+              <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.baggageIncludedDesc}</span>
             </div>
           </div>
         </label>
       </div>
 
-      {/* Refundable Only Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+      {/* Refundable Only Filter - COMPACT */}
+      <div>
         <label
-          className={`flex items-center justify-between rounded-lg cursor-pointer transition-all duration-200 ${
+          className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
             localFilters.refundableOnly
-              ? 'bg-green-50 border-2 border-green-500'
+              ? 'bg-green-50 border border-green-500'
               : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-green-300 hover:bg-green-50/50'
           }`}
-          style={{ padding: spacing.sm }}
+          style={{ padding: '6px 8px' }}
         >
-          <div className="flex items-center flex-1" style={{ gap: spacing.sm }}>
+          <div className="flex items-center flex-1" style={{ gap: '6px' }}>
             <input
               type="checkbox"
               checked={localFilters.refundableOnly}
               onChange={handleRefundableToggle}
-              className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-1 cursor-pointer"
+              className="w-3 h-3 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-1 cursor-pointer"
             />
             <div className="flex flex-col flex-1">
-              <div className="flex items-center gap-1.5">
-                <span style={{ fontSize: '16px' }}>💰</span>
-                <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.refundableOnly}</span>
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: '14px' }}>💰</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.refundableOnly}</span>
               </div>
-              <span className="text-gray-500 text-xs mt-0.5">{t.refundableOnlyDesc}</span>
+              <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.refundableOnlyDesc}</span>
             </div>
           </div>
         </label>
       </div>
 
-      {/* Stops Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.stops}</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
+      {/* Stops Filter - COMPACT */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.stops}</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {[
             { value: 'direct' as const, label: t.direct, icon: '✈️' },
             { value: '1-stop' as const, label: t.oneStop, icon: '🔄' },
@@ -712,43 +862,44 @@ export default function FlightFilters({
         </div>
       </div>
 
-      {/* Airlines Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+      {/* Airlines Filter - COMPACT SINGLE LINE */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div className="flex items-center justify-between">
-          <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.airlines}</label>
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.airlines}</label>
           <button
             onClick={handleSelectAllAirlines}
             className="text-primary-600 hover:text-primary-700 font-semibold"
-            style={{ fontSize: typography.card.meta.size }}
+            style={{ fontSize: '11px' }}
           >
             {t.selectAll}
           </button>
         </div>
-        <div className="max-h-48 overflow-y-auto scrollbar-hide pr-1" style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
+        <div className="max-h-48 overflow-y-auto scrollbar-hide pr-1" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {availableAirlines.map((airline) => (
             <label
               key={airline}
-              className={`flex items-center justify-between rounded-lg cursor-pointer transition-all duration-200 ${
+              className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
                 localFilters.airlines.includes(airline)
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px 8px' }}
             >
-              <div className="flex items-center" style={{ gap: spacing.sm }}>
+              <div className="flex items-center" style={{ gap: '6px' }}>
                 <input
                   type="checkbox"
                   checked={localFilters.airlines.includes(airline)}
                   onChange={() => handleAirlineToggle(airline)}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-1 cursor-pointer"
+                  className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-1 cursor-pointer"
                 />
-                <div className="flex flex-col">
-                  <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{airline}</span>
-                  <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>{airlineNames[airline] || airline}</span>
-                </div>
+                {/* Single line: "Airline Name, CODE" */}
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>
+                  {airlineNames[airline] || airline}
+                  <span className="text-gray-500 font-normal" style={{ fontSize: '11px' }}>, {airline}</span>
+                </span>
               </div>
               {resultCounts?.airlines[airline] !== undefined && (
-                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: typography.card.meta.size, padding: `2px ${spacing.xs}` }}>
+                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: '10px', padding: '2px 6px' }}>
                   {resultCounts.airlines[airline]}
                 </span>
               )}
@@ -999,58 +1150,176 @@ export default function FlightFilters({
       )}
 
       <style jsx>{`
-        /* Price Range Slider - Enhanced with smooth interaction */
-        .price-range-slider {
-          pointer-events: none;
-          height: 32px; /* Larger touch area */
-        }
-
-        .price-range-slider::-webkit-slider-thumb {
+        /* ULTRA-SMOOTH Price Range Slider - Perfect drag performance */
+        .price-range-slider-min,
+        .price-range-slider-max {
+          -webkit-appearance: none;
+          -moz-appearance: none;
           appearance: none;
-          pointer-events: auto;
-          width: 24px;
-          height: 24px;
+          outline: none;
+          background: transparent;
+        }
+
+        /* Min Slider Thumb - WEBKIT (Chrome/Safari/Edge) - COMPACT BUT GRABBABLE */
+        .price-range-slider-min::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 28px; /* Compact size for dense UI */
+          height: 28px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #0087FF 0%, #006FDB 100%);
-          cursor: grab;
-          box-shadow: 0 2px 8px rgba(0, 135, 255, 0.4), 0 0 0 4px rgba(0, 135, 255, 0.1);
-          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 3px solid white;
-          margin-top: -11px; /* Center on 1.5px track: (24px - 1.5px) / 2 = 11px */
-        }
-
-        .price-range-slider::-webkit-slider-thumb:hover {
-          transform: scale(1.15);
-          box-shadow: 0 4px 16px rgba(0, 135, 255, 0.6), 0 0 0 6px rgba(0, 135, 255, 0.15);
-        }
-
-        .price-range-slider::-webkit-slider-thumb:active {
-          cursor: grabbing;
-          transform: scale(1.25);
-          box-shadow: 0 6px 20px rgba(0, 135, 255, 0.8), 0 0 0 8px rgba(0, 135, 255, 0.2);
-        }
-
-        .price-range-slider::-moz-range-thumb {
+          background: linear-gradient(135deg, #0087FF 0%, #0070DB 100%);
+          cursor: pointer;
+          box-shadow:
+            0 3px 12px rgba(0, 135, 255, 0.6),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 7px rgba(0, 135, 255, 0.15);
+          border: none;
+          margin-top: -13px; /* Center on 2px track: (28 - 2) / 2 = 13 */
           pointer-events: auto;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #0087FF 0%, #006FDB 100%);
-          cursor: grab;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0, 135, 255, 0.4), 0 0 0 4px rgba(0, 135, 255, 0.1);
-          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .price-range-slider::-moz-range-thumb:hover {
+        .price-range-slider-min::-webkit-slider-thumb:hover {
+          transform: scale(1.1);
+          box-shadow:
+            0 4px 16px rgba(0, 135, 255, 0.7),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 8px rgba(0, 135, 255, 0.2);
+        }
+
+        .price-range-slider-min::-webkit-slider-thumb:active {
+          cursor: pointer;
           transform: scale(1.15);
-          box-shadow: 0 4px 16px rgba(0, 135, 255, 0.6), 0 0 0 6px rgba(0, 135, 255, 0.15);
+          box-shadow:
+            0 6px 20px rgba(0, 135, 255, 0.85),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 10px rgba(0, 135, 255, 0.3);
         }
 
-        .price-range-slider::-moz-range-thumb:active {
-          cursor: grabbing;
-          transform: scale(1.25);
-          box-shadow: 0 6px 20px rgba(0, 135, 255, 0.8), 0 0 0 8px rgba(0, 135, 255, 0.2);
+        /* Max Slider Thumb - WEBKIT */
+        .price-range-slider-max::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #0087FF 0%, #0070DB 100%);
+          cursor: pointer;
+          box-shadow:
+            0 3px 12px rgba(0, 135, 255, 0.6),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 7px rgba(0, 135, 255, 0.15);
+          border: none;
+          margin-top: -13px;
+          pointer-events: auto;
+        }
+
+        .price-range-slider-max::-webkit-slider-thumb:hover {
+          transform: scale(1.1);
+          box-shadow:
+            0 4px 16px rgba(0, 135, 255, 0.7),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 8px rgba(0, 135, 255, 0.2);
+        }
+
+        .price-range-slider-max::-webkit-slider-thumb:active {
+          cursor: pointer;
+          transform: scale(1.15);
+          box-shadow:
+            0 6px 20px rgba(0, 135, 255, 0.85),
+            0 0 0 5px rgba(255, 255, 255, 1),
+            0 0 0 10px rgba(0, 135, 255, 0.3);
+        }
+
+        /* Min Slider Thumb - FIREFOX */
+        .price-range-slider-min::-moz-range-thumb {
+          -moz-appearance: none;
+          appearance: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #0087FF 0%, #0070DB 100%);
+          cursor: pointer;
+          border: 5px solid white;
+          box-shadow:
+            0 3px 12px rgba(0, 135, 255, 0.6),
+            0 0 0 2px rgba(0, 135, 255, 0.15);
+        }
+
+        .price-range-slider-min::-moz-range-thumb:hover {
+          transform: scale(1.1);
+          box-shadow:
+            0 4px 16px rgba(0, 135, 255, 0.7),
+            0 0 0 3px rgba(0, 135, 255, 0.2);
+        }
+
+        .price-range-slider-min::-moz-range-thumb:active {
+          cursor: pointer;
+          transform: scale(1.15);
+          box-shadow:
+            0 6px 20px rgba(0, 135, 255, 0.85),
+            0 0 0 4px rgba(0, 135, 255, 0.3);
+        }
+
+        /* Max Slider Thumb - FIREFOX */
+        .price-range-slider-max::-moz-range-thumb {
+          -moz-appearance: none;
+          appearance: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #0087FF 0%, #0070DB 100%);
+          cursor: pointer;
+          border: 5px solid white;
+          box-shadow:
+            0 3px 12px rgba(0, 135, 255, 0.6),
+            0 0 0 2px rgba(0, 135, 255, 0.15);
+        }
+
+        .price-range-slider-max::-moz-range-thumb:hover {
+          transform: scale(1.1);
+          box-shadow:
+            0 4px 16px rgba(0, 135, 255, 0.7),
+            0 0 0 3px rgba(0, 135, 255, 0.2);
+        }
+
+        .price-range-slider-max::-moz-range-thumb:active {
+          cursor: pointer;
+          transform: scale(1.15);
+          box-shadow:
+            0 6px 20px rgba(0, 135, 255, 0.85),
+            0 0 0 4px rgba(0, 135, 255, 0.3);
+        }
+
+        /* Track styling - MUST be transparent and non-interfering */
+        .price-range-slider-min::-webkit-slider-runnable-track,
+        .price-range-slider-max::-webkit-slider-runnable-track {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+          border: none;
+          height: 2px;
+          width: 100%;
+        }
+
+        .price-range-slider-min::-moz-range-track,
+        .price-range-slider-max::-moz-range-track {
+          -moz-appearance: none;
+          appearance: none;
+          background: transparent;
+          border: none;
+          height: 2px;
+          width: 100%;
+        }
+
+        /* Remove focus ring that might interfere */
+        .price-range-slider-min:focus,
+        .price-range-slider-max:focus {
+          outline: none;
+        }
+
+        .price-range-slider-min::-moz-focus-outer,
+        .price-range-slider-max::-moz-focus-outer {
+          border: 0;
         }
 
         /* Regular slider thumbs - other sliders */
