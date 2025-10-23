@@ -1,21 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award } from 'lucide-react';
+import ShareFlightModal from './ShareFlightModal';
 import { getAirlineData, getAllianceBadgeColor, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
+import { getEstimatedAmenities } from '@/lib/flights/aircraft-amenities';
 import AirlineLogo from './AirlineLogo';
 import UrgencyIndicators from './UrgencyIndicators';
 import SocialProof from './SocialProof';
 import PriceAnchoringBadge from './PriceAnchoringBadge';
 import CO2Badge from './CO2Badge';
-import BrandedFares from './BrandedFares';
-import SeatMapViewer from './SeatMapViewer';
-import SeatMapPreview from './SeatMapPreview';
 import FareComparisonModal, { FareOption } from './FareComparisonModal';
 import FareRulesAccordion from './FareRulesAccordion';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
 import type { DealScoreBreakdown } from '@/lib/flights/dealScore';
-import BaggageFeeCalculator from './BaggageFeeCalculator';
 import { dimensions, spacing, typography, colors } from '@/lib/design-system';
 import { ParsedFareRules } from '@/lib/utils/fareRuleParsers';
 
@@ -70,6 +69,7 @@ export interface EnhancedFlightCardProps {
   viewingCount?: number; // Number of people viewing this flight
   bookingsToday?: number; // Number of bookings made today
   dealScore?: number; // Deal score (0-100)
+  dealScoreBreakdown?: DealScoreBreakdown; // Deal score component breakdown
   dealTier?: 'excellent' | 'great' | 'good' | 'fair'; // Deal tier
   dealLabel?: string; // Deal label
   onSelect?: (id: string) => void;
@@ -95,6 +95,7 @@ export function FlightCardEnhanced({
   viewingCount,
   bookingsToday,
   dealScore,
+  dealScoreBreakdown,
   dealTier,
   dealLabel,
   onSelect,
@@ -103,6 +104,7 @@ export function FlightCardEnhanced({
   isNavigating = false,
   lang = 'en',
 }: EnhancedFlightCardProps) {
+  const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -110,6 +112,7 @@ export function FlightCardEnhanced({
   const [showFareRules, setShowFareRules] = useState(false);
   const [fareRules, setFareRules] = useState<ParsedFareRules | null>(null);
   const [loadingFareRules, setLoadingFareRules] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // DEBUG: Log component render and conversion feature props
   useEffect(() => {
@@ -201,15 +204,37 @@ export function FlightCardEnhanced({
   const savings = averagePrice - totalPrice;
   const savingsPercentage = ((savings / averagePrice) * 100).toFixed(0);
 
-  // Parse baggage allowance from Amadeus API data
-  const getBaggageInfo = () => {
+  // NEW: Parse amenities from Amadeus API
+  const getMealType = (amenities: any[]): string => {
+    const mealAmenity = amenities.find((a: any) => a.amenityType === 'MEAL');
+    if (!mealAmenity) return 'None';
+
+    const desc = mealAmenity.description.toLowerCase();
+    if (desc.includes('hot meal')) return 'Hot meal';
+    if (desc.includes('meal')) return 'Meal';
+    if (desc.includes('snack')) return 'Snack';
+    return 'Refreshments';
+  };
+
+  // NEW: Get baggage and amenities BY ITINERARY (not just first segment!)
+  const getBaggageByItinerary = (itineraryIndex: number) => {
     // Default fallback
     const defaultBaggage = {
       carryOn: true,
       carryOnWeight: '10kg',
+      carryOnQuantity: 2,
       checked: 1,
       checkedWeight: '23kg',
-      fareType: 'STANDARD'
+      fareType: 'STANDARD',
+      brandedFareLabel: undefined as string | undefined,
+      cabin: 'ECONOMY',
+      amenities: {
+        wifi: false,
+        power: false,
+        meal: 'None',
+        entertainment: false,
+        isEstimated: true,
+      },
     };
 
     try {
@@ -218,34 +243,97 @@ export function FlightCardEnhanced({
       }
 
       const firstTraveler = travelerPricings[0];
-      const fareDetails = firstTraveler.fareDetailsBySegment?.[0];
+      // CRITICAL FIX: Use itineraryIndex, not [0]!
+      const fareDetails = firstTraveler.fareDetailsBySegment?.[itineraryIndex];
 
       if (!fareDetails) {
         return defaultBaggage;
       }
 
+      // Checked baggage from API
       const checkedBags = fareDetails.includedCheckedBags?.quantity || 0;
-      const cabin = fareDetails.cabin || 'ECONOMY';
-      const fareType = fareDetails.brandedFare || fareDetails.fareBasis || 'STANDARD';
+      const checkedWeight = fareDetails.includedCheckedBags?.weight
+        ? `${fareDetails.includedCheckedBags.weight}${fareDetails.includedCheckedBags.weightUnit || 'kg'}`
+        : '23kg';
 
-      // Determine baggage rules based on fare type
-      const isBasicEconomy = fareType.includes('BASIC') || fareType.includes('LIGHT') || fareType.includes('SAVER');
+      // Cabin baggage from API (NEW - we weren't using this!)
+      const cabinBagsData = fareDetails.includedCabinBags;
+      const cabinQuantity = cabinBagsData?.quantity || 0;
+
+      // Get fare details
+      const cabin = fareDetails.cabin || 'ECONOMY';
+      const fareOption = fareDetails.fareOption || fareDetails.brandedFare || fareDetails.fareBasis || 'STANDARD';
+      const brandedLabel = fareDetails.brandedFareLabel; // e.g., "Blue Basic"
+
+      // Determine baggage rules
+      const isBasicEconomy = fareOption.includes('BASIC') || fareOption.includes('LIGHT') || fareOption.includes('SAVER');
       const isPremium = cabin === 'PREMIUM_ECONOMY' || cabin === 'BUSINESS' || cabin === 'FIRST';
 
+      // Determine carry-on rules
+      const hasCarryOn = cabinQuantity >= 2 || !isBasicEconomy; // 2 = carry-on + personal item
+      const carryOnWeight = isPremium ? '18kg' : '10kg';
+
+      // Parse amenities array (with aircraft-based fallback)
+      const amenitiesArray = fareDetails.amenities || [];
+
+      // Get aircraft code from the first segment of this itinerary
+      const itinerarySegments = itineraries?.[itineraryIndex]?.segments || [];
+      const aircraftCode = itinerarySegments[0]?.aircraft?.code;
+
+      // Use real amenities data if available, otherwise estimate from aircraft type
+      const amenities = amenitiesArray.length > 0
+        ? {
+            // Real data from Amadeus Branded Fares API
+            wifi: amenitiesArray.some((a: any) =>
+              a.description.toLowerCase().includes('wifi') ||
+              a.description.toLowerCase().includes('wi-fi') ||
+              a.description.toLowerCase().includes('internet')
+            ),
+            power: amenitiesArray.some((a: any) =>
+              a.description.toLowerCase().includes('power') ||
+              a.description.toLowerCase().includes('outlet') ||
+              a.description.toLowerCase().includes('usb')
+            ),
+            meal: getMealType(amenitiesArray),
+            entertainment: amenitiesArray.some((a: any) => a.amenityType === 'ENTERTAINMENT'),
+            isEstimated: false
+          }
+        : {
+            // Estimated data based on aircraft type and cabin class
+            ...getEstimatedAmenities(aircraftCode, cabin)
+          };
+
       return {
-        carryOn: !isBasicEconomy, // Basic Economy may not include carry-on on some domestic routes
-        carryOnWeight: isPremium ? '18kg' : '10kg',
+        carryOn: hasCarryOn,
+        carryOnWeight,
+        carryOnQuantity: Math.max(cabinQuantity, hasCarryOn ? 2 : 1),
         checked: checkedBags,
-        checkedWeight: isPremium ? '32kg' : '23kg',
-        fareType: fareType
+        checkedWeight,
+        fareType: fareOption,
+        brandedFareLabel: brandedLabel,
+        cabin,
+        amenities,
       };
     } catch (error) {
-      console.warn('Error parsing baggage info:', error);
+      console.warn(`Error parsing baggage for itinerary ${itineraryIndex}:`, error);
       return defaultBaggage;
     }
   };
 
-  const baggageInfo = getBaggageInfo();
+  // Get baggage info for each leg
+  const outboundBaggage = getBaggageByItinerary(0);
+  const returnBaggage = isRoundtrip ? getBaggageByItinerary(1) : null;
+
+  // Check if outbound and return differ
+  const baggageDiffers = returnBaggage && (
+    outboundBaggage.checked !== returnBaggage.checked ||
+    outboundBaggage.fareType !== returnBaggage.fareType ||
+    outboundBaggage.amenities.wifi !== returnBaggage.amenities.wifi ||
+    outboundBaggage.carryOn !== returnBaggage.carryOn
+  );
+
+  // Legacy support: Keep baggageInfo for existing code
+  const baggageInfo = outboundBaggage;
 
   // TruePrice calculation - based on actual baggage allowance
   const getBaggageFees = () => {
@@ -267,12 +355,46 @@ export function FlightCardEnhanced({
   const estimatedSeat = baggageInfo.fareType.includes('BASIC') ? 30 : 0; // Basic fares charge for seat selection
   const truePrice = totalPrice + estimatedBaggage + estimatedSeat;
 
-  // Handle select
+  // Handle select - Navigate to booking page
   const handleSelectClick = () => {
-    if (!onSelect || isNavigating) return;
+    if (isNavigating) return;
+
+    // Save flight data to sessionStorage for booking page
+    const flightData = {
+      id,
+      itineraries,
+      price,
+      numberOfBookableSeats,
+      validatingAirlineCodes,
+      travelerPricings,
+      badges,
+      score,
+      mlScore,
+      priceVsMarket,
+      co2Emissions,
+      averageCO2,
+      viewingCount,
+      bookingsToday,
+      dealScore,
+      dealScoreBreakdown,
+      dealTier,
+      dealLabel,
+    };
+
+    sessionStorage.setItem(`flight_${id}`, JSON.stringify(flightData));
+
+    // Show toast briefly before navigation
     setShowSuccessToast(true);
-    onSelect(id);
-    setTimeout(() => setShowSuccessToast(false), 2000);
+
+    // Navigate to booking page with 7-step flow
+    setTimeout(() => {
+      router.push(`/flights/booking?flightId=${id}&step=summary`);
+    }, 500);
+
+    // Call onSelect if provided (for parent component state management)
+    if (onSelect) {
+      onSelect(id);
+    }
   };
 
   // Use provided viewing count or generate mock
@@ -323,9 +445,12 @@ export function FlightCardEnhanced({
   }, []);
 
   return (
-    <div className={`group relative bg-white rounded-xl border-2 transition-all duration-300 overflow-visible ${
+    <div
+      data-flight-card
+      data-flight-id={id}
+      className={`group relative bg-white rounded-xl border-2 transition-all duration-300 overflow-visible ${
       isComparing ? 'border-primary-500 ring-2 ring-primary-100' : 'border-gray-200 hover:border-primary-300'
-    } hover:shadow-lg`}>
+    } hover:shadow-lg ${isExpanded ? 'flight-card-expanded' : ''}`}>
 
       {/* DEBUG MODE INDICATOR */}
       {isDebugMode && (
@@ -372,6 +497,17 @@ export function FlightCardEnhanced({
               ✈️ Direct
             </span>
           )}
+
+          {/* Class & Fare Type Badge */}
+          <span className="font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
+            {(() => {
+              const cabinClass = outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
+                                 outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
+                                 outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy';
+              const fareLabel = outboundBaggage.brandedFareLabel || outboundBaggage.fareType || 'STANDARD';
+              return `${cabinClass} · ${fareLabel}`;
+            })()}
+          </span>
         </div>
 
         {/* Right: FlightIQ Score + Quick Actions */}
@@ -400,8 +536,19 @@ export function FlightCardEnhanced({
                 ? 'bg-red-500 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500'
             }`}
+            title="Save to favorites"
           >
             <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+          </button>
+
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="p-1 rounded transition-all bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+            title="Share this flight"
+            aria-label="Share flight deal"
+            data-testid="share-button"
+          >
+            <Share2 className="w-3.5 h-3.5" />
           </button>
 
           {onCompare && (
@@ -412,6 +559,7 @@ export function FlightCardEnhanced({
                   ? 'bg-primary-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-500'
               }`}
+              title="Compare flights"
             >
               <Check className="w-3.5 h-3.5" />
             </button>
@@ -465,32 +613,77 @@ export function FlightCardEnhanced({
           {isExpanded && (
             <div className="mt-2 pl-3 space-y-1.5 border-l-2 border-blue-400">
               {outbound.segments.map((segment, idx) => (
-                <div key={`out-seg-${idx}`} className="space-y-0.5">
-                  <div className="flex items-center gap-2 text-xs">
-                    <AirlineLogo
-                      code={segment.carrierCode}
-                      size="sm"
-                      className="flex-shrink-0"
-                    />
-                    <span className="font-semibold text-gray-900">
-                      {getAirlineData(segment.carrierCode).name} {segment.number}
-                    </span>
-                    <span className="text-gray-500">•</span>
-                    <span className="text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
-                  </div>
-                  <div className="text-xs text-gray-600 flex items-center gap-1">
-                    <span>Terminals: {segment.departure.terminal ? `T${segment.departure.terminal}` : segment.departure.iataCode} → {segment.arrival.terminal ? `T${segment.arrival.terminal}` : segment.arrival.iataCode}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] flex items-center gap-0.5">
-                      <Wifi className="w-2.5 h-2.5" /> WiFi
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] flex items-center gap-0.5">
-                      <Zap className="w-2.5 h-2.5" /> Power
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] flex items-center gap-0.5">
-                      <Coffee className="w-2.5 h-2.5" /> Meals
-                    </span>
+                <div key={`out-seg-${idx}`} className="space-y-1.5 pb-2">
+                  {/* ENHANCED SEGMENT HEADER - Full width layout */}
+                  <div className="flex items-start justify-between gap-4">
+                    {/* LEFT: Airline & Flight Details */}
+                    <div className="flex items-center gap-2">
+                      <AirlineLogo
+                        code={segment.carrierCode}
+                        size="sm"
+                        className="flex-shrink-0"
+                      />
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-gray-900">
+                            {getAirlineData(segment.carrierCode).name} {segment.number}
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-xs text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                            <span className="font-semibold">{airlineData.rating.toFixed(1)}</span>
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className={airlineData.onTimePerformance >= 80 ? 'text-green-700 font-semibold' : airlineData.onTimePerformance >= 70 ? 'text-yellow-700 font-semibold' : 'text-red-700 font-semibold'}>
+                            On-time {airlineData.onTimePerformance}%
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className={`px-1.5 py-0.5 font-bold text-[10px] rounded ${
+                            outboundBaggage.cabin === 'FIRST' ? 'bg-amber-100 text-amber-900' :
+                            outboundBaggage.cabin === 'BUSINESS' ? 'bg-blue-100 text-blue-900' :
+                            outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'bg-indigo-100 text-indigo-900' :
+                            'bg-gray-100 text-gray-900'
+                          }`}>
+                            {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
+                             outboundBaggage.cabin === 'BUSINESS' ? 'Business Class' :
+                             outboundBaggage.cabin === 'FIRST' ? 'First Class' : 'Economy Class'}
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-[10px] rounded">
+                            {outboundBaggage.brandedFareLabel || outboundBaggage.fareType}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT: Flight Route & Times */}
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="text-right">
+                        <div className="font-bold text-gray-900">{formatTime(segment.departure.at)}</div>
+                        <div className="text-gray-600">{segment.departure.iataCode}</div>
+                        {segment.departure.terminal && (
+                          <div className="text-[10px] text-gray-500">T{segment.departure.terminal}</div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col items-center px-2">
+                        <div className="text-[10px] text-gray-500 mb-0.5">{parseDuration(segment.duration || outbound.duration)}</div>
+                        <div className="w-12 h-px bg-gray-300 relative">
+                          <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-600 bg-white" />
+                        </div>
+                      </div>
+
+                      <div className="text-left">
+                        <div className="font-bold text-gray-900">{formatTime(segment.arrival.at)}</div>
+                        <div className="text-gray-600">{segment.arrival.iataCode}</div>
+                        {segment.arrival.terminal && (
+                          <div className="text-[10px] text-gray-500">T{segment.arrival.terminal}</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   {idx < outbound.segments.length - 1 && (
                     <div className="mt-1 px-2 py-0.5 bg-yellow-100 border-l-2 border-yellow-500 text-yellow-900 text-[10px] font-medium rounded">
@@ -499,6 +692,101 @@ export function FlightCardEnhanced({
                   )}
                 </div>
               ))}
+
+              {/* ULTRA-COMPACT SINGLE LINE - Full width with better readability */}
+              <div className="mt-1.5 py-1 px-2 bg-gray-50/50 rounded-sm border-t border-gray-100">
+                <div className="flex items-center justify-between flex-wrap gap-x-2.5 gap-y-1 text-[11px] font-medium min-h-[20px]">
+                  {/* Baggage - Same height alignment */}
+                  <span className="inline-flex items-center gap-0.5 h-full">
+                    <span className="leading-none">🎒</span>
+                    <span className={outboundBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                      {outboundBaggage.carryOn
+                        ? outboundBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
+                        : 'Personal only'
+                      }
+                      <span className="text-gray-600 font-normal">({outboundBaggage.carryOnWeight})</span>
+                    </span>
+                  </span>
+
+                  <span className="text-gray-400 leading-none">•</span>
+
+                  <span className="inline-flex items-center gap-0.5 h-full">
+                    <span className="leading-none">💼</span>
+                    <span className={outboundBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                      {outboundBaggage.checked > 0
+                        ? `${outboundBaggage.checked} bag${outboundBaggage.checked > 1 ? 's' : ''}`
+                        : 'Not included'
+                      }
+                      {outboundBaggage.checked > 0 && (
+                        <span className="text-gray-600 font-normal">({outboundBaggage.checkedWeight})</span>
+                      )}
+                    </span>
+                  </span>
+
+                  <span className="text-gray-400 leading-none">•</span>
+
+                  {/* Amenities - Same height inline */}
+                  <span
+                    className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${outboundBaggage.amenities.wifi ? 'text-green-700' : 'text-gray-700'}`}
+                    title={outboundBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                    📶WiFi {outboundBaggage.amenities.wifi ? '✓' : '✗'}
+                    {outboundBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                  </span>
+
+                  <span className="text-gray-400 leading-none">•</span>
+
+                  <span
+                    className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${outboundBaggage.amenities.power ? 'text-green-700' : 'text-gray-700'}`}
+                    title={outboundBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                    🔌Power {outboundBaggage.amenities.power ? '✓' : '✗'}
+                    {outboundBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                  </span>
+
+                  <span className="text-gray-400 leading-none">•</span>
+
+                  <span
+                    className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${outboundBaggage.amenities.meal !== 'None' ? 'text-gray-800' : 'text-gray-700'}`}
+                    title={outboundBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                    🍽️{outboundBaggage.amenities.meal}
+                    {outboundBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                  </span>
+
+                  {/* Fare badges - Same height inline */}
+                  {fareRules && (
+                    <>
+                      <span className="text-gray-400 mx-1 leading-none">|</span>
+
+                      {fareRules.refundable ? (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-800 rounded text-[10px] font-medium h-5 leading-none">
+                          <Check className="w-2.5 h-2.5" />Refundable
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-50 text-red-800 rounded text-[10px] font-medium h-5 leading-none">
+                          <X className="w-2.5 h-2.5" />Non-refund
+                        </span>
+                      )}
+
+                      {fareRules.changeable ? (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-800 rounded text-[10px] font-medium h-5 leading-none">
+                          <Check className="w-2.5 h-2.5" />Changes OK
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-50 text-red-800 rounded text-[10px] font-medium h-5 leading-none">
+                          <X className="w-2.5 h-2.5" />No changes
+                        </span>
+                      )}
+
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-medium h-5 leading-none">
+                        <Shield className="w-2.5 h-2.5" />24hr
+                      </span>
+
+                      <span className={`inline-flex items-center h-full leading-none ${!outboundBaggage.fareType.includes('BASIC') && !outboundBaggage.fareType.includes('LIGHT') ? 'text-green-700 font-medium' : 'text-orange-700 font-medium'}`}>
+                        💺{!outboundBaggage.fareType.includes('BASIC') && !outboundBaggage.fareType.includes('LIGHT') ? 'Incl' : 'Fee'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -547,32 +835,77 @@ export function FlightCardEnhanced({
             {isExpanded && (
               <div className="mt-2 pl-3 space-y-1.5 border-l-2 border-purple-400">
                 {inbound.segments.map((segment, idx) => (
-                  <div key={`ret-seg-${idx}`} className="space-y-0.5">
-                    <div className="flex items-center gap-2 text-xs">
-                      <AirlineLogo
-                        code={segment.carrierCode}
-                        size="sm"
-                        className="flex-shrink-0"
-                      />
-                      <span className="font-semibold text-gray-900">
-                        {getAirlineData(segment.carrierCode).name} {segment.number}
-                      </span>
-                      <span className="text-gray-500">•</span>
-                      <span className="text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
-                    </div>
-                    <div className="text-xs text-gray-600 flex items-center gap-1">
-                      <span>Terminals: {segment.departure.terminal ? `T${segment.departure.terminal}` : segment.departure.iataCode} → {segment.arrival.terminal ? `T${segment.arrival.terminal}` : segment.arrival.iataCode}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] flex items-center gap-0.5">
-                        <Wifi className="w-2.5 h-2.5" /> WiFi
-                      </span>
-                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] flex items-center gap-0.5">
-                        <Zap className="w-2.5 h-2.5" /> Power
-                      </span>
-                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] flex items-center gap-0.5">
-                        <Coffee className="w-2.5 h-2.5" /> Meals
-                      </span>
+                  <div key={`ret-seg-${idx}`} className="space-y-1.5 pb-2">
+                    {/* ENHANCED SEGMENT HEADER - Full width layout */}
+                    <div className="flex items-start justify-between gap-4">
+                      {/* LEFT: Airline & Flight Details */}
+                      <div className="flex items-center gap-2">
+                        <AirlineLogo
+                          code={segment.carrierCode}
+                          size="sm"
+                          className="flex-shrink-0"
+                        />
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-gray-900">
+                              {getAirlineData(segment.carrierCode).name} {segment.number}
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span className="text-xs text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <span className="flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                              <span className="font-semibold">{airlineData.rating.toFixed(1)}</span>
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span className={airlineData.onTimePerformance >= 80 ? 'text-green-700 font-semibold' : airlineData.onTimePerformance >= 70 ? 'text-yellow-700 font-semibold' : 'text-red-700 font-semibold'}>
+                              On-time {airlineData.onTimePerformance}%
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span className={`px-1.5 py-0.5 font-bold text-[10px] rounded ${
+                              returnBaggage?.cabin === 'FIRST' ? 'bg-amber-100 text-amber-900' :
+                              returnBaggage?.cabin === 'BUSINESS' ? 'bg-blue-100 text-blue-900' :
+                              returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'bg-indigo-100 text-indigo-900' :
+                              'bg-gray-100 text-gray-900'
+                            }`}>
+                              {returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
+                               returnBaggage?.cabin === 'BUSINESS' ? 'Business Class' :
+                               returnBaggage?.cabin === 'FIRST' ? 'First Class' : 'Economy Class'}
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-[10px] rounded">
+                              {returnBaggage?.brandedFareLabel || returnBaggage?.fareType}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* RIGHT: Flight Route & Times */}
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900">{formatTime(segment.departure.at)}</div>
+                          <div className="text-gray-600">{segment.departure.iataCode}</div>
+                          {segment.departure.terminal && (
+                            <div className="text-[10px] text-gray-500">T{segment.departure.terminal}</div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col items-center px-2">
+                          <div className="text-[10px] text-gray-500 mb-0.5">{parseDuration(segment.duration || inbound.duration)}</div>
+                          <div className="w-12 h-px bg-gray-300 relative">
+                            <Plane className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-purple-600 bg-white rotate-180" />
+                          </div>
+                        </div>
+
+                        <div className="text-left">
+                          <div className="font-bold text-gray-900">{formatTime(segment.arrival.at)}</div>
+                          <div className="text-gray-600">{segment.arrival.iataCode}</div>
+                          {segment.arrival.terminal && (
+                            <div className="text-[10px] text-gray-500">T{segment.arrival.terminal}</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     {idx < inbound.segments.length - 1 && (
                       <div className="mt-1 px-2 py-0.5 bg-yellow-100 border-l-2 border-yellow-500 text-yellow-900 text-[10px] font-medium rounded">
@@ -581,8 +914,133 @@ export function FlightCardEnhanced({
                     )}
                   </div>
                 ))}
+
+                {/* ULTRA-COMPACT SINGLE LINE - RETURN FLIGHT - Full width with better readability */}
+                {returnBaggage && (
+                  <div className="mt-1.5 py-1 px-2 bg-gray-50/50 rounded-sm border-t border-gray-100">
+                    <div className="flex items-center justify-between flex-wrap gap-x-2.5 gap-y-1 text-[11px] font-medium min-h-[20px]">
+                      {/* Baggage - Same height alignment */}
+                      <span className="inline-flex items-center gap-0.5 h-full">
+                        <span className="leading-none">🎒</span>
+                        <span className={returnBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                          {returnBaggage.carryOn
+                            ? returnBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
+                            : 'Personal only'
+                          }
+                          <span className="text-gray-600 font-normal">({returnBaggage.carryOnWeight})</span>
+                        </span>
+                      </span>
+
+                      <span className="text-gray-400 leading-none">•</span>
+
+                      <span className="inline-flex items-center gap-0.5 h-full">
+                        <span className="leading-none">💼</span>
+                        <span className={returnBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                          {returnBaggage.checked > 0
+                            ? `${returnBaggage.checked} bag${returnBaggage.checked > 1 ? 's' : ''}`
+                            : 'Not included'
+                          }
+                          {returnBaggage.checked > 0 && (
+                            <span className="text-gray-600 font-normal">({returnBaggage.checkedWeight})</span>
+                          )}
+                        </span>
+                      </span>
+
+                      <span className="text-gray-400 leading-none">•</span>
+
+                      {/* Amenities - Same height inline */}
+                      <span
+                        className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${returnBaggage.amenities.wifi ? 'text-green-700' : 'text-gray-700'}`}
+                        title={returnBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                        📶WiFi {returnBaggage.amenities.wifi ? '✓' : '✗'}
+                        {returnBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                      </span>
+
+                      <span className="text-gray-400 leading-none">•</span>
+
+                      <span
+                        className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${returnBaggage.amenities.power ? 'text-green-700' : 'text-gray-700'}`}
+                        title={returnBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                        🔌Power {returnBaggage.amenities.power ? '✓' : '✗'}
+                        {returnBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                      </span>
+
+                      <span className="text-gray-400 leading-none">•</span>
+
+                      <span
+                        className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${returnBaggage.amenities.meal !== 'None' ? 'text-gray-800' : 'text-gray-700'}`}
+                        title={returnBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                        🍽️{returnBaggage.amenities.meal}
+                        {returnBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                      </span>
+
+                      {/* Fare badges - Same height inline */}
+                      {fareRules && (
+                        <>
+                          <span className="text-gray-400 mx-1 leading-none">|</span>
+
+                          {fareRules.refundable ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-800 rounded text-[10px] font-medium h-5 leading-none">
+                              <Check className="w-2.5 h-2.5" />Refundable
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-50 text-red-800 rounded text-[10px] font-medium h-5 leading-none">
+                              <X className="w-2.5 h-2.5" />Non-refund
+                            </span>
+                          )}
+
+                          {fareRules.changeable ? (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-800 rounded text-[10px] font-medium h-5 leading-none">
+                              <Check className="w-2.5 h-2.5" />Changes OK
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-red-50 text-red-800 rounded text-[10px] font-medium h-5 leading-none">
+                              <X className="w-2.5 h-2.5" />No changes
+                            </span>
+                          )}
+
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-medium h-5 leading-none">
+                            <Shield className="w-2.5 h-2.5" />24hr
+                          </span>
+
+                          <span className={`inline-flex items-center h-full leading-none ${!returnBaggage.fareType.includes('BASIC') && !returnBaggage.fareType.includes('LIGHT') ? 'text-green-700 font-medium' : 'text-orange-700 font-medium'}`}>
+                            💺{!returnBaggage.fareType.includes('BASIC') && !returnBaggage.fareType.includes('LIGHT') ? 'Incl' : 'Fee'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* NEW: Per-Leg Comparison Alert */}
+        {isExpanded && baggageDiffers && returnBaggage && (
+          <div className="mt-2 p-2 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+            <div className="flex items-center gap-2 text-xs">
+              <Info className="w-4 h-4 text-yellow-700 flex-shrink-0" />
+              <span className="font-bold text-yellow-900">Different amenities for outbound vs. return</span>
+            </div>
+            <div className="mt-1.5 grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+              <div className="flex items-start gap-1">
+                <span className="font-semibold text-blue-700">Outbound:</span>
+                <span className="text-gray-700">
+                  {outboundBaggage.fareType}, {outboundBaggage.checked} bag(s)
+                  {outboundBaggage.amenities.wifi && ', WiFi'}
+                  {outboundBaggage.amenities.power && ', Power'}
+                </span>
+              </div>
+              <div className="flex items-start gap-1">
+                <span className="font-semibold text-purple-700">Return:</span>
+                <span className="text-gray-700">
+                  {returnBaggage.fareType}, {returnBaggage.checked} bag(s)
+                  {returnBaggage.amenities.wifi && ', WiFi'}
+                  {returnBaggage.amenities.power && ', Power'}
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -595,34 +1053,30 @@ export function FlightCardEnhanced({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Deal Score Badge - Compact Display WITHOUT Tooltip */}
+          {/* Deal Score Badge - Uniform h-5 height */}
           {dealScore !== undefined && dealTier && dealLabel && (
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${isDebugMode ? 'ring-2 ring-yellow-500' : ''} ${
+            <div className={`inline-flex items-center gap-1.5 px-2 rounded-full border h-5 ${isDebugMode ? 'ring-2 ring-yellow-500' : ''} ${
               dealTier === 'excellent' ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400' :
               dealTier === 'great' ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-500' :
               dealTier === 'good' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-400' :
               'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-400'
             }`}>
-              <div className="flex items-center gap-1.5">
-                <span className={`text-lg font-bold ${
-                  dealTier === 'excellent' ? 'text-amber-900' :
-                  dealTier === 'great' ? 'text-green-900' :
-                  dealTier === 'good' ? 'text-blue-900' :
-                  'text-gray-900'
-                }`}>{dealScore}</span>
-                <div className="flex flex-col">
-                  <span className={`text-xs font-semibold leading-none ${
-                    dealTier === 'excellent' ? 'text-amber-900' :
-                    dealTier === 'great' ? 'text-green-900' :
-                    dealTier === 'good' ? 'text-blue-900' :
-                    'text-gray-900'
-                  }`}>
-                    {dealTier === 'excellent' ? 'Excellent' : dealTier === 'great' ? 'Great' : dealTier === 'good' ? 'Good' : 'Fair'}
-                  </span>
-                  <span className="text-[10px] text-gray-600 leading-none">Deal Score</span>
-                </div>
-              </div>
-              <span className="text-base">{
+              <span className={`text-sm font-bold leading-none ${
+                dealTier === 'excellent' ? 'text-amber-900' :
+                dealTier === 'great' ? 'text-green-900' :
+                dealTier === 'good' ? 'text-blue-900' :
+                'text-gray-900'
+              }`}>{dealScore}</span>
+              <span className={`text-xs font-semibold leading-none ${
+                dealTier === 'excellent' ? 'text-amber-900' :
+                dealTier === 'great' ? 'text-green-900' :
+                dealTier === 'good' ? 'text-blue-900' :
+                'text-gray-900'
+              }`}>
+                {dealTier === 'excellent' ? 'Excellent' : dealTier === 'great' ? 'Great' : dealTier === 'good' ? 'Good' : 'Fair'}
+              </span>
+              <span className="text-[10px] text-gray-600 leading-none">Deal Score</span>
+              <span className="text-sm leading-none">{
                 dealTier === 'excellent' ? '🏆' :
                 dealTier === 'great' ? '✨' :
                 dealTier === 'good' ? '👍' :
@@ -631,7 +1085,7 @@ export function FlightCardEnhanced({
             </div>
           )}
 
-          {/* CO2 Badge */}
+          {/* CO2 Badge - Now h-5 from component */}
           <div className={isDebugMode ? 'ring-2 ring-blue-500' : ''}>
             <CO2Badge
               emissions={co2Emissions ?? Math.round(durationToMinutes(outbound.duration) * 0.15)}
@@ -640,22 +1094,22 @@ export function FlightCardEnhanced({
             />
           </div>
 
-          {/* Viewers Count */}
-          <div className={`inline-flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs font-semibold border border-orange-200 ${isDebugMode ? 'ring-2 ring-green-500' : ''}`}>
+          {/* Viewers Count - Uniform h-5 height */}
+          <div className={`inline-flex items-center gap-1.5 px-2 bg-orange-50 text-orange-700 rounded-full text-xs font-semibold border border-orange-200 h-5 leading-none ${isDebugMode ? 'ring-2 ring-green-500' : ''}`}>
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
             </svg>
-            {currentViewingCount} viewing
+            <span className="leading-none">{currentViewingCount} viewing</span>
           </div>
 
-          {/* Bookings Today */}
+          {/* Bookings Today - Uniform h-5 height */}
           {numberOfBookableSeats < 7 && (
-            <div className={`inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-200 ${isDebugMode ? 'ring-2 ring-purple-500' : ''}`}>
+            <div className={`inline-flex items-center gap-1.5 px-2 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-200 h-5 leading-none ${isDebugMode ? 'ring-2 ring-purple-500' : ''}`}>
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
               </svg>
-              {bookingsToday ?? Math.floor(Math.random() * 150) + 100} booked today
+              <span className="leading-none">{bookingsToday ?? Math.floor(Math.random() * 150) + 100} booked today</span>
             </div>
           )}
         </div>
@@ -690,6 +1144,24 @@ export function FlightCardEnhanced({
           )}
         </div>
 
+        {/* Center: Baggage Icons (Google Flights 2025 Standard) */}
+        <div className="flex items-center gap-1.5 flex-shrink-0 px-2 py-1 bg-gray-100 rounded-md">
+          <div className="flex items-center gap-0.5" title={`${baggageInfo.carryOn ? 'Carry-on included' : 'No carry-on'}`}>
+            <span style={{ fontSize: '14px' }}>🎒</span>
+            {baggageInfo.carryOn ? (
+              <span className="text-green-600 font-bold" style={{ fontSize: '10px' }}>✓</span>
+            ) : (
+              <span className="text-red-600 font-bold" style={{ fontSize: '10px' }}>✗</span>
+            )}
+          </div>
+          <div className="flex items-center gap-0.5" title={`${baggageInfo.checked} checked bag(s)`}>
+            <span style={{ fontSize: '14px' }}>💼</span>
+            <span className={`font-semibold text-[10px] ${baggageInfo.checked > 0 ? 'text-green-700' : 'text-red-600'}`}>
+              {baggageInfo.checked}
+            </span>
+          </div>
+        </div>
+
         {/* Right: Action Buttons - Inline */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
@@ -697,6 +1169,8 @@ export function FlightCardEnhanced({
             disabled={isNavigating}
             className="px-3 py-1 bg-white border border-gray-300 text-gray-700 font-medium rounded hover:border-primary-500 hover:text-primary-600 transition-all flex items-center gap-1"
             style={{ fontSize: typography.card.meta.size }}
+            aria-label={isExpanded ? "Hide flight details" : "Show flight details"}
+            data-testid="expand-details-button"
           >
             Details {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
@@ -731,339 +1205,82 @@ export function FlightCardEnhanced({
       {/* EXPANDED DETAILS - Collapsible (Ultra-Compact) */}
       {isExpanded && (
         <div className="px-3 py-1.5 border-t border-gray-200 space-y-1.5 bg-gray-50 animate-slideDown">
-          {/* SECTION 1: KEY INSIGHTS - 3-Column Grid */}
-          <div className="p-2 bg-white rounded-lg border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Column 1: Deal Score Breakdown */}
-              <div>
-                <h4 className="font-semibold text-xs text-gray-900 mb-1 flex items-center gap-1">
-                  <Award className="w-3 h-3 text-blue-600" /> Deal Score: {dealScore}/100
-                </h4>
-                <div className="grid grid-cols-1 gap-0.5 text-[10px]">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Price</span>
-                    <span className="font-semibold text-gray-900">0/40</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Duration</span>
-                    <span className="font-semibold text-gray-900">0/15</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Stops</span>
-                    <span className="font-semibold text-gray-900">0/15</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Time</span>
-                    <span className="font-semibold text-gray-900">0/10</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Reliable</span>
-                    <span className="font-semibold text-gray-900">0/10</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Comfort</span>
-                    <span className="font-semibold text-gray-900">0/5</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Avail</span>
-                    <span className="font-semibold text-gray-900">0/5</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Column 2: Flight Quality Stats */}
-              <div>
-                <h4 className="font-semibold text-xs text-gray-900 mb-1 flex items-center gap-1">
-                  <Plane className="w-3 h-3 text-blue-600" /> Flight Quality
-                </h4>
-                <div className="space-y-0.5 text-[10px]">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    <span className="text-gray-700">On-time: <span className="font-semibold text-gray-900">{airlineData.onTimePerformance}%</span></span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-3 h-3 text-yellow-500 flex-shrink-0" />
-                    <span className="text-gray-700">Comfort: <span className="font-semibold text-gray-900">{airlineData.rating.toFixed(1)}★</span></span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-3 h-3 text-gray-600 flex-shrink-0" />
-                    <span className="text-gray-700">{(Math.floor(airlineData.rating * 1000) + 500).toLocaleString()} reviews</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-blue-600 flex-shrink-0" />
-                    <span className="text-gray-700">Verified Airline</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Check className="w-3 h-3 text-purple-600 flex-shrink-0" />
-                    <span className="text-gray-700">Trusted Partner</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Column 3: Fare Summary */}
-              <div>
-                <h4 className="font-semibold text-xs text-gray-900 mb-1">Fare Type</h4>
-                <div className="space-y-0.5 text-[10px]">
-                  <div className="flex items-center gap-1">
-                    <Check className="w-3 h-3 text-blue-600 flex-shrink-0" />
-                    <span className="text-gray-700 font-semibold">{baggageInfo.fareType}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {baggageInfo.carryOn ? (
-                      <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                    )}
-                    <span className="text-gray-700">Carry-on {baggageInfo.carryOnWeight}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {baggageInfo.checked > 0 ? (
-                      <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                    )}
-                    <span className="text-gray-700">{baggageInfo.checked} bag {baggageInfo.checkedWeight}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {!baggageInfo.fareType.includes('BASIC') ? (
-                      <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                    )}
-                    <span className="text-gray-700">Seat selection</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {!baggageInfo.fareType.includes('BASIC') ? (
-                      <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    ) : (
-                      <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                    )}
-                    <span className="text-gray-700">Changes allowed</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Premium Badges */}
-          {badges.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {badges.map((badge, idx) => (
-                <span
-                  key={idx}
-                  className={`px-2.5 py-1 rounded-full font-bold ${badge.color}`}
-                  style={{ fontSize: typography.card.body.size }}
-                >
-                  {badge.icon && <span className="mr-1">{badge.icon}</span>}
-                  {badge.text}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* SECTION 2: FARE & PRICING - 2-Column Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {/* Left: What's Included */}
-            <div className="p-2 bg-white rounded-lg border border-gray-200">
-              <h4 className="font-semibold text-xs text-gray-900 mb-1.5 flex items-center gap-1">
-                What's Included
-                {baggageInfo.fareType !== 'STANDARD' && (
-                  <span className="text-[10px] font-semibold text-blue-600 px-1.5 py-0.5 bg-blue-50 rounded">({baggageInfo.fareType})</span>
-                )}
-              </h4>
-              <div className="space-y-1 text-xs">
-                <div className="flex items-center gap-1">
-                  {baggageInfo.carryOn ? (
-                    <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                  )}
-                  <span className={baggageInfo.carryOn ? 'text-gray-700' : 'text-gray-400'}>
-                    Carry-on ({baggageInfo.carryOnWeight})
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {baggageInfo.checked > 0 ? (
-                    <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                  )}
-                  <span className={baggageInfo.checked > 0 ? 'text-gray-700' : 'text-gray-400'}>
-                    {baggageInfo.checked} checked bag{baggageInfo.checked > 1 ? 's' : ''} ({baggageInfo.checkedWeight})
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {!baggageInfo.fareType.includes('BASIC') ? (
-                    <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                  )}
-                  <span className={!baggageInfo.fareType.includes('BASIC') ? 'text-gray-700' : 'text-gray-400'}>
-                    Seat selection {baggageInfo.fareType.includes('BASIC') ? '($)' : ''}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {!baggageInfo.fareType.includes('BASIC') ? (
-                    <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <X className="w-3 h-3 text-red-600 flex-shrink-0" />
-                  )}
-                  <span className={!baggageInfo.fareType.includes('BASIC') ? 'text-gray-700' : 'text-gray-400'}>
-                    Changes {baggageInfo.fareType.includes('BASIC') ? '($75)' : 'allowed'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: TruePrice Breakdown */}
+          {/* PRICE BREAKDOWN - Clearer Separation of Required vs Optional */}
+          <div className="grid grid-cols-1 gap-2">
+            {/* TruePrice Breakdown - Full Width */}
             <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">TruePrice™ Breakdown</h4>
+              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Price Breakdown</h4>
               <div className="space-y-0.5 text-xs">
+                {/* REQUIRED FEES */}
                 <div className="flex justify-between">
                   <span className="text-gray-700">Base fare</span>
-                  <span className="font-semibold text-gray-900">${Math.round(basePrice)}</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(basePrice)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Taxes & fees ({feesPercentage}%)</span>
-                  <span className="font-semibold text-gray-900">${Math.round(fees)}</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(fees)}</span>
                 </div>
-                {estimatedBaggage > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-[10px]">+ Bag (if needed)</span>
-                    <span className="font-semibold text-gray-600 text-[10px]">${estimatedBaggage}</span>
-                  </div>
-                )}
-                {estimatedSeat > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 text-[10px]">+ Seat (if needed)</span>
-                    <span className="font-semibold text-gray-600 text-[10px]">${estimatedSeat}</span>
-                  </div>
-                )}
-                <div className="pt-1 border-t border-blue-300 flex justify-between font-bold">
-                  <span className="text-blue-900">Total</span>
-                  <span className="text-blue-900">${Math.round(totalPrice)}</span>
+
+                {/* TOTAL - Required fees only */}
+                <div className="pt-1.5 mt-1 border-t-2 border-blue-300 flex justify-between font-bold text-sm">
+                  <span className="text-blue-900">TOTAL</span>
+                  <span className="text-blue-900">{price.currency} {Math.round(totalPrice)}</span>
                 </div>
+
+                {/* OPTIONAL ADD-ONS - Clearly separated */}
                 {(estimatedBaggage > 0 || estimatedSeat > 0) && (
-                  <div className="text-[10px] text-blue-700 mt-1">
-                    💡 Est. with extras: ${Math.round(truePrice)}
+                  <div className="pt-2 mt-2 border-t border-blue-200">
+                    <div className="text-[10px] font-semibold text-gray-600 mb-1">Optional Add-ons (not included):</div>
+                    {estimatedBaggage > 0 && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-600">+ Checked baggage</span>
+                        <span className="font-semibold text-gray-700">{price.currency} {estimatedBaggage}</span>
+                      </div>
+                    )}
+                    {estimatedSeat > 0 && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-600">+ Seat selection</span>
+                        <span className="font-semibold text-gray-700">{price.currency} {estimatedSeat}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* SECTION 4: INTERACTIVE TOOLS - Collapsible Accordions */}
+          {/* FARE RULES & POLICIES - Controlled Accordion */}
           <div className="space-y-1.5">
-            {/* Baggage Calculator */}
-            <details className="group">
-              <summary className="flex items-center justify-between p-2 bg-purple-50 border border-purple-200 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors list-none">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💼</span>
-                  <div>
-                    <div className="font-semibold text-sm text-purple-900">Baggage Fee Calculator</div>
-                    <div className="text-xs text-purple-700">Estimate costs for extra bags</div>
-                  </div>
-                </div>
-                <ChevronDown className="w-4 h-4 text-purple-700 group-open:rotate-180 transition-transform" />
-              </summary>
-              <div className="mt-1.5 p-2 bg-white rounded-lg border border-gray-200">
-                <BaggageFeeCalculator
-                  flightId={id}
-                  airline={primaryAirline}
-                  cabinClass={baggageInfo.fareType.includes('PREMIUM') ? 'PREMIUM_ECONOMY' : baggageInfo.fareType.includes('BUSINESS') ? 'BUSINESS' : baggageInfo.fareType.includes('FIRST') ? 'FIRST' : 'ECONOMY'}
-                  basePrice={totalPrice}
-                  passengers={{
-                    adults: 1,
-                    children: 0,
-                    infants: 0,
-                  }}
-                  onTotalUpdate={(total) => console.log('Total with baggage:', total)}
-                  currency={price.currency}
-                  lang={lang}
-                  routeType={outbound.segments.some(seg =>
-                    seg.departure.iataCode.substring(0, 2) !== seg.arrival.iataCode.substring(0, 2)
-                  ) ? 'INTERNATIONAL' : 'DOMESTIC'}
-                  isRoundTrip={isRoundtrip}
-                />
-              </div>
-            </details>
-
-            {/* Branded Fares / Upgrade Options */}
-            <details className="group">
-              <summary className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg cursor-pointer hover:bg-green-100 transition-colors list-none">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">🎫</span>
-                  <div>
-                    <div className="font-semibold text-sm text-green-900">Upgrade to Premium Fares</div>
-                    <div className="text-xs text-green-700">Compare fare options & benefits</div>
-                  </div>
-                </div>
-                <ChevronDown className="w-4 h-4 text-green-700 group-open:rotate-180 transition-transform" />
-              </summary>
-              <div className="mt-1.5">
-                <BrandedFares
-                  flightOfferId={id}
-                  currentPrice={totalPrice}
-                  onSelectFare={(fare) => {
-                    console.log('Selected branded fare:', fare);
-                    setShowSuccessToast(true);
-                    setTimeout(() => setShowSuccessToast(false), 2000);
-                    if (onSelect) {
-                      onSelect(id);
-                    }
-                  }}
-                />
-              </div>
-            </details>
-
-            {/* Seat Map Preview */}
-            <details className="group">
-              <summary className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors list-none">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">💺</span>
-                  <div>
-                    <div className="font-semibold text-sm text-blue-900">View Seat Map & Select Seats</div>
-                    <div className="text-xs text-blue-700">Preview available seats on the aircraft</div>
-                  </div>
-                </div>
-                <ChevronDown className="w-4 h-4 text-blue-700 group-open:rotate-180 transition-transform" />
-              </summary>
-              <div className="mt-1.5">
-                <SeatMapPreview
-                  flightId={id}
-                  aircraftType={outbound.segments[0]?.aircraft?.code || 'Boeing 737'}
-                  cabinClass={baggageInfo.fareType.includes('BUSINESS') ? 'BUSINESS' : baggageInfo.fareType.includes('FIRST') ? 'FIRST' : 'ECONOMY'}
-                  onSeatSelect={(seatNumber) => console.log('Selected seat:', seatNumber)}
-                  lang={lang}
-                />
-              </div>
-            </details>
-
             {/* Fare Rules & Policies */}
-            <details className="group">
-              <summary
-                className="flex items-center justify-between p-2 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors list-none"
-                onClick={(e) => {
+            <div>
+              <button
+                className="w-full flex items-center justify-between p-2 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+                onClick={() => {
                   if (!fareRules && !loadingFareRules) {
-                    e.preventDefault();
+                    // Load fare rules from API
                     loadFareRules();
+                  } else if (fareRules) {
+                    // Toggle visibility if already loaded
+                    setShowFareRules(!showFareRules);
                   }
                 }}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-base">📋</span>
-                  <div>
+                  <div className="text-left">
                     <div className="font-semibold text-sm text-yellow-900">Refund & Change Policies</div>
-                    <div className="text-xs text-yellow-700">Cancellation fees & restrictions</div>
+                    <div className="text-xs text-yellow-700">
+                      {fareRules ? 'Click to view detailed policies' : 'Load from API'}
+                    </div>
                   </div>
                 </div>
                 {loadingFareRules ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-700"></div>
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-yellow-700 group-open:rotate-180 transition-transform" />
+                  <ChevronDown className={`w-4 h-4 text-yellow-700 transition-transform ${showFareRules ? 'rotate-180' : ''}`} />
                 )}
-              </summary>
-              {fareRules && (
+              </button>
+              {fareRules && showFareRules && (
                 <div className="mt-1.5">
                   <FareRulesAccordion
                     fareRules={fareRules}
@@ -1072,7 +1289,7 @@ export function FlightCardEnhanced({
                   />
                 </div>
               )}
-            </details>
+            </div>
           </div>
 
           {/* Important Notice for Basic Economy - Always visible when applicable */}
@@ -1164,6 +1381,34 @@ export function FlightCardEnhanced({
             <span className="font-semibold">Flight Selected!</span>
           </div>
         </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareFlightModal
+          flight={{
+            id,
+            itineraries,
+            price,
+            numberOfBookableSeats,
+            validatingAirlineCodes,
+            travelerPricings,
+            badges,
+            score,
+            ...(mlScore !== undefined && { mlScore }),
+            ...(priceVsMarket !== undefined && { priceVsMarket }),
+            ...(co2Emissions !== undefined && { co2Emissions }),
+            ...(averageCO2 !== undefined && { averageCO2 }),
+            ...(viewingCount !== undefined && { viewingCount }),
+            ...(bookingsToday !== undefined && { bookingsToday }),
+            ...(dealScore !== undefined && { dealScore }),
+            ...(dealScoreBreakdown !== undefined && { dealScoreBreakdown }),
+            ...(dealTier !== undefined && { dealTier }),
+            ...(dealLabel !== undefined && { dealLabel }),
+          }}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </div>
   );
