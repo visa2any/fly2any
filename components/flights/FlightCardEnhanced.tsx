@@ -1190,100 +1190,79 @@ export function FlightCardEnhanced({
         </div>
       </div>
 
-      {/* ULTRA-COMPACT EXTENDED DETAILS - Emirates-Style Inline Layout */}
+      {/* EXPANDED DETAILS - Collapsible (Ultra-Compact) */}
       {isExpanded && (
-        <div className="px-3 py-2 border-t border-gray-200 space-y-2 bg-gray-50 animate-slideDown">
-          {/* Policies: Inline Badges (Emirates style) */}
-          {fareRules ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-gray-700">📋 Policies:</span>
-              {fareRules.refundable ? (
-                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
-                  ✅ Refundable
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                  ❌ Non-refundable
-                </span>
-              )}
-              {fareRules.changeable ? (
-                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
-                  ✅ Changes OK
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
-                  ❌ No changes
-                </span>
-              )}
-              {!baggageInfo.fareType.includes('BASIC') && !baggageInfo.fareType.includes('LIGHT') && (
-                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
-                  ✅ Seat selection
-                </span>
-              )}
-              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
-                ✅ 24hr protection
-              </span>
+        <div className="px-3 py-1.5 border-t border-gray-200 space-y-1.5 bg-gray-50 animate-slideDown">
+          {/* Compact Fare Policies - Inline Badges (Emirates Style) */}
+          <div>
+            {fareRules ? (
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-semibold text-gray-700">📋 Policies:</span>
+                  {fareRules.refundable ? (
+                    <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                      ✅ Refundable
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
+                      ❌ Non-refundable
+                    </span>
+                  )}
+                  {fareRules.changeable ? (
+                    <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                      ✅ Changes OK
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
+                      ❌ No changes
+                    </span>
+                  )}
+                  {!baggageInfo.fareType.includes('BASIC') && !baggageInfo.fareType.includes('LIGHT') && (
+                    <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                      ✅ Seat selection
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                    ✅ 24hr protection
+                  </span>
+                  <button
+                    onClick={() => setShowFareRules(!showFareRules)}
+                    className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium border border-gray-300 hover:bg-gray-200 transition-colors"
+                  >
+                    {showFareRules ? 'Hide details ▲' : 'Full details ▼'}
+                  </button>
+                </div>
+                {/* Expanded Fare Rules Details */}
+                {showFareRules && (
+                  <div className="mt-1.5">
+                    <FareRulesAccordion
+                      fareRules={fareRules}
+                      fareClass={baggageInfo.fareType}
+                      ticketPrice={totalPrice}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
               <button
-                onClick={() => setShowFareRules(!showFareRules)}
-                className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium border border-gray-300 hover:bg-gray-200 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg text-xs font-semibold text-yellow-900 hover:bg-yellow-100 transition-colors"
+                onClick={loadFareRules}
+                disabled={loadingFareRules}
               >
-                {showFareRules ? 'Hide details ▲' : 'Full details ▼'}
+                <span>📋</span>
+                {loadingFareRules ? (
+                  <span className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-700"></div>
+                    Loading fare policies...
+                  </span>
+                ) : (
+                  'Load fare policies'
+                )}
               </button>
-            </div>
-          ) : (
-            <button
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg text-xs font-semibold text-yellow-900 hover:bg-yellow-100 transition-colors"
-              onClick={loadFareRules}
-              disabled={loadingFareRules}
-            >
-              <span>📋</span>
-              {loadingFareRules ? (
-                <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-700"></div>
-                  Loading policies...
-                </span>
-              ) : (
-                'Load fare policies'
-              )}
-            </button>
-          )}
-
-          {/* Baggage: Compact Summary Line */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="font-semibold text-gray-700">🎒 Baggage:</span>
-            <span className="text-gray-600">
-              {baggageInfo.carryOn ? `Carry-on ${baggageInfo.carryOnWeight}` : 'No carry-on'} •
-              💼 {baggageInfo.checked > 0 ? `${baggageInfo.checked} bag${baggageInfo.checked > 1 ? 's' : ''} (${baggageInfo.checkedWeight})` : 'Not included'}
-            </span>
+            )}
           </div>
 
-          {/* Tools: Inline Action Buttons */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-700">⚙️ Tools:</span>
-            <button
-              onClick={() => {/* TODO: Open baggage calculator modal */}}
-              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
-              title="Calculate baggage fees"
-            >
-              📦 Calculator
-            </button>
-            <button
-              onClick={() => setShowFareModal(true)}
-              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
-              title="Compare fare classes"
-            >
-              ⚡ Upgrade
-            </button>
-            <button
-              onClick={() => {/* TODO: Open seat map modal */}}
-              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
-              title="View seat map"
-            >
-              🪑 Seat Map
-            </button>
-          </div>
-
-          {/* Basic Economy Warning - Compact Single Line */}
+          {/* Basic Economy Warning - Compact */}
           {baggageInfo.fareType.includes('BASIC') && (
             <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded">
               <span className="text-base flex-shrink-0">⚠️</span>
@@ -1296,17 +1275,6 @@ export function FlightCardEnhanced({
               >
                 Upgrade →
               </button>
-            </div>
-          )}
-
-          {/* Expanded Fare Rules Details - Only shown when user clicks "Full details" */}
-          {fareRules && showFareRules && (
-            <div className="pt-2 border-t border-gray-200">
-              <FareRulesAccordion
-                fareRules={fareRules}
-                fareClass={baggageInfo.fareType}
-                ticketPrice={totalPrice}
-              />
             </div>
           )}
         </div>
