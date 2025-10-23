@@ -204,24 +204,44 @@ export function FlightCardEnhanced({
   const savings = averagePrice - totalPrice;
   const savingsPercentage = ((savings / averagePrice) * 100).toFixed(0);
 
-  // NEW: Parse amenities from Amadeus API with cabin-based fallback
+  // NEW: Parse amenities from Amadeus API with cabin-based fallback and minimum standards
   const getMealType = (amenities: any[], cabin: string): string => {
     const mealAmenity = amenities.find((a: any) => a.amenityType === 'MEAL');
 
+    // Define cabin-based minimums
+    const cabinMinimums: { [key: string]: string } = {
+      'FIRST': 'Multi-course meal',
+      'BUSINESS': 'Hot meal',
+      'PREMIUM_ECONOMY': 'Meal',
+      'ECONOMY': 'Snack or meal'
+    };
+
+    const cabinMinimum = cabinMinimums[cabin] || 'Snack or meal';
+
     if (mealAmenity) {
-      // Use real MEAL data from API
+      // Parse real MEAL data from API
       const desc = mealAmenity.description.toLowerCase();
-      if (desc.includes('hot meal')) return 'Hot meal';
-      if (desc.includes('meal')) return 'Meal';
-      if (desc.includes('snack')) return 'Snack';
-      return 'Refreshments';
+      let apiMeal = 'Refreshments';
+
+      if (desc.includes('multi-course') || desc.includes('gourmet')) apiMeal = 'Multi-course meal';
+      else if (desc.includes('hot meal')) apiMeal = 'Hot meal';
+      else if (desc.includes('meal')) apiMeal = 'Meal';
+      else if (desc.includes('snack')) apiMeal = 'Snack';
+
+      // For premium cabins, use cabin minimum if API data is lower quality
+      if (cabin === 'FIRST' || cabin === 'BUSINESS') {
+        // First class should never show less than "Multi-course meal" or "Hot meal"
+        // Business class should never show less than "Hot meal"
+        if (apiMeal === 'Snack' || apiMeal === 'Refreshments') {
+          return cabinMinimum;
+        }
+      }
+
+      return apiMeal;
     }
 
     // Fall back to cabin-based estimate when no MEAL amenity
-    if (cabin === 'FIRST') return 'Multi-course meal';
-    if (cabin === 'BUSINESS') return 'Hot meal';
-    if (cabin === 'PREMIUM_ECONOMY') return 'Meal';
-    return 'Snack or meal';
+    return cabinMinimum;
   };
 
   // NEW: Get baggage and amenities BY ITINERARY (not just first segment!)
@@ -288,27 +308,34 @@ export function FlightCardEnhanced({
       const itinerarySegments = itineraries?.[itineraryIndex]?.segments || [];
       const aircraftCode = itinerarySegments[0]?.aircraft?.code;
 
-      // Use real amenities data if available, otherwise estimate from aircraft type
+      // Use hybrid approach: combine API data with cabin-based minimums
+      const estimatedAmenities = getEstimatedAmenities(aircraftCode, cabin);
+
       const amenities = amenitiesArray.length > 0
         ? {
-            // Real data from Amadeus Branded Fares API
+            // Hybrid: use API data OR cabin-based minimum (whichever is better)
             wifi: amenitiesArray.some((a: any) =>
               a.description.toLowerCase().includes('wifi') ||
               a.description.toLowerCase().includes('wi-fi') ||
               a.description.toLowerCase().includes('internet')
-            ),
+            ) || (cabin === 'FIRST' || cabin === 'BUSINESS' ? estimatedAmenities.wifi : false),
+
             power: amenitiesArray.some((a: any) =>
               a.description.toLowerCase().includes('power') ||
               a.description.toLowerCase().includes('outlet') ||
               a.description.toLowerCase().includes('usb')
-            ),
+            ) || (cabin === 'FIRST' || cabin === 'BUSINESS' ? estimatedAmenities.power : false),
+
             meal: getMealType(amenitiesArray, cabin),
-            entertainment: amenitiesArray.some((a: any) => a.amenityType === 'ENTERTAINMENT'),
+
+            entertainment: amenitiesArray.some((a: any) => a.amenityType === 'ENTERTAINMENT')
+              || (cabin === 'FIRST' || cabin === 'BUSINESS' ? estimatedAmenities.entertainment : false),
+
             isEstimated: false
           }
         : {
             // Estimated data based on aircraft type and cabin class
-            ...getEstimatedAmenities(aircraftCode, cabin)
+            ...estimatedAmenities
           };
 
       return {
