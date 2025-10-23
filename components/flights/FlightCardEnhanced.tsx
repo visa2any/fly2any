@@ -509,7 +509,7 @@ export function FlightCardEnhanced({
               // Format fare type for clarity
               const fareType = fareLabel.replace('_', ' ').toLowerCase()
                 .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
 
               // If cabin and fare type are different, show both clearly
