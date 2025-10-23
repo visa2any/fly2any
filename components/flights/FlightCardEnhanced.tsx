@@ -1190,117 +1190,123 @@ export function FlightCardEnhanced({
         </div>
       </div>
 
-      {/* EXPANDED DETAILS - Collapsible (Ultra-Compact) */}
+      {/* ULTRA-COMPACT EXTENDED DETAILS - Emirates-Style Inline Layout */}
       {isExpanded && (
-        <div className="px-3 py-1.5 border-t border-gray-200 space-y-1.5 bg-gray-50 animate-slideDown">
-          {/* PRICE BREAKDOWN - Clearer Separation of Required vs Optional */}
-          <div className="grid grid-cols-1 gap-2">
-            {/* TruePrice Breakdown - Full Width */}
-            <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Price Breakdown</h4>
-              <div className="space-y-0.5 text-xs">
-                {/* REQUIRED FEES */}
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Base fare</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(basePrice)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Taxes & fees ({feesPercentage}%)</span>
-                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(fees)}</span>
-                </div>
-
-                {/* TOTAL - Required fees only */}
-                <div className="pt-1.5 mt-1 border-t-2 border-blue-300 flex justify-between font-bold text-sm">
-                  <span className="text-blue-900">TOTAL</span>
-                  <span className="text-blue-900">{price.currency} {Math.round(totalPrice)}</span>
-                </div>
-
-                {/* OPTIONAL ADD-ONS - Clearly separated */}
-                {(estimatedBaggage > 0 || estimatedSeat > 0) && (
-                  <div className="pt-2 mt-2 border-t border-blue-200">
-                    <div className="text-[10px] font-semibold text-gray-600 mb-1">Optional Add-ons (not included):</div>
-                    {estimatedBaggage > 0 && (
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-gray-600">+ Checked baggage</span>
-                        <span className="font-semibold text-gray-700">{price.currency} {estimatedBaggage}</span>
-                      </div>
-                    )}
-                    {estimatedSeat > 0 && (
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-gray-600">+ Seat selection</span>
-                        <span className="font-semibold text-gray-700">{price.currency} {estimatedSeat}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* FARE RULES & POLICIES - Controlled Accordion */}
-          <div className="space-y-1.5">
-            {/* Fare Rules & Policies */}
-            <div>
-              <button
-                className="w-full flex items-center justify-between p-2 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
-                onClick={() => {
-                  if (!fareRules && !loadingFareRules) {
-                    // Load fare rules from API
-                    loadFareRules();
-                  } else if (fareRules) {
-                    // Toggle visibility if already loaded
-                    setShowFareRules(!showFareRules);
-                  }
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">📋</span>
-                  <div className="text-left">
-                    <div className="font-semibold text-sm text-yellow-900">Refund & Change Policies</div>
-                    <div className="text-xs text-yellow-700">
-                      {fareRules ? 'Click to view detailed policies' : 'Load from API'}
-                    </div>
-                  </div>
-                </div>
-                {loadingFareRules ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-700"></div>
-                ) : (
-                  <ChevronDown className={`w-4 h-4 text-yellow-700 transition-transform ${showFareRules ? 'rotate-180' : ''}`} />
-                )}
-              </button>
-              {fareRules && showFareRules && (
-                <div className="mt-1.5">
-                  <FareRulesAccordion
-                    fareRules={fareRules}
-                    fareClass={baggageInfo.fareType}
-                    ticketPrice={totalPrice}
-                  />
-                </div>
+        <div className="px-3 py-2 border-t border-gray-200 space-y-2 bg-gray-50 animate-slideDown">
+          {/* Policies: Inline Badges (Emirates style) */}
+          {fareRules ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-gray-700">📋 Policies:</span>
+              {fareRules.refundable ? (
+                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                  ✅ Refundable
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
+                  ❌ Non-refundable
+                </span>
               )}
+              {fareRules.changeable ? (
+                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                  ✅ Changes OK
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium border border-red-200">
+                  ❌ No changes
+                </span>
+              )}
+              {!baggageInfo.fareType.includes('BASIC') && !baggageInfo.fareType.includes('LIGHT') && (
+                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                  ✅ Seat selection
+                </span>
+              )}
+              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                ✅ 24hr protection
+              </span>
+              <button
+                onClick={() => setShowFareRules(!showFareRules)}
+                className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium border border-gray-300 hover:bg-gray-200 transition-colors"
+              >
+                {showFareRules ? 'Hide details ▲' : 'Full details ▼'}
+              </button>
             </div>
+          ) : (
+            <button
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg text-xs font-semibold text-yellow-900 hover:bg-yellow-100 transition-colors"
+              onClick={loadFareRules}
+              disabled={loadingFareRules}
+            >
+              <span>📋</span>
+              {loadingFareRules ? (
+                <span className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-700"></div>
+                  Loading policies...
+                </span>
+              ) : (
+                'Load fare policies'
+              )}
+            </button>
+          )}
+
+          {/* Baggage: Compact Summary Line */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-semibold text-gray-700">🎒 Baggage:</span>
+            <span className="text-gray-600">
+              {baggageInfo.carryOn ? `Carry-on ${baggageInfo.carryOnWeight}` : 'No carry-on'} •
+              💼 {baggageInfo.checked > 0 ? `${baggageInfo.checked} bag${baggageInfo.checked > 1 ? 's' : ''} (${baggageInfo.checkedWeight})` : 'Not included'}
+            </span>
           </div>
 
-          {/* Important Notice for Basic Economy - Always visible when applicable */}
+          {/* Tools: Inline Action Buttons */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-gray-700">⚙️ Tools:</span>
+            <button
+              onClick={() => {/* TODO: Open baggage calculator modal */}}
+              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
+              title="Calculate baggage fees"
+            >
+              📦 Calculator
+            </button>
+            <button
+              onClick={() => setShowFareModal(true)}
+              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
+              title="Compare fare classes"
+            >
+              ⚡ Upgrade
+            </button>
+            <button
+              onClick={() => {/* TODO: Open seat map modal */}}
+              className="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-medium hover:bg-gray-50 transition-colors"
+              title="View seat map"
+            >
+              🪑 Seat Map
+            </button>
+          </div>
+
+          {/* Basic Economy Warning - Compact Single Line */}
           {baggageInfo.fareType.includes('BASIC') && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                <div>
-                  <h4 className="font-bold text-orange-900 mb-1 text-sm">⚠️ Basic Economy Restrictions</h4>
-                  <ul className="text-xs text-orange-800 space-y-0.5 list-disc list-inside">
-                    {!baggageInfo.carryOn && <li>NO carry-on bag (personal item only)</li>}
-                    {baggageInfo.checked === 0 && <li>NO checked bags (fees apply)</li>}
-                    <li>NO seat selection (assigned at check-in)</li>
-                    <li>NO changes/refunds (24hr grace only)</li>
-                  </ul>
-                  <button
-                    onClick={() => setShowFareModal(true)}
-                    className="mt-2 text-xs font-semibold text-orange-700 hover:text-orange-900 underline"
-                  >
-                    Compare higher fare classes →
-                  </button>
-                </div>
+            <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded">
+              <span className="text-base flex-shrink-0">⚠️</span>
+              <div className="text-xs text-orange-800 flex-1">
+                <span className="font-semibold">Basic Economy:</span> No carry-on • No seat selection • No changes
               </div>
+              <button
+                onClick={() => setShowFareModal(true)}
+                className="px-2 py-1 text-xs font-semibold text-orange-700 hover:text-orange-900 bg-white border border-orange-300 rounded whitespace-nowrap transition-colors"
+              >
+                Upgrade →
+              </button>
+            </div>
+          )}
+
+          {/* Expanded Fare Rules Details - Only shown when user clicks "Full details" */}
+          {fareRules && showFareRules && (
+            <div className="pt-2 border-t border-gray-200">
+              <FareRulesAccordion
+                fareRules={fareRules}
+                fareClass={baggageInfo.fareType}
+                ticketPrice={totalPrice}
+              />
             </div>
           )}
         </div>
