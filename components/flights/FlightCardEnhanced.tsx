@@ -1193,7 +1193,51 @@ export function FlightCardEnhanced({
       {/* EXPANDED DETAILS - Collapsible (Ultra-Compact) */}
       {isExpanded && (
         <div className="px-3 py-1.5 border-t border-gray-200 space-y-1.5 bg-gray-50 animate-slideDown">
-          {/* Compact Fare Policies - Inline Badges (Emirates Style) */}
+          {/* PRICE BREAKDOWN - Clearer Separation of Required vs Optional */}
+          <div className="grid grid-cols-1 gap-2">
+            {/* TruePrice Breakdown - Full Width */}
+            <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Price Breakdown</h4>
+              <div className="space-y-0.5 text-xs">
+                {/* REQUIRED FEES */}
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Base fare</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(basePrice)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Taxes & fees ({feesPercentage}%)</span>
+                  <span className="font-semibold text-gray-900">{price.currency} {Math.round(fees)}</span>
+                </div>
+
+                {/* TOTAL - Required fees only */}
+                <div className="pt-1.5 mt-1 border-t-2 border-blue-300 flex justify-between font-bold text-sm">
+                  <span className="text-blue-900">TOTAL</span>
+                  <span className="text-blue-900">{price.currency} {Math.round(totalPrice)}</span>
+                </div>
+
+                {/* OPTIONAL ADD-ONS - Clearly separated */}
+                {(estimatedBaggage > 0 || estimatedSeat > 0) && (
+                  <div className="pt-2 mt-2 border-t border-blue-200">
+                    <div className="text-[10px] font-semibold text-gray-600 mb-1">Optional Add-ons (not included):</div>
+                    {estimatedBaggage > 0 && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-600">+ Checked baggage</span>
+                        <span className="font-semibold text-gray-700">{price.currency} {estimatedBaggage}</span>
+                      </div>
+                    )}
+                    {estimatedSeat > 0 && (
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-600">+ Seat selection</span>
+                        <span className="font-semibold text-gray-700">{price.currency} {estimatedSeat}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* COMPACT FARE POLICIES - Inline Badges (Emirates Style) */}
           <div>
             {fareRules ? (
               <div className="space-y-1.5">
@@ -1262,19 +1306,27 @@ export function FlightCardEnhanced({
             )}
           </div>
 
-          {/* Basic Economy Warning - Compact */}
+          {/* Important Notice for Basic Economy - Always visible when applicable */}
           {baggageInfo.fareType.includes('BASIC') && (
-            <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded">
-              <span className="text-base flex-shrink-0">⚠️</span>
-              <div className="text-xs text-orange-800 flex-1">
-                <span className="font-semibold">Basic Economy:</span> No carry-on • No seat selection • No changes
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                <div>
+                  <h4 className="font-bold text-orange-900 mb-1 text-sm">⚠️ Basic Economy Restrictions</h4>
+                  <ul className="text-xs text-orange-800 space-y-0.5 list-disc list-inside">
+                    {!baggageInfo.carryOn && <li>NO carry-on bag (personal item only)</li>}
+                    {baggageInfo.checked === 0 && <li>NO checked bags (fees apply)</li>}
+                    <li>NO seat selection (assigned at check-in)</li>
+                    <li>NO changes/refunds (24hr grace only)</li>
+                  </ul>
+                  <button
+                    onClick={() => setShowFareModal(true)}
+                    className="mt-2 text-xs font-semibold text-orange-700 hover:text-orange-900 underline"
+                  >
+                    Compare higher fare classes →
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => setShowFareModal(true)}
-                className="px-2 py-1 text-xs font-semibold text-orange-700 hover:text-orange-900 bg-white border border-orange-300 rounded whitespace-nowrap transition-colors"
-              >
-                Upgrade →
-              </button>
             </div>
           )}
         </div>
