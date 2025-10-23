@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, H
 import ShareFlightModal from './ShareFlightModal';
 import { getAirlineData, getAllianceBadgeColor, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
 import { getEstimatedAmenities } from '@/lib/flights/aircraft-amenities';
+import { getAirportDisplay } from '@/lib/flights/airport-cities';
 import AirlineLogo from './AirlineLogo';
 import UrgencyIndicators from './UrgencyIndicators';
 import SocialProof from './SocialProof';
@@ -609,7 +610,7 @@ export function FlightCardEnhanced({
                 {formatTime(outbound.segments[0].departure.at)}
               </div>
               <div className="font-semibold text-gray-600" style={{ fontSize: typography.card.meta.size }}>
-                {outbound.segments[0].departure.iataCode}
+                {getAirportDisplay(outbound.segments[0].departure.iataCode)}
               </div>
             </div>
 
@@ -635,7 +636,7 @@ export function FlightCardEnhanced({
                 {formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}
               </div>
               <div className="font-semibold text-gray-600" style={{ fontSize: typography.card.meta.size }}>
-                {outbound.segments[outbound.segments.length - 1].arrival.iataCode}
+                {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
               </div>
             </div>
           </div>
@@ -778,6 +779,15 @@ export function FlightCardEnhanced({
                     {outboundBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
                   </span>
 
+                  <span className="text-gray-400 leading-none">•</span>
+
+                  <span
+                    className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${outboundBaggage.amenities.entertainment ? 'text-green-700' : 'text-gray-700'}`}
+                    title={outboundBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                    📺Entertainment {outboundBaggage.amenities.entertainment ? '✓' : '✗'}
+                    {outboundBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                  </span>
+
                   {/* Fare badges - Same height inline */}
                   {fareRules && (
                     <>
@@ -827,7 +837,7 @@ export function FlightCardEnhanced({
                   {formatTime(inbound.segments[0].departure.at)}
                 </div>
                 <div className="font-medium text-gray-600" style={{ fontSize: typography.card.meta.size }}>
-                  {inbound.segments[0].departure.iataCode}
+                  {getAirportDisplay(inbound.segments[0].departure.iataCode)}
                 </div>
               </div>
 
@@ -853,7 +863,7 @@ export function FlightCardEnhanced({
                   {formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}
                 </div>
                 <div className="font-medium text-gray-600" style={{ fontSize: typography.card.meta.size }}>
-                  {inbound.segments[inbound.segments.length - 1].arrival.iataCode}
+                  {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
                 </div>
               </div>
             </div>
@@ -994,6 +1004,15 @@ export function FlightCardEnhanced({
                         className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${returnBaggage.amenities.meal !== 'None' ? 'text-gray-800' : 'text-gray-700'}`}
                         title={returnBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
                         🍽️{returnBaggage.amenities.meal}
+                        {returnBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
+                      </span>
+
+                      <span className="text-gray-400 leading-none">•</span>
+
+                      <span
+                        className={`inline-flex items-center gap-0.5 h-full leading-none font-medium ${returnBaggage.amenities.entertainment ? 'text-green-700' : 'text-gray-700'}`}
+                        title={returnBaggage.amenities.isEstimated ? 'Estimated based on aircraft type' : 'Confirmed by airline'}>
+                        📺Entertainment {returnBaggage.amenities.entertainment ? '✓' : '✗'}
                         {returnBaggage.amenities.isEstimated && <span className="text-[9px] opacity-60 ml-0.5">~</span>}
                       </span>
 
