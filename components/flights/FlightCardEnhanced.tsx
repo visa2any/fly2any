@@ -505,7 +505,27 @@ export function FlightCardEnhanced({
                                  outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
                                  outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy';
               const fareLabel = outboundBaggage.brandedFareLabel || outboundBaggage.fareType || 'STANDARD';
-              return `${cabinClass} · ${fareLabel}`;
+
+              // Format fare type for clarity
+              const fareType = fareLabel.replace('_', ' ').toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+
+              // If cabin and fare type are different, show both clearly
+              const cabinUpper = outboundBaggage.cabin.toUpperCase();
+              const fareUpper = fareLabel.toUpperCase();
+
+              // Check if they're meaningfully different (not just formatting)
+              const areDifferent = !cabinUpper.includes(fareUpper.replace('_', '')) &&
+                                   !fareUpper.includes(cabinUpper.replace('_', '')) &&
+                                   fareUpper !== 'STANDARD';
+
+              if (areDifferent) {
+                return `${cabinClass} Seat (${fareType} Fare)`;
+              }
+
+              return cabinClass;
             })()}
           </span>
         </div>
