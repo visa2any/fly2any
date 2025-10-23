@@ -498,35 +498,11 @@ export function FlightCardEnhanced({
             </span>
           )}
 
-          {/* Class & Fare Type Badge */}
+          {/* Cabin Class Badge - Simple & Clear */}
           <span className="font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
-            {(() => {
-              const cabinClass = outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
-                                 outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
-                                 outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy';
-              const fareLabel = outboundBaggage.brandedFareLabel || outboundBaggage.fareType || 'STANDARD';
-
-              // Format fare type for clarity
-              const fareType = fareLabel.replace('_', ' ').toLowerCase()
-                .split(' ')
-                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
-
-              // If cabin and fare type are different, show both clearly
-              const cabinUpper = outboundBaggage.cabin.toUpperCase();
-              const fareUpper = fareLabel.toUpperCase();
-
-              // Check if they're meaningfully different (not just formatting)
-              const areDifferent = !cabinUpper.includes(fareUpper.replace('_', '')) &&
-                                   !fareUpper.includes(cabinUpper.replace('_', '')) &&
-                                   fareUpper !== 'STANDARD';
-
-              if (areDifferent) {
-                return `${cabinClass} Seat (${fareType} Fare)`;
-              }
-
-              return cabinClass;
-            })()}
+            {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
+             outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
+             outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy'}
           </span>
         </div>
 
