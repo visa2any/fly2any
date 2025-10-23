@@ -204,16 +204,24 @@ export function FlightCardEnhanced({
   const savings = averagePrice - totalPrice;
   const savingsPercentage = ((savings / averagePrice) * 100).toFixed(0);
 
-  // NEW: Parse amenities from Amadeus API
-  const getMealType = (amenities: any[]): string => {
+  // NEW: Parse amenities from Amadeus API with cabin-based fallback
+  const getMealType = (amenities: any[], cabin: string): string => {
     const mealAmenity = amenities.find((a: any) => a.amenityType === 'MEAL');
-    if (!mealAmenity) return 'None';
 
-    const desc = mealAmenity.description.toLowerCase();
-    if (desc.includes('hot meal')) return 'Hot meal';
-    if (desc.includes('meal')) return 'Meal';
-    if (desc.includes('snack')) return 'Snack';
-    return 'Refreshments';
+    if (mealAmenity) {
+      // Use real MEAL data from API
+      const desc = mealAmenity.description.toLowerCase();
+      if (desc.includes('hot meal')) return 'Hot meal';
+      if (desc.includes('meal')) return 'Meal';
+      if (desc.includes('snack')) return 'Snack';
+      return 'Refreshments';
+    }
+
+    // Fall back to cabin-based estimate when no MEAL amenity
+    if (cabin === 'FIRST') return 'Multi-course meal';
+    if (cabin === 'BUSINESS') return 'Hot meal';
+    if (cabin === 'PREMIUM_ECONOMY') return 'Meal';
+    return 'Snack or meal';
   };
 
   // NEW: Get baggage and amenities BY ITINERARY (not just first segment!)
@@ -294,7 +302,7 @@ export function FlightCardEnhanced({
               a.description.toLowerCase().includes('outlet') ||
               a.description.toLowerCase().includes('usb')
             ),
-            meal: getMealType(amenitiesArray),
+            meal: getMealType(amenitiesArray, cabin),
             entertainment: amenitiesArray.some((a: any) => a.amenityType === 'ENTERTAINMENT'),
             isEstimated: false
           }
