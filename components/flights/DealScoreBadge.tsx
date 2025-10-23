@@ -318,21 +318,18 @@ export function DealScoreBadgeCompact({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 px-3 py-1.5 ${colors.bg} ${colors.border} border rounded-full group relative ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 ${colors.bg} ${colors.border} border rounded-full group relative ${className}`}
     >
       {/* Score */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-lg font-bold ${colors.text}">{score.total}</span>
-        <div className="flex flex-col">
-          <span className={`text-xs font-semibold ${colors.text} leading-none`}>
-            {score.tier === 'excellent' ? 'Excellent' : score.tier === 'great' ? 'Great' : score.tier === 'good' ? 'Good' : 'Fair'}
-          </span>
-          <span className="text-[10px] text-gray-600 leading-none">Deal Score</span>
-        </div>
-      </div>
+      <span className={`text-sm font-bold ${colors.text}`}>{score.total}</span>
+
+      {/* Label - single line */}
+      <span className={`text-xs font-medium ${colors.text}`}>
+        {score.tier === 'excellent' ? 'Excellent' : score.tier === 'great' ? 'Great' : score.tier === 'good' ? 'Good' : 'Fair'}
+      </span>
 
       {/* Icon */}
-      <span className="text-base">{colors.icon}</span>
+      <span className="text-sm">{colors.icon}</span>
 
       {/* Tooltip */}
       <ScoreTooltip score={score} />

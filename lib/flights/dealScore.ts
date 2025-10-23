@@ -144,8 +144,10 @@ function calculateTimeOfDayScore(departureTime: string, arrivalTime: string): nu
   const depTime = new Date(departureTime);
   const arrTime = new Date(arrivalTime);
 
-  const depHour = depTime.getHours();
-  const arrHour = arrTime.getHours();
+  // Use UTC hours to ensure consistent scoring regardless of user's local timezone
+  // This prevents the same flight from having different Deal Scores based on user location
+  const depHour = depTime.getUTCHours();
+  const arrHour = arrTime.getUTCHours();
 
   let score = 0;
 
@@ -323,8 +325,9 @@ function generateExplanations(
       : `${factors.stops} stops`,
 
     timeOfDay: (() => {
-      const depHour = new Date(factors.departureTime).getHours();
-      const arrHour = new Date(factors.arrivalTime).getHours();
+      // Use UTC hours to match the scoring logic and ensure consistent explanations
+      const depHour = new Date(factors.departureTime).getUTCHours();
+      const arrHour = new Date(factors.arrivalTime).getUTCHours();
       const depLabel = depHour >= 6 && depHour < 18 ? 'daytime' : 'evening/night';
       const arrLabel = arrHour >= 6 && arrHour < 22 ? 'reasonable' : 'late';
       return `${depLabel} departure, ${arrLabel} arrival`;

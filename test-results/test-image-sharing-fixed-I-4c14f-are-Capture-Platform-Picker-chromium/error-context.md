@@ -1,0 +1,2366 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "Fly2Any Travel" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "Fly2Any Travel" [ref=e7]
+      - navigation [ref=e8]:
+        - link "✈️ Flights" [ref=e9] [cursor=pointer]:
+          - /url: /flights
+          - generic [ref=e10]:
+            - generic [ref=e11]: ✈️
+            - text: Flights
+        - link "🏨 Hotels" [ref=e12] [cursor=pointer]:
+          - /url: /hotels
+          - generic [ref=e13]:
+            - generic [ref=e14]: 🏨
+            - text: Hotels
+        - link "🚗 Cars" [ref=e15] [cursor=pointer]:
+          - /url: /cars
+          - generic [ref=e16]:
+            - generic [ref=e17]: 🚗
+            - text: Cars
+        - link "📦 Packages" [ref=e18] [cursor=pointer]:
+          - /url: /packages
+          - generic [ref=e19]:
+            - generic [ref=e20]: 📦
+            - text: Packages
+      - generic [ref=e21]:
+        - button "🇺🇸 EN" [ref=e23] [cursor=pointer]:
+          - generic [ref=e24]: 🇺🇸
+          - generic [ref=e25]: EN
+          - img [ref=e26]
+        - generic [ref=e28]:
+          - button "Sign In" [ref=e29] [cursor=pointer]
+          - button "Sign Up" [ref=e30] [cursor=pointer]
+  - main [ref=e31]:
+    - generic [ref=e32]:
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - img [ref=e39]
+              - generic [ref=e41]: From
+            - button "🗽 JFK" [ref=e42] [cursor=pointer]:
+              - img [ref=e43]
+              - generic [ref=e48]: 🗽 JFK
+              - img [ref=e49]
+          - button "Swap airports" [ref=e51] [cursor=pointer]:
+            - img [ref=e52]
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - img [ref=e58]
+            - generic [ref=e60]: To
+          - button "🌴 LAX" [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+            - generic [ref=e67]: 🌴 LAX
+            - img [ref=e68]
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - img [ref=e72]
+            - generic [ref=e74]: Depart
+          - button "Nov 14, 2025" [ref=e75] [cursor=pointer]:
+            - img [ref=e76]
+            - generic [ref=e78]: Nov 14, 2025
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - img [ref=e82]
+              - generic [ref=e85]: Return
+            - generic [ref=e86] [cursor=pointer]:
+              - checkbox "Return One-way" [ref=e87]
+              - img [ref=e88]
+              - generic [ref=e90]: One-way
+          - button "Nov 21, 2025" [ref=e91] [cursor=pointer]:
+            - generic [ref=e92]:
+              - img [ref=e93]
+              - generic [ref=e95]: Nov 21, 2025
+        - generic [ref=e96]:
+          - generic [ref=e97]:
+            - img [ref=e98]
+            - generic [ref=e103]: Travelers
+            - generic [ref=e104]: "&"
+            - img [ref=e105]
+            - generic [ref=e108]: Class
+          - button "1, Economy" [ref=e109] [cursor=pointer]:
+            - img [ref=e110]
+            - generic [ref=e115]: 1, Economy
+            - img [ref=e116]
+        - generic [ref=e118]:
+          - generic [ref=e119]: Search
+          - button "Search Flights" [ref=e120] [cursor=pointer]:
+            - generic [ref=e121]: Search Flights
+      - generic [ref=e123]:
+        - complementary [ref=e124]:
+          - generic [ref=e128]:
+            - heading "Filters" [level=3] [ref=e130]
+            - generic [ref=e131]:
+              - generic [ref=e132]: Price Range
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - slider "Minimum price" [ref=e135] [cursor=pointer]: "255"
+                  - slider "Maximum price" [ref=e136] [cursor=pointer]: "1085"
+                - generic [ref=e137]:
+                  - generic [ref=e138]:
+                    - generic: $
+                    - textbox "Minimum price" [ref=e139]:
+                      - /placeholder: "255"
+                      - text: "255"
+                  - generic [ref=e140]: —
+                  - generic [ref=e141]:
+                    - generic: $
+                    - textbox "Maximum price" [ref=e142]:
+                      - /placeholder: "1085"
+                      - text: 1,085
+            - generic [ref=e143]:
+              - generic [ref=e144]: Cabin Class
+              - generic [ref=e145]:
+                - generic [ref=e146] [cursor=pointer]:
+                  - checkbox "💺 Economy" [ref=e147]
+                  - generic [ref=e148]: 💺
+                  - generic [ref=e149]: Economy
+                - generic [ref=e150] [cursor=pointer]:
+                  - checkbox "✨ Premium Economy" [ref=e151]
+                  - generic [ref=e152]: ✨
+                  - generic [ref=e153]: Premium Economy
+                - generic [ref=e154] [cursor=pointer]:
+                  - checkbox "💼 Business" [ref=e155]
+                  - generic [ref=e156]: 💼
+                  - generic [ref=e157]: Business
+                - generic [ref=e158] [cursor=pointer]:
+                  - checkbox "👑 First Class" [ref=e159]
+                  - generic [ref=e160]: 👑
+                  - generic [ref=e161]: First Class
+            - generic [ref=e162]:
+              - generic [ref=e163]: Fare Class
+              - generic [ref=e165] [cursor=pointer]:
+                - checkbox "⚠️ Exclude Basic Economy Hide fares with restrictions (no bags, no refunds)" [ref=e166]
+                - generic [ref=e167]:
+                  - generic [ref=e168]:
+                    - generic [ref=e169]: ⚠️
+                    - generic [ref=e170]: Exclude Basic Economy
+                  - generic [ref=e171]: Hide fares with restrictions (no bags, no refunds)
+            - generic [ref=e174] [cursor=pointer]:
+              - checkbox "🧳 Baggage Included Only show flights with checked bags included" [ref=e175]
+              - generic [ref=e176]:
+                - generic [ref=e177]:
+                  - generic [ref=e178]: 🧳
+                  - generic [ref=e179]: Baggage Included
+                - generic [ref=e180]: Only show flights with checked bags included
+            - generic [ref=e183] [cursor=pointer]:
+              - checkbox "💰 Refundable Only Only show fully refundable fares" [ref=e184]
+              - generic [ref=e185]:
+                - generic [ref=e186]:
+                  - generic [ref=e187]: 💰
+                  - generic [ref=e188]: Refundable Only
+                - generic [ref=e189]: Only show fully refundable fares
+            - generic [ref=e190]:
+              - generic [ref=e191]: Number of Stops
+              - generic [ref=e192]:
+                - generic [ref=e194] [cursor=pointer]:
+                  - checkbox "✈️ Direct" [ref=e195]
+                  - generic [ref=e196]: ✈️
+                  - generic [ref=e197]: Direct
+                - generic [ref=e199] [cursor=pointer]:
+                  - checkbox "🔄 1 Stop" [ref=e200]
+                  - generic [ref=e201]: 🔄
+                  - generic [ref=e202]: 1 Stop
+                - generic [ref=e204] [cursor=pointer]:
+                  - checkbox "🔁 2+ Stops" [ref=e205]
+                  - generic [ref=e206]: 🔁
+                  - generic [ref=e207]: 2+ Stops
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]: Airlines
+                - button "Select All" [ref=e211] [cursor=pointer]
+              - generic [ref=e212]:
+                - generic [ref=e214] [cursor=pointer]:
+                  - checkbox "6X, 6X" [ref=e215]
+                  - generic [ref=e216]:
+                    - text: 6X
+                    - generic [ref=e217]: ", 6X"
+                - generic [ref=e219] [cursor=pointer]:
+                  - checkbox "Alaska Airlines, AS" [ref=e220]
+                  - generic [ref=e221]:
+                    - text: Alaska Airlines
+                    - generic [ref=e222]: ", AS"
+                - generic [ref=e224] [cursor=pointer]:
+                  - checkbox "JetBlue Airways, B6" [ref=e225]
+                  - generic [ref=e226]:
+                    - text: JetBlue Airways
+                    - generic [ref=e227]: ", B6"
+                - generic [ref=e229] [cursor=pointer]:
+                  - checkbox "Frontier Airlines, F9" [ref=e230]
+                  - generic [ref=e231]:
+                    - text: Frontier Airlines
+                    - generic [ref=e232]: ", F9"
+            - generic [ref=e233]:
+              - generic [ref=e234]: Airline Alliances
+              - generic [ref=e235]:
+                - generic [ref=e236] [cursor=pointer]:
+                  - checkbox "⭐ Star Alliance" [ref=e237]
+                  - generic [ref=e238]: ⭐
+                  - generic [ref=e239]: Star Alliance
+                - generic [ref=e240] [cursor=pointer]:
+                  - checkbox "🌐 oneworld" [ref=e241]
+                  - generic [ref=e242]: 🌐
+                  - generic [ref=e243]: oneworld
+                - generic [ref=e244] [cursor=pointer]:
+                  - checkbox "✈️ SkyTeam" [ref=e245]
+                  - generic [ref=e246]: ✈️
+                  - generic [ref=e247]: SkyTeam
+            - generic [ref=e248]:
+              - generic [ref=e249]: Departure Time
+              - generic [ref=e250]:
+                - generic [ref=e251] [cursor=pointer]:
+                  - checkbox "🌅 Morning 6AM-12PM" [ref=e252]
+                  - generic [ref=e253]: 🌅
+                  - generic [ref=e254]: Morning
+                  - generic [ref=e255]: 6AM-12PM
+                - generic [ref=e256] [cursor=pointer]:
+                  - checkbox "☀️ Afternoon 12PM-6PM" [ref=e257]
+                  - generic [ref=e258]: ☀️
+                  - generic [ref=e259]: Afternoon
+                  - generic [ref=e260]: 12PM-6PM
+                - generic [ref=e261] [cursor=pointer]:
+                  - checkbox "🌆 Evening 6PM-10PM" [ref=e262]
+                  - generic [ref=e263]: 🌆
+                  - generic [ref=e264]: Evening
+                  - generic [ref=e265]: 6PM-10PM
+                - generic [ref=e266] [cursor=pointer]:
+                  - checkbox "🌙 Night 10PM-6AM" [ref=e267]
+                  - generic [ref=e268]: 🌙
+                  - generic [ref=e269]: Night
+                  - generic [ref=e270]: 10PM-6AM
+            - generic [ref=e271]:
+              - generic [ref=e272]: Max Flight Duration
+              - generic [ref=e273]:
+                - slider [ref=e274] [cursor=pointer]: "25"
+                - generic [ref=e275]:
+                  - generic [ref=e276]: 1h
+                  - generic [ref=e278]: 25 hours
+                  - generic [ref=e279]: 25h
+            - generic [ref=e280]:
+              - generic [ref=e281]: Max Layover Duration
+              - generic [ref=e282]:
+                - slider [ref=e283] [cursor=pointer]: "360"
+                - generic [ref=e284]:
+                  - generic [ref=e285]: 30m
+                  - generic [ref=e287]: 6h 0m
+                  - generic [ref=e288]: 12h
+            - generic [ref=e289]:
+              - generic [ref=e290]: CO₂ Emissions
+              - generic [ref=e291]:
+                - slider [ref=e292] [cursor=pointer]: "500"
+                - generic [ref=e293]:
+                  - generic [ref=e294]: 0kg
+                  - generic [ref=e296]:
+                    - generic [ref=e297]: 🍃
+                    - text: 500kg
+                  - generic [ref=e298]: 500kg
+            - generic [ref=e299]:
+              - generic [ref=e300]: Connection Preference
+              - generic [ref=e301]:
+                - generic [ref=e303] [cursor=pointer]:
+                  - checkbox "⚡ Short (< 2h)" [ref=e304]
+                  - generic [ref=e305]: ⚡
+                  - generic [ref=e306]: Short (< 2h)
+                - generic [ref=e308] [cursor=pointer]:
+                  - checkbox "⏱️ Medium (2-4h)" [ref=e309]
+                  - generic [ref=e310]: ⏱️
+                  - generic [ref=e311]: Medium (2-4h)
+                - generic [ref=e313] [cursor=pointer]:
+                  - checkbox "🕐 Long (> 4h)" [ref=e314]
+                  - generic [ref=e315]: 🕐
+                  - generic [ref=e316]: Long (> 4h)
+        - main "Flight search results" [ref=e317]:
+          - status [ref=e318]: 50 flights found for JFK to LAX
+          - generic [ref=e320]:
+            - generic [ref=e321]:
+              - generic [ref=e322]: "50"
+              - generic [ref=e323]: results
+            - generic [ref=e324]:
+              - button "Best" [pressed] [ref=e325] [cursor=pointer]:
+                - img [ref=e326]
+                - generic [ref=e329]: Best
+              - button "Cheapest" [ref=e330] [cursor=pointer]:
+                - img [ref=e331]
+                - generic [ref=e333]: Cheapest
+              - button "Fastest" [ref=e334] [cursor=pointer]:
+                - img [ref=e335]
+                - generic [ref=e337]: Fastest
+              - button "Earliest" [ref=e338] [cursor=pointer]:
+                - img [ref=e339]
+                - generic [ref=e342]: Earliest
+          - generic [ref=e343]:
+            - generic [ref=e345]:
+              - generic [ref=e346]:
+                - generic [ref=e347]:
+                  - img "JetBlue Airways logo" [ref=e348]
+                  - generic [ref=e349]: JetBlue Airways
+                  - generic [ref=e350]:
+                    - img [ref=e351]
+                    - generic [ref=e353]: "4.2"
+                  - generic [ref=e354]: ⚠️ 1 left
+                  - generic [ref=e355]: ✈️ Direct
+                  - generic [ref=e356]: Economy · BLUE BASIC
+                - generic [ref=e357]:
+                  - generic [ref=e358]:
+                    - generic [ref=e359]: "17"
+                    - generic [ref=e360]: ML
+                  - button "Save to favorites" [ref=e361] [cursor=pointer]:
+                    - img [ref=e362]
+                  - button "Share flight deal" [ref=e364] [cursor=pointer]:
+                    - img [ref=e365]
+                  - button "Compare flights" [ref=e371] [cursor=pointer]:
+                    - img [ref=e372]
+              - generic [ref=e374]:
+                - generic [ref=e375]:
+                  - generic [ref=e376]:
+                    - generic [ref=e377]:
+                      - generic [ref=e378]: 08:00
+                      - generic [ref=e379]: JFK
+                    - generic [ref=e380]:
+                      - img [ref=e383]
+                      - generic [ref=e385]:
+                        - generic [ref=e386]: 6h 22m
+                        - generic [ref=e387]: Direct
+                    - generic [ref=e388]:
+                      - generic [ref=e389]: 11:22
+                      - generic [ref=e390]: LAX
+                  - generic [ref=e391]:
+                    - generic [ref=e393]:
+                      - generic [ref=e394]:
+                        - img "JetBlue Airways logo" [ref=e395]
+                        - generic [ref=e396]:
+                          - generic [ref=e397]:
+                            - generic [ref=e398]: JetBlue Airways 2223
+                            - generic [ref=e399]: •
+                            - generic [ref=e400]: 32S
+                          - generic [ref=e401]:
+                            - generic [ref=e402]:
+                              - img [ref=e403]
+                              - generic [ref=e405]: "4.2"
+                            - generic [ref=e406]: •
+                            - generic [ref=e407]: On-time 77%
+                            - generic [ref=e408]: •
+                            - generic [ref=e409]: Economy Class
+                            - generic [ref=e410]: •
+                            - generic [ref=e411]: BLUE BASIC
+                      - generic [ref=e412]:
+                        - generic [ref=e413]:
+                          - generic [ref=e414]: 08:00
+                          - generic [ref=e415]: JFK
+                          - generic [ref=e416]: T5
+                        - generic [ref=e417]:
+                          - generic [ref=e418]: 6h 22m
+                          - img [ref=e420]
+                        - generic [ref=e422]:
+                          - generic [ref=e423]: 11:22
+                          - generic [ref=e424]: LAX
+                          - generic [ref=e425]: T5
+                    - generic [ref=e427]:
+                      - generic [ref=e428]:
+                        - generic [ref=e429]: 🎒
+                        - generic [ref=e430]:
+                          - text: 1 bag+personal
+                          - generic [ref=e431]: (10kg)
+                      - generic [ref=e432]: •
+                      - generic [ref=e433]:
+                        - generic [ref=e434]: 💼
+                        - generic [ref=e435]: Not included
+                      - generic [ref=e436]: •
+                      - generic "Confirmed by airline" [ref=e437]: 📶WiFi ✗
+                      - generic [ref=e438]: •
+                      - generic "Confirmed by airline" [ref=e439]: 🔌Power ✗
+                      - generic [ref=e440]: •
+                      - generic "Confirmed by airline" [ref=e441]: 🍽️Snack
+                - generic [ref=e442]:
+                  - generic [ref=e443]:
+                    - generic [ref=e444]:
+                      - generic [ref=e445]: 10:30
+                      - generic [ref=e446]: LAX
+                    - generic [ref=e447]:
+                      - img [ref=e450]
+                      - generic [ref=e452]:
+                        - generic [ref=e453]: 5h 31m
+                        - generic [ref=e454]: Direct
+                    - generic [ref=e455]:
+                      - generic [ref=e456]: 19:01
+                      - generic [ref=e457]: JFK
+                  - generic [ref=e458]:
+                    - generic [ref=e460]:
+                      - generic [ref=e461]:
+                        - img "JetBlue Airways logo" [ref=e462]
+                        - generic [ref=e463]:
+                          - generic [ref=e464]:
+                            - generic [ref=e465]: JetBlue Airways 724
+                            - generic [ref=e466]: •
+                            - generic [ref=e467]: 32S
+                          - generic [ref=e468]:
+                            - generic [ref=e469]:
+                              - img [ref=e470]
+                              - generic [ref=e472]: "4.2"
+                            - generic [ref=e473]: •
+                            - generic [ref=e474]: On-time 77%
+                            - generic [ref=e475]: •
+                            - generic [ref=e476]: Economy Class
+                            - generic [ref=e477]: •
+                            - generic [ref=e478]: BLUE BASIC
+                      - generic [ref=e479]:
+                        - generic [ref=e480]:
+                          - generic [ref=e481]: 10:30
+                          - generic [ref=e482]: LAX
+                          - generic [ref=e483]: T5
+                        - generic [ref=e484]:
+                          - generic [ref=e485]: 5h 31m
+                          - img [ref=e487]
+                        - generic [ref=e489]:
+                          - generic [ref=e490]: 19:01
+                          - generic [ref=e491]: JFK
+                          - generic [ref=e492]: T5
+                    - generic [ref=e494]:
+                      - generic [ref=e495]:
+                        - generic [ref=e496]: 🎒
+                        - generic [ref=e497]:
+                          - text: 1 bag+personal
+                          - generic [ref=e498]: (10kg)
+                      - generic [ref=e499]: •
+                      - generic [ref=e500]:
+                        - generic [ref=e501]: 💼
+                        - generic [ref=e502]: Not included
+                      - generic [ref=e503]: •
+                      - generic "Confirmed by airline" [ref=e504]: 📶WiFi ✗
+                      - generic [ref=e505]: •
+                      - generic "Confirmed by airline" [ref=e506]: 🔌Power ✗
+                      - generic [ref=e507]: •
+                      - generic "Confirmed by airline" [ref=e508]: 🍽️Snack
+              - generic [ref=e510]:
+                - generic [ref=e511]:
+                  - generic [ref=e512]: "88"
+                  - generic [ref=e513]: Great
+                  - generic [ref=e514]: Deal Score
+                  - generic [ref=e515]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e517]:
+                  - img [ref=e518]
+                  - generic [ref=e521]: 17% less CO₂
+                - generic [ref=e522]:
+                  - img [ref=e523]
+                  - generic [ref=e526]: 69 viewing
+                - generic [ref=e527]:
+                  - img [ref=e528]
+                  - generic [ref=e530]: 139 booked today
+              - generic [ref=e531]:
+                - generic [ref=e532]:
+                  - generic [ref=e533]: USD 267
+                  - generic [ref=e534]: $334
+                  - generic [ref=e535]: 20% OFF
+                - generic [ref=e536]:
+                  - generic "Carry-on included" [ref=e537]:
+                    - generic [ref=e538]: 🎒
+                    - generic [ref=e539]: ✓
+                  - generic "0 checked bag(s)" [ref=e540]:
+                    - generic [ref=e541]: 💼
+                    - generic [ref=e542]: "0"
+                - generic [ref=e543]:
+                  - button "Hide flight details" [ref=e544] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e545]
+                  - button "Select →" [ref=e547] [cursor=pointer]
+              - generic [ref=e548]:
+                - generic [ref=e550]:
+                  - heading "Price Breakdown" [level=4] [ref=e551]
+                  - generic [ref=e552]:
+                    - generic [ref=e553]:
+                      - generic [ref=e554]: Base fare
+                      - generic [ref=e555]: USD 220
+                    - generic [ref=e556]:
+                      - generic [ref=e557]: Taxes & fees (18%)
+                      - generic [ref=e558]: USD 47
+                    - generic [ref=e559]:
+                      - generic [ref=e560]: TOTAL
+                      - generic [ref=e561]: USD 267
+                    - generic [ref=e562]:
+                      - generic [ref=e563]: "Optional Add-ons (not included):"
+                      - generic [ref=e564]:
+                        - generic [ref=e565]: + Checked baggage
+                        - generic [ref=e566]: USD 60
+                - button "📋 Refund & Change Policies Load from API" [ref=e569] [cursor=pointer]:
+                  - generic [ref=e570]:
+                    - generic [ref=e571]: 📋
+                    - generic [ref=e572]:
+                      - generic [ref=e573]: Refund & Change Policies
+                      - generic [ref=e574]: Load from API
+                  - img [ref=e575]
+              - generic [ref=e577]:
+                - generic [ref=e578]:
+                  - generic [ref=e579]:
+                    - generic [ref=e580]:
+                      - heading "Share Flight" [level=3] [ref=e581]
+                      - paragraph [ref=e582]: JFK → LAX
+                    - button "Close" [ref=e583] [cursor=pointer]:
+                      - img [ref=e584]
+                  - generic [ref=e587]:
+                    - generic [ref=e588]: ✈️ FLY2ANY Deal
+                    - generic [ref=e589]:
+                      - generic [ref=e591]: USD 266.97
+                      - generic [ref=e592]: 88/100
+                    - generic [ref=e593]:
+                      - generic [ref=e594]: "Airline: JetBlue Airways"
+                      - generic [ref=e595]: "Class: Economy Class"
+                      - generic [ref=e596]: "Duration: 6h 22m"
+                      - generic [ref=e597]: "Stops: ✅ Direct"
+                      - generic [ref=e598]: "Amenities:"
+                      - generic [ref=e599]: 📶 No WiFi
+                      - generic [ref=e600]: 🔌 No Power
+                  - generic [ref=e601]:
+                    - button "Share as Image Best for Instagram/TikTok" [ref=e602] [cursor=pointer]:
+                      - img [ref=e603]
+                      - generic [ref=e607]: Share as Image
+                      - generic [ref=e608]: Best for Instagram/TikTok
+                    - generic [ref=e609]: "Or share via:"
+                    - generic [ref=e610]:
+                      - button "WhatsApp" [ref=e611] [cursor=pointer]:
+                        - img [ref=e613]
+                        - generic [ref=e615]: WhatsApp
+                      - button "Telegram" [ref=e616] [cursor=pointer]:
+                        - img [ref=e618]
+                        - generic [ref=e621]: Telegram
+                      - button "Facebook" [ref=e622] [cursor=pointer]:
+                        - img [ref=e624]
+                        - generic [ref=e626]: Facebook
+                      - button "Twitter" [ref=e627] [cursor=pointer]:
+                        - img [ref=e629]
+                        - generic [ref=e631]: Twitter
+                      - button "TikTok" [ref=e632] [cursor=pointer]:
+                        - img [ref=e634]
+                        - generic [ref=e636]: TikTok
+                      - button "LinkedIn" [ref=e637] [cursor=pointer]:
+                        - img [ref=e639]
+                        - generic [ref=e641]: LinkedIn
+                      - button "SMS" [ref=e642] [cursor=pointer]:
+                        - img [ref=e644]
+                        - generic [ref=e646]: SMS
+                      - button "Email" [ref=e647] [cursor=pointer]:
+                        - img [ref=e649]
+                        - generic [ref=e652]: Email
+                    - generic [ref=e653]:
+                      - textbox [ref=e654]: http://localhost:3000/flight/20?utm_source=copy&utm_medium=social_share&utm_campaign=flight_sharing&ref=CO20mh3ekh06
+                      - button "Copy" [ref=e655] [cursor=pointer]:
+                        - img [ref=e656]
+                        - generic [ref=e659]: Copy
+                - generic [ref=e661]:
+                  - generic [ref=e662]:
+                    - generic [ref=e663]:
+                      - heading "Share Image" [level=3] [ref=e664]
+                      - paragraph [ref=e665]: Choose how to share
+                    - button "Close" [ref=e666] [cursor=pointer]:
+                      - img [ref=e667]
+                  - img "Flight card preview" [ref=e672]
+                  - generic [ref=e673]:
+                    - generic [ref=e674]: "Select where you'd like to share this image:"
+                    - generic [ref=e675]:
+                      - button "Quick Share Any app" [ref=e676] [cursor=pointer]:
+                        - img [ref=e678]
+                        - generic [ref=e684]:
+                          - generic [ref=e685]: Quick Share
+                          - generic [ref=e686]: Any app
+                      - button "Download Save + copy link" [ref=e687] [cursor=pointer]:
+                        - img [ref=e689]
+                        - generic [ref=e692]:
+                          - generic [ref=e693]: Download
+                          - generic [ref=e694]: Save + copy link
+                      - button "WhatsApp Status" [ref=e695] [cursor=pointer]:
+                        - img [ref=e697]
+                        - generic [ref=e699]:
+                          - generic [ref=e700]: WhatsApp
+                          - generic [ref=e701]: Status
+                      - button "Instagram Story" [ref=e702] [cursor=pointer]:
+                        - img [ref=e704]
+                        - generic [ref=e707]:
+                          - generic [ref=e708]: Instagram
+                          - generic [ref=e709]: Story
+                      - button "Facebook Post" [ref=e710] [cursor=pointer]:
+                        - img [ref=e712]
+                        - generic [ref=e714]:
+                          - generic [ref=e715]: Facebook
+                          - generic [ref=e716]: Post
+                      - button "Twitter Post" [ref=e717] [cursor=pointer]:
+                        - img [ref=e719]
+                        - generic [ref=e721]:
+                          - generic [ref=e722]: Twitter
+                          - generic [ref=e723]: Post
+                    - generic [ref=e724]: 💡 The image includes a QR code linking to this flight deal
+            - generic [ref=e726]:
+              - generic [ref=e727]:
+                - generic [ref=e728]:
+                  - img "JetBlue Airways logo" [ref=e729]
+                  - generic [ref=e730]: JetBlue Airways
+                  - generic [ref=e731]:
+                    - img [ref=e732]
+                    - generic [ref=e734]: "4.2"
+                  - generic [ref=e735]: ⚠️ 1 left
+                  - generic [ref=e736]: ✈️ Direct
+                  - generic [ref=e737]: Economy · BLUE BASIC
+                - generic [ref=e738]:
+                  - generic [ref=e739]:
+                    - generic [ref=e740]: "17"
+                    - generic [ref=e741]: ML
+                  - button "Save to favorites" [ref=e742] [cursor=pointer]:
+                    - img [ref=e743]
+                  - button "Share flight deal" [ref=e745] [cursor=pointer]:
+                    - img [ref=e746]
+                  - button "Compare flights" [ref=e752] [cursor=pointer]:
+                    - img [ref=e753]
+              - generic [ref=e755]:
+                - generic [ref=e757]:
+                  - generic [ref=e758]:
+                    - generic [ref=e759]: 10:00
+                    - generic [ref=e760]: JFK
+                  - generic [ref=e761]:
+                    - img [ref=e764]
+                    - generic [ref=e766]:
+                      - generic [ref=e767]: 6h 19m
+                      - generic [ref=e768]: Direct
+                  - generic [ref=e769]:
+                    - generic [ref=e770]: 13:19
+                    - generic [ref=e771]: LAX
+                - generic [ref=e773]:
+                  - generic [ref=e774]:
+                    - generic [ref=e775]: 10:30
+                    - generic [ref=e776]: LAX
+                  - generic [ref=e777]:
+                    - img [ref=e780]
+                    - generic [ref=e782]:
+                      - generic [ref=e783]: 5h 31m
+                      - generic [ref=e784]: Direct
+                  - generic [ref=e785]:
+                    - generic [ref=e786]: 19:01
+                    - generic [ref=e787]: JFK
+              - generic [ref=e789]:
+                - generic [ref=e790]:
+                  - generic [ref=e791]: "87"
+                  - generic [ref=e792]: Great
+                  - generic [ref=e793]: Deal Score
+                  - generic [ref=e794]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e796]:
+                  - img [ref=e797]
+                  - generic [ref=e800]: 16% less CO₂
+                - generic [ref=e801]:
+                  - img [ref=e802]
+                  - generic [ref=e805]: 20 viewing
+                - generic [ref=e806]:
+                  - img [ref=e807]
+                  - generic [ref=e809]: 206 booked today
+              - generic [ref=e810]:
+                - generic [ref=e811]:
+                  - generic [ref=e812]: USD 267
+                  - generic [ref=e813]: $334
+                  - generic [ref=e814]: 20% OFF
+                - generic [ref=e815]:
+                  - generic "Carry-on included" [ref=e816]:
+                    - generic [ref=e817]: 🎒
+                    - generic [ref=e818]: ✓
+                  - generic "0 checked bag(s)" [ref=e819]:
+                    - generic [ref=e820]: 💼
+                    - generic [ref=e821]: "0"
+                - generic [ref=e822]:
+                  - button "Show flight details" [ref=e823] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e824]
+                  - button "Select →" [ref=e826] [cursor=pointer]
+            - generic [ref=e828]:
+              - generic [ref=e829]:
+                - generic [ref=e830]:
+                  - img "JetBlue Airways logo" [ref=e831]
+                  - generic [ref=e832]: JetBlue Airways
+                  - generic [ref=e833]:
+                    - img [ref=e834]
+                    - generic [ref=e836]: "4.2"
+                  - generic [ref=e837]: ⚠️ 1 left
+                  - generic [ref=e838]: ✈️ Direct
+                  - generic [ref=e839]: Economy · BLUE BASIC
+                - generic [ref=e840]:
+                  - generic [ref=e841]:
+                    - generic [ref=e842]: "17"
+                    - generic [ref=e843]: ML
+                  - button "Save to favorites" [ref=e844] [cursor=pointer]:
+                    - img [ref=e845]
+                  - button "Share flight deal" [ref=e847] [cursor=pointer]:
+                    - img [ref=e848]
+                  - button "Compare flights" [ref=e854] [cursor=pointer]:
+                    - img [ref=e855]
+              - generic [ref=e857]:
+                - generic [ref=e859]:
+                  - generic [ref=e860]:
+                    - generic [ref=e861]: 11:00
+                    - generic [ref=e862]: JFK
+                  - generic [ref=e863]:
+                    - img [ref=e866]
+                    - generic [ref=e868]:
+                      - generic [ref=e869]: 6h 20m
+                      - generic [ref=e870]: Direct
+                  - generic [ref=e871]:
+                    - generic [ref=e872]: 14:20
+                    - generic [ref=e873]: LAX
+                - generic [ref=e875]:
+                  - generic [ref=e876]:
+                    - generic [ref=e877]: 10:30
+                    - generic [ref=e878]: LAX
+                  - generic [ref=e879]:
+                    - img [ref=e882]
+                    - generic [ref=e884]:
+                      - generic [ref=e885]: 5h 31m
+                      - generic [ref=e886]: Direct
+                  - generic [ref=e887]:
+                    - generic [ref=e888]: 19:01
+                    - generic [ref=e889]: JFK
+              - generic [ref=e891]:
+                - generic [ref=e892]:
+                  - generic [ref=e893]: "87"
+                  - generic [ref=e894]: Great
+                  - generic [ref=e895]: Deal Score
+                  - generic [ref=e896]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e898]:
+                  - img [ref=e899]
+                  - generic [ref=e902]: 16% less CO₂
+                - generic [ref=e903]:
+                  - img [ref=e904]
+                  - generic [ref=e907]: 31 viewing
+                - generic [ref=e908]:
+                  - img [ref=e909]
+                  - generic [ref=e911]: 189 booked today
+              - generic [ref=e912]:
+                - generic [ref=e913]:
+                  - generic [ref=e914]: USD 267
+                  - generic [ref=e915]: $334
+                  - generic [ref=e916]: 20% OFF
+                - generic [ref=e917]:
+                  - generic "Carry-on included" [ref=e918]:
+                    - generic [ref=e919]: 🎒
+                    - generic [ref=e920]: ✓
+                  - generic "0 checked bag(s)" [ref=e921]:
+                    - generic [ref=e922]: 💼
+                    - generic [ref=e923]: "0"
+                - generic [ref=e924]:
+                  - button "Show flight details" [ref=e925] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e926]
+                  - button "Select →" [ref=e928] [cursor=pointer]
+            - generic [ref=e930]:
+              - generic [ref=e931]:
+                - generic [ref=e932]:
+                  - img "JetBlue Airways logo" [ref=e933]
+                  - generic [ref=e934]: JetBlue Airways
+                  - generic [ref=e935]:
+                    - img [ref=e936]
+                    - generic [ref=e938]: "4.2"
+                  - generic [ref=e939]: ⚠️ 1 left
+                  - generic [ref=e940]: ✈️ Direct
+                  - generic [ref=e941]: Economy · BLUE BASIC
+                - generic [ref=e942]:
+                  - generic [ref=e943]:
+                    - generic [ref=e944]: "17"
+                    - generic [ref=e945]: ML
+                  - button "Save to favorites" [ref=e946] [cursor=pointer]:
+                    - img [ref=e947]
+                  - button "Share flight deal" [ref=e949] [cursor=pointer]:
+                    - img [ref=e950]
+                  - button "Compare flights" [ref=e956] [cursor=pointer]:
+                    - img [ref=e957]
+              - generic [ref=e959]:
+                - generic [ref=e961]:
+                  - generic [ref=e962]:
+                    - generic [ref=e963]: 09:00
+                    - generic [ref=e964]: JFK
+                  - generic [ref=e965]:
+                    - img [ref=e968]
+                    - generic [ref=e970]:
+                      - generic [ref=e971]: 6h 19m
+                      - generic [ref=e972]: Direct
+                  - generic [ref=e973]:
+                    - generic [ref=e974]: 12:19
+                    - generic [ref=e975]: LAX
+                - generic [ref=e977]:
+                  - generic [ref=e978]:
+                    - generic [ref=e979]: 10:30
+                    - generic [ref=e980]: LAX
+                  - generic [ref=e981]:
+                    - img [ref=e984]
+                    - generic [ref=e986]:
+                      - generic [ref=e987]: 5h 31m
+                      - generic [ref=e988]: Direct
+                  - generic [ref=e989]:
+                    - generic [ref=e990]: 19:01
+                    - generic [ref=e991]: JFK
+              - generic [ref=e993]:
+                - generic [ref=e994]:
+                  - generic [ref=e995]: "87"
+                  - generic [ref=e996]: Great
+                  - generic [ref=e997]: Deal Score
+                  - generic [ref=e998]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1000]:
+                  - img [ref=e1001]
+                  - generic [ref=e1004]: 16% less CO₂
+                - generic [ref=e1005]:
+                  - img [ref=e1006]
+                  - generic [ref=e1009]: 20 viewing
+                - generic [ref=e1010]:
+                  - img [ref=e1011]
+                  - generic [ref=e1013]: 107 booked today
+              - generic [ref=e1014]:
+                - generic [ref=e1015]:
+                  - generic [ref=e1016]: USD 267
+                  - generic [ref=e1017]: $334
+                  - generic [ref=e1018]: 20% OFF
+                - generic [ref=e1019]:
+                  - generic "Carry-on included" [ref=e1020]:
+                    - generic [ref=e1021]: 🎒
+                    - generic [ref=e1022]: ✓
+                  - generic "0 checked bag(s)" [ref=e1023]:
+                    - generic [ref=e1024]: 💼
+                    - generic [ref=e1025]: "0"
+                - generic [ref=e1026]:
+                  - button "Show flight details" [ref=e1027] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1028]
+                  - button "Select →" [ref=e1030] [cursor=pointer]
+            - generic [ref=e1032]:
+              - generic [ref=e1033]:
+                - generic [ref=e1034]:
+                  - img "JetBlue Airways logo" [ref=e1035]
+                  - generic [ref=e1036]: JetBlue Airways
+                  - generic [ref=e1037]:
+                    - img [ref=e1038]
+                    - generic [ref=e1040]: "4.2"
+                  - generic [ref=e1041]: ⚠️ 1 left
+                  - generic [ref=e1042]: ✈️ Direct
+                  - generic [ref=e1043]: Economy · BLUE BASIC
+                - generic [ref=e1044]:
+                  - generic [ref=e1045]:
+                    - generic [ref=e1046]: "17"
+                    - generic [ref=e1047]: ML
+                  - button "Save to favorites" [ref=e1048] [cursor=pointer]:
+                    - img [ref=e1049]
+                  - button "Share flight deal" [ref=e1051] [cursor=pointer]:
+                    - img [ref=e1052]
+                  - button "Compare flights" [ref=e1058] [cursor=pointer]:
+                    - img [ref=e1059]
+              - generic [ref=e1061]:
+                - generic [ref=e1063]:
+                  - generic [ref=e1064]:
+                    - generic [ref=e1065]: 14:00
+                    - generic [ref=e1066]: JFK
+                  - generic [ref=e1067]:
+                    - img [ref=e1070]
+                    - generic [ref=e1072]:
+                      - generic [ref=e1073]: 6h 19m
+                      - generic [ref=e1074]: Direct
+                  - generic [ref=e1075]:
+                    - generic [ref=e1076]: 17:19
+                    - generic [ref=e1077]: LAX
+                - generic [ref=e1079]:
+                  - generic [ref=e1080]:
+                    - generic [ref=e1081]: 10:30
+                    - generic [ref=e1082]: LAX
+                  - generic [ref=e1083]:
+                    - img [ref=e1086]
+                    - generic [ref=e1088]:
+                      - generic [ref=e1089]: 5h 31m
+                      - generic [ref=e1090]: Direct
+                  - generic [ref=e1091]:
+                    - generic [ref=e1092]: 19:01
+                    - generic [ref=e1093]: JFK
+              - generic [ref=e1095]:
+                - generic [ref=e1096]:
+                  - generic [ref=e1097]: "86"
+                  - generic [ref=e1098]: Great
+                  - generic [ref=e1099]: Deal Score
+                  - generic [ref=e1100]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1102]:
+                  - img [ref=e1103]
+                  - generic [ref=e1106]: 16% less CO₂
+                - generic [ref=e1107]:
+                  - img [ref=e1108]
+                  - generic [ref=e1111]: 26 viewing
+                - generic [ref=e1112]:
+                  - img [ref=e1113]
+                  - generic [ref=e1115]: 169 booked today
+              - generic [ref=e1116]:
+                - generic [ref=e1117]:
+                  - generic [ref=e1118]: USD 267
+                  - generic [ref=e1119]: $334
+                  - generic [ref=e1120]: 20% OFF
+                - generic [ref=e1121]:
+                  - generic "Carry-on included" [ref=e1122]:
+                    - generic [ref=e1123]: 🎒
+                    - generic [ref=e1124]: ✓
+                  - generic "0 checked bag(s)" [ref=e1125]:
+                    - generic [ref=e1126]: 💼
+                    - generic [ref=e1127]: "0"
+                - generic [ref=e1128]:
+                  - button "Show flight details" [ref=e1129] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1130]
+                  - button "Select →" [ref=e1132] [cursor=pointer]
+            - generic [ref=e1134]:
+              - generic [ref=e1135]:
+                - generic [ref=e1136]:
+                  - img "JetBlue Airways logo" [ref=e1137]
+                  - generic [ref=e1138]: JetBlue Airways
+                  - generic [ref=e1139]:
+                    - img [ref=e1140]
+                    - generic [ref=e1142]: "4.2"
+                  - generic [ref=e1143]: ⚠️ 1 left
+                  - generic [ref=e1144]: ✈️ Direct
+                  - generic [ref=e1145]: Economy · BLUE BASIC
+                - generic [ref=e1146]:
+                  - generic [ref=e1147]:
+                    - generic [ref=e1148]: "1"
+                    - generic [ref=e1149]: ML
+                  - button "Save to favorites" [ref=e1150] [cursor=pointer]:
+                    - img [ref=e1151]
+                  - button "Share flight deal" [ref=e1153] [cursor=pointer]:
+                    - img [ref=e1154]
+                  - button "Compare flights" [ref=e1160] [cursor=pointer]:
+                    - img [ref=e1161]
+              - generic [ref=e1163]:
+                - generic [ref=e1165]:
+                  - generic [ref=e1166]:
+                    - generic [ref=e1167]: 08:00
+                    - generic [ref=e1168]: JFK
+                  - generic [ref=e1169]:
+                    - img [ref=e1172]
+                    - generic [ref=e1174]:
+                      - generic [ref=e1175]: 6h 22m
+                      - generic [ref=e1176]: Direct
+                  - generic [ref=e1177]:
+                    - generic [ref=e1178]: 11:22
+                    - generic [ref=e1179]: LAX
+                - generic [ref=e1181]:
+                  - generic [ref=e1182]:
+                    - generic [ref=e1183]: 23:20
+                    - generic [ref=e1184]: LAX
+                  - generic [ref=e1185]:
+                    - img [ref=e1188]
+                    - generic [ref=e1190]:
+                      - generic [ref=e1191]: 6h 52m
+                      - generic [ref=e1192]: 1 stop
+                  - generic [ref=e1193]:
+                    - generic [ref=e1194]: 09:12
+                    - generic [ref=e1195]: JFK
+              - generic [ref=e1197]:
+                - generic [ref=e1198]:
+                  - generic [ref=e1199]: "88"
+                  - generic [ref=e1200]: Great
+                  - generic [ref=e1201]: Deal Score
+                  - generic [ref=e1202]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1204]:
+                  - img [ref=e1205]
+                  - generic [ref=e1208]: 17% less CO₂
+                - generic [ref=e1209]:
+                  - img [ref=e1210]
+                  - generic [ref=e1213]: 57 viewing
+                - generic [ref=e1214]:
+                  - img [ref=e1215]
+                  - generic [ref=e1217]: 209 booked today
+              - generic [ref=e1218]:
+                - generic [ref=e1219]:
+                  - generic [ref=e1220]: USD 256
+                  - generic [ref=e1221]: $320
+                  - generic [ref=e1222]: 20% OFF
+                - generic [ref=e1223]:
+                  - generic "Carry-on included" [ref=e1224]:
+                    - generic [ref=e1225]: 🎒
+                    - generic [ref=e1226]: ✓
+                  - generic "0 checked bag(s)" [ref=e1227]:
+                    - generic [ref=e1228]: 💼
+                    - generic [ref=e1229]: "0"
+                - generic [ref=e1230]:
+                  - button "Show flight details" [ref=e1231] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1232]
+                  - button "Select →" [ref=e1234] [cursor=pointer]
+          - generic [ref=e1235]:
+            - generic [ref=e1237]:
+              - heading "Find Cheaper Dates" [level=3] [ref=e1238]:
+                - img [ref=e1239]
+                - text: Find Cheaper Dates
+              - button "Show Calendar" [ref=e1241] [cursor=pointer]
+            - generic [ref=e1243]:
+              - heading "Save with Nearby Airports" [level=3] [ref=e1244]:
+                - img [ref=e1245]
+                - text: Save with Nearby Airports
+              - button "Show Alternatives" [ref=e1248] [cursor=pointer]
+            - generic [ref=e1249]:
+              - generic [ref=e1250]:
+                - img [ref=e1251]
+                - heading "Complete Your Trip" [level=3] [ref=e1255]
+                - generic [ref=e1256]: SAVE UP TO 40%
+              - generic [ref=e1257]:
+                - generic [ref=e1258] [cursor=pointer]:
+                  - generic [ref=e1259]:
+                    - img [ref=e1261]
+                    - generic [ref=e1264]:
+                      - heading "+ Hotel" [level=4] [ref=e1265]
+                      - paragraph [ref=e1266]: Save $120
+                  - generic [ref=e1267]:
+                    - paragraph [ref=e1268]: From $1545.74/night
+                    - paragraph [ref=e1269]: 3 hotels available
+                  - button "Add Hotel" [ref=e1270]
+                - generic [ref=e1271] [cursor=pointer]:
+                  - generic [ref=e1272]:
+                    - img [ref=e1274]
+                    - generic [ref=e1278]:
+                      - heading "+ Car Rental" [level=4] [ref=e1279]
+                      - paragraph [ref=e1280]: Save $45
+                  - generic [ref=e1281]:
+                    - paragraph [ref=e1282]: From $35/day
+                    - paragraph [ref=e1283]: Free cancellation
+                  - button "Add Car" [ref=e1284]
+                - generic [ref=e1285] [cursor=pointer]:
+                  - generic [ref=e1286]:
+                    - img [ref=e1288]
+                    - generic [ref=e1292]:
+                      - heading "+ Transfer" [level=4] [ref=e1293]
+                      - paragraph [ref=e1294]: Save $15
+                  - generic [ref=e1295]:
+                    - paragraph [ref=e1296]: From $25
+                    - paragraph [ref=e1297]: Private or shared
+                  - button "Add Transfer" [ref=e1298]
+              - generic [ref=e1300]:
+                - img [ref=e1301]
+                - generic [ref=e1304]: "Bundle & Save:"
+                - generic [ref=e1305]: Up to $180 total savings
+                - generic [ref=e1306]: Limited time offer
+            - generic [ref=e1307]:
+              - generic [ref=e1308]:
+                - img [ref=e1309]
+                - heading "Price Calendar" [level=4] [ref=e1311]
+              - paragraph [ref=e1312]: No pricing data available for route JFK → LAX. Try a different route or check back later.
+            - generic [ref=e1314]:
+              - generic [ref=e1316]:
+                - generic [ref=e1317]: 📅
+                - generic [ref=e1318]:
+                  - heading "Flexible Dates - Find Cheaper Flights" [level=3] [ref=e1319]
+                  - paragraph [ref=e1320]: Compare prices for nearby dates
+              - generic [ref=e1323]:
+                - button "Wed 12 Nov $538 Save $155" [ref=e1324] [cursor=pointer]:
+                  - generic [ref=e1325]: Wed
+                  - generic [ref=e1326]: "12"
+                  - generic [ref=e1327]: Nov
+                  - generic [ref=e1328]: $538
+                  - generic [ref=e1329]: Save $155
+                - button "Best Deal 🔥 Thu 13 Nov $514 Save $179 ↓ Lowest" [ref=e1330] [cursor=pointer]:
+                  - generic [ref=e1333]:
+                    - generic [ref=e1334]: Best Deal
+                    - generic [ref=e1335]: 🔥
+                  - generic [ref=e1336]: Thu
+                  - generic [ref=e1337]: "13"
+                  - generic [ref=e1338]: Nov
+                  - generic [ref=e1339]: $514
+                  - generic [ref=e1340]: Save $179
+                  - generic [ref=e1341]:
+                    - generic [ref=e1342]: ↓
+                    - generic [ref=e1343]: Lowest
+                - button "Fri 14 Nov $666 Save $27" [ref=e1344] [cursor=pointer]:
+                  - generic [ref=e1345]: Fri
+                  - generic [ref=e1346]: "14"
+                  - generic [ref=e1347]: Nov
+                  - generic [ref=e1348]: $666
+                  - generic [ref=e1349]: Save $27
+                - button "Selected Sat 15 Nov $693" [ref=e1350] [cursor=pointer]:
+                  - generic [ref=e1352]: Selected
+                  - generic [ref=e1353]: Sat
+                  - generic [ref=e1354]: "15"
+                  - generic [ref=e1355]: Nov
+                  - generic [ref=e1356]: $693
+                - button "Sun 16 Nov $584 Save $109" [ref=e1357] [cursor=pointer]:
+                  - generic [ref=e1358]: Sun
+                  - generic [ref=e1359]: "16"
+                  - generic [ref=e1360]: Nov
+                  - generic [ref=e1361]: $584
+                  - generic [ref=e1362]: Save $109
+                - button "Mon 17 Nov $744" [ref=e1363] [cursor=pointer]:
+                  - generic [ref=e1364]: Mon
+                  - generic [ref=e1365]: "17"
+                  - generic [ref=e1366]: Nov
+                  - generic [ref=e1367]: $744
+                - button "Tue 18 Nov $720" [ref=e1368] [cursor=pointer]:
+                  - generic [ref=e1369]: Tue
+                  - generic [ref=e1370]: "18"
+                  - generic [ref=e1371]: Nov
+                  - generic [ref=e1372]: $720
+              - generic [ref=e1374]:
+                - generic [ref=e1375]:
+                  - generic [ref=e1376]: 💰
+                  - generic [ref=e1377]:
+                    - generic [ref=e1378]: Save $179 on Nov 13
+                    - generic [ref=e1379]: Switch to the cheapest date and save more!
+                - button "Select Best Deal" [ref=e1380] [cursor=pointer]
+          - generic [ref=e1382]:
+            - generic [ref=e1384]:
+              - generic [ref=e1385]:
+                - generic [ref=e1386]:
+                  - img "JetBlue Airways logo" [ref=e1387]
+                  - generic [ref=e1388]: JetBlue Airways
+                  - generic [ref=e1389]:
+                    - img [ref=e1390]
+                    - generic [ref=e1392]: "4.2"
+                  - generic [ref=e1393]: ⚠️ 1 left
+                  - generic [ref=e1394]: ✈️ Direct
+                  - generic [ref=e1395]: Economy · BLUE BASIC
+                - generic [ref=e1396]:
+                  - generic [ref=e1397]:
+                    - generic [ref=e1398]: "1"
+                    - generic [ref=e1399]: ML
+                  - button "Save to favorites" [ref=e1400] [cursor=pointer]:
+                    - img [ref=e1401]
+                  - button "Share flight deal" [ref=e1403] [cursor=pointer]:
+                    - img [ref=e1404]
+                  - button "Compare flights" [ref=e1410] [cursor=pointer]:
+                    - img [ref=e1411]
+              - generic [ref=e1413]:
+                - generic [ref=e1415]:
+                  - generic [ref=e1416]:
+                    - generic [ref=e1417]: 11:00
+                    - generic [ref=e1418]: JFK
+                  - generic [ref=e1419]:
+                    - img [ref=e1422]
+                    - generic [ref=e1424]:
+                      - generic [ref=e1425]: 6h 20m
+                      - generic [ref=e1426]: Direct
+                  - generic [ref=e1427]:
+                    - generic [ref=e1428]: 14:20
+                    - generic [ref=e1429]: LAX
+                - generic [ref=e1431]:
+                  - generic [ref=e1432]:
+                    - generic [ref=e1433]: 23:20
+                    - generic [ref=e1434]: LAX
+                  - generic [ref=e1435]:
+                    - img [ref=e1438]
+                    - generic [ref=e1440]:
+                      - generic [ref=e1441]: 6h 52m
+                      - generic [ref=e1442]: 1 stop
+                  - generic [ref=e1443]:
+                    - generic [ref=e1444]: 09:12
+                    - generic [ref=e1445]: JFK
+              - generic [ref=e1447]:
+                - generic [ref=e1448]:
+                  - generic [ref=e1449]: "87"
+                  - generic [ref=e1450]: Great
+                  - generic [ref=e1451]: Deal Score
+                  - generic [ref=e1452]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1454]:
+                  - img [ref=e1455]
+                  - generic [ref=e1458]: 16% less CO₂
+                - generic [ref=e1459]:
+                  - img [ref=e1460]
+                  - generic [ref=e1463]: 35 viewing
+                - generic [ref=e1464]:
+                  - img [ref=e1465]
+                  - generic [ref=e1467]: 224 booked today
+              - generic [ref=e1468]:
+                - generic [ref=e1469]:
+                  - generic [ref=e1470]: USD 256
+                  - generic [ref=e1471]: $320
+                  - generic [ref=e1472]: 20% OFF
+                - generic [ref=e1473]:
+                  - generic "Carry-on included" [ref=e1474]:
+                    - generic [ref=e1475]: 🎒
+                    - generic [ref=e1476]: ✓
+                  - generic "0 checked bag(s)" [ref=e1477]:
+                    - generic [ref=e1478]: 💼
+                    - generic [ref=e1479]: "0"
+                - generic [ref=e1480]:
+                  - button "Show flight details" [ref=e1481] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1482]
+                  - button "Select →" [ref=e1484] [cursor=pointer]
+            - generic [ref=e1486]:
+              - generic [ref=e1487]:
+                - generic [ref=e1488]:
+                  - img "JetBlue Airways logo" [ref=e1489]
+                  - generic [ref=e1490]: JetBlue Airways
+                  - generic [ref=e1491]:
+                    - img [ref=e1492]
+                    - generic [ref=e1494]: "4.2"
+                  - generic [ref=e1495]: ⚠️ 1 left
+                  - generic [ref=e1496]: ✈️ Direct
+                  - generic [ref=e1497]: Economy · BLUE BASIC
+                - generic [ref=e1498]:
+                  - generic [ref=e1499]:
+                    - generic [ref=e1500]: "1"
+                    - generic [ref=e1501]: ML
+                  - button "Save to favorites" [ref=e1502] [cursor=pointer]:
+                    - img [ref=e1503]
+                  - button "Share flight deal" [ref=e1505] [cursor=pointer]:
+                    - img [ref=e1506]
+                  - button "Compare flights" [ref=e1512] [cursor=pointer]:
+                    - img [ref=e1513]
+              - generic [ref=e1515]:
+                - generic [ref=e1517]:
+                  - generic [ref=e1518]:
+                    - generic [ref=e1519]: 08:00
+                    - generic [ref=e1520]: JFK
+                  - generic [ref=e1521]:
+                    - img [ref=e1524]
+                    - generic [ref=e1526]:
+                      - generic [ref=e1527]: 6h 22m
+                      - generic [ref=e1528]: Direct
+                  - generic [ref=e1529]:
+                    - generic [ref=e1530]: 11:22
+                    - generic [ref=e1531]: LAX
+                - generic [ref=e1533]:
+                  - generic [ref=e1534]:
+                    - generic [ref=e1535]: 11:05
+                    - generic [ref=e1536]: LAX
+                  - generic [ref=e1537]:
+                    - img [ref=e1540]
+                    - generic [ref=e1542]:
+                      - generic [ref=e1543]: 8h 50m
+                      - generic [ref=e1544]: 1 stop
+                  - generic [ref=e1545]:
+                    - generic [ref=e1546]: 22:55
+                    - generic [ref=e1547]: JFK
+              - generic [ref=e1549]:
+                - generic [ref=e1550]:
+                  - generic [ref=e1551]: "88"
+                  - generic [ref=e1552]: Great
+                  - generic [ref=e1553]: Deal Score
+                  - generic [ref=e1554]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1556]:
+                  - img [ref=e1557]
+                  - generic [ref=e1560]: 17% less CO₂
+                - generic [ref=e1561]:
+                  - img [ref=e1562]
+                  - generic [ref=e1565]: 37 viewing
+                - generic [ref=e1566]:
+                  - img [ref=e1567]
+                  - generic [ref=e1569]: 189 booked today
+              - generic [ref=e1570]:
+                - generic [ref=e1571]:
+                  - generic [ref=e1572]: USD 256
+                  - generic [ref=e1573]: $320
+                  - generic [ref=e1574]: 20% OFF
+                - generic [ref=e1575]:
+                  - generic "Carry-on included" [ref=e1576]:
+                    - generic [ref=e1577]: 🎒
+                    - generic [ref=e1578]: ✓
+                  - generic "0 checked bag(s)" [ref=e1579]:
+                    - generic [ref=e1580]: 💼
+                    - generic [ref=e1581]: "0"
+                - generic [ref=e1582]:
+                  - button "Show flight details" [ref=e1583] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1584]
+                  - button "Select →" [ref=e1586] [cursor=pointer]
+            - generic [ref=e1588]:
+              - generic [ref=e1589]:
+                - generic [ref=e1590]:
+                  - img "JetBlue Airways logo" [ref=e1591]
+                  - generic [ref=e1592]: JetBlue Airways
+                  - generic [ref=e1593]:
+                    - img [ref=e1594]
+                    - generic [ref=e1596]: "4.2"
+                  - generic [ref=e1597]: ⚠️ 1 left
+                  - generic [ref=e1598]: ✈️ Direct
+                  - generic [ref=e1599]: Economy · BLUE BASIC
+                - generic [ref=e1600]:
+                  - generic [ref=e1601]:
+                    - generic [ref=e1602]: "1"
+                    - generic [ref=e1603]: ML
+                  - button "Save to favorites" [ref=e1604] [cursor=pointer]:
+                    - img [ref=e1605]
+                  - button "Share flight deal" [ref=e1607] [cursor=pointer]:
+                    - img [ref=e1608]
+                  - button "Compare flights" [ref=e1614] [cursor=pointer]:
+                    - img [ref=e1615]
+              - generic [ref=e1617]:
+                - generic [ref=e1619]:
+                  - generic [ref=e1620]:
+                    - generic [ref=e1621]: 09:00
+                    - generic [ref=e1622]: JFK
+                  - generic [ref=e1623]:
+                    - img [ref=e1626]
+                    - generic [ref=e1628]:
+                      - generic [ref=e1629]: 6h 19m
+                      - generic [ref=e1630]: Direct
+                  - generic [ref=e1631]:
+                    - generic [ref=e1632]: 12:19
+                    - generic [ref=e1633]: LAX
+                - generic [ref=e1635]:
+                  - generic [ref=e1636]:
+                    - generic [ref=e1637]: 23:20
+                    - generic [ref=e1638]: LAX
+                  - generic [ref=e1639]:
+                    - img [ref=e1642]
+                    - generic [ref=e1644]:
+                      - generic [ref=e1645]: 6h 52m
+                      - generic [ref=e1646]: 1 stop
+                  - generic [ref=e1647]:
+                    - generic [ref=e1648]: 09:12
+                    - generic [ref=e1649]: JFK
+              - generic [ref=e1651]:
+                - generic [ref=e1652]:
+                  - generic [ref=e1653]: "87"
+                  - generic [ref=e1654]: Great
+                  - generic [ref=e1655]: Deal Score
+                  - generic [ref=e1656]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1658]:
+                  - img [ref=e1659]
+                  - generic [ref=e1662]: 16% less CO₂
+                - generic [ref=e1663]:
+                  - img [ref=e1664]
+                  - generic [ref=e1667]: 42 viewing
+                - generic [ref=e1668]:
+                  - img [ref=e1669]
+                  - generic [ref=e1671]: 156 booked today
+              - generic [ref=e1672]:
+                - generic [ref=e1673]:
+                  - generic [ref=e1674]: USD 256
+                  - generic [ref=e1675]: $320
+                  - generic [ref=e1676]: 20% OFF
+                - generic [ref=e1677]:
+                  - generic "Carry-on included" [ref=e1678]:
+                    - generic [ref=e1679]: 🎒
+                    - generic [ref=e1680]: ✓
+                  - generic "0 checked bag(s)" [ref=e1681]:
+                    - generic [ref=e1682]: 💼
+                    - generic [ref=e1683]: "0"
+                - generic [ref=e1684]:
+                  - button "Show flight details" [ref=e1685] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1686]
+                  - button "Select →" [ref=e1688] [cursor=pointer]
+            - generic [ref=e1690]:
+              - generic [ref=e1691]:
+                - generic [ref=e1692]:
+                  - img "JetBlue Airways logo" [ref=e1693]
+                  - generic [ref=e1694]: JetBlue Airways
+                  - generic [ref=e1695]:
+                    - img [ref=e1696]
+                    - generic [ref=e1698]: "4.2"
+                  - generic [ref=e1699]: ⚠️ 1 left
+                  - generic [ref=e1700]: ✈️ Direct
+                  - generic [ref=e1701]: Economy · BLUE BASIC
+                - generic [ref=e1702]:
+                  - generic [ref=e1703]:
+                    - generic [ref=e1704]: "1"
+                    - generic [ref=e1705]: ML
+                  - button "Save to favorites" [ref=e1706] [cursor=pointer]:
+                    - img [ref=e1707]
+                  - button "Share flight deal" [ref=e1709] [cursor=pointer]:
+                    - img [ref=e1710]
+                  - button "Compare flights" [ref=e1716] [cursor=pointer]:
+                    - img [ref=e1717]
+              - generic [ref=e1719]:
+                - generic [ref=e1721]:
+                  - generic [ref=e1722]:
+                    - generic [ref=e1723]: 10:00
+                    - generic [ref=e1724]: JFK
+                  - generic [ref=e1725]:
+                    - img [ref=e1728]
+                    - generic [ref=e1730]:
+                      - generic [ref=e1731]: 6h 19m
+                      - generic [ref=e1732]: Direct
+                  - generic [ref=e1733]:
+                    - generic [ref=e1734]: 13:19
+                    - generic [ref=e1735]: LAX
+                - generic [ref=e1737]:
+                  - generic [ref=e1738]:
+                    - generic [ref=e1739]: 23:20
+                    - generic [ref=e1740]: LAX
+                  - generic [ref=e1741]:
+                    - img [ref=e1744]
+                    - generic [ref=e1746]:
+                      - generic [ref=e1747]: 6h 52m
+                      - generic [ref=e1748]: 1 stop
+                  - generic [ref=e1749]:
+                    - generic [ref=e1750]: 09:12
+                    - generic [ref=e1751]: JFK
+              - generic [ref=e1753]:
+                - generic [ref=e1754]:
+                  - generic [ref=e1755]: "87"
+                  - generic [ref=e1756]: Great
+                  - generic [ref=e1757]: Deal Score
+                  - generic [ref=e1758]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1760]:
+                  - img [ref=e1761]
+                  - generic [ref=e1764]: 16% less CO₂
+                - generic [ref=e1765]:
+                  - img [ref=e1766]
+                  - generic [ref=e1769]: 43 viewing
+                - generic [ref=e1770]:
+                  - img [ref=e1771]
+                  - generic [ref=e1773]: 141 booked today
+              - generic [ref=e1774]:
+                - generic [ref=e1775]:
+                  - generic [ref=e1776]: USD 256
+                  - generic [ref=e1777]: $320
+                  - generic [ref=e1778]: 20% OFF
+                - generic [ref=e1779]:
+                  - generic "Carry-on included" [ref=e1780]:
+                    - generic [ref=e1781]: 🎒
+                    - generic [ref=e1782]: ✓
+                  - generic "0 checked bag(s)" [ref=e1783]:
+                    - generic [ref=e1784]: 💼
+                    - generic [ref=e1785]: "0"
+                - generic [ref=e1786]:
+                  - button "Show flight details" [ref=e1787] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1788]
+                  - button "Select →" [ref=e1790] [cursor=pointer]
+            - generic [ref=e1792]:
+              - generic [ref=e1793]:
+                - generic [ref=e1794]:
+                  - img "JetBlue Airways logo" [ref=e1795]
+                  - generic [ref=e1796]: JetBlue Airways
+                  - generic [ref=e1797]:
+                    - img [ref=e1798]
+                    - generic [ref=e1800]: "4.2"
+                  - generic [ref=e1801]: ⚠️ 1 left
+                  - generic [ref=e1802]: ✈️ Direct
+                  - generic [ref=e1803]: Economy · BLUE BASIC
+                - generic [ref=e1804]:
+                  - generic [ref=e1805]:
+                    - generic [ref=e1806]: "1"
+                    - generic [ref=e1807]: ML
+                  - button "Save to favorites" [ref=e1808] [cursor=pointer]:
+                    - img [ref=e1809]
+                  - button "Share flight deal" [ref=e1811] [cursor=pointer]:
+                    - img [ref=e1812]
+                  - button "Compare flights" [ref=e1818] [cursor=pointer]:
+                    - img [ref=e1819]
+              - generic [ref=e1821]:
+                - generic [ref=e1823]:
+                  - generic [ref=e1824]:
+                    - generic [ref=e1825]: 14:00
+                    - generic [ref=e1826]: JFK
+                  - generic [ref=e1827]:
+                    - img [ref=e1830]
+                    - generic [ref=e1832]:
+                      - generic [ref=e1833]: 6h 19m
+                      - generic [ref=e1834]: Direct
+                  - generic [ref=e1835]:
+                    - generic [ref=e1836]: 17:19
+                    - generic [ref=e1837]: LAX
+                - generic [ref=e1839]:
+                  - generic [ref=e1840]:
+                    - generic [ref=e1841]: 23:20
+                    - generic [ref=e1842]: LAX
+                  - generic [ref=e1843]:
+                    - img [ref=e1846]
+                    - generic [ref=e1848]:
+                      - generic [ref=e1849]: 6h 52m
+                      - generic [ref=e1850]: 1 stop
+                  - generic [ref=e1851]:
+                    - generic [ref=e1852]: 09:12
+                    - generic [ref=e1853]: JFK
+              - generic [ref=e1855]:
+                - generic [ref=e1856]:
+                  - generic [ref=e1857]: "86"
+                  - generic [ref=e1858]: Great
+                  - generic [ref=e1859]: Deal Score
+                  - generic [ref=e1860]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1862]:
+                  - img [ref=e1863]
+                  - generic [ref=e1866]: 16% less CO₂
+                - generic [ref=e1867]:
+                  - img [ref=e1868]
+                  - generic [ref=e1871]: 63 viewing
+                - generic [ref=e1872]:
+                  - img [ref=e1873]
+                  - generic [ref=e1875]: 180 booked today
+              - generic [ref=e1876]:
+                - generic [ref=e1877]:
+                  - generic [ref=e1878]: USD 256
+                  - generic [ref=e1879]: $320
+                  - generic [ref=e1880]: 20% OFF
+                - generic [ref=e1881]:
+                  - generic "Carry-on included" [ref=e1882]:
+                    - generic [ref=e1883]: 🎒
+                    - generic [ref=e1884]: ✓
+                  - generic "0 checked bag(s)" [ref=e1885]:
+                    - generic [ref=e1886]: 💼
+                    - generic [ref=e1887]: "0"
+                - generic [ref=e1888]:
+                  - button "Show flight details" [ref=e1889] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1890]
+                  - button "Select →" [ref=e1892] [cursor=pointer]
+            - generic [ref=e1894]:
+              - generic [ref=e1895]:
+                - generic [ref=e1896]:
+                  - img "JetBlue Airways logo" [ref=e1897]
+                  - generic [ref=e1898]: JetBlue Airways
+                  - generic [ref=e1899]:
+                    - img [ref=e1900]
+                    - generic [ref=e1902]: "4.2"
+                  - generic [ref=e1903]: ⚠️ 1 left
+                  - generic [ref=e1904]: ✈️ Direct
+                  - generic [ref=e1905]: Economy · BLUE BASIC
+                - generic [ref=e1906]:
+                  - generic [ref=e1907]:
+                    - generic [ref=e1908]: "1"
+                    - generic [ref=e1909]: ML
+                  - button "Save to favorites" [ref=e1910] [cursor=pointer]:
+                    - img [ref=e1911]
+                  - button "Share flight deal" [ref=e1913] [cursor=pointer]:
+                    - img [ref=e1914]
+                  - button "Compare flights" [ref=e1920] [cursor=pointer]:
+                    - img [ref=e1921]
+              - generic [ref=e1923]:
+                - generic [ref=e1925]:
+                  - generic [ref=e1926]:
+                    - generic [ref=e1927]: 11:00
+                    - generic [ref=e1928]: JFK
+                  - generic [ref=e1929]:
+                    - img [ref=e1932]
+                    - generic [ref=e1934]:
+                      - generic [ref=e1935]: 6h 20m
+                      - generic [ref=e1936]: Direct
+                  - generic [ref=e1937]:
+                    - generic [ref=e1938]: 14:20
+                    - generic [ref=e1939]: LAX
+                - generic [ref=e1941]:
+                  - generic [ref=e1942]:
+                    - generic [ref=e1943]: 11:05
+                    - generic [ref=e1944]: LAX
+                  - generic [ref=e1945]:
+                    - img [ref=e1948]
+                    - generic [ref=e1950]:
+                      - generic [ref=e1951]: 8h 50m
+                      - generic [ref=e1952]: 1 stop
+                  - generic [ref=e1953]:
+                    - generic [ref=e1954]: 22:55
+                    - generic [ref=e1955]: JFK
+              - generic [ref=e1957]:
+                - generic [ref=e1958]:
+                  - generic [ref=e1959]: "87"
+                  - generic [ref=e1960]: Great
+                  - generic [ref=e1961]: Deal Score
+                  - generic [ref=e1962]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e1964]:
+                  - img [ref=e1965]
+                  - generic [ref=e1968]: 16% less CO₂
+                - generic [ref=e1969]:
+                  - img [ref=e1970]
+                  - generic [ref=e1973]: 21 viewing
+                - generic [ref=e1974]:
+                  - img [ref=e1975]
+                  - generic [ref=e1977]: 223 booked today
+              - generic [ref=e1978]:
+                - generic [ref=e1979]:
+                  - generic [ref=e1980]: USD 256
+                  - generic [ref=e1981]: $320
+                  - generic [ref=e1982]: 20% OFF
+                - generic [ref=e1983]:
+                  - generic "Carry-on included" [ref=e1984]:
+                    - generic [ref=e1985]: 🎒
+                    - generic [ref=e1986]: ✓
+                  - generic "0 checked bag(s)" [ref=e1987]:
+                    - generic [ref=e1988]: 💼
+                    - generic [ref=e1989]: "0"
+                - generic [ref=e1990]:
+                  - button "Show flight details" [ref=e1991] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e1992]
+                  - button "Select →" [ref=e1994] [cursor=pointer]
+            - generic [ref=e1996]:
+              - generic [ref=e1997]:
+                - generic [ref=e1998]:
+                  - img "JetBlue Airways logo" [ref=e1999]
+                  - generic [ref=e2000]: JetBlue Airways
+                  - generic [ref=e2001]:
+                    - img [ref=e2002]
+                    - generic [ref=e2004]: "4.2"
+                  - generic [ref=e2005]: ⚠️ 1 left
+                  - generic [ref=e2006]: ✈️ Direct
+                  - generic [ref=e2007]: Economy · BLUE BASIC
+                - generic [ref=e2008]:
+                  - generic [ref=e2009]:
+                    - generic [ref=e2010]: "1"
+                    - generic [ref=e2011]: ML
+                  - button "Save to favorites" [ref=e2012] [cursor=pointer]:
+                    - img [ref=e2013]
+                  - button "Share flight deal" [ref=e2015] [cursor=pointer]:
+                    - img [ref=e2016]
+                  - button "Compare flights" [ref=e2022] [cursor=pointer]:
+                    - img [ref=e2023]
+              - generic [ref=e2025]:
+                - generic [ref=e2027]:
+                  - generic [ref=e2028]:
+                    - generic [ref=e2029]: 08:00
+                    - generic [ref=e2030]: JFK
+                  - generic [ref=e2031]:
+                    - img [ref=e2034]
+                    - generic [ref=e2036]:
+                      - generic [ref=e2037]: 6h 22m
+                      - generic [ref=e2038]: Direct
+                  - generic [ref=e2039]:
+                    - generic [ref=e2040]: 11:22
+                    - generic [ref=e2041]: LAX
+                - generic [ref=e2043]:
+                  - generic [ref=e2044]:
+                    - generic [ref=e2045]: 21:59
+                    - generic [ref=e2046]: LAX
+                  - generic [ref=e2047]:
+                    - img [ref=e2050]
+                    - generic [ref=e2052]:
+                      - generic [ref=e2053]: 10h 25m
+                      - generic [ref=e2054]: 1 stop
+                  - generic [ref=e2055]:
+                    - generic [ref=e2056]: 11:24
+                    - generic [ref=e2057]: JFK
+              - generic [ref=e2059]:
+                - generic [ref=e2060]:
+                  - generic [ref=e2061]: "88"
+                  - generic [ref=e2062]: Great
+                  - generic [ref=e2063]: Deal Score
+                  - generic [ref=e2064]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2066]:
+                  - img [ref=e2067]
+                  - generic [ref=e2070]: 17% less CO₂
+                - generic [ref=e2071]:
+                  - img [ref=e2072]
+                  - generic [ref=e2075]: 55 viewing
+                - generic [ref=e2076]:
+                  - img [ref=e2077]
+                  - generic [ref=e2079]: 231 booked today
+              - generic [ref=e2080]:
+                - generic [ref=e2081]:
+                  - generic [ref=e2082]: USD 256
+                  - generic [ref=e2083]: $320
+                  - generic [ref=e2084]: 20% OFF
+                - generic [ref=e2085]:
+                  - generic "Carry-on included" [ref=e2086]:
+                    - generic [ref=e2087]: 🎒
+                    - generic [ref=e2088]: ✓
+                  - generic "0 checked bag(s)" [ref=e2089]:
+                    - generic [ref=e2090]: 💼
+                    - generic [ref=e2091]: "0"
+                - generic [ref=e2092]:
+                  - button "Show flight details" [ref=e2093] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2094]
+                  - button "Select →" [ref=e2096] [cursor=pointer]
+            - generic [ref=e2098]:
+              - generic [ref=e2099]:
+                - generic [ref=e2100]:
+                  - img "JetBlue Airways logo" [ref=e2101]
+                  - generic [ref=e2102]: JetBlue Airways
+                  - generic [ref=e2103]:
+                    - img [ref=e2104]
+                    - generic [ref=e2106]: "4.2"
+                  - generic [ref=e2107]: ⚠️ 1 left
+                  - generic [ref=e2108]: ✈️ Direct
+                  - generic [ref=e2109]: Economy · BLUE BASIC
+                - generic [ref=e2110]:
+                  - generic [ref=e2111]:
+                    - generic [ref=e2112]: "1"
+                    - generic [ref=e2113]: ML
+                  - button "Save to favorites" [ref=e2114] [cursor=pointer]:
+                    - img [ref=e2115]
+                  - button "Share flight deal" [ref=e2117] [cursor=pointer]:
+                    - img [ref=e2118]
+                  - button "Compare flights" [ref=e2124] [cursor=pointer]:
+                    - img [ref=e2125]
+              - generic [ref=e2127]:
+                - generic [ref=e2129]:
+                  - generic [ref=e2130]:
+                    - generic [ref=e2131]: 10:00
+                    - generic [ref=e2132]: JFK
+                  - generic [ref=e2133]:
+                    - img [ref=e2136]
+                    - generic [ref=e2138]:
+                      - generic [ref=e2139]: 6h 19m
+                      - generic [ref=e2140]: Direct
+                  - generic [ref=e2141]:
+                    - generic [ref=e2142]: 13:19
+                    - generic [ref=e2143]: LAX
+                - generic [ref=e2145]:
+                  - generic [ref=e2146]:
+                    - generic [ref=e2147]: 11:05
+                    - generic [ref=e2148]: LAX
+                  - generic [ref=e2149]:
+                    - img [ref=e2152]
+                    - generic [ref=e2154]:
+                      - generic [ref=e2155]: 8h 50m
+                      - generic [ref=e2156]: 1 stop
+                  - generic [ref=e2157]:
+                    - generic [ref=e2158]: 22:55
+                    - generic [ref=e2159]: JFK
+              - generic [ref=e2161]:
+                - generic [ref=e2162]:
+                  - generic [ref=e2163]: "87"
+                  - generic [ref=e2164]: Great
+                  - generic [ref=e2165]: Deal Score
+                  - generic [ref=e2166]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2168]:
+                  - img [ref=e2169]
+                  - generic [ref=e2172]: 16% less CO₂
+                - generic [ref=e2173]:
+                  - img [ref=e2174]
+                  - generic [ref=e2177]: 47 viewing
+                - generic [ref=e2178]:
+                  - img [ref=e2179]
+                  - generic [ref=e2181]: 134 booked today
+              - generic [ref=e2182]:
+                - generic [ref=e2183]:
+                  - generic [ref=e2184]: USD 256
+                  - generic [ref=e2185]: $320
+                  - generic [ref=e2186]: 20% OFF
+                - generic [ref=e2187]:
+                  - generic "Carry-on included" [ref=e2188]:
+                    - generic [ref=e2189]: 🎒
+                    - generic [ref=e2190]: ✓
+                  - generic "0 checked bag(s)" [ref=e2191]:
+                    - generic [ref=e2192]: 💼
+                    - generic [ref=e2193]: "0"
+                - generic [ref=e2194]:
+                  - button "Show flight details" [ref=e2195] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2196]
+                  - button "Select →" [ref=e2198] [cursor=pointer]
+            - generic [ref=e2200]:
+              - generic [ref=e2201]:
+                - generic [ref=e2202]:
+                  - img "JetBlue Airways logo" [ref=e2203]
+                  - generic [ref=e2204]: JetBlue Airways
+                  - generic [ref=e2205]:
+                    - img [ref=e2206]
+                    - generic [ref=e2208]: "4.2"
+                  - generic [ref=e2209]: ⚠️ 1 left
+                  - generic [ref=e2210]: ✈️ Direct
+                  - generic [ref=e2211]: Economy · BLUE BASIC
+                - generic [ref=e2212]:
+                  - generic [ref=e2213]:
+                    - generic [ref=e2214]: "1"
+                    - generic [ref=e2215]: ML
+                  - button "Save to favorites" [ref=e2216] [cursor=pointer]:
+                    - img [ref=e2217]
+                  - button "Share flight deal" [ref=e2219] [cursor=pointer]:
+                    - img [ref=e2220]
+                  - button "Compare flights" [ref=e2226] [cursor=pointer]:
+                    - img [ref=e2227]
+              - generic [ref=e2229]:
+                - generic [ref=e2231]:
+                  - generic [ref=e2232]:
+                    - generic [ref=e2233]: 09:00
+                    - generic [ref=e2234]: JFK
+                  - generic [ref=e2235]:
+                    - img [ref=e2238]
+                    - generic [ref=e2240]:
+                      - generic [ref=e2241]: 6h 19m
+                      - generic [ref=e2242]: Direct
+                  - generic [ref=e2243]:
+                    - generic [ref=e2244]: 12:19
+                    - generic [ref=e2245]: LAX
+                - generic [ref=e2247]:
+                  - generic [ref=e2248]:
+                    - generic [ref=e2249]: 11:05
+                    - generic [ref=e2250]: LAX
+                  - generic [ref=e2251]:
+                    - img [ref=e2254]
+                    - generic [ref=e2256]:
+                      - generic [ref=e2257]: 8h 50m
+                      - generic [ref=e2258]: 1 stop
+                  - generic [ref=e2259]:
+                    - generic [ref=e2260]: 22:55
+                    - generic [ref=e2261]: JFK
+              - generic [ref=e2263]:
+                - generic [ref=e2264]:
+                  - generic [ref=e2265]: "87"
+                  - generic [ref=e2266]: Great
+                  - generic [ref=e2267]: Deal Score
+                  - generic [ref=e2268]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2270]:
+                  - img [ref=e2271]
+                  - generic [ref=e2274]: 16% less CO₂
+                - generic [ref=e2275]:
+                  - img [ref=e2276]
+                  - generic [ref=e2279]: 36 viewing
+                - generic [ref=e2280]:
+                  - img [ref=e2281]
+                  - generic [ref=e2283]: 105 booked today
+              - generic [ref=e2284]:
+                - generic [ref=e2285]:
+                  - generic [ref=e2286]: USD 256
+                  - generic [ref=e2287]: $320
+                  - generic [ref=e2288]: 20% OFF
+                - generic [ref=e2289]:
+                  - generic "Carry-on included" [ref=e2290]:
+                    - generic [ref=e2291]: 🎒
+                    - generic [ref=e2292]: ✓
+                  - generic "0 checked bag(s)" [ref=e2293]:
+                    - generic [ref=e2294]: 💼
+                    - generic [ref=e2295]: "0"
+                - generic [ref=e2296]:
+                  - button "Show flight details" [ref=e2297] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2298]
+                  - button "Select →" [ref=e2300] [cursor=pointer]
+            - generic [ref=e2302]:
+              - generic [ref=e2303]:
+                - generic [ref=e2304]:
+                  - img "JetBlue Airways logo" [ref=e2305]
+                  - generic [ref=e2306]: JetBlue Airways
+                  - generic [ref=e2307]:
+                    - img [ref=e2308]
+                    - generic [ref=e2310]: "4.2"
+                  - generic [ref=e2311]: ⚠️ 1 left
+                  - generic [ref=e2312]: ✈️ Direct
+                  - generic [ref=e2313]: Economy · BLUE BASIC
+                - generic [ref=e2314]:
+                  - generic [ref=e2315]:
+                    - generic [ref=e2316]: "1"
+                    - generic [ref=e2317]: ML
+                  - button "Save to favorites" [ref=e2318] [cursor=pointer]:
+                    - img [ref=e2319]
+                  - button "Share flight deal" [ref=e2321] [cursor=pointer]:
+                    - img [ref=e2322]
+                  - button "Compare flights" [ref=e2328] [cursor=pointer]:
+                    - img [ref=e2329]
+              - generic [ref=e2331]:
+                - generic [ref=e2333]:
+                  - generic [ref=e2334]:
+                    - generic [ref=e2335]: 14:00
+                    - generic [ref=e2336]: JFK
+                  - generic [ref=e2337]:
+                    - img [ref=e2340]
+                    - generic [ref=e2342]:
+                      - generic [ref=e2343]: 6h 19m
+                      - generic [ref=e2344]: Direct
+                  - generic [ref=e2345]:
+                    - generic [ref=e2346]: 17:19
+                    - generic [ref=e2347]: LAX
+                - generic [ref=e2349]:
+                  - generic [ref=e2350]:
+                    - generic [ref=e2351]: 11:05
+                    - generic [ref=e2352]: LAX
+                  - generic [ref=e2353]:
+                    - img [ref=e2356]
+                    - generic [ref=e2358]:
+                      - generic [ref=e2359]: 8h 50m
+                      - generic [ref=e2360]: 1 stop
+                  - generic [ref=e2361]:
+                    - generic [ref=e2362]: 22:55
+                    - generic [ref=e2363]: JFK
+              - generic [ref=e2365]:
+                - generic [ref=e2366]:
+                  - generic [ref=e2367]: "86"
+                  - generic [ref=e2368]: Great
+                  - generic [ref=e2369]: Deal Score
+                  - generic [ref=e2370]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2372]:
+                  - img [ref=e2373]
+                  - generic [ref=e2376]: 16% less CO₂
+                - generic [ref=e2377]:
+                  - img [ref=e2378]
+                  - generic [ref=e2381]: 55 viewing
+                - generic [ref=e2382]:
+                  - img [ref=e2383]
+                  - generic [ref=e2385]: 178 booked today
+              - generic [ref=e2386]:
+                - generic [ref=e2387]:
+                  - generic [ref=e2388]: USD 256
+                  - generic [ref=e2389]: $320
+                  - generic [ref=e2390]: 20% OFF
+                - generic [ref=e2391]:
+                  - generic "Carry-on included" [ref=e2392]:
+                    - generic [ref=e2393]: 🎒
+                    - generic [ref=e2394]: ✓
+                  - generic "0 checked bag(s)" [ref=e2395]:
+                    - generic [ref=e2396]: 💼
+                    - generic [ref=e2397]: "0"
+                - generic [ref=e2398]:
+                  - button "Show flight details" [ref=e2399] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2400]
+                  - button "Select →" [ref=e2402] [cursor=pointer]
+            - generic [ref=e2404]:
+              - generic [ref=e2405]:
+                - generic [ref=e2406]:
+                  - img "JetBlue Airways logo" [ref=e2407]
+                  - generic [ref=e2408]: JetBlue Airways
+                  - generic [ref=e2409]:
+                    - img [ref=e2410]
+                    - generic [ref=e2412]: "4.2"
+                  - generic [ref=e2413]: ⚠️ 1 left
+                  - generic [ref=e2414]: ✈️ Direct
+                  - generic [ref=e2415]: Economy · BLUE BASIC
+                - generic [ref=e2416]:
+                  - generic [ref=e2417]:
+                    - generic [ref=e2418]: "1"
+                    - generic [ref=e2419]: ML
+                  - button "Save to favorites" [ref=e2420] [cursor=pointer]:
+                    - img [ref=e2421]
+                  - button "Share flight deal" [ref=e2423] [cursor=pointer]:
+                    - img [ref=e2424]
+                  - button "Compare flights" [ref=e2430] [cursor=pointer]:
+                    - img [ref=e2431]
+              - generic [ref=e2433]:
+                - generic [ref=e2435]:
+                  - generic [ref=e2436]:
+                    - generic [ref=e2437]: 10:00
+                    - generic [ref=e2438]: JFK
+                  - generic [ref=e2439]:
+                    - img [ref=e2442]
+                    - generic [ref=e2444]:
+                      - generic [ref=e2445]: 6h 19m
+                      - generic [ref=e2446]: Direct
+                  - generic [ref=e2447]:
+                    - generic [ref=e2448]: 13:19
+                    - generic [ref=e2449]: LAX
+                - generic [ref=e2451]:
+                  - generic [ref=e2452]:
+                    - generic [ref=e2453]: 21:59
+                    - generic [ref=e2454]: LAX
+                  - generic [ref=e2455]:
+                    - img [ref=e2458]
+                    - generic [ref=e2460]:
+                      - generic [ref=e2461]: 10h 25m
+                      - generic [ref=e2462]: 1 stop
+                  - generic [ref=e2463]:
+                    - generic [ref=e2464]: 11:24
+                    - generic [ref=e2465]: JFK
+              - generic [ref=e2467]:
+                - generic [ref=e2468]:
+                  - generic [ref=e2469]: "87"
+                  - generic [ref=e2470]: Great
+                  - generic [ref=e2471]: Deal Score
+                  - generic [ref=e2472]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2474]:
+                  - img [ref=e2475]
+                  - generic [ref=e2478]: 16% less CO₂
+                - generic [ref=e2479]:
+                  - img [ref=e2480]
+                  - generic [ref=e2483]: 29 viewing
+                - generic [ref=e2484]:
+                  - img [ref=e2485]
+                  - generic [ref=e2487]: 178 booked today
+              - generic [ref=e2488]:
+                - generic [ref=e2489]:
+                  - generic [ref=e2490]: USD 256
+                  - generic [ref=e2491]: $320
+                  - generic [ref=e2492]: 20% OFF
+                - generic [ref=e2493]:
+                  - generic "Carry-on included" [ref=e2494]:
+                    - generic [ref=e2495]: 🎒
+                    - generic [ref=e2496]: ✓
+                  - generic "0 checked bag(s)" [ref=e2497]:
+                    - generic [ref=e2498]: 💼
+                    - generic [ref=e2499]: "0"
+                - generic [ref=e2500]:
+                  - button "Show flight details" [ref=e2501] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2502]
+                  - button "Select →" [ref=e2504] [cursor=pointer]
+            - generic [ref=e2506]:
+              - generic [ref=e2507]:
+                - generic [ref=e2508]:
+                  - img "JetBlue Airways logo" [ref=e2509]
+                  - generic [ref=e2510]: JetBlue Airways
+                  - generic [ref=e2511]:
+                    - img [ref=e2512]
+                    - generic [ref=e2514]: "4.2"
+                  - generic [ref=e2515]: ⚠️ 1 left
+                  - generic [ref=e2516]: ✈️ Direct
+                  - generic [ref=e2517]: Economy · BLUE BASIC
+                - generic [ref=e2518]:
+                  - generic [ref=e2519]:
+                    - generic [ref=e2520]: "1"
+                    - generic [ref=e2521]: ML
+                  - button "Save to favorites" [ref=e2522] [cursor=pointer]:
+                    - img [ref=e2523]
+                  - button "Share flight deal" [ref=e2525] [cursor=pointer]:
+                    - img [ref=e2526]
+                  - button "Compare flights" [ref=e2532] [cursor=pointer]:
+                    - img [ref=e2533]
+              - generic [ref=e2535]:
+                - generic [ref=e2537]:
+                  - generic [ref=e2538]:
+                    - generic [ref=e2539]: 11:00
+                    - generic [ref=e2540]: JFK
+                  - generic [ref=e2541]:
+                    - img [ref=e2544]
+                    - generic [ref=e2546]:
+                      - generic [ref=e2547]: 6h 20m
+                      - generic [ref=e2548]: Direct
+                  - generic [ref=e2549]:
+                    - generic [ref=e2550]: 14:20
+                    - generic [ref=e2551]: LAX
+                - generic [ref=e2553]:
+                  - generic [ref=e2554]:
+                    - generic [ref=e2555]: 21:59
+                    - generic [ref=e2556]: LAX
+                  - generic [ref=e2557]:
+                    - img [ref=e2560]
+                    - generic [ref=e2562]:
+                      - generic [ref=e2563]: 10h 25m
+                      - generic [ref=e2564]: 1 stop
+                  - generic [ref=e2565]:
+                    - generic [ref=e2566]: 11:24
+                    - generic [ref=e2567]: JFK
+              - generic [ref=e2569]:
+                - generic [ref=e2570]:
+                  - generic [ref=e2571]: "87"
+                  - generic [ref=e2572]: Great
+                  - generic [ref=e2573]: Deal Score
+                  - generic [ref=e2574]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2576]:
+                  - img [ref=e2577]
+                  - generic [ref=e2580]: 16% less CO₂
+                - generic [ref=e2581]:
+                  - img [ref=e2582]
+                  - generic [ref=e2585]: 53 viewing
+                - generic [ref=e2586]:
+                  - img [ref=e2587]
+                  - generic [ref=e2589]: 145 booked today
+              - generic [ref=e2590]:
+                - generic [ref=e2591]:
+                  - generic [ref=e2592]: USD 256
+                  - generic [ref=e2593]: $320
+                  - generic [ref=e2594]: 20% OFF
+                - generic [ref=e2595]:
+                  - generic "Carry-on included" [ref=e2596]:
+                    - generic [ref=e2597]: 🎒
+                    - generic [ref=e2598]: ✓
+                  - generic "0 checked bag(s)" [ref=e2599]:
+                    - generic [ref=e2600]: 💼
+                    - generic [ref=e2601]: "0"
+                - generic [ref=e2602]:
+                  - button "Show flight details" [ref=e2603] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2604]
+                  - button "Select →" [ref=e2606] [cursor=pointer]
+            - generic [ref=e2608]:
+              - generic [ref=e2609]:
+                - generic [ref=e2610]:
+                  - img "JetBlue Airways logo" [ref=e2611]
+                  - generic [ref=e2612]: JetBlue Airways
+                  - generic [ref=e2613]:
+                    - img [ref=e2614]
+                    - generic [ref=e2616]: "4.2"
+                  - generic [ref=e2617]: ⚠️ 1 left
+                  - generic [ref=e2618]: ✈️ Direct
+                  - generic [ref=e2619]: Economy · BLUE BASIC
+                - generic [ref=e2620]:
+                  - generic [ref=e2621]:
+                    - generic [ref=e2622]: "1"
+                    - generic [ref=e2623]: ML
+                  - button "Save to favorites" [ref=e2624] [cursor=pointer]:
+                    - img [ref=e2625]
+                  - button "Share flight deal" [ref=e2627] [cursor=pointer]:
+                    - img [ref=e2628]
+                  - button "Compare flights" [ref=e2634] [cursor=pointer]:
+                    - img [ref=e2635]
+              - generic [ref=e2637]:
+                - generic [ref=e2639]:
+                  - generic [ref=e2640]:
+                    - generic [ref=e2641]: 09:00
+                    - generic [ref=e2642]: JFK
+                  - generic [ref=e2643]:
+                    - img [ref=e2646]
+                    - generic [ref=e2648]:
+                      - generic [ref=e2649]: 6h 19m
+                      - generic [ref=e2650]: Direct
+                  - generic [ref=e2651]:
+                    - generic [ref=e2652]: 12:19
+                    - generic [ref=e2653]: LAX
+                - generic [ref=e2655]:
+                  - generic [ref=e2656]:
+                    - generic [ref=e2657]: 21:59
+                    - generic [ref=e2658]: LAX
+                  - generic [ref=e2659]:
+                    - img [ref=e2662]
+                    - generic [ref=e2664]:
+                      - generic [ref=e2665]: 10h 25m
+                      - generic [ref=e2666]: 1 stop
+                  - generic [ref=e2667]:
+                    - generic [ref=e2668]: 11:24
+                    - generic [ref=e2669]: JFK
+              - generic [ref=e2671]:
+                - generic [ref=e2672]:
+                  - generic [ref=e2673]: "87"
+                  - generic [ref=e2674]: Great
+                  - generic [ref=e2675]: Deal Score
+                  - generic [ref=e2676]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2678]:
+                  - img [ref=e2679]
+                  - generic [ref=e2682]: 16% less CO₂
+                - generic [ref=e2683]:
+                  - img [ref=e2684]
+                  - generic [ref=e2687]: 66 viewing
+                - generic [ref=e2688]:
+                  - img [ref=e2689]
+                  - generic [ref=e2691]: 172 booked today
+              - generic [ref=e2692]:
+                - generic [ref=e2693]:
+                  - generic [ref=e2694]: USD 256
+                  - generic [ref=e2695]: $320
+                  - generic [ref=e2696]: 20% OFF
+                - generic [ref=e2697]:
+                  - generic "Carry-on included" [ref=e2698]:
+                    - generic [ref=e2699]: 🎒
+                    - generic [ref=e2700]: ✓
+                  - generic "0 checked bag(s)" [ref=e2701]:
+                    - generic [ref=e2702]: 💼
+                    - generic [ref=e2703]: "0"
+                - generic [ref=e2704]:
+                  - button "Show flight details" [ref=e2705] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2706]
+                  - button "Select →" [ref=e2708] [cursor=pointer]
+            - generic [ref=e2710]:
+              - generic [ref=e2711]:
+                - generic [ref=e2712]:
+                  - img "JetBlue Airways logo" [ref=e2713]
+                  - generic [ref=e2714]: JetBlue Airways
+                  - generic [ref=e2715]:
+                    - img [ref=e2716]
+                    - generic [ref=e2718]: "4.2"
+                  - generic [ref=e2719]: ⚠️ 1 left
+                  - generic [ref=e2720]: ✈️ Direct
+                  - generic [ref=e2721]: Economy · BLUE BASIC
+                - generic [ref=e2722]:
+                  - generic [ref=e2723]:
+                    - generic [ref=e2724]: "1"
+                    - generic [ref=e2725]: ML
+                  - button "Save to favorites" [ref=e2726] [cursor=pointer]:
+                    - img [ref=e2727]
+                  - button "Share flight deal" [ref=e2729] [cursor=pointer]:
+                    - img [ref=e2730]
+                  - button "Compare flights" [ref=e2736] [cursor=pointer]:
+                    - img [ref=e2737]
+              - generic [ref=e2739]:
+                - generic [ref=e2741]:
+                  - generic [ref=e2742]:
+                    - generic [ref=e2743]: 14:00
+                    - generic [ref=e2744]: JFK
+                  - generic [ref=e2745]:
+                    - img [ref=e2748]
+                    - generic [ref=e2750]:
+                      - generic [ref=e2751]: 6h 19m
+                      - generic [ref=e2752]: Direct
+                  - generic [ref=e2753]:
+                    - generic [ref=e2754]: 17:19
+                    - generic [ref=e2755]: LAX
+                - generic [ref=e2757]:
+                  - generic [ref=e2758]:
+                    - generic [ref=e2759]: 21:59
+                    - generic [ref=e2760]: LAX
+                  - generic [ref=e2761]:
+                    - img [ref=e2764]
+                    - generic [ref=e2766]:
+                      - generic [ref=e2767]: 10h 25m
+                      - generic [ref=e2768]: 1 stop
+                  - generic [ref=e2769]:
+                    - generic [ref=e2770]: 11:24
+                    - generic [ref=e2771]: JFK
+              - generic [ref=e2773]:
+                - generic [ref=e2774]:
+                  - generic [ref=e2775]: "86"
+                  - generic [ref=e2776]: Great
+                  - generic [ref=e2777]: Deal Score
+                  - generic [ref=e2778]: ✨
+                - generic "Real emissions data from Amadeus API" [ref=e2780]:
+                  - img [ref=e2781]
+                  - generic [ref=e2784]: 16% less CO₂
+                - generic [ref=e2785]:
+                  - img [ref=e2786]
+                  - generic [ref=e2789]: 65 viewing
+                - generic [ref=e2790]:
+                  - img [ref=e2791]
+                  - generic [ref=e2793]: 133 booked today
+              - generic [ref=e2794]:
+                - generic [ref=e2795]:
+                  - generic [ref=e2796]: USD 256
+                  - generic [ref=e2797]: $320
+                  - generic [ref=e2798]: 20% OFF
+                - generic [ref=e2799]:
+                  - generic "Carry-on included" [ref=e2800]:
+                    - generic [ref=e2801]: 🎒
+                    - generic [ref=e2802]: ✓
+                  - generic "0 checked bag(s)" [ref=e2803]:
+                    - generic [ref=e2804]: 💼
+                    - generic [ref=e2805]: "0"
+                - generic [ref=e2806]:
+                  - button "Show flight details" [ref=e2807] [cursor=pointer]:
+                    - text: Details
+                    - img [ref=e2808]
+                  - button "Select →" [ref=e2810] [cursor=pointer]
+          - generic [ref=e2811]:
+            - button "Load More Flights" [ref=e2812] [cursor=pointer]:
+              - generic [ref=e2813]: Load More Flights
+              - img [ref=e2814]
+            - paragraph [ref=e2816]: Showing 20 of 50 flights
+        - complementary [ref=e2817]:
+          - generic [ref=e2818]:
+            - generic [ref=e2820]:
+              - generic [ref=e2821]:
+                - generic [ref=e2822]: 🤖
+                - generic [ref=e2823]:
+                  - heading "AI Price Insights" [level=3] [ref=e2824]
+                  - paragraph [ref=e2825]: JFK → LAX
+              - generic [ref=e2828]:
+                - generic [ref=e2829]: 💡
+                - generic [ref=e2830]:
+                  - generic [ref=e2831]: AI Prediction
+                  - generic [ref=e2832]: Prices predicted to DROP 5% within 72h
+              - generic [ref=e2833]:
+                - generic [ref=e2834]:
+                  - generic [ref=e2835]: 📉
+                  - generic [ref=e2836]:
+                    - generic [ref=e2837]: Falling
+                    - generic [ref=e2838]:
+                      - generic [ref=e2839]: ↘
+                      - text: 5%
+                - generic [ref=e2840]:
+                  - generic [ref=e2841]:
+                    - generic [ref=e2842]: ✅
+                    - generic [ref=e2843]:
+                      - generic [ref=e2844]: Recommendation
+                      - generic [ref=e2845]: Book Now - Best Time!
+                  - generic [ref=e2846]: Current price is excellent. Book before it increases!
+                  - generic [ref=e2847]: Good deal available now
+              - generic [ref=e2848]:
+                - generic [ref=e2849]:
+                  - generic [ref=e2850]:
+                    - generic [ref=e2851]: Average Price
+                    - generic [ref=e2852]: $638.73
+                  - generic [ref=e2854]: ↓60% below average
+                  - generic [ref=e2855]:
+                    - generic [ref=e2856]: Price Comparison
+                    - generic [ref=e2857]: $255.65
+                - generic [ref=e2858]:
+                  - generic [ref=e2859]: "Lowest: $255.65"
+                  - generic [ref=e2860]: "Highest: $1084.97"
+              - generic [ref=e2861]:
+                - heading "Price History (30 days)" [level=4] [ref=e2862]
+                - generic [ref=e2863]:
+                  - generic [ref=e2865]: "Avg: $639"
+                  - img [ref=e2866]
+              - generic [ref=e2900]:
+                - generic [ref=e2901]: 💡
+                - generic [ref=e2902]:
+                  - generic [ref=e2903]: Best Time to Book
+                  - generic [ref=e2904]: Wait 2-3 days for potential price drop
+            - generic [ref=e2907]:
+              - generic [ref=e2908]:
+                - generic [ref=e2909]: 🤖
+                - generic [ref=e2910]:
+                  - heading "SmartWait(TM) Booking Advisor" [level=3] [ref=e2911]
+                  - paragraph [ref=e2912]: AI-powered price prediction
+              - generic [ref=e2914]:
+                - img [ref=e2915]
+                - generic [ref=e2918]: You are in the booking sweet spot!
+              - generic [ref=e2919]:
+                - generic [ref=e2920]:
+                  - generic [ref=e2921]: Current Price
+                  - generic [ref=e2922]: $267
+                - generic [ref=e2923]:
+                  - generic [ref=e2924]: Predicted Price
+                  - generic [ref=e2925]:
+                    - generic [ref=e2926]: $280
+                    - img [ref=e2927]
+              - generic [ref=e2929]:
+                - generic [ref=e2930]: Confidence
+                - generic [ref=e2931]: 90%
+              - generic [ref=e2935]:
+                - img [ref=e2937]
+                - generic [ref=e2940]:
+                  - paragraph [ref=e2941]: Prices are relatively stable
+                  - paragraph [ref=e2942]: Book now to lock in this price
+              - button "Book Now" [ref=e2944] [cursor=pointer]:
+                - img [ref=e2945]
+                - generic [ref=e2948]: Book Now
+              - generic [ref=e2949]: Based on historical price analysis
+  - contentinfo [ref=e2951]:
+    - generic [ref=e2954]:
+      - generic [ref=e2955]:
+        - heading "📬 Subscribe to Our Newsletter" [level=3] [ref=e2956]
+        - paragraph [ref=e2957]: Get exclusive deals and travel inspiration
+      - generic [ref=e2958]:
+        - textbox "Enter your email" [ref=e2961]
+        - button "Subscribe" [ref=e2962] [cursor=pointer]
+    - generic [ref=e2963]:
+      - generic [ref=e2964]:
+        - generic [ref=e2965]:
+          - heading "Company" [level=4] [ref=e2966]
+          - list [ref=e2967]:
+            - listitem [ref=e2968]:
+              - link "About Us" [ref=e2969] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e2970]:
+              - link "Careers" [ref=e2971] [cursor=pointer]:
+                - /url: /careers
+            - listitem [ref=e2972]:
+              - link "Press" [ref=e2973] [cursor=pointer]:
+                - /url: /press
+            - listitem [ref=e2974]:
+              - link "Blog" [ref=e2975] [cursor=pointer]:
+                - /url: /blog
+        - generic [ref=e2976]:
+          - heading "Support" [level=4] [ref=e2977]
+          - list [ref=e2978]:
+            - listitem [ref=e2979]:
+              - link "Help Center" [ref=e2980] [cursor=pointer]:
+                - /url: /help
+            - listitem [ref=e2981]:
+              - link "Contact Us" [ref=e2982] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e2983]:
+              - link "FAQ" [ref=e2984] [cursor=pointer]:
+                - /url: /faq
+        - generic [ref=e2985]:
+          - heading "Popular Destinations" [level=4] [ref=e2986]
+          - list [ref=e2987]:
+            - listitem [ref=e2988]:
+              - link "Paris" [ref=e2989] [cursor=pointer]:
+                - /url: /destinations/paris
+            - listitem [ref=e2990]:
+              - link "Tokyo" [ref=e2991] [cursor=pointer]:
+                - /url: /destinations/tokyo
+            - listitem [ref=e2992]:
+              - link "New York" [ref=e2993] [cursor=pointer]:
+                - /url: /destinations/new-york
+            - listitem [ref=e2994]:
+              - link "Dubai" [ref=e2995] [cursor=pointer]:
+                - /url: /destinations/dubai
+        - generic [ref=e2996]:
+          - heading "Legal" [level=4] [ref=e2997]
+          - list [ref=e2998]:
+            - listitem [ref=e2999]:
+              - link "Privacy Policy" [ref=e3000] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e3001]:
+              - link "Terms of Service" [ref=e3002] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e3003]:
+              - link "Cookie Policy" [ref=e3004] [cursor=pointer]:
+                - /url: /cookies
+      - generic [ref=e3005]:
+        - generic [ref=e3006]:
+          - img "Fly2Any" [ref=e3008]
+          - generic [ref=e3009]:
+            - paragraph [ref=e3010]: Secure Payments
+            - generic [ref=e3011]:
+              - generic [ref=e3012]: 💳 Visa
+              - generic [ref=e3013]: 💳 Mastercard
+              - generic [ref=e3014]: 💳 Amex
+              - generic [ref=e3015]: 💳 PayPal
+          - generic [ref=e3016]:
+            - link "📘" [ref=e3017] [cursor=pointer]:
+              - /url: https://facebook.com
+            - link "🐦" [ref=e3018] [cursor=pointer]:
+              - /url: https://twitter.com
+            - link "📷" [ref=e3019] [cursor=pointer]:
+              - /url: https://instagram.com
+        - generic [ref=e3020]: © 2025 Fly2Any. All rights reserved.
+  - alert [ref=e3021]
+```

@@ -514,7 +514,9 @@ export const PriceInsights: React.FC<PriceInsightsProps> = ({
     return t.priceComparisonText.equal;
   };
 
-  const currencySymbol = currency === 'USD' ? '$' : currency;
+  // Import currency service for proper symbol handling
+  const { getCurrencySymbol } = require('@/lib/services/currency');
+  const currencySymbol = getCurrencySymbol(currency);
 
   return (
     <div

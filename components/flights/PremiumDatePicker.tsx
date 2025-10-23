@@ -25,6 +25,7 @@ interface CalendarDay {
   isRangeStart: boolean;
   isRangeEnd: boolean;
   isDisabled: boolean;
+  isWeekend: boolean;
   price?: number;
 }
 
@@ -84,11 +85,11 @@ export default function PremiumDatePicker({
         const anchorRect = anchorEl.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-        const scrollY = window.scrollY || window.pageYOffset;
 
-        // Always position below the anchor element (with minimal 2px gap)
-        let top = anchorRect.bottom + scrollY + 2;
-        let left = anchorRect.left + window.scrollX;
+        // Position flush below the anchor element
+        // Using fixed positioning, so we use viewport coordinates directly (no scroll offset needed)
+        let top = anchorRect.bottom;
+        let left = anchorRect.left;
 
         // Adjust if calendar goes off-screen horizontally
         if (left + containerRect.width > viewportWidth) {
@@ -98,9 +99,6 @@ export default function PremiumDatePicker({
           left = 16;
         }
 
-        // Note: We intentionally do NOT position above even if it goes off-screen
-        // The calendar will scroll with the page if needed
-
         setPosition({ top, left });
       };
 
@@ -108,7 +106,15 @@ export default function PremiumDatePicker({
       calculatePosition();
       const timer = setTimeout(calculatePosition, 50);
 
-      return () => clearTimeout(timer);
+      // Recalculate on scroll or resize
+      window.addEventListener('scroll', calculatePosition, true);
+      window.addEventListener('resize', calculatePosition);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('scroll', calculatePosition, true);
+        window.removeEventListener('resize', calculatePosition);
+      };
     }
   }, [isOpen, anchorEl]);
 
@@ -243,6 +249,7 @@ export default function PremiumDatePicker({
     const dateStr = formatDateString(date);
     const isToday = date.getTime() === today.getTime();
     const isDisabled = date < minDate;
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6; // Sunday or Saturday
 
     let isSelected = false;
     let isInRange = false;
@@ -284,6 +291,7 @@ export default function PremiumDatePicker({
       isRangeStart,
       isRangeEnd,
       isDisabled,
+      isWeekend,
       price: prices?.[dateStr]
     };
   };
@@ -292,7 +300,15 @@ export default function PremiumDatePicker({
     if (day.isDisabled) return;
 
     if (type === 'single') {
+      // One-way mode: Select date and auto-close
       setSelectedDeparture(day.date);
+
+      // Auto-apply and close after state updates
+      setTimeout(() => {
+        const departureStr = formatDateString(day.date);
+        onChange(departureStr);
+        onClose();
+      }, 100);
     } else {
       // Range selection logic
       if (!selectedDeparture || (selectedDeparture && selectedReturn)) {
@@ -301,16 +317,31 @@ export default function PremiumDatePicker({
         setSelectedReturn(null);
       } else {
         // Complete the range
+        let finalDeparture = selectedDeparture;
+        let finalReturn = day.date;
+
         if (day.date > selectedDeparture) {
           setSelectedReturn(day.date);
         } else if (day.date < selectedDeparture) {
+          // Swap dates if return is before departure
           setSelectedReturn(selectedDeparture);
           setSelectedDeparture(day.date);
+          finalDeparture = day.date;
+          finalReturn = selectedDeparture;
         } else {
-          // Same date clicked
+          // Same date clicked - start new selection
           setSelectedDeparture(day.date);
           setSelectedReturn(null);
+          return; // Don't auto-close
         }
+
+        // Round-trip mode: Auto-apply and close after selecting both dates
+        setTimeout(() => {
+          const departureStr = formatDateString(finalDeparture);
+          const returnStr = formatDateString(finalReturn);
+          onChange(departureStr, returnStr);
+          onClose();
+        }, 100);
       }
     }
   };
@@ -347,6 +378,56 @@ export default function PremiumDatePicker({
 
   const getNextMonth = (date: Date): Date => {
     return new Date(date.getFullYear(), date.getMonth() + 1);
+  };
+
+  // Quick date shortcuts
+  const handleQuickDate = (type: 'weekend' | 'nextWeek' | 'nextMonth' | 'flexible') => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    switch (type) {
+      case 'weekend':
+        // Next weekend (Friday to Sunday)
+        const daysUntilFriday = (5 - today.getDay() + 7) % 7 || 7;
+        const friday = new Date(today);
+        friday.setDate(today.getDate() + daysUntilFriday);
+        const sunday = new Date(friday);
+        sunday.setDate(friday.getDate() + 2);
+        setSelectedDeparture(friday);
+        setSelectedReturn(sunday);
+        break;
+
+      case 'nextWeek':
+        // Next Monday for 7 days
+        const daysUntilMonday = (1 - today.getDay() + 7) % 7 || 7;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + daysUntilMonday);
+        const nextMonday = new Date(monday);
+        nextMonday.setDate(monday.getDate() + 7);
+        setSelectedDeparture(monday);
+        setSelectedReturn(nextMonday);
+        break;
+
+      case 'nextMonth':
+        // 30 days from now
+        const departure = new Date(today);
+        departure.setDate(today.getDate() + 7);
+        const returnDate = new Date(departure);
+        returnDate.setDate(departure.getDate() + 30);
+        setSelectedDeparture(departure);
+        setSelectedReturn(returnDate);
+        break;
+
+      case 'flexible':
+        // 3 days from now for a week
+        const flexDeparture = new Date(today);
+        flexDeparture.setDate(today.getDate() + 3);
+        const flexReturn = new Date(flexDeparture);
+        flexReturn.setDate(flexDeparture.getDate() + 7);
+        setSelectedDeparture(flexDeparture);
+        setSelectedReturn(flexReturn);
+        break;
+    }
   };
 
   const renderMonth = (monthDate: Date, index: number) => {
@@ -416,21 +497,22 @@ export default function PremiumDatePicker({
                 onMouseLeave={() => setHoverDate(null)}
                 disabled={day.isDisabled}
                 className={`
-                  relative h-10 rounded-md transition-all duration-200
+                  relative aspect-square w-full rounded-md transition-all duration-200
                   ${!day.isCurrentMonth ? 'text-gray-300' : 'text-gray-700'}
                   ${day.isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}
+                  ${day.isWeekend && day.isCurrentMonth && !day.isDisabled && !day.isSelected ? 'bg-gradient-to-br from-blue-50 to-indigo-50' : ''}
                   ${
                     day.isSelected
-                      ? 'bg-[#0087FF] text-white font-semibold shadow-sm scale-105 z-10'
+                      ? 'bg-[#0087FF] text-white font-semibold shadow-md scale-105 z-10'
                       : day.isInRange
                       ? 'bg-gradient-to-r from-[#E6F3FF] to-[#CCE7FF]'
                       : isHovered && !day.isDisabled
-                      ? 'bg-[#F0F9FF] scale-105'
+                      ? 'bg-[#F0F9FF] scale-105 shadow-sm'
                       : 'hover:bg-[#F0F9FF]'
                   }
                   ${day.isRangeStart ? 'rounded-r-none' : ''}
                   ${day.isRangeEnd ? 'rounded-l-none' : ''}
-                  ${day.isToday && !day.isSelected ? 'ring-1 ring-[#0087FF] ring-inset' : ''}
+                  ${day.isToday && !day.isSelected ? 'ring-2 ring-[#0087FF] ring-inset' : ''}
                 `}
               >
                 <div className="flex flex-col items-center justify-center h-full">
@@ -462,16 +544,16 @@ export default function PremiumDatePicker({
       {/* Backdrop */}
       <div className="fixed inset-0 z-40" />
 
-      {/* Calendar container - positioned absolutely to always dropdown */}
+      {/* Calendar container - positioned fixed relative to viewport */}
       <div
         ref={containerRef}
         style={{
-          position: 'absolute',
-          top: position.top,
-          left: position.left,
+          position: 'fixed',
+          top: `${position.top}px`,
+          left: `${position.left}px`,
           zIndex: 100
         }}
-        className="bg-white rounded-xl shadow-2xl border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200"
+        className="bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 animate-in fade-in slide-in-from-top-1 duration-300 ease-out"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-200">
@@ -489,6 +571,38 @@ export default function PremiumDatePicker({
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
+
+        {/* Quick date shortcuts */}
+        {type === 'range' && (
+          <div className="px-4 pt-3 pb-2 border-b border-gray-100">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleQuickDate('weekend')}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+              >
+                This Weekend
+              </button>
+              <button
+                onClick={() => handleQuickDate('nextWeek')}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+              >
+                Next Week
+              </button>
+              <button
+                onClick={() => handleQuickDate('nextMonth')}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+              >
+                Next Month
+              </button>
+              <button
+                onClick={() => handleQuickDate('flexible')}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+              >
+                Flexible (±3)
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Calendar grid */}
         <div className="p-4">

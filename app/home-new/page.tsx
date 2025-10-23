@@ -11,7 +11,7 @@ import { FlashDeals } from '@/components/home/FlashDeals';
 import { TrustIndicators } from '@/components/home/TrustIndicators';
 import { Testimonials } from '@/components/home/Testimonials';
 import { UrgencyBanner } from '@/components/conversion/UrgencyBanner';
-import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
+import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
 import { StatsBar } from '@/components/conversion/StatsBar';
 import { FeaturedRoutes } from '@/components/conversion/FeaturedRoutes';

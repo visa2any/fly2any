@@ -26,6 +26,8 @@ interface FormData {
   travelClass: TravelClass;
   tripType: TripType;
   directFlights: boolean;
+  departureFlex: number;  // ±N days for departure (0-5)
+  tripDuration: number;   // Number of nights for round trips (1-14)
 }
 
 interface FlightSearchFormProps {
@@ -66,6 +68,11 @@ const content = {
     directFlights: 'Direct flights only',
     done: 'Done',
     selectDate: 'Select date',
+    flexDates: 'Flexible Dates',
+    tripDuration: 'Trip Duration',
+    nights: 'nights',
+    exactDates: 'Exact dates',
+    plusMinus: '±',
     errors: {
       originRequired: 'Please select an origin airport',
       destinationRequired: 'Please select a destination airport',
@@ -105,6 +112,11 @@ const content = {
     directFlights: 'Apenas voos diretos',
     done: 'Concluir',
     selectDate: 'Selecionar data',
+    flexDates: 'Datas Flexíveis',
+    tripDuration: 'Duração da Viagem',
+    nights: 'noites',
+    exactDates: 'Datas exatas',
+    plusMinus: '±',
     errors: {
       originRequired: 'Por favor, selecione um aeroporto de origem',
       destinationRequired: 'Por favor, selecione um aeroporto de destino',
@@ -144,6 +156,11 @@ const content = {
     directFlights: 'Solo vuelos directos',
     done: 'Listo',
     selectDate: 'Seleccionar fecha',
+    flexDates: 'Fechas Flexibles',
+    tripDuration: 'Duración del Viaje',
+    nights: 'noches',
+    exactDates: 'Fechas exactas',
+    plusMinus: '±',
     errors: {
       originRequired: 'Por favor, seleccione un aeropuerto de origen',
       destinationRequired: 'Por favor, seleccione un aeropuerto de destino',
@@ -179,6 +196,8 @@ export default function FlightSearchForm({
     travelClass: 'economy',
     tripType: 'roundtrip',
     directFlights: false,
+    departureFlex: 0,      // Default: exact dates
+    tripDuration: 7,       // Default: 7 nights
   });
 
   const [tempPassengers, setTempPassengers] = useState<PassengerCounts>(formData.passengers);
@@ -304,10 +323,12 @@ export default function FlightSearchForm({
       class: formData.travelClass,
       tripType: formData.tripType,
       direct: formData.directFlights.toString(),
+      departureFlex: formData.departureFlex.toString(),
     });
 
     if (formData.tripType === 'roundtrip' && formData.returnDate) {
       params.append('returnDate', formData.returnDate);
+      params.append('tripDuration', formData.tripDuration.toString());
     }
 
     // Navigate to results page
@@ -415,31 +436,59 @@ export default function FlightSearchForm({
 
         {/* Dates */}
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Departure Date */}
+          {/* Departure Date with Inline Flex Controls */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.departure}
             </label>
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              <input
-                type="date"
-                value={formData.departureDate}
-                min={getMinDate()}
-                onChange={(e) => {
-                  setFormData({ ...formData, departureDate: e.target.value });
-                  if (errors.departureDate) {
-                    const newErrors = { ...errors };
-                    delete newErrors.departureDate;
-                    setErrors(newErrors);
-                  }
-                }}
-                className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
-                  errors.departureDate ? 'border-red-500' : 'border-gray-300'
-                }`}
-                aria-label={t.departure}
-                aria-invalid={!!errors.departureDate}
-              />
+            <div className="flex items-center gap-2">
+              {/* Date Input */}
+              <div className="flex-1 relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <input
+                  type="date"
+                  value={formData.departureDate}
+                  min={getMinDate()}
+                  onChange={(e) => {
+                    setFormData({ ...formData, departureDate: e.target.value });
+                    if (errors.departureDate) {
+                      const newErrors = { ...errors };
+                      delete newErrors.departureDate;
+                      setErrors(newErrors);
+                    }
+                  }}
+                  className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
+                    errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  aria-label={t.departure}
+                  aria-invalid={!!errors.departureDate}
+                />
+              </div>
+
+              {/* Inline Flex Controls */}
+              <div className="flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-2 border-2 border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, departureFlex: Math.max(0, formData.departureFlex - 1) })}
+                  disabled={formData.departureFlex === 0}
+                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                  aria-label="Decrease flex days"
+                >
+                  −
+                </button>
+                <span className="text-xs font-semibold text-gray-700 min-w-[36px] text-center">
+                  {formData.departureFlex === 0 ? 'Exact' : `±${formData.departureFlex}`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, departureFlex: Math.min(5, formData.departureFlex + 1) })}
+                  disabled={formData.departureFlex === 5}
+                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                  aria-label="Increase flex days"
+                >
+                  +
+                </button>
+              </div>
             </div>
             {errors.departureDate && (
               <p className="mt-1 text-sm text-red-600" role="alert">
@@ -483,6 +532,50 @@ export default function FlightSearchForm({
             </div>
           )}
         </div>
+
+        {/* Trip Duration - Stepper with Editable Input */}
+        {formData.tripType === 'roundtrip' && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t.tripDuration}
+            </label>
+            <div className="flex items-center gap-2 bg-white border-2 border-gray-300 rounded-xl px-4 py-4 hover:border-blue-500 transition-all">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, tripDuration: Math.max(1, formData.tripDuration - 1) })}
+                disabled={formData.tripDuration <= 1}
+                className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-50 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                aria-label="Decrease duration"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                value={formData.tripDuration}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= 30) {
+                    setFormData({ ...formData, tripDuration: val });
+                  }
+                }}
+                min="1"
+                max="30"
+                className="flex-1 text-center text-lg font-semibold text-gray-900 border-0 outline-none bg-transparent"
+                aria-label="Trip duration"
+              />
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, tripDuration: Math.min(30, formData.tripDuration + 1) })}
+                disabled={formData.tripDuration >= 30}
+                className="w-8 h-8 rounded flex items-center justify-center hover:bg-gray-50 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                aria-label="Increase duration"
+              >
+                +
+              </button>
+              <span className="text-sm text-gray-600 ml-1">{t.nights}</span>
+            </div>
+          </div>
+        )}
 
         {/* Passengers and Class */}
         <div className="relative">

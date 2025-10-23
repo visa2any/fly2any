@@ -2,91 +2,150 @@
 
 import { useState, useEffect } from 'react';
 
-interface Activity {
-  id: number;
-  user: string;
+interface ActivityItem {
+  id: string;
+  name: string;
   location: string;
-  destination: string;
-  action: 'booked' | 'saved';
-  time: string;
-  amount?: number;
+  action: string;
+  timestamp: Date;
+  route?: string;
 }
 
-// Simulated live activities (in production, this would come from real API)
-const activities: Activity[] = [
-  { id: 1, user: 'Sarah M.', location: 'New York', destination: 'Paris', action: 'booked', time: '2 min ago', amount: 589 },
-  { id: 2, user: 'John D.', location: 'Los Angeles', destination: 'Tokyo', action: 'booked', time: '5 min ago', amount: 799 },
-  { id: 3, user: 'Maria S.', location: 'Miami', destination: 'Barcelona', action: 'saved', time: '8 min ago' },
-  { id: 4, user: 'Alex K.', location: 'Chicago', destination: 'London', action: 'booked', time: '12 min ago', amount: 459 },
-  { id: 5, user: 'Emma W.', location: 'Seattle', destination: 'Dubai', action: 'booked', time: '15 min ago', amount: 699 },
-  { id: 6, user: 'Chris P.', location: 'Boston', destination: 'Rome', action: 'saved', time: '18 min ago' },
-];
+interface LiveActivityFeedProps {
+  className?: string;
+  maxItems?: number;
+  variant?: 'sidebar' | 'popup'; // sidebar = compact widget, popup = floating notification
+}
 
-export function LiveActivityFeed() {
-  const [currentActivity, setCurrentActivity] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+// Simulated activity data - in production, this would come from real-time API
+const generateActivity = (): ActivityItem => {
+  const names = [
+    'Sarah', 'Michael', 'Jessica', 'David', 'Emily', 'James',
+    'Maria', 'Robert', 'Linda', 'John', 'Patricia', 'William'
+  ];
+
+  const locations = [
+    'NYC', 'LA', 'Chicago', 'Miami', 'Boston', 'Seattle',
+    'Austin', 'Denver', 'Phoenix', 'Portland', 'Atlanta', 'Dallas'
+  ];
+
+  const actions = [
+    'just booked this flight',
+    'is viewing this deal',
+    'saved this to favorites',
+    'compared prices for this route'
+  ];
+
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    name: names[Math.floor(Math.random() * names.length)],
+    location: locations[Math.floor(Math.random() * locations.length)],
+    action: actions[Math.floor(Math.random() * actions.length)],
+    timestamp: new Date()
+  };
+};
+
+export default function LiveActivityFeed({
+  className = '',
+  maxItems = 5,
+  variant = 'sidebar'
+}: LiveActivityFeedProps) {
+  const [activities, setActivities] = useState<ActivityItem[]>([
+    generateActivity()
+  ]);
 
   useEffect(() => {
+    // Add new activity every 8-15 seconds
     const interval = setInterval(() => {
-      setIsVisible(false);
-      setTimeout(() => {
-        setCurrentActivity((prev) => (prev + 1) % activities.length);
-        setIsVisible(true);
-      }, 300);
-    }, 5000); // Change every 5 seconds
+      const newActivity = generateActivity();
+      setActivities((prev) => [newActivity, ...prev].slice(0, maxItems));
+    }, Math.random() * 7000 + 8000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [maxItems]);
 
-  const activity = activities[currentActivity];
+  const formatTimeAgo = (timestamp: Date) => {
+    const seconds = Math.floor((new Date().getTime() - timestamp.getTime()) / 1000);
 
-  return (
-    <div
-      className={`fixed bottom-6 left-6 z-50 transition-all duration-300 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-      }`}
-    >
-      <div className="bg-white rounded-2xl shadow-2xl p-4 max-w-sm border-l-4 border-success flex items-start gap-3 hover:scale-105 transition-transform duration-300">
-        {/* User Avatar */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold">
-          {activity.user.charAt(0)}
-        </div>
+    if (seconds < 60) return 'Just now';
+    if (seconds < 120) return '1 minute ago';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    return `${Math.floor(seconds / 3600)} hours ago`;
+  };
 
-        {/* Activity Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-gray-900 text-sm">
-              {activity.user}
-            </span>
-            <span className="text-xs text-gray-500">from {activity.location}</span>
+  if (variant === 'popup') {
+    const latestActivity = activities[0];
+    return (
+      <div className={`fixed bottom-6 left-6 z-50 transition-all duration-300 ${className}`}>
+        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg max-w-xs animate-slideIn">
+          <div className="flex items-start gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 animate-pulse"></div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-gray-600">
+                <span className="font-semibold text-gray-900">{latestActivity.name}</span> from {latestActivity.location} {latestActivity.action}
+              </div>
+              <div className="text-[10px] text-gray-500 mt-1">
+                {formatTimeAgo(latestActivity.timestamp)}
+              </div>
+            </div>
           </div>
-
-          <div className="text-sm text-gray-700">
-            {activity.action === 'booked' ? (
-              <>
-                <span className="text-success font-medium">✓ Booked</span> a trip to{' '}
-                <span className="font-semibold">{activity.destination}</span>
-                {activity.amount && (
-                  <span className="text-gray-600"> for ${activity.amount}</span>
-                )}
-              </>
-            ) : (
-              <>
-                <span className="text-primary-600 font-medium">💾 Saved</span> a trip to{' '}
-                <span className="font-semibold">{activity.destination}</span>
-              </>
-            )}
-          </div>
-
-          <div className="text-xs text-gray-400 mt-1">{activity.time}</div>
-        </div>
-
-        {/* Live indicator */}
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-          <span className="text-xs text-gray-500">Live</span>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+      <div className="px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <h3 className="text-xs font-semibold text-gray-900">Live Activity</h3>
+        </div>
+      </div>
+
+      <div className="divide-y divide-gray-100">
+        {activities.map((activity, index) => (
+          <div
+            key={activity.id}
+            className={`px-3 py-2.5 transition-all duration-300 ${
+              index === 0 ? 'bg-blue-50/50' : 'hover:bg-gray-50'
+            }`}
+            style={{
+              animation: index === 0 ? 'slideIn 300ms ease-out' : 'none'
+            }}
+          >
+            <div className="text-xs text-gray-700">
+              <span className="font-semibold text-gray-900">{activity.name}</span>
+              {' '}from{' '}
+              <span className="font-medium text-blue-600">{activity.location}</span>
+              {' '}{activity.action}
+            </div>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[10px] text-gray-500">
+                {formatTimeAgo(activity.timestamp)}
+              </span>
+              {activity.action.includes('booked') && (
+                <span className="text-[10px] text-green-600 font-medium">
+                  • Confirmed
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

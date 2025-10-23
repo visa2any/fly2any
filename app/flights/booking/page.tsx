@@ -22,7 +22,7 @@ import {
 // TYPE DEFINITIONS
 // ===========================
 
-type BookingStep = 'passengers' | 'seats' | 'payment' | 'review';
+type BookingStep = 'summary' | 'fares' | 'seats' | 'baggage' | 'bundles' | 'passengers' | 'payment';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -105,16 +105,22 @@ const translations = {
   en: {
     bookingTitle: 'Complete Your Booking',
     steps: {
+      summary: 'Flight Summary',
+      fares: 'Choose Fare',
+      seats: 'Select Seats',
+      baggage: 'Add Baggage',
+      bundles: 'Trip Bundles',
       passengers: 'Passenger Details',
-      seats: 'Seat Selection',
-      payment: 'Payment',
-      review: 'Review & Confirm',
+      payment: 'Payment & Review',
     },
     stepLabels: {
+      summary: 'Confirm your flight selection',
+      fares: 'Choose your fare class',
+      seats: 'Select your seats (optional)',
+      baggage: 'Add extra baggage (optional)',
+      bundles: 'Complete your trip (optional)',
       passengers: 'Enter passenger information',
-      seats: 'Choose your seats',
-      payment: 'Enter payment details',
-      review: 'Review your booking',
+      payment: 'Payment and final review',
     },
     buttons: {
       next: 'Continue',
@@ -182,16 +188,22 @@ const translations = {
   pt: {
     bookingTitle: 'Complete sua Reserva',
     steps: {
+      summary: 'Resumo do Voo',
+      fares: 'Escolher Tarifa',
+      seats: 'Selecionar Assentos',
+      baggage: 'Adicionar Bagagem',
+      bundles: 'Pacotes de Viagem',
       passengers: 'Detalhes dos Passageiros',
-      seats: 'Seleção de Assentos',
-      payment: 'Pagamento',
-      review: 'Revisar e Confirmar',
+      payment: 'Pagamento e Revisão',
     },
     stepLabels: {
+      summary: 'Confirme sua seleção de voo',
+      fares: 'Escolha sua classe tarifária',
+      seats: 'Selecione seus assentos (opcional)',
+      baggage: 'Adicione bagagem extra (opcional)',
+      bundles: 'Complete sua viagem (opcional)',
       passengers: 'Insira as informações dos passageiros',
-      seats: 'Escolha seus assentos',
-      payment: 'Insira os detalhes do pagamento',
-      review: 'Revise sua reserva',
+      payment: 'Pagamento e revisão final',
     },
     buttons: {
       next: 'Continuar',
@@ -259,16 +271,22 @@ const translations = {
   es: {
     bookingTitle: 'Complete su Reserva',
     steps: {
+      summary: 'Resumen del Vuelo',
+      fares: 'Elegir Tarifa',
+      seats: 'Seleccionar Asientos',
+      baggage: 'Agregar Equipaje',
+      bundles: 'Paquetes de Viaje',
       passengers: 'Detalles de Pasajeros',
-      seats: 'Selección de Asientos',
-      payment: 'Pago',
-      review: 'Revisar y Confirmar',
+      payment: 'Pago y Revisión',
     },
     stepLabels: {
+      summary: 'Confirme su selección de vuelo',
+      fares: 'Elija su clase tarifaria',
+      seats: 'Seleccione sus asientos (opcional)',
+      baggage: 'Agregue equipaje extra (opcional)',
+      bundles: 'Complete su viaje (opcional)',
       passengers: 'Ingrese la información de los pasajeros',
-      seats: 'Elija sus asientos',
-      payment: 'Ingrese los detalles del pago',
-      review: 'Revise su reserva',
+      payment: 'Pago y revisión final',
     },
     buttons: {
       next: 'Continuar',
@@ -380,10 +398,13 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, onStepClick,
   const t = translations[lang];
 
   const steps: { key: BookingStep; icon: typeof User; label: string }[] = [
-    { key: 'passengers', icon: User, label: t.steps.passengers },
+    { key: 'summary', icon: Plane, label: t.steps.summary },
+    { key: 'fares', icon: CheckCircle, label: t.steps.fares },
     { key: 'seats', icon: MapPin, label: t.steps.seats },
+    { key: 'baggage', icon: Shield, label: t.steps.baggage },
+    { key: 'bundles', icon: Calendar, label: t.steps.bundles },
+    { key: 'passengers', icon: User, label: t.steps.passengers },
     { key: 'payment', icon: CreditCard, label: t.steps.payment },
-    { key: 'review', icon: CheckCircle, label: t.steps.review },
   ];
 
   const getCurrentStepIndex = () => steps.findIndex(s => s.key === currentStep);
@@ -576,6 +597,438 @@ const FlightSummarySidebar: React.FC<FlightSummarySidebarProps> = ({ flight, lan
         <div className="flex items-center gap-2 text-xs text-gray-700">
           <Shield className="w-4 h-4 text-success" />
           <span className="font-medium">{t.securePayment}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================
+// FLIGHT SUMMARY STEP
+// ===========================
+
+interface FlightSummaryStepProps {
+  flight: FlightData;
+  lang: Language;
+}
+
+const FlightSummaryStep: React.FC<FlightSummaryStepProps> = ({ flight, lang }) => {
+  const t = translations[lang];
+
+  const outbound = flight.itineraries[0];
+  const inbound = flight.itineraries[1];
+
+  const renderItinerary = (itinerary: FlightItinerary, label: string, idx: number) => {
+    const firstSegment = itinerary.segments[0];
+    const lastSegment = itinerary.segments[itinerary.segments.length - 1];
+    const stops = itinerary.segments.length - 1;
+
+    return (
+      <div key={idx} className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Plane className="w-5 h-5 text-primary-600" />
+          <h3 className="text-lg font-bold text-gray-900">{label}</h3>
+        </div>
+
+        {/* Route Visualization */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          {/* Departure */}
+          <div>
+            <div className="text-3xl font-bold text-gray-900">
+              {formatTime(firstSegment.departure.at)}
+            </div>
+            <div className="text-lg font-semibold text-gray-700">
+              {firstSegment.departure.iataCode}
+            </div>
+            <div className="text-sm text-gray-500">
+              {formatDate(firstSegment.departure.at)}
+            </div>
+            {firstSegment.departure.terminal && (
+              <div className="text-xs text-gray-400 mt-1">
+                Terminal {firstSegment.departure.terminal}
+              </div>
+            )}
+          </div>
+
+          {/* Duration & Stops */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="text-sm font-semibold text-gray-600 mb-2">
+              {formatDuration(itinerary.duration)}
+            </div>
+            <div className="w-full h-1 bg-gradient-to-r from-primary-300 via-primary-500 to-primary-300 rounded-full relative">
+              <Plane className="w-4 h-4 text-primary-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90" />
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              {stops === 0 ? t.direct : `${stops} ${stops === 1 ? 'stop' : 'stops'}`}
+            </div>
+          </div>
+
+          {/* Arrival */}
+          <div className="text-right">
+            <div className="text-3xl font-bold text-gray-900">
+              {formatTime(lastSegment.arrival.at)}
+            </div>
+            <div className="text-lg font-semibold text-gray-700">
+              {lastSegment.arrival.iataCode}
+            </div>
+            <div className="text-sm text-gray-500">
+              {formatDate(lastSegment.arrival.at)}
+            </div>
+            {lastSegment.arrival.terminal && (
+              <div className="text-xs text-gray-400 mt-1">
+                Terminal {lastSegment.arrival.terminal}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Flight Details */}
+        <div className="pt-4 border-t border-gray-200">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-gray-500 mb-1">Airline</div>
+              <div className="font-semibold text-gray-900">
+                {firstSegment.carrierCode} {firstSegment.number}
+              </div>
+            </div>
+            {itinerary.segments.length > 1 && (
+              <div>
+                <div className="text-gray-500 mb-1">Additional Segments</div>
+                <div className="font-semibold text-gray-900">
+                  {itinerary.segments.length - 1} connection{itinerary.segments.length > 2 ? 's' : ''}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary-600 to-primary-500 rounded-2xl shadow-xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">✈️ Confirm Your Flight Selection</h2>
+        <p className="text-primary-100">
+          Review your flight details before customizing your booking
+        </p>
+      </div>
+
+      {/* Outbound Flight */}
+      {renderItinerary(outbound, t.outbound, 0)}
+
+      {/* Return Flight */}
+      {inbound && renderItinerary(inbound, t.return, 1)}
+
+      {/* Price Summary */}
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Current Fare</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-gray-600">Economy Class</div>
+            <div className="text-xs text-gray-500 mt-1">
+              Base fare • Includes standard baggage
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-primary-600">
+              {flight.price.currency === 'USD' ? '$' : flight.price.currency} {parseFloat(flight.price.total).toFixed(2)}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">per person</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Info Box */}
+      <div className="bg-info/10 border border-info/30 rounded-xl p-4 flex gap-3">
+        <Info className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700">
+          <p className="font-semibold mb-1">What's Next?</p>
+          <p className="text-gray-600">
+            In the following steps, you'll be able to upgrade your fare class, select seats, add baggage,
+            and customize your trip with hotels and car rentals.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================
+// BRANDED FARES STEP (Placeholder)
+// ===========================
+
+interface BrandedFaresStepProps {
+  lang: Language;
+}
+
+const BrandedFaresStep: React.FC<BrandedFaresStepProps> = ({ lang }) => {
+  const t = translations[lang];
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-500 rounded-2xl shadow-xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">🎫 Choose Your Fare Class</h2>
+        <p className="text-primary-100">
+          Upgrade to get more flexibility and benefits
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Basic Economy */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border-2 border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Basic Economy</h3>
+          <div className="text-3xl font-bold text-gray-900 mb-4">Included</div>
+          <ul className="space-y-2 text-sm text-gray-600 mb-6">
+            <li className="flex items-center gap-2">
+              <span className="text-red-600">✗</span> Carry-on bag
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-red-600">✗</span> Seat selection
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-red-600">✗</span> Changes allowed
+            </li>
+          </ul>
+          <button className="w-full py-3 bg-gray-200 text-gray-600 rounded-lg font-semibold">
+            Current Selection
+          </button>
+        </div>
+
+        {/* Standard */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border-2 border-primary-500 p-6 relative">
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+            RECOMMENDED
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Standard</h3>
+          <div className="text-3xl font-bold text-primary-600 mb-4">+$80</div>
+          <ul className="space-y-2 text-sm text-gray-600 mb-6">
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> 1 carry-on bag
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> Seat selection
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> Changes ($75 fee)
+            </li>
+          </ul>
+          <button className="w-full py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors">
+            Upgrade to Standard
+          </button>
+        </div>
+
+        {/* Premium */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border-2 border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Premium</h3>
+          <div className="text-3xl font-bold text-gray-900 mb-4">+$200</div>
+          <ul className="space-y-2 text-sm text-gray-600 mb-6">
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> 2 carry-on bags
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> Priority seat selection
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> Free changes
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-green-600">✓</span> Extra legroom
+            </li>
+          </ul>
+          <button className="w-full py-3 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg font-semibold hover:from-gray-800 hover:to-gray-700 transition-colors">
+            Upgrade to Premium
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-info/10 border border-info/30 rounded-xl p-4 flex gap-3">
+        <Info className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700">
+          <p className="font-semibold mb-1">💡 Smart Tip</p>
+          <p className="text-gray-600">
+            Standard fare is most popular - includes carry-on bag and seat selection for just $80 more!
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================
+// BAGGAGE SELECTION STEP (Placeholder)
+// ===========================
+
+interface BaggageSelectionStepProps {
+  lang: Language;
+}
+
+const BaggageSelectionStep: React.FC<BaggageSelectionStepProps> = ({ lang }) => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-500 rounded-2xl shadow-xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">💼 Add Extra Baggage</h2>
+        <p className="text-primary-100">
+          Save time at the airport by adding baggage now
+        </p>
+      </div>
+
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Included with your fare</h3>
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center justify-between py-3 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎒</span>
+              <div>
+                <div className="font-semibold text-gray-900">Personal item</div>
+                <div className="text-sm text-gray-500">Fits under seat (40x30x15 cm)</div>
+              </div>
+            </div>
+            <span className="text-green-600 font-semibold">✓ Included</span>
+          </div>
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-900 mb-4 mt-6">Add extra baggage</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-4 border border-gray-200 rounded-lg px-4 hover:border-primary-500 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🧳</span>
+              <div>
+                <div className="font-semibold text-gray-900">Checked bag (23kg)</div>
+                <div className="text-sm text-gray-500">Standard checked baggage</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-gray-900">$35</span>
+              <select className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between py-4 border border-gray-200 rounded-lg px-4 hover:border-primary-500 transition-colors">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⛷️</span>
+              <div>
+                <div className="font-semibold text-gray-900">Oversized item</div>
+                <div className="text-sm text-gray-500">Sports equipment, musical instruments</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-gray-900">$60</span>
+              <select className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-6 border-t-2 border-gray-200 flex justify-between items-center">
+          <span className="text-lg font-bold text-gray-900">Total baggage fees:</span>
+          <span className="text-2xl font-bold text-primary-600">$0</span>
+        </div>
+      </div>
+
+      <div className="bg-success/10 border border-success/30 rounded-xl p-4 flex gap-3">
+        <Info className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700">
+          <p className="font-semibold mb-1">💰 Save Money</p>
+          <p className="text-gray-600">
+            Add baggage now for $35 vs $60 at the airport. You can skip this step if you don't need extra bags.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===========================
+// TRIP BUNDLES STEP (Placeholder)
+// ===========================
+
+interface TripBundlesStepProps {
+  lang: Language;
+}
+
+const TripBundlesStep: React.FC<TripBundlesStepProps> = ({ lang }) => {
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-500 rounded-2xl shadow-xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">🎁 Complete Your Trip</h2>
+        <p className="text-primary-100">
+          Save up to $150 by bundling hotel + car rental
+        </p>
+      </div>
+
+      {/* Hotels */}
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          🏨 Hotels in Los Angeles
+          <span className="text-sm font-normal text-primary-600 bg-primary-100 px-2 py-1 rounded">Save $50</span>
+        </h3>
+
+        <div className="space-y-3">
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors cursor-pointer">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-gray-900">Downtown LA Hotel</h4>
+              <div className="text-right">
+                <div className="text-xl font-bold text-primary-600">$89/night</div>
+                <div className="text-xs text-gray-500">Usually $119</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+              <span className="text-yellow-500">⭐⭐⭐⭐</span>
+              <span>(4.5/5)</span>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Modern hotel in the heart of downtown • Pool • Free WiFi
+            </p>
+            <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors">
+              Add to Booking
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Car Rentals */}
+      <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          🚗 Car Rentals
+          <span className="text-sm font-normal text-primary-600 bg-primary-100 px-2 py-1 rounded">Save $30</span>
+        </h3>
+
+        <div className="space-y-3">
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors cursor-pointer">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-bold text-gray-900">Economy Car</h4>
+              <div className="text-right">
+                <div className="text-xl font-bold text-primary-600">$25/day</div>
+                <div className="text-xs text-gray-500">Usually $35</div>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">
+              Toyota Yaris or similar • Automatic • AC • Unlimited mileage
+            </p>
+            <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors">
+              Add to Booking
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-info/10 border border-info/30 rounded-xl p-4 flex gap-3">
+        <Info className="w-5 h-5 text-info flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-gray-700">
+          <p className="font-semibold mb-1">✨ This step is optional</p>
+          <p className="text-gray-600">
+            You can skip this and continue to passenger details, or save money by bundling now.
+          </p>
         </div>
       </div>
     </div>
@@ -1281,7 +1734,7 @@ function BookingPageContent() {
 
   // State
   const [lang] = useState<Language>('en');
-  const [currentStep, setCurrentStep] = useState<BookingStep>('passengers');
+  const [currentStep, setCurrentStep] = useState<BookingStep>('summary');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1447,7 +1900,7 @@ function BookingPageContent() {
 
   // Sync step with URL
   useEffect(() => {
-    if (stepParam && ['passengers', 'seats', 'payment', 'review'].includes(stepParam)) {
+    if (stepParam && ['summary', 'fares', 'seats', 'baggage', 'bundles', 'passengers', 'payment'].includes(stepParam)) {
       setCurrentStep(stepParam);
     }
   }, [stepParam]);
@@ -1474,16 +1927,29 @@ function BookingPageContent() {
   // Validation
   const validateCurrentStep = (): boolean => {
     switch (currentStep) {
+      case 'summary':
+        // Always valid - just reviewing flight
+        return true;
+      case 'fares':
+        // Optional step - always valid
+        return true;
+      case 'seats':
+        // Optional step - always valid
+        return true;
+      case 'baggage':
+        // Optional step - always valid
+        return true;
+      case 'bundles':
+        // Optional step - always valid
+        return true;
       case 'passengers':
         return formData.passengers.every(p =>
           p.firstName && p.lastName && p.dateOfBirth &&
           p.nationality && p.passportNumber && p.passportExpiry &&
           (p.type !== 'adult' || (p.email && p.phone))
         );
-      case 'seats':
-        // Optional step - always valid
-        return true;
       case 'payment':
+        // Combined payment + review step
         return Boolean(
           formData.payment.cardNumber &&
           formData.payment.cardName &&
@@ -1493,10 +1959,9 @@ function BookingPageContent() {
           formData.payment.billingAddress &&
           formData.payment.billingCity &&
           formData.payment.billingZip &&
-          formData.payment.billingCountry
+          formData.payment.billingCountry &&
+          termsAccepted
         );
-      case 'review':
-        return termsAccepted;
       default:
         return false;
     }
@@ -1509,7 +1974,7 @@ function BookingPageContent() {
       return;
     }
 
-    const steps: BookingStep[] = ['passengers', 'seats', 'payment', 'review'];
+    const steps: BookingStep[] = ['summary', 'fares', 'seats', 'baggage', 'bundles', 'passengers', 'payment'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       changeStep(steps[currentIndex + 1]);
@@ -1517,7 +1982,7 @@ function BookingPageContent() {
   };
 
   const handleBack = () => {
-    const steps: BookingStep[] = ['passengers', 'seats', 'payment', 'review'];
+    const steps: BookingStep[] = ['summary', 'fares', 'seats', 'baggage', 'bundles', 'passengers', 'payment'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
       changeStep(steps[currentIndex - 1]);
@@ -1534,25 +1999,94 @@ function BookingPageContent() {
     setError(null);
 
     try {
-      // Call booking API
-      const response = await fetch('/api/bookings', {
+      // Get search context for contact info
+      const searchContext = sessionStorage.getItem(`flight_search_${flightId}`);
+      const searchData = searchContext ? JSON.parse(searchContext) : {};
+
+      // Transform passenger data to match API format
+      const passengers = formData.passengers.map((passenger: any) => ({
+        title: passenger.title,
+        firstName: passenger.firstName,
+        lastName: passenger.lastName,
+        dateOfBirth: passenger.dateOfBirth,
+        gender: passenger.type === 'adult' ? 'male' : 'female', // Default, should be from form
+        nationality: passenger.nationality,
+        passportNumber: passenger.passportNumber,
+        passportIssueDate: passenger.passportExpiry, // Need to add this field to form
+        passportExpiryDate: passenger.passportExpiry,
+        email: passenger.email,
+        phone: passenger.phone,
+      }));
+
+      // Get contact info from first passenger
+      const contactInfo = {
+        email: formData.passengers[0]?.email || '',
+        phone: formData.passengers[0]?.phone || '',
+      };
+
+      console.log('📝 Submitting booking...');
+      console.log(`   Flight ID: ${flightId}`);
+      console.log(`   Passengers: ${passengers.length}`);
+      console.log(`   Total: ${flight?.price?.total} ${flight?.price?.currency}`);
+
+      // Call Flight Create Orders API
+      const response = await fetch('/api/flights/booking/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          flight,
-          passengers: formData.passengers,
-          seats: formData.seats,
+          flightOffer: flight,
+          passengers,
           payment: formData.payment,
+          contactInfo,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to confirm booking');
+        // Handle specific error types
+        if (data.error === 'PRICE_CHANGED') {
+          const confirmUpdate = window.confirm(
+            `${data.message}\n\nOriginal: ${data.originalPrice} ${flight?.price?.currency}\nNew: ${data.currentPrice} ${flight?.price?.currency}\n\nDo you want to continue with the new price?`
+          );
+
+          if (confirmUpdate && data.newOffer) {
+            // Update flight offer and retry
+            setFlight(data.newOffer);
+            setSubmitting(false);
+            return;
+          }
+        }
+
+        if (data.error === 'SOLD_OUT') {
+          alert(data.message + '\n\nYou will be redirected to search for alternative flights.');
+          router.push('/flights');
+          return;
+        }
+
+        if (data.error === 'INVALID_DATA') {
+          alert(data.message + '\n\nPlease check your passenger information.');
+          setCurrentStep('passengers');
+          setSubmitting(false);
+          return;
+        }
+
+        if (data.error === 'PAYMENT_FAILED') {
+          alert(data.message);
+          setCurrentStep('payment');
+          setSubmitting(false);
+          return;
+        }
+
+        throw new Error(data.message || data.error || 'Failed to confirm booking');
       }
+
+      // Success!
+      console.log('✅ Booking created successfully!');
+      console.log(`   Booking ID: ${data.booking?.id}`);
+      console.log(`   PNR: ${data.booking?.pnr}`);
 
       // Save booking data for confirmation page
       sessionStorage.setItem('booking_confirmation', JSON.stringify(data.booking));
@@ -1563,11 +2097,16 @@ function BookingPageContent() {
         sessionStorage.removeItem(`flight_${flightId}`);
       }
 
+      // Show success message
+      if (data.booking?.isMockBooking) {
+        alert('Mock booking created for testing!\n\nPNR: ' + data.booking.pnr + '\n\nNote: This is a test booking. No real reservation was made.');
+      }
+
       // Redirect to confirmation page
-      router.push(`/flights/booking/confirmation?bookingId=${data.booking.id}`);
+      router.push(`/flights/booking/confirmation?bookingId=${data.booking.id}&pnr=${data.booking.pnr}`);
     } catch (err: any) {
       console.error('Error confirming booking:', err);
-      setError(err.message || 'Failed to confirm booking');
+      setError(err.message || 'Failed to confirm booking. Please try again.');
       setSubmitting(false);
     }
   };
@@ -1631,10 +2170,15 @@ function BookingPageContent() {
           {/* Main Form Area */}
           <div className="lg:col-span-2">
             <div className="animate-fadeIn">
-              {currentStep === 'passengers' && (
-                <PassengerDetailsStep
-                  passengers={formData.passengers}
-                  onUpdate={(passengers) => setFormData(prev => ({ ...prev, passengers }))}
+              {currentStep === 'summary' && (
+                <FlightSummaryStep
+                  flight={flight}
+                  lang={lang}
+                />
+              )}
+
+              {currentStep === 'fares' && (
+                <BrandedFaresStep
                   lang={lang}
                 />
               )}
@@ -1649,24 +2193,45 @@ function BookingPageContent() {
                 />
               )}
 
-              {currentStep === 'payment' && (
-                <PaymentStep
-                  payment={formData.payment}
-                  onUpdate={(payment) => setFormData(prev => ({ ...prev, payment }))}
+              {currentStep === 'baggage' && (
+                <BaggageSelectionStep
                   lang={lang}
                 />
               )}
 
-              {currentStep === 'review' && (
-                <ReviewStep
-                  flight={flight}
-                  passengers={formData.passengers}
-                  seats={formData.seats}
-                  payment={formData.payment}
-                  termsAccepted={termsAccepted}
-                  onTermsChange={setTermsAccepted}
+              {currentStep === 'bundles' && (
+                <TripBundlesStep
                   lang={lang}
                 />
+              )}
+
+              {currentStep === 'passengers' && (
+                <PassengerDetailsStep
+                  passengers={formData.passengers}
+                  onUpdate={(passengers) => setFormData(prev => ({ ...prev, passengers }))}
+                  lang={lang}
+                />
+              )}
+
+              {currentStep === 'payment' && (
+                <>
+                  <PaymentStep
+                    payment={formData.payment}
+                    onUpdate={(payment) => setFormData(prev => ({ ...prev, payment }))}
+                    lang={lang}
+                  />
+                  <div className="mt-6">
+                    <ReviewStep
+                      flight={flight}
+                      passengers={formData.passengers}
+                      seats={formData.seats}
+                      payment={formData.payment}
+                      termsAccepted={termsAccepted}
+                      onTermsChange={setTermsAccepted}
+                      lang={lang}
+                    />
+                  </div>
+                </>
               )}
             </div>
 
@@ -1674,10 +2239,10 @@ function BookingPageContent() {
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={handleBack}
-                disabled={currentStep === 'passengers'}
+                disabled={currentStep === 'summary'}
                 className={`
                   flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300
-                  ${currentStep === 'passengers'
+                  ${currentStep === 'summary'
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                   }
@@ -1687,7 +2252,7 @@ function BookingPageContent() {
                 {t.buttons.back}
               </button>
 
-              {currentStep !== 'review' ? (
+              {currentStep !== 'payment' ? (
                 <button
                   onClick={handleNext}
                   className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-primary"

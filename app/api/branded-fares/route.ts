@@ -2,61 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 
-// Mock branded fares for fallback
-function getMockBrandedFares(flightOfferId: string) {
-  return {
-    data: [
-      {
-        segmentId: '1',
-        brandedFare: 'BASIC',
-        price: {
-          total: '299.00',
-          base: '250.00',
-        },
-        amenities: [
-          { description: 'Personal item (purse, small backpack)', isChargeable: false },
-          { description: 'Carry-on bag', isChargeable: true },
-          { description: 'Checked bag', isChargeable: true },
-          { description: 'Seat selection', isChargeable: true },
-          { description: 'Changes & cancellations', isChargeable: true },
-        ],
-      },
-      {
-        segmentId: '1',
-        brandedFare: 'STANDARD',
-        price: {
-          total: '349.00',
-          base: '295.00',
-        },
-        amenities: [
-          { description: 'Personal item (purse, small backpack)', isChargeable: false },
-          { description: 'Carry-on bag', isChargeable: false },
-          { description: '1 Checked bag (23kg)', isChargeable: false },
-          { description: 'Standard seat selection', isChargeable: false },
-          { description: 'Changes (fee applies)', isChargeable: true },
-          { description: 'Priority boarding', isChargeable: true },
-        ],
-      },
-      {
-        segmentId: '1',
-        brandedFare: 'FLEX',
-        price: {
-          total: '449.00',
-          base: '380.00',
-        },
-        amenities: [
-          { description: 'Personal item (purse, small backpack)', isChargeable: false },
-          { description: 'Carry-on bag', isChargeable: false },
-          { description: '2 Checked bags (23kg each)', isChargeable: false },
-          { description: 'Advance seat selection', isChargeable: false },
-          { description: 'Free changes', isChargeable: false },
-          { description: 'Priority boarding', isChargeable: false },
-          { description: 'Extra legroom seat', isChargeable: false },
-        ],
-      },
-    ],
-  };
-}
+// Mark this route as dynamic (it uses request params)
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,7 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Call Amadeus API
+    // Call Amadeus API - NO MOCK FALLBACK
     try {
       const result = await amadeusAPI.getBrandedFares(flightOfferId);
 
@@ -89,15 +36,17 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(result);
     } catch (apiError: any) {
-      console.error('Amadeus API error, using mock data:', apiError.message);
+      console.error('Amadeus API error for branded fares:', apiError.message);
 
-      // Return mock data for better UX
-      const mockData = getMockBrandedFares(flightOfferId);
-
-      // Cache mock data for shorter period (5 minutes)
-      await setCache(cacheKey, mockData, 300);
-
-      return NextResponse.json(mockData);
+      // ✅ NO MOCK DATA - Return empty response so UI hides the feature
+      return NextResponse.json(
+        {
+          data: [],
+          hasRealData: false,
+          error: 'Branded fares not available for this flight'
+        },
+        { status: 200 } // 200 to prevent frontend errors, but empty data
+      );
     }
   } catch (error: any) {
     console.error('Error in branded-fares API:', error);

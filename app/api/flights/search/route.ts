@@ -11,6 +11,50 @@ import { getCached, setCache } from '@/lib/cache/helpers';
 import { generateFlightSearchKey } from '@/lib/cache/keys';
 
 /**
+ * Generate date range for flexible dates
+ */
+function generateFlexibleDateRange(baseDate: string, flexDays: number): string[] {
+  const dates: string[] = [];
+  const base = new Date(baseDate);
+
+  for (let i = -flexDays; i <= flexDays; i++) {
+    const date = new Date(base);
+    date.setDate(date.getDate() + i);
+    dates.push(date.toISOString().split('T')[0]);
+  }
+
+  return dates;
+}
+
+/**
+ * Calculate return date from departure + duration
+ */
+function calculateReturnDate(departureDate: string, nights: number): string {
+  const dep = new Date(departureDate);
+  dep.setDate(dep.getDate() + nights);
+  return dep.toISOString().split('T')[0];
+}
+
+/**
+ * Deduplicate flight offers by flight segments
+ */
+function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
+  const seen = new Set<string>();
+  return flights.filter(flight => {
+    // Create unique key from all segments (airline + flight number + departure time)
+    const key = flight.itineraries.flatMap(itin =>
+      itin.segments.map(seg =>
+        `${seg.carrierCode}${seg.number}-${seg.departure.at}`
+      )
+    ).join('|');
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
  * POST /api/flights/search
  * Search for flights with AI scoring and persuasion badges
  */
@@ -124,15 +168,10 @@ export async function POST(request: NextRequest) {
       console.log(`🔍 Multi-airport search: ${originCodes.join(',')} → ${destinationCodes.join(',')}`);
     }
 
-    // For now, use first airport from each list
-    // TODO: Implement multi-airport API calls and result combination
-    const primaryOrigin = originCodes[0];
-    const primaryDestination = destinationCodes[0];
-
-    // Build search parameters
+    // Build base search parameters
     flightSearchParams = {
-      origin: primaryOrigin,
-      destination: primaryDestination,
+      origin: originCodes.join(','), // Keep combined for cache key
+      destination: destinationCodes.join(','), // Keep combined for cache key
       departureDate,
       returnDate: body.returnDate || undefined,
       adults,
@@ -144,11 +183,17 @@ export async function POST(request: NextRequest) {
       max: body.max || 50,
     };
 
-    // Generate cache key (include all airports in cache key)
+    // Extract flexible dates parameters
+    const departureFlex = typeof body.departureFlex === 'number' ? body.departureFlex : 0;
+    const tripDuration = typeof body.tripDuration === 'number' ? body.tripDuration : null;
+
+    // Generate cache key (include all airports AND flexible dates in cache key)
     cacheKey = generateFlightSearchKey({
       ...flightSearchParams,
       origin: originCodes.join(','),
       destination: destinationCodes.join(','),
+      departureFlex: departureFlex || 0,
+      tripDuration: tripDuration || undefined,
     });
 
     // Try to get from cache
@@ -187,10 +232,106 @@ export async function POST(request: NextRequest) {
     console.log('Cache MISS:', cacheKey);
 
     // Search flights using Amadeus API
-    const apiResponse = await amadeusAPI.searchFlights(flightSearchParams);
+    let allFlights: FlightOffer[] = [];
+    let dictionaries: any = {};
 
-    // Extract flight offers from Amadeus response
-    const flights: FlightOffer[] = apiResponse.data || [];
+    // Helper function to search a single origin-destination pair
+    const searchSingleRoute = async (origin: string, destination: string, dateToSearch: string, returnDateToSearch?: string) => {
+      const singleRouteParams = {
+        origin,
+        destination,
+        departureDate: dateToSearch,
+        returnDate: returnDateToSearch,
+        adults: body.adults,
+        children: body.children,
+        infants: body.infants,
+        travelClass,
+        nonStop: body.nonStop === true ? true : undefined,
+        currencyCode: body.currencyCode || 'USD',
+        max: body.max || 50,
+      };
+
+      const apiResponse = await amadeusAPI.searchFlights(singleRouteParams);
+      return apiResponse;
+    };
+
+    // Multi-airport search: iterate through all origin-destination combinations
+    const totalCombinations = originCodes.length * destinationCodes.length;
+    console.log(`🛫 Searching ${totalCombinations} airport combination(s)...`);
+
+    if (departureFlex > 0) {
+      console.log(`🗓️ Flexible dates search: ±${departureFlex} days`);
+
+      // Generate date range
+      const departureDates = generateFlexibleDateRange(departureDate, departureFlex);
+
+      // Search each origin-destination-date combination
+      for (const originCode of originCodes) {
+        for (const destinationCode of destinationCodes) {
+          for (const flexDate of departureDates) {
+            try {
+              // Calculate return date if trip duration specified
+              const flexReturnDate = (tripDuration && body.returnDate)
+                ? calculateReturnDate(flexDate, tripDuration)
+                : body.returnDate;
+
+              console.log(`  Searching: ${originCode} → ${destinationCode} on ${flexDate}${flexReturnDate ? ` returning ${flexReturnDate}` : ''}`);
+
+              const apiResponse = await searchSingleRoute(originCode, destinationCode, flexDate, flexReturnDate);
+              const flights: FlightOffer[] = apiResponse.data || [];
+              allFlights.push(...flights);
+
+              // Store dictionaries from last successful response
+              if (apiResponse.dictionaries) {
+                dictionaries = apiResponse.dictionaries;
+              }
+
+              console.log(`    Found: ${flights.length} flights`);
+            } catch (error) {
+              console.error(`    Error searching ${originCode} → ${destinationCode} on ${flexDate}:`, error);
+              // Continue with other combinations even if one fails
+            }
+          }
+        }
+      }
+
+      // Deduplicate results
+      console.log(`Total flights before dedup: ${allFlights.length}`);
+      allFlights = deduplicateFlights(allFlights);
+      console.log(`Total flights after dedup: ${allFlights.length}`);
+    } else {
+      // Standard search with multiple airports (no flexible dates)
+      for (const originCode of originCodes) {
+        for (const destinationCode of destinationCodes) {
+          try {
+            console.log(`  Searching: ${originCode} → ${destinationCode}`);
+
+            const apiResponse = await searchSingleRoute(originCode, destinationCode, departureDate, body.returnDate);
+            const flights: FlightOffer[] = apiResponse.data || [];
+            allFlights.push(...flights);
+
+            // Store dictionaries from last successful response
+            if (apiResponse.dictionaries) {
+              dictionaries = apiResponse.dictionaries;
+            }
+
+            console.log(`    Found: ${flights.length} flights`);
+          } catch (error) {
+            console.error(`    Error searching ${originCode} → ${destinationCode}:`, error);
+            // Continue with other combinations even if one fails
+          }
+        }
+      }
+
+      // Deduplicate results
+      if (totalCombinations > 1) {
+        console.log(`Total flights before dedup: ${allFlights.length}`);
+        allFlights = deduplicateFlights(allFlights);
+        console.log(`Total flights after dedup: ${allFlights.length}`);
+      }
+    }
+
+    const flights = allFlights;
 
     if (!flights || flights.length === 0) {
       const emptyResponse = {
@@ -238,7 +379,7 @@ export async function POST(request: NextRequest) {
         total: sortedFlights.length,
         searchParams: flightSearchParams,
         sortedBy: sortBy,
-        dictionaries: apiResponse.dictionaries || {},
+        dictionaries: dictionaries,
         timestamp: new Date().toISOString(),
         cached: false,
         cacheKey,

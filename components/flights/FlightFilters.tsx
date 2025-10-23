@@ -600,9 +600,9 @@ export default function FlightFilters({
     localFilters.connectionQuality.length > 0;
 
   const FilterContent = () => (
-    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="animate-fadeIn" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       {/* Header - COMPACT */}
-      <div className="flex items-center justify-between pb-1.5 border-b border-gray-200">
+      <div className="flex items-center justify-between pb-1 border-b border-gray-200">
         <h3 className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{t.filters}</h3>
         {hasActiveFilters && (
           <button
@@ -783,7 +783,7 @@ export default function FlightFilters({
                 onChange={() => handleCabinClassToggle(value)}
                 className="sr-only"
               />
-              <span style={{ fontSize: '16px', marginBottom: '1px' }}>{icon}</span>
+              <span style={{ fontSize: '14px', marginBottom: '1px' }}>{icon}</span>
               <span className="font-medium text-gray-900 text-center" style={{ fontSize: '10px' }}>{label}</span>
             </label>
           ))}
@@ -891,20 +891,20 @@ export default function FlightFilters({
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px' }}
             >
-              <div className="flex items-center" style={{ gap: spacing.sm }}>
+              <div className="flex items-center" style={{ gap: '6px' }}>
                 <input
                   type="checkbox"
                   checked={localFilters.stops.includes(value)}
                   onChange={() => handleStopsToggle(value)}
                   className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-1 cursor-pointer"
                 />
-                <span style={{ fontSize: '16px' }}>{icon}</span>
-                <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{label}</span>
+                <span style={{ fontSize: '14px' }}>{icon}</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{label}</span>
               </div>
               {resultCounts?.stops[value] !== undefined && (
-                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: typography.card.meta.size, padding: `2px ${spacing.xs}` }}>
+                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: '11px', padding: '2px 6px' }}>
                   {resultCounts.stops[value]} {t.results}
                 </span>
               )}
@@ -960,8 +960,8 @@ export default function FlightFilters({
       </div>
 
       {/* Airline Alliances Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.alliances}</label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.alliances}</label>
         <div className="grid grid-cols-3 gap-2">
           {[
             { value: 'star-alliance' as const, label: t.starAlliance, icon: '⭐' },
@@ -975,7 +975,7 @@ export default function FlightFilters({
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px' }}
             >
               <input
                 type="checkbox"
@@ -983,7 +983,7 @@ export default function FlightFilters({
                 onChange={() => handleAllianceToggle(value)}
                 className="sr-only"
               />
-              <span style={{ fontSize: '18px', marginBottom: '2px' }}>{icon}</span>
+              <span style={{ fontSize: '14px', marginBottom: '2px' }}>{icon}</span>
               <span className="font-medium text-gray-900 text-center" style={{ fontSize: '11px' }}>{label}</span>
             </label>
           ))}
@@ -991,9 +991,9 @@ export default function FlightFilters({
       </div>
 
       {/* Departure Time Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.departureTime}</label>
-        <div className="grid grid-cols-2" style={{ gap: spacing.xs }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.departureTime}</label>
+        <div className="grid grid-cols-2" style={{ gap: '4px' }}>
           {[
             { value: 'morning' as const, label: t.morning, time: '6AM-12PM', icon: timeRanges.morning.icon },
             { value: 'afternoon' as const, label: t.afternoon, time: '12PM-6PM', icon: timeRanges.afternoon.icon },
@@ -1007,7 +1007,7 @@ export default function FlightFilters({
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px' }}
             >
               <input
                 type="checkbox"
@@ -1015,11 +1015,11 @@ export default function FlightFilters({
                 onChange={() => handleDepartureTimeToggle(value)}
                 className="sr-only"
               />
-              <span style={{ fontSize: '18px', marginBottom: spacing.xs }}>{icon}</span>
-              <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{label}</span>
-              <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>{time}</span>
+              <span style={{ fontSize: '14px', marginBottom: '2px' }}>{icon}</span>
+              <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{label}</span>
+              <span className="text-gray-500" style={{ fontSize: '11px' }}>{time}</span>
               {resultCounts?.departureTime[value] !== undefined && (
-                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: typography.card.meta.size, padding: `2px ${spacing.xs}`, marginTop: spacing.xs }}>
+                <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: '11px', padding: '2px 6px', marginTop: '2px' }}>
                   {resultCounts.departureTime[value]}
                 </span>
               )}
@@ -1029,9 +1029,9 @@ export default function FlightFilters({
       </div>
 
       {/* Flight Duration Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.flightDuration}</label>
-        <div style={{ paddingLeft: spacing.sm, paddingRight: spacing.sm }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.flightDuration}</label>
+        <div style={{ paddingLeft: '6px', paddingRight: '6px' }}>
           <input
             type="range"
             min={1}
@@ -1040,22 +1040,22 @@ export default function FlightFilters({
             onChange={(e) => handleDurationChange(Number(e.target.value))}
             className="w-full h-2 bg-gradient-to-r from-primary-200 to-primary-500 rounded-lg appearance-none cursor-pointer slider-thumb"
           />
-          <div className="flex items-center justify-between" style={{ marginTop: spacing.sm }}>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>1h</span>
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: spacing.xs }}>
-              <span className="font-bold text-primary-600" style={{ fontSize: typography.card.body.size }}>
+          <div className="flex items-center justify-between" style={{ marginTop: '4px' }}>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>1h</span>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: '4px' }}>
+              <span className="font-bold text-primary-600" style={{ fontSize: '12px' }}>
                 {localFilters.maxDuration} {t.hours}
               </span>
             </div>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>{maxDurationValue}h</span>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>{maxDurationValue}h</span>
           </div>
         </div>
       </div>
 
       {/* Max Layover Duration Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.maxLayover}</label>
-        <div style={{ paddingLeft: spacing.sm, paddingRight: spacing.sm }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.maxLayover}</label>
+        <div style={{ paddingLeft: '6px', paddingRight: '6px' }}>
           <input
             type="range"
             min={30}
@@ -1065,22 +1065,22 @@ export default function FlightFilters({
             onChange={(e) => handleLayoverChange(Number(e.target.value))}
             className="w-full h-2 bg-gradient-to-r from-secondary-200 to-secondary-500 rounded-lg appearance-none cursor-pointer slider-thumb-secondary"
           />
-          <div className="flex items-center justify-between" style={{ marginTop: spacing.sm }}>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>30m</span>
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: spacing.xs }}>
-              <span className="font-bold text-secondary-600" style={{ fontSize: typography.card.body.size }}>
+          <div className="flex items-center justify-between" style={{ marginTop: '4px' }}>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>30m</span>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: '4px' }}>
+              <span className="font-bold text-secondary-600" style={{ fontSize: '12px' }}>
                 {Math.floor(localFilters.maxLayoverDuration / 60)}h {localFilters.maxLayoverDuration % 60}m
               </span>
             </div>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>12h</span>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>12h</span>
           </div>
         </div>
       </div>
 
       {/* CO2 Emissions Slider */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.co2Emissions}</label>
-        <div style={{ paddingLeft: spacing.sm, paddingRight: spacing.sm }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.co2Emissions}</label>
+        <div style={{ paddingLeft: '6px', paddingRight: '6px' }}>
           <input
             type="range"
             min={0}
@@ -1090,23 +1090,23 @@ export default function FlightFilters({
             onChange={(e) => handleCO2Change(Number(e.target.value))}
             className="w-full h-2 bg-gradient-to-r from-green-200 to-green-500 rounded-lg appearance-none cursor-pointer slider-thumb-green"
           />
-          <div className="flex items-center justify-between" style={{ marginTop: spacing.sm }}>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>0kg</span>
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-green-200" style={{ padding: spacing.xs }}>
-              <span className="font-bold text-green-600 flex items-center gap-1" style={{ fontSize: typography.card.body.size }}>
+          <div className="flex items-center justify-between" style={{ marginTop: '4px' }}>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>0kg</span>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-green-200" style={{ padding: '4px' }}>
+              <span className="font-bold text-green-600 flex items-center gap-1" style={{ fontSize: '12px' }}>
                 <span style={{ fontSize: '14px' }}>🍃</span>
                 {localFilters.maxCO2Emissions}kg
               </span>
             </div>
-            <span className="text-gray-500" style={{ fontSize: typography.card.meta.size }}>500kg</span>
+            <span className="text-gray-500" style={{ fontSize: '11px' }}>500kg</span>
           </div>
         </div>
       </div>
 
       {/* Connection Quality Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: typography.card.body.size }}>{t.connectionQuality}</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.connectionQuality}</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {[
             { value: 'short' as const, label: t.shortConnection, icon: '⚡' },
             { value: 'medium' as const, label: t.mediumConnection, icon: '⏱️' },
@@ -1119,17 +1119,17 @@ export default function FlightFilters({
                   ? 'bg-primary-50 border border-primary-500'
                   : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-primary-300 hover:bg-primary-50/50'
               }`}
-              style={{ padding: spacing.sm }}
+              style={{ padding: '6px' }}
             >
-              <div className="flex items-center" style={{ gap: spacing.sm }}>
+              <div className="flex items-center" style={{ gap: '6px' }}>
                 <input
                   type="checkbox"
                   checked={localFilters.connectionQuality.includes(value)}
                   onChange={() => handleConnectionQualityToggle(value)}
                   className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-1 cursor-pointer"
                 />
-                <span style={{ fontSize: '16px' }}>{icon}</span>
-                <span className="font-medium text-gray-900" style={{ fontSize: typography.card.body.size }}>{label}</span>
+                <span style={{ fontSize: '14px' }}>{icon}</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{label}</span>
               </div>
             </label>
           ))}
@@ -1142,7 +1142,7 @@ export default function FlightFilters({
     <>
       {/* Desktop Sidebar - Updated with design system dimensions (280px width from sidebar.filters) */}
       <div className="hidden lg:block flex-shrink-0" style={{ width: dimensions.sidebar.filters }}>
-        <div className="sticky top-24 bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide" style={{ padding: dimensions.card.padding }}>
+        <div className="sticky top-20 bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50" style={{ padding: '12px' }}>
           <FilterContent />
         </div>
       </div>
@@ -1152,13 +1152,13 @@ export default function FlightFilters({
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full shadow-2xl hover:shadow-primary transition-all duration-300 active:scale-95 flex items-center"
-          style={{ padding: spacing.md, gap: spacing.xs }}
+          style={{ padding: spacing.md, gap: '4px' }}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
           {hasActiveFilters && (
-            <span className="absolute -top-1 -right-1 bg-secondary-500 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse" style={{ fontSize: typography.card.meta.size }}>
+            <span className="absolute -top-1 -right-1 bg-secondary-500 text-white font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse" style={{ fontSize: '11px' }}>
               !
             </span>
           )}
@@ -1191,7 +1191,7 @@ export default function FlightFilters({
               <button
                 onClick={() => setIsMobileOpen(false)}
                 className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl active:scale-98 transition-all duration-300"
-                style={{ padding: spacing.md, fontSize: typography.card.body.size }}
+                style={{ padding: spacing.md, fontSize: '12px' }}
               >
                 {t.applyFilters}
               </button>

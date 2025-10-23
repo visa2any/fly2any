@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 
+// Mark this route as dynamic (it uses request params)
+export const dynamic = 'force-dynamic';
+
 // Helper function to extract airport/city code from various formats
 function extractCityCode(value: string | null): string {
   if (!value) return '';

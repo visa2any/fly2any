@@ -25,6 +25,7 @@ export default function CheapestDates({ origin, destination, onSelectDate }: Che
   const [dates, setDates] = useState<DatePrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [serviceMessage, setServiceMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!origin || !destination) return;
@@ -48,6 +49,13 @@ export default function CheapestDates({ origin, destination, onSelectDate }: Che
 
         const data = await response.json();
         setDates(data.data || []);
+
+        // Capture service messages (e.g., when service is unavailable)
+        if (data.meta?.message && data.data?.length === 0) {
+          setServiceMessage(data.meta.message);
+        } else {
+          setServiceMessage(null);
+        }
       } catch (err: any) {
         setError(err.message);
         console.error('Error fetching cheapest dates:', err);
@@ -79,6 +87,19 @@ export default function CheapestDates({ origin, destination, onSelectDate }: Che
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-yellow-700">
         <p style={{ fontSize: typography.card.body.size }}>Price calendar temporarily unavailable</p>
+      </div>
+    );
+  }
+
+  // Show service message if available (e.g., service unavailable in test environment)
+  if (serviceMessage) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-center gap-2 mb-1">
+          <Calendar className="h-4 w-4 text-blue-600" />
+          <h4 className="font-semibold text-blue-900" style={{ fontSize: typography.card.title.size }}>Price Calendar</h4>
+        </div>
+        <p className="text-blue-700" style={{ fontSize: typography.card.body.size }}>{serviceMessage}</p>
       </div>
     );
   }

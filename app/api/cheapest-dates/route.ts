@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 
+// Mark this route as dynamic (it uses request params)
+export const dynamic = 'force-dynamic';
+
 // Helper function to extract airport code from various formats
 function extractAirportCode(value: string | null): string {
   if (!value) return '';
@@ -113,6 +116,11 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error in cheapest-dates API:', error);
 
+    // Log error details for debugging
+    if (error.response?.data) {
+      console.error('Error getting cheapest dates:', error.response.data);
+    }
+
     // Handle specific error cases
     const errorResponse = error.response?.data;
     const isNotFound = error.response?.status === 404 ||
@@ -120,6 +128,9 @@ export async function GET(request: NextRequest) {
 
     const isRateLimited = error.response?.status === 429 ||
                          errorResponse?.errors?.some((e: any) => e.code === 38194 || e.title === 'Too many requests');
+
+    const isAmadeusInternalError = error.response?.status === 500 ||
+                                   errorResponse?.errors?.some((e: any) => e.code === 38189 || e.title === 'Internal error');
 
     if (isNotFound) {
       // Return empty data with helpful message instead of 500 error
@@ -152,6 +163,23 @@ export async function GET(request: NextRequest) {
       await setCache(cacheKey, rateLimitResponse, 600);
 
       return NextResponse.json(rateLimitResponse, { status: 200 });
+    }
+
+    if (isAmadeusInternalError) {
+      // Handle Amadeus internal server errors (common in test environment)
+      const internalErrorResponse = {
+        data: [],
+        meta: {
+          count: 0,
+          message: `Price calendar service temporarily unavailable. This feature may be limited in the test environment.`,
+          serviceError: true
+        }
+      };
+
+      // Cache error result for 15 minutes to reduce API load on failing endpoint
+      await setCache(cacheKey, internalErrorResponse, 900);
+
+      return NextResponse.json(internalErrorResponse, { status: 200 });
     }
 
     // For other errors, return 500

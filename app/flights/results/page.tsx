@@ -24,6 +24,11 @@ import { layout, DESIGN_RULES } from '@/lib/design-system';
 import PriceCalendarMatrix from '@/components/flights/PriceCalendarMatrix';
 import AlternativeAirports from '@/components/flights/AlternativeAirports';
 import { batchCalculateDealScores } from '@/lib/flights/dealScore';
+import BaggageFeeDisclaimer from '@/components/flights/BaggageFeeDisclaimer';
+import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
+import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
+import { featureFlags } from '@/lib/feature-flags';
+import { trackConversion } from '@/lib/conversion-metrics';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -311,6 +316,29 @@ function FlightResultsContent() {
     connectionQuality: [],
   });
 
+  // Announce results to screen readers
+  const announceResults = (count: number) => {
+    const message = count === 0
+      ? 'No flights found matching your search criteria'
+      : count === 1
+      ? '1 flight found'
+      : `${count} flights found`;
+
+    // Create live region for screen reader announcement
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    document.body.appendChild(announcement);
+
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  };
+
   // Fetch flights on mount and when search params change
   useEffect(() => {
     const fetchFlights = async () => {
@@ -322,6 +350,9 @@ function FlightResultsContent() {
 
       setLoading(true);
       setError(null);
+
+      // Announce search start
+      announceResults(0); // Will be updated when results load
 
       try {
         const response = await fetch('/api/flights/search', {
@@ -435,30 +466,26 @@ function FlightResultsContent() {
           // Wait for both to complete
           const [rankedFlights, avgMarketPrice] = await Promise.all(promises);
 
-          // Add price vs market comparison and CO2 emissions
+          // ✅ FIXED: Add price vs market comparison (removed fake CO2 multipliers)
+          // CO2 emissions should ONLY come from real Amadeus CO2 Emissions API
+          // Never show fake/estimated CO2 data to maintain user trust
           if (avgMarketPrice && avgMarketPrice > 0) {
             processedFlights = rankedFlights.map((flight: ScoredFlight) => {
-              const duration = parseDuration(flight.itineraries[0].duration);
               return {
                 ...flight,
                 priceVsMarket: ((normalizePrice(flight.price.total) - avgMarketPrice) / avgMarketPrice) * 100,
-                co2Emissions: Math.round(duration * 0.15),
-                averageCO2: Math.round(duration * 0.18),
+                // CO2 data removed - only show when real API data available
               };
             });
           } else {
-            processedFlights = rankedFlights.map((flight: ScoredFlight) => {
-              const duration = parseDuration(flight.itineraries[0].duration);
-              return {
-                ...flight,
-                co2Emissions: Math.round(duration * 0.15),
-                averageCO2: Math.round(duration * 0.18),
-              };
-            });
+            processedFlights = rankedFlights;
           }
         }
 
         setFlights(processedFlights);
+
+        // Announce results to screen readers
+        announceResults(processedFlights.length);
 
         // Update filter ranges based on results
         if (processedFlights.length > 0) {
@@ -801,7 +828,12 @@ function FlightResultsContent() {
           </aside>
 
           {/* Main Content - Flight Results (Flexible width) */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0" role="main" aria-label="Flight search results">
+            {/* Screen reader announcement for current results */}
+            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+              {sortedFlights.length} flights found for {searchData.from} to {searchData.to}
+            </div>
+
             {/* Sort Bar - IMMEDIATELY before results */}
             <SortBar
               currentSort={sortBy}
@@ -996,6 +1028,14 @@ function FlightResultsContent() {
           {/* Right Sidebar - Price Insights & SmartWait (Fixed 320px) */}
           <aside className="hidden lg:block" style={{ width: '320px', flexShrink: 0 }}>
             <div className="sticky top-24 space-y-4">
+              {/* Live Activity Feed - Conversion Feature */}
+              {featureFlags.isEnabled('liveActivityFeed') && (
+                <LiveActivityFeed
+                  variant={featureFlags.get('activityFeedVariant')}
+                  maxItems={5}
+                />
+              )}
+
               {/* Price Insights */}
               {priceInsights && (
                 <PriceInsights
@@ -1070,6 +1110,18 @@ function FlightResultsContent() {
             from: searchData.from,
             to: searchData.to,
             date: searchData.departure,
+          }}
+        />
+      )}
+
+      {/* Exit Intent Popup - Conversion Feature */}
+      {featureFlags.isEnabled('exitIntent') && (
+        <ExitIntentPopup
+          discountCode={featureFlags.get('exitIntentDiscountCode')}
+          discountPercent={featureFlags.get('exitIntentDiscountPercent')}
+          onEmailSubmit={(email) => {
+            trackConversion('exit_intent_email_submitted', { email });
+            console.log('Exit intent email submitted:', email);
           }}
         />
       )}

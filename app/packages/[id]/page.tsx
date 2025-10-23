@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { CountdownTimer } from '@/components/conversion/CountdownTimer';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
-import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
+import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
 import { ScarcityIndicator } from '@/components/conversion/ScarcityIndicator';
 
 // Portugal Douro Valley Package Data - Bilingual

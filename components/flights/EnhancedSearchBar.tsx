@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
@@ -212,21 +212,31 @@ export default function EnhancedSearchBar({
 
   // Refs
   const passengerRef = useRef<HTMLDivElement>(null);
-  const departureDateRef = useRef<HTMLDivElement>(null);
-  const returnDateRef = useRef<HTMLDivElement>(null);
+  const departureDateRef = useRef<HTMLButtonElement>(null);
+  const returnDateRef = useRef<HTMLButtonElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
   const destinationRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (passengerRef.current && !passengerRef.current.contains(event.target as Node)) {
-        setShowPassengerDropdown(false);
+      const target = event.target as HTMLElement;
+
+      // Handle passenger dropdown - ONLY close on Done button or outside click
+      if (passengerRef.current) {
+        const clickedInside = passengerRef.current.contains(target);
+
+        if (!clickedInside) {
+          // Clicked outside - close dropdown
+          setShowPassengerDropdown(false);
+        }
+        // If clicked inside, DO NOT close (we'll handle Done button separately)
       }
-      if (originRef.current && !originRef.current.contains(event.target as Node)) {
+
+      if (originRef.current && !originRef.current.contains(target)) {
         setShowOriginDropdown(false);
       }
-      if (destinationRef.current && !destinationRef.current.contains(event.target as Node)) {
+      if (destinationRef.current && !destinationRef.current.contains(target)) {
         setShowDestinationDropdown(false);
       }
     };
@@ -352,7 +362,7 @@ export default function EnhancedSearchBar({
       children: passengers.children.toString(),
       infants: passengers.infants.toString(),
       class: cabinClass,
-      direct: directFlights.toString(),
+      direct: directFlights.toString()
     });
 
     // Add return date for round trips
@@ -382,7 +392,7 @@ export default function EnhancedSearchBar({
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:flex items-center gap-3">
           {/* From Airport */}
-          <div ref={originRef} className="flex-1">
+          <div ref={originRef} className="flex-1 relative">
             <MultiAirportSelector
               label="From"
               placeholder="Select airports"
@@ -396,10 +406,8 @@ export default function EnhancedSearchBar({
                 {errors.origin}
               </p>
             )}
-          </div>
 
-          {/* Swap Button */}
-          <div className="flex items-center">
+            {/* Swap Button - Centered between From and To */}
             <button
               type="button"
               onClick={() => {
@@ -407,11 +415,11 @@ export default function EnhancedSearchBar({
                 setOrigin(destination);
                 setDestination(temp);
               }}
-              className="p-2.5 text-gray-400 hover:text-[#0087FF] hover:bg-blue-50 rounded-lg transition-all"
+              className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#0087FF] hover:border-[#0087FF] hover:bg-blue-50 rounded-full transition-all shadow-sm hover:shadow-md"
               aria-label="Swap airports"
               title="Swap airports"
             >
-              <ArrowLeftRight size={20} />
+              <ArrowLeftRight size={12} />
             </button>
           </div>
 
@@ -433,23 +441,23 @@ export default function EnhancedSearchBar({
           </div>
 
           {/* Depart Date */}
-          <div ref={departureDateRef} className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Depart
+          <div className="flex-1">
+            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
+              <CalendarDays size={14} className="text-gray-600" />
+              <span>Depart</span>
             </label>
             <button
+              ref={departureDateRef}
               type="button"
               onClick={() => handleOpenDatePicker('departure')}
-              className="w-full text-left"
-            >
-              <div className={`relative w-full px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+              className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
                 errors.departureDate ? 'border-red-500' : 'border-gray-300'
-              }`}>
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <span className="block pl-7 text-sm font-medium text-gray-900">
-                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
-                </span>
-              </div>
+              }`}
+            >
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <span className="block pl-7 text-sm font-medium text-gray-900">
+                {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+              </span>
             </button>
             {errors.departureDate && (
               <p className="mt-1 text-xs text-red-600" role="alert">
@@ -459,9 +467,12 @@ export default function EnhancedSearchBar({
           </div>
 
           {/* Return Date */}
-          <div ref={returnDateRef} className="flex-1">
+          <div className="flex-1">
             <label className="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
-              <span>Return</span>
+              <span className="flex items-center gap-1.5">
+                <CalendarCheck size={14} className="text-gray-600" />
+                <span>Return</span>
+              </span>
               <label className="flex items-center gap-1.5 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -474,10 +485,12 @@ export default function EnhancedSearchBar({
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
                 />
+                <ArrowRight size={12} className="text-gray-500" />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">One-way</span>
               </label>
             </label>
             <button
+              ref={returnDateRef}
               type="button"
               onClick={() => {
                 if (tripType === 'oneway') {
@@ -507,10 +520,15 @@ export default function EnhancedSearchBar({
             </button>
           </div>
 
+
           {/* Combined Travelers + Class Dropdown */}
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Travelers & Class
+            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
+              <Users size={14} className="text-gray-600" />
+              <span>Travelers</span>
+              <span className="text-gray-400">&</span>
+              <Armchair size={14} className="text-gray-600" />
+              <span>Class</span>
             </label>
             <button
               type="button"
@@ -520,11 +538,11 @@ export default function EnhancedSearchBar({
               }}
               className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <span className="block pl-7 text-sm font-medium text-gray-900 truncate pr-6">
-                {totalPassengers} {totalPassengers === 1 ? 'Guest' : 'Guests'}, {t[cabinClass]}
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <span className="block pl-6 text-xs font-medium text-gray-900 pr-6">
+                {totalPassengers}, {t[cabinClass]}
               </span>
-              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={14} />
             </button>
 
             {showPassengerDropdown && (
@@ -642,13 +660,20 @@ export default function EnhancedSearchBar({
 
                 {/* Cabin Class Section */}
                 <div className="border-t border-gray-200 pt-3 mb-3">
-                  <div className="font-semibold text-gray-900 text-xs mb-2">Cabin Class</div>
+                  <div className="flex items-center gap-1.5 font-semibold text-gray-900 text-xs mb-2">
+                    <Sparkles size={14} className="text-gray-600" />
+                    <span>Cabin Class</span>
+                  </div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
                       <button
                         key={cls}
                         type="button"
-                        onClick={() => setCabinClass(cls)}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCabinClass(cls);
+                        }}
                         className={`px-2.5 py-2 rounded-lg border transition-all text-[10px] font-medium ${
                           cabinClass === cls
                             ? 'border-[#0087FF] bg-[#E6F3FF] text-[#0087FF]'
@@ -772,20 +797,21 @@ export default function EnhancedSearchBar({
 
           {/* Dates */}
           <div className={`grid gap-3 ${tripType === 'roundtrip' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {/* Depart Date with Inline Flex */}
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                 {t.depart}
               </label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="date"
-                  value={formatDateForInput(departureDate)}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 cursor-pointer"
-                />
-              </div>
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="date"
+                    value={formatDateForInput(departureDate)}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
+                  />
+                </div>
             </div>
             {tripType === 'roundtrip' && (
               <div>
@@ -806,6 +832,7 @@ export default function EnhancedSearchBar({
             )}
           </div>
 
+
           {/* Combined Travelers & Class */}
           <div ref={passengerRef} className="relative">
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -813,11 +840,11 @@ export default function EnhancedSearchBar({
             </label>
             <button
               onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-              className="w-full flex items-center gap-2 pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
+              className="w-full flex items-center gap-2 pl-8 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <span className="flex-1 text-left truncate">{totalPassengers} {totalPassengers === 1 ? 'Guest' : 'Guests'}, {t[cabinClass]}</span>
-              <ChevronDown className="text-gray-400" size={14} />
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <span className="flex-1 text-left">{totalPassengers}, {t[cabinClass]}</span>
+              <ChevronDown className="text-gray-400" size={12} />
             </button>
           </div>
 

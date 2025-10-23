@@ -52,6 +52,7 @@ function VirtualFlightList({
               price={flight.price}
               numberOfBookableSeats={flight.numberOfBookableSeats}
               validatingAirlineCodes={flight.validatingAirlineCodes}
+              travelerPricings={(flight as any).travelerPricings}
               badges={flight.badges}
               score={typeof flight.score === 'object' ? (flight.score as any)[sortBy] || (flight.score as any).overall : flight.score}
               mlScore={(flight as any).mlScore}

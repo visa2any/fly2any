@@ -7,6 +7,9 @@ import {
   getRuleSeverity,
 } from '@/lib/utils/fareRuleParsers';
 
+// Mark this route as dynamic (it uses request params)
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/fare-rules?flightOfferId=ABC123
  *
