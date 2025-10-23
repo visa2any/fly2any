@@ -644,12 +644,8 @@ export function FlightCardEnhanced({
                             'bg-gray-100 text-gray-900'
                           }`}>
                             {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
-                             outboundBaggage.cabin === 'BUSINESS' ? 'Business Class' :
-                             outboundBaggage.cabin === 'FIRST' ? 'First Class' : 'Economy Class'}
-                          </span>
-                          <span className="text-gray-400">•</span>
-                          <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-[10px] rounded">
-                            {outboundBaggage.brandedFareLabel || outboundBaggage.fareType}
+                             outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
+                             outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy'}
                           </span>
                         </div>
                       </div>
@@ -866,12 +862,8 @@ export function FlightCardEnhanced({
                               'bg-gray-100 text-gray-900'
                             }`}>
                               {returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
-                               returnBaggage?.cabin === 'BUSINESS' ? 'Business Class' :
-                               returnBaggage?.cabin === 'FIRST' ? 'First Class' : 'Economy Class'}
-                            </span>
-                            <span className="text-gray-400">•</span>
-                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-800 font-bold text-[10px] rounded">
-                              {returnBaggage?.brandedFareLabel || returnBaggage?.fareType}
+                               returnBaggage?.cabin === 'BUSINESS' ? 'Business' :
+                               returnBaggage?.cabin === 'FIRST' ? 'First' : 'Economy'}
                             </span>
                           </div>
                         </div>
