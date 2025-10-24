@@ -193,21 +193,34 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       }
     }
 
-    // 6. Basic Economy filter ✅
+    // 6. ✅ FIXED: Basic Economy filter - Check ALL segments, not just first
     if (filters.excludeBasicEconomy) {
       const travelerPricings = (flight as any).travelerPricings || [];
-      if (travelerPricings.length > 0) {
-        const fareDetails = travelerPricings[0]?.fareDetailsBySegment?.[0];
-        if (fareDetails) {
-          const fareType = fareDetails.brandedFare || fareDetails.fareBasis || '';
+
+      for (const pricing of travelerPricings) {
+        // Check fareOption first (most reliable indicator)
+        if (pricing?.fareOption === 'BASIC') {
+          return false; // Exclude Basic Economy fare option
+        }
+
+        // Check ALL segments for Basic Economy indicators
+        const fareDetails = pricing?.fareDetailsBySegment || [];
+        for (const fare of fareDetails) {
+          const brandedFare = fare?.brandedFare || '';
+          const fareBasis = fare?.fareBasis || '';
+          const fareType = brandedFare || fareBasis;
+
+          // Check for Basic Economy keywords in fare type
           const isBasicEconomy =
             fareType.toUpperCase().includes('BASIC') ||
             fareType.toUpperCase().includes('LIGHT') ||
             fareType.toUpperCase().includes('SAVER') ||
-            fareType.toUpperCase().includes('RESTRICTED');
+            fareType.toUpperCase().includes('RESTRICTED') ||
+            fareType.toUpperCase().includes('NOBAG') ||
+            fareType.toUpperCase().includes('GOLIGHT');
 
           if (isBasicEconomy) {
-            return false;
+            return false; // Exclude this flight
           }
         }
       }
@@ -235,7 +248,7 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       }
     }
 
-    // 8. ✅ FIXED: Baggage Included filter
+    // 8. ✅ FIXED: Baggage Included filter - Support BOTH quantity AND weight-based allowances
     if (filters.baggageIncluded) {
       const travelerPricings = (flight as any).travelerPricings || [];
       let hasBaggage = false;
@@ -243,8 +256,13 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       for (const pricing of travelerPricings) {
         const fareDetails = pricing?.fareDetailsBySegment || [];
         for (const fare of fareDetails) {
-          const includedBags = fare?.includedCheckedBags?.quantity || 0;
-          if (includedBags > 0) {
+          const bags = fare?.includedCheckedBags;
+
+          // Check BOTH quantity-based (e.g., "2 bags") AND weight-based (e.g., "23 KG") allowances
+          const hasQuantityBags = bags?.quantity !== undefined && bags.quantity > 0;
+          const hasWeightBags = bags?.weight !== undefined && bags.weight > 0;
+
+          if (hasQuantityBags || hasWeightBags) {
             hasBaggage = true;
             break;
           }
@@ -257,24 +275,41 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       }
     }
 
-    // 9. ✅ FIXED: Refundable Only filter
+    // 9. ✅ FIXED: Refundable Only filter - Use heuristics (fareRules not available in base API)
     if (filters.refundableOnly) {
       const travelerPricings = (flight as any).travelerPricings || [];
-      let isRefundable = false;
+      let likelyRefundable = false;
 
       for (const pricing of travelerPricings) {
+        // Check fareOption (FLEX/STANDARD fares are usually refundable)
+        if (pricing?.fareOption === 'FLEX' || pricing?.fareOption === 'STANDARD') {
+          likelyRefundable = true;
+          break;
+        }
+
+        // Check fare details for refundable indicators
         const fareDetails = pricing?.fareDetailsBySegment || [];
         for (const fare of fareDetails) {
-          const fareRules = fare?.fareRules || {};
-          if (fareRules.refundable === true || fare?.isRefundable === true) {
-            isRefundable = true;
+          const cabin = fare?.cabin || '';
+          const fareBasis = fare?.fareBasis || '';
+
+          // Business and First class are typically refundable
+          if (cabin === 'BUSINESS' || cabin === 'FIRST') {
+            likelyRefundable = true;
+            break;
+          }
+
+          // Full-fare economy (Y class fare basis) is usually refundable
+          // Fare basis starting with Y (not YS, YL, etc.) indicates full-fare
+          if (fareBasis.match(/^Y[A-Z]*$/)) {
+            likelyRefundable = true;
             break;
           }
         }
-        if (isRefundable) break;
+        if (likelyRefundable) break;
       }
 
-      if (!isRefundable) {
+      if (!likelyRefundable) {
         return false;
       }
     }
