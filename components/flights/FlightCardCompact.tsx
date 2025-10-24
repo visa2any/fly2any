@@ -201,10 +201,10 @@ export function FlightCardCompact({
           </span>
 
           {/* Departure */}
-          <div className="text-center">
-            <div className="flex flex-col items-center leading-none">
+          <div className="text-left">
+            <div className="flex flex-col items-start leading-none">
               <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[0].departure.at)}</span>
-              <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
+              <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
               {getAirportDisplay(outbound.segments[0].departure.iataCode)}
@@ -227,10 +227,10 @@ export function FlightCardCompact({
           </div>
 
           {/* Arrival */}
-          <div className="text-center">
-            <div className="flex flex-col items-center leading-none">
+          <div className="text-right">
+            <div className="flex flex-col items-end leading-none">
               <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
-              <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+              <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
               {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
@@ -314,15 +314,15 @@ export function FlightCardCompact({
       {isRoundtrip && (
         <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50/30 border-t border-gray-100">
           {/* RETURN Label - Inline */}
-          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap ml-9">
+          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap">
             ← RETURN
           </span>
 
           <div className="flex items-center gap-2 flex-1 min-w-[280px]">
-            <div className="text-center">
-              <div className="flex flex-col items-center leading-none">
+            <div className="text-left">
+              <div className="flex flex-col items-start leading-none">
                 <span className="text-sm font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
-                <span className="text-[9px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
+                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
                 {getAirportDisplay(inbound.segments[0].departure.iataCode)}
@@ -343,10 +343,10 @@ export function FlightCardCompact({
               </div>
             </div>
 
-            <div className="text-center">
-              <div className="flex flex-col items-center leading-none">
+            <div className="text-right">
+              <div className="flex flex-col items-end leading-none">
                 <span className="text-sm font-bold text-gray-900">{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
-                <span className="text-[9px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
                 {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}

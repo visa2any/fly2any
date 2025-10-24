@@ -207,6 +207,18 @@ export function FlightCardEnhanced({
   const inboundStops = inbound ? getStopsInfo(inbound.segments) : null;
   const onTimeBadge = getOnTimePerformanceBadge(airlineData.onTimePerformance);
 
+  // Format fare type for display
+  const formatFareType = (fareType: string): string => {
+    if (!fareType) return '';
+    // Handle common fare type patterns
+    if (fareType.includes('BASIC') || fareType.includes('LIGHT') || fareType.includes('SAVER')) return 'Basic';
+    if (fareType.includes('FLEX') || fareType.includes('FLEXIBLE')) return 'Flex';
+    if (fareType.includes('STANDARD') || fareType.includes('MAIN') || fareType.includes('CLASSIC')) return 'Standard';
+    if (fareType.includes('PREMIUM') || fareType.includes('PLUS')) return 'Premium';
+    // Default: capitalize first letter
+    return fareType.charAt(0).toUpperCase() + fareType.slice(1).toLowerCase();
+  };
+
   // Calculate savings
   const averagePrice = totalPrice * 1.25;
   const savings = averagePrice - totalPrice;
@@ -549,9 +561,9 @@ export function FlightCardEnhanced({
             </span>
           )}
 
-          {/* Cabin Class Badge - Simple & Clear */}
+          {/* Fare Type + Cabin Class Badge - Combined */}
           <span className="font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
-            {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
+            {formatFareType(outboundBaggage.fareType)} {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
              outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
              outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy'}
           </span>
@@ -623,7 +635,7 @@ export function FlightCardEnhanced({
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center leading-none">
                 <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[0].departure.at)}</span>
-                <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
+                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
               </div>
               <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[0].departure.iataCode)}
@@ -650,7 +662,7 @@ export function FlightCardEnhanced({
             <div className="flex-shrink-0 text-right">
               <div className="flex flex-col items-center leading-none">
                 <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
-                <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
@@ -714,7 +726,7 @@ export function FlightCardEnhanced({
                       <div className="text-right">
                         <div className="flex flex-col items-center leading-none">
                           <span className="font-bold text-gray-900 text-sm">{formatDate(segment.departure.at)}</span>
-                          <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
+                          <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
                         </div>
                         <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.departure.iataCode)}</div>
                         {segment.departure.terminal && (
@@ -732,7 +744,7 @@ export function FlightCardEnhanced({
                       <div className="text-left">
                         <div className="flex flex-col items-center leading-none">
                           <span className="font-bold text-gray-900 text-sm">{formatDate(segment.arrival.at)}</span>
-                          <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
+                          <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
                         </div>
                         <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.arrival.iataCode)}</div>
                         {segment.arrival.terminal && (
@@ -877,7 +889,7 @@ export function FlightCardEnhanced({
               <div className="flex-shrink-0">
                 <div className="flex flex-col items-center leading-none">
                   <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[0].departure.at)}</span>
-                  <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
+                  <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
                 </div>
                 <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[0].departure.iataCode)}
@@ -904,7 +916,7 @@ export function FlightCardEnhanced({
               <div className="flex-shrink-0 text-right">
                 <div className="flex flex-col items-center leading-none">
                   <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
-                  <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                  <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
                 </div>
                 <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
@@ -968,7 +980,7 @@ export function FlightCardEnhanced({
                         <div className="text-right">
                           <div className="flex flex-col items-center leading-none">
                             <span className="font-bold text-gray-900 text-sm">{formatDate(segment.departure.at)}</span>
-                            <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
+                            <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
                           </div>
                           <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.departure.iataCode)}</div>
                           {segment.departure.terminal && (
@@ -986,7 +998,7 @@ export function FlightCardEnhanced({
                         <div className="text-left">
                           <div className="flex flex-col items-center leading-none">
                             <span className="font-bold text-gray-900 text-sm">{formatDate(segment.arrival.at)}</span>
-                            <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
+                            <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
                           </div>
                           <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.arrival.iataCode)}</div>
                           {segment.arrival.terminal && (
