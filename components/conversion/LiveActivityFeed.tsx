@@ -50,11 +50,15 @@ export default function LiveActivityFeed({
   maxItems = 5,
   variant = 'sidebar'
 }: LiveActivityFeedProps) {
-  const [activities, setActivities] = useState<ActivityItem[]>([
-    generateActivity()
-  ]);
+  // ✅ FIX: Initialize with empty array to prevent hydration mismatch
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // ✅ FIX: Generate initial activity only on client after mount
+    setMounted(true);
+    setActivities([generateActivity()]);
+
     // Add new activity every 8-15 seconds
     const interval = setInterval(() => {
       const newActivity = generateActivity();
@@ -72,6 +76,11 @@ export default function LiveActivityFeed({
     if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
     return `${Math.floor(seconds / 3600)} hours ago`;
   };
+
+  // ✅ FIX: Don't render until client-side mount to prevent hydration errors
+  if (!mounted || activities.length === 0) {
+    return null;
+  }
 
   if (variant === 'popup') {
     const latestActivity = activities[0];
