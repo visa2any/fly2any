@@ -316,12 +316,12 @@ export function FlightCardCompact({
           {/* Spacer to align with airline logo width */}
           <div className="min-w-[140px]"></div>
 
-          {/* RETURN Label - Inline */}
-          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
-            ← RETURN
-          </span>
-
           <div className="flex items-center gap-2 flex-1 min-w-[280px]">
+            {/* RETURN Label - Inline */}
+            <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
+              ← RETURN
+            </span>
+
             <div className="text-left">
               <div className="flex flex-col items-start leading-none">
                 <span className="text-sm font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
