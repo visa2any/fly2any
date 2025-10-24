@@ -324,7 +324,7 @@ export function FlightCardCompact({
 
             <div className="text-left">
               <div className="flex flex-col items-start leading-none">
-                <span className="text-sm font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
+                <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
                 <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
@@ -348,7 +348,7 @@ export function FlightCardCompact({
 
             <div className="text-right">
               <div className="flex flex-col items-end leading-none">
-                <span className="text-sm font-bold text-gray-900">{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
                 <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
