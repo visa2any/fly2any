@@ -633,9 +633,9 @@ export function FlightCardEnhanced({
           <div className="flex items-center gap-2">
             {/* Departure */}
             <div className="flex-shrink-0">
-              <div className="flex flex-col items-center leading-none">
+              <div className="flex items-baseline gap-1 leading-none">
                 <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[0].departure.at)}</span>
-                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
+                <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[0].departure.at)}</span>
               </div>
               <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[0].departure.iataCode)}
@@ -660,9 +660,9 @@ export function FlightCardEnhanced({
 
             {/* Arrival */}
             <div className="flex-shrink-0 text-right">
-              <div className="flex flex-col items-center leading-none">
+              <div className="flex items-baseline gap-1 justify-end leading-none">
                 <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
-                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
@@ -887,9 +887,9 @@ export function FlightCardEnhanced({
           <div className="mt-1.5 pt-1.5 border-t border-gray-100">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
-                <div className="flex flex-col items-center leading-none">
+                <div className="flex items-baseline gap-1 leading-none">
                   <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[0].departure.at)}</span>
-                  <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
+                  <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[0].departure.at)}</span>
                 </div>
                 <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[0].departure.iataCode)}
@@ -914,9 +914,9 @@ export function FlightCardEnhanced({
               </div>
 
               <div className="flex-shrink-0 text-right">
-                <div className="flex flex-col items-center leading-none">
+                <div className="flex items-baseline gap-1 justify-end leading-none">
                   <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
-                  <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                  <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
                 </div>
                 <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
