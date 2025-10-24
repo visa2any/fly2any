@@ -3,10 +3,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
+import MultiDatePicker from '@/components/common/MultiDatePicker';
 
 interface PassengerCounts {
   adults: number;
@@ -191,15 +193,33 @@ export default function EnhancedSearchBar({
     return codes.split(',').map(code => code.trim()).filter(code => code.length > 0);
   };
 
+  // Parse comma-separated date strings into Date arrays
+  const parseDateString = (dateString: string): Date[] => {
+    if (!dateString) return [];
+    const dates = dateString.split(',').map(d => d.trim()).filter(d => d.length > 0);
+    return dates.map(d => new Date(d + 'T00:00:00')); // Add time to ensure correct timezone
+  };
+
+  // Detect if we should use multi-date mode based on initial props
+  const detectMultiDateMode = (): boolean => {
+    return initialDepartureDate?.includes(',') || initialReturnDate?.includes(',');
+  };
+
+  const isMultiDateMode = detectMultiDateMode();
+
   // Form state
   const [origin, setOrigin] = useState<string[]>(parseAirportCodes(initialOrigin));
   const [destination, setDestination] = useState<string[]>(parseAirportCodes(initialDestination));
-  const [departureDate, setDepartureDate] = useState(initialDepartureDate);
-  const [returnDate, setReturnDate] = useState(initialReturnDate);
+  const [departureDate, setDepartureDate] = useState(isMultiDateMode ? '' : initialDepartureDate);
+  const [departureDates, setDepartureDates] = useState<Date[]>(isMultiDateMode ? parseDateString(initialDepartureDate) : []);
+  const [returnDate, setReturnDate] = useState(isMultiDateMode ? '' : initialReturnDate);
+  const [returnDates, setReturnDates] = useState<Date[]>(isMultiDateMode ? parseDateString(initialReturnDate) : []);
+  const [useFlexibleDates, setUseFlexibleDates] = useState(isMultiDateMode); // Auto-enable if comma-separated dates detected
   const [passengers, setPassengers] = useState(initialPassengers);
   const [cabinClass, setCabinClass] = useState(initialCabinClass);
   const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>(initialReturnDate ? 'roundtrip' : 'oneway');
   const [directFlights, setDirectFlights] = useState(false);
+  const [openMultiDatePicker, setOpenMultiDatePicker] = useState<'departure' | 'return' | null>(null); // Track which multi-date picker is open
 
   // UI state
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
@@ -338,8 +358,15 @@ export default function EnhancedSearchBar({
       }
     }
 
-    if (!departureDate) {
-      newErrors.departureDate = t.errors.departureDateRequired;
+    // Departure date validation
+    if (useFlexibleDates) {
+      if (!departureDates || departureDates.length === 0) {
+        newErrors.departureDate = t.errors.departureDateRequired;
+      }
+    } else {
+      if (!departureDate) {
+        newErrors.departureDate = t.errors.departureDateRequired;
+      }
     }
 
     setErrors(newErrors);
@@ -357,7 +384,10 @@ export default function EnhancedSearchBar({
     const params = new URLSearchParams({
       from: origin.join(','),  // Join multiple codes with comma
       to: destination.join(','),  // Join multiple codes with comma
-      departure: formatDateForInput(departureDate),
+      departure: useFlexibleDates
+        ? departureDates.map(date => format(date, 'yyyy-MM-dd')).join(',')
+        : formatDateForInput(departureDate),
+      useFlexibleDates: useFlexibleDates.toString(),
       adults: passengers.adults.toString(),
       children: passengers.children.toString(),
       infants: passengers.infants.toString(),
@@ -366,8 +396,12 @@ export default function EnhancedSearchBar({
     });
 
     // Add return date for round trips
-    if (tripType === 'roundtrip' && returnDate) {
-      params.append('return', formatDateForInput(returnDate));
+    if (tripType === 'roundtrip') {
+      if (useFlexibleDates && returnDates.length > 0) {
+        params.append('return', returnDates.map(date => format(date, 'yyyy-MM-dd')).join(','));
+      } else if (returnDate) {
+        params.append('return', formatDateForInput(returnDate));
+      }
     }
 
     console.log('🔍 Searching with params:', Object.fromEntries(params));
@@ -390,7 +424,9 @@ export default function EnhancedSearchBar({
         }}
       >
         {/* Desktop: Clean Single-line Layout */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:block">
+          {/* Search Fields Row */}
+          <div className="flex items-center gap-3">
           {/* From Airport */}
           <div ref={originRef} className="flex-1 relative">
             <MultiAirportSelector
@@ -442,23 +478,64 @@ export default function EnhancedSearchBar({
 
           {/* Depart Date */}
           <div className="flex-1">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
-              <CalendarDays size={14} className="text-gray-600" />
-              <span>Depart</span>
-            </label>
-            <button
-              ref={departureDateRef}
-              type="button"
-              onClick={() => handleOpenDatePicker('departure')}
-              className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
-                errors.departureDate ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <span className="block pl-7 text-sm font-medium text-gray-900">
-                {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
-              </span>
-            </button>
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <CalendarDays size={14} className="text-gray-600" />
+                <span>Depart</span>
+              </label>
+
+              {/* Multi-Dates Toggle */}
+              <label className="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={useFlexibleDates}
+                  onChange={(e) => {
+                    setUseFlexibleDates(e.target.checked);
+                    if (e.target.checked) {
+                      setDepartureDate('');
+                      setReturnDate('');
+                    } else {
+                      setDepartureDates([]);
+                      setReturnDates([]);
+                    }
+                  }}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                />
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Multi-Dates</span>
+              </label>
+            </div>
+
+            {!useFlexibleDates ? (
+              <button
+                ref={departureDateRef}
+                type="button"
+                onClick={() => handleOpenDatePicker('departure')}
+                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+                  errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <span className="block pl-7 text-sm font-medium text-gray-900">
+                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                </span>
+              </button>
+            ) : (
+              <MultiDatePicker
+                key="departure-dates"
+                selectedDates={departureDates}
+                onDatesChange={setDepartureDates}
+                maxDates={3}
+                minDate={new Date()}
+                label=""
+                headerLabel="Select Departure Dates"
+                placeholder="Select up to 3 dates"
+                isOpen={openMultiDatePicker === 'departure'}
+                onOpenChange={(isOpen) => {
+                  setOpenMultiDatePicker(isOpen ? 'departure' : null);
+                }}
+              />
+            )}
+
             {errors.departureDate && (
               <p className="mt-1 text-xs text-red-600" role="alert">
                 {errors.departureDate}
@@ -468,11 +545,13 @@ export default function EnhancedSearchBar({
 
           {/* Return Date */}
           <div className="flex-1">
-            <label className="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
-              <span className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
                 <CalendarCheck size={14} className="text-gray-600" />
                 <span>Return</span>
-              </span>
+              </label>
+
+              {/* One-way Toggle */}
               <label className="flex items-center gap-1.5 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -481,6 +560,7 @@ export default function EnhancedSearchBar({
                     setTripType(e.target.checked ? 'oneway' : 'roundtrip');
                     if (e.target.checked) {
                       setReturnDate('');
+                      setReturnDates([]);
                     }
                   }}
                   className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
@@ -488,36 +568,45 @@ export default function EnhancedSearchBar({
                 <ArrowRight size={12} className="text-gray-500" />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">One-way</span>
               </label>
-            </label>
-            <button
-              ref={returnDateRef}
-              type="button"
-              onClick={() => {
-                if (tripType === 'oneway') {
-                  setTripType('roundtrip');
-                }
-                handleOpenDatePicker('return');
-              }}
-              disabled={tripType === 'oneway'}
-              className="w-full text-left"
-            >
-              <div className={`relative w-full px-4 py-3 border rounded-lg transition-all ${
-                tripType === 'oneway'
-                  ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                  : 'bg-white border-gray-300 hover:border-[#0087FF] cursor-pointer'
-              }`}>
-                <Calendar className={`absolute left-3 top-1/2 -translate-y-1/2 ${tripType === 'oneway' ? 'text-gray-300' : 'text-gray-400'}`} size={18} />
-                <span className={`block pl-7 text-sm ${
-                  tripType === 'oneway'
-                    ? 'text-gray-400 italic'
-                    : returnDate
-                      ? 'font-medium text-gray-900'
-                      : 'text-gray-500'
-                }`}>
-                  {tripType === 'oneway' ? 'One-way trip' : returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+            </div>
+
+            {tripType === 'roundtrip' ? (
+              !useFlexibleDates ? (
+                <button
+                  ref={returnDateRef}
+                  type="button"
+                  onClick={() => handleOpenDatePicker('return')}
+                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                >
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <span className="block pl-7 text-sm font-medium text-gray-900">
+                    {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                  </span>
+                </button>
+              ) : (
+                <MultiDatePicker
+                  key="return-dates"
+                  selectedDates={returnDates}
+                  onDatesChange={setReturnDates}
+                  maxDates={3}
+                  minDate={new Date()}
+                  label=""
+                  headerLabel="Select Return Dates"
+                  placeholder="Select up to 3 dates"
+                  isOpen={openMultiDatePicker === 'return'}
+                  onOpenChange={(isOpen) => {
+                    setOpenMultiDatePicker(isOpen ? 'return' : null);
+                  }}
+                />
+              )
+            ) : (
+              <div className="relative w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+                <span className="block pl-7 text-sm text-gray-400 italic">
+                  One-way trip
                 </span>
               </div>
-            </button>
+            )}
           </div>
 
 
@@ -723,6 +812,7 @@ export default function EnhancedSearchBar({
                 <span>Search Flights</span>
               )}
             </button>
+          </div>
           </div>
         </div>
 
