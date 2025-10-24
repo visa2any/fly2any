@@ -82,6 +82,15 @@ export interface EnhancedFlightCardProps {
   isComparing?: boolean;
   isNavigating?: boolean;
   lang?: 'en' | 'pt' | 'es';
+  // Amadeus API fields needed for upselling
+  type?: string;
+  source?: string;
+  instantTicketingRequired?: boolean;
+  nonHomogeneous?: boolean;
+  oneWay?: boolean;
+  lastTicketingDate?: string;
+  lastTicketingDateTime?: string;
+  pricingOptions?: any;
 }
 
 export function FlightCardEnhanced({
@@ -108,6 +117,15 @@ export function FlightCardEnhanced({
   isComparing = false,
   isNavigating = false,
   lang = 'en',
+  // Amadeus API fields
+  type = 'flight-offer',
+  source = 'GDS',
+  instantTicketingRequired = false,
+  nonHomogeneous = false,
+  oneWay,
+  lastTicketingDate,
+  lastTicketingDateTime,
+  pricingOptions,
 }: EnhancedFlightCardProps) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -1469,12 +1487,23 @@ export function FlightCardEnhanced({
           {/* FARE UPGRADE PANEL - Real Amadeus API fare families */}
           <FareUpgradePanel
             flightOffer={{
+              type,
               id,
+              source,
+              instantTicketingRequired,
+              nonHomogeneous,
+              oneWay: oneWay ?? !itineraries[1],
+              lastTicketingDate: lastTicketingDate || itineraries[0].segments[0].departure.at.split('T')[0],
+              lastTicketingDateTime,
+              numberOfBookableSeats,
               itineraries,
               price,
-              travelerPricings,
+              pricingOptions: pricingOptions || {
+                fareType: ['PUBLISHED'],
+                includedCheckedBagsOnly: true,
+              },
               validatingAirlineCodes,
-              numberOfBookableSeats,
+              travelerPricings,
             }}
             onSelectFare={(fare) => {
               console.log('Selected fare:', fare);
