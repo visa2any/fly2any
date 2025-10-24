@@ -323,6 +323,9 @@ export default function FlightFilters({
   const [isMinFocused, setIsMinFocused] = useState(false);
   const [isMaxFocused, setIsMaxFocused] = useState(false);
 
+  // ✨ NEW: Airline search state
+  const [airlineSearch, setAirlineSearch] = useState<string>('');
+
   // Calculate min/max price from flight data
   const priceRange = flightData.reduce(
     (acc, flight) => {
@@ -349,6 +352,17 @@ export default function FlightFilters({
     )
   ).sort();
 
+  // ✨ PHASE 2: Filter airlines by search term
+  const filteredAirlines = availableAirlines.filter((airline) => {
+    if (!airlineSearch.trim()) return true;
+    const searchLower = airlineSearch.toLowerCase();
+    const name = airlineNames[airline] || airline;
+    return (
+      name.toLowerCase().includes(searchLower) ||
+      airline.toLowerCase().includes(searchLower)
+    );
+  });
+
   // Calculate max duration from flight data
   const maxDurationValue = Math.ceil(
     Math.max(
@@ -366,6 +380,14 @@ export default function FlightFilters({
     const hours = match[1] ? parseInt(match[1].replace('H', '')) : 0;
     const minutes = match[2] ? parseInt(match[2].replace('M', '')) : 0;
     return hours * 60 + minutes;
+  }
+
+  // ✨ PHASE 2: Format duration with half-hour increments
+  function formatDuration(minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}m`;
   }
 
   /**
@@ -582,6 +604,44 @@ export default function FlightFilters({
     onFiltersChange(resetFilters);
   };
 
+  // ✨ PHASE 2: Individual clear handlers
+  const handleClearCabinClass = () => {
+    const updated = { ...localFilters, cabinClass: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+  };
+
+  const handleClearStops = () => {
+    const updated = { ...localFilters, stops: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+  };
+
+  const handleClearAirlines = () => {
+    const updated = { ...localFilters, airlines: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+    setAirlineSearch(''); // Also clear search
+  };
+
+  const handleClearAlliances = () => {
+    const updated = { ...localFilters, alliances: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+  };
+
+  const handleClearDepartureTime = () => {
+    const updated = { ...localFilters, departureTime: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+  };
+
+  const handleClearConnectionQuality = () => {
+    const updated = { ...localFilters, connectionQuality: [] };
+    setLocalFilters(updated);
+    onFiltersChange(updated);
+  };
+
   const hasActiveFilters =
     localFilters.stops.length > 0 ||
     localFilters.airlines.length > 0 ||
@@ -760,7 +820,18 @@ export default function FlightFilters({
 
       {/* Cabin Class Filter - COMPACT */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.cabinClass}</label>
+        <div className="flex items-center justify-between">
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.cabinClass}</label>
+          {localFilters.cabinClass.length > 0 && (
+            <button
+              onClick={handleClearCabinClass}
+              className="text-gray-500 hover:text-gray-700 font-medium"
+              style={{ fontSize: '11px' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2 gap-1.5">
           {[
             { value: 'ECONOMY' as const, label: t.economy, icon: '💺' },
@@ -877,7 +948,18 @@ export default function FlightFilters({
 
       {/* Stops Filter - COMPACT */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.stops}</label>
+        <div className="flex items-center justify-between">
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.stops}</label>
+          {localFilters.stops.length > 0 && (
+            <button
+              onClick={handleClearStops}
+              className="text-gray-500 hover:text-gray-700 font-medium"
+              style={{ fontSize: '11px' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {[
             { value: 'direct' as const, label: t.direct, icon: '✈️' },
@@ -917,16 +999,63 @@ export default function FlightFilters({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div className="flex items-center justify-between">
           <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.airlines}</label>
-          <button
-            onClick={handleSelectAllAirlines}
-            className="text-primary-600 hover:text-primary-700 font-semibold"
-            style={{ fontSize: '11px' }}
-          >
-            {t.selectAll}
-          </button>
+          <div className="flex items-center gap-2">
+            {localFilters.airlines.length > 0 && (
+              <button
+                onClick={handleClearAirlines}
+                className="text-gray-500 hover:text-gray-700 font-medium"
+                style={{ fontSize: '11px' }}
+              >
+                Clear
+              </button>
+            )}
+            <button
+              onClick={handleSelectAllAirlines}
+              className="text-primary-600 hover:text-primary-700 font-semibold"
+              style={{ fontSize: '11px' }}
+            >
+              {t.selectAll}
+            </button>
+          </div>
         </div>
+
+        {/* ✨ PHASE 2: Airline Search Box */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search airlines..."
+            value={airlineSearch}
+            onChange={(e) => setAirlineSearch(e.target.value)}
+            className="w-full pl-8 pr-8 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <svg
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {airlineSearch && (
+            <button
+              onClick={() => setAirlineSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         <div className="max-h-48 overflow-y-auto scrollbar-hide pr-1" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {availableAirlines.map((airline) => (
+          {filteredAirlines.length === 0 ? (
+            <div className="text-center py-4 text-gray-500" style={{ fontSize: '12px' }}>
+              No airlines found
+            </div>
+          ) : (
+            filteredAirlines.map((airline) => (
             <label
               key={airline}
               className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
@@ -951,17 +1080,29 @@ export default function FlightFilters({
               </div>
               {resultCounts?.airlines[airline] !== undefined && (
                 <span className="font-semibold text-gray-500 bg-gray-100 rounded-full" style={{ fontSize: '10px', padding: '2px 6px' }}>
-                  {resultCounts.airlines[airline]}
+                  {resultCounts?.airlines[airline]}
                 </span>
               )}
             </label>
-          ))}
+          ))
+          )}
         </div>
       </div>
 
       {/* Airline Alliances Filter */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.alliances}</label>
+        <div className="flex items-center justify-between">
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.alliances}</label>
+          {localFilters.alliances.length > 0 && (
+            <button
+              onClick={handleClearAlliances}
+              className="text-gray-500 hover:text-gray-700 font-medium"
+              style={{ fontSize: '11px' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-3 gap-2">
           {[
             { value: 'star-alliance' as const, label: t.starAlliance, icon: '⭐' },
@@ -992,7 +1133,18 @@ export default function FlightFilters({
 
       {/* Departure Time Filter */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.departureTime}</label>
+        <div className="flex items-center justify-between">
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.departureTime}</label>
+          {localFilters.departureTime.length > 0 && (
+            <button
+              onClick={handleClearDepartureTime}
+              className="text-gray-500 hover:text-gray-700 font-medium"
+              style={{ fontSize: '11px' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2" style={{ gap: '4px' }}>
           {[
             { value: 'morning' as const, label: t.morning, time: '6AM-12PM', icon: timeRanges.morning.icon },
@@ -1028,23 +1180,24 @@ export default function FlightFilters({
         </div>
       </div>
 
-      {/* Flight Duration Filter */}
+      {/* Flight Duration Filter - ✨ PHASE 2: With half-hour increments */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.flightDuration}</label>
         <div style={{ paddingLeft: '6px', paddingRight: '6px' }}>
           <input
             type="range"
-            min={1}
-            max={maxDurationValue}
-            value={localFilters.maxDuration}
-            onChange={(e) => handleDurationChange(Number(e.target.value))}
+            min={60}
+            max={maxDurationValue * 60}
+            step={30}
+            value={localFilters.maxDuration * 60}
+            onChange={(e) => handleDurationChange(Math.floor(Number(e.target.value) / 60))}
             className="w-full h-2 bg-gradient-to-r from-primary-200 to-primary-500 rounded-lg appearance-none cursor-pointer slider-thumb"
           />
           <div className="flex items-center justify-between" style={{ marginTop: '4px' }}>
             <span className="text-gray-500" style={{ fontSize: '11px' }}>1h</span>
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: '4px' }}>
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200" style={{ padding: '4px 8px' }}>
               <span className="font-bold text-primary-600" style={{ fontSize: '12px' }}>
-                {localFilters.maxDuration} {t.hours}
+                {formatDuration(localFilters.maxDuration * 60)}
               </span>
             </div>
             <span className="text-gray-500" style={{ fontSize: '11px' }}>{maxDurationValue}h</span>
@@ -1105,7 +1258,18 @@ export default function FlightFilters({
 
       {/* Connection Quality Filter */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.connectionQuality}</label>
+        <div className="flex items-center justify-between">
+          <label className="block font-semibold text-gray-900" style={{ fontSize: '12px' }}>{t.connectionQuality}</label>
+          {localFilters.connectionQuality.length > 0 && (
+            <button
+              onClick={handleClearConnectionQuality}
+              className="text-gray-500 hover:text-gray-700 font-medium"
+              style={{ fontSize: '11px' }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {[
             { value: 'short' as const, label: t.shortConnection, icon: '⚡' },
