@@ -202,9 +202,9 @@ export function FlightCardCompact({
 
           {/* Departure */}
           <div className="text-left">
-            <div className="flex flex-col items-start leading-none">
+            <div className="flex items-baseline gap-1 leading-none">
               <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[0].departure.at)}</span>
-              <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
+              <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[0].departure.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
               {getAirportDisplay(outbound.segments[0].departure.iataCode)}
@@ -228,9 +228,9 @@ export function FlightCardCompact({
 
           {/* Arrival */}
           <div className="text-right">
-            <div className="flex flex-col items-end leading-none">
+            <div className="flex items-baseline gap-1 justify-end leading-none">
               <span className="text-base font-bold text-gray-900">{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
-              <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+              <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
               {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
@@ -323,9 +323,9 @@ export function FlightCardCompact({
             </span>
 
             <div className="text-left">
-              <div className="flex flex-col items-start leading-none">
+              <div className="flex items-baseline gap-1 leading-none">
                 <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[0].departure.at)}</span>
-                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
+                <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[0].departure.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
                 {getAirportDisplay(inbound.segments[0].departure.iataCode)}
@@ -347,9 +347,9 @@ export function FlightCardCompact({
             </div>
 
             <div className="text-right">
-              <div className="flex flex-col items-end leading-none">
+              <div className="flex items-baseline gap-1 justify-end leading-none">
                 <span className="text-base font-bold text-gray-900">{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
-                <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
                 {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
