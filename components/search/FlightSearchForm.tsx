@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import { AirportAutocomplete } from './AirportAutocomplete';
 import MultiAirportSelector, { Airport } from '@/components/common/MultiAirportSelector';
+import MultiDatePicker from '@/components/common/MultiDatePicker';
 import { PlaneTakeoff, PlaneLanding, Calendar, Users } from 'lucide-react';
 
 // Types
@@ -21,12 +23,14 @@ interface FormData {
   origin: string[];  // Array of airport codes
   destination: string[];  // Array of airport codes
   departureDate: string;
+  departureDates: Date[];  // Array of specific departure dates
+  useMultiDate: boolean;   // Toggle between single date and multi-date mode
   returnDate: string;
   passengers: PassengerCounts;
   travelClass: TravelClass;
   tripType: TripType;
   directFlights: boolean;
-  departureFlex: number;  // ±N days for departure (0-5)
+  departureFlex: number;  // ±N days for departure (0-5) - only for single date mode
   tripDuration: number;   // Number of nights for round trips (1-14)
 }
 
@@ -187,6 +191,8 @@ export default function FlightSearchForm({
     origin: [],  // Start with empty array
     destination: [],  // Start with empty array
     departureDate: '',
+    departureDates: [],    // Array of specific departure dates
+    useMultiDate: false,   // Toggle between single-date and multi-date mode
     returnDate: '',
     passengers: {
       adults: 1,
@@ -239,14 +245,34 @@ export default function FlightSearchForm({
     }
 
     // Departure date validation
-    if (!formData.departureDate) {
-      newErrors.departureDate = t.errors.departureDateRequired;
+    if (formData.useMultiDate) {
+      // Multi-date mode: validate departureDates array
+      if (!formData.departureDates || formData.departureDates.length === 0) {
+        newErrors.departureDate = t.errors.departureDateRequired;
+      } else {
+        // Check if any selected date is in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const hasPastDate = formData.departureDates.some(date => {
+          const checkDate = new Date(date);
+          checkDate.setHours(0, 0, 0, 0);
+          return checkDate < today;
+        });
+        if (hasPastDate) {
+          newErrors.departureDate = t.errors.departureDatePast;
+        }
+      }
     } else {
-      const depDate = new Date(formData.departureDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (depDate < today) {
-        newErrors.departureDate = t.errors.departureDatePast;
+      // Single-date mode: validate departureDate
+      if (!formData.departureDate) {
+        newErrors.departureDate = t.errors.departureDateRequired;
+      } else {
+        const depDate = new Date(formData.departureDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (depDate < today) {
+          newErrors.departureDate = t.errors.departureDatePast;
+        }
       }
     }
 
@@ -316,7 +342,10 @@ export default function FlightSearchForm({
     const params = new URLSearchParams({
       origin: formData.origin.join(','), // Join multiple airport codes with comma
       destination: formData.destination.join(','), // Join multiple airport codes with comma
-      departureDate: formData.departureDate,
+      departureDate: formData.useMultiDate
+        ? formData.departureDates.map(date => format(date, 'yyyy-MM-dd')).join(',')
+        : formData.departureDate,
+      useMultiDate: formData.useMultiDate.toString(),
       adults: formData.passengers.adults.toString(),
       children: formData.passengers.children.toString(),
       infants: formData.passengers.infants.toString(),
@@ -436,60 +465,103 @@ export default function FlightSearchForm({
 
         {/* Dates */}
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Departure Date with Inline Flex Controls */}
+          {/* Departure Date with Multi-Date Toggle */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              {t.departure}
-            </label>
-            <div className="flex items-center gap-2">
-              {/* Date Input */}
-              <div className="flex-1 relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                <input
-                  type="date"
-                  value={formData.departureDate}
-                  min={getMinDate()}
-                  onChange={(e) => {
-                    setFormData({ ...formData, departureDate: e.target.value });
-                    if (errors.departureDate) {
-                      const newErrors = { ...errors };
-                      delete newErrors.departureDate;
-                      setErrors(newErrors);
-                    }
-                  }}
-                  className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
-                    errors.departureDate ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  aria-label={t.departure}
-                  aria-invalid={!!errors.departureDate}
-                />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                {t.departure}
+              </label>
 
-              {/* Inline Flex Controls */}
-              <div className="flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-2 border-2 border-gray-200">
+              {/* Toggle between Single Date and Multi-Date */}
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, departureFlex: Math.max(0, formData.departureFlex - 1) })}
-                  disabled={formData.departureFlex === 0}
-                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
-                  aria-label="Decrease flex days"
+                  onClick={() => setFormData({ ...formData, useMultiDate: false, departureDates: [] })}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                    !formData.useMultiDate
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  −
+                  Single Date
                 </button>
-                <span className="text-xs font-semibold text-gray-700 min-w-[36px] text-center">
-                  {formData.departureFlex === 0 ? 'Exact' : `±${formData.departureFlex}`}
-                </span>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, departureFlex: Math.min(5, formData.departureFlex + 1) })}
-                  disabled={formData.departureFlex === 5}
-                  className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
-                  aria-label="Increase flex days"
+                  onClick={() => setFormData({ ...formData, useMultiDate: true, departureDate: '' })}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-all ${
+                    formData.useMultiDate
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  +
+                  Multiple Dates
                 </button>
               </div>
             </div>
+
+            {/* Single Date Mode */}
+            {!formData.useMultiDate ? (
+              <div className="flex items-center gap-2">
+                {/* Date Input */}
+                <div className="flex-1 relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={formData.departureDate}
+                    min={getMinDate()}
+                    onChange={(e) => {
+                      setFormData({ ...formData, departureDate: e.target.value });
+                      if (errors.departureDate) {
+                        const newErrors = { ...errors };
+                        delete newErrors.departureDate;
+                        setErrors(newErrors);
+                      }
+                    }}
+                    className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
+                      errors.departureDate ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    aria-label={t.departure}
+                    aria-invalid={!!errors.departureDate}
+                  />
+                </div>
+
+                {/* Inline Flex Controls */}
+                <div className="flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-2 border-2 border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, departureFlex: Math.max(0, formData.departureFlex - 1) })}
+                    disabled={formData.departureFlex === 0}
+                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    aria-label="Decrease flex days"
+                  >
+                    −
+                  </button>
+                  <span className="text-xs font-semibold text-gray-700 min-w-[36px] text-center">
+                    {formData.departureFlex === 0 ? 'Exact' : `±${formData.departureFlex}`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, departureFlex: Math.min(5, formData.departureFlex + 1) })}
+                    disabled={formData.departureFlex === 5}
+                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    aria-label="Increase flex days"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Multi-Date Mode */
+              <MultiDatePicker
+                selectedDates={formData.departureDates}
+                onDatesChange={(dates) => setFormData({ ...formData, departureDates: dates })}
+                maxDates={7}
+                minDate={new Date()}
+                label=""
+                placeholder="Select departure dates"
+              />
+            )}
+
             {errors.departureDate && (
               <p className="mt-1 text-sm text-red-600" role="alert">
                 {errors.departureDate}

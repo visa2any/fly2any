@@ -652,6 +652,54 @@ class AmadeusAPI {
   }
 
   /**
+   * Flight Offers Upselling - Get all fare families for a flight
+   * This returns ALL available fare types from cheapest to most expensive
+   * (Basic Economy → Standard → Flex → Business → First)
+   *
+   * Use this to show users upgrade options after initial search
+   */
+  async getUpsellingFares(flightOffer: any) {
+    const token = await this.getAccessToken();
+
+    try {
+      console.log('🎫 Fetching all fare families for flight...');
+
+      const response = await axios.post(
+        `${this.baseUrl}/v1/shopping/flight-offers/upselling`,
+        {
+          data: {
+            type: 'flight-offers-upselling',
+            flightOffers: [flightOffer],
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      console.log(`✅ Found ${response.data.data?.length || 0} fare families`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting upselling fares:', error.response?.data || error);
+
+      // If upselling not available, return original offer as single option
+      if (error.response?.status === 404) {
+        console.log('⚠️  Upselling not available for this flight, returning original fare');
+        return {
+          data: [flightOffer],
+          meta: { count: 1 }
+        };
+      }
+
+      throw new Error('Failed to get fare families');
+    }
+  }
+
+  /**
    * Seat Maps - Get aircraft seat map
    */
   async getSeatMap(flightOfferId: string) {

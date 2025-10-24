@@ -20,6 +20,7 @@ import FareRulesAccordion from './FareRulesAccordion';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
 import type { DealScoreBreakdown } from '@/lib/flights/dealScore';
 import { dimensions, spacing, typography, colors } from '@/lib/design-system';
+import FareUpgradePanel from './FareUpgradePanel';
 import { ParsedFareRules } from '@/lib/utils/fareRuleParsers';
 
 interface Segment {
@@ -1464,6 +1465,22 @@ export function FlightCardEnhanced({
               </div>
             </div>
           )}
+
+          {/* FARE UPGRADE PANEL - Real Amadeus API fare families */}
+          <FareUpgradePanel
+            flightOffer={{
+              id,
+              itineraries,
+              price,
+              travelerPricings,
+              validatingAirlineCodes,
+              numberOfBookableSeats,
+            }}
+            onSelectFare={(fare) => {
+              console.log('Selected fare:', fare);
+              // TODO: Update booking flow with selected fare
+            }}
+          />
         </div>
       )}
 
