@@ -134,24 +134,33 @@ const getStopsCategory = (segments: number): 'direct' | '1-stop' | '2+-stops' =>
 };
 
 // Apply filters to flights - COMPLETE IMPLEMENTATION (All 14 filters)
+// ✅ FIXED: Now correctly handles BOTH outbound and return flights for round-trip searches
 const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): ScoredFlight[] => {
   return flights.filter(flight => {
     const price = normalizePrice(flight.price.total);
-    const itinerary = flight.itineraries[0];
-    const duration = parseDuration(itinerary.duration);
-    const departureHour = getDepartureHour(itinerary.segments[0].departure.at);
-    const timeCategory = getTimeCategory(departureHour);
-    const stopsCategory = getStopsCategory(itinerary.segments.length);
-    const airlines = itinerary.segments.map(seg => seg.carrierCode);
+
+    // ✅ CRITICAL FIX: Check ALL itineraries (outbound + return for round-trips)
+    const itineraries = flight.itineraries || [];
+
+    // Collect all airlines from ALL itineraries
+    const airlines = itineraries.flatMap(it => it.segments.map(seg => seg.carrierCode));
 
     // 1. Price filter ✅
     if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
       return false;
     }
 
-    // 2. Stops filter ✅
-    if (filters.stops.length > 0 && !filters.stops.includes(stopsCategory)) {
-      return false;
+    // 2. ✅ FIXED: Stops filter - Check BOTH outbound AND return flights
+    if (filters.stops.length > 0) {
+      // For round-trip, BOTH flights must match the stops criteria
+      const allItinerariesMatch = itineraries.every(itinerary => {
+        const stopsCategory = getStopsCategory(itinerary.segments.length);
+        return filters.stops.includes(stopsCategory);
+      });
+
+      if (!allItinerariesMatch) {
+        return false;
+      }
     }
 
     // 3. Airline filter ✅
@@ -159,14 +168,29 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       return false;
     }
 
-    // 4. Departure time filter ✅
-    if (filters.departureTime.length > 0 && !filters.departureTime.includes(timeCategory)) {
-      return false;
+    // 4. ✅ FIXED: Departure time filter - Check outbound departure time only
+    // (Return departure time is usually not what users want to filter)
+    if (filters.departureTime.length > 0) {
+      const outboundItinerary = itineraries[0];
+      if (outboundItinerary) {
+        const departureHour = getDepartureHour(outboundItinerary.segments[0].departure.at);
+        const timeCategory = getTimeCategory(departureHour);
+        if (!filters.departureTime.includes(timeCategory)) {
+          return false;
+        }
+      }
     }
 
-    // 5. Duration filter ✅
-    if (duration > filters.maxDuration * 60) {
-      return false;
+    // 5. ✅ FIXED: Duration filter - Check BOTH outbound AND return flights
+    if (filters.maxDuration) {
+      const exceedsMaxDuration = itineraries.some(itinerary => {
+        const duration = parseDuration(itinerary.duration);
+        return duration > filters.maxDuration * 60;
+      });
+
+      if (exceedsMaxDuration) {
+        return false;
+      }
     }
 
     // 6. Basic Economy filter ✅
@@ -255,26 +279,26 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       }
     }
 
-    // 10. ✅ FIXED: Max Layover Duration filter
+    // 10. ✅ FIXED: Max Layover Duration filter - Check BOTH outbound AND return flights
     if (filters.maxLayoverDuration < 720) { // Only apply if not default (12h)
-      const segments = itinerary.segments;
-      if (segments.length > 1) {
-        let hasLongLayover = false;
+      const hasLongLayover = itineraries.some(itinerary => {
+        const segments = itinerary.segments;
+        if (segments.length > 1) {
+          for (let i = 0; i < segments.length - 1; i++) {
+            const arrivalTime = new Date(segments[i].arrival.at).getTime();
+            const departureTime = new Date(segments[i + 1].departure.at).getTime();
+            const layoverMinutes = (departureTime - arrivalTime) / (1000 * 60);
 
-        for (let i = 0; i < segments.length - 1; i++) {
-          const arrivalTime = new Date(segments[i].arrival.at).getTime();
-          const departureTime = new Date(segments[i + 1].departure.at).getTime();
-          const layoverMinutes = (departureTime - arrivalTime) / (1000 * 60);
-
-          if (layoverMinutes > filters.maxLayoverDuration) {
-            hasLongLayover = true;
-            break;
+            if (layoverMinutes > filters.maxLayoverDuration) {
+              return true; // Found a long layover
+            }
           }
         }
+        return false;
+      });
 
-        if (hasLongLayover) {
-          return false;
-        }
+      if (hasLongLayover) {
+        return false;
       }
     }
 
@@ -303,12 +327,18 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       }
     }
 
-    // 13. ✅ FIXED: Connection Quality filter
+    // 13. ✅ FIXED: Connection Quality filter - Check BOTH outbound AND return flights
     if (filters.connectionQuality.length > 0) {
-      const segments = itinerary.segments;
-      if (segments.length > 1) {
-        let matchesQuality = false;
+      const allItinerariesMatch = itineraries.every(itinerary => {
+        const segments = itinerary.segments;
 
+        // Direct flights (no connections) always match
+        if (segments.length === 1) {
+          return true;
+        }
+
+        // Check if any connection in this itinerary matches the quality filter
+        let hasMatchingConnection = false;
         for (let i = 0; i < segments.length - 1; i++) {
           const arrivalTime = new Date(segments[i].arrival.at).getTime();
           const departureTime = new Date(segments[i + 1].departure.at).getTime();
@@ -321,14 +351,16 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
           else quality = 'long';
 
           if (filters.connectionQuality.includes(quality)) {
-            matchesQuality = true;
+            hasMatchingConnection = true;
             break;
           }
         }
 
-        if (!matchesQuality && segments.length > 1) {
-          return false;
-        }
+        return hasMatchingConnection;
+      });
+
+      if (!allItinerariesMatch) {
+        return false;
       }
     }
 
