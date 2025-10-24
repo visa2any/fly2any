@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { duffelAPI } from '@/lib/api/duffel';
 import {
   calculateFlightScore,
   getFlightBadges,
@@ -37,10 +38,12 @@ function calculateReturnDate(departureDate: string, nights: number): string {
 
 /**
  * Deduplicate flight offers by flight segments
+ * When multiple sources return the same flight, keep the cheapest one
  */
 function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
-  const seen = new Set<string>();
-  return flights.filter(flight => {
+  const flightMap = new Map<string, FlightOffer>();
+
+  for (const flight of flights) {
     // Create unique key from all segments (airline + flight number + departure time)
     const key = flight.itineraries.flatMap(itin =>
       itin.segments.map(seg =>
@@ -48,10 +51,24 @@ function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
       )
     ).join('|');
 
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    const existingFlight = flightMap.get(key);
+
+    if (!existingFlight) {
+      // First time seeing this flight - add it
+      flightMap.set(key, flight);
+    } else {
+      // Flight already exists - keep the cheaper one
+      const existingPrice = parseFloat(existingFlight.price?.total || '999999');
+      const newPrice = parseFloat(flight.price?.total || '999999');
+
+      if (newPrice < existingPrice) {
+        console.log(`  💰 Found cheaper price: ${flight.source || 'Unknown'} $${newPrice} < ${existingFlight.source || 'Unknown'} $${existingPrice}`);
+        flightMap.set(key, flight);
+      }
+    }
+  }
+
+  return Array.from(flightMap.values());
 }
 
 /**
@@ -260,6 +277,7 @@ export async function POST(request: NextRequest) {
     let dictionaries: any = {};
 
     // Helper function to search a single origin-destination pair
+    // Queries both Amadeus and Duffel in parallel, then merges results
     const searchSingleRoute = async (origin: string, destination: string, dateToSearch: string, returnDateToSearch?: string) => {
       const singleRouteParams = {
         origin,
@@ -275,8 +293,51 @@ export async function POST(request: NextRequest) {
         max: body.max || 50,
       };
 
-      const apiResponse = await amadeusAPI.searchFlights(singleRouteParams);
-      return apiResponse;
+      // Map travel class for Duffel (lowercase format)
+      const duffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
+
+      // Query both APIs in parallel
+      const [amadeusResponse, duffelResponse] = await Promise.allSettled([
+        amadeusAPI.searchFlights(singleRouteParams),
+        duffelAPI.isAvailable()
+          ? duffelAPI.searchFlights({
+              origin,
+              destination,
+              departureDate: dateToSearch,
+              returnDate: returnDateToSearch,
+              adults: body.adults || 1,
+              children: body.children,
+              infants: body.infants,
+              cabinClass: duffelCabinClass || 'economy',
+              maxResults: body.max || 50,
+            })
+          : Promise.resolve({ data: [], meta: { count: 0 } }),
+      ]);
+
+      // Extract results
+      const amadeusFlights = amadeusResponse.status === 'fulfilled' ? (amadeusResponse.value.data || []) : [];
+      const duffelFlights = duffelResponse.status === 'fulfilled' ? (duffelResponse.value.data || []) : [];
+
+      // Log any errors (but don't fail the entire search)
+      if (amadeusResponse.status === 'rejected') {
+        console.error('  ⚠️  Amadeus API error:', amadeusResponse.reason?.message);
+      }
+      if (duffelResponse.status === 'rejected') {
+        console.error('  ⚠️  Duffel API error:', duffelResponse.reason?.message);
+      }
+
+      console.log(`    Amadeus: ${amadeusFlights.length} flights, Duffel: ${duffelFlights.length} flights`);
+
+      // Merge results
+      const allFlightsFromBothSources = [...amadeusFlights, ...duffelFlights];
+
+      // Get dictionaries from Amadeus response (for carrier names, etc.)
+      const dictionaries = amadeusResponse.status === 'fulfilled' ? amadeusResponse.value.dictionaries : {};
+
+      return {
+        data: allFlightsFromBothSources,
+        dictionaries,
+      };
     };
 
     // Multi-airport search: iterate through all origin-destination combinations
