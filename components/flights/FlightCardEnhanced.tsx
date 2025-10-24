@@ -713,7 +713,7 @@ export function FlightCardEnhanced({
                             outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'bg-indigo-100 text-indigo-900' :
                             'bg-gray-100 text-gray-900'
                           }`}>
-                            {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
+                            {formatFareType(outboundBaggage.fareType)} {outboundBaggage.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
                              outboundBaggage.cabin === 'BUSINESS' ? 'Business' :
                              outboundBaggage.cabin === 'FIRST' ? 'First' : 'Economy'}
                           </span>
@@ -967,7 +967,7 @@ export function FlightCardEnhanced({
                               returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'bg-indigo-100 text-indigo-900' :
                               'bg-gray-100 text-gray-900'
                             }`}>
-                              {returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
+                              {formatFareType(returnBaggage?.fareType || '')} {returnBaggage?.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
                                returnBaggage?.cabin === 'BUSINESS' ? 'Business' :
                                returnBaggage?.cabin === 'FIRST' ? 'First' : 'Economy'}
                             </span>

@@ -196,7 +196,7 @@ export function FlightCardCompact({
         {/* 2. OUTBOUND FLIGHT - Ultra compact horizontal with inline label */}
         <div className="flex items-center gap-2 flex-1 min-w-[280px]">
           {/* OUTBOUND Label - Inline */}
-          <span className="text-[8px] font-bold text-blue-600 uppercase tracking-wide whitespace-nowrap">
+          <span className="text-[8px] font-bold text-blue-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
             → OUTBOUND
           </span>
 
@@ -313,8 +313,11 @@ export function FlightCardCompact({
       {/* RETURN FLIGHT - If roundtrip, show in second compact row */}
       {isRoundtrip && (
         <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50/30 border-t border-gray-100">
+          {/* Spacer to align with airline logo width */}
+          <div className="min-w-[140px]"></div>
+
           {/* RETURN Label - Inline */}
-          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap">
+          <span className="text-[8px] font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap w-[72px] flex-shrink-0">
             ← RETURN
           </span>
 
