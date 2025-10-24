@@ -129,10 +129,9 @@ class AmadeusAPI {
    * Search for flight offers
    */
   async searchFlights(params: FlightSearchParams) {
-    // If no API credentials, return mock data
+    // If no API credentials, throw error
     if (!this.apiKey || !this.apiSecret) {
-      console.log('🧪 Using mock flight data (no Amadeus credentials)');
-      return this.getMockFlightData(params);
+      throw new Error('Amadeus API credentials not configured. Please set AMADEUS_API_KEY and AMADEUS_API_SECRET in .env.local');
     }
 
     try {
@@ -184,9 +183,8 @@ class AmadeusAPI {
       console.error('❌ Error searching flights:', error.response?.data || error.message);
       console.error('Full error:', error);
 
-      // Fallback to mock data on any error
-      console.log('🧪 Falling back to mock flight data due to API error');
-      return this.getMockFlightData(params);
+      // NO MORE MOCK DATA FALLBACK - Throw the actual error
+      throw new Error(`Amadeus API flight search failed: ${error.response?.data?.errors?.[0]?.detail || error.message}`);
     }
   }
 
