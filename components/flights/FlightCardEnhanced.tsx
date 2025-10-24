@@ -6,12 +6,15 @@ import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, H
 import ShareFlightModal from './ShareFlightModal';
 import { getAirlineData, getAllianceBadgeColor, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
 import { getEstimatedAmenities } from '@/lib/flights/aircraft-amenities';
-import { getAirportDisplay } from '@/lib/flights/airport-cities';
+import { getAirportDisplay, getAirportCity } from '@/lib/flights/airport-cities';
+import { getAircraftName } from '@/lib/flights/aircraft-names';
+import { formatBaggageWeight, extractWeight } from '@/lib/flights/weight-utils';
 import AirlineLogo from './AirlineLogo';
 import UrgencyIndicators from './UrgencyIndicators';
 import SocialProof from './SocialProof';
 import PriceAnchoringBadge from './PriceAnchoringBadge';
 import CO2Badge from './CO2Badge';
+import BaggageTooltip from './BaggageTooltip';
 import FareComparisonModal, { FareOption } from './FareComparisonModal';
 import FareRulesAccordion from './FareRulesAccordion';
 import { DealScoreBadgeCompact } from './DealScoreBadge';
@@ -134,6 +137,10 @@ export function FlightCardEnhanced({
   const primaryAirline = validatingAirlineCodes[0] || itineraries[0]?.segments[0]?.carrierCode || 'XX';
   const airlineData = getAirlineData(primaryAirline);
 
+  // Get primary flight number (first segment) and strip airline code prefix
+  const rawFlightNumber = itineraries[0]?.segments[0]?.number || '';
+  const primaryFlightNumber = rawFlightNumber.replace(/^[A-Z]{2}\s*/, ''); // Remove 2-letter airline code prefix
+
   // Calculate totals with type-safe parsing
   const parsePrice = (value: string | number | undefined): number => {
     if (value === undefined) return 0;
@@ -172,9 +179,9 @@ export function FlightCardEnhanced({
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: false,
+      hour12: true,
     });
   };
 
@@ -506,10 +513,18 @@ export function FlightCardEnhanced({
             className="shadow-sm flex-shrink-0"
           />
 
-          {/* Airline Name */}
-          <span className="font-semibold text-gray-900 truncate" style={{ fontSize: typography.card.title.size }}>
-            {airlineData.name}
-          </span>
+          {/* Airline Name + Flight Number */}
+          <div className="flex items-baseline gap-1.5 truncate">
+            <span className="font-semibold text-gray-900 truncate" style={{ fontSize: typography.card.title.size }}>
+              {airlineData.name}
+            </span>
+            {primaryFlightNumber && (
+              <span className="font-medium text-gray-500 truncate flex items-baseline gap-0.5" style={{ fontSize: '11px' }}>
+                <span className="text-gray-400">Flight</span>
+                <span className="text-gray-600 font-semibold">{primaryFlightNumber}</span>
+              </span>
+            )}
+          </div>
 
           {/* Rating - Compact */}
           <div className="flex items-center gap-0.5 flex-shrink-0">
@@ -606,10 +621,11 @@ export function FlightCardEnhanced({
           <div className="flex items-center gap-2">
             {/* Departure */}
             <div className="flex-shrink-0">
-              <div className="font-bold text-gray-900" style={{ fontSize: '16px', lineHeight: '1.2' }}>
-                {formatTime(outbound.segments[0].departure.at)}
+              <div className="flex flex-col items-center leading-none">
+                <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[0].departure.at)}</span>
+                <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[0].departure.at)}</span>
               </div>
-              <div className="font-semibold text-gray-600" style={{ fontSize: typography.card.meta.size }}>
+              <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[0].departure.iataCode)}
               </div>
             </div>
@@ -632,10 +648,11 @@ export function FlightCardEnhanced({
 
             {/* Arrival */}
             <div className="flex-shrink-0 text-right">
-              <div className="font-bold text-gray-900" style={{ fontSize: '16px', lineHeight: '1.2' }}>
-                {formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}
+              <div className="flex flex-col items-center leading-none">
+                <span className="font-bold text-gray-900" style={{ fontSize: '16px' }}>{formatDate(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
+                <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
               </div>
-              <div className="font-semibold text-gray-600" style={{ fontSize: typography.card.meta.size }}>
+              <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                 {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
               </div>
             </div>
@@ -657,11 +674,16 @@ export function FlightCardEnhanced({
                       />
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-900">
-                            {getAirlineData(segment.carrierCode).name} {segment.number}
+                          <span className="text-sm font-semibold text-gray-900">
+                            {getAirlineData(segment.carrierCode).name}
                           </span>
-                          <span className="text-gray-400">•</span>
-                          <span className="text-xs text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
+                          <span className="text-[11px] font-medium text-gray-500 flex items-baseline gap-0.5">
+                            <span className="text-gray-400">Flight</span>
+                            <span className="text-gray-600 font-semibold">{segment.number?.replace(/^[A-Z]{2}\s*/, '') || segment.number}</span>
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-gray-600 font-medium">
+                          {getAircraftName(segment.aircraft?.code)} • {segment.aircraft?.code || 'N/A'}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <span className="flex items-center gap-1">
@@ -690,10 +712,13 @@ export function FlightCardEnhanced({
                     {/* RIGHT: Flight Route & Times */}
                     <div className="flex items-center gap-3 text-xs">
                       <div className="text-right">
-                        <div className="font-bold text-gray-900">{formatTime(segment.departure.at)}</div>
-                        <div className="text-gray-600">{segment.departure.iataCode}</div>
+                        <div className="flex flex-col items-center leading-none">
+                          <span className="font-bold text-gray-900 text-sm">{formatDate(segment.departure.at)}</span>
+                          <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
+                        </div>
+                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.departure.iataCode)}</div>
                         {segment.departure.terminal && (
-                          <div className="text-[10px] text-gray-500">T{segment.departure.terminal}</div>
+                          <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.departure.terminal}</span></div>
                         )}
                       </div>
 
@@ -705,17 +730,20 @@ export function FlightCardEnhanced({
                       </div>
 
                       <div className="text-left">
-                        <div className="font-bold text-gray-900">{formatTime(segment.arrival.at)}</div>
-                        <div className="text-gray-600">{segment.arrival.iataCode}</div>
+                        <div className="flex flex-col items-center leading-none">
+                          <span className="font-bold text-gray-900 text-sm">{formatDate(segment.arrival.at)}</span>
+                          <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
+                        </div>
+                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.arrival.iataCode)}</div>
                         {segment.arrival.terminal && (
-                          <div className="text-[10px] text-gray-500">T{segment.arrival.terminal}</div>
+                          <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.arrival.terminal}</span></div>
                         )}
                       </div>
                     </div>
                   </div>
                   {idx < outbound.segments.length - 1 && (
                     <div className="mt-1 px-2 py-0.5 bg-yellow-100 border-l-2 border-yellow-500 text-yellow-900 text-[10px] font-medium rounded">
-                      ⏱️ Layover in {segment.arrival.iataCode} • {parseDuration(segment.duration || outbound.duration)}
+                      ⏱️ Layover in {getAirportCity(segment.arrival.iataCode)} • {parseDuration(segment.duration || outbound.duration)}
                     </div>
                   )}
                 </div>
@@ -725,31 +753,45 @@ export function FlightCardEnhanced({
               <div className="mt-1.5 py-1 px-2 bg-gray-50/50 rounded-sm border-t border-gray-100">
                 <div className="flex items-center justify-between flex-wrap gap-x-2.5 gap-y-1 text-[11px] font-medium min-h-[20px]">
                   {/* Baggage - Same height alignment */}
-                  <span className="inline-flex items-center gap-0.5 h-full">
-                    <span className="leading-none">🎒</span>
-                    <span className={outboundBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
-                      {outboundBaggage.carryOn
-                        ? outboundBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
-                        : 'Personal only'
-                      }
-                      <span className="text-gray-600 font-normal">({outboundBaggage.carryOnWeight})</span>
+                  <BaggageTooltip
+                    type={outboundBaggage.carryOnQuantity === 2 ? 'carry-on' : 'personal'}
+                    weight={formatBaggageWeight(extractWeight(outboundBaggage.carryOnWeight))}
+                    airline={primaryAirline}
+                    fareClass={outboundBaggage.fareType}
+                  >
+                    <span className="inline-flex items-center gap-0.5 h-full cursor-help">
+                      <span className="leading-none">🎒</span>
+                      <span className={outboundBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                        {outboundBaggage.carryOn
+                          ? outboundBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
+                          : 'Personal only'
+                        }
+                        <span className="text-gray-600 font-normal">({formatBaggageWeight(extractWeight(outboundBaggage.carryOnWeight))})</span>
+                      </span>
                     </span>
-                  </span>
+                  </BaggageTooltip>
 
                   <span className="text-gray-400 leading-none">•</span>
 
-                  <span className="inline-flex items-center gap-0.5 h-full">
-                    <span className="leading-none">💼</span>
-                    <span className={outboundBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
-                      {outboundBaggage.checked > 0
-                        ? `${outboundBaggage.checked} bag${outboundBaggage.checked > 1 ? 's' : ''}`
-                        : 'Not included'
-                      }
-                      {outboundBaggage.checked > 0 && (
-                        <span className="text-gray-600 font-normal">({outboundBaggage.checkedWeight})</span>
-                      )}
+                  <BaggageTooltip
+                    type="checked"
+                    weight={outboundBaggage.checked > 0 ? formatBaggageWeight(extractWeight(outboundBaggage.checkedWeight)) : undefined}
+                    airline={primaryAirline}
+                    fareClass={outboundBaggage.fareType}
+                  >
+                    <span className="inline-flex items-center gap-0.5 h-full cursor-help">
+                      <span className="leading-none">💼</span>
+                      <span className={outboundBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                        {outboundBaggage.checked > 0
+                          ? `${outboundBaggage.checked} bag${outboundBaggage.checked > 1 ? 's' : ''}`
+                          : 'Not included'
+                        }
+                        {outboundBaggage.checked > 0 && (
+                          <span className="text-gray-600 font-normal">({formatBaggageWeight(extractWeight(outboundBaggage.checkedWeight))})</span>
+                        )}
+                      </span>
                     </span>
-                  </span>
+                  </BaggageTooltip>
 
                   <span className="text-gray-400 leading-none">•</span>
 
@@ -833,10 +875,11 @@ export function FlightCardEnhanced({
           <div className="mt-1.5 pt-1.5 border-t border-gray-100">
             <div className="flex items-center gap-2">
               <div className="flex-shrink-0">
-                <div className="font-bold text-gray-900" style={{ fontSize: '14px', lineHeight: '1.2' }}>
-                  {formatTime(inbound.segments[0].departure.at)}
+                <div className="flex flex-col items-center leading-none">
+                  <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[0].departure.at)}</span>
+                  <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[0].departure.at)}</span>
                 </div>
-                <div className="font-medium text-gray-600" style={{ fontSize: typography.card.meta.size }}>
+                <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[0].departure.iataCode)}
                 </div>
               </div>
@@ -859,10 +902,11 @@ export function FlightCardEnhanced({
               </div>
 
               <div className="flex-shrink-0 text-right">
-                <div className="font-bold text-gray-900" style={{ fontSize: '14px', lineHeight: '1.2' }}>
-                  {formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}
+                <div className="flex flex-col items-center leading-none">
+                  <span className="font-bold text-gray-900" style={{ fontSize: '14px' }}>{formatDate(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
+                  <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
                 </div>
-                <div className="font-medium text-gray-600" style={{ fontSize: typography.card.meta.size }}>
+                <div className="font-medium text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
                   {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
                 </div>
               </div>
@@ -884,11 +928,16 @@ export function FlightCardEnhanced({
                         />
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-gray-900">
-                              {getAirlineData(segment.carrierCode).name} {segment.number}
+                            <span className="text-sm font-semibold text-gray-900">
+                              {getAirlineData(segment.carrierCode).name}
                             </span>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-xs text-gray-600">{segment.aircraft?.code || 'N/A'}</span>
+                            <span className="text-[11px] font-medium text-gray-500 flex items-baseline gap-0.5">
+                              <span className="text-gray-400">Flight</span>
+                              <span className="text-gray-600 font-semibold">{segment.number?.replace(/^[A-Z]{2}\s*/, '') || segment.number}</span>
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-600 font-medium">
+                            {getAircraftName(segment.aircraft?.code)} • {segment.aircraft?.code || 'N/A'}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-600">
                             <span className="flex items-center gap-1">
@@ -917,10 +966,13 @@ export function FlightCardEnhanced({
                       {/* RIGHT: Flight Route & Times */}
                       <div className="flex items-center gap-3 text-xs">
                         <div className="text-right">
-                          <div className="font-bold text-gray-900">{formatTime(segment.departure.at)}</div>
-                          <div className="text-gray-600">{segment.departure.iataCode}</div>
+                          <div className="flex flex-col items-center leading-none">
+                            <span className="font-bold text-gray-900 text-sm">{formatDate(segment.departure.at)}</span>
+                            <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
+                          </div>
+                          <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.departure.iataCode)}</div>
                           {segment.departure.terminal && (
-                            <div className="text-[10px] text-gray-500">T{segment.departure.terminal}</div>
+                            <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.departure.terminal}</span></div>
                           )}
                         </div>
 
@@ -932,17 +984,20 @@ export function FlightCardEnhanced({
                         </div>
 
                         <div className="text-left">
-                          <div className="font-bold text-gray-900">{formatTime(segment.arrival.at)}</div>
-                          <div className="text-gray-600">{segment.arrival.iataCode}</div>
+                          <div className="flex flex-col items-center leading-none">
+                            <span className="font-bold text-gray-900 text-sm">{formatDate(segment.arrival.at)}</span>
+                            <span className="text-[10px] font-medium text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
+                          </div>
+                          <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.arrival.iataCode)}</div>
                           {segment.arrival.terminal && (
-                            <div className="text-[10px] text-gray-500">T{segment.arrival.terminal}</div>
+                            <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.arrival.terminal}</span></div>
                           )}
                         </div>
                       </div>
                     </div>
                     {idx < inbound.segments.length - 1 && (
                       <div className="mt-1 px-2 py-0.5 bg-yellow-100 border-l-2 border-yellow-500 text-yellow-900 text-[10px] font-medium rounded">
-                        ⏱️ Layover in {segment.arrival.iataCode} • {parseDuration(segment.duration || inbound.duration)}
+                        ⏱️ Layover in {getAirportCity(segment.arrival.iataCode)} • {parseDuration(segment.duration || inbound.duration)}
                       </div>
                     )}
                   </div>
@@ -953,31 +1008,45 @@ export function FlightCardEnhanced({
                   <div className="mt-1.5 py-1 px-2 bg-gray-50/50 rounded-sm border-t border-gray-100">
                     <div className="flex items-center justify-between flex-wrap gap-x-2.5 gap-y-1 text-[11px] font-medium min-h-[20px]">
                       {/* Baggage - Same height alignment */}
-                      <span className="inline-flex items-center gap-0.5 h-full">
-                        <span className="leading-none">🎒</span>
-                        <span className={returnBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
-                          {returnBaggage.carryOn
-                            ? returnBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
-                            : 'Personal only'
-                          }
-                          <span className="text-gray-600 font-normal">({returnBaggage.carryOnWeight})</span>
+                      <BaggageTooltip
+                        type={returnBaggage.carryOnQuantity === 2 ? 'carry-on' : 'personal'}
+                        weight={formatBaggageWeight(extractWeight(returnBaggage.carryOnWeight))}
+                        airline={primaryAirline}
+                        fareClass={returnBaggage.fareType}
+                      >
+                        <span className="inline-flex items-center gap-0.5 h-full cursor-help">
+                          <span className="leading-none">🎒</span>
+                          <span className={returnBaggage.carryOn ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                            {returnBaggage.carryOn
+                              ? returnBaggage.carryOnQuantity === 2 ? '1 bag+personal' : 'Personal only'
+                              : 'Personal only'
+                            }
+                            <span className="text-gray-600 font-normal">({formatBaggageWeight(extractWeight(returnBaggage.carryOnWeight))})</span>
+                          </span>
                         </span>
-                      </span>
+                      </BaggageTooltip>
 
                       <span className="text-gray-400 leading-none">•</span>
 
-                      <span className="inline-flex items-center gap-0.5 h-full">
-                        <span className="leading-none">💼</span>
-                        <span className={returnBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
-                          {returnBaggage.checked > 0
-                            ? `${returnBaggage.checked} bag${returnBaggage.checked > 1 ? 's' : ''}`
-                            : 'Not included'
-                          }
-                          {returnBaggage.checked > 0 && (
-                            <span className="text-gray-600 font-normal">({returnBaggage.checkedWeight})</span>
-                          )}
+                      <BaggageTooltip
+                        type="checked"
+                        weight={returnBaggage.checked > 0 ? formatBaggageWeight(extractWeight(returnBaggage.checkedWeight)) : undefined}
+                        airline={primaryAirline}
+                        fareClass={returnBaggage.fareType}
+                      >
+                        <span className="inline-flex items-center gap-0.5 h-full cursor-help">
+                          <span className="leading-none">💼</span>
+                          <span className={returnBaggage.checked > 0 ? 'font-semibold text-green-700 leading-none' : 'font-medium text-gray-700 leading-none'}>
+                            {returnBaggage.checked > 0
+                              ? `${returnBaggage.checked} bag${returnBaggage.checked > 1 ? 's' : ''}`
+                              : 'Not included'
+                            }
+                            {returnBaggage.checked > 0 && (
+                              <span className="text-gray-600 font-normal">({formatBaggageWeight(extractWeight(returnBaggage.checkedWeight))})</span>
+                            )}
+                          </span>
                         </span>
-                      </span>
+                      </BaggageTooltip>
 
                       <span className="text-gray-400 leading-none">•</span>
 
