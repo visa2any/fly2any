@@ -43,6 +43,7 @@ interface SearchParams {
   children: number;
   infants: number;
   class: 'economy' | 'premium' | 'business' | 'first';
+  useFlexibleDates?: boolean;
 }
 
 interface ScoredFlight extends FlightOffer {
@@ -504,6 +505,7 @@ function FlightResultsContent() {
     children: parseInt(searchParams.get('children') || '0'),
     infants: parseInt(searchParams.get('infants') || '0'),
     class: (searchParams.get('class') || 'economy') as any,
+    useFlexibleDates: searchParams.get('useFlexibleDates') === 'true',
   };
 
   // Initialize filters with default values (including new advanced filters)
@@ -575,8 +577,10 @@ function FlightResultsContent() {
             children: searchData.children,
             infants: searchData.infants,
             travelClass: searchData.class,
+            nonStop: searchParams.get('direct') === 'true',
             currencyCode: 'USD',
             max: 50,
+            useMultiDate: searchData.useFlexibleDates,
           }),
         });
 
@@ -649,9 +653,11 @@ function FlightResultsContent() {
           }
 
           // 2. Price Analytics for market comparison
+          // Handle comma-separated multi-dates - use first date for analytics
+          const firstDepartureDate = searchData.departure.split(',')[0];
           promises.push(
             fetch(
-              `/api/price-analytics?originIataCode=${searchData.from}&destinationIataCode=${searchData.to}&departureDate=${searchData.departure}&currencyCode=USD`
+              `/api/price-analytics?originIataCode=${searchData.from}&destinationIataCode=${searchData.to}&departureDate=${firstDepartureDate}&currencyCode=USD`
             )
               .then(res => res.json())
               .then(analyticsData => {
@@ -726,8 +732,11 @@ function FlightResultsContent() {
         const prices: DatePrice[] = [];
         const averagePrice = flights.reduce((sum, f) => sum + normalizePrice(f.price.total), 0) / flights.length;
 
+        // Handle comma-separated multi-dates - use first date
+        const firstDepartureDate = searchData.departure.split(',')[0];
+
         for (let i = -3; i <= 3; i++) {
-          const date = new Date(searchData.departure);
+          const date = new Date(firstDepartureDate);
           date.setDate(date.getDate() + i);
           const dateStr = date.toISOString().split('T')[0];
 
@@ -752,10 +761,12 @@ function FlightResultsContent() {
 
   // Generate price insights
   const priceInsights = flights.length > 0 ? generatePriceInsights(flights) : null;
+  // Handle comma-separated multi-dates - use first date for price route
+  const firstDepartureDateForRoute = searchData.departure.split(',')[0];
   const priceRoute: FlightRoute = {
     from: searchData.from,
     to: searchData.to,
-    departureDate: searchData.departure,
+    departureDate: firstDepartureDateForRoute,
   };
 
   // Handlers
@@ -1050,9 +1061,9 @@ function FlightResultsContent() {
               lang={lang}
             />
 
-            {/* Flight Cards List - SHOW IMMEDIATELY (Design Rule #4: No widgets above first results) */}
+            {/* Flight Cards List - ALL RESULTS CONTINUOUSLY (No widgets interruption) */}
             <VirtualFlightList
-              flights={displayedFlights.slice(0, DESIGN_RULES.MIN_VISIBLE_RESULTS)}
+              flights={displayedFlights}
               sortBy={sortBy}
               onSelect={handleSelectFlight}
               onCompare={handleCompareToggle}
@@ -1062,110 +1073,8 @@ function FlightResultsContent() {
               lang={lang}
             />
 
-            {/* WIDGETS BELOW FIRST 6 RESULTS */}
-            <div className="space-y-3 my-4">
-              {/* NEW: Price Calendar Matrix - 3-Month View */}
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Find Cheaper Dates
-                  </h3>
-                  <button
-                    onClick={() => setShowPriceCalendar(!showPriceCalendar)}
-                    className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
-                  >
-                    {showPriceCalendar ? 'Hide Calendar' : 'Show Calendar'}
-                  </button>
-                </div>
-                {showPriceCalendar && (
-                  <PriceCalendarMatrix
-                    origin={searchData.from}
-                    destination={searchData.to}
-                    currentDate={searchData.departure}
-                    onDateSelect={(newDate) => {
-                      const params = new URLSearchParams(window.location.search);
-                      params.set('departure', newDate);
-                      router.push(`/flights/results?${params.toString()}`);
-                    }}
-                    currency="USD"
-                    lang={lang}
-                  />
-                )}
-              </div>
-
-              {/* NEW: Alternative Airports Widget */}
-              {sortedFlights.length > 0 && (
-                <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Save with Nearby Airports
-                    </h3>
-                    <button
-                      onClick={() => setShowAlternativeAirports(!showAlternativeAirports)}
-                      className="text-primary-600 hover:text-primary-700 font-semibold text-sm"
-                    >
-                      {showAlternativeAirports ? 'Hide' : 'Show Alternatives'}
-                    </button>
-                  </div>
-                  {showAlternativeAirports && (
-                    <AlternativeAirports
-                      originAirport={searchData.from}
-                      destinationAirport={searchData.to}
-                      currentPrice={normalizePrice(sortedFlights[0].price.total)}
-                      onAirportSelect={(newOrigin, newDest) => {
-                        const params = new URLSearchParams(window.location.search);
-                        params.set('from', newOrigin);
-                        params.set('to', newDest);
-                        router.push(`/flights/results?${params.toString()}`);
-                      }}
-                      currency="USD"
-                      lang={lang}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* Cross-Sell Widget - Flight + Hotel Bundles */}
-              <CrossSellWidget
-                destination={searchData.to}
-                arrivalDate={searchData.departure}
-                departureDate={searchData.return || searchData.departure}
-                adults={searchData.adults}
-              />
-
-              {/* Cheapest Dates Calendar */}
-              <CheapestDates
-                origin={searchData.from}
-                destination={searchData.to}
-                onSelectDate={(departureDate, returnDate) => {
-                  const params = new URLSearchParams(window.location.search);
-                  params.set('departure', departureDate);
-                  if (returnDate) params.set('return', returnDate);
-                  router.push(`/flights/results?${params.toString()}`);
-                }}
-              />
-
-              {/* Flexible Dates Component */}
-              {flexibleDatePrices.length > 0 && (
-                <FlexibleDates
-                  currentDate={searchData.departure}
-                  onDateSelect={handleDateChange}
-                  prices={flexibleDatePrices}
-                  currency="USD"
-                  lang={lang}
-                />
-              )}
-            </div>
-
-            {/* Remaining Flight Cards - After widgets */}
-            {displayedFlights.length > DESIGN_RULES.MIN_VISIBLE_RESULTS && (
+            {/* Widgets removed per user request - flight cards now display continuously */}
+            {false && displayedFlights.length > DESIGN_RULES.MIN_VISIBLE_RESULTS && (
               <VirtualFlightList
                 flights={displayedFlights.slice(DESIGN_RULES.MIN_VISIBLE_RESULTS)}
                 sortBy={sortBy}
@@ -1259,7 +1168,7 @@ function FlightResultsContent() {
                 <SmartWait
                   currentPrice={normalizePrice(sortedFlights[0].price.total)}
                   route={`${searchData.from} → ${searchData.to}`}
-                  departureDate={searchData.departure}
+                  departureDate={searchData.departure.split(',')[0]}
                   onBookNow={() => handleBookNow(sortedFlights[0].id)}
                   onSetAlert={handleSetAlert}
                   currency="USD"
@@ -1317,7 +1226,7 @@ function FlightResultsContent() {
           route={{
             from: searchData.from,
             to: searchData.to,
-            date: searchData.departure,
+            date: searchData.departure.split(',')[0],
           }}
         />
       )}

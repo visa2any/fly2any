@@ -103,26 +103,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate date format
+    // Validate date format (support comma-separated multi-dates)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(departureDate)) {
+    const validateDates = (dateString: string, fieldName: string): boolean => {
+      const dates = dateString.split(',').map(d => d.trim());
+      for (const date of dates) {
+        if (!dateRegex.test(date)) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    if (!validateDates(departureDate, 'departureDate')) {
       return NextResponse.json(
-        { error: 'Invalid departureDate format. Expected YYYY-MM-DD' },
+        { error: 'Invalid departureDate format. Expected YYYY-MM-DD or comma-separated dates' },
         { status: 400 }
       );
     }
 
-    if (body.returnDate && !dateRegex.test(body.returnDate)) {
+    if (body.returnDate && !validateDates(body.returnDate, 'returnDate')) {
       return NextResponse.json(
-        { error: 'Invalid returnDate format. Expected YYYY-MM-DD' },
+        { error: 'Invalid returnDate format. Expected YYYY-MM-DD or comma-separated dates' },
         { status: 400 }
       );
     }
 
-    // Validate departure date is not in the past
+    // Validate departure date is not in the past (check first date only for multi-dates)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const depDate = new Date(departureDate);
+    const firstDepartureDate = departureDate.split(',')[0].trim();
+    const depDate = new Date(firstDepartureDate);
     depDate.setHours(0, 0, 0, 0);
 
     if (depDate < today) {
@@ -133,8 +144,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate return date is after departure date (if provided)
+    // For multi-dates, just check that return dates are chronologically reasonable
     if (body.returnDate) {
-      const retDate = new Date(body.returnDate);
+      const firstReturnDate = body.returnDate.split(',')[0].trim();
+      const retDate = new Date(firstReturnDate);
       retDate.setHours(0, 0, 0, 0);
 
       if (retDate <= depDate) {
@@ -142,8 +155,8 @@ export async function POST(request: NextRequest) {
           {
             error: 'Return date must be after departure date',
             details: {
-              departureDate,
-              returnDate: body.returnDate,
+              departureDate: firstDepartureDate,
+              returnDate: firstReturnDate,
               message: 'For round-trip flights, return date must be chronologically after departure date'
             }
           },
@@ -183,17 +196,28 @@ export async function POST(request: NextRequest) {
       max: body.max || 50,
     };
 
-    // Extract flexible dates parameters
+    // Extract flexible dates and multi-date parameters
     const departureFlex = typeof body.departureFlex === 'number' ? body.departureFlex : 0;
     const tripDuration = typeof body.tripDuration === 'number' ? body.tripDuration : null;
+    const useMultiDate = body.useMultiDate === 'true' || body.useMultiDate === true;
 
-    // Generate cache key (include all airports AND flexible dates in cache key)
+    // Parse multi-date: departureDate and returnDate may contain comma-separated dates
+    const departureDates: string[] = useMultiDate && departureDate.includes(',')
+      ? departureDate.split(',').map((d: string) => d.trim()).filter((d: string) => dateRegex.test(d))
+      : [departureDate];
+
+    const returnDates: string[] = useMultiDate && body.returnDate && body.returnDate.includes(',')
+      ? body.returnDate.split(',').map((d: string) => d.trim()).filter((d: string) => dateRegex.test(d))
+      : body.returnDate ? [body.returnDate] : [];
+
+    // Generate cache key (include all airports, flexible dates, and multi-date in cache key)
     cacheKey = generateFlightSearchKey({
       ...flightSearchParams,
       origin: originCodes.join(','),
       destination: destinationCodes.join(','),
       departureFlex: departureFlex || 0,
       tripDuration: tripDuration || undefined,
+      useMultiDate: useMultiDate || undefined,
     });
 
     // Try to get from cache
@@ -259,16 +283,72 @@ export async function POST(request: NextRequest) {
     const totalCombinations = originCodes.length * destinationCodes.length;
     console.log(`🛫 Searching ${totalCombinations} airport combination(s)...`);
 
-    if (departureFlex > 0) {
-      console.log(`🗓️ Flexible dates search: ±${departureFlex} days`);
-
-      // Generate date range
-      const departureDates = generateFlexibleDateRange(departureDate, departureFlex);
+    if (useMultiDate && departureDates.length > 1) {
+      console.log(`🗓️ Multi-date search: ${departureDates.length} departure dates x ${returnDates.length || 1} return dates`);
 
       // Search each origin-destination-date combination
       for (const originCode of originCodes) {
         for (const destinationCode of destinationCodes) {
-          for (const flexDate of departureDates) {
+          for (const specificDepartureDate of departureDates) {
+            // If return dates are specified, iterate through them
+            if (returnDates.length > 0) {
+              for (const specificReturnDate of returnDates) {
+                try {
+                  console.log(`  Searching: ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}`);
+
+                  const apiResponse = await searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate);
+                  const flights: FlightOffer[] = apiResponse.data || [];
+                  allFlights.push(...flights);
+
+                  // Store dictionaries from last successful response
+                  if (apiResponse.dictionaries) {
+                    dictionaries = apiResponse.dictionaries;
+                  }
+
+                  console.log(`    Found: ${flights.length} flights`);
+                } catch (error) {
+                  console.error(`    Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}:`, error);
+                  // Continue with other combinations even if one fails
+                }
+              }
+            } else {
+              // One-way flight - no return date
+              try {
+                console.log(`  Searching: ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
+
+                const apiResponse = await searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined);
+                const flights: FlightOffer[] = apiResponse.data || [];
+                allFlights.push(...flights);
+
+                // Store dictionaries from last successful response
+                if (apiResponse.dictionaries) {
+                  dictionaries = apiResponse.dictionaries;
+                }
+
+                console.log(`    Found: ${flights.length} flights`);
+              } catch (error) {
+                console.error(`    Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate}:`, error);
+                // Continue with other combinations even if one fails
+              }
+            }
+          }
+        }
+      }
+
+      // Deduplicate results
+      console.log(`Total flights before dedup: ${allFlights.length}`);
+      allFlights = deduplicateFlights(allFlights);
+      console.log(`Total flights after dedup: ${allFlights.length}`);
+    } else if (departureFlex > 0) {
+      console.log(`🗓️ Flexible dates search: ±${departureFlex} days`);
+
+      // Generate date range
+      const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
+
+      // Search each origin-destination-date combination
+      for (const originCode of originCodes) {
+        for (const destinationCode of destinationCodes) {
+          for (const flexDate of flexDates) {
             try {
               // Calculate return date if trip duration specified
               const flexReturnDate = (tripDuration && body.returnDate)
