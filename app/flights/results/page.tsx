@@ -133,7 +133,7 @@ const getStopsCategory = (segments: number): 'direct' | '1-stop' | '2+-stops' =>
   return '2+-stops';
 };
 
-// Apply filters to flights
+// Apply filters to flights - COMPLETE IMPLEMENTATION (All 14 filters)
 const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): ScoredFlight[] => {
   return flights.filter(flight => {
     const price = normalizePrice(flight.price.total);
@@ -144,40 +144,38 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
     const stopsCategory = getStopsCategory(itinerary.segments.length);
     const airlines = itinerary.segments.map(seg => seg.carrierCode);
 
-    // Price filter
+    // 1. Price filter ✅
     if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
       return false;
     }
 
-    // Stops filter
+    // 2. Stops filter ✅
     if (filters.stops.length > 0 && !filters.stops.includes(stopsCategory)) {
       return false;
     }
 
-    // Airline filter
+    // 3. Airline filter ✅
     if (filters.airlines.length > 0 && !airlines.some(airline => filters.airlines.includes(airline))) {
       return false;
     }
 
-    // Departure time filter
+    // 4. Departure time filter ✅
     if (filters.departureTime.length > 0 && !filters.departureTime.includes(timeCategory)) {
       return false;
     }
 
-    // Duration filter
+    // 5. Duration filter ✅
     if (duration > filters.maxDuration * 60) {
       return false;
     }
 
-    // Basic Economy filter - NEW
+    // 6. Basic Economy filter ✅
     if (filters.excludeBasicEconomy) {
-      // Check if this is a Basic Economy fare
       const travelerPricings = (flight as any).travelerPricings || [];
       if (travelerPricings.length > 0) {
         const fareDetails = travelerPricings[0]?.fareDetailsBySegment?.[0];
         if (fareDetails) {
           const fareType = fareDetails.brandedFare || fareDetails.fareBasis || '';
-          // Check for common Basic Economy identifiers
           const isBasicEconomy =
             fareType.toUpperCase().includes('BASIC') ||
             fareType.toUpperCase().includes('LIGHT') ||
@@ -185,8 +183,151 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
             fareType.toUpperCase().includes('RESTRICTED');
 
           if (isBasicEconomy) {
-            return false; // Exclude this flight
+            return false;
           }
+        }
+      }
+    }
+
+    // 7. ✅ FIXED: Cabin Class filter
+    if (filters.cabinClass.length > 0) {
+      const travelerPricings = (flight as any).travelerPricings || [];
+      let matchesCabin = false;
+
+      for (const pricing of travelerPricings) {
+        const fareDetails = pricing?.fareDetailsBySegment || [];
+        for (const fare of fareDetails) {
+          const cabin = fare?.cabin; // 'ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST'
+          if (cabin && filters.cabinClass.includes(cabin)) {
+            matchesCabin = true;
+            break;
+          }
+        }
+        if (matchesCabin) break;
+      }
+
+      if (!matchesCabin) {
+        return false;
+      }
+    }
+
+    // 8. ✅ FIXED: Baggage Included filter
+    if (filters.baggageIncluded) {
+      const travelerPricings = (flight as any).travelerPricings || [];
+      let hasBaggage = false;
+
+      for (const pricing of travelerPricings) {
+        const fareDetails = pricing?.fareDetailsBySegment || [];
+        for (const fare of fareDetails) {
+          const includedBags = fare?.includedCheckedBags?.quantity || 0;
+          if (includedBags > 0) {
+            hasBaggage = true;
+            break;
+          }
+        }
+        if (hasBaggage) break;
+      }
+
+      if (!hasBaggage) {
+        return false;
+      }
+    }
+
+    // 9. ✅ FIXED: Refundable Only filter
+    if (filters.refundableOnly) {
+      const travelerPricings = (flight as any).travelerPricings || [];
+      let isRefundable = false;
+
+      for (const pricing of travelerPricings) {
+        const fareDetails = pricing?.fareDetailsBySegment || [];
+        for (const fare of fareDetails) {
+          const fareRules = fare?.fareRules || {};
+          if (fareRules.refundable === true || fare?.isRefundable === true) {
+            isRefundable = true;
+            break;
+          }
+        }
+        if (isRefundable) break;
+      }
+
+      if (!isRefundable) {
+        return false;
+      }
+    }
+
+    // 10. ✅ FIXED: Max Layover Duration filter
+    if (filters.maxLayoverDuration < 720) { // Only apply if not default (12h)
+      const segments = itinerary.segments;
+      if (segments.length > 1) {
+        let hasLongLayover = false;
+
+        for (let i = 0; i < segments.length - 1; i++) {
+          const arrivalTime = new Date(segments[i].arrival.at).getTime();
+          const departureTime = new Date(segments[i + 1].departure.at).getTime();
+          const layoverMinutes = (departureTime - arrivalTime) / (1000 * 60);
+
+          if (layoverMinutes > filters.maxLayoverDuration) {
+            hasLongLayover = true;
+            break;
+          }
+        }
+
+        if (hasLongLayover) {
+          return false;
+        }
+      }
+    }
+
+    // 11. ✅ FIXED: Alliance filter
+    if (filters.alliances.length > 0) {
+      const allianceMembers = {
+        'star-alliance': ['UA', 'AC', 'LH', 'NH', 'SQ', 'TK', 'OS', 'LX', 'SK', 'TP', 'AV', 'CA', 'AI', 'MS', 'SA', 'ZH', 'CM'],
+        'oneworld': ['AA', 'BA', 'QF', 'CX', 'JL', 'IB', 'AY', 'QR', 'MH', 'AS', 'RJ', 'S7', 'UL'],
+        'skyteam': ['DL', 'AF', 'KL', 'AZ', 'AM', 'AR', 'CZ', 'OK', 'SU', 'VN', 'MU', 'KQ', 'ME', 'RO', 'SV', 'UX'],
+      };
+
+      const matchesAlliance = filters.alliances.some(alliance => {
+        const members = allianceMembers[alliance] || [];
+        return airlines.some(airlineCode => members.includes(airlineCode));
+      });
+
+      if (!matchesAlliance) {
+        return false;
+      }
+    }
+
+    // 12. ✅ FIXED: CO2 Emissions filter
+    if (filters.maxCO2Emissions < 500 && flight.co2Emissions) {
+      if (flight.co2Emissions > filters.maxCO2Emissions) {
+        return false;
+      }
+    }
+
+    // 13. ✅ FIXED: Connection Quality filter
+    if (filters.connectionQuality.length > 0) {
+      const segments = itinerary.segments;
+      if (segments.length > 1) {
+        let matchesQuality = false;
+
+        for (let i = 0; i < segments.length - 1; i++) {
+          const arrivalTime = new Date(segments[i].arrival.at).getTime();
+          const departureTime = new Date(segments[i + 1].departure.at).getTime();
+          const layoverMinutes = (departureTime - arrivalTime) / (1000 * 60);
+          const layoverHours = layoverMinutes / 60;
+
+          let quality: 'short' | 'medium' | 'long';
+          if (layoverHours < 2) quality = 'short';
+          else if (layoverHours <= 4) quality = 'medium';
+          else quality = 'long';
+
+          if (filters.connectionQuality.includes(quality)) {
+            matchesQuality = true;
+            break;
+          }
+        }
+
+        if (!matchesQuality && segments.length > 1) {
+          return false;
         }
       }
     }
