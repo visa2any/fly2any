@@ -35,3 +35,8 @@ next-env.d.ts
 
 # claude
 .claude
+
+# documentation/planning files (may contain sensitive info)
+ACTION-PLAN-*.md
+DUFFEL-*.md
+VERCEL-*.md
