@@ -178,7 +178,16 @@ class AmadeusAPI {
         1000 // initial delay: 1s, then 2s, then 4s
       );
 
-      return response.data;
+      // Tag all flights with source attribution
+      const data = response.data;
+      if (data.data && Array.isArray(data.data)) {
+        data.data = data.data.map((flight: any) => ({
+          ...flight,
+          source: 'Amadeus'
+        }));
+      }
+
+      return data;
     } catch (error: any) {
       console.error('❌ Error searching flights:', error.response?.data || error.message);
       console.error('Full error:', error);
