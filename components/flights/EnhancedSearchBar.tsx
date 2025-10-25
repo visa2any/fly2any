@@ -930,30 +930,69 @@ export default function EnhancedSearchBar({
 
           {/* Multi-city additional flights - ONLY shown when One-way is selected */}
           {tripType === 'oneway' && (
-            <div className="mt-4 space-y-2">
-              {/* Render additional flights in compact layout */}
+            <div className="mt-4 space-y-3">
+              {/* Render additional flights - EXACT COPY of main form structure */}
               {additionalFlights.map((flight, index) => (
-                <div key={flight.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <Plane size={14} className="text-gray-400 flex-shrink-0" />
-                  <span className="text-xs font-semibold text-gray-600 flex-shrink-0 w-14">Flight {index + 2}:</span>
+                <div key={flight.id} className="flex items-center gap-3">
+                  {/* From Airport - EXACT COPY */}
+                  <div className="flex-1 relative">
+                    {/* Custom label with Nonstop checkbox */}
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                        <Plane size={14} className="text-gray-600" />
+                        <span>Flight {index + 2}</span>
+                      </label>
 
-                  {/* From - Flexible width */}
-                  <div className="flex-1 min-w-0">
+                      {/* Nonstop checkbox aligned to the right */}
+                      <label className="flex items-center gap-1 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={flight.nonstop}
+                          onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                        />
+                        <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+                      </label>
+                    </div>
+
                     <MultiAirportSelector
-                      placeholder="From"
+                      placeholder="Select airports"
                       value={flight.origin}
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
                       maxDisplay={1}
                       lang={lang}
                     />
+
+                    {/* Swap Button - Centered between From and To - EXACT COPY */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const temp = flight.origin;
+                        handleUpdateAdditionalFlight(flight.id, {
+                          origin: flight.destination,
+                          destination: temp
+                        });
+                      }}
+                      className="absolute right-[-16px] top-[42px] z-10 p-1 bg-white border border-gray-300 text-gray-400 hover:text-[#0087FF] hover:border-[#0087FF] hover:bg-blue-50 rounded-full transition-all shadow-sm hover:shadow-md"
+                      aria-label="Swap airports"
+                      title="Swap airports"
+                    >
+                      <ArrowLeftRight size={12} />
+                    </button>
                   </div>
 
-                  <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+                  {/* To Airport - EXACT COPY */}
+                  <div className="flex-1">
+                    {/* Custom label */}
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                        <PlaneLanding size={14} className="text-gray-600" />
+                        <span>To</span>
+                      </label>
+                    </div>
 
-                  {/* To - Flexible width */}
-                  <div className="flex-1 min-w-0">
                     <MultiAirportSelector
-                      placeholder="To"
+                      placeholder="Select airports"
                       value={flight.destination}
                       onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
                       maxDisplay={1}
@@ -961,37 +1000,44 @@ export default function EnhancedSearchBar({
                     />
                   </div>
 
-                  {/* Date - Flexible width */}
-                  <div className="flex-1 min-w-0 max-w-[160px]">
-                    <input
-                      type="date"
-                      value={flight.departureDate}
-                      onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0087FF] focus:border-transparent"
-                    />
+                  {/* Depart Date - EXACT COPY */}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                        <CalendarDays size={14} className="text-gray-600" />
+                        <span>Depart</span>
+                      </label>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // TODO: Integrate with PremiumDatePicker for multi-city flights
+                        const newDate = prompt('Enter date (YYYY-MM-DD):', flight.departureDate);
+                        if (newDate) {
+                          handleUpdateAdditionalFlight(flight.id, { departureDate: newDate });
+                        }
+                      }}
+                      className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                    >
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <span className="block pl-7 text-sm font-medium text-gray-900">
+                        {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
+                      </span>
+                    </button>
                   </div>
 
-                  {/* Nonstop checkbox */}
-                  <label className="flex items-center gap-1 cursor-pointer group flex-shrink-0 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      checked={flight.nonstop}
-                      onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
-                      className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
-                    />
-                    <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
-                  </label>
-
-                  {/* Remove button */}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFlight(flight.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors flex-shrink-0"
-                    title="Remove flight"
-                  >
-                    <X size={16} />
-                  </button>
+                  {/* Remove button - positioned with fields */}
+                  <div className="flex items-center" style={{ marginTop: '32px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFlight(flight.id)}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Remove flight"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
 
