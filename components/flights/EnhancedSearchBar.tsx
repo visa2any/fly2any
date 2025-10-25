@@ -934,6 +934,18 @@ export default function EnhancedSearchBar({
           {/* Multi-city additional flights - ONLY shown when One-way is selected */}
           {tripType === 'oneway' && (
             <div className="mt-4 space-y-3">
+              {/* Initial "Add Another Flight" button - ONLY shown when no additional flights */}
+              {additionalFlights.length === 0 && (
+                <button
+                  type="button"
+                  onClick={handleAddFlight}
+                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-blue-50"
+                >
+                  <Plane size={16} />
+                  <span>+ Add Another Flight</span>
+                </button>
+              )}
+
               {/* Render additional flights - EXACT COPY of main form structure */}
               {additionalFlights.map((flight, index) => (
                 <div key={flight.id} className="flex items-center gap-3">
