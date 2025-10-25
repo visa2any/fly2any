@@ -134,6 +134,35 @@ const getStopsCategory = (segments: number): 'direct' | '1-stop' | '2+-stops' =>
   return '2+-stops';
 };
 
+// Apply independent nonstop filters (From Nonstop / To Nonstop)
+const applyNonstopFilters = (flights: ScoredFlight[], fromNonstop: boolean, toNonstop: boolean): ScoredFlight[] => {
+  if (!fromNonstop && !toNonstop) {
+    return flights; // No filtering needed
+  }
+
+  return flights.filter(flight => {
+    const itineraries = flight.itineraries || [];
+
+    // Check outbound flight (itineraries[0]) for nonstop if fromNonstop is true
+    if (fromNonstop && itineraries[0]) {
+      const isOutboundNonstop = itineraries[0].segments.length === 1;
+      if (!isOutboundNonstop) {
+        return false; // Filter out flights with stops on outbound
+      }
+    }
+
+    // Check return flight (itineraries[1]) for nonstop if toNonstop is true
+    if (toNonstop && itineraries[1]) {
+      const isReturnNonstop = itineraries[1].segments.length === 1;
+      if (!isReturnNonstop) {
+        return false; // Filter out flights with stops on return
+      }
+    }
+
+    return true; // Flight passes nonstop filters
+  });
+};
+
 // Apply filters to flights - COMPLETE IMPLEMENTATION (All 14 filters)
 // ✅ FIXED: Now correctly handles BOTH outbound and return flights for round-trip searches
 const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): ScoredFlight[] => {
@@ -508,6 +537,10 @@ function FlightResultsContent() {
     useFlexibleDates: searchParams.get('useFlexibleDates') === 'true',
   };
 
+  // Extract independent nonstop filters from URL
+  const fromNonstopFilter = searchParams.get('fromNonstop') === 'true';
+  const toNonstopFilter = searchParams.get('toNonstop') === 'true';
+
   // Initialize filters with default values (including new advanced filters)
   const [filters, setFilters] = useState<FlightFiltersType>({
     priceRange: [0, 10000],
@@ -590,6 +623,9 @@ function FlightResultsContent() {
 
         const data = await response.json();
         let processedFlights = data.flights || [];
+
+        // Apply independent nonstop filters (From Nonstop / To Nonstop) from URL params
+        processedFlights = applyNonstopFilters(processedFlights, fromNonstopFilter, toNonstopFilter);
 
         // Calculate Deal Scores for all flights (will recalculate after getting market data)
         if (processedFlights.length > 0) {
@@ -884,15 +920,24 @@ function FlightResultsContent() {
     setShowPriceAlert(true);
   };
 
-  // Loading state
+  // Loading state - Keep search bar static, only show skeleton for results
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-        <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="h-8 w-64 bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
-        </div>
+        {/* Enhanced Search Bar - STATIC during loading */}
+        <EnhancedSearchBar
+          origin={searchData.from}
+          destination={searchData.to}
+          departureDate={searchData.departure}
+          returnDate={searchData.return}
+          passengers={{
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: searchData.infants,
+          }}
+          cabinClass={searchData.class}
+          lang={lang}
+        />
 
         <div
           className="mx-auto"

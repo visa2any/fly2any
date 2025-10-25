@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
@@ -221,6 +221,20 @@ export default function EnhancedSearchBar({
   const [directFlights, setDirectFlights] = useState(false);
   const [openMultiDatePicker, setOpenMultiDatePicker] = useState<'departure' | 'return' | null>(null); // Track which multi-date picker is open
 
+  // Independent nonstop filters for outbound and return flights
+  const [fromNonstop, setFromNonstop] = useState(false);
+  const [toNonstop, setToNonstop] = useState(false);
+
+  // Multi-city flights state (only for one-way mode)
+  interface AdditionalFlight {
+    id: string;
+    origin: string[];
+    destination: string[];
+    departureDate: string;
+    nonstop: boolean;
+  }
+  const [additionalFlights, setAdditionalFlights] = useState<AdditionalFlight[]>([]);
+
   // UI state
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
@@ -332,6 +346,45 @@ export default function EnhancedSearchBar({
     }
   };
 
+  // Multi-city flight handlers
+  const handleAddFlight = () => {
+    if (additionalFlights.length >= 4) return; // Max 5 flights total (1 main + 4 additional)
+
+    // Auto-fill origin from previous destination
+    const lastDestination = additionalFlights.length > 0
+      ? additionalFlights[additionalFlights.length - 1].destination
+      : destination;
+
+    // Smart date increment (+3 days from previous)
+    const lastDate = additionalFlights.length > 0
+      ? additionalFlights[additionalFlights.length - 1].departureDate
+      : departureDate;
+
+    const newDate = new Date(lastDate || new Date());
+    newDate.setDate(newDate.getDate() + 3);
+    const newDateString = newDate.toISOString().split('T')[0];
+
+    const newFlight: AdditionalFlight = {
+      id: `flight-${Date.now()}`,
+      origin: lastDestination,
+      destination: [],
+      departureDate: newDateString,
+      nonstop: false,
+    };
+
+    setAdditionalFlights([...additionalFlights, newFlight]);
+  };
+
+  const handleRemoveFlight = (id: string) => {
+    setAdditionalFlights(additionalFlights.filter(f => f.id !== id));
+  };
+
+  const handleUpdateAdditionalFlight = (id: string, updates: Partial<AdditionalFlight>) => {
+    setAdditionalFlights(additionalFlights.map(f =>
+      f.id === id ? { ...f, ...updates } : f
+    ));
+  };
+
   const handleOpenDatePicker = (type: 'departure' | 'return') => {
     closeAllDropdowns();
     setDatePickerType(type);
@@ -381,6 +434,27 @@ export default function EnhancedSearchBar({
 
     setIsLoading(true);
 
+    // Check if multi-city (one-way with additional flights)
+    const isMultiCity = tripType === 'oneway' && additionalFlights.length > 0;
+
+    if (isMultiCity) {
+      // For multi-city, we need to search each leg separately
+      // TODO: Implement multi-city API integration
+      console.log('Multi-city search:', {
+        flight1: { from: origin, to: destination, date: departureDate, nonstop: fromNonstop },
+        additionalFlights: additionalFlights.map(f => ({
+          from: f.origin,
+          to: f.destination,
+          date: f.departureDate,
+          nonstop: f.nonstop
+        }))
+      });
+
+      // For now, redirect to first leg search
+      // In future: integrate proper multi-city API support
+      alert('Multi-city search coming soon! For now, searching first leg only.');
+    }
+
     const params = new URLSearchParams({
       from: origin.join(','),  // Join multiple codes with comma
       to: destination.join(','),  // Join multiple codes with comma
@@ -392,7 +466,9 @@ export default function EnhancedSearchBar({
       children: passengers.children.toString(),
       infants: passengers.infants.toString(),
       class: cabinClass,
-      direct: directFlights.toString()
+      direct: directFlights.toString(),
+      fromNonstop: fromNonstop.toString(),
+      toNonstop: (tripType === 'roundtrip' && toNonstop).toString()
     });
 
     // Add return date for round trips
@@ -429,8 +505,26 @@ export default function EnhancedSearchBar({
           <div className="flex items-center gap-3">
           {/* From Airport */}
           <div ref={originRef} className="flex-1 relative">
+            {/* Custom label with Nonstop checkbox */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <PlaneTakeoff size={14} className="text-gray-600" />
+                <span>From</span>
+              </label>
+
+              {/* Nonstop checkbox aligned to the right */}
+              <label className="flex items-center gap-1 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={fromNonstop}
+                  onChange={(e) => setFromNonstop(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                />
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+              </label>
+            </div>
+
             <MultiAirportSelector
-              label="From"
               placeholder="Select airports"
               value={origin}
               onChange={handleOriginChange}
@@ -461,8 +555,27 @@ export default function EnhancedSearchBar({
 
           {/* To Airport */}
           <div ref={destinationRef} className="flex-1">
+            {/* Custom label with Nonstop checkbox */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                <PlaneLanding size={14} className="text-gray-600" />
+                <span>To</span>
+              </label>
+
+              {/* Nonstop checkbox aligned to the right - disabled for one-way trips */}
+              <label className={`flex items-center gap-1 cursor-pointer group ${tripType === 'oneway' ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={toNonstop}
+                  onChange={(e) => setToNonstop(e.target.checked)}
+                  disabled={tripType === 'oneway'}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+              </label>
+            </div>
+
             <MultiAirportSelector
-              label="To"
               placeholder="Select airports"
               value={destination}
               onChange={handleDestinationChange}
@@ -814,6 +927,87 @@ export default function EnhancedSearchBar({
             </button>
           </div>
           </div>
+
+          {/* Multi-city additional flights - ONLY shown when One-way is selected */}
+          {tripType === 'oneway' && (
+            <div className="mt-4 space-y-2">
+              {/* Render additional flights in compact layout */}
+              {additionalFlights.map((flight, index) => (
+                <div key={flight.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <Plane size={14} className="text-gray-400 flex-shrink-0" />
+                  <span className="text-xs font-semibold text-gray-600 flex-shrink-0 w-14">Flight {index + 2}:</span>
+
+                  {/* From - Flexible width */}
+                  <div className="flex-1 min-w-0">
+                    <MultiAirportSelector
+                      placeholder="From"
+                      value={flight.origin}
+                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { origin: codes })}
+                      maxDisplay={1}
+                      lang={lang}
+                    />
+                  </div>
+
+                  <ArrowRight size={14} className="text-gray-400 flex-shrink-0" />
+
+                  {/* To - Flexible width */}
+                  <div className="flex-1 min-w-0">
+                    <MultiAirportSelector
+                      placeholder="To"
+                      value={flight.destination}
+                      onChange={(codes) => handleUpdateAdditionalFlight(flight.id, { destination: codes })}
+                      maxDisplay={1}
+                      lang={lang}
+                    />
+                  </div>
+
+                  {/* Date - Flexible width */}
+                  <div className="flex-1 min-w-0 max-w-[160px]">
+                    <input
+                      type="date"
+                      value={flight.departureDate}
+                      onChange={(e) => handleUpdateAdditionalFlight(flight.id, { departureDate: e.target.value })}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0087FF] focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Nonstop checkbox */}
+                  <label className="flex items-center gap-1 cursor-pointer group flex-shrink-0 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={flight.nonstop}
+                      onChange={(e) => handleUpdateAdditionalFlight(flight.id, { nonstop: e.target.checked })}
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                    />
+                    <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Nonstop</span>
+                  </label>
+
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFlight(flight.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                    title="Remove flight"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+
+              {/* Add Flight button - only show if less than 5 total flights */}
+              {additionalFlights.length < 4 && (
+                <button
+                  type="button"
+                  onClick={handleAddFlight}
+                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-blue-50"
+                >
+                  <Plane size={16} />
+                  <span>+ Add Another Flight</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Premium Date Picker */}
