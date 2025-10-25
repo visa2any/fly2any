@@ -234,6 +234,8 @@ export default function EnhancedSearchBar({
     nonstop: boolean;
   }
   const [additionalFlights, setAdditionalFlights] = useState<AdditionalFlight[]>([]);
+  const [additionalFlightDatePickerOpen, setAdditionalFlightDatePickerOpen] = useState<string | null>(null); // Track which flight's date picker is open
+  const additionalFlightDateRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({}); // Refs for each additional flight date button
 
   // UI state
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
@@ -387,6 +389,7 @@ export default function EnhancedSearchBar({
 
   const handleOpenDatePicker = (type: 'departure' | 'return') => {
     closeAllDropdowns();
+    setAdditionalFlightDatePickerOpen(null); // Close any open additional flight date pickers
     setDatePickerType(type);
     setShowDatePicker(true);
   };
@@ -1010,13 +1013,11 @@ export default function EnhancedSearchBar({
                     </div>
 
                     <button
+                      ref={(el) => { additionalFlightDateRefs.current[flight.id] = el; }}
                       type="button"
                       onClick={() => {
-                        // TODO: Integrate with PremiumDatePicker for multi-city flights
-                        const newDate = prompt('Enter date (YYYY-MM-DD):', flight.departureDate);
-                        if (newDate) {
-                          handleUpdateAdditionalFlight(flight.id, { departureDate: newDate });
-                        }
+                        setShowDatePicker(false); // Close main date picker
+                        setAdditionalFlightDatePickerOpen(flight.id);
                       }}
                       className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                     >
@@ -1066,6 +1067,22 @@ export default function EnhancedSearchBar({
           type="range"
           anchorEl={datePickerType === 'departure' ? departureDateRef.current : returnDateRef.current}
         />
+
+        {/* Premium Date Pickers for Additional Flights */}
+        {additionalFlights.map((flight) => (
+          <PremiumDatePicker
+            key={`datepicker-${flight.id}`}
+            isOpen={additionalFlightDatePickerOpen === flight.id}
+            onClose={() => setAdditionalFlightDatePickerOpen(null)}
+            value={flight.departureDate}
+            onChange={(date) => {
+              handleUpdateAdditionalFlight(flight.id, { departureDate: date });
+              setAdditionalFlightDatePickerOpen(null);
+            }}
+            type="single"
+            anchorEl={additionalFlightDateRefs.current[flight.id]}
+          />
+        ))}
 
         {/* Mobile/Tablet: Stacked layout */}
         <div className="lg:hidden space-y-3">
