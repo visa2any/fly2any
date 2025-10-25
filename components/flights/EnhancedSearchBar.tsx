@@ -1028,31 +1028,32 @@ export default function EnhancedSearchBar({
                     </button>
                   </div>
 
-                  {/* Remove button - positioned with fields */}
-                  <div className="flex items-center" style={{ marginTop: '32px' }}>
+                  {/* Action Buttons - Fill remaining space */}
+                  <div className="flex items-center gap-2" style={{ marginTop: '32px' }}>
+                    {/* Add Another Flight Button */}
+                    {index === additionalFlights.length - 1 && additionalFlights.length < 4 && (
+                      <button
+                        type="button"
+                        onClick={handleAddFlight}
+                        className="px-4 py-2 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg text-sm font-medium transition-all flex items-center gap-2 hover:bg-blue-50 whitespace-nowrap"
+                      >
+                        <Plane size={14} />
+                        <span>Add Another Flight</span>
+                      </button>
+                    )}
+
+                    {/* Delete Button */}
                     <button
                       type="button"
                       onClick={() => handleRemoveFlight(flight.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
                       title="Remove flight"
                     >
-                      <X size={18} />
+                      Delete
                     </button>
                   </div>
                 </div>
               ))}
-
-              {/* Add Flight button - only show if less than 5 total flights */}
-              {additionalFlights.length < 4 && (
-                <button
-                  type="button"
-                  onClick={handleAddFlight}
-                  className="w-full py-2.5 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-blue-50"
-                >
-                  <Plane size={16} />
-                  <span>+ Add Another Flight</span>
-                </button>
-              )}
             </div>
           )}
         </div>
