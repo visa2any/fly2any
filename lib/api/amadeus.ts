@@ -181,10 +181,68 @@ class AmadeusAPI {
       // Tag all flights with source attribution
       const data = response.data;
       if (data.data && Array.isArray(data.data)) {
-        data.data = data.data.map((flight: any) => ({
-          ...flight,
-          source: 'Amadeus'
-        }));
+        // Debug: Log COMPLETE first flight data to analyze tax structure
+        if (data.data.length > 0) {
+          const firstFlight = data.data[0];
+
+          console.log('\n🔍 ========== AMADEUS RAW API RESPONSE - DETAILED TAX ANALYSIS ==========');
+          console.log('\n📋 Main Price Object:');
+          console.log(JSON.stringify(firstFlight.price, null, 2));
+
+          console.log('\n👥 Traveler Pricings (Fee Details):');
+          if (firstFlight.travelerPricings && firstFlight.travelerPricings.length > 0) {
+            firstFlight.travelerPricings.forEach((traveler: any, idx: number) => {
+              console.log(`\n   Traveler ${idx + 1} (${traveler.travelerType}):`);
+              console.log('   Price:', JSON.stringify(traveler.price, null, 2));
+
+              if (traveler.price?.fees && Array.isArray(traveler.price.fees)) {
+                console.log(`   ✅ Found ${traveler.price.fees.length} fees:`);
+                traveler.price.fees.forEach((fee: any, feeIdx: number) => {
+                  console.log(`      Fee ${feeIdx + 1}: ${fee.type || 'UNKNOWN'} = ${fee.amount} ${traveler.price.currency}`);
+                });
+              } else {
+                console.log('   ⚠️  NO fees array found in travelerPricings');
+              }
+            });
+          } else {
+            console.log('   ⚠️  NO travelerPricings found');
+          }
+
+          console.log('\n📊 Summary:');
+          console.log(`   Total Price: ${firstFlight.price?.total} ${firstFlight.price?.currency}`);
+          console.log(`   Base Price: ${firstFlight.price?.base} ${firstFlight.price?.currency}`);
+          console.log(`   Difference (Taxes+Fees): ${firstFlight.price?.total && firstFlight.price?.base ? (parseFloat(firstFlight.price.total) - parseFloat(firstFlight.price.base)).toFixed(2) : 'N/A'} ${firstFlight.price?.currency}`);
+          console.log(`   Percentage: ${firstFlight.price?.total && firstFlight.price?.base ? (((parseFloat(firstFlight.price.total) - parseFloat(firstFlight.price.base)) / parseFloat(firstFlight.price.total)) * 100).toFixed(1) : 'N/A'}%`);
+          console.log('\n🔍 ===================================================================\n');
+        }
+
+        data.data = data.data.map((flight: any) => {
+          // Extract detailed fees from travelerPricings if available
+          let detailedFees: Array<{ amount: string; type: string }> = [];
+
+          if (flight.travelerPricings && Array.isArray(flight.travelerPricings)) {
+            flight.travelerPricings.forEach((traveler: any) => {
+              if (traveler.price?.fees && Array.isArray(traveler.price.fees)) {
+                traveler.price.fees.forEach((fee: any) => {
+                  detailedFees.push({
+                    amount: fee.amount,
+                    type: fee.type || 'TAX'
+                  });
+                });
+              }
+            });
+          }
+
+          // Add detailed fees to main price object if we found any
+          return {
+            ...flight,
+            source: 'Amadeus',
+            price: {
+              ...flight.price,
+              fees: detailedFees.length > 0 ? detailedFees : flight.price?.fees
+            }
+          };
+        });
       }
 
       return data;
@@ -754,20 +812,23 @@ class AmadeusAPI {
     const token = await this.getAccessToken();
 
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/v2/shopping/flight-offers/prediction`,
-        {
-          // Send flight offers directly as array - this matches the exact format
-          // returned by the Flight Offers Search API
-          data: flightOffers,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+      // Use retry with backoff to handle rate limiting (429 errors)
+      const response = await this.retryWithBackoff(async () => {
+        return await axios.post(
+          `${this.baseUrl}/v2/shopping/flight-offers/prediction`,
+          {
+            // Send flight offers directly as array - this matches the exact format
+            // returned by the Flight Offers Search API
+            data: flightOffers,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      });
 
       return response.data;
     } catch (error: any) {

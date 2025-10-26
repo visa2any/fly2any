@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 
+export const dynamic = 'force-dynamic';
+
 // Mock seat map for fallback
 function getMockSeatMap(flightOfferId: string) {
   const rows = 30;
