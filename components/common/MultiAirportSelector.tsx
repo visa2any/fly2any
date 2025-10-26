@@ -199,7 +199,7 @@ export default function MultiAirportSelector({
                   key={airport.code}
                   className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold"
                 >
-                  {airport.emoji} {airport.code}
+                  {airport.emoji} {airport.city} ({airport.code})
                 </span>
               ))}
               {selectedAirports.length > maxDisplay && (

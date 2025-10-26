@@ -10,11 +10,16 @@ import { PriceAlerts } from '@/components/flights/PriceAlerts';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
 import SortBar, { type SortOption } from '@/components/flights/SortBar';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
+import { MLInsights, type MLMetadata } from '@/components/flights/MLInsights';
 import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkeleton';
-import { VirtualFlightList } from '@/components/flights/VirtualFlightList';
+// TEMPORARILY DISABLED: Virtual scrolling needs proper height calibration
+// import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
+import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
+import InlineFlightLoading from '@/components/flights/InlineFlightLoading';
 import { ChevronRight, ChevronLeft, AlertCircle, RefreshCcw, X } from 'lucide-react';
 import { normalizePrice } from '@/lib/flights/types';
 import CrossSellWidget from '@/components/flights/CrossSellWidget';
@@ -515,6 +520,7 @@ function FlightResultsContent() {
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
   const [marketAverage, setMarketAverage] = useState<number | null>(null);
   const [mlPredictionEnabled, setMlPredictionEnabled] = useState(true);
+  const [mlMetadata, setMlMetadata] = useState<MLMetadata | null>(null);
 
   // New premium features state
   const [compareFlights, setCompareFlights] = useState<string[]>([]);
@@ -523,6 +529,14 @@ function FlightResultsContent() {
   const [flexibleDatePrices, setFlexibleDatePrices] = useState<DatePrice[]>([]);
   const [showPriceCalendar, setShowPriceCalendar] = useState(false);
   const [showAlternativeAirports, setShowAlternativeAirports] = useState(false);
+
+  // Multi-city state
+  const [multiCityLegs, setMultiCityLegs] = useState<ScoredFlight[][]>([]);
+  const [multiCityLoading, setMultiCityLoading] = useState<boolean[]>([]);
+  const [multiCityLegMetadata, setMultiCityLegMetadata] = useState<Array<{from: string, to: string, date: string, nonstop: boolean}>>([]);
+
+  // Search bar collapse state - auto-collapse when results load
+  const [searchBarCollapsed, setSearchBarCollapsed] = useState(false);
 
   // Extract search parameters
   const searchData: SearchParams = {
@@ -540,6 +554,23 @@ function FlightResultsContent() {
   // Extract independent nonstop filters from URL
   const fromNonstopFilter = searchParams.get('fromNonstop') === 'true';
   const toNonstopFilter = searchParams.get('toNonstop') === 'true';
+
+  // Extract multi-city data from URL
+  const isMultiCity = searchParams.get('multiCity') === 'true';
+  const additionalFlightsParam = searchParams.get('additionalFlights');
+  const additionalFlights = isMultiCity && additionalFlightsParam
+    ? JSON.parse(additionalFlightsParam)
+    : [];
+
+  // DEBUG: Log multi-city URL params
+  if (isMultiCity) {
+    console.log('🔍 Multi-city URL params:', {
+      isMultiCity,
+      additionalFlightsParam,
+      parsedAdditionalFlights: additionalFlights,
+      totalLegs: additionalFlights.length + 1
+    });
+  }
 
   // Initialize filters with default values (including new advanced filters)
   const [filters, setFilters] = useState<FlightFiltersType>({
@@ -582,6 +613,146 @@ function FlightResultsContent() {
     }, 1000);
   };
 
+  // Combine multi-city leg results into complete journey flights
+  const combineMultiCityLegs = (legResults: ScoredFlight[][]): ScoredFlight[] => {
+    console.log('🔄 combineMultiCityLegs CALLED with legResults:', legResults.length, 'legs');
+
+    if (legResults.length === 0) {
+      console.log('❌ combineMultiCityLegs: legResults is empty!');
+      return [];
+    }
+
+    console.log('🔄 Combining multi-city legs:', legResults.map(leg => leg.length), 'flights per leg');
+
+    // Check if any leg has no flights
+    const emptyLegs = legResults.filter(leg => leg.length === 0);
+    if (emptyLegs.length > 0) {
+      console.warn('⚠️ Some legs have no flights, cannot create combinations');
+      return [];
+    }
+
+    // Scale flights per leg based on total legs to avoid exponential explosion
+    // 2 legs: 10 each = 100 combinations
+    // 3 legs: 5 each = 125 combinations
+    // 4 legs: 4 each = 256 combinations
+    // 5 legs: 3 each = 243 combinations
+    const flightsPerLeg = Math.max(3, Math.min(10, Math.floor(15 / legResults.length)));
+    console.log(`📊 Taking top ${flightsPerLeg} flights from each of ${legResults.length} legs`);
+
+    const topFlightsPerLeg = legResults.map(leg => leg.slice(0, flightsPerLeg));
+
+    // Generate all combinations
+    const combinations: ScoredFlight[] = [];
+    let combinationCount = 0;
+
+    const generateCombinations = (currentCombination: any[], legIndex: number) => {
+      if (legIndex === topFlightsPerLeg.length) {
+        // We have a complete combination - create a combined flight object
+        combinationCount++;
+        const combinedFlight = createCombinedFlight(currentCombination);
+        if (combinedFlight) {
+          combinations.push(combinedFlight);
+        }
+        return;
+      }
+
+      // Try each flight option for current leg
+      const legFlights = topFlightsPerLeg[legIndex];
+      if (!legFlights || legFlights.length === 0) {
+        console.error(`❌ Leg ${legIndex} has no flights!`);
+        return;
+      }
+
+      for (const flight of legFlights) {
+        generateCombinations([...currentCombination, flight], legIndex + 1);
+      }
+    };
+
+    // Start generating combinations
+    console.log('🚀 Starting combination generation...');
+    generateCombinations([], 0);
+
+    console.log(`✅ Generated ${combinationCount} combinations, created ${combinations.length} valid flight objects`);
+
+    // Sort by total price and return top 50
+    const sortedCombinations = combinations.sort((a, b) => {
+      const priceA = typeof a.price.total === 'string' ? parseFloat(a.price.total) : a.price.total;
+      const priceB = typeof b.price.total === 'string' ? parseFloat(b.price.total) : b.price.total;
+      return priceA - priceB;
+    });
+
+    console.log(`✨ Returning top 50 cheapest combinations (total: ${sortedCombinations.length})`);
+    return sortedCombinations.slice(0, 50);
+  };
+
+  // Create a combined flight object from individual leg flights
+  const createCombinedFlight = (legFlights: any[]): ScoredFlight | null => {
+    if (legFlights.length === 0) {
+      console.error('❌ createCombinedFlight called with empty array');
+      return null;
+    }
+
+    // Combine all itineraries
+    const allItineraries = legFlights.flatMap(flight => flight.itineraries || []);
+
+    if (allItineraries.length === 0) {
+      console.warn('⚠️ Combined flight has no itineraries:', legFlights.map(f => f.id));
+      return null;
+    }
+
+    // Calculate total price and aggregate base + fees
+    const totalPrice = legFlights.reduce((sum, flight) => {
+      const price = typeof flight.price.total === 'string' ? parseFloat(flight.price.total) : flight.price.total;
+      return sum + price;
+    }, 0);
+
+    // Calculate total base price (sum of all leg base prices)
+    const totalBase = legFlights.reduce((sum, flight) => {
+      const base = typeof flight.price.base === 'string' ? parseFloat(flight.price.base || '0') : (flight.price.base || 0);
+      return sum + base;
+    }, 0);
+
+    // Aggregate all fees from all legs
+    const allFees = legFlights.flatMap(flight => flight.price.fees || []);
+    const totalFees = allFees.reduce((sum, fee) => {
+      const amount = typeof fee.amount === 'string' ? parseFloat(fee.amount) : fee.amount;
+      return sum + amount;
+    }, 0);
+
+    // Debug: Log price breakdown
+    console.log('💰 Multi-city price breakdown:', {
+      totalPrice: totalPrice.toFixed(2),
+      totalBase: totalBase.toFixed(2),
+      totalFees: totalFees.toFixed(2),
+      feesCount: allFees.length,
+      percentage: ((totalFees / totalPrice) * 100).toFixed(1) + '%'
+    });
+
+    // Use first flight as base and merge data
+    const baseFlight = legFlights[0];
+
+    const combinedFlight = {
+      ...baseFlight,
+      id: `multi-${legFlights.map(f => f.id).join('-')}`,
+      itineraries: allItineraries,
+      price: {
+        currency: baseFlight.price.currency,
+        total: totalPrice.toFixed(2),
+        base: totalBase > 0 ? totalBase.toFixed(2) : (totalPrice * 0.85).toFixed(2), // Use aggregated base or estimate
+        fees: allFees.length > 0 ? allFees : undefined, // Preserve all fees
+        grandTotal: totalPrice.toFixed(2),
+      },
+      // Combine validating airline codes
+      validatingAirlineCodes: Array.from(new Set(
+        legFlights.flatMap(f => f.validatingAirlineCodes || [])
+      )),
+      // Average deal score if available
+      dealScore: legFlights.reduce((sum, f) => sum + (f.dealScore || 0), 0) / legFlights.length,
+    };
+
+    return combinedFlight;
+  };
+
   // Fetch flights on mount and when search params change
   useEffect(() => {
     const fetchFlights = async () => {
@@ -593,10 +764,97 @@ function FlightResultsContent() {
 
       setLoading(true);
       setError(null);
+      setSearchBarCollapsed(false); // Reset to expanded when new search starts
 
       // Announce search start
       announceResults(0); // Will be updated when results load
 
+      // Handle multi-city separately
+      console.log('🔍 BEFORE CONDITION CHECK:', { isMultiCity, additionalFlightsLength: additionalFlights.length, willEnterMultiCity: isMultiCity && additionalFlights.length > 0 });
+
+      if (isMultiCity && additionalFlights.length > 0) {
+        console.log('🛫 Multi-city search detected, fetching', additionalFlights.length + 1, 'legs');
+
+        try {
+          // Prepare all flight legs (first leg + additional flights)
+          const allLegs = [
+            {
+              from: searchData.from,
+              to: searchData.to,
+              date: searchData.departure,
+              nonstop: fromNonstopFilter
+            },
+            ...additionalFlights
+          ];
+
+          // Store leg metadata for display
+          setMultiCityLegMetadata(allLegs);
+
+          // Initialize loading state for each leg
+          setMultiCityLoading(allLegs.map(() => true));
+
+          // Fetch all legs in parallel
+          const legPromises = allLegs.map(async (leg, index) => {
+            console.log(`  Fetching leg ${index + 1}:`, leg.from, '→', leg.to);
+
+            const response = await fetch('/api/flights/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                origin: leg.from,
+                destination: leg.to,
+                departureDate: leg.date,
+                returnDate: undefined, // One-way only
+                adults: searchData.adults,
+                children: searchData.children,
+                infants: searchData.infants,
+                travelClass: searchData.class,
+                nonStop: leg.nonstop || false,
+                currencyCode: 'USD',
+                max: 25, // Reduced results per leg
+                useMultiDate: false,
+              }),
+            });
+
+            if (!response.ok) {
+              console.error(`Leg ${index + 1} failed:`, response.status);
+              return [];
+            }
+
+            const data = await response.json();
+            console.log(`  Leg ${index + 1} results:`, data.flights?.length || 0, 'flights');
+            return data.flights || [];
+          });
+
+          // Wait for all legs to complete
+          console.log('⏳ Waiting for Promise.all to complete...');
+          const legResults = await Promise.all(legPromises);
+          console.log('✅ Promise.all completed, legResults:', legResults.map(leg => `${leg?.length || 0} flights`));
+
+          // Combine leg results into complete journey flights
+          console.log('🔄 About to call combineMultiCityLegs with', legResults.length, 'legs');
+          const combinedFlights = combineMultiCityLegs(legResults);
+          console.log('✅ combineMultiCityLegs returned', combinedFlights.length, 'combinations');
+
+          console.log('✅ Multi-city search complete:', legResults.map(leg => leg.length), 'flights per leg');
+          console.log(`📦 Combined into ${combinedFlights.length} complete journey options`);
+
+          // Store combined flights in regular flights state
+          setFlights(combinedFlights);
+          setMultiCityLegs(legResults); // Keep for reference
+          setMultiCityLoading(allLegs.map(() => false));
+          setLoading(false);
+          setSearchBarCollapsed(true); // Auto-collapse after multi-city results load
+          return;
+        } catch (error: any) {
+          console.error('Multi-city search error:', error);
+          setError(`Multi-city search failed: ${error.message}`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Regular single/round-trip flight search
       try {
         const response = await fetch('/api/flights/search', {
           method: 'POST',
@@ -623,6 +881,12 @@ function FlightResultsContent() {
 
         const data = await response.json();
         let processedFlights = data.flights || [];
+
+        // Capture ML metadata from API response
+        if (data.metadata?.ml) {
+          setMlMetadata(data.metadata.ml);
+          console.log('🧠 ML Metadata received:', data.metadata.ml);
+        }
 
         // Apply independent nonstop filters (From Nonstop / To Nonstop) from URL params
         processedFlights = applyNonstopFilters(processedFlights, fromNonstopFilter, toNonstopFilter);
@@ -755,6 +1019,10 @@ function FlightResultsContent() {
         setError(err.message || 'Failed to fetch flights');
       } finally {
         setLoading(false);
+        // Auto-collapse search bar after results load (success or empty results)
+        if (!error) {
+          setSearchBarCollapsed(true);
+        }
       }
     };
 
@@ -816,6 +1084,10 @@ function FlightResultsContent() {
 
   const handleRetry = () => {
     window.location.reload();
+  };
+
+  const handleExpandSearchBar = () => {
+    setSearchBarCollapsed(false);
   };
 
   const [isNavigating, setIsNavigating] = useState(false);
@@ -920,11 +1192,11 @@ function FlightResultsContent() {
     setShowPriceAlert(true);
   };
 
-  // Loading state - Keep search bar static, only show skeleton for results
+  // Loading state - Show 3-column layout with inline loading in main content area
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-        {/* Enhanced Search Bar - STATIC during loading */}
+        {/* Search Bar - VISIBLE during loading */}
         <EnhancedSearchBar
           origin={searchData.from}
           destination={searchData.to}
@@ -939,6 +1211,7 @@ function FlightResultsContent() {
           lang={lang}
         />
 
+        {/* Main Content Area - 3 COLUMN LAYOUT */}
         <div
           className="mx-auto"
           style={{
@@ -946,33 +1219,60 @@ function FlightResultsContent() {
             padding: layout.container.padding.desktop,
           }}
         >
-          {/* 3-COLUMN FLEXBOX LAYOUT (Priceline-style) */}
           <div className="flex flex-col lg:flex-row" style={{ gap: layout.results.gap, paddingTop: '24px', paddingBottom: '24px' }}>
-            {/* Left Sidebar - Filters Skeleton (Fixed 250px) */}
+
+            {/* Left Sidebar - Filters VISIBLE during loading */}
             <aside className="hidden lg:block" style={{ width: '250px', flexShrink: 0 }}>
-              <div className="sticky top-24 bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-4 h-96 animate-pulse">
-                <div className="h-6 w-24 bg-gray-200 rounded mb-4"></div>
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-4 bg-gray-200 rounded"></div>
-                  ))}
-                </div>
+              <div className="sticky top-24">
+                <FlightFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  flightData={[]} // Empty during loading
+                  lang={lang}
+                />
               </div>
             </aside>
 
-            {/* Main Content Skeleton (Flexible width) */}
-            <main className="flex-1 min-w-0">
-              <MultipleFlightCardSkeletons count={DESIGN_RULES.MIN_VISIBLE_RESULTS} />
+            {/* Main Content - INLINE LOADING ONLY */}
+            <main className="flex-1 min-w-0" role="main" aria-label="Flight search results">
+              {/* Sort Bar Placeholder */}
+              <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-4 mb-4">
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+
+              {/* Inline Loading Component */}
+              <InlineFlightLoading
+                origin={searchData.from}
+                destination={searchData.to}
+                departureDate={searchData.departure}
+                returnDate={searchData.return}
+                adults={searchData.adults}
+                children={searchData.children}
+                infants={searchData.infants}
+                cabinClass={searchData.class}
+                isMultiCity={isMultiCity}
+              />
             </main>
 
-            {/* Right Sidebar Skeleton (Fixed 320px) */}
+            {/* Right Sidebar - Price Insights VISIBLE during loading */}
             <aside className="hidden lg:block" style={{ width: '320px', flexShrink: 0 }}>
-              <div className="sticky top-24 bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-4 h-96 animate-pulse">
-                <div className="h-6 w-full bg-gray-200 rounded mb-4"></div>
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-4 bg-gray-200 rounded"></div>
-                  ))}
+              <div className="sticky top-24 space-y-4">
+                {/* Price Insights Skeleton */}
+                <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-4">
+                  <div className="space-y-3">
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* SmartWait Skeleton */}
+                <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-4">
+                  <div className="space-y-3">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-8 w-full bg-gray-200 rounded-lg animate-pulse"></div>
+                  </div>
                 </div>
               </div>
             </aside>
@@ -1008,8 +1308,10 @@ function FlightResultsContent() {
     );
   }
 
-  // No results state
-  if (flights.length === 0) {
+  // No results state (multi-city flights are now combined into flights array)
+  const hasNoResults = flights.length === 0;
+
+  if (hasNoResults) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
         <EnhancedSearchBar
@@ -1054,20 +1356,50 @@ function FlightResultsContent() {
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      {/* Enhanced Search Bar - Sticky, Editable, Full Width */}
-      <EnhancedSearchBar
-        origin={searchData.from}
-        destination={searchData.to}
-        departureDate={searchData.departure}
-        returnDate={searchData.return}
-        passengers={{
-          adults: searchData.adults,
-          children: searchData.children,
-          infants: searchData.infants,
-        }}
-        cabinClass={searchData.class}
-        lang={lang}
-      />
+      {/* Search Bar - Compact or Full with smooth transitions */}
+      <div className="transition-all duration-300 ease-in-out">
+        {searchBarCollapsed ? (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+            <CompactSearchSummary
+              origin={searchData.from}
+              destination={searchData.to}
+              departureDate={searchData.departure}
+              returnDate={searchData.return}
+              adults={searchData.adults}
+              children={searchData.children}
+              infants={searchData.infants}
+              cabinClass={searchData.class}
+              onExpand={handleExpandSearchBar}
+              isMultiCity={isMultiCity}
+              multiCityLegs={isMultiCity ? [
+                { origin: searchData.from, destination: searchData.to, date: searchData.departure },
+                ...additionalFlights.map((f: any) => ({
+                  origin: f.from || f.origin,
+                  destination: f.to || f.destination,
+                  date: f.date
+                }))
+              ] : []}
+              lang={lang}
+            />
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+            <EnhancedSearchBar
+              origin={searchData.from}
+              destination={searchData.to}
+              departureDate={searchData.departure}
+              returnDate={searchData.return}
+              passengers={{
+                adults: searchData.adults,
+                children: searchData.children,
+                infants: searchData.infants,
+              }}
+              cabinClass={searchData.class}
+              lang={lang}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
       <div
@@ -1107,30 +1439,47 @@ function FlightResultsContent() {
             />
 
             {/* Flight Cards List - ALL RESULTS CONTINUOUSLY (No widgets interruption) */}
-            <VirtualFlightList
-              flights={displayedFlights}
-              sortBy={sortBy}
-              onSelect={handleSelectFlight}
-              onCompare={handleCompareToggle}
-              compareFlights={compareFlights}
-              isNavigating={isNavigating}
-              selectedFlightId={selectedFlightId}
-              lang={lang}
-            />
+            <div className="space-y-4">
+              {displayedFlights.map((flight, index) => {
+                const flightId = flight.id || `flight-${index}`;
+                return (
+                  <div
+                    key={flightId}
+                    className="transform transition-all duration-200 hover:scale-[1.005]"
+                    style={{
+                      animationDelay: `${Math.min(index * 20, 200)}ms`,
+                    }}
+                  >
+                    <FlightCardEnhanced
+                      id={flightId}
+                      itineraries={flight.itineraries}
+                      price={flight.price}
+                      numberOfBookableSeats={flight.numberOfBookableSeats}
+                      validatingAirlineCodes={flight.validatingAirlineCodes}
+                      travelerPricings={(flight as any).travelerPricings}
+                      badges={flight.badges}
+                      score={typeof flight.score === 'object' ? (flight.score as any)[sortBy] || (flight.score as any).overall : flight.score}
+                      mlScore={(flight as any).mlScore}
+                      priceVsMarket={(flight as any).priceVsMarket}
+                      co2Emissions={(flight as any).co2Emissions}
+                      averageCO2={(flight as any).averageCO2}
+                      dealScore={(flight as any).dealScore}
+                      dealTier={(flight as any).dealTier}
+                      dealLabel={(flight as any).dealLabel}
+                      viewingCount={Math.floor(Math.random() * 50) + 20}
+                      bookingsToday={Math.floor(Math.random() * 150) + 100}
+                      onSelect={handleSelectFlight}
+                      onCompare={handleCompareToggle}
+                      isComparing={compareFlights.includes(flightId)}
+                      isNavigating={isNavigating && selectedFlightId === flightId}
+                      lang={lang}
+                    />
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Widgets removed per user request - flight cards now display continuously */}
-            {false && displayedFlights.length > DESIGN_RULES.MIN_VISIBLE_RESULTS && (
-              <VirtualFlightList
-                flights={displayedFlights.slice(DESIGN_RULES.MIN_VISIBLE_RESULTS)}
-                sortBy={sortBy}
-                onSelect={handleSelectFlight}
-                onCompare={handleCompareToggle}
-                compareFlights={compareFlights}
-                isNavigating={isNavigating}
-                selectedFlightId={selectedFlightId}
-                lang={lang}
-              />
-            )}
 
             {/* Load More Button */}
             {displayCount < sortedFlights.length && (
@@ -1195,6 +1544,18 @@ function FlightResultsContent() {
                 <LiveActivityFeed
                   variant={featureFlags.get('activityFeedVariant')}
                   maxItems={5}
+                />
+              )}
+
+              {/* ML Insights - AI-Powered Cost Optimization */}
+              {sortedFlights.length > 0 && (
+                <MLInsights
+                  route={priceRoute}
+                  currentPrice={normalizePrice(sortedFlights[0].price.total)}
+                  averagePrice={marketAverage || undefined}
+                  mlMetadata={mlMetadata || undefined}
+                  currency="USD"
+                  lang={lang}
                 />
               )}
 

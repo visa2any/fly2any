@@ -357,6 +357,12 @@ export default function EnhancedSearchBar({
       ? additionalFlights[additionalFlights.length - 1].destination
       : destination;
 
+    // Take only the LAST airport from the destination array to avoid multi-airport origins
+    // (for multi-city, the next flight should start from the last destination)
+    const newOrigin = Array.isArray(lastDestination) && lastDestination.length > 0
+      ? [lastDestination[lastDestination.length - 1]]
+      : lastDestination;
+
     // Smart date increment (+3 days from previous)
     const lastDate = additionalFlights.length > 0
       ? additionalFlights[additionalFlights.length - 1].departureDate
@@ -368,11 +374,17 @@ export default function EnhancedSearchBar({
 
     const newFlight: AdditionalFlight = {
       id: `flight-${Date.now()}`,
-      origin: lastDestination,
+      origin: newOrigin,
       destination: [],
       departureDate: newDateString,
       nonstop: false,
     };
+
+    console.log('➕ Adding new flight:', {
+      previousDestination: lastDestination,
+      newOrigin,
+      newDate: newDateString
+    });
 
     setAdditionalFlights([...additionalFlights, newFlight]);
   };
@@ -440,24 +452,6 @@ export default function EnhancedSearchBar({
     // Check if multi-city (one-way with additional flights)
     const isMultiCity = tripType === 'oneway' && additionalFlights.length > 0;
 
-    if (isMultiCity) {
-      // For multi-city, we need to search each leg separately
-      // TODO: Implement multi-city API integration
-      console.log('Multi-city search:', {
-        flight1: { from: origin, to: destination, date: departureDate, nonstop: fromNonstop },
-        additionalFlights: additionalFlights.map(f => ({
-          from: f.origin,
-          to: f.destination,
-          date: f.departureDate,
-          nonstop: f.nonstop
-        }))
-      });
-
-      // For now, redirect to first leg search
-      // In future: integrate proper multi-city API support
-      alert('Multi-city search coming soon! For now, searching first leg only.');
-    }
-
     const params = new URLSearchParams({
       from: origin.join(','),  // Join multiple codes with comma
       to: destination.join(','),  // Join multiple codes with comma
@@ -471,8 +465,26 @@ export default function EnhancedSearchBar({
       class: cabinClass,
       direct: directFlights.toString(),
       fromNonstop: fromNonstop.toString(),
-      toNonstop: (tripType === 'roundtrip' && toNonstop).toString()
+      toNonstop: (tripType === 'roundtrip' && toNonstop).toString(),
+      multiCity: isMultiCity.toString()
     });
+
+    // Add multi-city flight data if present
+    if (isMultiCity) {
+      // Serialize additional flights as JSON
+      const multiCityFlights = additionalFlights.map(f => ({
+        from: f.origin.join(','),
+        to: f.destination.join(','),
+        date: f.departureDate,
+        nonstop: f.nonstop
+      }));
+      params.append('additionalFlights', JSON.stringify(multiCityFlights));
+
+      console.log('🛫 Multi-city search:', {
+        flight1: { from: origin, to: destination, date: departureDate, nonstop: fromNonstop },
+        additionalFlights: multiCityFlights
+      });
+    }
 
     // Add return date for round trips
     if (tripType === 'roundtrip') {
@@ -600,11 +612,12 @@ export default function EnhancedSearchBar({
                 <span>Depart</span>
               </label>
 
-              {/* Multi-Dates Toggle */}
-              <label className="flex items-center gap-1.5 cursor-pointer group">
+              {/* Multi-Dates Toggle - Disabled when multi-city flights added */}
+              <label className={`flex items-center gap-1.5 group ${additionalFlights.length > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                 <input
                   type="checkbox"
                   checked={useFlexibleDates}
+                  disabled={additionalFlights.length > 0}
                   onChange={(e) => {
                     setUseFlexibleDates(e.target.checked);
                     if (e.target.checked) {
@@ -615,7 +628,7 @@ export default function EnhancedSearchBar({
                       setReturnDates([]);
                     }
                   }}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Multi-Dates</span>
               </label>
@@ -914,7 +927,7 @@ export default function EnhancedSearchBar({
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="h-[50px] px-8 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="py-3 px-8 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
             >
               {isLoading ? (
                 <>
@@ -1040,29 +1053,34 @@ export default function EnhancedSearchBar({
                     </button>
                   </div>
 
-                  {/* Action Buttons - Fill remaining space */}
-                  <div className="flex items-center gap-2" style={{ marginTop: '32px' }}>
-                    {/* Add Another Flight Button */}
-                    {index === additionalFlights.length - 1 && additionalFlights.length < 4 && (
+                  {/* Action Buttons - Occupy same space as Return + Travelers + Search in main form */}
+                  <div style={{ flex: '1 1 402px' }}>
+                    {/* Empty label space for alignment with input fields above */}
+                    <div className="mb-2 h-[20px]" />
+
+                    <div className="flex items-center gap-2 w-full">
+                      {/* Add Another Flight Button */}
+                      {index === additionalFlights.length - 1 && additionalFlights.length < 4 && (
+                        <button
+                          type="button"
+                          onClick={handleAddFlight}
+                          className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 hover:bg-blue-50 whitespace-nowrap"
+                        >
+                          <Plane size={14} />
+                          <span>Add Another Flight</span>
+                        </button>
+                      )}
+
+                      {/* Delete This Flight Button */}
                       <button
                         type="button"
-                        onClick={handleAddFlight}
-                        className="px-4 py-2 border-2 border-dashed border-gray-300 hover:border-[#0087FF] text-gray-600 hover:text-[#0087FF] rounded-lg text-sm font-medium transition-all flex items-center gap-2 hover:bg-blue-50 whitespace-nowrap"
+                        onClick={() => handleRemoveFlight(flight.id)}
+                        className="flex-1 px-4 py-3 border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
+                        title="Remove this flight"
                       >
-                        <Plane size={14} />
-                        <span>Add Another Flight</span>
+                        Delete This Flight
                       </button>
-                    )}
-
-                    {/* Delete Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFlight(flight.id)}
-                      className="px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
-                      title="Remove flight"
-                    >
-                      Delete
-                    </button>
+                    </div>
                   </div>
                 </div>
               ))}

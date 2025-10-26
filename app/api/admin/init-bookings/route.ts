@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { initBookingsTables, checkBookingsTable } from '@/lib/db/init-bookings';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Initialize bookings database tables
  */

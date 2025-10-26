@@ -90,7 +90,7 @@ class DuffelAPI {
       }
 
       // Map cabin class to Duffel format
-      const cabinClassMap: Record<string, string> = {
+      const cabinClassMap: Record<string, 'first' | 'economy' | 'premium_economy' | 'business'> = {
         economy: 'economy',
         premium_economy: 'premium_economy',
         business: 'business',
@@ -118,15 +118,83 @@ class DuffelAPI {
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Fetch the offer request again
-        const updated = await this.client.offerRequests.get(offerRequest.data.id, {
-          return_offers: true,
-        });
+        const updated = await this.client.offerRequests.get(offerRequest.data.id);
 
         offers = updated.data.offers || [];
         attempts++;
       }
 
       console.log(`📋 Duffel returned ${offers.length} offers`);
+
+      // Debug: Log COMPLETE first offer to analyze tax structure
+      if (offers.length > 0) {
+        const firstOffer = offers[0] as any; // Cast to any for debug logging
+
+        console.log('\n💼 ========== DUFFEL RAW API RESPONSE - DETAILED TAX ANALYSIS ==========');
+        console.log('\n💰 Price Fields:');
+        console.log(`   total_amount: ${firstOffer.total_amount} ${firstOffer.total_currency}`);
+        console.log(`   base_amount: ${firstOffer.base_amount} ${firstOffer.base_currency || firstOffer.total_currency}`);
+        console.log(`   tax_amount: ${firstOffer.tax_amount || 'NOT PROVIDED'} ${firstOffer.tax_currency || firstOffer.total_currency}`);
+
+        console.log('\n📦 Available Services (Baggage/Extras):');
+        if (firstOffer.available_services && firstOffer.available_services.length > 0) {
+          console.log(`   Found ${firstOffer.available_services.length} services`);
+          firstOffer.available_services.forEach((service: any, idx: number) => {
+            console.log(`   Service ${idx + 1}: ${service.type} - ${service.total_amount} ${service.total_currency}`);
+          });
+        } else {
+          console.log('   ⚠️  No available services found');
+        }
+
+        console.log('\n👥 Passengers:');
+        if (firstOffer.passengers && firstOffer.passengers.length > 0) {
+          console.log(`   ${firstOffer.passengers.length} passengers`);
+          firstOffer.passengers.forEach((passenger: any, idx: number) => {
+            console.log(`   Passenger ${idx + 1}: ${passenger.type || 'Unknown type'}`);
+          });
+        } else {
+          console.log('   ⚠️  No passenger data');
+        }
+
+        console.log('\n🛫 Slices & Segments:');
+        if (firstOffer.slices && firstOffer.slices.length > 0) {
+          firstOffer.slices.forEach((slice: any, sliceIdx: number) => {
+            console.log(`   Slice ${sliceIdx + 1}: ${slice.origin.iata_code} → ${slice.destination.iata_code}`);
+            console.log(`     Duration: ${slice.duration}`);
+            console.log(`     Segments: ${slice.segments.length}`);
+
+            if (slice.segments && slice.segments.length > 0) {
+              slice.segments.forEach((segment: any, segIdx: number) => {
+                console.log(`       Segment ${segIdx + 1}: ${segment.origin.iata_code} → ${segment.destination.iata_code}`);
+                console.log(`         Carrier: ${segment.marketing_carrier?.iata_code || 'Unknown'} ${segment.marketing_carrier_flight_number || ''}`);
+
+                // Check if segments have individual pricing
+                if (segment.passengers && segment.passengers.length > 0) {
+                  console.log(`         Passenger cabin data available: ${segment.passengers.length} passengers`);
+                  segment.passengers.forEach((segPassenger: any, pIdx: number) => {
+                    if (segPassenger.fare_basis_code) {
+                      console.log(`           Passenger ${pIdx + 1} fare basis: ${segPassenger.fare_basis_code}`);
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+
+        console.log('\n📊 Summary:');
+        const baseAmount = parseFloat(firstOffer.base_amount || '0');
+        const taxAmount = firstOffer.tax_amount ? parseFloat(firstOffer.tax_amount) : 0;
+        const totalAmount = parseFloat(firstOffer.total_amount);
+        const calculatedTax = totalAmount - baseAmount;
+
+        console.log(`   Total: ${totalAmount.toFixed(2)} ${firstOffer.total_currency}`);
+        console.log(`   Base: ${baseAmount.toFixed(2)} ${firstOffer.total_currency}`);
+        console.log(`   Tax (from API): ${taxAmount > 0 ? taxAmount.toFixed(2) : 'NOT PROVIDED'} ${firstOffer.total_currency}`);
+        console.log(`   Tax (calculated): ${calculatedTax.toFixed(2)} ${firstOffer.total_currency}`);
+        console.log(`   Tax Percentage: ${totalAmount > 0 ? ((calculatedTax / totalAmount) * 100).toFixed(1) : 'N/A'}%`);
+        console.log('\n💼 ===================================================================\n');
+      }
 
       // Convert Duffel offers to our standard format
       const standardizedOffers = offers.map((offer: any) => this.convertDuffelOffer(offer));
@@ -204,15 +272,18 @@ class DuffelAPI {
         })),
       })),
 
-      // Price
+      // Price - use tax_amount if available, otherwise compute from total - base
       price: {
         currency: duffelOffer.total_currency,
         total: duffelOffer.total_amount,
-        base: duffelOffer.base_amount || duffelOffer.total_amount,
-        fees: [{
-          amount: (parseFloat(duffelOffer.total_amount) - parseFloat(duffelOffer.base_amount || duffelOffer.total_amount)).toString(),
-          type: 'TICKETING',
-        }],
+        base: duffelOffer.base_amount,
+        fees: duffelOffer.tax_amount ? [{
+          amount: duffelOffer.tax_amount,
+          type: 'TAXES_AND_FEES',
+        }] : duffelOffer.base_amount ? [{
+          amount: (parseFloat(duffelOffer.total_amount) - parseFloat(duffelOffer.base_amount)).toString(),
+          type: 'TAXES_AND_FEES',
+        }] : undefined,
         grandTotal: duffelOffer.total_amount,
       },
 

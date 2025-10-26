@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/ml/prefetch",
+      "schedule": "0 3 * * *"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "Fly2Any",
+    "NEXT_PUBLIC_APP_URL": "https://fly2any.com"
+  }
+}

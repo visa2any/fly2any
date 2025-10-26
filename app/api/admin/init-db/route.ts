@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { initDatabase, checkDatabase } from '@/lib/db/init';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Initialize database schema
  * This endpoint should be protected in production

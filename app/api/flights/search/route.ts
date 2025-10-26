@@ -11,6 +11,13 @@ import {
 import { getCached, setCache } from '@/lib/cache/helpers';
 import { generateFlightSearchKey } from '@/lib/cache/keys';
 
+// ML-powered cost optimization imports
+import { smartCachePredictor } from '@/lib/ml/cache-predictor';
+import { smartAPISelector } from '@/lib/ml/api-selector';
+import { routeProfiler } from '@/lib/ml/route-profiler';
+import type { RouteSearchLog } from '@/lib/ml/types';
+import { requestDeduplicator } from '@/lib/api/request-deduplicator';
+
 /**
  * Generate date range for flexible dates
  */
@@ -58,8 +65,8 @@ function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
       flightMap.set(key, flight);
     } else {
       // Flight already exists - keep the cheaper one
-      const existingPrice = parseFloat(existingFlight.price?.total || '999999');
-      const newPrice = parseFloat(flight.price?.total || '999999');
+      const existingPrice = parseFloat(String(existingFlight.price?.total || '999999'));
+      const newPrice = parseFloat(String(flight.price?.total || '999999'));
 
       if (newPrice < existingPrice) {
         console.log(`  💰 Found cheaper price: ${flight.source || 'Unknown'} $${newPrice} < ${existingFlight.source || 'Unknown'} $${existingPrice}`);
@@ -277,30 +284,88 @@ export async function POST(request: NextRequest) {
     let dictionaries: any = {};
 
     // Helper function to search a single origin-destination pair
-    // Queries both Amadeus and Duffel in parallel, then merges results
+    // Uses ML-powered smart API selection to optimize costs
     const searchSingleRoute = async (origin: string, destination: string, dateToSearch: string, returnDateToSearch?: string) => {
-      const singleRouteParams = {
+      // Create deduplication key for concurrent request coalescing
+      const dedupKey = {
         origin,
         destination,
         departureDate: dateToSearch,
-        returnDate: returnDateToSearch,
+        returnDate: returnDateToSearch || null,
         adults: body.adults,
-        children: body.children,
-        infants: body.infants,
-        travelClass,
-        nonStop: body.nonStop === true ? true : undefined,
-        currencyCode: body.currencyCode || 'USD',
-        max: body.max || 50,
+        children: body.children || 0,
+        infants: body.infants || 0,
+        cabinClass: travelClass,
+        nonStop: body.nonStop || false,
       };
+
+      // Deduplicate concurrent searches for the same route
+      const result = await requestDeduplicator.deduplicate(
+        dedupKey,
+        async () => {
+          const singleRouteParams = {
+            origin,
+            destination,
+            departureDate: dateToSearch,
+            returnDate: returnDateToSearch,
+            adults: body.adults,
+            children: body.children,
+            infants: body.infants,
+            travelClass,
+            nonStop: body.nonStop === true ? true : undefined,
+            currencyCode: body.currencyCode || 'USD',
+            max: body.max || 50,
+          };
 
       // Map travel class for Duffel (lowercase format)
       const duffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
 
-      // Query both APIs in parallel
-      const [amadeusResponse, duffelResponse] = await Promise.allSettled([
-        amadeusAPI.searchFlights(singleRouteParams),
-        duffelAPI.isAvailable()
-          ? duffelAPI.searchFlights({
+      // 🧠 ML: Smart API selection
+      const apiSelection = await smartAPISelector.selectAPIs({
+        origin,
+        destination,
+        departureDate: dateToSearch,
+        returnDate: returnDateToSearch,
+        cabinClass: duffelCabinClass || 'economy',
+      });
+
+      console.log(`  🤖 Smart API Selection: ${apiSelection.strategy} (${(apiSelection.confidence * 100).toFixed(0)}% confidence) - ${apiSelection.reason}`);
+
+      // Query selected API(s) based on ML recommendation
+      let amadeusResponse, duffelResponse;
+      const amadeusStartTime = Date.now();
+      const duffelStartTime = Date.now();
+
+      if (apiSelection.strategy === 'both') {
+        // Query both APIs in parallel
+        [amadeusResponse, duffelResponse] = await Promise.allSettled([
+          amadeusAPI.searchFlights(singleRouteParams),
+          duffelAPI.isAvailable()
+            ? duffelAPI.searchFlights({
+                origin,
+                destination,
+                departureDate: dateToSearch,
+                returnDate: returnDateToSearch,
+                adults: body.adults || 1,
+                children: body.children,
+                infants: body.infants,
+                cabinClass: duffelCabinClass || 'economy',
+                maxResults: body.max || 50,
+              })
+            : Promise.resolve({ data: [], meta: { count: 0 } }),
+        ]);
+      } else if (apiSelection.strategy === 'amadeus') {
+        // Query only Amadeus
+        amadeusResponse = await amadeusAPI.searchFlights(singleRouteParams).then(
+          value => ({ status: 'fulfilled' as const, value }),
+          reason => ({ status: 'rejected' as const, reason })
+        );
+        duffelResponse = { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
+      } else {
+        // Query only Duffel
+        amadeusResponse = { status: 'fulfilled' as const, value: { data: [], dictionaries: {} } };
+        duffelResponse = duffelAPI.isAvailable()
+          ? await duffelAPI.searchFlights({
               origin,
               destination,
               departureDate: dateToSearch,
@@ -310,9 +375,15 @@ export async function POST(request: NextRequest) {
               infants: body.infants,
               cabinClass: duffelCabinClass || 'economy',
               maxResults: body.max || 50,
-            })
-          : Promise.resolve({ data: [], meta: { count: 0 } }),
-      ]);
+            }).then(
+              value => ({ status: 'fulfilled' as const, value }),
+              reason => ({ status: 'rejected' as const, reason })
+            )
+          : { status: 'fulfilled' as const, value: { data: [], meta: { count: 0 } } };
+      }
+
+      const amadeusTime = Date.now() - amadeusStartTime;
+      const duffelTime = Date.now() - duffelStartTime;
 
       // Extract results
       const amadeusFlights = amadeusResponse.status === 'fulfilled' ? (amadeusResponse.value.data || []) : [];
@@ -326,18 +397,45 @@ export async function POST(request: NextRequest) {
         console.error('  ⚠️  Duffel API error:', duffelResponse.reason?.message);
       }
 
-      console.log(`    Amadeus: ${amadeusFlights.length} flights, Duffel: ${duffelFlights.length} flights`);
+      console.log(`    Amadeus: ${amadeusFlights.length} flights (${amadeusTime}ms), Duffel: ${duffelFlights.length} flights (${duffelTime}ms)`);
+
+      // 📊 Log API performance for ML learning
+      if (amadeusFlights.length > 0 || duffelFlights.length > 0) {
+        const amadeusLowestPrice = amadeusFlights.length > 0
+          ? Math.min(...amadeusFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
+          : null;
+        const duffelLowestPrice = duffelFlights.length > 0
+          ? Math.min(...duffelFlights.map((f: FlightOffer) => parseFloat(String(f.price?.total || '999999'))))
+          : null;
+
+        routeProfiler.logAPIPerformance(
+          `${origin}-${destination}`,
+          amadeusLowestPrice,
+          duffelLowestPrice,
+          amadeusTime,
+          duffelTime
+        ).catch(console.error); // Don't block on logging
+      }
 
       // Merge results
       const allFlightsFromBothSources = [...amadeusFlights, ...duffelFlights];
 
-      // Get dictionaries from Amadeus response (for carrier names, etc.)
-      const dictionaries = amadeusResponse.status === 'fulfilled' ? amadeusResponse.value.dictionaries : {};
+          // Get dictionaries from Amadeus response (for carrier names, etc.)
+          const dictionaries = amadeusResponse.status === 'fulfilled' ? amadeusResponse.value.dictionaries : {};
 
-      return {
-        data: allFlightsFromBothSources,
-        dictionaries,
-      };
+          return {
+            data: allFlightsFromBothSources,
+            dictionaries,
+          };
+        }
+      );
+
+      // Log deduplication stats
+      if (result.deduped) {
+        console.log(`  🔄 Request deduplicated (${result.waiters} concurrent users sharing this search)`);
+      }
+
+      return result.data;
     };
 
     // Multi-airport search: iterate through all origin-destination combinations
@@ -513,6 +611,16 @@ export async function POST(request: NextRequest) {
     const sortBy = (body.sortBy as 'best' | 'cheapest' | 'fastest' | 'overall') || 'best';
     const sortedFlights = sortFlights(scoredFlights, sortBy);
 
+    // 🧠 ML: Get optimal cache TTL based on route characteristics
+    const cachePrediction = await smartCachePredictor.predictOptimalTTL(
+      originCodes[0], // Use first origin for prediction
+      destinationCodes[0], // Use first destination for prediction
+      travelClass || 'ECONOMY',
+      departureDate
+    );
+
+    console.log(`  ⏱️  Smart Cache: ${cachePrediction.recommendedTTL}min (${(cachePrediction.confidence * 100).toFixed(0)}% confidence) - ${cachePrediction.reason}`);
+
     // Build response with metadata
     const response = {
       flights: sortedFlights,
@@ -526,17 +634,57 @@ export async function POST(request: NextRequest) {
         cacheKey,
         origins: originCodes,
         destinations: destinationCodes,
+        ml: {
+          cacheTTL: cachePrediction.recommendedTTL,
+          cacheConfidence: cachePrediction.confidence,
+          cacheReason: cachePrediction.reason,
+        },
       }
     };
 
-    // Store in cache (15 minutes TTL)
-    await setCache(cacheKey, response, 900);
+    // Store in cache with ML-optimized TTL (convert minutes to seconds)
+    const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
+    await setCache(cacheKey, response, cacheTTLSeconds);
+
+    // 📊 Log search for route profiling
+    const lowestPrice = sortedFlights.length > 0
+      ? parseFloat(String(sortedFlights[0].price?.total || '0'))
+      : 0;
+
+    const searchLog: RouteSearchLog = {
+      searchId: `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      route: `${originCodes[0]}-${destinationCodes[0]}`,
+      params: {
+        origin: originCodes[0],
+        destination: destinationCodes[0],
+        departureDate,
+        returnDate: body.returnDate,
+        adults: adults || 1,
+        children: body.children || 0,
+        infants: body.infants || 0,
+        cabinClass: travelClass || 'ECONOMY',
+      },
+      lowestPrice,
+      currency: body.currencyCode || 'USD',
+      resultCount: sortedFlights.length,
+      cacheHit: false,
+      apiCalls: {
+        amadeus: true, // Will be accurate once we add more tracking
+        duffel: true,
+      },
+      timestamp: new Date(),
+      sessionId: request.headers.get('x-session-id') || undefined,
+    };
+
+    routeProfiler.logSearch(searchLog).catch(console.error); // Don't block on logging
 
     return NextResponse.json(response, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=900',
+        'Cache-Control': `public, max-age=${cacheTTLSeconds}`,
         'X-Cache-Status': 'MISS',
+        'X-ML-Cache-TTL': `${cachePrediction.recommendedTTL}min`,
+        'X-ML-Confidence': `${(cachePrediction.confidence * 100).toFixed(0)}%`,
         'Content-Type': 'application/json'
       }
     });
