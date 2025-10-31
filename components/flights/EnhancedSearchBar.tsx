@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
@@ -9,6 +9,8 @@ import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
 import MultiDatePicker from '@/components/common/MultiDatePicker';
+
+type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours';
 
 interface PassengerCounts {
   adults: number;
@@ -36,37 +38,92 @@ interface Airport {
 
 // Popular airports data (same as InlineAirportAutocomplete for consistency)
 const popularAirports: Airport[] = [
+  // North America - USA
   { code: 'JFK', name: 'John F. Kennedy Intl', city: 'New York', country: 'USA', emoji: '🗽' },
   { code: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'USA', emoji: '🌴' },
-  { code: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', emoji: '🗼' },
-  { code: 'DXB', name: 'Dubai Intl', city: 'Dubai', country: 'UAE', emoji: '🏙️' },
-  { code: 'NRT', name: 'Narita Intl', city: 'Tokyo', country: 'Japan', emoji: '🗾' },
-  { code: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore', emoji: '🇸🇬' },
   { code: 'MIA', name: 'Miami Intl', city: 'Miami', country: 'USA', emoji: '🏖️' },
   { code: 'SFO', name: 'San Francisco Intl', city: 'San Francisco', country: 'USA', emoji: '🌉' },
   { code: 'ORD', name: 'O\'Hare Intl', city: 'Chicago', country: 'USA', emoji: '🏙️' },
+  { code: 'DEN', name: 'Denver Intl', city: 'Denver', country: 'USA', emoji: '🏔️' },
+  { code: 'ATL', name: 'Hartsfield-Jackson', city: 'Atlanta', country: 'USA', emoji: '🍑' },
+  { code: 'SEA', name: 'Seattle-Tacoma Intl', city: 'Seattle', country: 'USA', emoji: '☕' },
+  { code: 'IAH', name: 'George Bush Intercontinental', city: 'Houston', country: 'USA', emoji: '🤠' },
+  { code: 'HNL', name: 'Daniel K. Inouye Intl', city: 'Honolulu', country: 'USA', emoji: '🌺' },
+  { code: 'OGG', name: 'Kahului Airport', city: 'Maui', country: 'USA', emoji: '🏝️' },
+
+  // North America - Canada
   { code: 'YYZ', name: 'Toronto Pearson', city: 'Toronto', country: 'Canada', emoji: '🇨🇦' },
-  { code: 'BCN', name: 'Barcelona-El Prat', city: 'Barcelona', country: 'Spain', emoji: '🇪🇸' },
-  { code: 'FCO', name: 'Fiumicino', city: 'Rome', country: 'Italy', emoji: '🏛️' },
-  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt', country: 'Germany', emoji: '🇩🇪' },
-  { code: 'SYD', name: 'Kingsford Smith', city: 'Sydney', country: 'Australia', emoji: '🦘' },
+  { code: 'YVR', name: 'Vancouver Intl', city: 'Vancouver', country: 'Canada', emoji: '🏔️' },
+
+  // Mexico & Central America
+  { code: 'MEX', name: 'Mexico City Intl', city: 'Mexico City', country: 'Mexico', emoji: '🌮' },
+  { code: 'CUN', name: 'Cancún Intl', city: 'Cancún', country: 'Mexico', emoji: '🏝️' },
+  { code: 'PVR', name: 'Lic. Gustavo Díaz Ordaz Intl', city: 'Puerto Vallarta', country: 'Mexico', emoji: '🌊' },
+  { code: 'CZM', name: 'Cozumel Intl', city: 'Cozumel', country: 'Mexico', emoji: '🏖️' },
+  { code: 'SJD', name: 'Los Cabos Intl', city: 'Los Cabos', country: 'Mexico', emoji: '🌅' },
+  { code: 'GDL', name: 'Guadalajara Intl', city: 'Guadalajara', country: 'Mexico', emoji: '🎺' },
+  { code: 'PTY', name: 'Tocumen Intl', city: 'Panama City', country: 'Panama', emoji: '🚢' },
+  { code: 'SJO', name: 'Juan Santamaría Intl', city: 'San José', country: 'Costa Rica', emoji: '🌋' },
+  { code: 'BZE', name: 'Philip S. W. Goldson Intl', city: 'Belize City', country: 'Belize', emoji: '🐠' },
+
+  // South America
   { code: 'GRU', name: 'São Paulo/Guarulhos Intl', city: 'São Paulo', country: 'Brazil', emoji: '🇧🇷' },
   { code: 'GIG', name: 'Rio de Janeiro/Galeão Intl', city: 'Rio de Janeiro', country: 'Brazil', emoji: '🏖️' },
   { code: 'EZE', name: 'Ministro Pistarini Intl', city: 'Buenos Aires', country: 'Argentina', emoji: '🥩' },
   { code: 'BOG', name: 'El Dorado Intl', city: 'Bogotá', country: 'Colombia', emoji: '☕' },
   { code: 'LIM', name: 'Jorge Chávez Intl', city: 'Lima', country: 'Peru', emoji: '🦙' },
   { code: 'SCL', name: 'Arturo Merino Benítez Intl', city: 'Santiago', country: 'Chile', emoji: '🏔️' },
-  { code: 'MEX', name: 'Mexico City Intl', city: 'Mexico City', country: 'Mexico', emoji: '🌮' },
-  { code: 'CUN', name: 'Cancún Intl', city: 'Cancún', country: 'Mexico', emoji: '🏝️' },
-  { code: 'PTY', name: 'Tocumen Intl', city: 'Panama City', country: 'Panama', emoji: '🚢' },
-  { code: 'SJO', name: 'Juan Santamaría Intl', city: 'San José', country: 'Costa Rica', emoji: '🌋' },
-  { code: 'GDL', name: 'Guadalajara Intl', city: 'Guadalajara', country: 'Mexico', emoji: '🎺' },
+
+  // Caribbean
   { code: 'PUJ', name: 'Punta Cana Intl', city: 'Punta Cana', country: 'Dominican Republic', emoji: '🏖️' },
   { code: 'SJU', name: 'Luis Muñoz Marín Intl', city: 'San Juan', country: 'Puerto Rico', emoji: '🏝️' },
   { code: 'NAS', name: 'Lynden Pindling Intl', city: 'Nassau', country: 'Bahamas', emoji: '🐠' },
   { code: 'MBJ', name: 'Sangster Intl', city: 'Montego Bay', country: 'Jamaica', emoji: '🎵' },
   { code: 'CUR', name: 'Curaçao Intl', city: 'Willemstad', country: 'Curaçao', emoji: '🎨' },
+  { code: 'AUA', name: 'Queen Beatrix Intl', city: 'Aruba', country: 'Aruba', emoji: '🌴' },
+  { code: 'BGI', name: 'Grantley Adams Intl', city: 'Bridgetown', country: 'Barbados', emoji: '🏖️' },
+  { code: 'SXM', name: 'Princess Juliana Intl', city: 'Philipsburg', country: 'St. Maarten', emoji: '🛬' },
+  { code: 'GCM', name: 'Owen Roberts Intl', city: 'George Town', country: 'Cayman Islands', emoji: '🏝️' },
+
+  // Europe - Western
+  { code: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK', emoji: '🇬🇧' },
+  { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', emoji: '🗼' },
+  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt', country: 'Germany', emoji: '🇩🇪' },
+  { code: 'AMS', name: 'Amsterdam Schiphol', city: 'Amsterdam', country: 'Netherlands', emoji: '🌷' },
+  { code: 'MAD', name: 'Adolfo Suárez Madrid-Barajas', city: 'Madrid', country: 'Spain', emoji: '🇪🇸' },
+  { code: 'BCN', name: 'Barcelona-El Prat', city: 'Barcelona', country: 'Spain', emoji: '🏖️' },
+  { code: 'FCO', name: 'Fiumicino', city: 'Rome', country: 'Italy', emoji: '🏛️' },
+  { code: 'ZRH', name: 'Zurich Airport', city: 'Zurich', country: 'Switzerland', emoji: '🏔️' },
+  { code: 'DUB', name: 'Dublin Airport', city: 'Dublin', country: 'Ireland', emoji: '🍀' },
+  { code: 'MUC', name: 'Munich Airport', city: 'Munich', country: 'Germany', emoji: '🍺' },
+  { code: 'LIS', name: 'Humberto Delgado Airport', city: 'Lisbon', country: 'Portugal', emoji: '🇵🇹' },
+  { code: 'VIE', name: 'Vienna Intl', city: 'Vienna', country: 'Austria', emoji: '🎻' },
+  { code: 'CPH', name: 'Copenhagen Airport', city: 'Copenhagen', country: 'Denmark', emoji: '🇩🇰' },
+  { code: 'ATH', name: 'Athens Intl', city: 'Athens', country: 'Greece', emoji: '🏛️' },
+  { code: 'PRG', name: 'Václav Havel Airport', city: 'Prague', country: 'Czech Republic', emoji: '🏰' },
+
+  // Asia-Pacific
+  { code: 'NRT', name: 'Narita Intl', city: 'Tokyo', country: 'Japan', emoji: '🗾' },
+  { code: 'HND', name: 'Haneda Airport', city: 'Tokyo', country: 'Japan', emoji: '🗼' },
+  { code: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore', emoji: '🇸🇬' },
+  { code: 'HKG', name: 'Hong Kong Intl', city: 'Hong Kong', country: 'Hong Kong', emoji: '🏙️' },
+  { code: 'SYD', name: 'Kingsford Smith', city: 'Sydney', country: 'Australia', emoji: '🦘' },
+  { code: 'MEL', name: 'Melbourne Airport', city: 'Melbourne', country: 'Australia', emoji: '🏙️' },
+  { code: 'BKK', name: 'Suvarnabhumi Airport', city: 'Bangkok', country: 'Thailand', emoji: '🛕' },
+  { code: 'ICN', name: 'Incheon Intl', city: 'Seoul', country: 'South Korea', emoji: '🇰🇷' },
+  { code: 'DEL', name: 'Indira Gandhi Intl', city: 'New Delhi', country: 'India', emoji: '🇮🇳' },
+  { code: 'DPS', name: 'Ngurah Rai Intl', city: 'Bali', country: 'Indonesia', emoji: '🏝️' },
+  { code: 'MNL', name: 'Ninoy Aquino Intl', city: 'Manila', country: 'Philippines', emoji: '🇵🇭' },
+  { code: 'TPE', name: 'Taiwan Taoyuan Intl', city: 'Taipei', country: 'Taiwan', emoji: '🇹🇼' },
+  { code: 'KUL', name: 'Kuala Lumpur Intl', city: 'Kuala Lumpur', country: 'Malaysia', emoji: '🇲🇾' },
+  { code: 'PVG', name: 'Shanghai Pudong Intl', city: 'Shanghai', country: 'China', emoji: '🏙️' },
+  { code: 'PEK', name: 'Beijing Capital Intl', city: 'Beijing', country: 'China', emoji: '🇨🇳' },
+
+  // Middle East
+  { code: 'DXB', name: 'Dubai Intl', city: 'Dubai', country: 'UAE', emoji: '🏙️' },
+
+  // Special/Beach destinations
+  { code: 'MLE', name: 'Velana Intl', city: 'Malé', country: 'Maldives', emoji: '🏝️' },
 ];
 
 // Lookup airport by code
@@ -78,6 +135,12 @@ function lookupAirportByCode(code: string): Airport | null {
 
 const content = {
   en: {
+    // Service tabs
+    flights: 'Flights',
+    hotels: 'Hotels',
+    cars: 'Car Rentals',
+    tours: 'Tours & Activities',
+
     from: 'From',
     to: 'To',
     depart: 'Depart',
@@ -85,6 +148,9 @@ const content = {
     travelers: 'Travelers',
     class: 'Class',
     search: 'Search Flights',
+    searchHotels: 'Search Hotels',
+    searchCars: 'Search Cars',
+    searchTours: 'Search Tours',
     searching: 'Searching...',
     oneWay: 'One-way',
     roundTrip: 'Round-trip',
@@ -110,6 +176,12 @@ const content = {
     },
   },
   pt: {
+    // Service tabs
+    flights: 'Voos',
+    hotels: 'Hotéis',
+    cars: 'Aluguel de Carros',
+    tours: 'Passeios e Atividades',
+
     from: 'De',
     to: 'Para',
     depart: 'Ida',
@@ -117,6 +189,9 @@ const content = {
     travelers: 'Viajantes',
     class: 'Classe',
     search: 'Buscar Voos',
+    searchHotels: 'Buscar Hotéis',
+    searchCars: 'Buscar Carros',
+    searchTours: 'Buscar Passeios',
     searching: 'Buscando...',
     oneWay: 'Só ida',
     roundTrip: 'Ida e volta',
@@ -142,6 +217,12 @@ const content = {
     },
   },
   es: {
+    // Service tabs
+    flights: 'Vuelos',
+    hotels: 'Hoteles',
+    cars: 'Alquiler de Autos',
+    tours: 'Tours y Actividades',
+
     from: 'Desde',
     to: 'Hasta',
     depart: 'Salida',
@@ -149,6 +230,9 @@ const content = {
     travelers: 'Viajeros',
     class: 'Clase',
     search: 'Buscar Vuelos',
+    searchHotels: 'Buscar Hoteles',
+    searchCars: 'Buscar Autos',
+    searchTours: 'Buscar Tours',
     searching: 'Buscando...',
     oneWay: 'Solo ida',
     roundTrip: 'Ida y vuelta',
@@ -207,6 +291,9 @@ export default function EnhancedSearchBar({
 
   const isMultiDateMode = detectMultiDateMode();
 
+  // Service type state
+  const [serviceType, setServiceType] = useState<ServiceType>('flights');
+
   // Form state
   const [origin, setOrigin] = useState<string[]>(parseAirportCodes(initialOrigin));
   const [destination, setDestination] = useState<string[]>(parseAirportCodes(initialDestination));
@@ -217,7 +304,8 @@ export default function EnhancedSearchBar({
   const [useFlexibleDates, setUseFlexibleDates] = useState(isMultiDateMode); // Auto-enable if comma-separated dates detected
   const [passengers, setPassengers] = useState(initialPassengers);
   const [cabinClass, setCabinClass] = useState(initialCabinClass);
-  const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>(initialReturnDate ? 'roundtrip' : 'oneway');
+  // DEFAULT TO ROUND-TRIP for home page
+  const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
   const [directFlights, setDirectFlights] = useState(false);
   const [openMultiDatePicker, setOpenMultiDatePicker] = useState<'departure' | 'return' | null>(null); // Track which multi-date picker is open
 
@@ -497,11 +585,12 @@ export default function EnhancedSearchBar({
 
     console.log('🔍 Searching with params:', Object.fromEntries(params));
 
-    // Navigate to results page
-    router.push(`/flights/results?${params.toString()}`);
+    // Open results page in NEW WINDOW/TAB
+    const url = `/flights/results?${params.toString()}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
 
-    // Reset loading after a short delay (navigation will happen)
-    setTimeout(() => setIsLoading(false), 1000);
+    // Reset loading after a short delay
+    setTimeout(() => setIsLoading(false), 500);
   };
 
   return (
@@ -514,6 +603,79 @@ export default function EnhancedSearchBar({
           padding: `${spacing.lg} ${spacing.xl}`,
         }}
       >
+        {/* ============================================
+            SERVICE TYPE TABS - Option A: Minimal Icon Tabs
+            ============================================ */}
+        <div className="flex items-center gap-6 mb-4 border-b border-gray-200">
+          {/* Flights Tab */}
+          <button
+            type="button"
+            onClick={() => setServiceType('flights')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'flights'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Plane size={18} className={serviceType === 'flights' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.flights}</span>
+            {serviceType === 'flights' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Hotels Tab */}
+          <button
+            type="button"
+            onClick={() => setServiceType('hotels')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'hotels'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.hotels}</span>
+            {serviceType === 'hotels' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Cars Tab */}
+          <button
+            type="button"
+            onClick={() => setServiceType('cars')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'cars'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.cars}</span>
+            {serviceType === 'cars' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Tours Tab */}
+          <button
+            type="button"
+            onClick={() => setServiceType('tours')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'tours'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Map size={18} className={serviceType === 'tours' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.tours}</span>
+            {serviceType === 'tours' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+        </div>
+
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:block">
           {/* Search Fields Row */}
@@ -639,12 +801,12 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-3 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
                   errors.departureDate ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <span className="block pl-7 text-sm font-medium text-gray-900">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
                 </span>
               </button>
@@ -705,10 +867,10 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <span className="block pl-7 text-sm font-medium text-gray-900">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <span className="block pl-8 text-base font-medium text-gray-900">
                     {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
                   </span>
                 </button>
@@ -729,9 +891,9 @@ export default function EnhancedSearchBar({
                 />
               )
             ) : (
-              <div className="relative w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
-                <span className="block pl-7 text-sm text-gray-400 italic">
+              <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                <span className="block pl-8 text-base text-gray-400 italic">
                   One-way trip
                 </span>
               </div>
@@ -754,13 +916,13 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
+              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <span className="block pl-6 text-xs font-medium text-gray-900 pr-6">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
                 {totalPassengers}, {t[cabinClass]}
               </span>
-              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={14} />
+              <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
             </button>
 
             {showPassengerDropdown && (
@@ -927,7 +1089,7 @@ export default function EnhancedSearchBar({
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-3 px-8 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+              className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
             >
               {isLoading ? (
                 <>
@@ -935,10 +1097,15 @@ export default function EnhancedSearchBar({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Searching...</span>
+                  <span>{t.searching}</span>
                 </>
               ) : (
-                <span>Search Flights</span>
+                <span>
+                  {serviceType === 'flights' && t.search}
+                  {serviceType === 'hotels' && t.searchHotels}
+                  {serviceType === 'cars' && t.searchCars}
+                  {serviceType === 'tours' && t.searchTours}
+                </span>
               )}
             </button>
           </div>
@@ -1044,10 +1211,10 @@ export default function EnhancedSearchBar({
                         setShowDatePicker(false); // Close main date picker
                         setAdditionalFlightDatePickerOpen(flight.id);
                       }}
-                      className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                      className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                     >
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <span className="block pl-7 text-sm font-medium text-gray-900">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <span className="block pl-8 text-base font-medium text-gray-900">
                         {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
                       </span>
                     </button>
@@ -1254,7 +1421,12 @@ export default function EnhancedSearchBar({
                 <span>{t.searching}</span>
               </>
             ) : (
-              <span>{t.search}</span>
+              <span>
+                {serviceType === 'flights' && t.search}
+                {serviceType === 'hotels' && t.searchHotels}
+                {serviceType === 'cars' && t.searchCars}
+                {serviceType === 'tours' && t.searchTours}
+              </span>
             )}
           </button>
         </div>
