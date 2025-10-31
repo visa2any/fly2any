@@ -6,6 +6,7 @@ import { Testimonials } from '@/components/home/Testimonials';
 import { AppDownload } from '@/components/conversion/AppDownload';
 import { FAQ } from '@/components/conversion/FAQ';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { HotelSearchBar } from '@/components/home/HotelSearchBar';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
 import { ToursSection } from '@/components/home/ToursSection';
@@ -362,6 +363,13 @@ export default function NewHomePage() {
           ENHANCED SEARCH BAR - 100% Complete from Results Page
           ============================================ */}
       <EnhancedSearchBar lang={lang} />
+
+      {/* ============================================
+          HOTEL SEARCH BAR - Complete Hotel Booking Journey
+          ============================================ */}
+      <div style={{ marginTop: '40px', maxWidth: '1600px', margin: '40px auto 0', padding: '0 24px' }}>
+        <HotelSearchBar lang={lang} />
+      </div>
 
       {/* ============================================
           MAIN CONTENT - Max Width 1600px
