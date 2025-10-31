@@ -283,14 +283,22 @@ class DuffelStaysAPI {
         },
       };
     } catch (error: any) {
-      console.error('❌ Duffel Stays API error:', error.message);
+      console.error('❌ Duffel Stays API error:');
+      console.error('   Error type:', error.constructor.name);
+      console.error('   Error message:', error.message || 'No message');
+      console.error('   Error details:', JSON.stringify(error, null, 2));
+      if (error.response) {
+        console.error('   Response status:', error.response.status);
+        console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
+      }
+      console.error('   Full error:', error);
 
       // Return empty results on error
       return {
         data: [],
         meta: {
           count: 0,
-          error: error.message,
+          error: error.message || error.toString() || 'Unknown Duffel API error',
         },
       };
     }
