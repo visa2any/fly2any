@@ -274,9 +274,18 @@ export function Header({
                 </svg>
               </button>
 
-              {/* Dropdown Menu - Refined */}
+              {/* Dropdown Menu - Premium Glassmorphism */}
               {langDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-2xl overflow-hidden z-[9999] animate-slideDown border-2 border-gray-100">
+                <div
+                  className="absolute right-0 mt-3 w-52 rounded-2xl overflow-hidden z-[9999] animate-slideDown"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(12px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                >
                   {(Object.keys(languages) as Language[]).map((languageKey) => (
                     <button
                       key={languageKey}
@@ -284,7 +293,7 @@ export function Header({
                       className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all duration-200 ${
                         language === languageKey
                           ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white'
-                          : 'hover:bg-gray-50 text-gray-700'
+                          : 'hover:bg-primary-50/50 text-gray-700'
                       }`}
                     >
                       <span className="text-2xl">{languages[languageKey].flag}</span>
