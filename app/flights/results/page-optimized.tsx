@@ -8,6 +8,7 @@ import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffe
 import SortBar, { type SortOption } from '@/components/flights/SortBar';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
+// import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles } from 'lucide-react';
 import { normalizePrice } from '@/lib/flights/types';
 
@@ -222,6 +223,9 @@ function FlightResultsContent() {
     aircraftTypes: [],
     maxCO2Emissions: 500,
     connectionQuality: [],
+    // NDC Filters
+    ndcOnly: false,
+    showExclusiveFares: false,
   });
 
   // Fetch flights on mount and when search params change
@@ -329,7 +333,7 @@ function FlightResultsContent() {
         params.append('tripType', 'oneway');
       }
 
-      router.push(`/flights/booking?${params.toString()}`);
+      router.push(`/flights/booking-optimized?${params.toString()}`);
     } catch (error) {
       console.error('Error navigating to booking:', error);
       setIsNavigating(false);
@@ -437,6 +441,9 @@ function FlightResultsContent() {
       {/* Scroll Progress */}
       <ScrollProgress />
 
+      {/* Test Mode Banner - Removed for production */}
+      {/* <TestModeBanner /> */}
+
       {/* Modify Search Bar - Sticky */}
       <ModifySearchBar
         origin={searchData.from}
@@ -501,6 +508,8 @@ function FlightResultsContent() {
                     aircraftTypes: [],
                     maxCO2Emissions: 500,
                     connectionQuality: [],
+                    ndcOnly: false,
+                    showExclusiveFares: false,
                   })}
                   className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
                 >
@@ -574,6 +583,8 @@ function FlightResultsContent() {
                     aircraftTypes: [],
                     maxCO2Emissions: 500,
                     connectionQuality: [],
+                    ndcOnly: false,
+                    showExclusiveFares: false,
                   })}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
                 >

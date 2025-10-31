@@ -44,10 +44,12 @@ export interface ParsedSeatMap {
   totalSeats: number;
   availableSeats: number;
   recommendedSeat: Seat | null;     // Best overall seat (window, cheap, good location)
+  source?: 'amadeus' | 'duffel';    // API source
 }
 
 /**
- * Parse Amadeus seat map response
+ * Parse Amadeus or Duffel seat map response
+ * Supports both API formats (unified via conversion)
  */
 export function parseSeatMap(
   seatMapResponse: any,
@@ -55,6 +57,7 @@ export function parseSeatMap(
 ): ParsedSeatMap {
   const data = seatMapResponse?.data || [];
   const hasRealData = Array.isArray(data) && data.length > 0;
+  const source = seatMapResponse?.meta?.source || 'amadeus';
 
   if (!hasRealData) {
     return {
@@ -68,6 +71,7 @@ export function parseSeatMap(
       totalSeats: 0,
       availableSeats: 0,
       recommendedSeat: null,
+      source: source === 'Duffel' ? 'duffel' : 'amadeus',
     };
   }
 
@@ -190,6 +194,7 @@ export function parseSeatMap(
     totalSeats,
     availableSeats,
     recommendedSeat,
+    source: source === 'Duffel' ? 'duffel' : 'amadeus',
   };
 }
 

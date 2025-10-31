@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Star, Plane, Check, Clock, Users, Wifi, Zap, Coffee, AlertCircle } from 'lucide-react';
 import { getAirlineData, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
-import { getAirportDisplay } from '@/lib/flights/airport-cities';
+import { formatCityCode } from '@/lib/data/airports';
 import { formatBaggageWeight } from '@/lib/flights/weight-utils';
 import BaggageTooltip from './BaggageTooltip';
+import AirlineLogo from './AirlineLogo';
 
 interface Segment {
   departure: {
@@ -163,14 +164,11 @@ export function FlightCardCompact({
       <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-gradient-to-r from-gray-50/50 to-white">
         {/* 1. AIRLINE LOGO + NAME - Compact */}
         <div className="flex items-center gap-1.5 min-w-[140px]">
-          <div
-            className="w-7 h-7 rounded flex items-center justify-center text-sm shadow-sm flex-shrink-0"
-            style={{
-              background: `linear-gradient(135deg, ${airlineData.primaryColor}, ${airlineData.secondaryColor})`,
-            }}
-          >
-            {airlineData.logo}
-          </div>
+          <AirlineLogo
+            code={primaryAirline}
+            size="md"
+            className="shadow-sm flex-shrink-0"
+          />
           <div className="flex flex-col min-w-0">
             <div className="flex items-baseline gap-1 truncate">
               <span className="text-xs font-bold text-gray-900 truncate leading-tight">
@@ -207,7 +205,7 @@ export function FlightCardCompact({
               <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[0].departure.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-              {getAirportDisplay(outbound.segments[0].departure.iataCode)}
+              {formatCityCode(outbound.segments[0].departure.iataCode)}
             </div>
           </div>
 
@@ -233,7 +231,7 @@ export function FlightCardCompact({
               <span className="text-sm font-semibold text-gray-600">{formatTime(outbound.segments[outbound.segments.length - 1].arrival.at)}</span>
             </div>
             <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-              {getAirportDisplay(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
+              {formatCityCode(outbound.segments[outbound.segments.length - 1].arrival.iataCode)}
             </div>
           </div>
         </div>
@@ -328,7 +326,7 @@ export function FlightCardCompact({
                 <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[0].departure.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-                {getAirportDisplay(inbound.segments[0].departure.iataCode)}
+                {formatCityCode(inbound.segments[0].departure.iataCode)}
               </div>
             </div>
 
@@ -352,7 +350,7 @@ export function FlightCardCompact({
                 <span className="text-sm font-semibold text-gray-600">{formatTime(inbound.segments[inbound.segments.length - 1].arrival.at)}</span>
               </div>
               <div className="text-[10px] font-semibold text-gray-600 leading-tight mt-0.5">
-                {getAirportDisplay(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
+                {formatCityCode(inbound.segments[inbound.segments.length - 1].arrival.iataCode)}
               </div>
             </div>
           </div>
@@ -430,7 +428,7 @@ export function FlightCardCompact({
                     {formatTime(segment.departure.at)}
                   </div>
                   <div className="text-[10px] text-gray-600">
-                    {getAirportDisplay(segment.departure.iataCode)}
+                    {formatCityCode(segment.departure.iataCode)}
                   </div>
                   {segment.departure.terminal && (
                     <div className="text-[9px] text-gray-600">Terminal {segment.departure.terminal}</div>
@@ -442,7 +440,7 @@ export function FlightCardCompact({
                     {formatTime(segment.arrival.at)}
                   </div>
                   <div className="text-[10px] text-gray-600">
-                    {getAirportDisplay(segment.arrival.iataCode)}
+                    {formatCityCode(segment.arrival.iataCode)}
                   </div>
                   {segment.arrival.terminal && (
                     <div className="text-[9px] text-gray-600">Terminal {segment.arrival.terminal}</div>
@@ -468,7 +466,7 @@ export function FlightCardCompact({
                 <div className="mt-1.5 p-1.5 bg-yellow-50 border border-yellow-200 rounded text-[10px] flex items-center gap-1">
                   <AlertCircle className="w-3 h-3 text-yellow-600" />
                   <span className="font-semibold text-yellow-900">
-                    Layover in {getAirportDisplay(segment.arrival.iataCode)}
+                    Layover in {formatCityCode(segment.arrival.iataCode)}
                   </span>
                 </div>
               )}

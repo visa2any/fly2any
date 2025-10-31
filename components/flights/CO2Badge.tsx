@@ -45,7 +45,7 @@ export default function CO2Badge({ emissions, averageEmissions, compact = false,
 
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 rounded-full text-xs font-semibold border h-5 leading-none ${compactBgColor} ${
+        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border-2 leading-none ${compactBgColor} ${
           avg && percentDiff >= 10 ? 'border-green-200' :
           avg && percentDiff < 0 && Math.abs(percentDiff) >= 10 ? 'border-orange-200' :
           'border-gray-200'

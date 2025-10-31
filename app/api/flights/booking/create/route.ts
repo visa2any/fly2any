@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { duffelAPI } from '@/lib/api/duffel';
+import { bookingStorage } from '@/lib/bookings/storage';
+import { emailService } from '@/lib/email/service';
+import { paymentService } from '@/lib/payments/payment-service';
+import type { Booking, FlightData, Passenger, SeatSelection, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
 
 /**
  * Flight Create Orders API - Complete Flight Booking
@@ -41,7 +46,18 @@ import { amadeusAPI } from '@/lib/api/amadeus';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { flightOffer, passengers, payment, contactInfo } = body;
+    const {
+      flightOffer,
+      passengers,
+      payment,
+      contactInfo,
+      fareUpgrade,      // NEW: Fare tier selection (Basic, Standard, Flex, Business)
+      bundle,           // NEW: Smart bundle selection
+      addOns,           // NEW: All selected add-ons
+      seats,            // NEW: Selected seats
+      isHold,           // NEW: Whether to hold the booking (pay later)
+      holdDuration      // NEW: Hold duration in hours
+    } = body;
 
     // Validation
     if (!flightOffer) {
@@ -69,52 +85,65 @@ export async function POST(request: NextRequest) {
     console.log(`   Flight: ${flightOffer.id}`);
     console.log(`   Passengers: ${passengers.length}`);
     console.log(`   Total Price: ${flightOffer.price?.total} ${flightOffer.price?.currency}`);
+    if (fareUpgrade) console.log(`   Fare Upgrade: ${fareUpgrade.fareName} (+${fareUpgrade.upgradePrice})`);
+    if (bundle) console.log(`   Bundle: ${bundle.bundleName} (+${bundle.price})`);
+    if (addOns && addOns.length > 0) console.log(`   Add-ons: ${addOns.length} selected`);
 
     // STEP 1: Confirm current price and availability
     // This is REQUIRED before booking to ensure the price hasn't changed
     console.log('💰 Confirming current price...');
 
     let confirmedOffer: any;
-    try {
-      const priceConfirmation = await amadeusAPI.confirmFlightPrice([flightOffer]);
+    const flightSource = flightOffer.source || 'GDS';
 
-      if (!priceConfirmation?.data || priceConfirmation.data.length === 0) {
-        return NextResponse.json(
-          {
-            error: 'PRICE_CHECK_FAILED',
-            message: 'Unable to confirm flight availability. Please search again.',
-          },
-          { status: 400 }
-        );
-      }
-
-      confirmedOffer = priceConfirmation.data[0];
-
-      // Check if price has changed
-      const originalPrice = parseFloat(flightOffer.price.total);
-      const currentPrice = parseFloat(confirmedOffer.price.total);
-
-      if (Math.abs(currentPrice - originalPrice) > 0.01) {
-        console.log(`⚠️  Price changed: ${originalPrice} -> ${currentPrice}`);
-        return NextResponse.json(
-          {
-            error: 'PRICE_CHANGED',
-            message: 'The price for this flight has changed. Please review the new price.',
-            originalPrice,
-            currentPrice,
-            newOffer: confirmedOffer,
-          },
-          { status: 409 }
-        );
-      }
-
-      console.log('✅ Price confirmed, proceeding with booking...');
-    } catch (error: any) {
-      console.error('Price confirmation error:', error);
-
-      // If price confirmation fails, use original offer but warn user
-      console.log('⚠️  Price confirmation unavailable, using original offer');
+    // Only Amadeus/GDS flights support price confirmation API
+    // Duffel offers are already live-priced at search time
+    if (flightSource === 'Duffel') {
+      console.log('🎫 Duffel flight - using offer directly (already live-priced)');
       confirmedOffer = flightOffer;
+    } else {
+      // Amadeus price confirmation
+      try {
+        const priceConfirmation = await amadeusAPI.confirmFlightPrice([flightOffer]);
+
+        if (!priceConfirmation?.data || priceConfirmation.data.length === 0) {
+          return NextResponse.json(
+            {
+              error: 'PRICE_CHECK_FAILED',
+              message: 'Unable to confirm flight availability. Please search again.',
+            },
+            { status: 400 }
+          );
+        }
+
+        confirmedOffer = priceConfirmation.data[0];
+
+        // Check if price has changed
+        const originalPrice = parseFloat(flightOffer.price.total);
+        const currentPrice = parseFloat(confirmedOffer.price.total);
+
+        if (Math.abs(currentPrice - originalPrice) > 0.01) {
+          console.log(`⚠️  Price changed: ${originalPrice} -> ${currentPrice}`);
+          return NextResponse.json(
+            {
+              error: 'PRICE_CHANGED',
+              message: 'The price for this flight has changed. Please review the new price.',
+              originalPrice,
+              currentPrice,
+              newOffer: confirmedOffer,
+            },
+            { status: 409 }
+          );
+        }
+
+        console.log('✅ Price confirmed, proceeding with booking...');
+      } catch (error: any) {
+        console.error('Price confirmation error:', error);
+
+        // If price confirmation fails, use original offer but warn user
+        console.log('⚠️  Price confirmation unavailable, using original offer');
+        confirmedOffer = flightOffer;
+      }
     }
 
     // STEP 2: Format passenger data for Amadeus API
@@ -122,6 +151,15 @@ export async function POST(request: NextRequest) {
     const travelers = passengers.map((passenger: any, index: number) => {
       // Calculate date of birth for age verification
       const dateOfBirth = passenger.dateOfBirth || '1990-01-01';
+
+      // Prepare loyalty program data if provided
+      const loyaltyPrograms = [];
+      if (passenger.frequentFlyerAirline && passenger.frequentFlyerNumber) {
+        loyaltyPrograms.push({
+          programOwner: passenger.frequentFlyerAirline,
+          id: passenger.frequentFlyerNumber,
+        });
+      }
 
       return {
         id: (index + 1).toString(),
@@ -141,85 +179,217 @@ export async function POST(request: NextRequest) {
             },
           ],
         },
-        documents: [
+        // Include loyalty programs in traveler data
+        ...(loyaltyPrograms.length > 0 && { loyaltyPrograms }),
+        documents: passenger.passportNumber ? [
           {
             documentType: 'PASSPORT',
             birthPlace: passenger.nationality || 'US',
             issuanceLocation: passenger.nationality || 'US',
             issuanceDate: passenger.passportIssueDate || '2020-01-01',
-            number: passenger.passportNumber?.toUpperCase(),
+            number: passenger.passportNumber.toUpperCase(),
             expiryDate: passenger.passportExpiryDate || '2030-12-31',
             issuanceCountry: passenger.nationality || 'US',
             validityCountry: passenger.nationality || 'US',
             nationality: passenger.nationality || 'US',
             holder: true,
           },
-        ],
+        ] : undefined, // Only include documents if passport number is provided
       };
     });
 
-    // STEP 3: Process payment (in production, integrate with Stripe/payment gateway)
-    // For now, we'll simulate payment processing
-    console.log('💳 Processing payment...');
+    // STEP 3: Process payment or create hold order
+    let paymentIntent: any = null;
+    let holdPricing: any = null;
+    let bookingStatus: 'confirmed' | 'pending' = 'pending';
+    let paymentStatus: 'pending' | 'paid' = 'pending';
 
-    // In production, you would:
-    // 1. Create payment intent with Stripe
-    // 2. Charge the customer
-    // 3. Handle payment failures/retries
-    // 4. Store payment record in database
+    if (isHold) {
+      // HOLD BOOKING: Reserve without immediate payment
+      console.log('⏸️  Creating hold booking (pay later)...');
+      console.log(`   Hold Duration: ${holdDuration || 24} hours`);
 
-    const paymentSuccessful = true; // Mock payment success
+      // Calculate hold pricing
+      holdPricing = isHold && flightSource === 'Duffel'
+        ? duffelAPI.calculateHoldPricing(holdDuration || 24)
+        : paymentService.calculateHoldPricing(holdDuration || 24);
 
-    if (!paymentSuccessful) {
-      return NextResponse.json(
-        {
-          error: 'PAYMENT_FAILED',
-          message: 'Payment processing failed. Please check your payment details.',
-        },
-        { status: 402 }
-      );
+      console.log(`   Hold Price: ${holdPricing.price} ${holdPricing.currency}`);
+      console.log(`   Expires At: ${holdPricing.expiresAt.toISOString()}`);
+
+      // For holds, we don't process payment yet, just reserve the seats
+      bookingStatus = 'pending';
+      paymentStatus = 'pending';
+      console.log('✅ Hold booking setup complete');
+    } else {
+      // INSTANT BOOKING: Process payment immediately
+      console.log('💳 Processing payment...');
+
+      try {
+        // Calculate total amount (flight + upgrades + bundles + add-ons + hold fee)
+        const baseAmount = parseFloat(confirmedOffer.price.total);
+        const upgradeAmount = fareUpgrade?.upgradePrice || 0;
+        const bundleAmount = bundle?.price || 0;
+        const addOnsAmount = addOns?.reduce((sum: number, addon: any) => sum + (addon.price * (addon.quantity || 1)), 0) || 0;
+        const totalAmount = baseAmount + upgradeAmount + bundleAmount + addOnsAmount;
+
+        console.log(`   Base Amount: ${baseAmount}`);
+        console.log(`   Upgrades: ${upgradeAmount}`);
+        console.log(`   Bundle: ${bundleAmount}`);
+        console.log(`   Add-ons: ${addOnsAmount}`);
+        console.log(`   Total: ${totalAmount} ${confirmedOffer.price.currency}`);
+
+        // Create payment intent with Stripe
+        paymentIntent = await paymentService.createPaymentIntent({
+          amount: totalAmount,
+          currency: confirmedOffer.price.currency,
+          bookingReference: `TEMP-${Date.now()}`, // Temporary, will be updated
+          customerEmail: contactInfo?.email || passengers[0]?.email,
+          customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
+          description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
+          metadata: {
+            flightOfferId: confirmedOffer.id,
+            passengerCount: passengers.length.toString(),
+            source: flightSource,
+          },
+        });
+
+        console.log('✅ Payment intent created successfully');
+        console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
+
+        // For now, booking stays pending until payment is confirmed by client
+        bookingStatus = 'pending';
+        paymentStatus = 'pending';
+      } catch (error: any) {
+        console.error('❌ Payment processing error:', error);
+        return NextResponse.json(
+          {
+            error: 'PAYMENT_FAILED',
+            message: 'Failed to create payment intent. Please try again.',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+          },
+          { status: 402 }
+        );
+      }
     }
 
-    console.log('✅ Payment processed successfully');
+    // STEP 4: Detect source and create booking with appropriate API
+    // Use the flightSource already detected during price confirmation
+    console.log(`✈️  Creating booking with detected source: ${flightSource}`);
 
-    // STEP 4: Create the flight booking with Amadeus
-    console.log('✈️  Creating flight order with Amadeus...');
+    let flightOrder: any;
+    let bookingId: string;
+    let pnr: string;
+    let isMockBooking: boolean = false;
+    let duffelOrderId: string | undefined;
+    let sourceApi: 'Amadeus' | 'Duffel';
 
-    const flightOrder = await amadeusAPI.createFlightOrder({
-      flightOffers: [confirmedOffer],
-      travelers,
-      remarks: {
-        general: [
-          {
-            subType: 'GENERAL_MISCELLANEOUS',
-            text: 'Booked via FLY2ANY',
-          },
-        ],
-      },
-      contacts: [
-        {
-          addresseeName: {
-            firstName: travelers[0].name.firstName,
-            lastName: travelers[0].name.lastName,
-          },
-          companyName: 'FLY2ANY',
-          purpose: 'STANDARD',
-          phones: [
+    if (flightSource === 'Duffel') {
+      // ========== DUFFEL BOOKING ==========
+      console.log('🎫 Creating flight order with Duffel...');
+      sourceApi = 'Duffel';
+
+      try {
+        let duffelOrder: any;
+
+        if (isHold) {
+          // Create hold order (pay later)
+          duffelOrder = await duffelAPI.createHoldOrder(
+            confirmedOffer,
+            passengers,
+            holdDuration
+          );
+        } else {
+          // Create instant order (pay now)
+          duffelOrder = await duffelAPI.createOrder(
+            confirmedOffer,
+            passengers,
+            // payments can be added here for live mode
+          );
+        }
+
+        // Extract booking details from Duffel response
+        duffelOrderId = duffelAPI.extractOrderId(duffelOrder);
+        pnr = duffelAPI.extractBookingReference(duffelOrder);
+        bookingId = duffelOrderId;
+        isMockBooking = !duffelOrder.data?.live_mode;
+
+        // Store the complete Duffel order for reference
+        flightOrder = duffelOrder;
+
+        // If hold order, extract hold pricing
+        if (isHold && duffelOrder.holdPricing) {
+          holdPricing = duffelOrder.holdPricing;
+        }
+
+        console.log('✅ Duffel order created successfully!');
+        console.log(`   Order ID: ${duffelOrderId}`);
+        console.log(`   PNR: ${pnr}`);
+        console.log(`   Type: ${isHold ? 'Hold (Pay Later)' : 'Instant (Paid)'}`);
+        console.log(`   Live Mode: ${duffelOrder.data?.live_mode ? 'Yes (real booking)' : 'No (test mode)'}`);
+      } catch (error: any) {
+        console.error('❌ Duffel booking failed:', error);
+        throw error; // Re-throw to be caught by outer error handler
+      }
+    } else {
+      // ========== AMADEUS BOOKING ==========
+      console.log('✈️  Creating flight order with Amadeus...');
+      sourceApi = 'Amadeus';
+
+      // Ensure flight offer has valid source for Amadeus API
+      // Amadeus requires source to be 'GDS' for booking
+      const bookingOffer = {
+        ...confirmedOffer,
+        source: 'GDS', // Override source to valid Amadeus value
+      };
+
+      flightOrder = await amadeusAPI.createFlightOrder({
+        flightOffers: [bookingOffer],
+        travelers,
+        remarks: {
+          general: [
             {
-              deviceType: 'MOBILE',
-              countryCallingCode: '1',
-              number: travelers[0].contact.phones[0].number,
+              subType: 'GENERAL_MISCELLANEOUS',
+              text: 'Booked via FLY2ANY',
             },
           ],
-          emailAddress: travelers[0].contact.emailAddress,
         },
-      ],
-    });
+        contacts: [
+          {
+            addresseeName: {
+              firstName: travelers[0].name.firstName,
+              lastName: travelers[0].name.lastName,
+            },
+            companyName: 'FLY2ANY',
+            purpose: 'STANDARD',
+            phones: [
+              {
+                deviceType: 'MOBILE',
+                countryCallingCode: '1',
+                number: travelers[0].contact.phones[0].number,
+              },
+            ],
+            emailAddress: travelers[0].contact.emailAddress,
+            address: {
+              lines: ['123 Main Street'], // Mock address line for Amadeus requirement
+              postalCode: '10001',
+              cityName: 'New York',
+              countryCode: travelers[0].documents?.[0]?.nationality || 'US',
+            },
+          },
+        ],
+      });
 
-    // Extract booking details
-    const bookingId = flightOrder.data?.id;
-    const pnr = flightOrder.data?.associatedRecords?.[0]?.reference;
-    const isMockBooking = flightOrder.meta?.mockData || false;
+      // Extract booking details
+      bookingId = flightOrder.data?.id;
+      pnr = flightOrder.data?.associatedRecords?.[0]?.reference;
+      isMockBooking = flightOrder.meta?.mockData || false;
+
+      console.log('✅ Amadeus order created successfully!');
+      console.log(`   Booking ID: ${bookingId}`);
+      console.log(`   PNR: ${pnr}`);
+      console.log(`   Mock Booking: ${isMockBooking ? 'Yes (development mode)' : 'No (real booking)'}`);
+    }
 
     if (!bookingId) {
       console.error('❌ No booking ID returned from API');
@@ -232,43 +402,201 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Flight order created successfully!');
-    console.log(`   Booking ID: ${bookingId}`);
-    console.log(`   PNR: ${pnr}`);
-    console.log(`   Mock Booking: ${isMockBooking ? 'Yes (development mode)' : 'No (real booking)'}`);
+    // STEP 5: Store booking in database
+    console.log('💾 Saving booking to database...');
 
-    // STEP 5: Store booking in database (in production)
-    // In production, you would:
-    // 1. Save booking to database
-    // 2. Send confirmation email
-    // 3. Trigger any post-booking workflows
-    // 4. Update analytics/tracking
-
-    // Return successful booking response
-    return NextResponse.json(
-      {
-        success: true,
-        booking: {
-          id: bookingId,
-          pnr,
-          status: 'CONFIRMED',
-          isMockBooking,
-          flightDetails: confirmedOffer,
-          travelers,
-          createdAt: new Date().toISOString(),
-          totalPrice: confirmedOffer.price.total,
+    try {
+      // Transform Amadeus data to Booking format
+      const flightData: FlightData = {
+        id: confirmedOffer.id,
+        type: confirmedOffer.oneWay ? 'one-way' : 'round-trip',
+        segments: confirmedOffer.itineraries.flatMap((itinerary: any) =>
+          itinerary.segments.map((seg: any) => ({
+            id: seg.id || `${seg.carrierCode}${seg.number}`,
+            departure: {
+              iataCode: seg.departure.iataCode,
+              terminal: seg.departure.terminal,
+              at: seg.departure.at,
+            },
+            arrival: {
+              iataCode: seg.arrival.iataCode,
+              terminal: seg.arrival.terminal,
+              at: seg.arrival.at,
+            },
+            carrierCode: seg.carrierCode,
+            flightNumber: seg.number,
+            aircraft: seg.aircraft?.code,
+            duration: seg.duration,
+            class: (seg.cabin?.toLowerCase() || 'economy') as any,
+          }))
+        ),
+        price: {
+          total: parseFloat(confirmedOffer.price.total),
+          base: parseFloat(confirmedOffer.price.base),
+          taxes: parseFloat(confirmedOffer.price.total) - parseFloat(confirmedOffer.price.base),
+          fees: 0,
           currency: confirmedOffer.price.currency,
         },
-        message: isMockBooking
-          ? 'Mock booking created for development (no real reservation made)'
-          : 'Booking confirmed! Your PNR is ' + pnr,
-      },
-      { status: 201 }
-    );
+        validatingAirlineCodes: confirmedOffer.validatingAirlineCodes,
+      };
+
+      // Transform passengers
+      const bookingPassengers: Passenger[] = passengers.map((p: any, idx: number) => ({
+        id: `passenger_${idx + 1}`,
+        type: p.type || 'adult',
+        title: p.title || 'Mr',
+        firstName: p.firstName,
+        lastName: p.lastName,
+        dateOfBirth: p.dateOfBirth || '1990-01-01',
+        nationality: p.nationality || 'US',
+        passportNumber: p.passportNumber,
+        passportExpiry: p.passportExpiryDate,
+        email: p.email || contactInfo?.email,
+        phone: p.phone || contactInfo?.phone,
+        specialRequests: p.specialRequests || [],
+        // Loyalty Program Integration
+        frequentFlyerAirline: p.frequentFlyerAirline,
+        frequentFlyerNumber: p.frequentFlyerNumber,
+        tsaPreCheck: p.tsaPreCheck,
+      }));
+
+      // Prepare contact info
+      const bookingContactInfo: ContactInfo = {
+        email: contactInfo?.email || travelers[0].contact.emailAddress,
+        phone: contactInfo?.phone || travelers[0].contact.phones[0].number,
+        alternatePhone: contactInfo?.alternatePhone,
+        emergencyContact: contactInfo?.emergencyContact,
+      };
+
+      // Prepare payment info with Stripe details
+      const baseAmount = parseFloat(confirmedOffer.price.total);
+      const upgradeAmount = fareUpgrade?.upgradePrice || 0;
+      const bundleAmount = bundle?.price || 0;
+      const addOnsAmount = addOns?.reduce((sum: number, addon: any) => sum + (addon.price * (addon.quantity || 1)), 0) || 0;
+      const holdFee = isHold && holdPricing ? holdPricing.price : 0;
+      const totalAmount = baseAmount + upgradeAmount + bundleAmount + addOnsAmount + holdFee;
+
+      const paymentInfo: PaymentInfo = {
+        method: payment.method === 'card' ? 'credit_card' : 'bank_transfer',
+        status: paymentStatus,
+        amount: totalAmount,
+        currency: confirmedOffer.price.currency,
+        paymentIntentId: paymentIntent?.paymentIntentId,
+        clientSecret: paymentIntent?.clientSecret,
+        cardLast4: payment.cardNumber?.slice(-4),
+        cardBrand: payment.cardBrand || 'unknown',
+      };
+
+      // Create booking in database
+      const savedBooking = await bookingStorage.create({
+        status: bookingStatus,
+        contactInfo: bookingContactInfo,
+        flight: flightData,
+        passengers: bookingPassengers,
+        seats: seats || [], // Include selected seats from booking flow
+        payment: paymentInfo,
+        fareUpgrade: fareUpgrade || undefined, // Include fare upgrade if selected
+        bundle: bundle || undefined, // Include bundle if selected
+        addOns: addOns || [], // Include all selected add-ons
+        specialRequests: passengers.flatMap((p: any) => p.specialRequests || []),
+        refundPolicy: {
+          refundable: fareUpgrade?.fareName !== 'Basic', // Basic fares non-refundable
+          cancellationFee: fareUpgrade?.fareName === 'Flex' ? 0 : 50,
+        },
+        // Hold Booking Information
+        isHold: isHold || false,
+        holdDuration: holdPricing?.duration,
+        holdPrice: holdPricing?.price,
+        holdExpiresAt: holdPricing?.expiresAt?.toISOString(),
+        holdTier: holdPricing?.tier,
+        // API Source Tracking
+        sourceApi,
+        amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
+        duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
+        duffelBookingReference: sourceApi === 'Duffel' ? pnr : undefined,
+      });
+
+      console.log('✅ Booking saved to database!');
+      console.log(`   Database ID: ${savedBooking.id}`);
+      console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
+
+      // STEP 6: Send payment instructions email
+      console.log('📧 Sending payment instructions email...');
+      try {
+        await emailService.sendPaymentInstructions(savedBooking);
+        console.log('✅ Payment instructions email sent');
+      } catch (emailError) {
+        console.error('⚠️  Failed to send email, but booking was created:', emailError);
+        // Don't fail the booking if email fails
+      }
+
+      // Return successful booking response
+      return NextResponse.json(
+        {
+          success: true,
+          booking: {
+            id: savedBooking.id,
+            bookingReference: savedBooking.bookingReference,
+            sourceApi,
+            amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
+            duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
+            pnr,
+            status: isHold ? 'HOLD' : 'PENDING_PAYMENT',
+            isMockBooking,
+            flightDetails: confirmedOffer,
+            travelers,
+            createdAt: savedBooking.createdAt,
+            totalPrice: totalAmount,
+            currency: confirmedOffer.price.currency,
+            // Payment Intent (for immediate payment)
+            paymentIntentId: paymentIntent?.paymentIntentId,
+            clientSecret: paymentIntent?.clientSecret,
+            // Hold Information (for hold bookings)
+            isHold: isHold || false,
+            holdDuration: holdPricing?.duration,
+            holdPrice: holdPricing?.price,
+            holdExpiresAt: holdPricing?.expiresAt?.toISOString(),
+            holdTier: holdPricing?.tier,
+          },
+          message: isHold
+            ? `Hold booking created via ${sourceApi}! Your booking is reserved for ${holdPricing?.duration} hours. Reference: ${savedBooking.bookingReference}`
+            : `Booking created via ${sourceApi}! Please complete payment. Your booking reference is ${savedBooking.bookingReference}`,
+        },
+        { status: 201 }
+      );
+    } catch (dbError: any) {
+      console.error('❌ Database error:', dbError);
+      // Even if database save fails, the booking was created with the API
+      // Return success but note the database issue
+      return NextResponse.json(
+        {
+          success: true,
+          booking: {
+            id: bookingId,
+            sourceApi,
+            amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
+            duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
+            pnr,
+            status: 'CONFIRMED',
+            isMockBooking,
+            flightDetails: confirmedOffer,
+            travelers,
+            createdAt: new Date().toISOString(),
+            totalPrice: confirmedOffer.price.total,
+            currency: confirmedOffer.price.currency,
+          },
+          warning: 'Booking created but database save failed. Please contact support.',
+          message: isMockBooking
+            ? `Mock booking created for development via ${sourceApi} (no real reservation made)`
+            : `Booking confirmed via ${sourceApi}! Your PNR is ${pnr}`,
+        },
+        { status: 201 }
+      );
+    }
   } catch (error: any) {
     console.error('❌ Booking error:', error);
 
-    // Parse error messages from Amadeus API
+    // Parse error messages from API (Amadeus or Duffel)
     const errorMessage = error.message || 'An unexpected error occurred';
 
     // Handle specific error types

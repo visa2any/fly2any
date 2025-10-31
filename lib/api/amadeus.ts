@@ -234,9 +234,10 @@ class AmadeusAPI {
           }
 
           // Add detailed fees to main price object if we found any
+          // IMPORTANT: Use 'GDS' as source for Amadeus flights (required for upselling API)
           return {
             ...flight,
-            source: 'Amadeus',
+            source: 'GDS',
             price: {
               ...flight.price,
               fees: detailedFees.length > 0 ? detailedFees : flight.price?.fees
@@ -731,12 +732,30 @@ class AmadeusAPI {
     try {
       console.log('🎫 Fetching all fare families for flight...');
 
+      // Clean the flight offer - remove custom fields that Amadeus won't accept
+      const cleanedOffer = this.cleanFlightOfferForAPI(flightOffer);
+
+      // Handle Duffel flights - generate synthetic fare families
+      if (flightOffer.source === 'Duffel') {
+        console.log('🎫 Duffel flight detected - generating fare families');
+        return this.generateDuffelFareFamilies(flightOffer);
+      }
+
+      // Only Amadeus/GDS flights support upselling API
+      if (flightOffer.source !== 'GDS') {
+        console.log('⚠️  Non-GDS flight (source: ' + flightOffer.source + ') - upselling not available, returning original fare');
+        return {
+          data: [flightOffer],
+          meta: { count: 1 }
+        };
+      }
+
       const response = await axios.post(
         `${this.baseUrl}/v1/shopping/flight-offers/upselling`,
         {
           data: {
             type: 'flight-offers-upselling',
-            flightOffers: [flightOffer],
+            flightOffers: [cleanedOffer],
           },
         },
         {
@@ -754,7 +773,7 @@ class AmadeusAPI {
       console.error('Error getting upselling fares:', error.response?.data || error);
 
       // If upselling not available, return original offer as single option
-      if (error.response?.status === 404) {
+      if (error.response?.status === 404 || error.response?.status === 400) {
         console.log('⚠️  Upselling not available for this flight, returning original fare');
         return {
           data: [flightOffer],
@@ -767,21 +786,112 @@ class AmadeusAPI {
   }
 
   /**
-   * Seat Maps - Get aircraft seat map
+   * Generate synthetic fare families for Duffel flights
+   * Since Duffel doesn't have an upselling API, we create reasonable fare options
    */
-  async getSeatMap(flightOfferId: string) {
+  private generateDuffelFareFamilies(baseOffer: any) {
+    const basePrice = parseFloat(String(baseOffer.price?.total || '0'));
+    const currency = baseOffer.price?.currency || 'USD';
+
+    // Get airline code to determine fare naming
+    const airlineCode = baseOffer.validatingAirlineCodes?.[0] ||
+                        baseOffer.itineraries?.[0]?.segments?.[0]?.carrierCode ||
+                        'XX';
+
+    // Generate 3-4 fare families with typical pricing
+    const fareMultipliers = [
+      { name: 'BASIC', multiplier: 1.0, baggage: 0, changeFee: true },
+      { name: 'STANDARD', multiplier: 1.15, baggage: 1, changeFee: true },
+      { name: 'FLEX', multiplier: 1.35, baggage: 2, changeFee: false },
+      { name: 'FLEX_PLUS', multiplier: 1.55, baggage: 2, changeFee: false },
+    ];
+
+    const fareOffers = fareMultipliers.map((fare, index) => {
+      const farePrice = basePrice * fare.multiplier;
+
+      return {
+        ...baseOffer,
+        id: `${baseOffer.id}_${fare.name.toLowerCase()}`,
+        price: {
+          ...baseOffer.price,
+          total: farePrice.toFixed(2),
+          base: (farePrice * 0.85).toFixed(2), // Approximate base fare
+          currency: currency,
+          grandTotal: farePrice.toFixed(2),
+        },
+        travelerPricings: [{
+          ...baseOffer.travelerPricings?.[0],
+          price: {
+            total: farePrice.toFixed(2),
+            base: (farePrice * 0.85).toFixed(2),
+            currency: currency,
+          },
+          fareDetailsBySegment: baseOffer.itineraries?.[0]?.segments?.map(() => ({
+            fareBasis: `${fare.name}_${airlineCode}`,
+            brandedFare: fare.name,
+            cabin: baseOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'ECONOMY',
+            includedCheckedBags: {
+              quantity: fare.baggage,
+              weight: fare.baggage > 0 ? 23 : 0,
+              weightUnit: 'KG',
+            },
+          })),
+        }],
+        // Add metadata to identify this as a synthetic fare
+        _synthetic: true,
+        _baseFare: fare.name,
+      };
+    });
+
+    console.log(`✅ Generated ${fareOffers.length} synthetic fare families for Duffel flight`);
+
+    return {
+      data: fareOffers,
+      meta: {
+        count: fareOffers.length,
+        synthetic: true,
+        source: 'Duffel',
+      },
+    };
+  }
+
+  /**
+   * Clean flight offer by removing custom fields before sending to Amadeus API
+   */
+  private cleanFlightOfferForAPI(offer: any): any {
+    const cleaned = { ...offer };
+
+    // Remove custom fields we added that Amadeus won't accept
+    // IMPORTANT: Do NOT delete 'source' - Amadeus requires it for upselling and other APIs
+    delete cleaned.score;
+    delete cleaned.badges;
+    delete cleaned.metadata;
+    delete cleaned.duffelMetadata;
+    delete cleaned.isUpsellOffer;
+    delete cleaned.dealScore;
+    delete cleaned.dealTier;
+    delete cleaned.dealLabel;
+    delete cleaned._synthetic;
+    delete cleaned._baseFare;
+
+    return cleaned;
+  }
+
+  /**
+   * Seat Maps - Get aircraft seat map
+   * Requires the complete flight offer object with all segments
+   */
+  async getSeatMap(flightOffer: any) {
     const token = await this.getAccessToken();
 
     try {
+      // Clean the flight offer before sending to API
+      const cleanedOffer = this.cleanFlightOfferForAPI(flightOffer);
+
       const response = await axios.post(
         `${this.baseUrl}/v1/shopping/seatmaps`,
         {
-          data: [
-            {
-              type: 'flight-offer',
-              id: flightOfferId,
-            },
-          ],
+          data: [cleanedOffer],
         },
         {
           headers: {

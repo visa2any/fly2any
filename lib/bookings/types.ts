@@ -22,7 +22,10 @@ export interface Passenger {
   email?: string;
   phone?: string;
   specialRequests?: string[];
-  frequentFlyerNumber?: string;
+  // Loyalty Program Integration
+  frequentFlyerAirline?: string; // Airline code (e.g., 'UA', 'AA')
+  frequentFlyerNumber?: string; // Loyalty program membership number
+  tsaPreCheck?: string; // TSA PreCheck / Known Traveler Number
 }
 
 export interface SeatSelection {
@@ -70,6 +73,8 @@ export interface PaymentInfo {
   method: PaymentMethod;
   status: PaymentStatus;
   transactionId?: string;
+  paymentIntentId?: string; // Stripe payment intent ID
+  clientSecret?: string; // Stripe client secret for payment confirmation
   amount: number;
   currency: string;
   cardLast4?: string;
@@ -90,6 +95,31 @@ export interface ContactInfo {
   };
 }
 
+export interface FareUpgrade {
+  fareId: string;
+  fareName: string; // e.g., "Basic", "Standard", "Flex", "Business"
+  basePrice: number;
+  upgradePrice: number; // Additional cost over base fare
+  benefits: string[]; // e.g., ["Free cancellation", "Priority boarding"]
+}
+
+export interface Bundle {
+  bundleId: string;
+  bundleName: string; // e.g., "Business Traveler", "Vacation Plus"
+  price: number;
+  description?: string;
+  includes: string[]; // e.g., ["Extra baggage", "Lounge access"]
+}
+
+export interface AddOn {
+  addOnId: string;
+  category: string; // e.g., "baggage", "meal", "seat", "insurance"
+  name: string; // e.g., "Extra Checked Bag (23kg)"
+  price: number;
+  quantity?: number;
+  details?: string;
+}
+
 export interface Booking {
   id: string;
   bookingReference: string; // e.g., FLY2A-ABC123
@@ -100,6 +130,9 @@ export interface Booking {
   passengers: Passenger[];
   seats: SeatSelection[];
   payment: PaymentInfo;
+  fareUpgrade?: FareUpgrade; // Selected fare tier (Basic, Standard, Flex, etc.)
+  bundle?: Bundle; // Selected smart bundle
+  addOns?: AddOn[]; // All selected add-ons
   specialRequests?: string[];
   notes?: string;
   cancellationReason?: string;
@@ -108,6 +141,17 @@ export interface Booking {
     refundDeadline?: string; // ISO datetime
     cancellationFee?: number;
   };
+  // Hold Booking Information
+  isHold?: boolean; // Whether this is a hold booking (pay later)
+  holdDuration?: number; // Hold duration in hours
+  holdPrice?: number; // Cost to hold the booking
+  holdExpiresAt?: string; // ISO datetime - when the hold expires
+  holdTier?: 'free' | 'short' | 'medium' | 'long'; // Hold pricing tier
+  // API Source Tracking
+  sourceApi?: 'Amadeus' | 'Duffel'; // Which API was used to create this booking
+  amadeusBookingId?: string; // Amadeus-specific order ID
+  duffelOrderId?: string; // Duffel-specific order ID
+  duffelBookingReference?: string; // Duffel-specific booking reference (may differ from main reference)
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
   cancelledAt?: string; // ISO datetime
@@ -179,4 +223,91 @@ export interface APIResponse<T> {
     timestamp: string;
     requestId?: string;
   };
+}
+
+// Order Cancellation Types
+export interface OrderCancellationQuote {
+  orderId: string;
+  bookingReference: string;
+  refundable: boolean;
+  refundAmount: number;
+  cancellationFee: number;
+  currency: string;
+  refundMethod: 'original_payment' | 'voucher' | 'not_refundable';
+  processingTime: string; // e.g., "7-10 business days"
+  deadline?: string; // ISO datetime - last moment to cancel
+  penalties?: {
+    description: string;
+    amount: number;
+  }[];
+  warnings?: string[];
+}
+
+export interface OrderCancellationConfirmation {
+  success: boolean;
+  orderId: string;
+  bookingReference: string;
+  cancellationId: string;
+  status: 'cancelled' | 'pending_cancellation';
+  refundAmount: number;
+  refundStatus: 'processing' | 'completed' | 'not_applicable';
+  refundReference?: string;
+  cancellationFee: number;
+  currency: string;
+  cancelledAt: string; // ISO datetime
+  refundProcessingTime?: string;
+  message: string;
+}
+
+// Order Modification Types
+export interface OrderChangeRequest {
+  orderId: string;
+  bookingReference: string;
+  changeType: 'date' | 'route' | 'passenger' | 'class';
+  requestedChanges: {
+    // Date changes
+    newDepartureDate?: string;
+    newReturnDate?: string;
+    // Route changes
+    newOrigin?: string;
+    newDestination?: string;
+    // Passenger changes
+    passengerUpdates?: Partial<Passenger>[];
+    // Class upgrade
+    newClass?: SeatClass;
+  };
+  reason?: string;
+}
+
+export interface OrderChangeOffer {
+  changeRequestId: string;
+  offerId: string;
+  changeFee: number;
+  priceDifference: number; // positive = pay more, negative = refund
+  totalCost: number; // changeFee + priceDifference
+  currency: string;
+  newFlight?: FlightData;
+  expiresAt: string; // ISO datetime
+  restrictions?: string[];
+  penalties?: {
+    description: string;
+    amount: number;
+  }[];
+}
+
+export interface OrderChangeConfirmation {
+  success: boolean;
+  orderId: string;
+  originalBookingReference: string;
+  newBookingReference: string;
+  changeId: string;
+  status: 'confirmed' | 'pending' | 'failed';
+  changeFee: number;
+  priceDifference: number;
+  totalCharged: number;
+  currency: string;
+  newFlight?: FlightData;
+  changedAt: string; // ISO datetime
+  paymentReference?: string;
+  message: string;
 }

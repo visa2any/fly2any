@@ -18,6 +18,7 @@ import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkel
 // import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
+// import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
 import InlineFlightLoading from '@/components/flights/InlineFlightLoading';
 import { ChevronRight, ChevronLeft, AlertCircle, RefreshCcw, X } from 'lucide-react';
@@ -34,6 +35,8 @@ import LiveActivityFeed from '@/components/conversion/LiveActivityFeed';
 import ExitIntentPopup from '@/components/conversion/ExitIntentPopup';
 import { featureFlags } from '@/lib/feature-flags';
 import { trackConversion } from '@/lib/conversion-metrics';
+import { abTestManager } from '@/lib/ab-testing/test-manager';
+import { analyticsTracker } from '@/lib/ab-testing/analytics-tracker';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -171,7 +174,7 @@ const applyNonstopFilters = (flights: ScoredFlight[], fromNonstop: boolean, toNo
 // Apply filters to flights - COMPLETE IMPLEMENTATION (All 14 filters)
 // ✅ FIXED: Now correctly handles BOTH outbound and return flights for round-trip searches
 const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): ScoredFlight[] => {
-  return flights.filter(flight => {
+  const filtered = flights.filter(flight => {
     const price = normalizePrice(flight.price.total);
 
     // ✅ CRITICAL FIX: Check ALL itineraries (outbound + return for round-trips)
@@ -436,6 +439,8 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
 
     return true;
   });
+
+  return filtered;
 };
 
 // Sort flights
@@ -522,6 +527,18 @@ function FlightResultsContent() {
   const [mlPredictionEnabled, setMlPredictionEnabled] = useState(true);
   const [mlMetadata, setMlMetadata] = useState<MLMetadata | null>(null);
 
+  // ML User Segmentation state
+  const [userSegment, setUserSegment] = useState<'business' | 'leisure' | 'family' | 'budget' | null>(null);
+  const [segmentConfidence, setSegmentConfidence] = useState<number>(0);
+  const [segmentRecommendations, setSegmentRecommendations] = useState<any>(null);
+
+  // A/B Testing state
+  const [sessionId] = useState(() =>
+    `session_${Date.now()}_${Math.random().toString(36).substring(7)}`
+  );
+  const urgencyVariant = abTestManager.getVariant('urgency-signals-v1', sessionId);
+  const segmentVariant = abTestManager.getVariant('user-segmentation-v1', sessionId);
+
   // New premium features state
   const [compareFlights, setCompareFlights] = useState<string[]>([]);
   const [showPriceAlert, setShowPriceAlert] = useState(false);
@@ -588,6 +605,8 @@ function FlightResultsContent() {
     aircraftTypes: [],
     maxCO2Emissions: 500,
     connectionQuality: [],
+    ndcOnly: false,
+    showExclusiveFares: false,
   });
 
   // Announce results to screen readers
@@ -1002,16 +1021,18 @@ function FlightResultsContent() {
         announceResults(processedFlights.length);
 
         // Update filter ranges based on results
-        if (processedFlights.length > 0) {
+        if (processedFlights && processedFlights.length > 0) {
           const prices = processedFlights.map((f: ScoredFlight) => normalizePrice(f.price.total));
-          const durations = processedFlights.map((f: ScoredFlight) =>
-            parseDuration(f.itineraries[0].duration)
-          );
+
+          // ✅ FIX: Check ALL itineraries (both outbound AND return) for max duration
+          const durations = processedFlights.flatMap((f: ScoredFlight) =>
+            (f.itineraries || []).map(itinerary => parseDuration(itinerary.duration))
+          ).filter((d: number) => d > 0); // Filter out any invalid durations
 
           setFilters(prev => ({
             ...prev,
             priceRange: [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))],
-            maxDuration: Math.ceil(Math.max(...durations) / 60),
+            maxDuration: durations.length > 0 ? Math.ceil(Math.max(...durations) / 60) : 24,
           }));
         }
       } catch (err: any) {
@@ -1028,6 +1049,77 @@ function FlightResultsContent() {
 
     fetchFlights();
   }, [searchParams]);
+
+  // ML User Segmentation - Classify user based on search behavior
+  useEffect(() => {
+    if (flights.length > 0 && !userSegment && searchData.from && searchData.to) {
+      segmentUser();
+    }
+  }, [flights, userSegment]);
+
+  // A/B Testing Analytics - Track page view
+  useEffect(() => {
+    if (flights.length > 0) {
+      analyticsTracker.trackView('urgency-signals-v1', urgencyVariant, sessionId, {
+        route: `${searchData.from}-${searchData.to}`,
+        flightCount: flights.length,
+      });
+      analyticsTracker.trackView('user-segmentation-v1', segmentVariant, sessionId, {
+        segment: userSegment || 'unknown',
+      });
+      console.log(`📊 A/B Test Variants: Urgency=${urgencyVariant}, Segmentation=${segmentVariant}`);
+    }
+  }, [flights]);
+
+  const segmentUser = async () => {
+    try {
+      const tripLength = searchData.return
+        ? Math.ceil((new Date(searchData.return).getTime() - new Date(searchData.departure).getTime()) / (1000 * 60 * 60 * 24))
+        : undefined;
+
+      const response = await fetch('/api/ml/segment-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          search: {
+            route: `${searchData.from}-${searchData.to}`,
+            departure: searchData.departure,
+            return: searchData.return,
+            tripLength,
+            to: searchData.to,
+            class: searchData.class,
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: searchData.infants,
+          },
+          interaction: {
+            sortedBy: sortBy,
+            deviceType: typeof window !== 'undefined' && /Mobile/.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          },
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUserSegment(result.segment);
+        setSegmentConfidence(result.confidence);
+        setSegmentRecommendations(result.recommendations);
+
+        // Store in sessionStorage for booking page
+        sessionStorage.setItem('userSegment', JSON.stringify({
+          segment: result.segment,
+          confidence: result.confidence,
+          recommendations: result.recommendations,
+        }));
+
+        console.log('✅ User segmented:', result.segment, `(${Math.round(result.confidence * 100)}% confidence)`);
+      }
+    } catch (error) {
+      console.error('❌ User segmentation failed:', error);
+      // Fail silently - don't break user experience
+    }
+  };
 
   // Generate flexible date prices (±3 days)
   useEffect(() => {
@@ -1148,8 +1240,8 @@ function FlightResultsContent() {
         params.append('lang', langParam);
       }
 
-      // Navigate to booking page
-      router.push(`/flights/booking?${params.toString()}`);
+      // Navigate to OPTIMIZED booking page (3-step flow)
+      router.push(`/flights/booking-optimized?${params.toString()}`);
     } catch (error) {
       console.error('Error navigating to booking:', error);
       setIsNavigating(false);
@@ -1356,6 +1448,9 @@ function FlightResultsContent() {
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+      {/* Test Mode Banner - Removed for production */}
+      {/* <TestModeBanner /> */}
+
       {/* Search Bar - Compact or Full with smooth transitions */}
       <div className="transition-all duration-300 ease-in-out">
         {searchBarCollapsed ? (
@@ -1473,6 +1568,10 @@ function FlightResultsContent() {
                       isComparing={compareFlights.includes(flightId)}
                       isNavigating={isNavigating && selectedFlightId === flightId}
                       lang={lang}
+                      userSegment={userSegment}
+                      segmentRecommendations={segmentRecommendations}
+                      urgencyVariant={urgencyVariant}
+                      sessionId={sessionId}
                     />
                   </div>
                 );
@@ -1527,6 +1626,8 @@ function FlightResultsContent() {
                     aircraftTypes: [],
                     maxCO2Emissions: 500,
                     connectionQuality: [],
+                    ndcOnly: false,
+                    showExclusiveFares: false,
                   })}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
                 >

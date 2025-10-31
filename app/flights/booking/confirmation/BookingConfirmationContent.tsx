@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import CancelOrderDialog from '@/components/booking/CancelOrderDialog';
+import ModifyOrderDialog from '@/components/booking/ModifyOrderDialog';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -319,7 +321,7 @@ const content = {
 };
 
 // Mock booking data (in real app, this would come from API/database)
-const mockBookingData = {
+const displayBookingData = {
   bookingRef: 'F2A-2025-XYZ789',
   confirmationDate: new Date().toISOString(),
   email: 'passenger@example.com',
@@ -390,8 +392,50 @@ export default function BookingConfirmationContent() {
   const [showConfetti, setShowConfetti] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showCalendarMenu, setShowCalendarMenu] = useState(false);
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showModifyDialog, setShowModifyDialog] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const t = content[lang];
+
+  // Fetch real booking data from database
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        const bookingId = searchParams.get('bookingId');
+        const bookingRef = searchParams.get('ref');
+
+        if (!bookingId && !bookingRef) {
+          console.error('No booking ID or reference provided');
+          setLoading(false);
+          return;
+        }
+
+        // Fetch from API
+        const response = await fetch(`/api/admin/bookings/${bookingId}`);
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch booking');
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.booking) {
+          setBookingData(result.booking);
+        } else {
+          console.error('Booking not found');
+        }
+      } catch (error) {
+        console.error('Error fetching booking:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [searchParams]);
 
   useEffect(() => {
     // Stop confetti after 5 seconds
@@ -400,7 +444,8 @@ export default function BookingConfirmationContent() {
   }, []);
 
   const copyBookingRef = () => {
-    navigator.clipboard.writeText(mockBookingData.bookingRef);
+    const refToCopy = bookingData ? bookingData.bookingReference : 'N/A';
+    navigator.clipboard.writeText(refToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -424,9 +469,10 @@ export default function BookingConfirmationContent() {
   };
 
   const formatCurrency = (amount: number) => {
+    const currency = bookingData ? bookingData.payment.currency : 'USD';
     return new Intl.NumberFormat(lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US', {
       style: 'currency',
-      currency: mockBookingData.payment.currency,
+      currency: currency,
     }).format(amount);
   };
 
@@ -445,8 +491,149 @@ export default function BookingConfirmationContent() {
     setShowCalendarMenu(false);
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-700 font-semibold">Loading your booking details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no booking data
+  if (!loading && !bookingData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Booking Not Found</h1>
+          <p className="text-gray-600 mb-6">
+            We couldn't find your booking. Please check your booking reference or contact support.
+          </p>
+          <a
+            href="/flights/results"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            Search Flights
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform booking data to match expected format for display
+  const displayBookingData: any = bookingData ? {
+    bookingRef: bookingData.bookingReference,
+    confirmationDate: bookingData.createdAt,
+    email: bookingData.contactInfo.email,
+    outboundFlight: {
+      flightNumber: `${bookingData.flight.segments[0].carrierCode} ${bookingData.flight.segments[0].flightNumber}`,
+      airline: bookingData.flight.segments[0].carrierCode,
+      aircraft: bookingData.flight.segments[0].aircraft || 'Aircraft',
+      from: {
+        code: bookingData.flight.segments[0].departure.iataCode,
+        city: bookingData.flight.segments[0].departure.iataCode,
+        airport: bookingData.flight.segments[0].departure.iataCode,
+      },
+      to: {
+        code: bookingData.flight.segments[0].arrival.iataCode,
+        city: bookingData.flight.segments[0].arrival.iataCode,
+        airport: bookingData.flight.segments[0].arrival.iataCode,
+      },
+      departure: bookingData.flight.segments[0].departure.at,
+      arrival: bookingData.flight.segments[0].arrival.at,
+      duration: bookingData.flight.segments[0].duration,
+      cabin: bookingData.flight.segments[0].class,
+    },
+    returnFlight: bookingData.flight.segments.length > 1 ? {
+      flightNumber: `${bookingData.flight.segments[1].carrierCode} ${bookingData.flight.segments[1].flightNumber}`,
+      airline: bookingData.flight.segments[1].carrierCode,
+      aircraft: bookingData.flight.segments[1].aircraft || 'Aircraft',
+      from: {
+        code: bookingData.flight.segments[1].departure.iataCode,
+        city: bookingData.flight.segments[1].departure.iataCode,
+        airport: bookingData.flight.segments[1].departure.iataCode,
+      },
+      to: {
+        code: bookingData.flight.segments[1].arrival.iataCode,
+        city: bookingData.flight.segments[1].arrival.iataCode,
+        airport: bookingData.flight.segments[1].arrival.iataCode,
+      },
+      departure: bookingData.flight.segments[1].departure.at,
+      arrival: bookingData.flight.segments[1].arrival.at,
+      duration: bookingData.flight.segments[1].duration,
+      cabin: bookingData.flight.segments[1].class,
+    } : null,
+    passengers: bookingData.passengers.map((p: any, idx: number) => ({
+      id: idx + 1,
+      title: p.title,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      name: `${p.firstName} ${p.lastName}`,
+      type: p.type,
+      dateOfBirth: p.dateOfBirth,
+      seat: `${idx + 20}A`,
+      baggage: '1 x 23kg',
+      frequentFlyer: p.frequentFlyerNumber || '',
+    })),
+    payment: {
+      subtotal: bookingData.payment.amount,
+      taxes: 0,
+      insurance: 0,
+      total: bookingData.payment.amount,
+      method: `${bookingData.payment.cardBrand || 'Card'} ****${bookingData.payment.cardLast4}`,
+      transactionId: bookingData.payment.transactionId || 'N/A',
+      paidOn: bookingData.payment.paidAt || bookingData.createdAt,
+      currency: bookingData.payment.currency,
+    },
+  } : null; // No booking data available
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 print:bg-white">
+      {/* Cancel Order Dialog */}
+      {bookingData && (
+        <CancelOrderDialog
+          isOpen={showCancelDialog}
+          onClose={() => setShowCancelDialog(false)}
+          bookingId={bookingData.id}
+          bookingReference={bookingData.bookingReference}
+          onCancellationComplete={(confirmation) => {
+            console.log('Cancellation confirmed:', confirmation);
+            // Refresh booking data
+            setShowCancelDialog(false);
+            // Optionally redirect to bookings list
+            setTimeout(() => {
+              router.push('/admin/bookings');
+            }, 3000);
+          }}
+        />
+      )}
+
+      {/* Modify Order Dialog */}
+      {bookingData && displayBookingData && (
+        <ModifyOrderDialog
+          isOpen={showModifyDialog}
+          onClose={() => setShowModifyDialog(false)}
+          bookingId={bookingData.id}
+          bookingReference={bookingData.bookingReference}
+          currentDepartureDate={bookingData.flight.segments[0].departure.at}
+          currentReturnDate={bookingData.flight.segments.length > 1 ? bookingData.flight.segments[1].departure.at : undefined}
+          origin={bookingData.flight.segments[0].departure.iataCode}
+          destination={bookingData.flight.segments[0].arrival.iataCode}
+          sourceApi={bookingData.sourceApi}
+          onModificationComplete={(confirmation) => {
+            console.log('Modification confirmed:', confirmation);
+            // Refresh booking data
+            setShowModifyDialog(false);
+            // Reload the page to show updated booking
+            window.location.reload();
+          }}
+        />
+      )}
+
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden print:hidden">
@@ -522,7 +709,7 @@ export default function BookingConfirmationContent() {
             <p className="text-sm text-gray-500 mb-2">{t.bookingReference}</p>
             <div className="flex items-center gap-3">
               <span className="text-3xl font-mono font-bold text-gray-900 print:text-2xl">
-                {mockBookingData.bookingRef}
+                {displayBookingData.bookingRef}
               </span>
               <button
                 onClick={copyBookingRef}
@@ -543,7 +730,7 @@ export default function BookingConfirmationContent() {
           </div>
 
           <p className="text-sm text-gray-600 mt-4 print:mt-2">
-            {t.confirmationSent} <span className="font-semibold">{mockBookingData.email}</span>
+            {t.confirmationSent} <span className="font-semibold">{displayBookingData.email}</span>
           </p>
         </div>
 
@@ -629,33 +816,33 @@ export default function BookingConfirmationContent() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="font-semibold text-gray-900">{mockBookingData.outboundFlight.airline}</span>
+                  <span className="font-semibold text-gray-900">{displayBookingData.outboundFlight.airline}</span>
                   <span>•</span>
-                  <span>{mockBookingData.outboundFlight.flightNumber}</span>
+                  <span>{displayBookingData.outboundFlight.flightNumber}</span>
                   <span>•</span>
-                  <span>{mockBookingData.outboundFlight.aircraft}</span>
+                  <span>{displayBookingData.outboundFlight.aircraft}</span>
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   {/* Departure */}
                   <div>
                     <div className="text-3xl font-bold text-gray-900 print:text-2xl">
-                      {formatTime(mockBookingData.outboundFlight.departure)}
+                      {formatTime(displayBookingData.outboundFlight.departure)}
                     </div>
                     <div className="text-lg font-semibold text-gray-700 print:text-base">
-                      {mockBookingData.outboundFlight.from.code}
+                      {displayBookingData.outboundFlight.from.code}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {formatDate(mockBookingData.outboundFlight.departure)}
+                      {formatDate(displayBookingData.outboundFlight.departure)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {mockBookingData.outboundFlight.from.airport}
+                      {displayBookingData.outboundFlight.from.airport}
                     </div>
                   </div>
 
                   {/* Duration */}
                   <div className="flex flex-col items-center px-4">
-                    <div className="text-xs text-gray-500 mb-1">{mockBookingData.outboundFlight.duration}</div>
+                    <div className="text-xs text-gray-500 mb-1">{displayBookingData.outboundFlight.duration}</div>
                     <div className="w-full min-w-[100px] h-0.5 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-400 relative">
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                         <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
@@ -669,16 +856,16 @@ export default function BookingConfirmationContent() {
                   {/* Arrival */}
                   <div className="text-right">
                     <div className="text-3xl font-bold text-gray-900 print:text-2xl">
-                      {formatTime(mockBookingData.outboundFlight.arrival)}
+                      {formatTime(displayBookingData.outboundFlight.arrival)}
                     </div>
                     <div className="text-lg font-semibold text-gray-700 print:text-base">
-                      {mockBookingData.outboundFlight.to.code}
+                      {displayBookingData.outboundFlight.to.code}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {formatDate(mockBookingData.outboundFlight.arrival)}
+                      {formatDate(displayBookingData.outboundFlight.arrival)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {mockBookingData.outboundFlight.to.airport}
+                      {displayBookingData.outboundFlight.to.airport}
                     </div>
                   </div>
                 </div>
@@ -686,7 +873,7 @@ export default function BookingConfirmationContent() {
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                   <div>
                     <span className="text-xs text-gray-500">{t.cabin}</span>
-                    <p className="font-semibold text-gray-900">{mockBookingData.outboundFlight.cabin}</p>
+                    <p className="font-semibold text-gray-900">{displayBookingData.outboundFlight.cabin}</p>
                   </div>
                   <div>
                     <span className="text-xs text-gray-500">{t.baggage}</span>
@@ -707,33 +894,33 @@ export default function BookingConfirmationContent() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className="font-semibold text-gray-900">{mockBookingData.returnFlight.airline}</span>
+                  <span className="font-semibold text-gray-900">{displayBookingData.returnFlight.airline}</span>
                   <span>•</span>
-                  <span>{mockBookingData.returnFlight.flightNumber}</span>
+                  <span>{displayBookingData.returnFlight.flightNumber}</span>
                   <span>•</span>
-                  <span>{mockBookingData.returnFlight.aircraft}</span>
+                  <span>{displayBookingData.returnFlight.aircraft}</span>
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
                   {/* Departure */}
                   <div>
                     <div className="text-3xl font-bold text-gray-900 print:text-2xl">
-                      {formatTime(mockBookingData.returnFlight.departure)}
+                      {formatTime(displayBookingData.returnFlight.departure)}
                     </div>
                     <div className="text-lg font-semibold text-gray-700 print:text-base">
-                      {mockBookingData.returnFlight.from.code}
+                      {displayBookingData.returnFlight.from.code}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {formatDate(mockBookingData.returnFlight.departure)}
+                      {formatDate(displayBookingData.returnFlight.departure)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {mockBookingData.returnFlight.from.airport}
+                      {displayBookingData.returnFlight.from.airport}
                     </div>
                   </div>
 
                   {/* Duration */}
                   <div className="flex flex-col items-center px-4">
-                    <div className="text-xs text-gray-500 mb-1">{mockBookingData.returnFlight.duration}</div>
+                    <div className="text-xs text-gray-500 mb-1">{displayBookingData.returnFlight.duration}</div>
                     <div className="w-full min-w-[100px] h-0.5 bg-gradient-to-r from-purple-400 via-purple-500 to-purple-400 relative">
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                         <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
@@ -747,16 +934,16 @@ export default function BookingConfirmationContent() {
                   {/* Arrival */}
                   <div className="text-right">
                     <div className="text-3xl font-bold text-gray-900 print:text-2xl">
-                      {formatTime(mockBookingData.returnFlight.arrival)}
+                      {formatTime(displayBookingData.returnFlight.arrival)}
                     </div>
                     <div className="text-lg font-semibold text-gray-700 print:text-base">
-                      {mockBookingData.returnFlight.to.code}
+                      {displayBookingData.returnFlight.to.code}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {formatDate(mockBookingData.returnFlight.arrival)}
+                      {formatDate(displayBookingData.returnFlight.arrival)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {mockBookingData.returnFlight.to.airport}
+                      {displayBookingData.returnFlight.to.airport}
                     </div>
                   </div>
                 </div>
@@ -764,7 +951,7 @@ export default function BookingConfirmationContent() {
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                   <div>
                     <span className="text-xs text-gray-500">{t.cabin}</span>
-                    <p className="font-semibold text-gray-900">{mockBookingData.returnFlight.cabin}</p>
+                    <p className="font-semibold text-gray-900">{displayBookingData.returnFlight.cabin}</p>
                   </div>
                   <div>
                     <span className="text-xs text-gray-500">{t.baggage}</span>
@@ -779,7 +966,7 @@ export default function BookingConfirmationContent() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">{t.passengerInfo}</h2>
 
               <div className="space-y-4">
-                {mockBookingData.passengers.map((passenger, index) => (
+                {displayBookingData.passengers.map((passenger: any, index: number) => (
                   <div key={passenger.id} className="border rounded-xl p-4 print:border-gray-300">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -844,16 +1031,16 @@ export default function BookingConfirmationContent() {
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-600">
                   <span>{t.subtotal}</span>
-                  <span>{formatCurrency(mockBookingData.payment.subtotal)}</span>
+                  <span>{formatCurrency(displayBookingData.payment.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>{t.taxes}</span>
-                  <span>{formatCurrency(mockBookingData.payment.taxes)}</span>
+                  <span>{formatCurrency(displayBookingData.payment.taxes)}</span>
                 </div>
-                {mockBookingData.payment.insurance > 0 && (
+                {displayBookingData.payment.insurance > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>{t.insurance}</span>
-                    <span>{formatCurrency(mockBookingData.payment.insurance)}</span>
+                    <span>{formatCurrency(displayBookingData.payment.insurance)}</span>
                   </div>
                 )}
 
@@ -861,7 +1048,7 @@ export default function BookingConfirmationContent() {
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-900">{t.total}</span>
                     <span className="text-2xl font-bold text-green-600">
-                      {formatCurrency(mockBookingData.payment.total)}
+                      {formatCurrency(displayBookingData.payment.total)}
                     </span>
                   </div>
                 </div>
@@ -869,20 +1056,20 @@ export default function BookingConfirmationContent() {
                 <div className="pt-3 border-t space-y-2 text-sm">
                   <div className="flex justify-between text-gray-600">
                     <span>{t.paymentMethod}</span>
-                    <span className="font-semibold">{mockBookingData.payment.method}</span>
+                    <span className="font-semibold">{displayBookingData.payment.method}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>{t.transactionId}</span>
-                    <span className="font-mono text-xs">{mockBookingData.payment.transactionId}</span>
+                    <span className="font-mono text-xs">{displayBookingData.payment.transactionId}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>{t.paidOn}</span>
-                    <span>{formatDate(mockBookingData.payment.paidOn)}</span>
+                    <span>{formatDate(displayBookingData.payment.paidOn)}</span>
                   </div>
                 </div>
               </div>
 
-              {mockBookingData.payment.insurance === 0 && (
+              {displayBookingData.payment.insurance === 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <button className="w-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm font-semibold transition-colors">
                     + {t.addInsurance}
@@ -964,11 +1151,81 @@ export default function BookingConfirmationContent() {
               </ul>
             </div>
 
-            {/* Manage Booking */}
+            {/* Order Management Actions */}
             <div className="bg-white rounded-2xl shadow-sm border p-6 print:hidden">
-              <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg">
-                {t.manageBooking}
+              <h3 className="font-semibold text-gray-900 mb-4">Manage Your Booking</h3>
+
+              {/* Cancel Booking */}
+              <button
+                onClick={() => setShowCancelDialog(true)}
+                className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all mb-3 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel Booking
               </button>
+
+              {/* Modify Booking */}
+              <button
+                onClick={() => setShowModifyDialog(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Modify Dates
+              </button>
+
+              {/* Refund Policy Info */}
+              {bookingData && bookingData.refundPolicy && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+                  <p className="text-gray-600">
+                    {bookingData.refundPolicy.refundable ? (
+                      <span className="text-green-600 font-semibold">Refundable</span>
+                    ) : (
+                      <span className="text-red-600 font-semibold">Non-refundable</span>
+                    )}
+                    {bookingData.refundPolicy.cancellationFee && bookingData.refundPolicy.cancellationFee > 0 && (
+                      <> - Cancellation fee: {formatCurrency(bookingData.refundPolicy.cancellationFee)}</>
+                    )}
+                  </p>
+                  {bookingData.refundPolicy.refundDeadline && (
+                    <p className="text-gray-500 mt-1">
+                      Free cancellation until {formatDate(bookingData.refundPolicy.refundDeadline)}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* 24-hour free cancellation notice */}
+              {bookingData && bookingData.createdAt && (
+                (() => {
+                  const createdAt = new Date(bookingData.createdAt).getTime();
+                  const now = Date.now();
+                  const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60);
+                  const hoursRemaining = 24 - hoursSinceBooking;
+
+                  if (hoursRemaining > 0) {
+                    return (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
+                        <div className="flex items-start gap-2">
+                          <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <p className="text-green-800 font-semibold">Free Cancellation Available</p>
+                            <p className="text-green-700 mt-1">
+                              You can cancel this booking for free within {Math.floor(hoursRemaining)} hours.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()
+              )}
             </div>
           </div>
         </div>

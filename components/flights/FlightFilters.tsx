@@ -20,6 +20,9 @@ export interface FlightFilters {
   aircraftTypes: string[];
   maxCO2Emissions: number; // kg per passenger
   connectionQuality: ('short' | 'medium' | 'long')[];
+  // NDC Filters
+  ndcOnly: boolean; // Show only NDC flights
+  showExclusiveFares: boolean; // Show NDC exclusive fares
 }
 
 // Re-export FlightOffer for components that import from this file
@@ -84,6 +87,12 @@ const content = {
     shortConnection: 'Short (< 2h)',
     mediumConnection: 'Medium (2-4h)',
     longConnection: 'Long (> 4h)',
+    // NDC Filters
+    ndcFlights: 'NDC Direct Booking',
+    ndcOnly: 'NDC Flights Only',
+    ndcOnlyDesc: 'Show only flights with direct airline connections',
+    exclusiveFares: 'Show Exclusive Fares',
+    exclusiveFaresDesc: 'Display special offers only available through NDC',
   },
   pt: {
     filters: 'Filtros',
@@ -131,6 +140,11 @@ const content = {
     shortConnection: 'Curta (< 2h)',
     mediumConnection: 'Média (2-4h)',
     longConnection: 'Longa (> 4h)',
+    ndcFlights: 'Reserva Direta NDC',
+    ndcOnly: 'Apenas Voos NDC',
+    ndcOnlyDesc: 'Mostrar apenas voos com conexões diretas com companhias aéreas',
+    exclusiveFares: 'Mostrar Tarifas Exclusivas',
+    exclusiveFaresDesc: 'Exibir ofertas especiais disponíveis apenas através de NDC',
   },
   es: {
     filters: 'Filtros',
@@ -178,6 +192,11 @@ const content = {
     shortConnection: 'Corta (< 2h)',
     mediumConnection: 'Media (2-4h)',
     longConnection: 'Larga (> 4h)',
+    ndcFlights: 'Reserva Directa NDC',
+    ndcOnly: 'Solo Vuelos NDC',
+    ndcOnlyDesc: 'Mostrar solo vuelos con conexiones directas con aerolíneas',
+    exclusiveFares: 'Mostrar Tarifas Exclusivas',
+    exclusiveFaresDesc: 'Mostrar ofertas especiales disponibles solo a través de NDC',
   },
 };
 
@@ -599,6 +618,8 @@ export default function FlightFilters({
       aircraftTypes: [],
       maxCO2Emissions: 500,
       connectionQuality: [],
+      ndcOnly: false,
+      showExclusiveFares: false,
     };
     setLocalFilters(resetFilters);
     onFiltersChange(resetFilters);
@@ -941,6 +962,71 @@ export default function FlightFilters({
                 <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.refundableOnly}</span>
               </div>
               <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.refundableOnlyDesc}</span>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      {/* NDC Filters Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label className="block font-semibold text-gray-900" style={{ fontSize: '13px' }}>{t.ndcFlights}</label>
+
+        {/* NDC Only Filter */}
+        <label
+          className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
+            localFilters.ndcOnly
+              ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-500'
+              : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
+          }`}
+          style={{ padding: '6px 8px' }}
+        >
+          <div className="flex items-center flex-1" style={{ gap: '6px' }}>
+            <input
+              type="checkbox"
+              checked={localFilters.ndcOnly}
+              onChange={(e) => {
+                const updated = { ...localFilters, ndcOnly: e.target.checked };
+                setLocalFilters(updated);
+                onFiltersChange(updated);
+              }}
+              className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
+            />
+            <div className="flex flex-col flex-1">
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: '14px' }}>✨</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.ndcOnly}</span>
+              </div>
+              <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.ndcOnlyDesc}</span>
+            </div>
+          </div>
+        </label>
+
+        {/* Exclusive Fares Filter */}
+        <label
+          className={`flex items-center justify-between rounded-md cursor-pointer transition-all duration-150 ${
+            localFilters.showExclusiveFares
+              ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-500'
+              : 'bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+          }`}
+          style={{ padding: '6px 8px' }}
+        >
+          <div className="flex items-center flex-1" style={{ gap: '6px' }}>
+            <input
+              type="checkbox"
+              checked={localFilters.showExclusiveFares}
+              onChange={(e) => {
+                const updated = { ...localFilters, showExclusiveFares: e.target.checked };
+                setLocalFilters(updated);
+                onFiltersChange(updated);
+              }}
+              className="w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500 focus:ring-1 cursor-pointer"
+            />
+            <div className="flex flex-col flex-1">
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: '14px' }}>🎁</span>
+                <span className="font-medium text-gray-900" style={{ fontSize: '12px' }}>{t.exclusiveFares}</span>
+              </div>
+              <span className="text-gray-500" style={{ fontSize: '10px', marginTop: '1px' }}>{t.exclusiveFaresDesc}</span>
             </div>
           </div>
         </label>

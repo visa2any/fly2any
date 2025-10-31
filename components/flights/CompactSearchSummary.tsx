@@ -3,6 +3,7 @@
 import { Calendar, Users, Armchair, ChevronDown, PlaneTakeoff } from 'lucide-react';
 import { format } from 'date-fns';
 import { colors, borderRadius } from '@/lib/design-system';
+import { formatCityCode, getAirportFlag } from '@/lib/data/airports';
 
 interface CompactSearchSummaryProps {
   origin: string;
@@ -59,82 +60,10 @@ const translations = {
   },
 };
 
-// Airport data with city names and emojis
-interface AirportData {
-  city: string;
-  emoji: string;
-}
-
-const airportDatabase: { [key: string]: AirportData } = {
-  // United States
-  JFK: { city: 'New York', emoji: '🗽' },
-  EWR: { city: 'Newark', emoji: '🗽' },
-  LGA: { city: 'New York', emoji: '🗽' },
-  LAX: { city: 'Los Angeles', emoji: '🌴' },
-  SNA: { city: 'Orange County', emoji: '🌴' },
-  ONT: { city: 'Ontario', emoji: '🌴' },
-  MIA: { city: 'Miami', emoji: '🏖️' },
-  FLL: { city: 'Fort Lauderdale', emoji: '🏖️' },
-  SFO: { city: 'San Francisco', emoji: '🌉' },
-  OAK: { city: 'Oakland', emoji: '🌉' },
-  SJC: { city: 'San Jose', emoji: '🌉' },
-  ORD: { city: 'Chicago', emoji: '🏙️' },
-  MDW: { city: 'Chicago', emoji: '🏙️' },
-  ATL: { city: 'Atlanta', emoji: '🍑' },
-  DFW: { city: 'Dallas', emoji: '🤠' },
-  DEN: { city: 'Denver', emoji: '🏔️' },
-  SEA: { city: 'Seattle', emoji: '🌲' },
-  BOS: { city: 'Boston', emoji: '🦞' },
-  LAS: { city: 'Las Vegas', emoji: '🎰' },
-  PHX: { city: 'Phoenix', emoji: '🌵' },
-
-  // Europe
-  LHR: { city: 'London', emoji: '🇬🇧' },
-  LGW: { city: 'London', emoji: '🇬🇧' },
-  STN: { city: 'London', emoji: '🇬🇧' },
-  CDG: { city: 'Paris', emoji: '🗼' },
-  ORY: { city: 'Paris', emoji: '🗼' },
-  BCN: { city: 'Barcelona', emoji: '🇪🇸' },
-  MAD: { city: 'Madrid', emoji: '🇪🇸' },
-  FCO: { city: 'Rome', emoji: '🏛️' },
-  FRA: { city: 'Frankfurt', emoji: '🇩🇪' },
-  AMS: { city: 'Amsterdam', emoji: '🇳🇱' },
-
-  // Middle East & Asia
-  DXB: { city: 'Dubai', emoji: '🏙️' },
-  NRT: { city: 'Tokyo', emoji: '🗾' },
-  HND: { city: 'Tokyo', emoji: '🗾' },
-  SIN: { city: 'Singapore', emoji: '🇸🇬' },
-
-  // Other
-  YYZ: { city: 'Toronto', emoji: '🇨🇦' },
-  SYD: { city: 'Sydney', emoji: '🦘' },
-  GRU: { city: 'São Paulo', emoji: '🇧🇷' },
-  GIG: { city: 'Rio de Janeiro', emoji: '🇧🇷' },
-  MEX: { city: 'Mexico City', emoji: '🌮' },
-  CUN: { city: 'Cancún', emoji: '🏝️' },
-};
-
-// Get airport emoji
+// Get airport emoji (use flag instead)
 const getAirportEmoji = (code: string | undefined | null): string => {
   if (!code) return '✈️';
-  const data = airportDatabase[code.toUpperCase()];
-  return data?.emoji || '✈️';
-};
-
-// Get city name for airport code
-const getCityName = (code: string | undefined | null): string => {
-  if (!code) return '';
-  const data = airportDatabase[code.toUpperCase()];
-  return data?.city || '';
-};
-
-// Format airport display: "City (CODE)" or just "CODE" if city unknown
-const formatAirportDisplay = (code: string | undefined | null): string => {
-  if (!code) return '';
-  const city = getCityName(code);
-  const upperCode = code.toUpperCase();
-  return city ? `${city} (${upperCode})` : upperCode;
+  return getAirportFlag(code) || '✈️';
 };
 
 const getCabinClassName = (cabin: string, lang: 'en' | 'pt' | 'es'): string => {
@@ -196,7 +125,7 @@ export default function CompactSearchSummary({
                   <span className="text-base sm:text-lg">
                     {multiCityLegs.map((leg, idx) => (
                       <span key={idx}>
-                        {getAirportEmoji(leg.origin)} <span className="font-semibold">{formatAirportDisplay(leg.origin)}</span>
+                        {getAirportEmoji(leg.origin)} <span className="font-semibold">{formatCityCode(leg.origin)}</span>
                         {idx < multiCityLegs.length - 1 && ' → '}
                       </span>
                     ))}
@@ -235,7 +164,7 @@ export default function CompactSearchSummary({
               {multiCityLegs.map((leg, idx) => (
                 <span key={idx} className="flex items-center gap-1.5">
                   <span className="font-medium">{t.leg} {idx + 1}:</span>
-                  {formatAirportDisplay(leg.origin)} → {formatAirportDisplay(leg.destination)}
+                  {formatCityCode(leg.origin)} → {formatCityCode(leg.destination)}
                   <span className="text-gray-400">•</span>
                   {formatCompactDate(leg.date)}
                   {idx < multiCityLegs.length - 1 && <span className="text-gray-300 ml-2">|</span>}
@@ -266,13 +195,13 @@ export default function CompactSearchSummary({
             {/* Route */}
             <div className="flex items-center gap-2 text-gray-900">
               <span className="text-base sm:text-lg">
-                {getAirportEmoji(origin)} <span className="font-semibold">{formatAirportDisplay(origin)}</span>
+                {getAirportEmoji(origin)} <span className="font-semibold">{formatCityCode(origin)}</span>
               </span>
               <span className="text-gray-400 text-base sm:text-lg">
                 {isRoundTrip ? '⇄' : '→'}
               </span>
               <span className="text-base sm:text-lg">
-                {getAirportEmoji(destination)} <span className="font-semibold">{formatAirportDisplay(destination)}</span>
+                {getAirportEmoji(destination)} <span className="font-semibold">{formatCityCode(destination)}</span>
               </span>
             </div>
 

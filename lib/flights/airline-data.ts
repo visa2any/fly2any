@@ -16,6 +16,7 @@ export interface AirlineData {
   service: number; // Out of 5
   country: string;
   hub?: string[];
+  frequentFlyerProgram: string; // Loyalty program name (e.g., "MileagePlus", "AAdvantage")
 }
 
 export const AIRLINE_DATABASE: Record<string, AirlineData> = {
@@ -33,6 +34,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.0,
     country: 'USA',
     hub: ['DFW', 'CLT', 'MIA', 'PHX'],
+    frequentFlyerProgram: 'AAdvantage',
   },
   DL: {
     code: 'DL',
@@ -47,6 +49,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.3,
     country: 'USA',
     hub: ['ATL', 'DTW', 'MSP', 'SLC'],
+    frequentFlyerProgram: 'SkyMiles',
   },
   UA: {
     code: 'UA',
@@ -61,6 +64,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.8,
     country: 'USA',
     hub: ['ORD', 'DEN', 'IAH', 'EWR', 'SFO'],
+    frequentFlyerProgram: 'MileagePlus',
   },
   WN: {
     code: 'WN',
@@ -75,6 +79,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.2,
     country: 'USA',
     hub: ['DAL', 'HOU', 'PHX', 'BWI'],
+    frequentFlyerProgram: 'Rapid Rewards',
   },
   B6: {
     code: 'B6',
@@ -89,6 +94,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.3,
     country: 'USA',
     hub: ['JFK', 'BOS', 'FLL'],
+    frequentFlyerProgram: 'TrueBlue',
   },
   AS: {
     code: 'AS',
@@ -103,6 +109,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.5,
     country: 'USA',
     hub: ['SEA', 'PDX', 'ANC'],
+    frequentFlyerProgram: 'Mileage Plan',
   },
   F9: {
     code: 'F9',
@@ -117,6 +124,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.4,
     country: 'USA',
     hub: ['DEN'],
+    frequentFlyerProgram: 'FRONTIER Miles',
   },
   NK: {
     code: 'NK',
@@ -131,6 +139,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.1,
     country: 'USA',
     hub: ['FLL', 'DTW', 'MCO'],
+    frequentFlyerProgram: 'Free Spirit',
   },
 
   // European Carriers
@@ -147,6 +156,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.2,
     country: 'United Kingdom',
     hub: ['LHR', 'LGW'],
+    frequentFlyerProgram: 'Executive Club',
   },
   LH: {
     code: 'LH',
@@ -161,6 +171,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.3,
     country: 'Germany',
     hub: ['FRA', 'MUC'],
+    frequentFlyerProgram: 'Miles & More',
   },
   AF: {
     code: 'AF',
@@ -175,6 +186,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.1,
     country: 'France',
     hub: ['CDG', 'ORY'],
+    frequentFlyerProgram: 'Flying Blue',
   },
   KL: {
     code: 'KL',
@@ -189,6 +201,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.4,
     country: 'Netherlands',
     hub: ['AMS'],
+    frequentFlyerProgram: 'Flying Blue',
   },
   IB: {
     code: 'IB',
@@ -203,6 +216,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.9,
     country: 'Spain',
     hub: ['MAD'],
+    frequentFlyerProgram: 'Iberia Plus',
   },
 
   // Middle Eastern Carriers
@@ -219,6 +233,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.8,
     country: 'UAE',
     hub: ['DXB'],
+    frequentFlyerProgram: 'Emirates Skywards',
   },
   QR: {
     code: 'QR',
@@ -233,6 +248,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.9,
     country: 'Qatar',
     hub: ['DOH'],
+    frequentFlyerProgram: 'Privilege Club',
   },
   EY: {
     code: 'EY',
@@ -247,6 +263,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.6,
     country: 'UAE',
     hub: ['AUH'],
+    frequentFlyerProgram: 'Etihad Guest',
   },
 
   // Asian Carriers
@@ -263,6 +280,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 5.0,
     country: 'Singapore',
     hub: ['SIN'],
+    frequentFlyerProgram: 'KrisFlyer',
   },
   CX: {
     code: 'CX',
@@ -277,6 +295,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.6,
     country: 'Hong Kong',
     hub: ['HKG'],
+    frequentFlyerProgram: 'Asia Miles',
   },
   NH: {
     code: 'NH',
@@ -291,6 +310,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.8,
     country: 'Japan',
     hub: ['NRT', 'HND'],
+    frequentFlyerProgram: 'ANA Mileage Club',
   },
   TG: {
     code: 'TG',
@@ -305,6 +325,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.5,
     country: 'Thailand',
     hub: ['BKK'],
+    frequentFlyerProgram: 'Royal Orchid Plus',
   },
 
   // Low-Cost Carriers
@@ -321,6 +342,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.0,
     country: 'Ireland',
     hub: ['DUB', 'STN'],
+    frequentFlyerProgram: 'MyRyanair',
   },
   U2: {
     code: 'U2',
@@ -335,6 +357,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.4,
     country: 'United Kingdom',
     hub: ['LGW', 'LTN'],
+    frequentFlyerProgram: 'easyJet Plus',
   },
 
   // Canadian Carriers
@@ -351,6 +374,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.0,
     country: 'Canada',
     hub: ['YYZ', 'YVR', 'YUL'],
+    frequentFlyerProgram: 'Aeroplan',
   },
   WS: {
     code: 'WS',
@@ -365,6 +389,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.0,
     country: 'Canada',
     hub: ['YYC'],
+    frequentFlyerProgram: 'WestJet Rewards',
   },
 
   // Latin American Carriers
@@ -381,6 +406,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.1,
     country: 'Chile',
     hub: ['SCL', 'LIM', 'GRU'],
+    frequentFlyerProgram: 'LATAM Pass',
   },
   AM: {
     code: 'AM',
@@ -395,6 +421,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.9,
     country: 'Mexico',
     hub: ['MEX'],
+    frequentFlyerProgram: 'Club Premier',
   },
   AV: {
     code: 'AV',
@@ -409,6 +436,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.8,
     country: 'Colombia',
     hub: ['BOG', 'MDE', 'CLO'],
+    frequentFlyerProgram: 'LifeMiles',
   },
   CM: {
     code: 'CM',
@@ -423,6 +451,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.9,
     country: 'Panama',
     hub: ['PTY'],
+    frequentFlyerProgram: 'ConnectMiles',
   },
 
   // Australian/Oceania
@@ -439,6 +468,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.5,
     country: 'Australia',
     hub: ['SYD', 'MEL'],
+    frequentFlyerProgram: 'Frequent Flyer',
   },
   NZ: {
     code: 'NZ',
@@ -453,6 +483,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 4.7,
     country: 'New Zealand',
     hub: ['AKL'],
+    frequentFlyerProgram: 'Airpoints',
   },
 
   // Default/Unknown
@@ -469,6 +500,7 @@ export const AIRLINE_DATABASE: Record<string, AirlineData> = {
     service: 3.5,
     country: 'Unknown',
     hub: [],
+    frequentFlyerProgram: 'Rewards Program',
   },
 };
 

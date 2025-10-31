@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Next.js build output and cache
+.next/
+out/
+build/
+dist/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+e2e/
+
+# Environment files
+.env
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Package lock files (too large)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Documentation/planning files
+*.md
+!README.md
+
+# Screenshots and images (reference only)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+
+# Scripts and utilities (unless needed)
+scripts/
+*.mjs
+
+# Claude
+.claude/
+
+# Docs directory (if it exists)
+docs/

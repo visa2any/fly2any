@@ -25,7 +25,8 @@ import {
   Package,
   Hotel,
   Car,
-  Shield
+  Shield,
+  Webhook
 } from 'lucide-react';
 
 // ===========================
@@ -391,6 +392,13 @@ export default function AdminDashboard() {
                 label="Manage Bookings"
                 href="/admin/bookings"
                 color="blue"
+              />
+
+              <QuickAction
+                icon={<Webhook className="w-4 h-4" />}
+                label="Webhook Events"
+                href="/admin/webhooks"
+                color="purple"
               />
 
               <QuickAction

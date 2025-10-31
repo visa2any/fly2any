@@ -182,7 +182,7 @@ export const dimensions = {
 export const layout = {
   // Container constraints (Priceline-style)
   container: {
-    maxWidth: '1440px',          // Maximum width for content (Priceline standard)
+    maxWidth: '1600px',          // Maximum width for content (Industry standard, optimized for modern displays)
     padding: {
       desktop: '0 24px',         // 24px horizontal padding on desktop
       tablet: '0 20px',          // 20px horizontal padding on tablet

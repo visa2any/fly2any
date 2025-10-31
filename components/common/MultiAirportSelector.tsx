@@ -185,25 +185,25 @@ export default function MultiAirportSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full relative px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left group"
+        className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left group"
       >
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-[#0087FF] transition-colors" size={18} />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-[#0087FF] transition-colors" size={20} />
 
-        <div className="pl-7 pr-6">
+        <div className="pl-8 pr-6">
           {selectedAirports.length === 0 ? (
-            <span className="text-gray-400">{placeholder}</span>
+            <span className="text-gray-400 text-base">{placeholder}</span>
           ) : (
             <div className="flex items-center gap-1.5 flex-wrap">
               {selectedAirports.slice(0, maxDisplay).map((airport) => (
                 <span
                   key={airport.code}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-sm font-semibold"
                 >
                   {airport.emoji} {airport.city} ({airport.code})
                 </span>
               ))}
               {selectedAirports.length > maxDisplay && (
-                <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-xs font-semibold">
+                <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-sm font-semibold">
                   +{selectedAirports.length - maxDisplay} more
                 </span>
               )}

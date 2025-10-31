@@ -380,7 +380,8 @@ export class RouteProfiler {
       const cached = await redis.get(key);
 
       if (cached) {
-        return JSON.parse(cached as string);
+        // Handle both string and object responses from Redis
+        return typeof cached === 'string' ? JSON.parse(cached) : cached as APIPerformanceProfile;
       }
 
       return null;

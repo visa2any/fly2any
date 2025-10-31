@@ -13,12 +13,12 @@ export function TrustBadges() {
       {badges.map((badge, index) => (
         <div
           key={index}
-          className="flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
         >
           <span className="text-2xl">{badge.icon}</span>
           <div className="text-left">
-            <div className="text-sm font-semibold">{badge.text}</div>
-            <div className="text-xs opacity-75">{badge.subtext}</div>
+            <div className="text-sm font-bold">{badge.text}</div>
+            <div className="text-xs text-gray-600">{badge.subtext}</div>
           </div>
         </div>
       ))}

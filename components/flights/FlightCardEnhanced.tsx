@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award } from 'lucide-react';
+import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon } from 'lucide-react';
 import ShareFlightModal from './ShareFlightModal';
+import { FlightRichContent } from './FlightRichContent';
+import { NDCBenefitsModal } from './NDCBenefitsModal';
 import { getAirlineData, getAllianceBadgeColor, getRatingColor, getOnTimePerformanceBadge } from '@/lib/flights/airline-data';
 import { getEstimatedAmenities } from '@/lib/flights/aircraft-amenities';
-import { getAirportDisplay, getAirportCity } from '@/lib/flights/airport-cities';
+import { formatCityCode, getAirportCity } from '@/lib/data/airports';
 import { getAircraftName } from '@/lib/flights/aircraft-names';
 import { formatBaggageWeight, extractWeight } from '@/lib/flights/weight-utils';
 import AirlineLogo from './AirlineLogo';
 import UrgencyIndicators from './UrgencyIndicators';
 import SocialProof from './SocialProof';
+import { UrgencySignals } from './UrgencySignals';
+import { LoyaltyBadge, calculateLoyaltyMiles, estimateDistance } from './LoyaltyBadge';
 import PriceAnchoringBadge from './PriceAnchoringBadge';
 import CO2Badge from './CO2Badge';
 import BaggageTooltip from './BaggageTooltip';
@@ -92,6 +96,21 @@ export interface EnhancedFlightCardProps {
   lastTicketingDate?: string;
   lastTicketingDateTime?: string;
   pricingOptions?: any;
+  // NDC and Rich Content fields
+  isNDC?: boolean; // Whether this is an NDC offer
+  ndcSavings?: number; // Savings compared to GDS price
+  richContent?: {
+    cabinPhotos?: string[];
+    seatPhotos?: string[];
+    amenityDetails?: string[];
+    videos?: string[];
+  };
+  // ML User Segmentation
+  userSegment?: 'business' | 'leisure' | 'family' | 'budget' | null;
+  segmentRecommendations?: any;
+  // A/B Testing
+  urgencyVariant?: 'control' | 'variant_a' | 'variant_b';
+  sessionId?: string;
 }
 
 export function FlightCardEnhanced({
@@ -127,6 +146,16 @@ export function FlightCardEnhanced({
   lastTicketingDate,
   lastTicketingDateTime,
   pricingOptions,
+  // NDC and Rich Content fields
+  isNDC = false,
+  ndcSavings,
+  richContent,
+  // ML User Segmentation
+  userSegment,
+  segmentRecommendations,
+  // A/B Testing
+  urgencyVariant = 'variant_a',
+  sessionId,
 }: EnhancedFlightCardProps) {
   // Early return if itineraries is missing or empty
   if (!itineraries || !Array.isArray(itineraries) || itineraries.length === 0) {
@@ -150,6 +179,8 @@ export function FlightCardEnhanced({
   const [fareRules, setFareRules] = useState<ParsedFareRules | null>(null);
   const [loadingFareRules, setLoadingFareRules] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showRichContent, setShowRichContent] = useState(false);
+  const [showNDCBenefits, setShowNDCBenefits] = useState(false);
 
   // DEBUG: Log component render and conversion feature props
   useEffect(() => {
@@ -486,10 +517,19 @@ export function FlightCardEnhanced({
     if (isNavigating) return;
 
     // Save flight data to sessionStorage for booking page
+    // IMPORTANT: Include all Amadeus API fields for upselling and seat map APIs
     const flightData = {
       id,
+      type,
+      source,
+      instantTicketingRequired,
+      nonHomogeneous,
+      oneWay,
+      lastTicketingDate,
+      lastTicketingDateTime,
       itineraries,
       price,
+      pricingOptions,
       numberOfBookableSeats,
       validatingAirlineCodes,
       travelerPricings,
@@ -525,6 +565,12 @@ export function FlightCardEnhanced({
 
   // Use provided viewing count or generate mock
   const currentViewingCount = viewingCount ?? Math.floor(Math.random() * 50) + 20;
+
+  // Calculate loyalty miles earning
+  const flightDurationMins = durationToMinutes(itineraries[0].duration);
+  const estimatedFlightDistance = estimateDistance(flightDurationMins);
+  const loyaltyMilesEarned = calculateLoyaltyMiles(estimatedFlightDistance, baggageInfo.cabin as any);
+  const loyaltyProgram = airlineData.frequentFlyerProgram;
 
   // Fetch fare rules from API
   const loadFareRules = async () => {
@@ -602,7 +648,7 @@ export function FlightCardEnhanced({
               {hasMultipleAirlines ? 'Multi-City Journey' : airlineData.name}
             </span>
             {!hasMultipleAirlines && primaryFlightNumber && (
-              <span className="font-medium text-gray-500 truncate flex items-baseline gap-0.5" style={{ fontSize: '11px' }}>
+              <span className="font-medium text-gray-500 truncate flex items-baseline gap-1" style={{ fontSize: '11px' }}>
                 <span className="text-gray-400">Flight</span>
                 <span className="text-gray-600 font-semibold">{primaryFlightNumber}</span>
               </span>
@@ -637,17 +683,35 @@ export function FlightCardEnhanced({
             </span>
           )}
 
+          {/* NDC Exclusive Badge */}
+          {isNDC && (
+            <span className="font-bold px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full flex-shrink-0 flex items-center gap-1 shadow-md" style={{ fontSize: typography.card.meta.size }}>
+              <Sparkles className="w-3 h-3" />
+              NDC Exclusive
+            </span>
+          )}
+
           {/* Fare Type + Cabin Class Badge - Combined */}
           <span className="font-semibold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded flex-shrink-0" style={{ fontSize: typography.card.meta.size }}>
             {formatFareType(baggageInfo.fareType)} {baggageInfo.cabin === 'PREMIUM_ECONOMY' ? 'Premium' :
              baggageInfo.cabin === 'BUSINESS' ? 'Business' :
              baggageInfo.cabin === 'FIRST' ? 'First' : 'Economy'}
           </span>
+
+          {/* Loyalty Miles Badge - Moved to header (after fare class) */}
+          {loyaltyProgram && loyaltyMilesEarned > 0 && (
+            <LoyaltyBadge
+              program={loyaltyProgram}
+              estimatedMiles={loyaltyMilesEarned}
+              airline={airlineData.name}
+            />
+          )}
         </div>
 
-        {/* Right: FlightIQ Score + Quick Actions */}
+        {/* Right: Quick Actions */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {(mlScore !== undefined || score !== undefined) && (
+          {/* ML Score - Removed */}
+          {/* {(mlScore !== undefined || score !== undefined) && (
             <div className="text-center px-1.5">
               <div className={`font-bold leading-none ${
                 (mlScore !== undefined ? mlScore * 100 : score || 0) >= 90 ? 'text-green-600' :
@@ -661,7 +725,7 @@ export function FlightCardEnhanced({
                 {mlScore !== undefined ? 'ML' : 'IQ'}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Quick Actions - Smaller */}
           <button
@@ -686,7 +750,8 @@ export function FlightCardEnhanced({
             <Share2 className="w-3.5 h-3.5" />
           </button>
 
-          {onCompare && (
+          {/* Compare button - Removed */}
+          {/* {onCompare && (
             <button
               onClick={() => onCompare(id)}
               className={`p-1 rounded transition-all ${
@@ -698,7 +763,7 @@ export function FlightCardEnhanced({
             >
               <Check className="w-3.5 h-3.5" />
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -736,7 +801,7 @@ export function FlightCardEnhanced({
                     <span className="text-sm font-semibold text-gray-600">{formatTime(itinerary.segments[0].departure.at)}</span>
                   </div>
                   <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
-                    {getAirportDisplay(itinerary.segments[0].departure.iataCode)}
+                    {formatCityCode(itinerary.segments[0].departure.iataCode)}
                   </div>
                 </div>
 
@@ -763,7 +828,7 @@ export function FlightCardEnhanced({
                     <span className="text-sm font-semibold text-gray-600">{formatTime(itinerary.segments[itinerary.segments.length - 1].arrival.at)}</span>
                   </div>
                   <div className="font-semibold text-gray-600 mt-0.5" style={{ fontSize: typography.card.meta.size }}>
-                    {getAirportDisplay(itinerary.segments[itinerary.segments.length - 1].arrival.iataCode)}
+                    {formatCityCode(itinerary.segments[itinerary.segments.length - 1].arrival.iataCode)}
                   </div>
                 </div>
               </div>
@@ -826,7 +891,7 @@ export function FlightCardEnhanced({
                           <span className="font-bold text-gray-900 text-sm">{formatDate(segment.departure.at)}</span>
                           <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.departure.at)}</span>
                         </div>
-                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.departure.iataCode)}</div>
+                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{formatCityCode(segment.departure.iataCode)}</div>
                         {segment.departure.terminal && (
                           <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.departure.terminal}</span></div>
                         )}
@@ -844,7 +909,7 @@ export function FlightCardEnhanced({
                           <span className="font-bold text-gray-900 text-sm">{formatDate(segment.arrival.at)}</span>
                           <span className="text-[11px] font-semibold text-gray-600 mt-0.5">{formatTime(segment.arrival.at)}</span>
                         </div>
-                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{getAirportDisplay(segment.arrival.iataCode)}</div>
+                        <div className="text-gray-600 text-[11px] font-medium mt-0.5">{formatCityCode(segment.arrival.iataCode)}</div>
                         {segment.arrival.terminal && (
                           <div className="text-[10px] text-gray-500 font-medium">Terminal <span className="font-semibold text-gray-700">{segment.arrival.terminal}</span></div>
                         )}
@@ -1005,38 +1070,28 @@ export function FlightCardEnhanced({
         )}
       </div>
 
-      {/* CONVERSION FEATURES ROW - Always Visible */}
-      <div className={`px-3 py-2 border-t border-gray-100 ${isDebugMode ? 'bg-yellow-100 border-4 border-red-500' : ''}`} data-testid="conversion-features">
+      {/* SINGLE-LINE BADGES ROW - Full width distribution (compact height) */}
+      <div className={`px-3 py-1.5 border-t border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent ${isDebugMode ? 'bg-yellow-100 border-4 border-red-500' : ''}`} data-testid="conversion-features">
         {isDebugMode && (
           <div className="text-xs font-bold text-red-600 mb-1">
-            DEBUG MODE: Conversion Features Section
+            DEBUG MODE: Full-Width Badge Distribution
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Deal Score Badge - Uniform h-5 height */}
+        {/* Full width distribution with balanced spacing */}
+        <div className="flex items-center gap-4">
+          {/* Left Group: Deal Score (PRIMARY) */}
           {dealScore !== undefined && dealTier && dealLabel && (
-            <div className={`inline-flex items-center gap-1.5 px-2 rounded-full border h-5 ${isDebugMode ? 'ring-2 ring-yellow-500' : ''} ${
-              dealTier === 'excellent' ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-400' :
-              dealTier === 'great' ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-500' :
-              dealTier === 'good' ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-400' :
-              'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-400'
+            <div className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs shadow-sm border-2 transition-all hover:shadow-md flex-shrink-0 ${
+              dealTier === 'excellent' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 border-amber-600 text-white' :
+              dealTier === 'great' ? 'bg-gradient-to-r from-green-500 to-emerald-500 border-green-600 text-white' :
+              dealTier === 'good' ? 'bg-gradient-to-r from-blue-500 to-cyan-500 border-blue-600 text-white' :
+              'bg-gradient-to-r from-gray-400 to-slate-400 border-gray-500 text-white'
             }`}>
-              <span className={`text-sm font-bold leading-none ${
-                dealTier === 'excellent' ? 'text-amber-900' :
-                dealTier === 'great' ? 'text-green-900' :
-                dealTier === 'good' ? 'text-blue-900' :
-                'text-gray-900'
-              }`}>{dealScore}</span>
-              <span className={`text-xs font-semibold leading-none ${
-                dealTier === 'excellent' ? 'text-amber-900' :
-                dealTier === 'great' ? 'text-green-900' :
-                dealTier === 'good' ? 'text-blue-900' :
-                'text-gray-900'
-              }`}>
+              <span className="font-bold leading-none">{dealScore}</span>
+              <span className="font-semibold leading-none">
                 {dealTier === 'excellent' ? 'Excellent' : dealTier === 'great' ? 'Great' : dealTier === 'good' ? 'Good' : 'Fair'}
               </span>
-              <span className="text-[10px] text-gray-600 leading-none">Deal Score</span>
-              <span className="text-sm leading-none">{
+              <span className="text-xs leading-none">{
                 dealTier === 'excellent' ? '🏆' :
                 dealTier === 'great' ? '✨' :
                 dealTier === 'good' ? '👍' :
@@ -1045,8 +1100,8 @@ export function FlightCardEnhanced({
             </div>
           )}
 
-          {/* CO2 Badge - Now h-5 from component */}
-          <div className={isDebugMode ? 'ring-2 ring-blue-500' : ''}>
+          {/* Center Group: CO2 Badge (INFORMATIONAL) */}
+          <div className={`flex-shrink-0 ${isDebugMode ? 'ring-2 ring-blue-500' : ''}`}>
             <CO2Badge
               emissions={co2Emissions ?? Math.round(durationToMinutes(itineraries[0].duration) * 0.15)}
               averageEmissions={averageCO2 ?? Math.round(durationToMinutes(itineraries[0].duration) * 0.18)}
@@ -1054,22 +1109,20 @@ export function FlightCardEnhanced({
             />
           </div>
 
-          {/* Viewers Count - Uniform h-5 height */}
-          <div className={`inline-flex items-center gap-1.5 px-2 bg-orange-50 text-orange-700 rounded-full text-xs font-semibold border border-orange-200 h-5 leading-none ${isDebugMode ? 'ring-2 ring-green-500' : ''}`}>
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-            </svg>
-            <span className="leading-none">{currentViewingCount} viewing</span>
-          </div>
+          {/* Flex spacer to push urgency signals to the right */}
+          <div className="flex-1"></div>
 
-          {/* Bookings Today - Uniform h-5 height */}
-          {numberOfBookableSeats < 7 && (
-            <div className={`inline-flex items-center gap-1.5 px-2 bg-green-50 text-green-700 rounded-full text-xs font-semibold border border-green-200 h-5 leading-none ${isDebugMode ? 'ring-2 ring-purple-500' : ''}`}>
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-              </svg>
-              <span className="leading-none">{bookingsToday ?? Math.floor(Math.random() * 150) + 100} booked today</span>
+          {/* Right Group: Urgency Signals + Social Proof */}
+          {urgencyVariant === 'variant_a' && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <UrgencySignals
+                flightId={id}
+                route={`${itineraries[0].segments[0].departure.iataCode}-${itineraries[0].segments[itineraries[0].segments.length - 1].arrival.iataCode}`}
+                price={totalPrice}
+                departureDate={itineraries[0].segments[0].departure.at}
+                airline={validatingAirlineCodes?.[0] || itineraries[0].segments[0].carrierCode}
+                seatsAvailable={numberOfBookableSeats}
+              />
             </div>
           )}
         </div>
@@ -1082,6 +1135,13 @@ export function FlightCardEnhanced({
           <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
             {price.currency} {Math.round(totalPrice)}
           </span>
+          {/* NDC Savings Badge */}
+          {isNDC && ndcSavings && ndcSavings > 0 && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-full flex items-center gap-1" style={{ fontSize: typography.card.meta.size }}>
+              <Sparkles className="w-3 h-3" />
+              Save ${Math.round(ndcSavings)}
+            </span>
+          )}
           {priceVsMarket !== undefined && priceVsMarket !== null && (
             <span className={`px-1.5 py-0.5 font-bold rounded ${
               priceVsMarket <= -10 ? 'bg-green-100 text-green-700' :
@@ -1092,7 +1152,7 @@ export function FlightCardEnhanced({
               {priceVsMarket > 0 ? '+' : ''}{Math.round(priceVsMarket)}% vs market
             </span>
           )}
-          {!priceVsMarket && savings > 0 && (
+          {!priceVsMarket && savings > 0 && !isNDC && (
             <>
               <span className="text-gray-400 line-through" style={{ fontSize: typography.card.meta.size }}>
                 ${Math.round(averagePrice)}
@@ -1328,6 +1388,49 @@ export function FlightCardEnhanced({
               // TODO: Update booking flow with selected fare
             }}
           />
+
+          {/* NDC EXCLUSIVE CONTENT - Rich media and benefits */}
+          {isNDC && (
+            <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h4 className="font-bold text-blue-900 mb-1 text-sm flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    NDC Exclusive Benefits
+                  </h4>
+                  <p className="text-xs text-blue-800 mb-2">
+                    This flight includes exclusive benefits only available through direct airline connections.
+                  </p>
+                  <ul className="text-xs text-blue-700 space-y-1 mb-3">
+                    <li className="flex items-center gap-1">✓ Better pricing directly from the airline</li>
+                    <li className="flex items-center gap-1">✓ Access to exclusive fare types</li>
+                    <li className="flex items-center gap-1">✓ More flexibility with changes</li>
+                    {richContent && (richContent.cabinPhotos?.length || richContent.seatPhotos?.length) && (
+                      <li className="flex items-center gap-1">✓ View cabin and seat photos</li>
+                    )}
+                  </ul>
+                  <div className="flex items-center gap-2">
+                    {richContent && (richContent.cabinPhotos?.length || richContent.seatPhotos?.length || richContent.videos?.length) && (
+                      <button
+                        onClick={() => setShowRichContent(true)}
+                        className="px-3 py-1.5 bg-white border border-blue-300 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors flex items-center gap-1"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                        View Photos & Details
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNDCBenefits(true)}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors flex items-center gap-1"
+                    >
+                      <Info className="w-4 h-4" />
+                      Learn More About NDC
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1421,6 +1524,28 @@ export function FlightCardEnhanced({
           }}
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* Rich Content Modal */}
+      {showRichContent && richContent && (
+        <FlightRichContent
+          isOpen={showRichContent}
+          onClose={() => setShowRichContent(false)}
+          richContent={richContent}
+          airlineName={airlineData.name}
+          aircraftType={itineraries[0]?.segments[0]?.aircraft?.code || 'Aircraft'}
+          cabinClass={baggageInfo.cabin === 'PREMIUM_ECONOMY' ? 'Premium Economy' :
+                      baggageInfo.cabin === 'BUSINESS' ? 'Business' :
+                      baggageInfo.cabin === 'FIRST' ? 'First' : 'Economy'}
+        />
+      )}
+
+      {/* NDC Benefits Modal */}
+      {showNDCBenefits && (
+        <NDCBenefitsModal
+          isOpen={showNDCBenefits}
+          onClose={() => setShowNDCBenefits(false)}
         />
       )}
     </div>

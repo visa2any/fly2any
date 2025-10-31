@@ -115,6 +115,11 @@ export default function SeatMapModal({
               <h2 id="seat-map-title" className="text-xl font-bold text-gray-900">Select Your Seat</h2>
               <p className="text-sm text-gray-600 mt-0.5">
                 {seatMap.aircraftCode} • {seatMap.cabinClass} Class
+                {(seatMap as any).source && (
+                  <span className="ml-2 px-2 py-0.5 bg-white/30 rounded text-xs">
+                    {(seatMap as any).source === 'duffel' ? 'Duffel' : 'Amadeus'}
+                  </span>
+                )}
               </p>
             </div>
           </div>
