@@ -321,6 +321,11 @@ export default function EnhancedSearchBar({
   const [hotelAdults, setHotelAdults] = useState(2);
   const [hotelChildren, setHotelChildren] = useState(0);
   const [hotelRooms, setHotelRooms] = useState(1);
+  const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
+  const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
+  const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
+  const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
+  const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
 
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
@@ -349,6 +354,9 @@ export default function EnhancedSearchBar({
   const returnDateRef = useRef<HTMLButtonElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
   const destinationRef = useRef<HTMLDivElement>(null);
+  const hotelDestinationRef = useRef<HTMLDivElement>(null);
+  const hotelCheckInRef = useRef<HTMLButtonElement>(null);
+  const hotelCheckOutRef = useRef<HTMLButtonElement>(null);
 
   // Set default dates for hotels
   useEffect(() => {
@@ -566,7 +574,7 @@ export default function EnhancedSearchBar({
         adults: hotelAdults.toString(),
         children: hotelChildren.toString(),
         rooms: hotelRooms.toString(),
-        ...(hotelLocation && {
+        ...(hotelLocation && hotelLocation.lat && hotelLocation.lng && {
           lat: hotelLocation.lat.toString(),
           lng: hotelLocation.lng.toString(),
         }),
@@ -642,6 +650,60 @@ export default function EnhancedSearchBar({
     // Reset loading after a short delay
     setTimeout(() => setIsLoading(false), 500);
   };
+
+  // Hotel destination autocomplete
+  const fetchHotelSuggestions = async (query: string) => {
+    if (query.length < 2) {
+      setHotelSuggestions([]);
+      setShowHotelSuggestions(false);
+      return;
+    }
+
+    setIsLoadingHotelSuggestions(true);
+    setShowHotelSuggestions(true);
+
+    try {
+      const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (data.data && Array.isArray(data.data)) {
+        setHotelSuggestions(data.data.slice(0, 5)); // Show top 5 suggestions
+      } else {
+        setHotelSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Error fetching hotel suggestions:', error);
+      setHotelSuggestions([]);
+    } finally {
+      setIsLoadingHotelSuggestions(false);
+    }
+  };
+
+  const handleHotelDestinationChange = (value: string) => {
+    setHotelDestination(value);
+    fetchHotelSuggestions(value);
+  };
+
+  const handleHotelSuggestionSelect = (suggestion: any) => {
+    setHotelDestination(suggestion.name || suggestion.city_name);
+    setHotelLocation({
+      lat: suggestion.latitude,
+      lng: suggestion.longitude
+    });
+    setShowHotelSuggestions(false);
+  };
+
+  // Close hotel suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (hotelDestinationRef.current && !hotelDestinationRef.current.contains(event.target as Node)) {
+        setShowHotelSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="sticky top-0 z-50 bg-white shadow-md">
@@ -1153,12 +1215,7 @@ export default function EnhancedSearchBar({
                   <span>{t.searching}</span>
                 </>
               ) : (
-                <span>
-                  {serviceType === 'flights' && t.search}
-                  {serviceType === 'hotels' && t.searchHotels}
-                  {serviceType === 'cars' && t.searchCars}
-                  {serviceType === 'tours' && t.searchTours}
-                </span>
+                <span>{t.search}</span>
               )}
             </button>
           </div>
@@ -1315,7 +1372,7 @@ export default function EnhancedSearchBar({
           {/* Search Fields Row */}
           <div className="flex items-center gap-3">
             {/* Hotel Destination */}
-            <div className="flex-1">
+            <div ref={hotelDestinationRef} className="flex-1 relative">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Building2 size={13} className="text-gray-600" />
                 <span>Destination</span>
@@ -1323,7 +1380,8 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => setHotelDestination(e.target.value)}
+                onChange={(e) => handleHotelDestinationChange(e.target.value)}
+                onFocus={() => hotelDestination.length >= 2 && setShowHotelSuggestions(true)}
                 placeholder="City, hotel, or landmark"
                 className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
                   errors.hotel ? 'border-red-500' : 'border-gray-300'
@@ -1334,6 +1392,40 @@ export default function EnhancedSearchBar({
                   {errors.hotel}
                 </p>
               )}
+
+              {/* Suggestions Dropdown */}
+              {showHotelSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+                  {isLoadingHotelSuggestions ? (
+                    <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                  ) : hotelSuggestions.length > 0 ? (
+                    <div className="py-2">
+                      {hotelSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleHotelSuggestionSelect(suggestion)}
+                          className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-start gap-3"
+                        >
+                          <Building2 size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 text-sm truncate">
+                              {suggestion.name || suggestion.city_name}
+                            </div>
+                            {suggestion.country_name && (
+                              <div className="text-xs text-gray-500 truncate">
+                                {suggestion.country_name}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Check-in Date */}
@@ -1342,13 +1434,17 @@ export default function EnhancedSearchBar({
                 <CalendarDays size={13} className="text-gray-600" />
                 <span>Check-in</span>
               </label>
-              <input
-                type="date"
-                value={checkInDate}
-                onChange={(e) => setCheckInDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
-              />
+              <button
+                ref={hotelCheckInRef}
+                type="button"
+                onClick={() => setShowHotelCheckInPicker(true)}
+                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer border-gray-300"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {checkInDate ? formatDateForDisplay(checkInDate) : 'Select date'}
+                </span>
+              </button>
             </div>
 
             {/* Check-out Date */}
@@ -1357,13 +1453,17 @@ export default function EnhancedSearchBar({
                 <CalendarCheck size={13} className="text-gray-600" />
                 <span>Check-out</span>
               </label>
-              <input
-                type="date"
-                value={checkOutDate}
-                onChange={(e) => setCheckOutDate(e.target.value)}
-                min={checkInDate || new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
-              />
+              <button
+                ref={hotelCheckOutRef}
+                type="button"
+                onClick={() => setShowHotelCheckOutPicker(true)}
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {checkOutDate ? formatDateForDisplay(checkOutDate) : 'Select date'}
+                </span>
+              </button>
             </div>
 
             {/* Guests & Rooms */}
@@ -1499,6 +1599,31 @@ export default function EnhancedSearchBar({
           onChange={handleDatePickerChange}
           type="range"
           anchorEl={datePickerType === 'departure' ? departureDateRef.current : returnDateRef.current}
+        />
+
+        {/* Premium Date Pickers for Hotels */}
+        <PremiumDatePicker
+          isOpen={showHotelCheckInPicker}
+          onClose={() => setShowHotelCheckInPicker(false)}
+          value={checkInDate}
+          onChange={(date) => {
+            setCheckInDate(date);
+            setShowHotelCheckInPicker(false);
+          }}
+          type="single"
+          anchorEl={hotelCheckInRef.current}
+        />
+
+        <PremiumDatePicker
+          isOpen={showHotelCheckOutPicker}
+          onClose={() => setShowHotelCheckOutPicker(false)}
+          value={checkOutDate}
+          onChange={(date) => {
+            setCheckOutDate(date);
+            setShowHotelCheckOutPicker(false);
+          }}
+          type="single"
+          anchorEl={hotelCheckOutRef.current}
         />
 
         {/* Premium Date Pickers for Additional Flights */}
@@ -1659,12 +1784,7 @@ export default function EnhancedSearchBar({
                 <span>{t.searching}</span>
               </>
             ) : (
-              <span>
-                {serviceType === 'flights' && t.search}
-                {serviceType === 'hotels' && t.searchHotels}
-                {serviceType === 'cars' && t.searchCars}
-                {serviceType === 'tours' && t.searchTours}
-              </span>
+              <span>{t.search}</span>
             )}
           </button>
           </>
@@ -1674,7 +1794,7 @@ export default function EnhancedSearchBar({
           {serviceType === 'hotels' && (
           <>
           {/* Hotel Destination */}
-          <div>
+          <div className="relative">
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
               Destination
             </label>
@@ -1683,7 +1803,8 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => setHotelDestination(e.target.value)}
+                onChange={(e) => handleHotelDestinationChange(e.target.value)}
+                onFocus={() => hotelDestination.length >= 2 && setShowHotelSuggestions(true)}
                 placeholder="City, hotel, or landmark"
                 className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
                   errors.hotel ? 'border-red-500' : 'border-gray-200'
@@ -1694,6 +1815,40 @@ export default function EnhancedSearchBar({
               <p className="mt-1 text-xs text-red-600" role="alert">
                 {errors.hotel}
               </p>
+            )}
+
+            {/* Mobile Suggestions Dropdown */}
+            {showHotelSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+                {isLoadingHotelSuggestions ? (
+                  <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                ) : hotelSuggestions.length > 0 ? (
+                  <div className="py-2">
+                    {hotelSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleHotelSuggestionSelect(suggestion)}
+                        className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-start gap-3"
+                      >
+                        <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 text-xs truncate">
+                            {suggestion.name || suggestion.city_name}
+                          </div>
+                          {suggestion.country_name && (
+                            <div className="text-[10px] text-gray-500 truncate">
+                              {suggestion.country_name}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                )}
+              </div>
             )}
           </div>
 
