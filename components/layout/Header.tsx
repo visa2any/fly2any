@@ -144,7 +144,7 @@ export function Header({
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 backdrop-blur-md shadow-xl border-b border-white/20 ${className}`}
+      className={`sticky top-0 z-[100] bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 backdrop-blur-md shadow-xl border-b border-white/20 ${className}`}
     >
       <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
         <div className="flex items-center justify-between h-20">
