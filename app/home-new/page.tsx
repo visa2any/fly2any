@@ -110,9 +110,16 @@ export default function NewHomePage() {
     <div className="min-h-screen bg-white">
       {/* ============================================
           PAGE TITLE - Between Header and Search Bar
-          ENHANCED: Premium Typography & Animations
+          ENHANCED: Premium Typography & Advanced Animations
           ============================================ */}
       <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden">
+        {/* Animated floating orbs in background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="floating-orb floating-orb-1"></div>
+          <div className="floating-orb floating-orb-2"></div>
+          <div className="floating-orb floating-orb-3"></div>
+        </div>
+
         {/* Subtle background pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(59, 130, 246) 1px, transparent 0)',
@@ -121,47 +128,186 @@ export default function NewHomePage() {
 
         <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px 24px 20px', position: 'relative' }}>
           <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
-            {/* Main Title - Gradient Effect */}
+            {/* Main Title - Animated Gradient Effect */}
             <h1
-              className="text-3xl font-extrabold tracking-wide"
-              style={{
-                background: 'linear-gradient(135deg, #1e40af 0%, #0891b2 50%, #06b6d4 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                textShadow: '0 2px 10px rgba(30, 64, 175, 0.1)',
-                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))',
-                animation: 'fadeInUp 0.6s ease-out'
-              }}
+              className="hero-title text-3xl font-extrabold tracking-wide"
             >
               {t.sectionTitle}
             </h1>
 
-            {/* Separator */}
+            {/* Separator - Pulse Animation */}
             <span
-              className="text-cyan-300 font-medium text-xl"
-              style={{ animation: 'fadeIn 0.8s ease-out' }}
+              className="separator-dot text-cyan-400 font-medium text-xl"
             >
               •
             </span>
 
-            {/* Subtitle */}
+            {/* Subtitle - Word Stagger Animation */}
             <p
-              className="text-gray-700/90 mb-0 font-medium"
+              className="hero-subtitle text-gray-700/90 mb-0 font-medium"
               style={{
                 fontSize: '1.35rem',
-                animation: 'fadeInUp 0.6s ease-out 0.15s backwards',
                 letterSpacing: '0.01em'
               }}
             >
-              {t.subtitle}
+              {t.subtitle.split(' ').map((word, index) => (
+                <span
+                  key={index}
+                  className="word-reveal"
+                  style={{
+                    animationDelay: `${0.15 + (index * 0.05)}s`,
+                    display: 'inline-block',
+                    marginRight: '0.3em'
+                  }}
+                >
+                  {word}
+                </span>
+              ))}
             </p>
           </div>
         </div>
       </div>
 
-      {/* CSS Animations */}
+      {/* Premium CSS Animations */}
       <style jsx>{`
+        /* ===== FLOATING BACKGROUND ORBS ===== */
+        .floating-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(60px);
+          opacity: 0.15;
+          animation: float 20s ease-in-out infinite;
+        }
+
+        .floating-orb-1 {
+          width: 300px;
+          height: 300px;
+          background: linear-gradient(135deg, #3b82f6, #06b6d4);
+          top: -150px;
+          left: 10%;
+          animation-delay: 0s;
+          animation-duration: 25s;
+        }
+
+        .floating-orb-2 {
+          width: 250px;
+          height: 250px;
+          background: linear-gradient(135deg, #0891b2, #1e40af);
+          top: -100px;
+          right: 15%;
+          animation-delay: 5s;
+          animation-duration: 30s;
+        }
+
+        .floating-orb-3 {
+          width: 200px;
+          height: 200px;
+          background: linear-gradient(135deg, #06b6d4, #3b82f6);
+          bottom: -100px;
+          left: 50%;
+          animation-delay: 10s;
+          animation-duration: 28s;
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
+          }
+          25% {
+            transform: translate(30px, -20px) scale(1.05);
+          }
+          50% {
+            transform: translate(-20px, 10px) scale(0.95);
+          }
+          75% {
+            transform: translate(15px, -15px) scale(1.02);
+          }
+        }
+
+        /* ===== ANIMATED GRADIENT TITLE ===== */
+        .hero-title {
+          background: linear-gradient(
+            135deg,
+            #1e40af 0%,
+            #0891b2 25%,
+            #06b6d4 50%,
+            #0891b2 75%,
+            #1e40af 100%
+          );
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation:
+            gradientShimmer 8s ease-in-out infinite,
+            fadeInUp 0.6s ease-out,
+            subtleGlow 3s ease-in-out infinite;
+          position: relative;
+          will-change: background-position;
+        }
+
+        @keyframes gradientShimmer {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+
+        @keyframes subtleGlow {
+          0%, 100% {
+            filter: drop-shadow(0 0 8px rgba(30, 64, 175, 0.3));
+          }
+          50% {
+            filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.4));
+          }
+        }
+
+        /* ===== SEPARATOR DOT PULSE ===== */
+        .separator-dot {
+          animation:
+            fadeIn 0.8s ease-out,
+            dotPulse 2s ease-in-out infinite;
+          display: inline-block;
+          will-change: transform, opacity;
+        }
+
+        @keyframes dotPulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.7;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 1;
+          }
+        }
+
+        /* ===== WORD REVEAL STAGGER ===== */
+        .hero-subtitle {
+          animation: fadeInUp 0.6s ease-out 0.15s backwards;
+        }
+
+        .word-reveal {
+          opacity: 0;
+          animation: wordReveal 0.6s ease-out forwards;
+          transform-origin: left center;
+          will-change: opacity, transform;
+        }
+
+        @keyframes wordReveal {
+          0% {
+            opacity: 0;
+            transform: translateY(10px) translateX(-5px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) translateX(0);
+          }
+        }
+
+        /* ===== BASE ANIMATIONS ===== */
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -184,6 +330,18 @@ export default function NewHomePage() {
 
         .animate-fadeIn {
           animation: fadeIn 0.6s ease-out;
+        }
+
+        /* ===== ACCESSIBILITY: REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+          .hero-title,
+          .separator-dot,
+          .word-reveal,
+          .floating-orb {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
 
