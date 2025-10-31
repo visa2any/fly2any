@@ -128,11 +128,23 @@ export default function NewHomePage() {
 
         <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px 24px 20px', position: 'relative' }}>
           <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
-            {/* Main Title - Animated Gradient Effect */}
+            {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
               className="hero-title text-3xl font-extrabold tracking-wide"
             >
-              {t.sectionTitle}
+              {t.sectionTitle.split('').map((char, index) => (
+                <span
+                  key={index}
+                  className="letter-elastic"
+                  style={{
+                    animationDelay: `${index * 0.035}s`,
+                    display: 'inline-block',
+                    minWidth: char === ' ' ? '0.3em' : 'auto',
+                  }}
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
             </h1>
 
             {/* Separator - Pulse Animation */}
@@ -284,6 +296,25 @@ export default function NewHomePage() {
           }
         }
 
+        /* ===== ELASTIC LETTER ENTRANCE ===== */
+        .letter-elastic {
+          opacity: 0;
+          animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+          transform-origin: center center;
+          will-change: opacity, transform;
+        }
+
+        @keyframes elasticLetterEntrance {
+          0% {
+            opacity: 0;
+            transform: translateY(-5px) scale(0.9);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
         /* ===== WORD REVEAL STAGGER ===== */
         .hero-subtitle {
           animation: fadeInUp 0.6s ease-out 0.15s backwards;
@@ -337,6 +368,7 @@ export default function NewHomePage() {
           .hero-title,
           .separator-dot,
           .word-reveal,
+          .letter-elastic,
           .floating-orb {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
