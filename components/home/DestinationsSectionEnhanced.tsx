@@ -116,7 +116,6 @@ const DESTINATION_IMAGES: Record<string, string> = {
   'YYZ': 'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=800&h=600&fit=crop&crop=entropy&v=5', // Toronto - CN Tower
   'MEX': 'https://images.unsplash.com/photo-1585464231875-d9ef1f5ad396?w=800&h=600&fit=crop&crop=entropy&v=5', // Mexico City - Angel de la Independencia
   'SFO': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&h=600&fit=crop&crop=entropy&v=5', // SF - Golden Gate
-  'CUN': 'https://images.unsplash.com/photo-1568402102990-bc541580b59f?w=800&h=600&fit=crop&crop=entropy&v=5', // Cancun - Beach
 
   // South America - Iconic city landmarks
   'GRU': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop&crop=entropy&v=5', // São Paulo - Skyline at sunset
