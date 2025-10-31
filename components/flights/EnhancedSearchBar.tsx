@@ -679,7 +679,7 @@ export default function EnhancedSearchBar({
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:block">
           {/* Search Fields Row */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
           {/* From Airport */}
           <div ref={originRef} className="flex-1 relative">
             {/* Custom label with Nonstop checkbox */}
@@ -801,12 +801,12 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+                className={`w-full relative px-4 py-[18px] bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
                   errors.departureDate ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-base font-medium text-gray-900">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
+                <span className="block pl-8 text-[17px] font-medium text-gray-900">
                   {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
                 </span>
               </button>
@@ -867,10 +867,10 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <span className="block pl-8 text-base font-medium text-gray-900">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
+                  <span className="block pl-8 text-[17px] font-medium text-gray-900">
                     {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
                   </span>
                 </button>
@@ -891,9 +891,9 @@ export default function EnhancedSearchBar({
                 />
               )
             ) : (
-              <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
-                <span className="block pl-8 text-base text-gray-400 italic">
+              <div className="relative w-full px-4 py-[18px] bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={21} />
+                <span className="block pl-8 text-[17px] text-gray-400 italic">
                   One-way trip
                 </span>
               </div>
@@ -916,10 +916,10 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
+              className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={19} />
+              <span className="block pl-7 text-[15px] font-medium text-gray-900 pr-7">
                 {totalPassengers}, {t[cabinClass]}
               </span>
               <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
@@ -1089,7 +1089,7 @@ export default function EnhancedSearchBar({
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+              className="py-[18px] px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-[17px]"
             >
               {isLoading ? (
                 <>
@@ -1211,10 +1211,10 @@ export default function EnhancedSearchBar({
                         setShowDatePicker(false); // Close main date picker
                         setAdditionalFlightDatePickerOpen(flight.id);
                       }}
-                      className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                      className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                     >
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <span className="block pl-8 text-base font-medium text-gray-900">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
+                      <span className="block pl-8 text-[17px] font-medium text-gray-900">
                         {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
                       </span>
                     </button>
