@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, Building2, Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
@@ -313,6 +313,15 @@ export default function EnhancedSearchBar({
   const [fromNonstop, setFromNonstop] = useState(false);
   const [toNonstop, setToNonstop] = useState(false);
 
+  // Hotel-specific state
+  const [hotelDestination, setHotelDestination] = useState('');
+  const [hotelLocation, setHotelLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [checkInDate, setCheckInDate] = useState('');
+  const [checkOutDate, setCheckOutDate] = useState('');
+  const [hotelAdults, setHotelAdults] = useState(2);
+  const [hotelChildren, setHotelChildren] = useState(0);
+  const [hotelRooms, setHotelRooms] = useState(1);
+
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
     id: string;
@@ -340,6 +349,17 @@ export default function EnhancedSearchBar({
   const returnDateRef = useRef<HTMLButtonElement>(null);
   const originRef = useRef<HTMLDivElement>(null);
   const destinationRef = useRef<HTMLDivElement>(null);
+
+  // Set default dates for hotels
+  useEffect(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date();
+    dayAfter.setDate(dayAfter.getDate() + 2);
+
+    setCheckInDate(tomorrow.toISOString().split('T')[0]);
+    setCheckOutDate(dayAfter.toISOString().split('T')[0]);
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -530,6 +550,36 @@ export default function EnhancedSearchBar({
   };
 
   const handleSearch = () => {
+    // Hotels search
+    if (serviceType === 'hotels') {
+      if (!hotelDestination || !checkInDate || !checkOutDate) {
+        setErrors({ hotel: 'Please fill all required fields' });
+        return;
+      }
+
+      setIsLoading(true);
+
+      const hotelParams = new URLSearchParams({
+        destination: hotelDestination,
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+        adults: hotelAdults.toString(),
+        children: hotelChildren.toString(),
+        rooms: hotelRooms.toString(),
+        ...(hotelLocation && {
+          lat: hotelLocation.lat.toString(),
+          lng: hotelLocation.lng.toString(),
+        }),
+      });
+
+      const url = `/hotels/results?${hotelParams.toString()}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+
+      setTimeout(() => setIsLoading(false), 500);
+      return;
+    }
+
+    // Flights search (existing logic)
     // Validate form
     if (!validateForm()) {
       return;
@@ -678,6 +728,9 @@ export default function EnhancedSearchBar({
 
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:block">
+          {/* FLIGHTS FIELDS */}
+          {serviceType === 'flights' && (
+          <>
           {/* Search Fields Row */}
           <div className="flex items-center gap-3">
           {/* From Airport */}
@@ -1253,6 +1306,188 @@ export default function EnhancedSearchBar({
               ))}
             </div>
           )}
+          </>
+          )}
+
+          {/* HOTELS FIELDS */}
+          {serviceType === 'hotels' && (
+          <>
+          {/* Search Fields Row */}
+          <div className="flex items-center gap-3">
+            {/* Hotel Destination */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Building2 size={13} className="text-gray-600" />
+                <span>Destination</span>
+              </label>
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder="City, hotel, or landmark"
+                className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
+                  errors.hotel ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.hotel && (
+                <p className="mt-1 text-xs text-red-600" role="alert">
+                  {errors.hotel}
+                </p>
+              )}
+            </div>
+
+            {/* Check-in Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <CalendarDays size={13} className="text-gray-600" />
+                <span>Check-in</span>
+              </label>
+              <input
+                type="date"
+                value={checkInDate}
+                onChange={(e) => setCheckInDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Check-out Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <CalendarCheck size={13} className="text-gray-600" />
+                <span>Check-out</span>
+              </label>
+              <input
+                type="date"
+                value={checkOutDate}
+                onChange={(e) => setCheckOutDate(e.target.value)}
+                min={checkInDate || new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Guests & Rooms */}
+            <div className="relative flex-shrink-0 w-52">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Users size={13} className="text-gray-600" />
+                <span>Guests & Rooms</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between"
+              >
+                <span className="text-base font-medium text-gray-900">
+                  {hotelAdults + hotelChildren} guests, {hotelRooms} room{hotelRooms > 1 ? 's' : ''}
+                </span>
+                <ChevronDown size={20} className="text-gray-400" />
+              </button>
+
+              {/* Guests & Rooms Dropdown */}
+              {showPassengerDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Adults</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(hotelAdults + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Children</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(hotelChildren + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rooms */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Rooms</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelRooms}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelRooms(hotelRooms + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    onClick={() => setShowPassengerDropdown(false)}
+                    className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button
+                type="button"
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Searching...</span>
+                  </>
+                ) : (
+                  <span>Search Hotels</span>
+                )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
         </div>
 
         {/* Premium Date Picker */}
@@ -1284,6 +1519,9 @@ export default function EnhancedSearchBar({
 
         {/* Mobile/Tablet: Stacked layout */}
         <div className="lg:hidden space-y-3">
+          {/* FLIGHTS MOBILE FIELDS */}
+          {serviceType === 'flights' && (
+          <>
           {/* Trip Type Toggle */}
           <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
             <button
@@ -1429,6 +1667,185 @@ export default function EnhancedSearchBar({
               </span>
             )}
           </button>
+          </>
+          )}
+
+          {/* HOTELS MOBILE FIELDS */}
+          {serviceType === 'hotels' && (
+          <>
+          {/* Hotel Destination */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              Destination
+            </label>
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder="City, hotel, or landmark"
+                className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
+                  errors.hotel ? 'border-red-500' : 'border-gray-200'
+                }`}
+              />
+            </div>
+            {errors.hotel && (
+              <p className="mt-1 text-xs text-red-600" role="alert">
+                {errors.hotel}
+              </p>
+            )}
+          </div>
+
+          {/* Check-in and Check-out Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Check-in
+              </label>
+              <div className="relative">
+                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="date"
+                  value={checkInDate}
+                  onChange={(e) => setCheckInDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                Check-out
+              </label>
+              <div className="relative">
+                <CalendarCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="date"
+                  value={checkOutDate}
+                  onChange={(e) => setCheckOutDate(e.target.value)}
+                  min={checkInDate || new Date().toISOString().split('T')[0]}
+                  className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Guests & Rooms */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              Guests & Rooms
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+              className="w-full flex items-center gap-2 pl-8 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900"
+            >
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <span className="flex-1 text-left">{hotelAdults + hotelChildren} guests, {hotelRooms} room{hotelRooms > 1 ? 's' : ''}</span>
+              <ChevronDown className="text-gray-400" size={12} />
+            </button>
+
+            {/* Guests & Rooms Dropdown */}
+            {showPassengerDropdown && (
+              <div className="absolute left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
+                {/* Adults */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Adults</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                    <button
+                      type="button"
+                      onClick={() => setHotelAdults(hotelAdults + 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Children */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Children</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                    <button
+                      type="button"
+                      onClick={() => setHotelChildren(hotelChildren + 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Rooms */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Rooms</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-8 text-center font-semibold">{hotelRooms}</span>
+                    <button
+                      type="button"
+                      onClick={() => setHotelRooms(hotelRooms + 1)}
+                      className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Done Button */}
+                <button
+                  onClick={() => setShowPassengerDropdown(false)}
+                  className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Search Button */}
+          <button
+            onClick={handleSearch}
+            disabled={isLoading}
+            className="w-full py-3 bg-[#0087FF] hover:bg-[#0077E6] text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Searching...</span>
+              </>
+            ) : (
+              <span>Search Hotels</span>
+            )}
+          </button>
+          </>
+          )}
         </div>
       </div>
     </div>
