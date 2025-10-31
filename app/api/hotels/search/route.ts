@@ -241,4 +241,5 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export const runtime = 'edge';
+// Note: Using Node.js runtime (not edge) because Duffel SDK requires Node.js APIs (URL constructor, etc.)
+// export const runtime = 'edge';
