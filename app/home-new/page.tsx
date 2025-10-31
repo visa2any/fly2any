@@ -154,7 +154,7 @@ export default function NewHomePage() {
               •
             </span>
 
-            {/* Subtitle - Word Stagger Animation */}
+            {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
               className="hero-subtitle text-gray-700/90 mb-0 font-medium"
               style={{
@@ -162,17 +162,17 @@ export default function NewHomePage() {
                 letterSpacing: '0.01em'
               }}
             >
-              {t.subtitle.split(' ').map((word, index) => (
+              {t.subtitle.split('').map((char, index) => (
                 <span
                   key={index}
-                  className="word-reveal"
+                  className="letter-elastic"
                   style={{
-                    animationDelay: `${0.15 + (index * 0.05)}s`,
+                    animationDelay: `${1.8 + (index * 0.025)}s`,
                     display: 'inline-block',
-                    marginRight: '0.3em'
+                    minWidth: char === ' ' ? '0.3em' : 'auto',
                   }}
                 >
-                  {word}
+                  {char === ' ' ? '\u00A0' : char}
                 </span>
               ))}
             </p>
@@ -315,27 +315,9 @@ export default function NewHomePage() {
           }
         }
 
-        /* ===== WORD REVEAL STAGGER ===== */
+        /* ===== SUBTITLE - Now uses letter-elastic (unified with title) ===== */
         .hero-subtitle {
-          animation: fadeInUp 0.6s ease-out 0.15s backwards;
-        }
-
-        .word-reveal {
-          opacity: 0;
-          animation: wordReveal 0.6s ease-out forwards;
-          transform-origin: left center;
-          will-change: opacity, transform;
-        }
-
-        @keyframes wordReveal {
-          0% {
-            opacity: 0;
-            transform: translateY(10px) translateX(-5px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) translateX(0);
-          }
+          /* No parent animation - individual letters animate with letter-elastic */
         }
 
         /* ===== BASE ANIMATIONS ===== */
@@ -367,7 +349,6 @@ export default function NewHomePage() {
         @media (prefers-reduced-motion: reduce) {
           .hero-title,
           .separator-dot,
-          .word-reveal,
           .letter-elastic,
           .floating-orb {
             animation-duration: 0.01ms !important;
