@@ -199,20 +199,23 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       country: destination.country,
       price: destination.price,
       imageUrl: getDestinationImage(destination.to),
+      from: destination.from,
+      to: destination.to,
     });
-    // Build search params
+    // Build search params - must match EnhancedSearchBar parameter names
     const params = new URLSearchParams({
       from: destination.from,
       to: destination.to,
-      departureDate: destination.departureDate,
-      ...(destination.returnDate && { returnDate: destination.returnDate }),
-      tripType: destination.returnDate ? 'roundtrip' : 'oneway',
+      departure: destination.departureDate,
+      ...(destination.returnDate && { return: destination.returnDate }),
       adults: '1',
-      cabinClass: 'economy',
+      children: '0',
+      infants: '0',
+      class: 'economy',
     });
 
-    // Navigate to flight results
-    router.push(`/flights/results?${params.toString()}`);
+    // Navigate to flight results (open in new tab)
+    window.open(`/flights/results?${params.toString()}`, '_blank');
   };
 
   const getDestinationImage = (airportCode: string): string => {
@@ -291,9 +294,22 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
     return flags[country] || '🌍';
   };
 
-  // Open booking in new tab
+  // Open booking in same tab (not new tab) for better UX
   const handleBookNow = (destination: DestinationData, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
+
+    // Save to recently viewed before navigating
+    saveToRecentlyViewed({
+      id: destination.id,
+      city: destination.city,
+      country: destination.country,
+      price: destination.price,
+      imageUrl: getDestinationImage(destination.to),
+      from: destination.from,
+      to: destination.to,
+    });
+
+    // Build search params - must match EnhancedSearchBar parameter names
     const params = new URLSearchParams({
       from: destination.from,
       to: destination.to,
@@ -304,6 +320,8 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       infants: '0',
       class: 'economy',
     });
+
+    // Navigate in new tab
     window.open(`/flights/results?${params.toString()}`, '_blank');
   };
 
@@ -314,7 +332,7 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
         <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
         <button
           className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-          onClick={() => router.push('/flights/results')}
+          onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
         </button>

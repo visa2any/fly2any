@@ -161,7 +161,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
   }, [activeFilter]);
 
   const handleHotelClick = (hotelId: string) => {
-    router.push(`/hotels/${hotelId}`);
+    window.open(`/hotels/${hotelId}`, '_blank');
   };
 
   return (
@@ -173,7 +173,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
           <p className="text-sm text-gray-600">{t.subtitle}</p>
         </div>
         <button
-          onClick={() => router.push('/hotels/search')}
+          onClick={() => window.open('/hotels/search', '_blank')}
           className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
         >
           {t.viewAll} →
