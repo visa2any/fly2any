@@ -197,10 +197,10 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
             key={filter.code}
             onClick={() => setSelectedLocation(filter.code)}
             className={`
-              px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200
+              px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 border
               ${selectedLocation === filter.code
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
+                ? 'bg-primary-600 text-white border-primary-600'
+                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'
               }
             `}
           >
@@ -426,8 +426,11 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5">{t.perDay}</div>
                     </div>
-                    <button className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                      {t.bookNow}
+                    <button className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5">
+                      <span>{t.bookNow}</span>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
                     </button>
                   </div>
                 </div>

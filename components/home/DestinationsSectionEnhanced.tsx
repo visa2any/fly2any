@@ -338,10 +338,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all border-2 ${
+            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all border ${
               activeFilter === filter.key
                 ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
+                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {filter.label}
