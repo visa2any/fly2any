@@ -146,7 +146,7 @@ export function Header({
     <header
       className={`sticky top-0 z-50 bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 backdrop-blur-md shadow-xl border-b border-white/20 ${className}`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
         <div className="flex items-center justify-between h-20">
           {/* Logo with Subtle Shadow - No Background */}
           <a href="/" className="flex items-center group">
@@ -240,7 +240,7 @@ export function Header({
 
               {/* Dropdown Menu - Refined */}
               {langDropdownOpen && (
-                <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 animate-slideDown border-2 border-gray-100">
+                <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-2xl overflow-hidden z-[9999] animate-slideDown border-2 border-gray-100">
                   {(Object.keys(languages) as Language[]).map((languageKey) => (
                     <button
                       key={languageKey}

@@ -35,7 +35,7 @@ export function Footer({ content }: Props) {
     <footer className="bg-gray-900 text-white">
       {/* Newsletter Section */}
       <div className="border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '48px 24px' }}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-2xl font-bold mb-2">
@@ -57,7 +57,7 @@ export function Footer({ content }: Props) {
       </div>
 
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '48px 24px' }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Company Column */}
           <div>
