@@ -190,23 +190,35 @@ class DuffelStaysAPI {
         };
       }
 
-      // Build rooms array (each room has adult + children counts)
-      // Note: Duffel SDK types expect number but API accepts array - using 1 room for now
-      const roomsCount = 1; // Number of rooms
+      // Build guests array according to Duffel API spec
+      // API expects: [{ type: "adult" }, { type: "adult" }, { type: "child", age: 5 }]
+      const guests: any[] = [];
 
-      // Create accommodation search request
+      // Add adults
+      for (let i = 0; i < params.guests.adults; i++) {
+        guests.push({ type: 'adult' });
+      }
+
+      // Add children with ages if provided
+      if (params.guests.children && params.guests.children.length > 0) {
+        params.guests.children.forEach((childAge: number) => {
+          guests.push({ type: 'child', age: childAge });
+        });
+      }
+
+      // Number of rooms (simplified - using 1 room for now)
+      const roomsCount = 1;
+
+      console.log(`   Guests: ${guests.length} (${params.guests.adults} adults, ${params.guests.children?.length || 0} children)`);
+
+      // Create accommodation search request with CORRECT parameter format
       const searchRequest = await this.client.stays.search({
         location,
         check_in_date: params.checkIn,
         check_out_date: params.checkOut,
-        rooms: roomsCount as any, // SDK type is incorrect - API expects room config
-        guests: {
-          adults: params.guests.adults,
-          children: params.guests.children || [],
-        },
-        currency: params.currency || 'USD',
-        limit: params.limit || 20,
-      } as any); // Using any due to SDK type limitations
+        rooms: roomsCount as any,
+        guests, // ✅ NOW USING CORRECT ARRAY FORMAT
+      } as any);
 
       // SDK types are incomplete - actual API returns array in data
       const searchData = (searchRequest as any).data as any[];
