@@ -679,13 +679,13 @@ export default function EnhancedSearchBar({
         {/* Desktop: Clean Single-line Layout */}
         <div className="hidden lg:block">
           {/* Search Fields Row */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
           {/* From Airport */}
           <div ref={originRef} className="flex-1 relative">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <PlaneTakeoff size={14} className="text-gray-600" />
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                <PlaneTakeoff size={13} className="text-gray-600" />
                 <span>From</span>
               </label>
 
@@ -734,8 +734,8 @@ export default function EnhancedSearchBar({
           <div ref={destinationRef} className="flex-1">
             {/* Custom label with Nonstop checkbox */}
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <PlaneLanding size={14} className="text-gray-600" />
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                <PlaneLanding size={13} className="text-gray-600" />
                 <span>To</span>
               </label>
 
@@ -769,8 +769,8 @@ export default function EnhancedSearchBar({
           {/* Depart Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <CalendarDays size={14} className="text-gray-600" />
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                <CalendarDays size={13} className="text-gray-600" />
                 <span>Depart</span>
               </label>
 
@@ -801,12 +801,12 @@ export default function EnhancedSearchBar({
                 ref={departureDateRef}
                 type="button"
                 onClick={() => handleOpenDatePicker('departure')}
-                className={`w-full relative px-4 py-[18px] bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
+                className={`w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer ${
                   errors.departureDate ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
-                <span className="block pl-8 text-[17px] font-medium text-gray-900">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
                   {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
                 </span>
               </button>
@@ -837,8 +837,8 @@ export default function EnhancedSearchBar({
           {/* Return Date */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                <CalendarCheck size={14} className="text-gray-600" />
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                <CalendarCheck size={13} className="text-gray-600" />
                 <span>Return</span>
               </label>
 
@@ -867,10 +867,10 @@ export default function EnhancedSearchBar({
                   ref={returnDateRef}
                   type="button"
                   onClick={() => handleOpenDatePicker('return')}
-                  className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                 >
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
-                  <span className="block pl-8 text-[17px] font-medium text-gray-900">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <span className="block pl-8 text-base font-medium text-gray-900">
                     {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
                   </span>
                 </button>
@@ -891,9 +891,9 @@ export default function EnhancedSearchBar({
                 />
               )
             ) : (
-              <div className="relative w-full px-4 py-[18px] bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={21} />
-                <span className="block pl-8 text-[17px] text-gray-400 italic">
+              <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                <span className="block pl-8 text-base text-gray-400 italic">
                   One-way trip
                 </span>
               </div>
@@ -903,11 +903,11 @@ export default function EnhancedSearchBar({
 
           {/* Combined Travelers + Class Dropdown */}
           <div ref={passengerRef} className="relative flex-shrink-0 w-52">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
-              <Users size={14} className="text-gray-600" />
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+              <Users size={13} className="text-gray-600" />
               <span>Travelers</span>
               <span className="text-gray-400">&</span>
-              <Armchair size={14} className="text-gray-600" />
+              <Armchair size={13} className="text-gray-600" />
               <span>Class</span>
             </label>
             <button
@@ -916,10 +916,10 @@ export default function EnhancedSearchBar({
                 closeAllDropdowns();
                 setShowPassengerDropdown(!showPassengerDropdown);
               }}
-              className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
+              className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left"
             >
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={19} />
-              <span className="block pl-7 text-[15px] font-medium text-gray-900 pr-7">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
                 {totalPassengers}, {t[cabinClass]}
               </span>
               <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
@@ -1084,12 +1084,12 @@ export default function EnhancedSearchBar({
 
           {/* Search Button */}
           <div className="flex-shrink-0">
-            <label className="block text-sm font-medium text-gray-700 mb-2 opacity-0">Search</label>
+            <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
             <button
               type="button"
               onClick={handleSearch}
               disabled={isLoading}
-              className="py-[18px] px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-[17px]"
+              className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
             >
               {isLoading ? (
                 <>
@@ -1133,8 +1133,8 @@ export default function EnhancedSearchBar({
                   <div className="flex-1 relative">
                     {/* Custom label with Nonstop checkbox */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                        <Plane size={14} className="text-gray-600" />
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                        <Plane size={13} className="text-gray-600" />
                         <span>Flight {index + 2}</span>
                       </label>
 
@@ -1180,8 +1180,8 @@ export default function EnhancedSearchBar({
                   <div className="flex-1">
                     {/* Custom label */}
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                        <PlaneLanding size={14} className="text-gray-600" />
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                        <PlaneLanding size={13} className="text-gray-600" />
                         <span>To</span>
                       </label>
                     </div>
@@ -1198,8 +1198,8 @@ export default function EnhancedSearchBar({
                   {/* Depart Date - EXACT COPY */}
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                        <CalendarDays size={14} className="text-gray-600" />
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                        <CalendarDays size={13} className="text-gray-600" />
                         <span>Depart</span>
                       </label>
                     </div>
@@ -1211,10 +1211,10 @@ export default function EnhancedSearchBar({
                         setShowDatePicker(false); // Close main date picker
                         setAdditionalFlightDatePickerOpen(flight.id);
                       }}
-                      className="w-full relative px-4 py-[18px] bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                      className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
                     >
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={21} />
-                      <span className="block pl-8 text-[17px] font-medium text-gray-900">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                      <span className="block pl-8 text-base font-medium text-gray-900">
                         {flight.departureDate ? formatDateForDisplay(flight.departureDate) : 'Select date'}
                       </span>
                     </button>
