@@ -119,11 +119,11 @@ export default function NewHomePage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 24px 10px', position: 'relative' }}>
+        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px 24px 20px', position: 'relative' }}>
           <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
             {/* Main Title - Gradient Effect */}
             <h1
-              className="text-2xl font-extrabold tracking-wide"
+              className="text-3xl font-extrabold tracking-wide"
               style={{
                 background: 'linear-gradient(135deg, #1e40af 0%, #0891b2 50%, #06b6d4 100%)',
                 WebkitBackgroundClip: 'text',
@@ -147,8 +147,9 @@ export default function NewHomePage() {
 
             {/* Subtitle */}
             <p
-              className="text-lg text-gray-700/90 mb-0 font-medium"
+              className="text-gray-700/90 mb-0 font-medium"
               style={{
+                fontSize: '1.35rem',
                 animation: 'fadeInUp 0.6s ease-out 0.15s backwards',
                 letterSpacing: '0.01em'
               }}
