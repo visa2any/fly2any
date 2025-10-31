@@ -24,4 +24,5 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export const runtime = 'edge';
+// Note: Using Node.js runtime for consistency with other hotel APIs
+// export const runtime = 'edge';
