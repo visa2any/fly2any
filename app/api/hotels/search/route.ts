@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
         checkOut,
         guests: {
           adults: parseInt(adults),
-          children: searchParams.get('children') ? Array(parseInt(searchParams.get('children')!)).fill({ age: 10 }) : [],
+          children: searchParams.get('children') ? Array(parseInt(searchParams.get('children')!)).fill(10) : [],
         },
         radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 10,
         limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
