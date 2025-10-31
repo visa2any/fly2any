@@ -21,7 +21,7 @@ interface RecentlyViewedSectionProps {
 
 const translations = {
   en: {
-    title: '👁️ Recently Viewed',
+    title: '👁️ Your Recent Searches and Viewed',
     subtitle: 'Pick up where you left off',
     clearAll: 'Clear All',
     from: 'from',
@@ -29,7 +29,7 @@ const translations = {
     browseDestinations: 'Browse destinations to see them here',
   },
   pt: {
-    title: '👁️ Visualizados Recentemente',
+    title: '👁️ Suas Pesquisas e Visualizações Recentes',
     subtitle: 'Continue de onde parou',
     clearAll: 'Limpar Tudo',
     from: 'a partir de',
@@ -37,7 +37,7 @@ const translations = {
     browseDestinations: 'Navegue pelos destinos para vê-los aqui',
   },
   es: {
-    title: '👁️ Vistos Recientemente',
+    title: '👁️ Tus Búsquedas y Vistas Recientes',
     subtitle: 'Continúa donde lo dejaste',
     clearAll: 'Borrar Todo',
     from: 'desde',
