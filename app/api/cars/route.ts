@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { generateMockCarRentals } from '@/lib/mock-data/car-rentals';
 
 // Mark this route as dynamic (it uses request params)
 export const dynamic = 'force-dynamic';
 
+/**
+ * Car Rental Search API
+ *
+ * IMPORTANT: Amadeus Car Rental API has no test data in test environment.
+ * This route uses enhanced mock data that matches Amadeus API response format.
+ *
+ * In production with AMADEUS_ENVIRONMENT=production, real API will be used automatically.
+ *
+ * API Credentials (same for all Amadeus services):
+ * - API Key: MOytyHr4qQXNogQWbruaE0MtmGeigCd3
+ * - API Secret: exUkoGmSGbyiiOji
+ */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -22,48 +35,49 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Call Amadeus Car Rental API
-    const result = await amadeusAPI.searchCarRentals({
-      pickupLocationCode: pickupLocation,
-      dropoffLocationCode: dropoffLocation || undefined,
-      pickupDate,
-      dropoffDate,
-      pickupTime: pickupTime || '10:00:00',
-      dropoffTime: dropoffTime || '10:00:00',
-      driverAge: 30, // Default driver age
-    });
+    // Try Amadeus API first (will work in production environment)
+    try {
+      console.log(`🚗 Searching car rentals with Amadeus API at ${pickupLocation}...`);
 
-    return NextResponse.json(result);
+      const result = await amadeusAPI.searchCarRentals({
+        pickupLocationCode: pickupLocation,
+        dropoffLocationCode: dropoffLocation || undefined,
+        pickupDate,
+        dropoffDate,
+        pickupTime: pickupTime || '10:00:00',
+        dropoffTime: dropoffTime || '10:00:00',
+        driverAge: 30, // Default driver age
+      });
+
+      console.log(`✅ Found ${result.data?.length || 0} car rental options from Amadeus API`);
+      return NextResponse.json(result);
+    } catch (amadeusError: any) {
+      // If Amadeus API fails (404 in test env), fall back to enhanced mock data
+      console.log('⚠️  Amadeus Car Rental API returned error (expected in test environment)');
+      console.log(`   Error: ${amadeusError.response?.data?.errors?.[0]?.detail || amadeusError.message}`);
+      console.log('💡 Using enhanced mock data that matches Amadeus API format');
+
+      const mockData = generateMockCarRentals({
+        pickupLocation,
+        dropoffLocation: dropoffLocation || pickupLocation,
+        pickupDate,
+        dropoffDate,
+        pickupTime,
+        dropoffTime,
+      });
+
+      console.log(`✅ Generated ${mockData.data.length} mock car rental options`);
+      return NextResponse.json(mockData);
+    }
   } catch (error: any) {
-    console.error('Error in cars API:', error);
+    console.error('❌ Error in cars API route:', error);
 
-    // Fallback to mock data if Amadeus API fails
-    console.log('🧪 Falling back to mock car rental data');
-    const cars = [
+    return NextResponse.json(
       {
-        id: '1',
-        name: 'Toyota Camry',
-        category: 'Sedan',
-        company: 'Enterprise',
-        passengers: 5,
-        transmission: 'Automatic',
-        fuelType: 'Gasoline',
-        pricePerDay: 45,
-        features: ['AC', 'Bluetooth', 'GPS', 'USB'],
+        error: 'Failed to search car rentals',
+        message: error.message,
       },
-      {
-        id: '2',
-        name: 'Honda CR-V',
-        category: 'SUV',
-        company: 'Hertz',
-        passengers: 7,
-        transmission: 'Automatic',
-        fuelType: 'Hybrid',
-        pricePerDay: 65,
-        features: ['AC', 'Bluetooth', 'GPS', 'USB', 'Apple CarPlay'],
-      },
-    ];
-
-    return NextResponse.json({ data: cars });
+      { status: 500 }
+    );
   }
 }
