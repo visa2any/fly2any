@@ -237,12 +237,12 @@ export default function NewHomePage() {
           }
         }
 
-        /* ===== ANIMATED GRADIENT TITLE ===== */
+        /* ===== STATIC GRADIENT TITLE (Chromium-Compatible) ===== */
         .hero-title {
           /* Fallback solid color (ensures text is ALWAYS visible even if gradient fails) */
           color: #1e40af;
 
-          /* Gradient text effect */
+          /* Static gradient text effect (NO animation - Chromium-friendly) */
           background: linear-gradient(
             135deg,
             #1e40af 0%,
@@ -251,36 +251,16 @@ export default function NewHomePage() {
             #0891b2 75%,
             #1e40af 100%
           );
-          background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
 
-          /* Animations */
-          animation:
-            gradientShimmer 8s ease-in-out infinite,
-            fadeInUp 0.6s ease-out,
-            subtleGlow 3s ease-in-out infinite;
+          /* Subtle text shadow for depth (visible in browsers that support text-fill-color) */
+          text-shadow: 0 2px 12px rgba(30, 64, 175, 0.15);
+
+          /* Only entrance animation (runs once, no Chromium conflict) */
+          animation: fadeInUp 0.6s ease-out;
           position: relative;
-          will-change: background-position;
-        }
-
-        @keyframes gradientShimmer {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-
-        @keyframes subtleGlow {
-          0%, 100% {
-            filter: drop-shadow(0 0 8px rgba(30, 64, 175, 0.3));
-          }
-          50% {
-            filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.4));
-          }
         }
 
         /* ===== SEPARATOR DOT PULSE ===== */
