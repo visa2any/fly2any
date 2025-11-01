@@ -239,6 +239,10 @@ export default function NewHomePage() {
 
         /* ===== ANIMATED GRADIENT TITLE ===== */
         .hero-title {
+          /* Fallback solid color (ensures text is ALWAYS visible even if gradient fails) */
+          color: #1e40af;
+
+          /* Gradient text effect */
           background: linear-gradient(
             135deg,
             #1e40af 0%,
@@ -251,6 +255,8 @@ export default function NewHomePage() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+
+          /* Animations */
           animation:
             gradientShimmer 8s ease-in-out infinite,
             fadeInUp 0.6s ease-out,
