@@ -8,7 +8,7 @@ import {
   type FlightOffer,
   type ScoredFlight
 } from '@/lib/flights/scoring';
-import { getCached, setCache } from '@/lib/cache/helpers';
+import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 import { generateFlightSearchKey } from '@/lib/cache/keys';
 
 // ML-powered cost optimization imports
@@ -17,6 +17,10 @@ import { smartAPISelector } from '@/lib/ml/api-selector';
 import { routeProfiler } from '@/lib/ml/route-profiler';
 import type { RouteSearchLog } from '@/lib/ml/types';
 import { requestDeduplicator } from '@/lib/api/request-deduplicator';
+
+// Zero-cost calendar system imports
+import { calculateOptimalTTL } from '@/lib/cache/seasonal-ttl';
+import { logFlightSearch, updateCacheCoverage, getRouteStatistics } from '@/lib/analytics/search-logger';
 
 /**
  * Generate date range for flexible dates
@@ -252,6 +256,30 @@ export async function POST(request: NextRequest) {
       // Apply sorting if requested (cached data already has scores and badges)
       const sortBy = (body.sortBy as 'best' | 'cheapest' | 'fastest' | 'overall') || 'best';
       const sortedFlights = sortFlights(cached.flights, sortBy);
+
+      // 📊 Log cache hit to Postgres for analytics
+      const lowestPrice = sortedFlights.length > 0
+        ? parseFloat(String(sortedFlights[0].price?.total || '0'))
+        : 0;
+      logFlightSearch({
+        origin: originCodes[0],
+        destination: destinationCodes[0],
+        departureDate,
+        returnDate: body.returnDate,
+        adults: adults || 1,
+        children: body.children,
+        infants: body.infants,
+        cabinClass: travelClass,
+        nonStop: body.nonStop,
+        resultsCount: sortedFlights.length,
+        lowestPrice: lowestPrice > 0 ? Math.round(lowestPrice * 100) : undefined,
+        currency: body.currencyCode || 'USD',
+        cacheHit: true, // CACHE HIT!
+        sessionId: request.headers.get('x-session-id') || undefined,
+        ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+        userAgent: request.headers.get('user-agent') || undefined,
+        referer: request.headers.get('referer') || undefined,
+      }, request).catch(console.error);
 
       return NextResponse.json(
         {
@@ -836,6 +864,82 @@ export async function POST(request: NextRequest) {
       ? parseFloat(String(sortedFlights[0].price?.total || '0'))
       : 0;
 
+    // 📅 Cache price by date for calendar display with seasonal TTL
+    // When users search JFK→MIA on Nov 5, cache $99 for Nov 5
+    // Next user opening calendar sees cached prices on searched dates
+    if (lowestPrice > 0 && departureDate) {
+      // Get route popularity statistics for smarter TTL
+      const routeKey = `${originCodes[0]}-${destinationCodes[0]}`;
+      const routeStats = await getRouteStatistics(routeKey).catch(() => null);
+      const searches30d = routeStats?.searches30d || 0;
+
+      // Calculate seasonal TTL for departure date
+      const departureTTL = calculateOptimalTTL(departureDate, searches30d);
+
+      const priceData = {
+        price: lowestPrice,
+        currency: body.currencyCode || 'USD',
+        timestamp: new Date().toISOString(),
+        route: routeKey,
+      };
+
+      // Cache departure date price with seasonal TTL
+      const departurePriceCacheKey = generateCacheKey('calendar-price', {
+        origin: originCodes[0],
+        destination: destinationCodes[0],
+        date: departureDate,
+      });
+      await setCache(departurePriceCacheKey, priceData, departureTTL.ttlSeconds);
+
+      // Track cache coverage in Postgres (for analytics)
+      updateCacheCoverage(
+        routeKey,
+        departureDate,
+        Math.round(lowestPrice * 100), // Convert to cents
+        departureTTL.ttlSeconds,
+        'user-search'
+      ).catch(console.error); // Don't block on analytics
+
+      // Cache return date price if round trip
+      let returnTTL = departureTTL;
+      if (body.returnDate) {
+        const reverseRouteKey = `${destinationCodes[0]}-${originCodes[0]}`;
+        const returnStats = await getRouteStatistics(reverseRouteKey).catch(() => null);
+        returnTTL = calculateOptimalTTL(body.returnDate, returnStats?.searches30d || 0);
+
+        const returnPriceData = {
+          ...priceData,
+          route: reverseRouteKey, // Reverse route for return
+        };
+        const returnPriceCacheKey = generateCacheKey('calendar-price', {
+          origin: destinationCodes[0],
+          destination: originCodes[0],
+          date: body.returnDate,
+        });
+        await setCache(returnPriceCacheKey, returnPriceData, returnTTL.ttlSeconds);
+
+        // Track return flight cache coverage
+        updateCacheCoverage(
+          reverseRouteKey,
+          body.returnDate,
+          Math.round(lowestPrice * 100),
+          returnTTL.ttlSeconds,
+          'user-search'
+        ).catch(console.error);
+      }
+
+      console.log('📅 Cached calendar prices (seasonal TTL):', {
+        route: `${originCodes[0]} → ${destinationCodes[0]}`,
+        departureDate,
+        departureTTL: `${departureTTL.ttlMinutes}min (${departureTTL.finalMultiplier}x)`,
+        returnDate: body.returnDate || null,
+        returnTTL: body.returnDate ? `${returnTTL.ttlMinutes}min (${returnTTL.finalMultiplier}x)` : null,
+        price: `${priceData.currency} ${lowestPrice}`,
+        popularity: searches30d > 0 ? `${searches30d} searches/30d` : 'new route',
+        factors: departureTTL.factors,
+      });
+    }
+
     const searchLog: RouteSearchLog = {
       searchId: `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       route: `${originCodes[0]}-${destinationCodes[0]}`,
@@ -862,6 +966,33 @@ export async function POST(request: NextRequest) {
     };
 
     routeProfiler.logSearch(searchLog).catch(console.error); // Don't block on logging
+
+    // 📊 Log search to Postgres for zero-cost calendar analytics
+    logFlightSearch({
+      origin: originCodes[0],
+      destination: destinationCodes[0],
+      departureDate,
+      returnDate: body.returnDate,
+      adults: adults || 1,
+      children: body.children,
+      infants: body.infants,
+      cabinClass: travelClass,
+      nonStop: body.nonStop,
+      resultsCount: sortedFlights.length,
+      lowestPrice: lowestPrice > 0 ? Math.round(lowestPrice * 100) : undefined, // Convert to cents
+      highestPrice: sortedFlights.length > 0
+        ? Math.round(parseFloat(String(sortedFlights[sortedFlights.length - 1].price?.total || '0')) * 100)
+        : undefined,
+      avgPrice: sortedFlights.length > 0
+        ? Math.round((sortedFlights.reduce((sum, f) => sum + parseFloat(String(f.price?.total || '0')), 0) / sortedFlights.length) * 100)
+        : undefined,
+      currency: body.currencyCode || 'USD',
+      cacheHit: false,
+      sessionId: request.headers.get('x-session-id') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || undefined,
+      userAgent: request.headers.get('user-agent') || undefined,
+      referer: request.headers.get('referer') || undefined,
+    }, request).catch(console.error); // Don't block on logging
 
     return NextResponse.json(response, {
       status: 200,

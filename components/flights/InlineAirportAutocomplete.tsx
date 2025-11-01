@@ -123,7 +123,7 @@ export function InlineAirportAutocomplete({ value, onChange, placeholder, onClos
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-[#0087FF] focus:ring-2 focus:ring-[#E6F3FF] outline-none transition-all duration-200 ease-in-out text-sm font-semibold text-gray-900 placeholder:text-gray-400 hover:border-gray-300"
+          className="w-full pl-11 pr-4 py-4 bg-white border border-gray-300 rounded-lg focus:border-[#0087FF] hover:border-[#0087FF] outline-none transition-all duration-200 ease-in-out text-base font-medium text-gray-900 placeholder:text-gray-400"
         />
       </div>
 

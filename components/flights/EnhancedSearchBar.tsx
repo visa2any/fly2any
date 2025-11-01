@@ -330,13 +330,19 @@ export default function EnhancedSearchBar({
   // Car rental-specific state
   const [carPickupLocation, setCarPickupLocation] = useState('');
   const [carDropoffLocation, setCarDropoffLocation] = useState('');
-  const [sameDropoffLocation, setSameDropoffLocation] = useState(true); // Return to same location
+  const [sameDropoffLocation, setSameDropoffLocation] = useState(false); // Return to same location
   const [carPickupDate, setCarPickupDate] = useState('');
   const [carDropoffDate, setCarDropoffDate] = useState('');
   const [carPickupTime, setCarPickupTime] = useState('10:00');
   const [carDropoffTime, setCarDropoffTime] = useState('10:00');
   const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
   const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
+
+  // Calendar price display state
+  const [calendarPrices, setCalendarPrices] = useState<{ [date: string]: number }>({});
+  const [loadingCalendarPrices, setLoadingCalendarPrices] = useState(false);
+  const fetchingCalendarPricesRef = useRef(false); // Deduplication guard
+  const preFetchTimerRef = useRef<NodeJS.Timeout | null>(null); // Pre-fetch debounce timer
 
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
@@ -410,6 +416,67 @@ export default function EnhancedSearchBar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Fetch calendar prices from cheapest-dates API (only when calendar opens)
+  const fetchCalendarPrices = async () => {
+    // 🔒 Deduplication guard - prevent concurrent fetches
+    if (fetchingCalendarPricesRef.current) {
+      console.log('⏭️  Skipping duplicate calendar price fetch (already in progress)');
+      return;
+    }
+
+    fetchingCalendarPricesRef.current = true;
+    setLoadingCalendarPrices(true);
+    try {
+      const originCode = origin[0] || '';
+      const destCode = destination[0] || '';
+
+      if (!originCode || !destCode) {
+        setCalendarPrices({});
+        return;
+      }
+
+      console.log('📅 Fetching calendar prices for', originCode, '→', destCode);
+
+      const res = await fetch(
+        `/api/cheapest-dates?origin=${originCode}&destination=${destCode}&daysAhead=30`
+      );
+
+      if (!res.ok) {
+        console.warn('⚠️ Failed to fetch calendar prices:', res.status);
+        setCalendarPrices({});
+        return;
+      }
+
+      const data = await res.json();
+
+      // Use the pre-built prices map from API (cached from actual searches)
+      let pricesMap: { [date: string]: number } = {};
+
+      if (data.prices) {
+        // New format: prices map already built
+        pricesMap = data.prices;
+        console.log('✅ Loaded cached calendar prices:', Object.keys(pricesMap).length, 'dates from actual searches');
+      } else if (data.data && Array.isArray(data.data)) {
+        // Fallback: Transform array format to { date: price } map
+        data.data.forEach((item: any) => {
+          if (item.departureDate && item.price?.total) {
+            pricesMap[item.departureDate] = parseFloat(item.price.total);
+          }
+        });
+        console.log('✅ Calendar prices loaded:', Object.keys(pricesMap).length, 'dates');
+      }
+
+      console.log('📊 Setting calendar prices in state:', pricesMap);
+      setCalendarPrices(pricesMap);
+    } catch (error) {
+      console.error('❌ Failed to load calendar prices:', error);
+      setCalendarPrices({}); // Graceful fallback
+    } finally {
+      setLoadingCalendarPrices(false);
+      fetchingCalendarPricesRef.current = false; // Release lock
+    }
+  };
+
   // Close all dropdowns when one opens
   const closeAllDropdowns = () => {
     setShowOriginDropdown(false);
@@ -419,6 +486,46 @@ export default function EnhancedSearchBar({
   };
 
   const totalPassengers = passengers.adults + passengers.children + passengers.infants;
+
+  // 🚀 PHASE 1: Smart Pre-fetching
+  // Pre-load calendar prices when user completes origin + destination
+  // This makes calendar opening feel INSTANT
+  useEffect(() => {
+    // Only for flight searches
+    if (serviceType !== 'flights') return;
+
+    // Need both origin and destination
+    const originCode = origin[0];
+    const destCode = destination[0];
+
+    if (!originCode || !destCode) {
+      // Clear timer if user clears fields
+      if (preFetchTimerRef.current) {
+        clearTimeout(preFetchTimerRef.current);
+        preFetchTimerRef.current = null;
+      }
+      return;
+    }
+
+    // Clear any existing timer
+    if (preFetchTimerRef.current) {
+      clearTimeout(preFetchTimerRef.current);
+    }
+
+    // Debounce: Wait 500ms after user stops typing
+    preFetchTimerRef.current = setTimeout(() => {
+      console.log('🔥 Smart pre-fetch triggered:', originCode, '→', destCode);
+      // Pre-load calendar prices in background (non-blocking)
+      fetchCalendarPrices();
+    }, 500);
+
+    // Cleanup
+    return () => {
+      if (preFetchTimerRef.current) {
+        clearTimeout(preFetchTimerRef.current);
+      }
+    };
+  }, [origin, destination, serviceType]);
 
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return '';
@@ -533,6 +640,10 @@ export default function EnhancedSearchBar({
     setAdditionalFlightDatePickerOpen(null); // Close any open additional flight date pickers
     setDatePickerType(type);
     setShowDatePicker(true);
+
+    // Refresh calendar prices when opening date picker
+    // This ensures newly cached prices from recent searches are displayed
+    fetchCalendarPrices();
   };
 
   // Validate form before search
@@ -1631,13 +1742,15 @@ export default function EnhancedSearchBar({
           {serviceType === 'cars' && (
           <>
           {/* Search Fields Row */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-end gap-3">
             {/* Pickup Location */}
             <div className="flex-1">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
-                <Car size={13} className="text-gray-600" />
-                <span>Pickup Location</span>
-              </label>
+              <div className="flex items-center justify-between h-[28px] mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                  <Car size={13} className="text-gray-600" />
+                  <span>Pickup Location</span>
+                </label>
+              </div>
               <div className="h-[56px]">
                 <InlineAirportAutocomplete
                   value={carPickupLocation}
@@ -1649,7 +1762,7 @@ export default function EnhancedSearchBar({
 
             {/* Dropoff Location */}
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between h-[28px] mb-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                   <Car size={13} className="text-gray-600" />
                   <span>Dropoff Location</span>
@@ -1691,7 +1804,7 @@ export default function EnhancedSearchBar({
 
             {/* Pickup Date */}
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between h-[28px] mb-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                   <CalendarDays size={13} className="text-gray-600" />
                   <span>Pickup Date</span>
@@ -1701,7 +1814,7 @@ export default function EnhancedSearchBar({
                 <select
                   value={carPickupTime}
                   onChange={(e) => setCarPickupTime(e.target.value)}
-                  className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
+                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
                 >
                   {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
                     <option key={`pickup-${time}`} value={time}>{time}</option>
@@ -1723,7 +1836,7 @@ export default function EnhancedSearchBar({
 
             {/* Dropoff Date */}
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between h-[28px] mb-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                   <CalendarCheck size={13} className="text-gray-600" />
                   <span>Dropoff Date</span>
@@ -1733,7 +1846,7 @@ export default function EnhancedSearchBar({
                 <select
                   value={carDropoffTime}
                   onChange={(e) => setCarDropoffTime(e.target.value)}
-                  className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
+                  className="px-2 py-0.5 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
                 >
                   {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
                     <option key={`dropoff-${time}`} value={time}>{time}</option>
@@ -1755,12 +1868,12 @@ export default function EnhancedSearchBar({
 
             {/* Search Button */}
             <div className="flex-shrink-0">
-              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <div className="h-[28px] mb-2" />
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base h-[56px]"
               >
                 {isLoading ? (
                   <>
@@ -1789,6 +1902,8 @@ export default function EnhancedSearchBar({
           onChange={handleDatePickerChange}
           type="range"
           anchorEl={datePickerType === 'departure' ? departureDateRef.current : returnDateRef.current}
+          prices={calendarPrices}
+          loadingPrices={loadingCalendarPrices}
         />
 
         {/* Premium Date Pickers for Hotels */}
@@ -1854,6 +1969,7 @@ export default function EnhancedSearchBar({
             }}
             type="single"
             anchorEl={additionalFlightDateRefs.current[flight.id]}
+            prices={calendarPrices}
           />
         ))}
 

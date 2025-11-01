@@ -45,7 +45,10 @@ export async function getCached<T>(key: string): Promise<T | null> {
       return value;
     } else {
       cacheStats.misses++;
-      console.log(`❌ Cache MISS: ${key}`);
+      // Only log calendar-price misses in summary (not individually)
+      if (!key.startsWith('calendar-price:')) {
+        console.log(`❌ Cache MISS: ${key}`);
+      }
       return null;
     }
   } catch (error) {

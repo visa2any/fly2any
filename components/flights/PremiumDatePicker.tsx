@@ -14,6 +14,7 @@ interface PremiumDatePickerProps {
   onClose: () => void;
   anchorEl?: HTMLElement | null;
   prices?: { [date: string]: number };
+  loadingPrices?: boolean;
 }
 
 interface CalendarDay {
@@ -45,7 +46,8 @@ export default function PremiumDatePicker({
   isOpen,
   onClose,
   anchorEl,
-  prices
+  prices,
+  loadingPrices = false
 }: PremiumDatePickerProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDeparture, setSelectedDeparture] = useState<Date | null>(
@@ -457,8 +459,15 @@ export default function PremiumDatePicker({
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
           )}
-          <div className={`flex-1 text-center font-bold text-gray-900 text-sm ${index === 1 ? 'ml-10' : ''}`}>
-            {monthName} {year}
+          <div className={`flex-1 text-center ${index === 1 ? 'ml-10' : ''}`}>
+            <div className="font-bold text-gray-900 text-sm">
+              {monthName} {year}
+            </div>
+            {loadingPrices && index === 0 && (
+              <div className="text-xs text-slate-500 mt-0.5 animate-pulse">
+                Loading prices...
+              </div>
+            )}
           </div>
           {index === 1 && (
             <button
@@ -515,17 +524,23 @@ export default function PremiumDatePicker({
                   ${day.isToday && !day.isSelected ? 'ring-2 ring-[#0087FF] ring-inset' : ''}
                 `}
               >
-                <div className="flex flex-col items-center justify-center h-full">
-                  <span className="text-sm font-medium">
+                <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                  <span className={`text-sm font-medium ${
+                    day.price && day.isCurrentMonth && !day.isDisabled
+                      ? 'mb-0.5'
+                      : ''
+                  }`}>
                     {day.date.getDate()}
                   </span>
                   {day.price && day.isCurrentMonth && !day.isDisabled && (
                     <span
-                      className={`text-[10px] mt-0.5 ${
-                        day.isSelected ? 'text-white' : 'text-[#0087FF]'
-                      } font-medium`}
+                      className={`text-xs px-2.5 py-1 rounded-md font-medium tracking-normal ${
+                        day.isSelected
+                          ? 'bg-white/90 text-[#0087FF] shadow-sm'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      } transition-all duration-200`}
                     >
-                      ${day.price}
+                      $ {Math.round(day.price)}
                     </span>
                   )}
                 </div>

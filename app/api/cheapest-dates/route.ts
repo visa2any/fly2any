@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { amadeusAPI } from '@/lib/api/amadeus';
-import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
+import { getCached, generateCacheKey } from '@/lib/cache/helpers';
 
 // Mark this route as dynamic (it uses request params)
 export const dynamic = 'force-dynamic';
@@ -62,6 +61,11 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const viewBy = searchParams.get('viewBy');
 
+    // Support flexible date range queries
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+    const daysAhead = searchParams.get('daysAhead'); // Default: 365 for broader coverage
+
     // Validate extracted codes
     if (!origin || !destination) {
       return NextResponse.json(
@@ -80,115 +84,150 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate cache key
-    cacheKey = generateCacheKey('cheapest-dates', {
-      origin,
-      destination,
-      departureDate,
-      oneWay,
-      duration,
-      nonStop,
-      maxPrice,
-      viewBy,
+    // 📅 Lookup cached prices from actual flight searches
+    // Determine date range to check
+    const today = new Date();
+    let startDate = today;
+    let totalDays = 30; // Default to 30 days (1 month) - optimized for fast calendar display
+
+    // If specific date range provided, use it
+    if (startDateParam) {
+      startDate = new Date(startDateParam);
+    }
+    if (endDateParam) {
+      const endDate = new Date(endDateParam);
+      totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    } else if (daysAhead) {
+      totalDays = parseInt(daysAhead);
+    }
+
+    // Cap at 365 days to prevent excessive queries
+    totalDays = Math.min(totalDays, 365);
+
+    const pricesData: any[] = [];
+    const pricesMap: { [date: string]: number } = {};
+
+    console.log('📅 Looking up cached calendar prices for', `${origin} → ${destination}`, `(checking ${totalDays} days)`);
+
+    // Early exit tracker - stop checking if no prices found
+    let consecutiveMisses = 0;
+    const MAX_CONSECUTIVE_MISSES = 30; // Stop after 30 days with no data
+
+    // Check cached prices for the specified date range
+    for (let i = 0; i < totalDays; i++) {
+      const checkDate = new Date(startDate);
+      checkDate.setDate(startDate.getDate() + i);
+      const dateStr = checkDate.toISOString().split('T')[0];
+
+      // Lookup price for this date (forward direction)
+      const priceCacheKey = generateCacheKey('calendar-price', {
+        origin,
+        destination,
+        date: dateStr,
+      });
+
+      const cachedPrice = await getCached<any>(priceCacheKey);
+      let foundPrice = false;
+
+      if (cachedPrice && cachedPrice.price) {
+        pricesData.push({
+          type: 'flight-date',
+          origin,
+          destination,
+          departureDate: dateStr,
+          price: {
+            total: cachedPrice.price.toFixed(2),
+            currency: cachedPrice.currency || 'USD',
+          },
+          cached: true,
+          cachedAt: cachedPrice.timestamp,
+        });
+        pricesMap[dateStr] = cachedPrice.price;
+        foundPrice = true;
+        consecutiveMisses = 0; // Reset counter
+      }
+
+      // ALSO check reverse direction (for return flights)
+      const reverseCacheKey = generateCacheKey('calendar-price', {
+        origin: destination,
+        destination: origin,
+        date: dateStr,
+      });
+
+      const reverseCachedPrice = await getCached<any>(reverseCacheKey);
+
+      if (reverseCachedPrice && reverseCachedPrice.price) {
+        if (!pricesMap[dateStr]) {
+          pricesData.push({
+            type: 'flight-date',
+            origin: destination,
+            destination: origin,
+            departureDate: dateStr,
+            price: {
+              total: reverseCachedPrice.price.toFixed(2),
+              currency: reverseCachedPrice.currency || 'USD',
+            },
+            cached: true,
+            cachedAt: reverseCachedPrice.timestamp,
+            isReturn: true,
+          });
+          pricesMap[dateStr] = reverseCachedPrice.price;
+          foundPrice = true;
+          consecutiveMisses = 0;
+        }
+      }
+
+      // Track consecutive misses for early exit
+      if (!foundPrice) {
+        consecutiveMisses++;
+
+        // Early exit if no prices found for extended period
+        if (consecutiveMisses >= MAX_CONSECUTIVE_MISSES && Object.keys(pricesMap).length === 0) {
+          console.log(`📅 Early exit: No prices found in first ${MAX_CONSECUTIVE_MISSES} days`);
+          break;
+        }
+      }
+    }
+
+    console.log('📅 Found cached prices for', Object.keys(pricesMap).length, 'dates');
+
+    const result = {
+      data: pricesData,
+      meta: {
+        count: pricesData.length,
+        route: `${origin} → ${destination}`,
+        daysChecked: totalDays,
+        dateRange: `${startDate.toISOString().split('T')[0]} to ${new Date(startDate.getTime() + totalDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}`,
+        source: 'cached-searches',
+        note: 'Prices from actual user searches. Only searched dates shown.',
+      },
+      prices: pricesMap, // Simple map for easy lookup: { "2025-11-05": 99 }
+    };
+
+    // Cache the API response for 5 minutes to prevent duplicate lookups
+    return NextResponse.json(result, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+        'X-Cache-Source': 'calendar-prices',
+      },
     });
-
-    // Try cache first
-    const cached = await getCached<any>(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached);
-    }
-
-    // Call Amadeus API
-    const params: any = { origin, destination };
-    if (departureDate) params.departureDate = departureDate;
-    if (oneWay) params.oneWay = oneWay === 'true';
-    if (duration) params.duration = duration;
-    if (nonStop) params.nonStop = nonStop === 'true';
-    if (maxPrice) params.maxPrice = parseInt(maxPrice);
-    if (viewBy) params.viewBy = viewBy as 'DATE' | 'DURATION' | 'WEEK';
-
-    const result = await amadeusAPI.getCheapestDates(params);
-
-    // Cache for 30 minutes (price calendar changes semi-frequently)
-    await setCache(cacheKey, result, 1800);
-
-    return NextResponse.json(result);
   } catch (error: any) {
-    console.error('Error in cheapest-dates API:', error);
+    console.error('Error looking up calendar prices:', error);
 
-    // Log error details for debugging
-    if (error.response?.data) {
-      console.error('Error getting cheapest dates:', error.response.data);
-    }
-
-    // Handle specific error cases
-    const errorResponse = error.response?.data;
-    const isNotFound = error.response?.status === 404 ||
-                      errorResponse?.errors?.some((e: any) => e.code === 1797 || e.title === 'NOT FOUND');
-
-    const isRateLimited = error.response?.status === 429 ||
-                         errorResponse?.errors?.some((e: any) => e.code === 38194 || e.title === 'Too many requests');
-
-    const isAmadeusInternalError = error.response?.status === 500 ||
-                                   errorResponse?.errors?.some((e: any) => e.code === 38189 || e.title === 'Internal error');
-
-    if (isNotFound) {
-      // Return empty data with helpful message instead of 500 error
-      const emptyResponse = {
-        data: [],
-        meta: {
-          count: 0,
-          message: `No pricing data available for route ${origin} → ${destination}. Try a different route or check back later.`
-        }
-      };
-
-      // Cache empty result briefly (5 minutes)
-      await setCache(cacheKey, emptyResponse, 300);
-
-      return NextResponse.json(emptyResponse, { status: 200 });
-    }
-
-    if (isRateLimited) {
-      // Return empty data with rate limit message
-      const rateLimitResponse = {
-        data: [],
-        meta: {
-          count: 0,
-          message: `Price calendar temporarily unavailable due to high demand. Please try again in a few minutes.`,
-          rateLimitHit: true
-        }
-      };
-
-      // Cache rate limit result for 10 minutes to reduce API load
-      await setCache(cacheKey, rateLimitResponse, 600);
-
-      return NextResponse.json(rateLimitResponse, { status: 200 });
-    }
-
-    if (isAmadeusInternalError) {
-      // Handle Amadeus internal server errors (common in test environment)
-      const internalErrorResponse = {
-        data: [],
-        meta: {
-          count: 0,
-          message: `Price calendar service temporarily unavailable. This feature may be limited in the test environment.`,
-          serviceError: true
-        }
-      };
-
-      // Cache error result for 15 minutes to reduce API load on failing endpoint
-      await setCache(cacheKey, internalErrorResponse, 900);
-
-      return NextResponse.json(internalErrorResponse, { status: 200 });
-    }
-
-    // For other errors, return 500
+    // Return empty result on error (no cached prices found)
     return NextResponse.json(
       {
-        error: error.message || 'Failed to get cheapest dates',
-        details: process.env.NODE_ENV === 'development' ? errorResponse : undefined
+        data: [],
+        meta: {
+          count: 0,
+          route: origin && destination ? `${origin} → ${destination}` : 'unknown',
+          source: 'cached-searches',
+          note: 'No cached prices available for this route yet.',
+        },
+        prices: {},
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

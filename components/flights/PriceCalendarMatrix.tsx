@@ -175,14 +175,64 @@ export default function PriceCalendarMatrix({
   const [loading, setLoading] = useState(true);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [apiPrices, setApiPrices] = useState<DatePrice[]>([]);
 
   const t = translations[lang];
 
-  // Generate mock data - in production, this would fetch from API
-  const allPrices = useMemo(() => {
-    const basePrice = 300 + Math.random() * 200; // $300-$500 base
-    return generateMockPrices(basePrice, 90); // 3 months of data
+  // Fetch real calendar prices from cached searches
+  useEffect(() => {
+    if (!origin || !destination) return;
+
+    const fetchPrices = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/cheapest-dates?origin=${origin}&destination=${destination}`);
+
+        if (!response.ok) {
+          console.warn('Failed to fetch calendar prices, using fallback');
+          // Fallback to mock data
+          const basePrice = 300 + Math.random() * 200;
+          setApiPrices(generateMockPrices(basePrice, 90));
+          return;
+        }
+
+        const data = await response.json();
+
+        // Transform API data to DatePrice format
+        const pricesMap = data.prices || {};
+        const transformedPrices: DatePrice[] = [];
+
+        // Get all dates with prices
+        Object.entries(pricesMap).forEach(([date, price]) => {
+          transformedPrices.push({
+            date,
+            price: Number(price),
+            isDeal: false, // Will be calculated later
+            percentDiff: 0 // Will be calculated later
+          });
+        });
+
+        // Sort by date
+        transformedPrices.sort((a, b) => a.date.localeCompare(b.date));
+
+        console.log('📅 PriceCalendarMatrix: Loaded', transformedPrices.length, 'cached prices from actual searches');
+
+        setApiPrices(transformedPrices.length > 0 ? transformedPrices : generateMockPrices(400, 90));
+      } catch (error) {
+        console.error('Error fetching calendar prices:', error);
+        // Fallback to mock data
+        const basePrice = 300 + Math.random() * 200;
+        setApiPrices(generateMockPrices(basePrice, 90));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrices();
   }, [origin, destination]);
+
+  // Use fetched API prices
+  const allPrices = apiPrices;
 
   // Get current selected price
   const currentPrice = useMemo(() => {
