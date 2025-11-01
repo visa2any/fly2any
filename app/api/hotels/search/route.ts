@@ -93,10 +93,16 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Searching hotels with Duffel Stays API...');
     const results = await duffelStaysAPI.searchAccommodations(searchParams);
 
-    // Store in cache (15 minutes TTL)
-    await setCache(cacheKey, results, 900);
+    // Format response with success field for client compatibility
+    const response = {
+      success: true,
+      ...results,
+    };
 
-    return NextResponse.json(results, {
+    // Store in cache (15 minutes TTL)
+    await setCache(cacheKey, response, 900);
+
+    return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
         'Cache-Control': 'public, max-age=900',
@@ -106,6 +112,7 @@ export async function POST(request: NextRequest) {
     console.error('❌ Hotel search error:', error);
     return NextResponse.json(
       {
+        success: false,
         error: error.message || 'Failed to search hotels',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
@@ -172,10 +179,16 @@ export async function GET(request: NextRequest) {
       console.log('🔍 Searching hotels with Duffel Stays API (GET)...', duffelSearchParams);
       const results = await duffelStaysAPI.searchAccommodations(duffelSearchParams);
 
-      // Store in cache (15 minutes TTL)
-      await setCache(cacheKey, results, 900);
+      // Format response with success field for client compatibility
+      const response = {
+        success: true,
+        ...results,
+      };
 
-      return NextResponse.json(results, {
+      // Store in cache (15 minutes TTL)
+      await setCache(cacheKey, response, 900);
+
+      return NextResponse.json(response, {
         headers: {
           'X-Cache-Status': 'MISS',
           'Cache-Control': 'public, max-age=900',
@@ -235,7 +248,10 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Hotel search error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to search hotels' },
+      {
+        success: false,
+        error: error.message || 'Failed to search hotels'
+      },
       { status: 500 }
     );
   }
