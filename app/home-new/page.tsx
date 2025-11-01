@@ -190,6 +190,7 @@ export default function NewHomePage() {
           filter: blur(60px);
           opacity: 0.15;
           animation: float 20s ease-in-out infinite;
+          z-index: 0; /* Keep orbs BEHIND content */
         }
 
         .floating-orb-1 {
@@ -261,6 +262,7 @@ export default function NewHomePage() {
           /* Only entrance animation (runs once, no Chromium conflict) */
           animation: fadeInUp 0.6s ease-out;
           position: relative;
+          z-index: 10; /* Keep text ABOVE background orbs */
         }
 
         /* ===== SEPARATOR DOT PULSE ===== */
@@ -270,6 +272,8 @@ export default function NewHomePage() {
             dotPulse 2s ease-in-out infinite;
           display: inline-block;
           will-change: transform, opacity;
+          position: relative;
+          z-index: 10; /* Keep separator ABOVE background orbs */
         }
 
         @keyframes dotPulse {
@@ -305,6 +309,8 @@ export default function NewHomePage() {
         /* ===== SUBTITLE - Now uses letter-elastic (unified with title) ===== */
         .hero-subtitle {
           /* No parent animation - individual letters animate with letter-elastic */
+          position: relative;
+          z-index: 10; /* Keep subtitle ABOVE background orbs */
         }
 
         /* ===== BASE ANIMATIONS ===== */
