@@ -327,6 +327,17 @@ export default function EnhancedSearchBar({
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
   const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
 
+  // Car rental-specific state
+  const [carPickupLocation, setCarPickupLocation] = useState('');
+  const [carDropoffLocation, setCarDropoffLocation] = useState('');
+  const [sameDropoffLocation, setSameDropoffLocation] = useState(true); // Return to same location
+  const [carPickupDate, setCarPickupDate] = useState('');
+  const [carDropoffDate, setCarDropoffDate] = useState('');
+  const [carPickupTime, setCarPickupTime] = useState('10:00');
+  const [carDropoffTime, setCarDropoffTime] = useState('10:00');
+  const [showCarPickupDatePicker, setShowCarPickupDatePicker] = useState(false);
+  const [showCarDropoffDatePicker, setShowCarDropoffDatePicker] = useState(false);
+
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
     id: string;
@@ -357,6 +368,8 @@ export default function EnhancedSearchBar({
   const hotelDestinationRef = useRef<HTMLDivElement>(null);
   const hotelCheckInRef = useRef<HTMLButtonElement>(null);
   const hotelCheckOutRef = useRef<HTMLButtonElement>(null);
+  const carPickupDateRef = useRef<HTMLButtonElement>(null);
+  const carDropoffDateRef = useRef<HTMLButtonElement>(null);
 
   // Set default dates for hotels
   useEffect(() => {
@@ -581,6 +594,31 @@ export default function EnhancedSearchBar({
       });
 
       const url = `/hotels/results?${hotelParams.toString()}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+
+      setTimeout(() => setIsLoading(false), 500);
+      return;
+    }
+
+    // Car rentals search
+    if (serviceType === 'cars') {
+      if (!carPickupLocation || !carPickupDate || !carDropoffDate) {
+        setErrors({ car: 'Please fill all required fields' });
+        return;
+      }
+
+      setIsLoading(true);
+
+      const carParams = new URLSearchParams({
+        pickup: carPickupLocation,
+        dropoff: sameDropoffLocation ? carPickupLocation : (carDropoffLocation || carPickupLocation),
+        pickupDate: carPickupDate,
+        dropoffDate: carDropoffDate,
+        pickupTime: carPickupTime,
+        dropoffTime: carDropoffTime,
+      });
+
+      const url = `/cars/results?${carParams.toString()}`;
       window.open(url, '_blank', 'noopener,noreferrer');
 
       setTimeout(() => setIsLoading(false), 500);
@@ -1588,6 +1626,158 @@ export default function EnhancedSearchBar({
           </div>
           </>
           )}
+
+          {/* CAR RENTAL FIELDS */}
+          {serviceType === 'cars' && (
+          <>
+          {/* Search Fields Row */}
+          <div className="flex items-center gap-3">
+            {/* Pickup Location */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Car size={13} className="text-gray-600" />
+                <span>Pickup Location</span>
+              </label>
+              <div className="h-[56px]">
+                <InlineAirportAutocomplete
+                  value={carPickupLocation}
+                  onChange={(codes) => setCarPickupLocation(codes[0] || '')}
+                  placeholder="Airport code (e.g., MIA)"
+                />
+              </div>
+            </div>
+
+            {/* Dropoff Location */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                  <Car size={13} className="text-gray-600" />
+                  <span>Dropoff Location</span>
+                </label>
+
+                {/* Same location checkbox aligned to the right */}
+                <label className="flex items-center gap-1 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={sameDropoffLocation}
+                    onChange={(e) => {
+                      setSameDropoffLocation(e.target.checked);
+                      if (e.target.checked) {
+                        setCarDropoffLocation('');
+                      }
+                    }}
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
+                  />
+                  <span className="text-xs font-normal text-gray-600 group-hover:text-gray-900">Same location</span>
+                </label>
+              </div>
+              <div className="h-[56px]">
+                {!sameDropoffLocation ? (
+                  <InlineAirportAutocomplete
+                    value={carDropoffLocation || carPickupLocation}
+                    onChange={(codes) => setCarDropoffLocation(codes[0] || '')}
+                    placeholder="Airport code (e.g., MIA)"
+                  />
+                ) : (
+                  <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed h-full flex items-center">
+                    <Car className="absolute left-3 text-gray-300" size={20} />
+                    <span className="block pl-8 text-base text-gray-400 italic">
+                      Same as pickup
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Pickup Date */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                  <CalendarDays size={13} className="text-gray-600" />
+                  <span>Pickup Date</span>
+                </label>
+
+                {/* Pickup Time aligned to the right */}
+                <select
+                  value={carPickupTime}
+                  onChange={(e) => setCarPickupTime(e.target.value)}
+                  className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
+                >
+                  {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                    <option key={`pickup-${time}`} value={time}>{time}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                ref={carPickupDateRef}
+                type="button"
+                onClick={() => setShowCarPickupDatePicker(true)}
+                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer border-gray-300"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {carPickupDate ? formatDateForDisplay(carPickupDate) : 'Select date'}
+                </span>
+              </button>
+            </div>
+
+            {/* Dropoff Date */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                  <CalendarCheck size={13} className="text-gray-600" />
+                  <span>Dropoff Date</span>
+                </label>
+
+                {/* Dropoff Time aligned to the right */}
+                <select
+                  value={carDropoffTime}
+                  onChange={(e) => setCarDropoffTime(e.target.value)}
+                  className="px-2 py-1 bg-white border border-gray-300 rounded-md hover:border-[#0087FF] transition-all text-xs font-medium text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#0087FF]"
+                >
+                  {['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map(time => (
+                    <option key={`dropoff-${time}`} value={time}>{time}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                ref={carDropoffDateRef}
+                type="button"
+                onClick={() => setShowCarDropoffDatePicker(true)}
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {carDropoffDate ? formatDateForDisplay(carDropoffDate) : 'Select date'}
+                </span>
+              </button>
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button
+                type="button"
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Searching...</span>
+                  </>
+                ) : (
+                  <span>{t.searchCars}</span>
+                )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
         </div>
 
         {/* Premium Date Picker */}
@@ -1624,6 +1814,31 @@ export default function EnhancedSearchBar({
           }}
           type="single"
           anchorEl={hotelCheckOutRef.current}
+        />
+
+        {/* Premium Date Pickers for Car Rentals */}
+        <PremiumDatePicker
+          isOpen={showCarPickupDatePicker}
+          onClose={() => setShowCarPickupDatePicker(false)}
+          value={carPickupDate}
+          onChange={(date) => {
+            setCarPickupDate(date);
+            setShowCarPickupDatePicker(false);
+          }}
+          type="single"
+          anchorEl={carPickupDateRef.current}
+        />
+
+        <PremiumDatePicker
+          isOpen={showCarDropoffDatePicker}
+          onClose={() => setShowCarDropoffDatePicker(false)}
+          value={carDropoffDate}
+          onChange={(date) => {
+            setCarDropoffDate(date);
+            setShowCarDropoffDatePicker(false);
+          }}
+          type="single"
+          anchorEl={carDropoffDateRef.current}
         />
 
         {/* Premium Date Pickers for Additional Flights */}
