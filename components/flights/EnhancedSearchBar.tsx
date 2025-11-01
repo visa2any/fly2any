@@ -9,6 +9,7 @@ import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
 import MultiDatePicker from '@/components/common/MultiDatePicker';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours';
 
@@ -857,10 +858,8 @@ export default function EnhancedSearchBar({
   return (
     <div className="sticky top-0 z-50 bg-white shadow-md">
       {/* Container with max-width matching results page (Priceline-style) */}
-      <div
-        className="mx-auto"
+      <MaxWidthContainer
         style={{
-          maxWidth: layout.container.maxWidth,
           padding: `${spacing.lg} ${spacing.xl}`,
         }}
       >
@@ -2333,7 +2332,7 @@ export default function EnhancedSearchBar({
           </>
           )}
         </div>
-      </div>
+      </MaxWidthContainer>
     </div>
   );
 }

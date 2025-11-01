@@ -211,4 +211,9 @@
   .animate-bounce-gentle {
     animation: bounce-gentle 2s ease-in-out infinite;
   }
+
+  /* Max-width container constraint - ensures 1600px across all environments */
+  .max-w-container {
+    max-width: 1600px !important;
+  }
 }

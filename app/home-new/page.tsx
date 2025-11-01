@@ -12,6 +12,7 @@ import { ToursSection } from '@/components/home/ToursSection';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -126,7 +127,7 @@ export default function NewHomePage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px 24px 20px', position: 'relative' }}>
+        <MaxWidthContainer className="relative" style={{ padding: '24px 24px 20px' }}>
           <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
@@ -177,7 +178,7 @@ export default function NewHomePage() {
               ))}
             </p>
           </div>
-        </div>
+        </MaxWidthContainer>
       </div>
 
       {/* Premium CSS Animations */}
@@ -369,12 +370,13 @@ export default function NewHomePage() {
           Trust badges integrated into Trust Indicators section below
           ============================================ */}
       <main>
-        {/* ============================================
-            RECENTLY VIEWED - Personalized Recommendations
-            ============================================ */}
-        <div style={{ marginTop: '20px' }}>
-          <RecentlyViewedSection lang={lang} />
-        </div>
+        <MaxWidthContainer>
+          {/* ============================================
+              RECENTLY VIEWED - Personalized Recommendations
+              ============================================ */}
+          <div style={{ marginTop: '20px' }}>
+            <RecentlyViewedSection lang={lang} />
+          </div>
 
         {/* ============================================
             DESTINATIONS SECTION - Explore by Continent
@@ -467,6 +469,7 @@ export default function NewHomePage() {
             items={faqData[lang]}
           />
         </div>
+        </MaxWidthContainer>
       </main>
     </div>
   );
