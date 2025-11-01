@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { MaxWidthContainer } from './MaxWidthContainer';
 
 // Language type
 export type Language = 'en' | 'pt' | 'es';
@@ -170,7 +171,7 @@ export function Header({
           : '0 1px 4px rgba(0, 0, 0, 0.04)',
       }}
     >
-      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
+      <MaxWidthContainer noPadding style={{ padding: '0 24px' }}>
         <div className="flex items-center justify-between h-20">
           {/* Logo with Enhanced Visibility - Multi-layered shadows + subtle background */}
           <a href="/" className="flex items-center group">
@@ -340,7 +341,7 @@ export function Header({
             {children}
           </div>
         </div>
-      </div>
+      </MaxWidthContainer>
     </header>
   );
 }
