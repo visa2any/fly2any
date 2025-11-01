@@ -298,12 +298,35 @@ class DuffelStaysAPI {
       console.error('❌ Duffel Stays API error:');
       console.error('   Error type:', error.constructor.name);
       console.error('   Error message:', error.message || 'No message');
-      console.error('   Error details:', JSON.stringify(error, null, 2));
-      if (error.response) {
-        console.error('   Response status:', error.response.status);
-        console.error('   Response data:', JSON.stringify(error.response.data, null, 2));
+
+      // Extract HTTP status and response if available
+      if (error.meta) {
+        console.error('   HTTP Status:', error.meta.status);
+        console.error('   Request ID:', error.meta.request_id);
       }
-      console.error('   Full error:', error);
+
+      if (error.errors && Array.isArray(error.errors)) {
+        console.error('   API Errors:', JSON.stringify(error.errors, null, 2));
+      }
+
+      // Log headers to check rate limits
+      if (error.headers) {
+        const headers = error.headers;
+        const headerObj: any = {};
+        if (typeof headers.get === 'function') {
+          headerObj['ratelimit-remaining'] = headers.get('ratelimit-remaining');
+          headerObj['ratelimit-reset'] = headers.get('ratelimit-reset');
+          headerObj['content-type'] = headers.get('content-type');
+        }
+        console.error('   Headers:', headerObj);
+      }
+
+      console.error('   Full error object:', JSON.stringify({
+        name: error.name,
+        message: error.message,
+        meta: error.meta,
+        errors: error.errors,
+      }, null, 2));
 
       // Return empty results on error
       return {

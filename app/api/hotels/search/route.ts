@@ -81,7 +81,9 @@ export async function POST(request: NextRequest) {
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       console.log('✅ Returning cached hotel search results');
-      return NextResponse.json(cached, {
+      // Ensure cached response has success field (for backwards compatibility)
+      const cachedWithSuccess = cached.success !== undefined ? cached : { success: true, ...cached };
+      return NextResponse.json(cachedWithSuccess, {
         headers: {
           'X-Cache-Status': 'HIT',
           'Cache-Control': 'public, max-age=900', // 15 minutes
@@ -167,7 +169,9 @@ export async function GET(request: NextRequest) {
       const cached = await getCached<any>(cacheKey);
       if (cached) {
         console.log('✅ Returning cached hotel search results (Duffel)');
-        return NextResponse.json(cached, {
+        // Ensure cached response has success field (for backwards compatibility)
+        const cachedWithSuccess = cached.success !== undefined ? cached : { success: true, ...cached };
+        return NextResponse.json(cachedWithSuccess, {
           headers: {
             'X-Cache-Status': 'HIT',
             'Cache-Control': 'public, max-age=900',
