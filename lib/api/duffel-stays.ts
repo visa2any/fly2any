@@ -211,14 +211,20 @@ class DuffelStaysAPI {
 
       console.log(`   Guests: ${guests.length} (${params.guests.adults} adults, ${params.guests.children?.length || 0} children)`);
 
-      // Create accommodation search request with CORRECT parameter format
-      const searchRequest = await this.client.stays.search({
+      // Prepare search payload
+      const searchPayload = {
         location,
         check_in_date: params.checkIn,
         check_out_date: params.checkOut,
-        rooms: roomsCount as any,
-        guests, // ✅ NOW USING CORRECT ARRAY FORMAT
-      } as any);
+        rooms: roomsCount,
+        guests,
+      };
+
+      // Log the EXACT payload we're sending to Duffel SDK
+      console.log('📤 Duffel SDK Request Payload:', JSON.stringify(searchPayload, null, 2));
+
+      // Create accommodation search request with CORRECT parameter format
+      const searchRequest = await this.client.stays.search(searchPayload as any);
 
       // SDK types are incomplete - actual API returns array in data
       const searchData = (searchRequest as any).data as any[];

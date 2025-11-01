@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
+import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams } from '@/lib/hotels/types';
+
+// Feature flag: Use mock data or real API
+const USE_MOCK_HOTELS = process.env.USE_MOCK_HOTELS === 'true';
 
 /**
  * Hotel Search API Route
@@ -91,9 +95,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Search hotels using Duffel Stays API
-    console.log('🔍 Searching hotels with Duffel Stays API...');
-    const results = await duffelStaysAPI.searchAccommodations(searchParams);
+    // Search hotels using Duffel Stays API (or mock)
+    const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
+    console.log(`🔍 Searching hotels with ${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API...`);
+    const results = await hotelAPI.searchAccommodations(searchParams);
 
     // Format response with success field for client compatibility
     const response = {
@@ -179,9 +184,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Search hotels using Duffel Stays API
-      console.log('🔍 Searching hotels with Duffel Stays API (GET)...', duffelSearchParams);
-      const results = await duffelStaysAPI.searchAccommodations(duffelSearchParams);
+      // Search hotels using Duffel Stays API (or mock)
+      const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
+      console.log(`🔍 Searching hotels with ${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API (GET)...`, duffelSearchParams);
+      const results = await hotelAPI.searchAccommodations(duffelSearchParams);
 
       // Format response with success field for client compatibility
       const response = {

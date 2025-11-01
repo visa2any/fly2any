@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
         dropoffLocation: dropoffLocation || pickupLocation,
         pickupDate,
         dropoffDate,
-        pickupTime,
-        dropoffTime,
+        pickupTime: pickupTime || undefined,
+        dropoffTime: dropoffTime || undefined,
       });
 
       console.log(`✅ Generated ${mockData.data.length} mock car rental options`);

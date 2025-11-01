@@ -83,4 +83,5 @@ export async function GET(
   }
 }
 
-export const runtime = 'edge';
+// Note: Using Node.js runtime (not edge) because Duffel SDK requires Node.js APIs
+// export const runtime = 'edge';
