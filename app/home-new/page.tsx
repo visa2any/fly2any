@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { TrustIndicators } from '@/components/home/TrustIndicators';
 import { Testimonials } from '@/components/home/Testimonials';
-import { AppDownload } from '@/components/conversion/AppDownload';
 import { FAQ } from '@/components/conversion/FAQ';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
@@ -41,43 +40,6 @@ const testimonials = [
   { name: 'Carlos Rodriguez', location: 'Madrid, Spain', rating: 5, text: 'Fly2Any made my dream vacation possible. Easy to use and great prices!', image: '👨' },
   { name: 'Emily Chen', location: 'Singapore', rating: 5, text: 'I always book through Fly2Any now. The price guarantee saved me hundreds!', image: '👩' },
 ];
-
-// App download data (trilingual)
-const appDownloadData = {
-  en: {
-    title: 'Book Faster on Our Mobile App',
-    subtitle: 'Get exclusive mobile-only deals and save even more on the go!',
-    benefits: [
-      'Mobile-exclusive deals up to 10% OFF',
-      'Instant booking confirmations',
-      'Real-time flight updates & alerts',
-      'Offline access to your bookings',
-    ],
-    downloadText: 'Download Now',
-  },
-  pt: {
-    title: 'Reserve Mais Rápido em Nosso App',
-    subtitle: 'Obtenha ofertas exclusivas para celular e economize ainda mais!',
-    benefits: [
-      'Ofertas exclusivas de até 10% OFF',
-      'Confirmações instantâneas de reserva',
-      'Atualizações de voo em tempo real',
-      'Acesso offline às suas reservas',
-    ],
-    downloadText: 'Baixar Agora',
-  },
-  es: {
-    title: 'Reserva Más Rápido en Nuestra App',
-    subtitle: '¡Obtén ofertas exclusivas para móvil y ahorra aún más!',
-    benefits: [
-      'Ofertas exclusivas de hasta 10% OFF',
-      'Confirmaciones instantáneas de reserva',
-      'Actualizaciones de vuelo en tiempo real',
-      'Acceso sin conexión a tus reservas',
-    ],
-    downloadText: 'Descargar Ahora',
-  },
-};
 
 // FAQ data (trilingual)
 const faqData = {
@@ -540,18 +502,6 @@ export default function NewHomePage() {
             title="What Our Travelers Say"
             subtitle="Real reviews from real people"
             testimonials={testimonials}
-          />
-        </div>
-
-        {/* ============================================
-            APP DOWNLOAD - Mobile CTA
-            ============================================ */}
-        <div style={{ marginTop: '28px' }}>
-          <AppDownload
-            title={appDownloadData[lang].title}
-            subtitle={appDownloadData[lang].subtitle}
-            benefits={appDownloadData[lang].benefits}
-            downloadText={appDownloadData[lang].downloadText}
           />
         </div>
 
