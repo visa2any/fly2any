@@ -436,38 +436,95 @@ export default function EnhancedSearchBar({
         return;
       }
 
-      console.log('📅 Fetching calendar prices for', originCode, '→', destCode);
+      // 🎯 SMART FETCHING: Round-trip mode fetches BOTH directions for complete price guide
+      console.log('📅 Fetching calendar prices for', originCode, '→', destCode, `(${tripType} mode)`);
 
-      const res = await fetch(
-        `/api/cheapest-dates?origin=${originCode}&destination=${destCode}&daysAhead=30`
-      );
-
-      if (!res.ok) {
-        console.warn('⚠️ Failed to fetch calendar prices:', res.status);
-        setCalendarPrices({});
-        return;
-      }
-
-      const data = await res.json();
-
-      // Use the pre-built prices map from API (cached from actual searches)
       let pricesMap: { [date: string]: number } = {};
 
-      if (data.prices) {
-        // New format: prices map already built
-        pricesMap = data.prices;
-        console.log('✅ Loaded cached calendar prices:', Object.keys(pricesMap).length, 'dates from actual searches');
-      } else if (data.data && Array.isArray(data.data)) {
-        // Fallback: Transform array format to { date: price } map
-        data.data.forEach((item: any) => {
-          if (item.departureDate && item.price?.total) {
-            pricesMap[item.departureDate] = parseFloat(item.price.total);
-          }
+      if (tripType === 'roundtrip') {
+        // 🔄 ROUND-TRIP MODE: Fetch BOTH directions in parallel
+        // This shows prices for both outbound (JFK→GRU) and return (GRU→JFK) dates
+        console.log('🔄 Round-trip mode: Fetching prices for BOTH directions');
+
+        const [forwardRes, reverseRes] = await Promise.all([
+          fetch(`/api/cheapest-dates?origin=${originCode}&destination=${destCode}&daysAhead=30`),
+          fetch(`/api/cheapest-dates?origin=${destCode}&destination=${originCode}&daysAhead=30`)
+        ]);
+
+        if (!forwardRes.ok || !reverseRes.ok) {
+          console.warn('⚠️ Failed to fetch calendar prices:', {
+            forward: forwardRes.status,
+            reverse: reverseRes.status
+          });
+          setCalendarPrices({});
+          return;
+        }
+
+        const [forwardData, reverseData] = await Promise.all([
+          forwardRes.json(),
+          reverseRes.json()
+        ]);
+
+        // Merge prices from BOTH directions
+        // Forward direction (e.g., JFK→GRU) for departure dates
+        if (forwardData.prices) {
+          Object.entries(forwardData.prices).forEach(([date, price]) => {
+            pricesMap[date] = price as number;
+          });
+        }
+
+        // Reverse direction (e.g., GRU→JFK) for return dates
+        // Don't override - add prices that aren't already in the map
+        if (reverseData.prices) {
+          Object.entries(reverseData.prices).forEach(([date, price]) => {
+            if (!pricesMap[date]) {
+              pricesMap[date] = price as number;
+            }
+          });
+        }
+
+        console.log('✅ Round-trip calendar prices loaded:', {
+          outbound: `${originCode}→${destCode}`,
+          outboundDates: Object.keys(forwardData.prices || {}).length,
+          return: `${destCode}→${originCode}`,
+          returnDates: Object.keys(reverseData.prices || {}).length,
+          totalUniqueDates: Object.keys(pricesMap).length
         });
-        console.log('✅ Calendar prices loaded:', Object.keys(pricesMap).length, 'dates');
+
+      } else {
+        // 🔵 ONE-WAY MODE: Only fetch selected direction
+        console.log('🔵 One-way mode: Fetching prices for single direction only');
+
+        const res = await fetch(
+          `/api/cheapest-dates?origin=${originCode}&destination=${destCode}&daysAhead=30`
+        );
+
+        if (!res.ok) {
+          console.warn('⚠️ Failed to fetch calendar prices:', res.status);
+          setCalendarPrices({});
+          return;
+        }
+
+        const data = await res.json();
+
+        if (data.prices) {
+          pricesMap = data.prices;
+        } else if (data.data && Array.isArray(data.data)) {
+          data.data.forEach((item: any) => {
+            if (item.departureDate && item.price?.total) {
+              pricesMap[item.departureDate] = parseFloat(item.price.total);
+            }
+          });
+        }
+
+        console.log('✅ One-way calendar prices loaded:', Object.keys(pricesMap).length, 'dates');
       }
 
-      console.log('📊 Setting calendar prices in state:', pricesMap);
+      console.log('📊 Setting calendar prices in state:', {
+        mode: tripType,
+        totalDates: Object.keys(pricesMap).length,
+        sampleDates: Object.keys(pricesMap).slice(0, 5)
+      });
       setCalendarPrices(pricesMap);
     } catch (error) {
       console.error('❌ Failed to load calendar prices:', error);
@@ -527,6 +584,26 @@ export default function EnhancedSearchBar({
       }
     };
   }, [origin, destination, serviceType]);
+
+  // 🔄 PHASE 2: Refresh calendar when tab becomes visible
+  // This ensures calendar shows updated prices when user returns from search results tab
+  useEffect(() => {
+    if (serviceType !== 'flights') return;
+
+    const handleVisibilityChange = () => {
+      // Only refresh if tab becomes visible AND we have origin+destination
+      if (!document.hidden && origin[0] && destination[0]) {
+        console.log('🔄 Tab visible again - refreshing calendar prices');
+        fetchCalendarPrices();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [serviceType, origin, destination]);
 
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return '';
@@ -642,8 +719,10 @@ export default function EnhancedSearchBar({
     setDatePickerType(type);
     setShowDatePicker(true);
 
-    // Refresh calendar prices when opening date picker
-    // This ensures newly cached prices from recent searches are displayed
+    // 🔄 FORCE REFRESH calendar prices when opening date picker
+    // Critical for round-trip: ensures both departure AND return dates show cached prices
+    // Bypass pre-fetch lock to guarantee fresh data
+    fetchingCalendarPricesRef.current = false; // Release lock
     fetchCalendarPrices();
   };
 

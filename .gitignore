@@ -40,3 +40,9 @@ next-env.d.ts
 ACTION-PLAN-*.md
 DUFFEL-*.md
 VERCEL-*.md
+
+# Windows reserved files
+nul
+
+# Development logs
+dev.log

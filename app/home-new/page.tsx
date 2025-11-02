@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TrustIndicators } from '@/components/home/TrustIndicators';
 import { Testimonials } from '@/components/home/Testimonials';
 import { AppDownload } from '@/components/conversion/AppDownload';
@@ -13,6 +13,7 @@ import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSecti
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import PopularRoutesSection from '@/components/home/PopularRoutesSection';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -105,7 +106,23 @@ const faqData = {
 
 export default function NewHomePage() {
   const [lang, setLang] = useState<Language>('en');
+  const [animationKey, setAnimationKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const t = content[lang];
+
+  // Trigger initial animation on mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Restart letter animation every 12 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationKey(prev => prev + 1);
+    }, 12000); // 12 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -113,7 +130,7 @@ export default function NewHomePage() {
           PAGE TITLE - Between Header and Search Bar
           ENHANCED: Premium Typography & Advanced Animations
           ============================================ */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60" style={{ overflow: 'visible' }}>
         {/* Animated floating orbs in background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
@@ -127,25 +144,41 @@ export default function NewHomePage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <MaxWidthContainer className="relative" style={{ padding: '24px 24px 20px' }}>
+        <MaxWidthContainer className="relative" style={{ padding: '24px 24px 20px', overflow: 'visible' }}>
+          {/* Airplane that "pulls" the letters */}
+          {mounted && (
+            <div
+              key={`airplane-${animationKey}`}
+              className="airplane-container"
+              aria-hidden="true"
+            >
+              <span className="airplane-icon">✈️</span>
+            </div>
+          )}
+
           <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
+              key={`title-${animationKey}`}
               className="hero-title text-3xl font-extrabold tracking-wide"
             >
-              {t.sectionTitle.split('').map((char, index) => (
-                <span
-                  key={index}
-                  className="letter-elastic"
-                  style={{
-                    animationDelay: `${index * 0.035}s`,
-                    display: 'inline-block',
-                    minWidth: char === ' ' ? '0.3em' : 'auto',
-                  }}
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
+              {mounted ? (
+                t.sectionTitle.split('').map((char, index) => (
+                  <span
+                    key={index}
+                    className="letter-elastic"
+                    style={{
+                      animationDelay: `${index * 0.038}s`,
+                      display: 'inline-block',
+                      minWidth: char === ' ' ? '0.3em' : 'auto',
+                    }}
+                  >
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                ))
+              ) : (
+                <span style={{ opacity: 0 }}>{t.sectionTitle}</span>
+              )}
             </h1>
 
             {/* Separator - Pulse Animation */}
@@ -157,25 +190,30 @@ export default function NewHomePage() {
 
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
+              key={`subtitle-${animationKey}`}
               className="hero-subtitle text-gray-700/90 mb-0 font-medium"
               style={{
                 fontSize: '1.35rem',
                 letterSpacing: '0.01em'
               }}
             >
-              {t.subtitle.split('').map((char, index) => (
-                <span
-                  key={index}
-                  className="letter-elastic"
-                  style={{
-                    animationDelay: `${1.8 + (index * 0.025)}s`,
-                    display: 'inline-block',
-                    minWidth: char === ' ' ? '0.3em' : 'auto',
-                  }}
-                >
-                  {char === ' ' ? '\u00A0' : char}
-                </span>
-              ))}
+              {mounted ? (
+                t.subtitle.split('').map((char, index) => (
+                  <span
+                    key={index}
+                    className="letter-elastic"
+                    style={{
+                      animationDelay: `${2.0 + (index * 0.028)}s`,
+                      display: 'inline-block',
+                      minWidth: char === ' ' ? '0.3em' : 'auto',
+                    }}
+                  >
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                ))
+              ) : (
+                <span style={{ opacity: 0 }}>{t.subtitle}</span>
+              )}
             </p>
           </div>
         </MaxWidthContainer>
@@ -183,6 +221,51 @@ export default function NewHomePage() {
 
       {/* Premium CSS Animations */}
       <style jsx>{`
+        /* ===== AIRPLANE ENTRANCE EFFECT ===== */
+        .airplane-container {
+          position: absolute;
+          top: 8px;
+          left: -80px;
+          z-index: 20;
+          pointer-events: none;
+          animation: airplaneFly 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+        }
+
+        .airplane-icon {
+          font-size: 3rem;
+          display: inline-block;
+          filter: drop-shadow(0 3px 12px rgba(59, 130, 246, 0.6));
+          animation: airplaneBobbing 0.8s ease-in-out infinite;
+        }
+
+        @keyframes airplaneFly {
+          0% {
+            left: -80px;
+            opacity: 0;
+            transform: translateX(0);
+          }
+          8% {
+            opacity: 1;
+          }
+          92% {
+            opacity: 1;
+          }
+          100% {
+            left: calc(100% + 80px);
+            opacity: 0;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes airplaneBobbing {
+          0%, 100% {
+            transform: translateY(0px) rotate(-8deg) scale(1);
+          }
+          50% {
+            transform: translateY(-5px) rotate(-8deg) scale(1.05);
+          }
+        }
+
         /* ===== FLOATING BACKGROUND ORBS ===== */
         .floating-orb {
           position: absolute;
@@ -238,31 +321,30 @@ export default function NewHomePage() {
           }
         }
 
-        /* ===== STATIC GRADIENT TITLE (Chromium-Compatible) ===== */
+        /* ===== SOLID COLOR TITLE (100% Cross-Browser Compatible) ===== */
         .hero-title {
-          /* Fallback solid color (ensures text is ALWAYS visible even if gradient fails) */
+          /* Solid, highly visible blue color - NO gradient issues */
           color: #1e40af;
 
-          /* Static gradient text effect (NO animation - Chromium-friendly) */
-          background: linear-gradient(
-            135deg,
-            #1e40af 0%,
-            #0891b2 25%,
-            #06b6d4 50%,
-            #0891b2 75%,
-            #1e40af 100%
-          );
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          /* Strong text shadow for depth and visibility */
+          text-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.1),
+            0 2px 8px rgba(30, 64, 175, 0.15);
 
-          /* Subtle text shadow for depth (visible in browsers that support text-fill-color) */
-          text-shadow: 0 2px 12px rgba(30, 64, 175, 0.15);
-
-          /* Only entrance animation (runs once, no Chromium conflict) */
-          animation: fadeInUp 0.6s ease-out;
           position: relative;
           z-index: 10; /* Keep text ABOVE background orbs */
+
+          /* CHROME/EDGE FIX: Force GPU rendering and proper stacking */
+          transform: translateZ(0);
+          -webkit-transform: translateZ(0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          isolation: isolate;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+
+          /* Ensure high contrast and visibility */
+          font-weight: 800;
         }
 
         /* ===== SEPARATOR DOT PULSE ===== */
@@ -274,35 +356,43 @@ export default function NewHomePage() {
           will-change: transform, opacity;
           position: relative;
           z-index: 10; /* Keep separator ABOVE background orbs */
+          /* CHROME/EDGE FIX: Force proper rendering */
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
 
         @keyframes dotPulse {
           0%, 100% {
-            transform: scale(1);
+            transform: scale(1) translateZ(0);
             opacity: 0.7;
           }
           50% {
-            transform: scale(1.2);
+            transform: scale(1.2) translateZ(0);
             opacity: 1;
           }
         }
 
-        /* ===== ELASTIC LETTER ENTRANCE ===== */
+        /* ===== ELASTIC LETTER ENTRANCE - Restarts every 12s via JS ===== */
         .letter-elastic {
           opacity: 0;
           animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
           transform-origin: center center;
           will-change: opacity, transform;
+          /* CHROME/EDGE FIX: Ensure letters stay in front */
+          position: relative;
+          z-index: 1;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         @keyframes elasticLetterEntrance {
           0% {
             opacity: 0;
-            transform: translateY(-5px) scale(0.9);
+            transform: translateY(-5px) scale(0.9) translateZ(0);
           }
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0) scale(1) translateZ(0);
           }
         }
 
@@ -311,6 +401,13 @@ export default function NewHomePage() {
           /* No parent animation - individual letters animate with letter-elastic */
           position: relative;
           z-index: 10; /* Keep subtitle ABOVE background orbs */
+          /* CHROME/EDGE FIX: Force proper rendering */
+          transform: translateZ(0);
+          backface-visibility: hidden;
+          isolation: isolate;
+          /* Ensure visibility */
+          color: #374151;
+          font-weight: 500;
         }
 
         /* ===== BASE ANIMATIONS ===== */
@@ -326,11 +423,11 @@ export default function NewHomePage() {
         @keyframes fadeInUp {
           from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(10px) translateZ(0);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) translateZ(0);
           }
         }
 
@@ -406,6 +503,14 @@ export default function NewHomePage() {
             ============================================ */}
         <div style={{ marginTop: '20px' }}>
           <ToursSection lang={lang} />
+        </div>
+
+        {/* ============================================
+            POPULAR ROUTES - Trending Based on Real Searches
+            STRATEGIC: Zero-cost feature using route_statistics
+            ============================================ */}
+        <div style={{ marginTop: '20px' }}>
+          <PopularRoutesSection />
         </div>
 
         {/* ============================================

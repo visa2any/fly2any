@@ -107,11 +107,16 @@ export async function GET(request: NextRequest) {
     const pricesData: any[] = [];
     const pricesMap: { [date: string]: number } = {};
 
-    console.log('📅 Looking up cached calendar prices for', `${origin} → ${destination}`, `(checking ${totalDays} days)`);
+    console.log('📅 Looking up cached calendar prices for', `${origin} → ${destination}`);
+    console.log(`   🔍 Checking ${totalDays} days from ${startDate.toISOString().split('T')[0]}`);
 
     // Early exit tracker - stop checking if no prices found
     let consecutiveMisses = 0;
     const MAX_CONSECUTIVE_MISSES = 30; // Stop after 30 days with no data
+
+    // Track hits for diagnostics
+    let forwardHits = 0;
+    let reverseHits = 0;
 
     // Check cached prices for the specified date range
     for (let i = 0; i < totalDays; i++) {
@@ -141,9 +146,11 @@ export async function GET(request: NextRequest) {
           },
           cached: true,
           cachedAt: cachedPrice.timestamp,
+          approximate: cachedPrice.approximate || false,
         });
         pricesMap[dateStr] = cachedPrice.price;
         foundPrice = true;
+        forwardHits++;
         consecutiveMisses = 0; // Reset counter
       }
 
@@ -170,9 +177,11 @@ export async function GET(request: NextRequest) {
             cached: true,
             cachedAt: reverseCachedPrice.timestamp,
             isReturn: true,
+            approximate: reverseCachedPrice.approximate || false,
           });
           pricesMap[dateStr] = reverseCachedPrice.price;
           foundPrice = true;
+          reverseHits++;
           consecutiveMisses = 0;
         }
       }
@@ -189,7 +198,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('📅 Found cached prices for', Object.keys(pricesMap).length, 'dates');
+    const totalFound = Object.keys(pricesMap).length;
+    console.log(`📅 Found cached prices for ${totalFound} dates`);
+    console.log(`   ✈️  Forward (${origin}→${destination}): ${forwardHits} dates`);
+    console.log(`   🔄 Reverse (${destination}→${origin}): ${reverseHits} dates`);
+
+    if (totalFound === 0) {
+      console.log(`   ⚠️  NO PRICES FOUND! User needs to do a flight search first.`);
+    } else if (totalFound < 10) {
+      console.log(`   ⚠️  LOW COVERAGE: Only ${totalFound} dates. TTL may have expired or search was far in future.`);
+    } else {
+      console.log(`   ✅ GOOD COVERAGE: Calendar should display well!`);
+    }
 
     const result = {
       data: pricesData,
@@ -203,6 +223,14 @@ export async function GET(request: NextRequest) {
       },
       prices: pricesMap, // Simple map for easy lookup: { "2025-11-05": 99 }
     };
+
+    // 🔍 DEBUG: Log what we're actually returning
+    console.log('📊 API Response Debug:', {
+      pricesMapKeys: Object.keys(pricesMap),
+      pricesMapSample: pricesMap,
+      dataArrayLength: pricesData.length,
+      firstDataItem: pricesData[0],
+    });
 
     // Cache the API response for 5 minutes to prevent duplicate lookups
     return NextResponse.json(result, {

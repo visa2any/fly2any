@@ -24,13 +24,22 @@ export async function POST(request: NextRequest) {
     const limit = body.limit || 50;
     const force = body.force || false;
 
-    // Check authorization (optional - add your own auth here)
+    // Check authorization
+    // Method 1: Vercel cron (automatic) - uses x-vercel-cron: "1"
+    const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+
+    // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
+    const isManualAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Allow if either method is valid
+    if (!isVercelCron && !isManualAuth) {
       return NextResponse.json(
-        { error: 'Unauthorized - invalid cron secret' },
+        {
+          error: 'Unauthorized',
+          message: 'This endpoint requires either Vercel cron authentication or valid Bearer token'
+        },
         { status: 401 }
       );
     }

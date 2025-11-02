@@ -26,6 +26,8 @@ import type { DealScoreBreakdown } from '@/lib/flights/dealScore';
 import { dimensions, spacing, typography, colors } from '@/lib/design-system';
 import FareUpgradePanel from './FareUpgradePanel';
 import { ParsedFareRules } from '@/lib/utils/fareRuleParsers';
+import OvernightLayoverBadge from './OvernightLayoverBadge';
+import { getBestLayoverOpportunity } from '@/lib/utils/layoverDetector';
 
 interface Segment {
   departure: {
@@ -216,6 +218,9 @@ export function FlightCardEnhanced({
     : [primaryAirline];
 
   const hasMultipleAirlines = allAirlines.length > 1;
+
+  // Detect overnight layover opportunities for budget travelers
+  const overnightLayover = getBestLayoverOpportunity(itineraries[0]?.segments || []);
 
   // Get primary flight number (first segment) and strip airline code prefix
   const rawFlightNumber = itineraries[0]?.segments[0]?.number || '';
@@ -1108,6 +1113,13 @@ export function FlightCardEnhanced({
               compact={true}
             />
           </div>
+
+          {/* Overnight Layover Badge (STRATEGIC DIFFERENTIATOR) */}
+          {overnightLayover && (
+            <div className="flex-shrink-0">
+              <OvernightLayoverBadge layover={overnightLayover} variant="compact" />
+            </div>
+          )}
 
           {/* Flex spacer to push urgency signals to the right */}
           <div className="flex-1"></div>

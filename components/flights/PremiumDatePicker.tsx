@@ -449,7 +449,7 @@ export default function PremiumDatePicker({
         }`}
       >
         {/* Month header */}
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center justify-between mb-2 px-1">
           {index === 0 && (
             <button
               onClick={handlePreviousMonth}
@@ -482,11 +482,11 @@ export default function PremiumDatePicker({
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-0.5 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 mb-1.5">
           {DAYS_OF_WEEK.map((day) => (
             <div
               key={day}
-              className="text-center text-xs font-semibold text-gray-600 py-1.5"
+              className="text-center text-xs font-semibold text-gray-600 py-1"
             >
               {day}
             </div>
@@ -534,7 +534,7 @@ export default function PremiumDatePicker({
                   </span>
                   {day.price && day.isCurrentMonth && !day.isDisabled && (
                     <span
-                      className={`text-xs px-2.5 py-1 rounded-md font-medium tracking-normal ${
+                      className={`text-xs px-2 py-0.5 rounded-md font-medium tracking-normal ${
                         day.isSelected
                           ? 'bg-white/90 text-[#0087FF] shadow-sm'
                           : 'bg-slate-100 text-slate-700 border border-slate-200'
@@ -571,7 +571,7 @@ export default function PremiumDatePicker({
         className="bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 animate-in fade-in slide-in-from-top-1 duration-300 ease-out"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between p-2.5 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[#0087FF]" />
             <span className="font-semibold text-gray-900 text-sm">
@@ -589,29 +589,29 @@ export default function PremiumDatePicker({
 
         {/* Quick date shortcuts */}
         {type === 'range' && (
-          <div className="px-4 pt-3 pb-2 border-b border-gray-100">
+          <div className="px-3 pt-2.5 pb-1.5 border-b border-gray-100">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleQuickDate('weekend')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
               >
                 This Weekend
               </button>
               <button
                 onClick={() => handleQuickDate('nextWeek')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
               >
                 Next Week
               </button>
               <button
                 onClick={() => handleQuickDate('nextMonth')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
               >
                 Next Month
               </button>
               <button
                 onClick={() => handleQuickDate('flexible')}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+                className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300 hover:shadow-sm"
               >
                 Flexible (±3)
               </button>
@@ -620,9 +620,9 @@ export default function PremiumDatePicker({
         )}
 
         {/* Calendar grid */}
-        <div className="p-4">
+        <div className="p-3">
           {/* Desktop: side-by-side months */}
-          <div className="hidden md:grid md:grid-cols-2 md:gap-4">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-3">
             {renderMonth(currentMonth, 0)}
             {renderMonth(getNextMonth(currentMonth), 1)}
           </div>
@@ -634,7 +634,7 @@ export default function PremiumDatePicker({
 
           {/* Selection summary */}
           {(selectedDeparture || selectedReturn) && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="text-xs text-gray-600 mb-2">
                 {type === 'single' ? (
                   <div>
@@ -675,7 +675,7 @@ export default function PremiumDatePicker({
         </div>
 
         {/* Footer actions */}
-        <div className="flex items-center justify-between gap-2 p-3 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+        <div className="flex items-center justify-between gap-2 p-2.5 border-t border-gray-200 bg-gray-50 rounded-b-xl">
           <button
             onClick={handleClear}
             className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"

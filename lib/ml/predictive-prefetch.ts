@@ -263,16 +263,58 @@ export class PredictivePreFetcher {
 
   /**
    * Fetch route and cache results
+   * Calls internal flight search API to pre-cache popular routes
    */
   private async fetchRoute(candidate: PreFetchCandidate): Promise<void> {
-    // This will be implemented to call the actual flight search API
-    // For now, we'll just log it
-    console.log(`🔄 Pre-fetching ${candidate.route} for ${candidate.departureDate}`);
+    try {
+      // Determine base URL (works in both local and production)
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    // In production, this would:
-    // 1. Call flight search API
-    // 2. Cache results with appropriate TTL
-    // 3. Log to route profiler
+      console.log(`🔄 Pre-fetching ${candidate.route} for ${candidate.departureDate}...`);
+
+      // Call internal flight search API
+      const response = await fetch(`${baseUrl}/api/flights/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Prefetch-Source': 'ml-system', // Identify as background job
+          'User-Agent': 'Fly2Any-PreFetch/1.0'
+        },
+        body: JSON.stringify({
+          from: candidate.origin,
+          to: candidate.destination,
+          departure: candidate.departureDate,
+          return: candidate.returnDate,
+          adults: 1,
+          children: 0,
+          infants: 0,
+          class: candidate.cabinClass,
+          currencyCode: 'USD',
+          nonStop: false
+        }),
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      const flightCount = data.flights?.length || 0;
+      const lowestPrice = data.metadata?.lowestPrice;
+
+      console.log(`✅ Pre-fetched ${candidate.route}: ${flightCount} flights cached` +
+        (lowestPrice ? ` (lowest: $${lowestPrice})` : ''));
+
+      // Results automatically cached via existing cache system in /api/flights/search
+      // Calendar prices automatically populated via search-logger.ts
+
+    } catch (error) {
+      console.error(`❌ Pre-fetch failed for ${candidate.route}:`,
+        error instanceof Error ? error.message : 'Unknown error');
+      throw error; // Re-throw for error tracking in executePrefetch
+    }
   }
 
   /**

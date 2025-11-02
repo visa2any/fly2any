@@ -172,7 +172,7 @@ function getPopularityMultiplier(searches30d: number): SeasonalTTLConfig {
 /**
  * Calculate optimal TTL for calendar price cache
  *
- * Base TTL: 15 minutes (900 seconds)
+ * Base TTL: 1 hour (3600 seconds) - Extended for better calendar UX
  * Adjusted by multiple factors to optimize cache hit rate vs freshness
  */
 export function calculateOptimalTTL(
@@ -184,7 +184,7 @@ export function calculateOptimalTTL(
   factors: string[];
   finalMultiplier: number;
 } {
-  const BASE_TTL_SECONDS = 900; // 15 minutes
+  const BASE_TTL_SECONDS = 3600; // 1 hour (increased from 15min for calendar UX)
   const departure = new Date(departureDate);
 
   // Get all multipliers

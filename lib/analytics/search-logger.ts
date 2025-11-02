@@ -78,6 +78,57 @@ function generateFingerprint(userAgent?: string, accept?: string): string {
 }
 
 /**
+ * Resolve IP address to geolocation data
+ * Uses ipapi.co free tier (no API key required, 1000 requests/day)
+ */
+async function resolveGeolocation(ipAddress: string): Promise<{
+  country_code: string | null;
+  region: string | null;
+  timezone: string | null;
+} | null> {
+  try {
+    // Skip private/local IPs
+    if (ipAddress === '127.0.0.1' || ipAddress === 'localhost' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.')) {
+      console.log('🌍 Skipping geolocation for private IP');
+      return null;
+    }
+
+    // Call ipapi.co (free, no auth required)
+    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`, {
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+      headers: {
+        'User-Agent': 'Fly2Any-Analytics/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      console.warn(`Geolocation API returned ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Check for rate limit
+    if (data.error) {
+      console.warn('Geolocation API error:', data.reason || data.error);
+      return null;
+    }
+
+    console.log(`🌍 Resolved geolocation: ${ipAddress} → ${data.country_code} (${data.region}, ${data.timezone})`);
+
+    return {
+      country_code: data.country_code || data.country || null,
+      region: data.region || data.region_code || null,
+      timezone: data.timezone || null
+    };
+  } catch (error) {
+    // Fail silently - geolocation is nice-to-have, not critical
+    console.warn('Geolocation failed:', error instanceof Error ? error.message : 'Unknown error');
+    return null;
+  }
+}
+
+/**
  * Log flight search to Postgres
  */
 export async function logFlightSearch(
@@ -95,6 +146,13 @@ export async function logFlightSearch(
       search.userAgent,
       request?.headers.get('accept') || undefined
     );
+
+    // 🌍 TIER 1: Resolve IP to geolocation
+    let geoData = null;
+    if (search.ipAddress && !search.countryCode) {
+      // Only resolve if not already provided
+      geoData = await resolveGeolocation(search.ipAddress);
+    }
 
     // Insert search log
     const result = await sql`
@@ -153,9 +211,9 @@ export async function logFlightSearch(
         ${browserFingerprint},
         ${search.userAgent || null},
         ${search.referer || null},
-        ${search.countryCode || null},
-        ${search.region || null},
-        ${search.timezone || null}
+        ${search.countryCode || geoData?.country_code || null},
+        ${search.region || geoData?.region || null},
+        ${search.timezone || geoData?.timezone || null}
       )
       RETURNING id
     `;

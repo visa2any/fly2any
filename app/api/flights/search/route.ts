@@ -108,9 +108,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse comma-separated airport codes
+    // Parse comma-separated airport codes and extract clean 3-letter codes
     const parseAirportCodes = (codes: string): string[] => {
-      return codes.split(',').map((code: string) => code.trim().toUpperCase()).filter((code: string) => code.length > 0);
+      // Helper function to extract single airport code from various formats
+      const extractSingleCode = (value: string): string => {
+        const trimmed = value.trim();
+
+        // If already a 3-letter code, return as-is
+        if (/^[A-Z]{3}$/i.test(trimmed)) {
+          return trimmed.toUpperCase();
+        }
+
+        // Extract code from formats like "Miami (MIA)" or "MIA - Miami"
+        const codeMatch = trimmed.match(/\(([A-Z]{3})\)|^([A-Z]{3})\s*-/i);
+        if (codeMatch) {
+          return (codeMatch[1] || codeMatch[2]).toUpperCase();
+        }
+
+        // Return original if no pattern matches
+        return trimmed.toUpperCase();
+      };
+
+      // Split by comma and extract each code
+      return codes.split(',')
+        .map((code: string) => extractSingleCode(code))
+        .filter((code: string) => code.length > 0);
     };
 
     const originCodes = parseAirportCodes(origin);
@@ -938,6 +960,79 @@ export async function POST(request: NextRequest) {
         popularity: searches30d > 0 ? `${searches30d} searches/30d` : 'new route',
         factors: departureTTL.factors,
       });
+
+      // 🎯 ZERO-COST CALENDAR CROWDSOURCING V2
+      // Cache approximate prices for dates AROUND the search date to populate calendar
+      // This creates a "price window" so other users see prices when browsing dates
+      const CALENDAR_WINDOW_DAYS = 30; // ±30 days around search = 60 day window (DOUBLED for better UX!)
+      const APPROX_TTL_SECONDS = 7200; // 2 hours (long enough for users to browse calmly)
+
+      const searchDate = new Date(departureDate);
+      let cachedDatesCount = 0;
+
+      // Cache prices for dates before and after the search date
+      for (let offset = -CALENDAR_WINDOW_DAYS; offset <= CALENDAR_WINDOW_DAYS; offset++) {
+        if (offset === 0) continue; // Skip the exact search date (already cached above)
+
+        const calendarDate = new Date(searchDate);
+        calendarDate.setDate(searchDate.getDate() + offset);
+        const calendarDateStr = calendarDate.toISOString().split('T')[0];
+
+        // Skip dates in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (calendarDate < today) continue;
+
+        // Create approximate price data (using same price as search result)
+        const approxPriceData = {
+          price: lowestPrice,
+          currency: body.currencyCode || 'USD',
+          timestamp: new Date().toISOString(),
+          route: routeKey,
+          approximate: true, // Flag to indicate this is an approximation
+        };
+
+        const calendarPriceCacheKey = generateCacheKey('calendar-price', {
+          origin: originCodes[0],
+          destination: destinationCodes[0],
+          date: calendarDateStr,
+        });
+
+        // Cache with shorter TTL for approximated dates
+        await setCache(calendarPriceCacheKey, approxPriceData, APPROX_TTL_SECONDS);
+        cachedDatesCount++;
+
+        // Also cache reverse direction for round-trip calendar display
+        if (body.returnDate) {
+          const returnCalendarDate = new Date(body.returnDate);
+          returnCalendarDate.setDate(new Date(body.returnDate).getDate() + offset);
+          const returnCalendarDateStr = returnCalendarDate.toISOString().split('T')[0];
+
+          if (returnCalendarDate >= today) {
+            const reverseRouteKey = `${destinationCodes[0]}-${originCodes[0]}`;
+            const approxReturnPriceData = {
+              price: lowestPrice,
+              currency: body.currencyCode || 'USD',
+              timestamp: new Date().toISOString(),
+              route: reverseRouteKey,
+              approximate: true,
+            };
+
+            const returnCalendarPriceCacheKey = generateCacheKey('calendar-price', {
+              origin: destinationCodes[0],
+              destination: originCodes[0],
+              date: returnCalendarDateStr,
+            });
+
+            await setCache(returnCalendarPriceCacheKey, approxReturnPriceData, APPROX_TTL_SECONDS);
+            cachedDatesCount++;
+          }
+        }
+      }
+
+      console.log(`🎯 Zero-cost calendar crowdsourcing V2: Cached ${cachedDatesCount} approximate prices for ${routeKey}`);
+      console.log(`   📊 Coverage: ±${CALENDAR_WINDOW_DAYS} days (${CALENDAR_WINDOW_DAYS * 2}-day window)`);
+      console.log(`   ⏰ TTL: ${APPROX_TTL_SECONDS / 60} minutes (${APPROX_TTL_SECONDS / 3600} hours)`);
     }
 
     const searchLog: RouteSearchLog = {
