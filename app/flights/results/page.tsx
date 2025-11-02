@@ -1071,6 +1071,28 @@ function FlightResultsContent() {
     }
   }, [flights]);
 
+  // 👁️ Track search in "Recently Viewed" - NEW COMPREHENSIVE TRACKING
+  useEffect(() => {
+    if (flights.length > 0 && searchData.from && searchData.to) {
+      // Dynamically import tracking function (client-side only)
+      import('@/lib/hooks/useFavorites').then(({ trackFlightSearch }) => {
+        // Get cheapest flight price
+        const cheapestPrice = Math.min(...flights.map(f => {
+          const price = typeof f.price.total === 'string' ? parseFloat(f.price.total) : f.price.total;
+          return price;
+        }));
+
+        trackFlightSearch({
+          from: searchData.from,
+          to: searchData.to,
+          price: cheapestPrice,
+          departureDate: searchData.departure,
+          returnDate: searchData.return,
+        });
+      });
+    }
+  }, [flights, searchData.from, searchData.to, searchData.departure]);
+
   const segmentUser = async () => {
     try {
       const tripLength = searchData.return
