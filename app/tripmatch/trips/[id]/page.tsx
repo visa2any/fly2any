@@ -421,11 +421,11 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
                       className="bg-white/5 rounded-xl p-4 flex items-center gap-3 border border-white/10"
                     >
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold">
-                        {member.userName.charAt(0)}
+                        {member.userName?.charAt(0) || '?'}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-white">{member.userName}</p>
+                          <p className="font-bold text-white">{member.userName || 'Unknown'}</p>
                           {member.role === 'creator' && <Crown className="w-4 h-4 text-yellow-400" />}
                           {member.role === 'admin' && <Shield className="w-4 h-4 text-purple-400" />}
                         </div>
