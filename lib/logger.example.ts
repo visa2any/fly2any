@@ -507,7 +507,7 @@ export function handleWebSocketConnection(socket: any, userId: string) {
 
 // Mock implementations for examples
 const redis = {
-  get: async (key: string) => null,
+  get: async (key: string): Promise<string | null> => null,
   set: async (key: string, value: string, ...args: any[]) => {},
   incr: async (key: string) => 1,
   expire: async (key: string, seconds: number) => {}
@@ -538,7 +538,7 @@ const emailService = {
   send: async (data: any) => ({ messageId: 'msg_123' })
 };
 
-async function findAbandonedCarts() {
+async function findAbandonedCarts(): Promise<any[]> {
   return [];
 }
 

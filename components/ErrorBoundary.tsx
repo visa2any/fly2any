@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to monitoring service
     const errorId = logError(error, {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack || undefined,
       context: this.props.context,
     });
 
@@ -344,7 +344,7 @@ function SectionError({
         <p className="text-gray-600 mb-6">
           {context
             ? `We're having trouble loading the ${context.replace(/-/g, ' ')} section.`
-            : 'We're having trouble loading this section. Please try again.'}
+            : "We're having trouble loading this section. Please try again."}
         </p>
 
         {/* Error ID */}
