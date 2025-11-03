@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Header, type Language } from './Header';
 import { Footer } from '../home/Footer';
+import { BottomTabBar } from '@/components/mobile/BottomTabBar';
+import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
+import { headerTranslations } from './Header';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -89,6 +92,7 @@ const footerContent = {
  */
 export function GlobalLayout({ children }: GlobalLayoutProps) {
   const [language, setLanguage] = useState<Language>('en');
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Load language from localStorage on mount
   useEffect(() => {
@@ -104,6 +108,11 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
     localStorage.setItem('fly2any_language', lang);
   };
 
+  // Handle "More" tab click from bottom bar
+  const handleMoreClick = () => {
+    setMobileDrawerOpen(true);
+  };
+
   return (
     <>
       {/* Global Header */}
@@ -113,13 +122,37 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
         showAuth={true}
       />
 
-      {/* Main Content */}
-      <main id="main-content" className="min-h-screen" tabIndex={-1}>
+      {/* Main Content - Add padding-bottom for mobile bottom bar */}
+      <main
+        id="main-content"
+        className="min-h-screen pb-20 md:pb-0"
+        tabIndex={-1}
+        style={{
+          // Ensure content doesn't get hidden behind bottom bar
+          // 64px + safe-area-inset-bottom on mobile, 0 on desktop
+          paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {children}
       </main>
 
       {/* Global Footer */}
       <Footer content={footerContent[language]} />
+
+      {/* Mobile Bottom Tab Bar */}
+      <BottomTabBar
+        translations={headerTranslations[language]}
+        onMoreClick={handleMoreClick}
+      />
+
+      {/* Mobile Navigation Drawer (triggered from "More" tab) */}
+      <NavigationDrawer
+        isOpen={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        language={language}
+        onLanguageChange={handleLanguageChange}
+        translations={headerTranslations[language]}
+      />
     </>
   );
 }

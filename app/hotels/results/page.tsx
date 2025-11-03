@@ -9,6 +9,7 @@ import ScrollToTop from '@/components/flights/ScrollToTop';
 import type { MockHotel } from '@/lib/mock-data/hotels';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clock, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -265,6 +266,9 @@ function HotelResultsContent() {
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Mobile filter sheet state
+  const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
+
   // Filters state
   const [filters, setFilters] = useState<HotelFiltersType>({
     priceRange: [0, 1000],
@@ -453,11 +457,11 @@ function HotelResultsContent() {
       </div>
 
       {/* Main Content Area - MATCHES GLOBAL HEADER WIDTH */}
-      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div style={{ maxWidth: '1600px', margin: '0 auto' }} className="p-3 md:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4">
 
-          {/* Left Sidebar - Filters (Reduced width by 30%) */}
-          <aside className="lg:col-span-2">
+          {/* Left Sidebar - Filters (Reduced width by 30%) - Hidden on mobile */}
+          <aside className="hidden lg:block lg:col-span-2">
             <div className="lg:sticky lg:top-20">
               <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 overflow-hidden">
                 <HotelFilters
@@ -473,12 +477,12 @@ function HotelResultsContent() {
           {/* Main Content - Hotel Results (Further expanded) */}
           <main className="lg:col-span-8">
             {/* Sort Tabs - WORLD-CLASS HORIZONTAL PILLS (Airbnb/Booking.com style) */}
-            <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-slate-700 mr-0.5">Sort:</span>
 
-                {/* Horizontal Pills Container - COMPACT FOR 7 PILLS IN ONE LINE */}
-                <div className="flex items-center gap-1.5 flex-nowrap">
+                {/* Horizontal Pills Container - RESPONSIVE WRAPPING FOR MOBILE */}
+                <div className="flex items-center gap-1.5 flex-wrap md:flex-nowrap">
                   {/* Best Value Pill */}
                   <button
                     onClick={() => setSortBy('best')}
@@ -576,7 +580,7 @@ function HotelResultsContent() {
 
             {/* Active Filters Badge */}
             {activeFilterCount > 0 && (
-              <div className="mb-4 flex items-center justify-between px-4 py-2.5 bg-orange-50/60 border border-orange-200/70 rounded-lg">
+              <div className="mb-2 md:mb-4 flex items-center justify-between px-3 md:px-4 py-2 md:py-2.5 bg-orange-50/60 border border-orange-200/70 rounded-lg">
                 <span className="text-sm font-medium text-orange-800 leading-relaxed">
                   {t.filtersActive.replace('{count}', activeFilterCount.toString())}
                 </span>
@@ -617,7 +621,7 @@ function HotelResultsContent() {
 
             {/* Load More Button */}
             {displayCount < sortedHotels.length && (
-              <div className="mt-8 text-center">
+              <div className="mt-4 md:mt-8 text-center">
                 <button
                   onClick={handleLoadMore}
                   className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-50/95 backdrop-blur-lg hover:bg-white/95 border-2 border-orange-200/70 hover:border-orange-400 text-orange-700 hover:text-orange-800 font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
@@ -665,14 +669,14 @@ function HotelResultsContent() {
 
           {/* Right Sidebar - Insights (Reduced width by 20%) */}
           <aside className="lg:col-span-2">
-            <div className="lg:sticky lg:top-20 space-y-4">
+            <div className="lg:sticky lg:top-20 space-y-2 md:space-y-4">
               {/* Price Insights */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2 leading-tight">
+              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
+                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 flex items-center gap-2 leading-tight">
                   <Sparkles className="w-4 h-4 text-orange-600" />
                   {t.priceInsights}
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600 leading-relaxed">{t.avgPrice}</span>
                     <span className="text-xl font-bold text-orange-600 tracking-tight">${Math.round(avgPrice)}</span>
@@ -686,8 +690,8 @@ function HotelResultsContent() {
 
               {/* Deal Alert */}
               {sortedHotels.some(h => h.booking_stats.popular_choice) && (
-                <div className="bg-gradient-to-r from-green-50/80 to-emerald-50/80 border-2 border-green-200/70 rounded-2xl p-5">
-                  <h3 className="text-base font-semibold text-green-900 mb-2 flex items-center gap-2 leading-tight">
+                <div className="bg-gradient-to-r from-green-50/80 to-emerald-50/80 border-2 border-green-200/70 rounded-2xl p-3 md:p-5">
+                  <h3 className="text-base font-semibold text-green-900 mb-1.5 md:mb-2 flex items-center gap-2 leading-tight">
                     <TrendingUp className="w-4 h-4" />
                     {t.dealAlert}
                   </h3>
@@ -698,12 +702,12 @@ function HotelResultsContent() {
               )}
 
               {/* Popular Right Now */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2 leading-tight">
+              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
+                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 flex items-center gap-2 leading-tight">
                   <Users className="w-4 h-4 text-orange-600" />
                   Popular Right Now
                 </h3>
-                <div className="space-y-2.5">
+                <div className="space-y-1.5 md:space-y-2.5">
                   {sortedHotels.slice(0, 3).map((hotel, idx) => (
                     <div key={hotel.id} className="flex items-center gap-2">
                       <span className="font-bold text-orange-600 text-sm">#{idx + 1}</span>
@@ -714,8 +718,8 @@ function HotelResultsContent() {
               </div>
 
               {/* Trending Amenities */}
-              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-5">
-                <h3 className="text-base font-semibold text-slate-900 mb-3 leading-tight">{t.popularAmenities}</h3>
+              <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 p-3 md:p-5">
+                <h3 className="text-base font-semibold text-slate-900 mb-2 md:mb-3 leading-tight">{t.popularAmenities}</h3>
                 <div className="flex flex-wrap gap-2">
                   {['WiFi', 'Pool', 'Gym', 'Parking'].map((amenity) => (
                     <span key={amenity} className="px-3 py-1.5 bg-orange-50/80 text-orange-700 rounded-full text-sm font-medium leading-relaxed">
@@ -731,6 +735,43 @@ function HotelResultsContent() {
 
       {/* Scroll to Top */}
       <ScrollToTop />
+
+      {/* Mobile Filter Button - Shows on <lg screens */}
+      <div className="lg:hidden">
+        <FilterButton
+          onClick={() => setMobileFilterSheetOpen(true)}
+          activeFilterCount={activeFilterCount}
+          label="Filters"
+        />
+      </div>
+
+      {/* Mobile Filter Sheet - Bottom sheet on mobile */}
+      <MobileFilterSheet
+        isOpen={mobileFilterSheetOpen}
+        onClose={() => setMobileFilterSheetOpen(false)}
+        onApply={() => setMobileFilterSheetOpen(false)}
+        onClear={() => {
+          setFilters({
+            priceRange: [0, 1000],
+            starRating: [],
+            guestRating: 0,
+            amenities: [],
+            mealPlans: [],
+            propertyTypes: [],
+            cancellationPolicy: [],
+          });
+        }}
+        resultCount={sortedHotels.length}
+        activeFilterCount={activeFilterCount}
+        title="Hotel Filters"
+      >
+        <HotelFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          hotels={hotels}
+          lang={lang}
+        />
+      </MobileFilterSheet>
     </div>
   );
 }

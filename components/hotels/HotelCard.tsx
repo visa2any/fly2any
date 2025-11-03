@@ -186,22 +186,22 @@ export function HotelCard({
           <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
             <button
               onClick={handleFavorite}
-              className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+              className={`p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full backdrop-blur-md transition-all ${
                 isFavorited
                   ? 'bg-red-500 text-white'
                   : 'bg-white/90 text-slate-600 hover:bg-red-50 hover:text-red-500'
               }`}
               title="Save to favorites"
             >
-              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+              <Heart className={`w-5 h-5 md:w-4 md:h-4 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
 
             <button
               onClick={handleShare}
-              className="p-1.5 rounded-full backdrop-blur-md transition-all bg-white/90 text-slate-600 hover:bg-blue-50 hover:text-blue-600"
+              className="p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full backdrop-blur-md transition-all bg-white/90 text-slate-600 hover:bg-blue-50 hover:text-blue-600"
               title="Share this hotel"
             >
-              <Share2 className="w-3.5 h-3.5" />
+              <Share2 className="w-5 h-5 md:w-4 md:h-4" />
             </button>
           </div>
 
@@ -217,15 +217,15 @@ export function HotelCard({
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute left-1.5 top-1/2 -translate-y-1/2 p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-5 h-5 md:w-4 md:h-4" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5 md:w-4 md:h-4" />
               </button>
 
               {/* Image Indicators */}

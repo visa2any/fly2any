@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { zIndex } from '@/lib/design-system';
 import { MaxWidthContainer } from './MaxWidthContainer';
+import { HamburgerMenu } from '@/components/mobile/HamburgerMenu';
+import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 
 // Language type
 export type Language = 'en' | 'pt' | 'es';
@@ -102,6 +104,7 @@ export function Header({
 }: HeaderProps) {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Use provided translations or defaults
   const t = translations || headerTranslations[language];
@@ -156,26 +159,33 @@ export function Header({
   };
 
   return (
-    <header
-      className={`sticky top-0 z-fixed transition-all duration-300 ${className}`}
-      style={{
-        background: scrolled
-          ? 'rgba(255, 255, 255, 0.95)'
-          : 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(12px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        borderBottom: scrolled
-          ? '1px solid rgba(0, 0, 0, 0.12)'
-          : '1px solid rgba(0, 0, 0, 0.08)',
-        boxShadow: scrolled
-          ? '0 2px 12px rgba(0, 0, 0, 0.08)'
-          : '0 1px 4px rgba(0, 0, 0, 0.04)',
-      }}
-    >
-      <MaxWidthContainer noPadding style={{ padding: '0 24px' }}>
-        <div className="flex items-center justify-between h-20">
-          {/* Logo with Enhanced Visibility - Multi-layered shadows + subtle background */}
-          <a href="/" className="flex items-center group">
+    <>
+      <header
+        className={`sticky top-0 z-fixed transition-all duration-300 ${className}`}
+        style={{
+          background: scrolled
+            ? 'rgba(255, 255, 255, 0.95)'
+            : 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+          borderBottom: scrolled
+            ? '1px solid rgba(0, 0, 0, 0.12)'
+            : '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: scrolled
+            ? '0 2px 12px rgba(0, 0, 0, 0.08)'
+            : '0 1px 4px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        <MaxWidthContainer noPadding style={{ padding: '0 24px' }}>
+          <div className="flex items-center justify-between h-20">
+            {/* Hamburger Menu (Mobile Only) */}
+            <HamburgerMenu
+              isOpen={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            />
+
+            {/* Logo with Enhanced Visibility - Multi-layered shadows + subtle background */}
+            <a href="/" className="flex items-center group">
             <div
               className="relative transition-all duration-300 group-hover:scale-105 px-3 py-2 rounded-xl"
               style={{
@@ -348,6 +358,19 @@ export function Header({
         </div>
       </MaxWidthContainer>
     </header>
+
+    {/* Mobile Navigation Drawer */}
+    <NavigationDrawer
+      isOpen={mobileMenuOpen}
+      onClose={() => setMobileMenuOpen(false)}
+      language={language}
+      onLanguageChange={onLanguageChange || (() => {})}
+      translations={t}
+      onSignIn={onSignIn}
+      onSignUp={onSignUp}
+      logoUrl={logoUrl}
+    />
+    </>
   );
 }
 

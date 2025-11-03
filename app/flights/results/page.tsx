@@ -18,6 +18,7 @@ import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkel
 // import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
+import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 // import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
 import InlineFlightLoading from '@/components/flights/InlineFlightLoading';
@@ -554,6 +555,9 @@ function FlightResultsContent() {
 
   // Search bar collapse state - auto-collapse when results load
   const [searchBarCollapsed, setSearchBarCollapsed] = useState(false);
+
+  // Mobile filter sheet state
+  const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
 
   // Extract search parameters
   const searchData: SearchParams = {
@@ -1327,13 +1331,12 @@ function FlightResultsContent() {
 
         {/* Main Content Area - 3 COLUMN LAYOUT */}
         <div
-          className="mx-auto"
+          className="mx-auto p-3 md:p-6"
           style={{
             maxWidth: layout.container.maxWidth,
-            padding: layout.container.padding.desktop,
           }}
         >
-          <div className="flex flex-col lg:flex-row" style={{ gap: layout.results.gap, paddingTop: '24px', paddingBottom: '24px' }}>
+          <div className="flex flex-col lg:flex-row gap-3 md:gap-6 pt-3 pb-3 md:pt-6 md:pb-6">
 
             {/* Left Sidebar - Filters VISIBLE during loading */}
             <aside className="hidden lg:block" style={{ width: '250px', flexShrink: 0 }}>
@@ -1520,13 +1523,12 @@ function FlightResultsContent() {
 
       {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
       <div
-        className="mx-auto"
+        className="mx-auto p-3 md:p-6"
         style={{
           maxWidth: layout.container.maxWidth,
-          padding: layout.container.padding.desktop,
         }}
       >
-        <div className="flex flex-col lg:flex-row" style={{ gap: layout.results.gap, paddingTop: '24px', paddingBottom: '24px' }}>
+        <div className="flex flex-col lg:flex-row gap-3 md:gap-6 pt-3 pb-3 md:pt-6 md:pb-6">
 
           {/* Left Sidebar - Filters (Fixed 250px) */}
           <aside className="hidden lg:block" style={{ width: '250px', flexShrink: 0 }}>
@@ -1556,7 +1558,7 @@ function FlightResultsContent() {
             />
 
             {/* Flight Cards List - ALL RESULTS CONTINUOUSLY (No widgets interruption) */}
-            <div className="space-y-4">
+            <div className="space-y-2 md:space-y-4">
               {displayedFlights.map((flight, index) => {
                 const flightId = flight.id || `flight-${index}`;
                 return (
@@ -1604,7 +1606,7 @@ function FlightResultsContent() {
 
             {/* Load More Button */}
             {displayCount < sortedFlights.length && (
-              <div className="mt-8 text-center">
+              <div className="mt-4 md:mt-8 text-center">
                 <button
                   onClick={handleLoadMore}
                   className="inline-flex items-center gap-2 px-8 py-4 bg-white/90 backdrop-blur-lg hover:bg-white border-2 border-primary-200 hover:border-primary-400 text-primary-600 hover:text-primary-700 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -1661,7 +1663,7 @@ function FlightResultsContent() {
 
           {/* Right Sidebar - Price Insights & SmartWait (Fixed 320px) */}
           <aside className="hidden lg:block" style={{ width: '320px', flexShrink: 0 }}>
-            <div className="sticky top-24 space-y-4">
+            <div className="sticky top-24 space-y-2 md:space-y-4">
               {/* Live Activity Feed - Conversion Feature */}
               {featureFlags.isEnabled('liveActivityFeed') && (
                 <LiveActivityFeed
@@ -1771,6 +1773,77 @@ function FlightResultsContent() {
           }}
         />
       )}
+
+      {/* Mobile Filter Button - Shows on <lg screens */}
+      <div className="lg:hidden">
+        <FilterButton
+          onClick={() => setMobileFilterSheetOpen(true)}
+          activeFilterCount={
+            (filters.stops.length > 0 ? 1 : 0) +
+            (filters.airlines.length > 0 ? 1 : 0) +
+            (filters.departureTime.length > 0 ? 1 : 0) +
+            (filters.excludeBasicEconomy ? 1 : 0) +
+            (filters.cabinClass.length > 0 ? 1 : 0) +
+            (filters.baggageIncluded ? 1 : 0) +
+            (filters.refundableOnly ? 1 : 0) +
+            (filters.alliances.length > 0 ? 1 : 0) +
+            (filters.connectionQuality.length > 0 ? 1 : 0) +
+            (filters.maxDuration < 24 ? 1 : 0) +
+            (filters.maxLayoverDuration < 360 ? 1 : 0) +
+            (filters.maxCO2Emissions < 500 ? 1 : 0)
+          }
+        />
+      </div>
+
+      {/* Mobile Filter Sheet - Bottom sheet on mobile */}
+      <MobileFilterSheet
+        isOpen={mobileFilterSheetOpen}
+        onClose={() => setMobileFilterSheetOpen(false)}
+        onApply={() => setMobileFilterSheetOpen(false)}
+        onClear={() => {
+          setFilters({
+            priceRange: [0, 10000],
+            stops: [],
+            airlines: [],
+            departureTime: [],
+            maxDuration: 24,
+            excludeBasicEconomy: false,
+            cabinClass: [],
+            baggageIncluded: false,
+            refundableOnly: false,
+            maxLayoverDuration: 360,
+            alliances: [],
+            aircraftTypes: [],
+            maxCO2Emissions: 500,
+            connectionQuality: [],
+            ndcOnly: false,
+            showExclusiveFares: false,
+          });
+        }}
+        resultCount={sortedFlights.length}
+        activeFilterCount={
+          (filters.stops.length > 0 ? 1 : 0) +
+          (filters.airlines.length > 0 ? 1 : 0) +
+          (filters.departureTime.length > 0 ? 1 : 0) +
+          (filters.excludeBasicEconomy ? 1 : 0) +
+          (filters.cabinClass.length > 0 ? 1 : 0) +
+          (filters.baggageIncluded ? 1 : 0) +
+          (filters.refundableOnly ? 1 : 0) +
+          (filters.alliances.length > 0 ? 1 : 0) +
+          (filters.connectionQuality.length > 0 ? 1 : 0) +
+          (filters.maxDuration < 24 ? 1 : 0) +
+          (filters.maxLayoverDuration < 360 ? 1 : 0) +
+          (filters.maxCO2Emissions < 500 ? 1 : 0)
+        }
+        title="Flight Filters"
+      >
+        <FlightFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          flightData={flights}
+          lang={lang}
+        />
+      </MobileFilterSheet>
     </div>
   );
 }

@@ -367,10 +367,10 @@ export const FlightCard: React.FC<FlightCardProps> = ({
       <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-transparent to-primary-50/20 pointer-events-none" />
 
       {/* Content Container */}
-      <div className="relative p-6">
+      <div className="relative p-3 md:p-6">
 
         {/* Header: Badges & Airline */}
-        <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-start justify-between mb-3 md:mb-4 flex-wrap gap-2">
           <div className="flex flex-wrap gap-2">
             {badges.map((badge, idx) => (
               <Badge key={idx} type={badge} lang={lang} />
@@ -397,7 +397,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
         </div>
 
         {/* Main Flight Information */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6 mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6 mb-3 md:mb-4">
 
           {/* Departure Info */}
           <div className="text-center lg:text-left">
@@ -506,7 +506,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
         </div>
 
         {/* Price & Actions Section */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t-2 border-gray-100">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 pt-3 md:pt-4 border-t-2 border-gray-100">
 
           {/* Price Information */}
           <div className="text-center sm:text-left">
@@ -548,7 +548,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
                 bg-gradient-to-r from-primary-600 to-primary-500
                 hover:from-primary-700 hover:to-primary-600
                 text-white font-bold
-                py-4 px-6
+                py-3 md:py-4 px-6
                 rounded-xl
                 shadow-lg hover:shadow-primary
                 transition-all duration-300
@@ -576,6 +576,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
                 text-primary-600 hover:text-primary-700
                 font-semibold
                 py-3 px-6
+                min-h-[44px]
                 rounded-xl
                 border-2 border-primary-200 hover:border-primary-300
                 transition-all duration-300
@@ -604,7 +605,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
               {outbound.segments.map((segment, idx) => (
                 <div
                   key={idx}
-                  className="bg-gray-50 rounded-lg p-4 text-sm"
+                  className="bg-gray-50 rounded-lg p-3 md:p-4 text-sm"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-gray-900">

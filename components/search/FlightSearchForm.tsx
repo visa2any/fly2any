@@ -382,8 +382,8 @@ export default function FlightSearchForm({
   };
 
   return (
-    <div className={`bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-6 md:p-8 ${className}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className={`bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-4 md:p-8 ${className}`}>
+      <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
         {/* Trip Type Toggle */}
         <div className="flex gap-3 p-1 bg-gray-100 rounded-2xl">
           <button
@@ -413,7 +413,7 @@ export default function FlightSearchForm({
         </div>
 
         {/* Origin and Destination */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-3 md:gap-4">
           {/* Origin */}
           <div>
             <MultiAirportSelector
@@ -464,7 +464,7 @@ export default function FlightSearchForm({
         </div>
 
         {/* Dates */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-3 md:gap-4">
           {/* Departure Date with Multi-Date Toggle */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -517,7 +517,7 @@ export default function FlightSearchForm({
                         setErrors(newErrors);
                       }
                     }}
-                    className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
+                    className={`w-full pl-12 pr-4 py-3 md:py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
                       errors.departureDate ? 'border-red-500' : 'border-gray-300'
                     }`}
                     aria-label={t.departure}
@@ -589,7 +589,7 @@ export default function FlightSearchForm({
                       setErrors(newErrors);
                     }
                   }}
-                  className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
+                  className={`w-full pl-12 pr-4 py-3 md:py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
                     errors.returnDate ? 'border-red-500' : 'border-gray-300'
                   }`}
                   aria-label={t.return}
@@ -611,7 +611,7 @@ export default function FlightSearchForm({
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t.tripDuration}
             </label>
-            <div className="flex items-center gap-2 bg-white border-2 border-gray-300 rounded-xl px-4 py-4 hover:border-blue-500 transition-all">
+            <div className="flex items-center gap-2 bg-white border-2 border-gray-300 rounded-xl px-3 md:px-4 py-3 md:py-4 hover:border-blue-500 transition-all">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, tripDuration: Math.max(1, formData.tripDuration - 1) })}
@@ -663,7 +663,7 @@ export default function FlightSearchForm({
                 setTempClass(formData.travelClass);
               }
             }}
-            className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left flex items-center justify-between bg-white hover:border-gray-400"
+            className="w-full pl-12 pr-4 py-3 md:py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left flex items-center justify-between bg-white hover:border-gray-400"
             aria-label={t.passengers}
             aria-expanded={isPassengerDropdownOpen}
           >
@@ -683,9 +683,9 @@ export default function FlightSearchForm({
 
           {/* Passenger Dropdown */}
           {isPassengerDropdownOpen && (
-            <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-6 w-full md:w-96">
+            <div className="absolute z-50 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-2xl p-4 md:p-6 w-full md:w-96">
               {/* Passenger Counts */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
                 {/* Adults */}
                 <div className="flex items-center justify-between">
                   <div>
@@ -781,7 +781,7 @@ export default function FlightSearchForm({
               </div>
 
               {/* Travel Class */}
-              <div className="border-t border-gray-200 pt-6 mb-6">
+              <div className="border-t border-gray-200 pt-4 md:pt-6 mb-4 md:mb-6">
                 <div className="font-semibold text-gray-900 mb-3">Travel Class</div>
                 <div className="space-y-2">
                   {(['economy', 'premium', 'business', 'first'] as TravelClass[]).map((classType) => (
@@ -845,7 +845,7 @@ export default function FlightSearchForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 md:py-4 px-6 md:px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
           aria-label={t.search}
         >
           {isLoading ? (
