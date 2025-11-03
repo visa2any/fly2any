@@ -10,6 +10,7 @@ import type { MockHotel } from '@/lib/mock-data/hotels';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clock, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -42,6 +43,8 @@ const translations = {
     loadMore: 'Load More Hotels',
     loading: 'Loading...',
     showingResults: 'Showing {count} of {total} hotels',
+    loadingMore: 'Loading more hotels...',
+    allResultsLoaded: 'All {total} hotels loaded',
     filtersActive: '{count} filters active',
     clearFilters: 'Clear all filters',
     bestDeals: 'Best Deals',
@@ -75,6 +78,8 @@ const translations = {
     loadMore: 'Carregar Mais Hotéis',
     loading: 'Carregando...',
     showingResults: 'Mostrando {count} de {total} hotéis',
+    loadingMore: 'Carregando mais hotéis...',
+    allResultsLoaded: 'Todos os {total} hotéis carregados',
     filtersActive: '{count} filtros ativos',
     clearFilters: 'Limpar filtros',
     bestDeals: 'Melhores Ofertas',
@@ -106,6 +111,8 @@ const translations = {
     loadMore: 'Cargar Más Hoteles',
     loading: 'Cargando...',
     showingResults: 'Mostrando {count} de {total} hoteles',
+    loadingMore: 'Cargando más hoteles...',
+    allResultsLoaded: 'Todos los {total} hoteles cargados',
     filtersActive: '{count} filtros activos',
     clearFilters: 'Limpiar filtros',
     bestDeals: 'Mejores Ofertas',
@@ -358,6 +365,14 @@ function HotelResultsContent() {
   const handleLoadMore = () => {
     setDisplayCount(prev => Math.min(prev + 20, sortedHotels.length));
   };
+
+  // Infinite scroll hook - auto-loads more hotels when user scrolls near bottom
+  const loadMoreRef = useInfiniteScroll(
+    handleLoadMore,
+    displayCount < sortedHotels.length,
+    0.8, // Trigger at 80% scroll
+    '200px' // Load 200px before reaching sentinel
+  );
 
   const handleSelectHotel = (hotelId: string, rateId: string) => {
     setSelectedHotelId(hotelId);
@@ -619,21 +634,39 @@ function HotelResultsContent() {
               ))}
             </div>
 
-            {/* Load More Button */}
+            {/* Infinite Scroll Sentinel & Loading Indicator */}
             {displayCount < sortedHotels.length && (
-              <div className="mt-4 md:mt-8 text-center">
-                <button
-                  onClick={handleLoadMore}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-50/95 backdrop-blur-lg hover:bg-white/95 border-2 border-orange-200/70 hover:border-orange-400 text-orange-700 hover:text-orange-800 font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
-                >
-                  <span>{t.loadMore}</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                <p className="text-sm text-slate-600 mt-3 leading-relaxed">
-                  {t.showingResults
-                    .replace('{count}', displayCount.toString())
-                    .replace('{total}', sortedHotels.length.toString())}
-                </p>
+              <div
+                ref={loadMoreRef}
+                className="mt-6 md:mt-8 text-center"
+                role="status"
+                aria-live="polite"
+                aria-label={t.loadingMore}
+              >
+                <div className="flex flex-col items-center justify-center py-6 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-sm text-slate-600 font-medium">
+                    {t.loadingMore}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* All Results Loaded Message */}
+            {displayCount >= sortedHotels.length && sortedHotels.length > 20 && (
+              <div className="mt-6 md:mt-8 text-center py-6">
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 rounded-xl">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm font-medium">
+                    {t.allResultsLoaded.replace('{total}', sortedHotels.length.toString())}
+                  </span>
+                </div>
               </div>
             )}
 

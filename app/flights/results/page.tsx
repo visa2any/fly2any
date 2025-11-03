@@ -39,6 +39,7 @@ import { featureFlags } from '@/lib/feature-flags';
 import { trackConversion } from '@/lib/conversion-metrics';
 import { abTestManager } from '@/lib/ab-testing/test-manager';
 import { analyticsTracker } from '@/lib/ab-testing/analytics-tracker';
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -83,6 +84,8 @@ const translations = {
     loadMore: 'Load More Flights',
     loading: 'Loading...',
     showingResults: 'Showing {count} of {total} flights',
+    loadingMore: 'Loading more flights...',
+    allResultsLoaded: 'All {total} flights loaded',
   },
   pt: {
     modifySearch: 'Modificar Busca',
@@ -97,6 +100,8 @@ const translations = {
     loadMore: 'Carregar Mais Voos',
     loading: 'Carregando...',
     showingResults: 'Mostrando {count} de {total} voos',
+    loadingMore: 'Carregando mais voos...',
+    allResultsLoaded: 'Todos os {total} voos carregados',
   },
   es: {
     modifySearch: 'Modificar Búsqueda',
@@ -111,6 +116,8 @@ const translations = {
     loadMore: 'Cargar Más Vuelos',
     loading: 'Cargando...',
     showingResults: 'Mostrando {count} de {total} vuelos',
+    loadingMore: 'Cargando más vuelos...',
+    allResultsLoaded: 'Todos los {total} vuelos cargados',
   },
 };
 
@@ -1205,6 +1212,14 @@ function FlightResultsContent() {
     window.location.reload();
   };
 
+  // Infinite scroll hook - auto-loads more flights when user scrolls near bottom
+  const loadMoreRef = useInfiniteScroll(
+    handleLoadMore,
+    displayCount < sortedFlights.length,
+    0.8, // Trigger at 80% scroll
+    '200px' // Load 200px before reaching sentinel
+  );
+
   // Note: handleExpandSearchBar removed - now handled by CollapsibleSearchBar component
 
   const [isNavigating, setIsNavigating] = useState(false);
@@ -1608,21 +1623,39 @@ function FlightResultsContent() {
 
             {/* Widgets removed per user request - flight cards now display continuously */}
 
-            {/* Load More Button */}
+            {/* Infinite Scroll Sentinel & Loading Indicator */}
             {displayCount < sortedFlights.length && (
-              <div className="mt-4 md:mt-8 text-center">
-                <button
-                  onClick={handleLoadMore}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/90 backdrop-blur-lg hover:bg-white border-2 border-primary-200 hover:border-primary-400 text-primary-600 hover:text-primary-700 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                >
-                  <span>{t.loadMore}</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                <p className="text-sm text-gray-600 mt-3">
-                  {t.showingResults
-                    .replace('{count}', displayCount.toString())
-                    .replace('{total}', sortedFlights.length.toString())}
-                </p>
+              <div
+                ref={loadMoreRef}
+                className="mt-6 md:mt-8 text-center"
+                role="status"
+                aria-live="polite"
+                aria-label={t.loadingMore}
+              >
+                <div className="flex flex-col items-center justify-center py-6 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-sm text-gray-600 font-medium">
+                    {t.loadingMore}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* All Results Loaded Message */}
+            {displayCount >= sortedFlights.length && sortedFlights.length > 20 && (
+              <div className="mt-6 md:mt-8 text-center py-6">
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 rounded-xl">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm font-medium">
+                    {t.allResultsLoaded.replace('{total}', sortedFlights.length.toString())}
+                  </span>
+                </div>
               </div>
             )}
 
