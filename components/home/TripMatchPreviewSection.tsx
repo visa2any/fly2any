@@ -146,21 +146,16 @@ function calculateCreatorCredits(memberCount: number): number {
   return Math.floor(memberCount * basePerMember * multiplier);
 }
 
-// Generate diverse, realistic profile avatars using DiceBear API
+// Generate realistic human profile pictures
 function generateAvatars(count: number): string[] {
-  const avatarStyles = ['avataaars', 'bottts', 'personas', 'avataaars-neutral', 'big-smile'];
-  const seeds = [
-    'Sarah', 'John', 'Emma', 'Michael', 'Olivia', 'James', 'Sophia', 'William',
-    'Ava', 'David', 'Isabella', 'Robert', 'Mia', 'Daniel', 'Charlotte', 'Joseph',
-    'Amelia', 'Thomas', 'Harper', 'Christopher', 'Evelyn', 'Matthew', 'Abigail',
-    'Maria', 'Carlos', 'Ana', 'Luis', 'Sofia', 'Diego', 'Camila', 'Juan',
-  ];
-
+  // Use realistic human face photos from randomuser.me
+  const genders = ['men', 'women'];
   const avatars: string[] = [];
+
   for (let i = 0; i < count; i++) {
-    const style = avatarStyles[i % avatarStyles.length];
-    const seed = seeds[i % seeds.length] + i; // Add index for uniqueness
-    avatars.push(`https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`);
+    const gender = genders[i % 2]; // Alternate between men and women
+    const photoId = (i % 75) + 1; // Use IDs 1-75 for variety
+    avatars.push(`https://randomuser.me/api/portraits/${gender}/${photoId}.jpg`);
   }
 
   return avatars;
@@ -438,9 +433,13 @@ export function TripMatchPreviewSection() {
                           {trip.memberAvatars?.slice(0, 5).map((avatar, i) => (
                             <div
                               key={i}
-                              className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white flex items-center justify-center text-xs"
+                              className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center"
                             >
-                              {avatar}
+                              <img
+                                src={avatar}
+                                alt={`Member ${i + 1}`}
+                                className="w-full h-full object-cover"
+                              />
                             </div>
                           ))}
                           {trip.members && trip.members > 5 && (
