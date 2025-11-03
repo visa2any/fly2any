@@ -29,7 +29,7 @@ interface MobileHomeSearchWrapperProps {
   lang?: 'en' | 'pt' | 'es';
 }
 
-type ViewState = 'collapsed' | 'expanded' | 'mini';
+type ViewState = 'collapsed' | 'expanded' | 'hidden';
 
 /**
  * MobileHomeSearchWrapper Component
@@ -41,12 +41,12 @@ type ViewState = 'collapsed' | 'expanded' | 'mini';
  * Mobile States:
  * - Collapsed (60-80px): Compact summary showing current search params
  * - Expanded (auto-height): Full EnhancedSearchBar with all features
- * - Mini (40-50px): Sticky minimal bar when scrolling down
+ * - Hidden: Completely hidden when scrolling down (better UX, less clutter)
  *
  * Features:
  * - Zero feature loss - all EnhancedSearchBar functionality preserved
  * - Smooth spring physics animations via Framer Motion
- * - Scroll-aware state management with IntersectionObserver
+ * - Auto-hide on scroll down, auto-show on scroll up
  * - 100% width on mobile, no side padding waste
  * - ARIA labels for accessibility
  * - Haptic feedback on touch devices (when available)
@@ -108,7 +108,7 @@ export function MobileHomeSearchWrapper({
     return () => window.removeEventListener('resize', checkMobile);
   }, [viewState]);
 
-  // Scroll tracking with direction detection
+  // Scroll tracking with direction detection - Auto-hide/show behavior
   useEffect(() => {
     if (!isMobile) return;
 
@@ -120,10 +120,12 @@ export function MobileHomeSearchWrapper({
       setScrollDirection(direction);
       lastScrollY.current = currentScrollY;
 
-      // Auto-transition to mini mode when scrolling down past threshold
+      // HIDE completely when scrolling down past threshold (better UX)
       if (direction === 'down' && currentScrollY > 50 && viewState === 'collapsed') {
-        setViewState('mini');
-      } else if (direction === 'up' && currentScrollY < 30 && viewState === 'mini') {
+        setViewState('hidden');
+      }
+      // SHOW when scrolling back up OR near top
+      else if ((direction === 'up' || currentScrollY < 30) && viewState === 'hidden') {
         setViewState('collapsed');
       }
     };
@@ -254,34 +256,8 @@ export function MobileHomeSearchWrapper({
           </motion.div>
         )}
 
-        {/* MINI STATE - Sticky minimal bar when scrolling (40-50px) */}
-        {viewState === 'mini' && (
-          <motion.div
-            key="mini"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={springConfig}
-            className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg shadow-md border-b border-gray-200"
-          >
-            <button
-              onClick={handleExpand}
-              className="w-full h-[48px] px-4 flex items-center gap-3 active:bg-gray-50 transition-colors"
-              aria-label="Expand flight search form"
-              aria-expanded="false"
-              type="button"
-            >
-              <Search className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
-              <span className="text-sm font-medium text-gray-900 flex-1 text-left truncate">
-                {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
-              </span>
-              <span className="text-xs text-gray-500 flex-shrink-0">
-                {formatDate(departureDate)}
-              </span>
-              <ChevronDown className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
-            </button>
-          </motion.div>
-        )}
+        {/* HIDDEN STATE - Completely hidden when scrolling down (no UI rendered) */}
+        {/* Search bar reappears smoothly when scrolling back up */}
       </AnimatePresence>
 
       {/* Styles scoped to mobile wrapper */}

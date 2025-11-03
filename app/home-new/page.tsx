@@ -93,8 +93,9 @@ export default function NewHomePage() {
       {/* ============================================
           PAGE TITLE - Between Header and Search Bar
           ENHANCED: Premium Typography & Advanced Animations
+          MOBILE OPTIMIZED: Fixed overflow issues on mobile devices
           ============================================ */}
-      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60" style={{ overflow: 'visible' }}>
+      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
         {/* Animated floating orbs in background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="floating-orb floating-orb-1"></div>
@@ -109,21 +110,12 @@ export default function NewHomePage() {
         }}></div>
 
         <MaxWidthContainer
-          className="relative"
+          className="relative overflow-hidden md:overflow-visible"
           noPadding={true}
-          style={{ padding: '12px 0 8px', overflow: 'visible' }}
+          style={{ padding: '12px 0 8px' }}
         >
-          <div className="px-0 md:px-6">
-          {/* Airplane that "pulls" the letters */}
-          {mounted && (
-            <div
-              key={`airplane-${animationKey}`}
-              className="airplane-container"
-              aria-hidden="true"
-            >
-              <span className="airplane-icon">✈️</span>
-            </div>
-          )}
+          <div className="px-4 md:px-6">
+          {/* REMOVED: Airplane animation (user request) */}
 
           <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
@@ -190,52 +182,10 @@ export default function NewHomePage() {
 
       {/* Premium CSS Animations */}
       <style jsx>{`
-        /* ===== AIRPLANE ENTRANCE EFFECT ===== */
-        .airplane-container {
-          position: absolute;
-          top: 8px;
-          left: -80px;
-          z-index: 20;
-          pointer-events: none;
-          animation: airplaneFly 4s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-        }
-
-        .airplane-icon {
-          font-size: 3rem;
-          display: inline-block;
-          filter: drop-shadow(0 3px 12px rgba(59, 130, 246, 0.6));
-          animation: airplaneBobbing 0.8s ease-in-out infinite;
-        }
-
-        @keyframes airplaneFly {
-          0% {
-            left: -80px;
-            opacity: 0;
-            transform: translateX(0);
-          }
-          8% {
-            opacity: 1;
-          }
-          92% {
-            opacity: 1;
-          }
-          100% {
-            left: calc(100% + 80px);
-            opacity: 0;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes airplaneBobbing {
-          0%, 100% {
-            transform: translateY(0px) rotate(-8deg) scale(1);
-          }
-          50% {
-            transform: translateY(-5px) rotate(-8deg) scale(1.05);
-          }
-        }
+        /* ===== REMOVED: Airplane animation (user request) ===== */
 
         /* ===== FLOATING BACKGROUND ORBS ===== */
+        /* MOBILE OPTIMIZED: Constrained positioning to prevent overflow */
         .floating-orb {
           position: absolute;
           border-radius: 50%;
@@ -246,47 +196,89 @@ export default function NewHomePage() {
         }
 
         .floating-orb-1 {
-          width: 300px;
-          height: 300px;
+          width: 200px;
+          height: 200px;
           background: linear-gradient(135deg, #3b82f6, #06b6d4);
-          top: -150px;
-          left: 10%;
+          top: -80px;
+          left: 5%;
           animation-delay: 0s;
           animation-duration: 25s;
         }
 
         .floating-orb-2 {
-          width: 250px;
-          height: 250px;
+          width: 180px;
+          height: 180px;
           background: linear-gradient(135deg, #0891b2, #1e40af);
-          top: -100px;
-          right: 15%;
+          top: -60px;
+          right: 10%;
           animation-delay: 5s;
           animation-duration: 30s;
         }
 
         .floating-orb-3 {
-          width: 200px;
-          height: 200px;
+          width: 150px;
+          height: 150px;
           background: linear-gradient(135deg, #06b6d4, #3b82f6);
-          bottom: -100px;
+          bottom: -50px;
           left: 50%;
           animation-delay: 10s;
           animation-duration: 28s;
         }
 
+        /* Desktop: Larger orbs */
+        @media (min-width: 768px) {
+          .floating-orb-1 {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            left: 10%;
+          }
+
+          .floating-orb-2 {
+            width: 250px;
+            height: 250px;
+            top: -100px;
+            right: 15%;
+          }
+
+          .floating-orb-3 {
+            width: 200px;
+            height: 200px;
+            bottom: -100px;
+          }
+        }
+
+        /* MOBILE: Constrained float animation to prevent overflow */
         @keyframes float {
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
           25% {
-            transform: translate(30px, -20px) scale(1.05);
+            transform: translate(10px, -8px) scale(1.02);
           }
           50% {
-            transform: translate(-20px, 10px) scale(0.95);
+            transform: translate(-8px, 5px) scale(0.98);
           }
           75% {
-            transform: translate(15px, -15px) scale(1.02);
+            transform: translate(6px, -6px) scale(1.01);
+          }
+        }
+
+        /* Desktop: More dynamic float animation */
+        @media (min-width: 768px) {
+          @keyframes float {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+            }
+            25% {
+              transform: translate(30px, -20px) scale(1.05);
+            }
+            50% {
+              transform: translate(-20px, 10px) scale(0.95);
+            }
+            75% {
+              transform: translate(15px, -15px) scale(1.02);
+            }
           }
         }
 
@@ -428,7 +420,8 @@ export default function NewHomePage() {
           NEW: Find companions, share costs, earn credits!
           ============================================ */}
       {/* TRIPMATCH - Social Travel Network */}
-      <div style={{ marginTop: '24px' }}>
+      {/* MOBILE OPTIMIZED: 16px mobile, 24px desktop */}
+      <div className="mt-4 md:mt-6">
         <TripMatchPreviewSection />
       </div>
 
@@ -443,7 +436,8 @@ export default function NewHomePage() {
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}
-          <div style={{ marginTop: '20px' }}>
+          {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+          <div className="mt-3 md:mt-5">
             <RecentlyViewedSection lang={lang} />
           </div>
 
@@ -451,7 +445,8 @@ export default function NewHomePage() {
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
@@ -459,14 +454,16 @@ export default function NewHomePage() {
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
@@ -474,14 +471,16 @@ export default function NewHomePage() {
             CAR RENTALS SECTION - ML/AI Powered
             ENHANCED with Real Amadeus Car Data, Photos, Marketing
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <CarRentalsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             TOURS & ACTIVITIES SECTION - ML/AI Powered
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <ToursSection lang={lang} />
         </div>
 
@@ -489,7 +488,8 @@ export default function NewHomePage() {
             POPULAR ROUTES - Trending Based on Real Searches
             STRATEGIC: Zero-cost feature using route_statistics
             ============================================ */}
-        <div style={{ marginTop: '20px' }}>
+        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
+        <div className="mt-3 md:mt-5">
           <PopularRoutesSection />
         </div>
 
@@ -497,7 +497,8 @@ export default function NewHomePage() {
             TRUST INDICATORS / WHY CHOOSE US
             Major section break - slightly increased spacing
             ============================================ */}
-        <div style={{ marginTop: '28px' }}>
+        {/* MOBILE OPTIMIZED: 20px mobile, 28px desktop */}
+        <div className="mt-5 md:mt-7">
           <TrustIndicators
             title="Why Choose Fly2Any?"
             subtitle="Join millions of satisfied travelers"
@@ -515,7 +516,8 @@ export default function NewHomePage() {
         {/* ============================================
             CUSTOMER TESTIMONIALS
             ============================================ */}
-        <div style={{ marginTop: '28px' }}>
+        {/* MOBILE OPTIMIZED: 20px mobile, 28px desktop */}
+        <div className="mt-5 md:mt-7">
           <Testimonials
             title="What Our Travelers Say"
             subtitle="Real reviews from real people"
@@ -525,9 +527,10 @@ export default function NewHomePage() {
 
         {/* ============================================
             FAQ - Answer Common Questions
-            Final section - extra spacing before
+            Final section - extra spacing before and after
             ============================================ */}
-        <div style={{ marginTop: '32px', marginBottom: '32px' }}>
+        {/* MOBILE OPTIMIZED: 24px mobile, 32px desktop (top & bottom) */}
+        <div className="mt-6 md:mt-8 mb-6 md:mb-8">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}
