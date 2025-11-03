@@ -28,7 +28,7 @@ const sql = neon(DATABASE_URL);
 
 async function runMigration() {
   console.log('🚀 Starting TripMatch database migration...\n');
-  console.log(`📡 Connected to database: ${DATABASE_URL.substring(0, 50)}...\n`);
+  console.log(`📡 Connected to database: ${DATABASE_URL!.substring(0, 50)}...\n`);
 
   try {
     // Read the schema file
@@ -66,7 +66,10 @@ async function runMigration() {
       console.log(logMessage);
 
       try {
-        await sql(statement + ';');
+        // Create tagged template literal for Neon serverless
+        const sqlTemplate: any = [statement + ';'];
+        sqlTemplate.raw = sqlTemplate;
+        await sql(sqlTemplate);
       } catch (error: any) {
         console.error(`❌ Error executing statement ${i + 1}:`, error.message);
         throw error;
