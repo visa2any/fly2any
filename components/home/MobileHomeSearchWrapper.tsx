@@ -1,0 +1,319 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+import { X, MapPin, Calendar, Users, Search, ChevronDown } from 'lucide-react';
+import { format } from 'date-fns';
+import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+
+interface PassengerCounts {
+  adults: number;
+  children: number;
+  infants: number;
+}
+
+interface MobileHomeSearchWrapperProps {
+  /** Origin airport code(s) - can be single "JFK" or comma-separated "JFK,EWR,LGA" */
+  origin?: string;
+  /** Destination airport code(s) - can be single "LAX" or comma-separated "LAX,SNA,ONT" */
+  destination?: string;
+  /** Departure date in ISO format */
+  departureDate?: string;
+  /** Return date in ISO format */
+  returnDate?: string;
+  /** Passenger counts */
+  passengers?: PassengerCounts;
+  /** Cabin class */
+  cabinClass?: 'economy' | 'premium' | 'business' | 'first';
+  /** Language preference */
+  lang?: 'en' | 'pt' | 'es';
+}
+
+type ViewState = 'collapsed' | 'expanded' | 'mini';
+
+/**
+ * MobileHomeSearchWrapper Component
+ *
+ * A mobile-optimized wrapper for EnhancedSearchBar that provides:
+ * - Desktop (>768px): Renders EnhancedSearchBar unchanged
+ * - Mobile (≤768px): Collapsible interface with smart scroll behavior
+ *
+ * Mobile States:
+ * - Collapsed (60-80px): Compact summary showing current search params
+ * - Expanded (auto-height): Full EnhancedSearchBar with all features
+ * - Mini (40-50px): Sticky minimal bar when scrolling down
+ *
+ * Features:
+ * - Zero feature loss - all EnhancedSearchBar functionality preserved
+ * - Smooth spring physics animations via Framer Motion
+ * - Scroll-aware state management with IntersectionObserver
+ * - 100% width on mobile, no side padding waste
+ * - ARIA labels for accessibility
+ * - Haptic feedback on touch devices (when available)
+ */
+export function MobileHomeSearchWrapper({
+  origin,
+  destination,
+  departureDate,
+  returnDate,
+  passengers = { adults: 1, children: 0, infants: 0 },
+  cabinClass,
+  lang = 'en',
+}: MobileHomeSearchWrapperProps) {
+  // View state management
+  const [viewState, setViewState] = useState<ViewState>('collapsed');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Scroll tracking
+  const [scrollY, setScrollY] = useState(0);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
+  const lastScrollY = useRef(0);
+
+  // Refs
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+
+  // Calculate total passengers
+  const totalPassengers = passengers.adults + passengers.children + passengers.infants;
+
+  // Format dates for display
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return '--';
+    try {
+      return format(new Date(dateStr), 'MMM d');
+    } catch {
+      return '--';
+    }
+  };
+
+  // Format airport codes for display (extract first code if comma-separated)
+  const formatAirportCode = (codes: string | undefined) => {
+    if (!codes) return '';
+    return codes.split(',')[0].trim();
+  };
+
+  // Detect mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // On desktop, ensure we're showing the full search bar
+      if (!mobile && viewState !== 'expanded') {
+        setViewState('expanded');
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [viewState]);
+
+  // Scroll tracking with direction detection
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const direction = currentScrollY > lastScrollY.current ? 'down' : 'up';
+
+      setScrollY(currentScrollY);
+      setScrollDirection(direction);
+      lastScrollY.current = currentScrollY;
+
+      // Auto-transition to mini mode when scrolling down past threshold
+      if (direction === 'down' && currentScrollY > 50 && viewState === 'collapsed') {
+        setViewState('mini');
+      } else if (direction === 'up' && currentScrollY < 30 && viewState === 'mini') {
+        setViewState('collapsed');
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobile, viewState]);
+
+  // Haptic feedback (if available on device)
+  const triggerHaptic = useCallback(() => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10); // 10ms subtle vibration
+    }
+  }, []);
+
+  // Handle expand/collapse actions
+  const handleExpand = useCallback(() => {
+    triggerHaptic();
+    setViewState('expanded');
+  }, [triggerHaptic]);
+
+  const handleCollapse = useCallback(() => {
+    triggerHaptic();
+    setViewState('collapsed');
+  }, [triggerHaptic]);
+
+  // Spring animation configuration
+  const springConfig = {
+    type: 'spring' as const,
+    stiffness: 300,
+    damping: 30,
+  };
+
+  // If not mobile, render EnhancedSearchBar directly (desktop behavior)
+  if (!isMobile) {
+    return <EnhancedSearchBar lang={lang} />;
+  }
+
+  // Mobile rendering with three states
+  return (
+    <div ref={wrapperRef} className="mobile-search-wrapper md:hidden">
+      <AnimatePresence mode="wait">
+        {/* COLLAPSED STATE - Compact summary bar (60-80px) */}
+        {viewState === 'collapsed' && (
+          <motion.div
+            key="collapsed"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={springConfig}
+            className="w-full px-4 py-3"
+          >
+            <button
+              onClick={handleExpand}
+              className="w-full min-h-[64px] bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow border border-gray-200 active:scale-[0.98] transition-transform"
+              aria-label="Expand flight search form"
+              aria-expanded="false"
+              type="button"
+            >
+              <div className="flex flex-col gap-2">
+                {/* Route */}
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-sm font-semibold text-gray-900 flex-1 text-left">
+                    {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
+                  </span>
+                  <ChevronDown className="w-5 h-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                </div>
+
+                {/* Dates & Passengers */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-gray-500" aria-hidden="true" />
+                    <span className="text-xs text-gray-600">
+                      {formatDate(departureDate)}
+                      {returnDate && <> - {formatDate(returnDate)}</>}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-gray-500" aria-hidden="true" />
+                    <span className="text-xs text-gray-600">{totalPassengers} pax</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Search className="w-4 h-4 text-primary-600" aria-hidden="true" />
+                    <span className="text-xs font-medium text-primary-600">Search</span>
+                  </div>
+                </div>
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        {/* EXPANDED STATE - Full EnhancedSearchBar with close button */}
+        {viewState === 'expanded' && (
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={springConfig}
+            className="w-full relative"
+          >
+            {/* Close Button - Positioned absolutely over the search bar */}
+            <button
+              onClick={handleCollapse}
+              className="absolute top-6 right-6 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all border border-gray-200 active:scale-90"
+              aria-label="Collapse search form"
+              aria-expanded="true"
+              type="button"
+            >
+              <X className="w-5 h-5 text-gray-700" aria-hidden="true" />
+            </button>
+
+            {/* Full EnhancedSearchBar - All features preserved */}
+            <div ref={searchBarRef}>
+              <EnhancedSearchBar
+                origin={origin}
+                destination={destination}
+                departureDate={departureDate}
+                returnDate={returnDate}
+                passengers={passengers}
+                cabinClass={cabinClass}
+                lang={lang}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* MINI STATE - Sticky minimal bar when scrolling (40-50px) */}
+        {viewState === 'mini' && (
+          <motion.div
+            key="mini"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={springConfig}
+            className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg shadow-md border-b border-gray-200"
+          >
+            <button
+              onClick={handleExpand}
+              className="w-full h-[48px] px-4 flex items-center gap-3 active:bg-gray-50 transition-colors"
+              aria-label="Expand flight search form"
+              aria-expanded="false"
+              type="button"
+            >
+              <Search className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
+              <span className="text-sm font-medium text-gray-900 flex-1 text-left truncate">
+                {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
+              </span>
+              <span className="text-xs text-gray-500 flex-shrink-0">
+                {formatDate(departureDate)}
+              </span>
+              <ChevronDown className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Styles scoped to mobile wrapper */}
+      <style jsx>{`
+        .mobile-search-wrapper {
+          width: 100%;
+        }
+
+        /* Ensure mobile-only at media query level */
+        @media (min-width: 769px) {
+          .mobile-search-wrapper {
+            display: none;
+          }
+        }
+
+        /* Smooth transitions for touch interactions */
+        @media (hover: none) and (pointer: coarse) {
+          button {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+          }
+        }
+
+        /* Accessibility: Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default MobileHomeSearchWrapper;

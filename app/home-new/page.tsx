@@ -5,6 +5,7 @@ import { TrustIndicators } from '@/components/home/TrustIndicators';
 import { Testimonials } from '@/components/home/Testimonials';
 import { FAQ } from '@/components/conversion/FAQ';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 import { CarRentalsSectionEnhanced } from '@/components/home/CarRentalsSectionEnhanced';
 import { ToursSection } from '@/components/home/ToursSection';
@@ -107,7 +108,12 @@ export default function NewHomePage() {
           backgroundSize: '40px 40px'
         }}></div>
 
-        <MaxWidthContainer className="relative" style={{ padding: '24px 24px 20px', overflow: 'visible' }}>
+        <MaxWidthContainer
+          className="relative"
+          noPadding={true}
+          style={{ padding: '12px 0 8px', overflow: 'visible' }}
+        >
+          <div className="px-0 md:px-6">
           {/* Airplane that "pulls" the letters */}
           {mounted && (
             <div
@@ -119,11 +125,11 @@ export default function NewHomePage() {
             </div>
           )}
 
-          <div className="flex items-baseline gap-3 flex-wrap animate-fadeIn">
+          <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
               key={`title-${animationKey}`}
-              className="hero-title text-3xl font-extrabold tracking-wide"
+              className="hero-title text-xl md:text-3xl font-extrabold tracking-wide"
             >
               {mounted ? (
                 t.sectionTitle.split('').map((char, index) => (
@@ -146,7 +152,7 @@ export default function NewHomePage() {
 
             {/* Separator - Pulse Animation */}
             <span
-              className="separator-dot text-cyan-400 font-medium text-xl"
+              className="separator-dot text-cyan-400 font-medium text-base md:text-xl"
             >
               •
             </span>
@@ -154,9 +160,8 @@ export default function NewHomePage() {
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
               key={`subtitle-${animationKey}`}
-              className="hero-subtitle text-gray-700/90 mb-0 font-medium"
+              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg"
               style={{
-                fontSize: '1.35rem',
                 letterSpacing: '0.01em'
               }}
             >
@@ -179,6 +184,7 @@ export default function NewHomePage() {
               )}
             </p>
           </div>
+          </div> {/* Close responsive padding wrapper */}
         </MaxWidthContainer>
       </div>
 
@@ -413,8 +419,9 @@ export default function NewHomePage() {
 
       {/* ============================================
           UNIFIED SEARCH BAR - Flights, Hotels, Cars, Tours
+          MOBILE OPTIMIZED: Collapsible wrapper on mobile (≤768px)
           ============================================ */}
-      <EnhancedSearchBar lang={lang} />
+      <MobileHomeSearchWrapper lang={lang} />
 
       {/* ============================================
           TRIPMATCH - Social Travel Network
@@ -427,11 +434,12 @@ export default function NewHomePage() {
 
       {/* ============================================
           MAIN CONTENT - Max Width 1600px
+          MOBILE OPTIMIZED: 100% width on mobile, standard padding on desktop
           Sticky trust bar removed for cleaner, more compact design
           Trust badges integrated into Trust Indicators section below
           ============================================ */}
       <main>
-        <MaxWidthContainer>
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}
