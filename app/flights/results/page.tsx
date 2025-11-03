@@ -14,6 +14,7 @@ import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
 import { MLInsights, type MLMetadata } from '@/components/flights/MLInsights';
 import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkeleton';
+import { CollapsibleSearchBar, type SearchSummary } from '@/components/mobile/CollapsibleSearchBar';
 // TEMPORARILY DISABLED: Virtual scrolling needs proper height calibration
 // import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
@@ -1204,9 +1205,7 @@ function FlightResultsContent() {
     window.location.reload();
   };
 
-  const handleExpandSearchBar = () => {
-    setSearchBarCollapsed(false);
-  };
+  // Note: handleExpandSearchBar removed - now handled by CollapsibleSearchBar component
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
@@ -1476,49 +1475,54 @@ function FlightResultsContent() {
       {/* Test Mode Banner - Removed for production */}
       {/* <TestModeBanner /> */}
 
-      {/* Search Bar - Compact or Full with smooth transitions */}
-      <div className="transition-all duration-300 ease-in-out">
-        {searchBarCollapsed ? (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-            <CompactSearchSummary
-              origin={searchData.from}
-              destination={searchData.to}
-              departureDate={searchData.departure}
-              returnDate={searchData.return}
-              adults={searchData.adults}
-              children={searchData.children}
-              infants={searchData.infants}
-              cabinClass={searchData.class}
-              onExpand={handleExpandSearchBar}
-              isMultiCity={isMultiCity}
-              multiCityLegs={isMultiCity ? [
-                { origin: searchData.from, destination: searchData.to, date: searchData.departure },
-                ...additionalFlights.map((f: any) => ({
-                  origin: f.from || f.origin,
-                  destination: f.to || f.destination,
-                  date: f.date
-                }))
-              ] : []}
-              lang={lang}
-            />
-          </div>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-            <EnhancedSearchBar
-              origin={searchData.from}
-              destination={searchData.to}
-              departureDate={searchData.departure}
-              returnDate={searchData.return}
-              passengers={{
-                adults: searchData.adults,
-                children: searchData.children,
-                infants: searchData.infants,
-              }}
-              cabinClass={searchData.class}
-              lang={lang}
-            />
-          </div>
-        )}
+      {/* Search Bar - Collapsible with 270px vertical space savings */}
+      <CollapsibleSearchBar
+        searchSummary={{
+          origin: searchData.from,
+          destination: searchData.to,
+          departDate: searchData.departure ? new Date(searchData.departure.split(',')[0]) : null,
+          returnDate: searchData.return ? new Date(searchData.return) : null,
+          passengers: {
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: searchData.infants,
+          },
+          tripType: searchData.return ? 'roundtrip' : 'oneway',
+        }}
+        defaultCollapsed={searchBarCollapsed}
+        onCollapseChange={setSearchBarCollapsed}
+        mobileOnly={true}
+      >
+        <EnhancedSearchBar
+          origin={searchData.from}
+          destination={searchData.to}
+          departureDate={searchData.departure}
+          returnDate={searchData.return}
+          passengers={{
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: searchData.infants,
+          }}
+          cabinClass={searchData.class}
+          lang={lang}
+        />
+      </CollapsibleSearchBar>
+
+      {/* Desktop: Show full search bar (CollapsibleSearchBar is mobile-only) */}
+      <div className="hidden md:block">
+        <EnhancedSearchBar
+          origin={searchData.from}
+          destination={searchData.to}
+          departureDate={searchData.departure}
+          returnDate={searchData.return}
+          passengers={{
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: searchData.infants,
+          }}
+          cabinClass={searchData.class}
+          lang={lang}
+        />
       </div>
 
       {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
