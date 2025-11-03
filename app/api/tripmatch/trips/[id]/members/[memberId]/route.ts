@@ -152,15 +152,11 @@ export async function PATCH(
       }, { status: 403 });
     }
 
-    // Build update query
+    // Build update fields
     const updates: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
 
     if (body.status) {
-      updates.push(`status = $${paramIndex}`);
-      values.push(body.status);
-      paramIndex++;
+      updates.push(`status = '${body.status}'`);
 
       // If confirming, set confirmed_at
       if (body.status === 'confirmed' && !member.confirmed_at) {
@@ -177,15 +173,11 @@ export async function PATCH(
         }, { status: 400 });
       }
 
-      updates.push(`role = $${paramIndex}`);
-      values.push(body.role);
-      paramIndex++;
+      updates.push(`role = '${body.role}'`);
     }
 
     if (body.customizations) {
-      updates.push(`customizations = $${paramIndex}`);
-      values.push(JSON.stringify(body.customizations));
-      paramIndex++;
+      updates.push(`customizations = '${JSON.stringify(body.customizations).replace(/'/g, "''")}'::jsonb`);
     }
 
     if (updates.length === 0) {
@@ -197,15 +189,12 @@ export async function PATCH(
 
     updates.push(`updated_at = NOW()`);
 
-    const query = `
-      UPDATE group_members
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex} AND trip_id = $${paramIndex + 1}
-      RETURNING *
-    `;
-    values.push(memberId, tripId);
-
-    const result = await sql.unsafe(query, values);
+    const result = await sql.unsafe(
+      `UPDATE group_members
+       SET ${updates.join(', ')}
+       WHERE id = '${memberId}' AND trip_id = '${tripId}'
+       RETURNING *`
+    ) as any;
 
     // If member confirmed, award credits to inviter
     if (body.status === 'confirmed' && member.status === 'invited') {

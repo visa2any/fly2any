@@ -53,12 +53,7 @@ export async function GET(
     const members = await sql`
       SELECT
         gm.*,
-        tmp.display_name,
-        tmp.avatar_url,
-        tmp.bio,
-        tmp.travel_style,
-        tmp.trips_completed,
-        tmp.avg_rating
+        tmp.*
       FROM group_members gm
       LEFT JOIN tripmatch_user_profiles tmp ON gm.user_id = tmp.user_id
       WHERE gm.trip_id = ${tripId}
@@ -133,7 +128,7 @@ export async function GET(
       updatedAt: trip.updated_at,
       publishedAt: trip.published_at,
       completedAt: trip.completed_at,
-      creator: creatorProfile[0] || {},
+      creator: creatorProfile[0] as any, // Creator should always exist
       components: components.map((c: any) => ({
         id: c.id,
         tripId: c.trip_id,
@@ -160,38 +155,65 @@ export async function GET(
         createdAt: c.created_at,
         updatedAt: c.updated_at,
       })),
-      members: members.map((m: any) => ({
-        id: m.id,
-        tripId: m.trip_id,
-        userId: m.user_id,
-        role: m.role,
-        status: m.status,
-        invitedBy: m.invited_by,
-        inviteCode: m.invite_code,
-        invitationMessage: m.invitation_message,
-        userName: m.display_name || m.user_email,
-        userEmail: m.user_email,
-        userAvatarUrl: m.avatar_url,
-        customizations: m.customizations,
-        totalPrice: m.total_price ? parseFloat(m.total_price) : null,
-        creditsApplied: m.credits_applied,
-        amountPaid: parseFloat(m.amount_paid || '0'),
-        paymentStatus: m.payment_status,
-        paymentIntentId: m.payment_intent_id,
-        paidAt: m.paid_at,
-        joinedAt: m.joined_at,
-        confirmedAt: m.confirmed_at,
-        createdAt: m.created_at,
-        updatedAt: m.updated_at,
-        profile: {
+      members: members.map((m: any) => {
+        // Extract profile data - the column naming conflicts require careful mapping
+        const profile = m.id && m.user_id ? {
+          id: m.id,
+          userId: m.user_id,
           displayName: m.display_name,
-          avatarUrl: m.avatar_url,
           bio: m.bio,
+          avatarUrl: m.avatar_url,
+          coverImageUrl: m.cover_image_url,
           travelStyle: m.travel_style,
-          tripsCompleted: m.trips_completed,
-          avgRating: m.avg_rating ? parseFloat(m.avg_rating) : null,
-        },
-      })),
+          interests: m.interests,
+          languagesSpoken: m.languages_spoken,
+          ageRange: m.age_range,
+          gender: m.gender,
+          locationCity: m.location_city,
+          locationCountry: m.location_country,
+          emailVerified: m.email_verified || false,
+          phoneVerified: m.phone_verified || false,
+          idVerified: m.id_verified || false,
+          safetyScore: m.safety_score || 0,
+          verificationLevel: m.verification_level || 0,
+          tripsCreated: m.trips_created || 0,
+          tripsJoined: m.trips_joined || 0,
+          tripsCompleted: m.trips_completed || 0,
+          totalCompanionsMet: m.total_companions_met || 0,
+          avgRating: m.avg_rating ? parseFloat(m.avg_rating) : 0,
+          totalReviews: m.total_reviews || 0,
+          personalityVector: m.personality_vector,
+          settings: m.settings,
+          createdAt: m.created_at,
+          updatedAt: m.updated_at,
+        } : undefined;
+
+        return {
+          id: m.id,
+          tripId: m.trip_id,
+          userId: m.user_id,
+          role: m.role,
+          status: m.status,
+          invitedBy: m.invited_by,
+          inviteCode: m.invite_code,
+          invitationMessage: m.invitation_message,
+          userName: m.display_name || m.user_email,
+          userEmail: m.user_email,
+          userAvatarUrl: m.avatar_url,
+          customizations: m.customizations,
+          totalPrice: m.total_price ? parseFloat(m.total_price) : undefined,
+          creditsApplied: m.credits_applied,
+          amountPaid: parseFloat(m.amount_paid || '0'),
+          paymentStatus: m.payment_status,
+          paymentIntentId: m.payment_intent_id,
+          paidAt: m.paid_at,
+          joinedAt: m.joined_at,
+          confirmedAt: m.confirmed_at,
+          createdAt: m.created_at,
+          updatedAt: m.updated_at,
+          profile,
+        };
+      }),
       posts: posts.map((p: any) => ({
         id: p.id,
         tripId: p.trip_id,
@@ -280,23 +302,23 @@ export async function PATCH(
 
     // Build update query dynamically
     const updates: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
 
-    const allowedFields = [
-      'title', 'description', 'destination', 'destination_code', 'destination_country',
-      'start_date', 'end_date', 'category', 'visibility', 'min_members', 'max_members',
-      'cover_image_url', 'tags', 'rules', 'metadata', 'status'
-    ];
-
-    for (const [key, value] of Object.entries(body)) {
-      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (allowedFields.includes(snakeKey)) {
-        updates.push(`${snakeKey} = $${paramIndex}`);
-        values.push(value);
-        paramIndex++;
-      }
-    }
+    if (body.title !== undefined) updates.push(`title = '${String(body.title).replace(/'/g, "''")}'`);
+    if (body.description !== undefined) updates.push(`description = '${String(body.description || '').replace(/'/g, "''")}'`);
+    if (body.destination !== undefined) updates.push(`destination = '${String(body.destination).replace(/'/g, "''")}'`);
+    if (body.destinationCode !== undefined) updates.push(`destination_code = '${String(body.destinationCode || '').replace(/'/g, "''")}'`);
+    if (body.destinationCountry !== undefined) updates.push(`destination_country = '${String(body.destinationCountry || '').replace(/'/g, "''")}'`);
+    if (body.startDate !== undefined) updates.push(`start_date = '${body.startDate}'`);
+    if (body.endDate !== undefined) updates.push(`end_date = '${body.endDate}'`);
+    if (body.category !== undefined) updates.push(`category = '${body.category}'`);
+    if (body.visibility !== undefined) updates.push(`visibility = '${body.visibility}'`);
+    if (body.minMembers !== undefined) updates.push(`min_members = ${body.minMembers}`);
+    if (body.maxMembers !== undefined) updates.push(`max_members = ${body.maxMembers}`);
+    if (body.coverImageUrl !== undefined) updates.push(`cover_image_url = '${String(body.coverImageUrl || '').replace(/'/g, "''")}'`);
+    if (body.tags !== undefined) updates.push(`tags = ARRAY[${body.tags.map((t: string) => `'${t.replace(/'/g, "''")}'`).join(',')}]`);
+    if (body.rules !== undefined) updates.push(`rules = '${String(body.rules || '').replace(/'/g, "''")}'`);
+    if (body.metadata !== undefined) updates.push(`metadata = '${JSON.stringify(body.metadata).replace(/'/g, "''")}'::jsonb`);
+    if (body.status !== undefined) updates.push(`status = '${body.status}'`);
 
     if (updates.length === 0) {
       return NextResponse.json({
@@ -307,15 +329,12 @@ export async function PATCH(
 
     updates.push(`updated_at = NOW()`);
 
-    const query = `
-      UPDATE trip_groups
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex}
-      RETURNING *
-    `;
-    values.push(tripId);
-
-    const result = await sql.unsafe(query, values);
+    const result = await sql.unsafe(
+      `UPDATE trip_groups
+       SET ${updates.join(', ')}
+       WHERE id = '${tripId}'
+       RETURNING *`
+    ) as any;
 
     return NextResponse.json({
       success: true,

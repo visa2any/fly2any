@@ -618,3 +618,39 @@ export async function getCreditStats(): Promise<{
     };
   }
 }
+
+// =====================================================
+// HELPER FUNCTIONS FOR MEMBER MANAGEMENT
+// =====================================================
+
+/**
+ * Calculate reward for a new member joining
+ */
+export function calculateMemberReward(groupSize: number): number {
+  const config = DEFAULT_CREDIT_CONFIG;
+  let multiplier = config.multipliers.small.multiplier;
+
+  if (groupSize >= config.multipliers.large.minMembers) {
+    multiplier = config.multipliers.large.multiplier;
+  } else if (groupSize >= config.multipliers.medium.minMembers) {
+    multiplier = config.multipliers.medium.multiplier;
+  }
+
+  return Math.floor(config.perMemberBonus * multiplier);
+}
+
+/**
+ * Generate a unique invite code
+ */
+export function generateInviteCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 9; i++) {
+    if (i === 3 || i === 6) {
+      code += '-';
+    } else {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  }
+  return code; // Format: ABC-123-XYZ
+}

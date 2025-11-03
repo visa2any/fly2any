@@ -10,6 +10,8 @@ export interface FavoriteDestination {
   from: string;
   to: string;
   savedAt: number;
+  departureDate?: string;
+  returnDate?: string;
 }
 
 // Comprehensive airport code to city/country mapping for popular destinations
@@ -142,6 +144,8 @@ export function saveToRecentlyViewed(destination: {
   imageUrl?: string;
   from?: string;  // Origin airport code
   to: string;     // Destination airport code
+  departureDate?: string;
+  returnDate?: string;
 }) {
   // Auto-resolve city/country/image from airport code if not provided
   const destinationInfo = getCityFromAirport(destination.to);
@@ -154,6 +158,8 @@ export function saveToRecentlyViewed(destination: {
     imageUrl: destination.imageUrl || destinationInfo.imageUrl,
     from: destination.from,
     to: destination.to,
+    departureDate: destination.departureDate,
+    returnDate: destination.returnDate,
     viewedAt: Date.now(),
   };
 
@@ -180,6 +186,50 @@ export function saveToRecentlyViewed(destination: {
   localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
 
   console.log('✅ Saved to recently viewed:', fullDestination.city, fullDestination.country);
+  console.log('📅 Dates stored:', {
+    departure: fullDestination.departureDate,
+    return: fullDestination.returnDate,
+    fullObject: fullDestination
+  });
+}
+
+/**
+ * Migrate old recently viewed data to include dates
+ * This adds default dates (tomorrow + 7 days) to existing searches without dates
+ */
+export function migrateRecentlyViewedDates() {
+  try {
+    const stored = localStorage.getItem('recentlyViewed');
+    if (!stored) return;
+
+    const items = JSON.parse(stored);
+    let migrated = false;
+
+    const updated = items.map((item: any) => {
+      if (!item.departureDate) {
+        // Add default dates: tomorrow + 7 days
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const returnDate = new Date();
+        returnDate.setDate(returnDate.getDate() + 8);
+
+        migrated = true;
+        return {
+          ...item,
+          departureDate: tomorrow.toISOString().split('T')[0],
+          returnDate: returnDate.toISOString().split('T')[0],
+        };
+      }
+      return item;
+    });
+
+    if (migrated) {
+      localStorage.setItem('recentlyViewed', JSON.stringify(updated));
+      console.log('🔄 Migrated', items.length, 'searches to include dates');
+    }
+  } catch (error) {
+    console.error('Error migrating recently viewed:', error);
+  }
 }
 
 // Track flight search from results page
@@ -204,6 +254,8 @@ export function trackFlightSearch(params: {
       imageUrl: destinationInfo.imageUrl,
       from: params.from,
       to: params.to,
+      departureDate: params.departureDate,
+      returnDate: params.returnDate,
     });
   } catch (error) {
     console.error('Error tracking flight search:', error);

@@ -32,70 +32,26 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Build query with filters
-    let query = `
+    // Build query with filters using tagged templates
+    const transactions = await sql`
       SELECT * FROM credit_transactions
-      WHERE user_id = $1
-    `;
-
-    const queryParams: any[] = [userId];
-    let paramIndex = 2;
-
-    if (typeFilter) {
-      query += ` AND type = $${paramIndex}`;
-      queryParams.push(typeFilter);
-      paramIndex++;
-    }
-
-    if (sourceFilter) {
-      query += ` AND source = $${paramIndex}`;
-      queryParams.push(sourceFilter);
-      paramIndex++;
-    }
-
-    if (statusFilter) {
-      query += ` AND status = $${paramIndex}`;
-      queryParams.push(statusFilter);
-      paramIndex++;
-    }
-
-    query += `
+      WHERE user_id = ${userId}
+        ${typeFilter ? sql`AND type = ${typeFilter}` : sql``}
+        ${sourceFilter ? sql`AND source = ${sourceFilter}` : sql``}
+        ${statusFilter ? sql`AND status = ${statusFilter}` : sql``}
       ORDER BY created_at DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      LIMIT ${limit} OFFSET ${offset}
     `;
-
-    queryParams.push(limit, offset);
-
-    const transactions = await sql.unsafe(query, queryParams);
 
     // Get total count for pagination
-    let countQuery = `
+    const totalResult = await sql`
       SELECT COUNT(*) as total FROM credit_transactions
-      WHERE user_id = $1
+      WHERE user_id = ${userId}
+        ${typeFilter ? sql`AND type = ${typeFilter}` : sql``}
+        ${sourceFilter ? sql`AND source = ${sourceFilter}` : sql``}
+        ${statusFilter ? sql`AND status = ${statusFilter}` : sql``}
     `;
 
-    const countParams: any[] = [userId];
-    let countParamIndex = 2;
-
-    if (typeFilter) {
-      countQuery += ` AND type = $${countParamIndex}`;
-      countParams.push(typeFilter);
-      countParamIndex++;
-    }
-
-    if (sourceFilter) {
-      countQuery += ` AND source = $${countParamIndex}`;
-      countParams.push(sourceFilter);
-      countParamIndex++;
-    }
-
-    if (statusFilter) {
-      countQuery += ` AND status = $${countParamIndex}`;
-      countParams.push(statusFilter);
-      countParamIndex++;
-    }
-
-    const totalResult = await sql.unsafe(countQuery, countParams);
     const total = parseInt(totalResult[0].total);
 
     // Transform transactions

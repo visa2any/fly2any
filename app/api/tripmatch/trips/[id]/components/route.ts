@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
-import type { TripComponentType } from '@/lib/tripmatch/types';
+import type { ComponentType } from '@/lib/tripmatch/types';
 
 /**
  * POST /api/tripmatch/trips/[id]/components
@@ -82,7 +82,7 @@ export async function POST(
     }
 
     // Validate component type
-    const validTypes: TripComponentType[] = ['flight', 'accommodation', 'car', 'tour', 'activity', 'dining', 'insurance', 'other'];
+    const validTypes: ComponentType[] = ['flight', 'hotel', 'car', 'tour', 'activity', 'insurance', 'transfer'];
     if (!validTypes.includes(body.type)) {
       return NextResponse.json({
         success: false,
@@ -228,30 +228,14 @@ export async function GET(
     const typeFilter = searchParams.get('type');
     const requiredFilter = searchParams.get('required');
 
-    // Build query with filters
-    let query = `
+    // Build query with filters using tagged templates
+    const components = await sql`
       SELECT * FROM trip_components
-      WHERE trip_id = $1
+      WHERE trip_id = ${tripId}
+        ${typeFilter ? sql`AND type = ${typeFilter}` : sql``}
+        ${requiredFilter !== null ? sql`AND is_required = ${requiredFilter === 'true'}` : sql``}
+      ORDER BY display_order ASC, start_datetime ASC
     `;
-
-    const queryParams: any[] = [tripId];
-    let paramIndex = 2;
-
-    if (typeFilter) {
-      query += ` AND type = $${paramIndex}`;
-      queryParams.push(typeFilter);
-      paramIndex++;
-    }
-
-    if (requiredFilter !== null) {
-      query += ` AND is_required = $${paramIndex}`;
-      queryParams.push(requiredFilter === 'true');
-      paramIndex++;
-    }
-
-    query += ` ORDER BY display_order ASC, start_datetime ASC`;
-
-    const components = await sql.unsafe(query, queryParams);
 
     // Transform to camelCase
     const transformedComponents = components.map((c: any) => ({

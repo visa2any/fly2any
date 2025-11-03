@@ -1,0 +1,222 @@
+Case ID: 176208888800610
+
+Hello AWS Support Team,
+
+Thank you for reviewing our request. Below is detailed information about our email-sending practices for Fly2Any (www.fly2any.com).
+
+═══════════════════════════════════════════════════════
+1. VERIFIED DOMAIN STATUS
+═══════════════════════════════════════════════════════
+
+Domain: fly2any.com
+Region: us-east-2
+Status: VERIFIED (November 2, 2025)
+Authentication: SPF, DKIM (3 CNAME records), DMARC, Custom MAIL FROM (mail.fly2any.com)
+
+═══════════════════════════════════════════════════════
+2. EMAIL SENDING FREQUENCY
+═══════════════════════════════════════════════════════
+
+Current Volume:
+- Daily: 50-200 emails
+- Monthly: 1,500-6,000 emails
+- Peak hours: 9 AM - 11 PM EST
+- 7 days/week (travel bookings happen on weekends)
+
+Email Breakdown:
+- Booking Confirmations: 60% (immediate after purchase)
+- Payment Receipts: 30% (2 minutes after payment)
+- Security Notifications: 10% (password resets, account changes)
+
+6-Month Projection:
+- Daily: 300-800 emails
+- Growth rate: 15-20% month-over-month
+- Seasonal peaks (holidays): 2-3x normal volume
+
+12-Month Projection:
+- Daily: 500-1,500 emails
+- Business expansion: hotel bookings, car rentals
+
+═══════════════════════════════════════════════════════
+3. RECIPIENT LIST MANAGEMENT
+═══════════════════════════════════════════════════════
+
+Acquisition (100% Opt-In):
+1. Customer creates account on fly2any.com (voluntary registration)
+2. Email verified via confirmation link
+3. Customer completes flight booking (confirmed purchase transaction)
+4. Email associated with booking_id in database
+5. Clear notice during checkout: "You'll receive booking confirmation at [email]"
+
+We DO NOT:
+- Purchase or rent email lists
+- Scrape email addresses
+- Send to anyone who hasn't completed a booking
+- Share emails with third parties
+
+Database Management:
+- Emails stored in Neon PostgreSQL (encrypted at rest)
+- Tagged with status: active/bounced/complained/unsubscribed
+- 90-day retention for inactive accounts (GDPR compliance)
+
+List Hygiene:
+- Daily: Process bounces/complaints, remove invalid emails
+- Weekly: Review soft bounce patterns, verify flagged accounts
+- Monthly: Audit list quality, remove disposable email domains
+
+═══════════════════════════════════════════════════════
+4. BOUNCE HANDLING
+═══════════════════════════════════════════════════════
+
+Hard Bounces (Permanent Failures):
+- AWS SES webhook to /api/webhooks/ses-bounce
+- Immediate actions:
+  * Set email_status = 'bounced' in database
+  * Add to suppression list (never send again)
+  * In-app notification: "Email delivery failed. Please update your email."
+  * Support ticket auto-created
+- Target: <1% hard bounce rate
+
+Soft Bounces (Temporary Failures):
+- Retry logic: 1 hour, 6 hours, 24 hours
+- After 3 failures: Treat as hard bounce
+- Track rolling 7-day window: 3+ soft bounces = flag account
+
+Monitoring:
+- Target bounce rate: <2% (AWS requires <5%)
+- Alert at >5%: Auto-pause sending + investigation
+- Weekly bounce reports with root cause analysis
+
+═══════════════════════════════════════════════════════
+5. COMPLAINT HANDLING
+═══════════════════════════════════════════════════════
+
+Real-Time Processing:
+- AWS SES feedback loop to /api/webhooks/ses-complaint
+- Immediate actions:
+  * Set email_status = 'complained'
+  * Add to permanent suppression list
+  * Remove from ALL email lists
+  * Auto-create high-priority support ticket
+- Support team response within 4 hours
+- Root cause analysis: Review email content, validate booking legitimacy
+
+Monitoring:
+- Target complaint rate: <0.1% (AWS requires <0.5%)
+- Alert at >0.3%: Immediate team meeting
+- Weekly complaint reports with action plans
+
+Prevention:
+- Clear sender identification: "Fly2Any Bookings <bookings@fly2any.com>"
+- Relevant content only (booking-related)
+- Visible unsubscribe link in footer
+- Plain text alternative for every HTML email
+
+═══════════════════════════════════════════════════════
+6. UNSUBSCRIBE MANAGEMENT
+═══════════════════════════════════════════════════════
+
+Email Types:
+- Booking Confirmations: Cannot unsubscribe (legally required)
+- Payment Receipts: Cannot unsubscribe (financial record)
+- Security Alerts: Cannot unsubscribe (account protection)
+- Pre-flight Reminders: Can unsubscribe (optional convenience)
+
+Unsubscribe Methods:
+1. One-click link in email footer (instant processing)
+2. Account settings toggle (fly2any.com/settings)
+3. Reply with "UNSUBSCRIBE" (processed within 24 hours)
+
+Processing:
+- Database updated <1 second
+- Synced with AWS SES suppression list within 10 minutes
+- Permanent preference (never expires unless customer re-opts-in)
+- Target unsubscribe rate: <0.5%
+
+═══════════════════════════════════════════════════════
+7. EMAIL CONTENT EXAMPLES
+═══════════════════════════════════════════════════════
+
+Example 1: Booking Confirmation (60% volume)
+Subject: Flight Booking Confirmed - NYC to London
+Content: Booking reference, flight details (airline, times, route, seat), payment summary ($555.50 total), next steps (check-in link, passport reminder, airport arrival time), support contact. Footer includes physical address (123 Main St, NY 10001), unsubscribe link, privacy policy.
+
+Example 2: Payment Receipt (30% volume)
+Subject: Payment Receipt - Booking #ABC123456
+Content: Transaction details (ID, date, payment method), itemized invoice (flight fare $487, taxes $68.50, total $555.50), PDF download link, support email.
+
+Example 3: Security Alert (10% volume)
+Subject: Password Reset Request
+Content: Reset link (1-hour expiration), warning if not requested, timestamp/IP/location, no unsubscribe (required security notification)
+
+═══════════════════════════════════════════════════════
+8. EMAIL QUALITY STANDARDS
+═══════════════════════════════════════════════════════
+
+Content:
+- Clear subject lines (no clickbait)
+- Personalized with customer name/booking details
+- Mobile-responsive design
+- Plain text alternative included
+- Physical mailing address in footer
+- Unsubscribe link for optional emails
+
+Technical:
+- SPF/DKIM/DMARC authentication
+- Custom MAIL FROM domain (mail.fly2any.com)
+- Rate limiting (10 emails/second)
+- Email size <100KB
+- Alt text for accessibility
+
+═══════════════════════════════════════════════════════
+9. MONITORING & COMPLIANCE
+═══════════════════════════════════════════════════════
+
+Daily Metrics:
+- Delivery rate: >99%
+- Bounce rate: <2%
+- Complaint rate: <0.1%
+
+CloudWatch Alarms:
+- Bounce rate >5%: Auto-pause + alert
+- Complaint rate >0.3%: Immediate investigation
+
+Commitment:
+- Maintain complaint rate <0.1%
+- Keep bounce rate <2%
+- Respond to abuse reports within 4 hours
+- Only send to opted-in recipients
+- Honor unsubscribe requests immediately
+
+═══════════════════════════════════════════════════════
+10. REQUESTED LIMITS
+═══════════════════════════════════════════════════════
+
+Initial Request:
+- Daily quota: 1,000 emails
+- Sending rate: 10 emails/second
+- Region: us-east-2
+
+Rationale: Current volume 50-200/day with buffer for growth and seasonal peaks.
+
+═══════════════════════════════════════════════════════
+SUMMARY
+═══════════════════════════════════════════════════════
+
+Fly2Any is a legitimate flight booking platform with:
+- Verified domain (fly2any.com with SPF/DKIM/DMARC)
+- 100% transactional emails (bookings, receipts, security)
+- Strict opt-in process (verified customer bookings only)
+- Automated bounce/complaint handling
+- Target <0.1% complaint, <2% bounce rates
+- Professional email content
+- AWS-native infrastructure (PostgreSQL, CloudWatch)
+- Operational since August 2024
+
+We commit to maintaining the highest standards of email deliverability and customer communication.
+
+Thank you for your consideration.
+
+Domain: fly2any.com
+Region: us-east-2
+Website: www.fly2any.com

@@ -30,8 +30,8 @@ export async function GET(
     const statusFilter = searchParams.get('status');
     const roleFilter = searchParams.get('role');
 
-    // Build query
-    let query = `
+    // Build query with filters using tagged templates
+    const members = await sql`
       SELECT
         gm.*,
         tmp.display_name,
@@ -42,34 +42,17 @@ export async function GET(
         tmp.avg_rating
       FROM group_members gm
       LEFT JOIN tripmatch_user_profiles tmp ON gm.user_id = tmp.user_id
-      WHERE gm.trip_id = $1
+      WHERE gm.trip_id = ${tripId}
+        ${statusFilter ? sql`AND gm.status = ${statusFilter}` : sql``}
+        ${roleFilter ? sql`AND gm.role = ${roleFilter}` : sql``}
+      ORDER BY
+        CASE gm.role
+          WHEN 'creator' THEN 1
+          WHEN 'admin' THEN 2
+          ELSE 3
+        END,
+        gm.joined_at ASC
     `;
-
-    const queryParams: any[] = [tripId];
-    let paramIndex = 2;
-
-    if (statusFilter) {
-      query += ` AND gm.status = $${paramIndex}`;
-      queryParams.push(statusFilter);
-      paramIndex++;
-    }
-
-    if (roleFilter) {
-      query += ` AND gm.role = $${paramIndex}`;
-      queryParams.push(roleFilter);
-      paramIndex++;
-    }
-
-    query += ` ORDER BY
-      CASE gm.role
-        WHEN 'creator' THEN 1
-        WHEN 'admin' THEN 2
-        ELSE 3
-      END,
-      gm.joined_at ASC
-    `;
-
-    const members = await sql.unsafe(query, queryParams);
 
     // Transform to camelCase
     const transformedMembers = members.map((m: any) => ({

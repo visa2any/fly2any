@@ -228,7 +228,7 @@ STOP, UNSUBSCRIBE, CANCEL, END, QUIT
 
 **Opt-Out Message** (Response to STOP):
 ```
-You have successfully unsubscribed from Fly2Any SMS notifications. You will no longer receive messages from us. We're sorry to see you go! Reply JOIN to resubscribe anytime. Questions? Email support@fly2any.com or call 1-800-FLY-2ANY
+You have successfully unsubscribed from Fly2Any SMS notifications. You will no longer receive messages from us. We're sorry to see you go! Reply JOIN to resubscribe anytime. Questions? Email support@fly2any.com or call 1-332-220-0838
 ```
 
 ### Help Keywords
@@ -240,7 +240,7 @@ HELP, INFO, SUPPORT
 
 **Help Message** (Response to HELP):
 ```
-Fly2Any SMS Help: Get flight booking confirmations, updates & deals. Msg&Data rates may apply. For support, email support@fly2any.com or call 1-800-FLY-2ANY (M-F 9AM-6PM EST). Reply STOP to unsubscribe, JOIN to resubscribe. Terms: fly2any.com/terms
+Fly2Any SMS Help: Get flight booking confirmations, updates & deals. Msg&Data rates may apply. For support, email support@fly2any.com or call 1-332-220-0838 (M-F 9AM-6PM EST). Reply STOP to unsubscribe, JOIN to resubscribe. Terms: fly2any.com/terms
 ```
 
 ---

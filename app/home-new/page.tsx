@@ -11,6 +11,7 @@ import { ToursSection } from '@/components/home/ToursSection';
 import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
+import { TripMatchPreviewSection } from '@/components/home/TripMatchPreviewSection';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import PopularRoutesSection from '@/components/home/PopularRoutesSection';
 
@@ -414,6 +415,15 @@ export default function NewHomePage() {
           UNIFIED SEARCH BAR - Flights, Hotels, Cars, Tours
           ============================================ */}
       <EnhancedSearchBar lang={lang} />
+
+      {/* ============================================
+          TRIPMATCH - Social Travel Network
+          NEW: Find companions, share costs, earn credits!
+          ============================================ */}
+      {/* TRIPMATCH - Social Travel Network */}
+      <div style={{ marginTop: '24px' }}>
+        <TripMatchPreviewSection />
+      </div>
 
       {/* ============================================
           MAIN CONTENT - Max Width 1600px

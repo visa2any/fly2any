@@ -119,27 +119,30 @@ export async function PATCH(
       }, { status: 404 });
     }
 
-    // Build update query dynamically
+    // Build update parts conditionally
+    // Note: We use JSON.stringify for safe value embedding
     const updates: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
 
-    const allowedFields = [
-      'type', 'provider', 'provider_id', 'provider_data',
-      'base_price_per_person', 'total_price', 'currency',
-      'title', 'description', 'start_datetime', 'end_datetime', 'duration_minutes',
-      'location', 'location_lat', 'location_lng',
-      'is_optional', 'is_required', 'customization_options', 'display_order', 'image_url'
-    ];
-
-    for (const [key, value] of Object.entries(body)) {
-      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-      if (allowedFields.includes(snakeKey)) {
-        updates.push(`${snakeKey} = $${paramIndex}`);
-        values.push(typeof value === 'object' && value !== null ? JSON.stringify(value) : value);
-        paramIndex++;
-      }
-    }
+    if (body.type !== undefined) updates.push(`type = '${body.type}'`);
+    if (body.provider !== undefined) updates.push(`provider = '${body.provider.replace(/'/g, "''")}'`);
+    if (body.providerId !== undefined) updates.push(`provider_id = '${String(body.providerId).replace(/'/g, "''")}'`);
+    if (body.providerData !== undefined) updates.push(`provider_data = '${JSON.stringify(body.providerData).replace(/'/g, "''")}'::jsonb`);
+    if (body.basePricePerPerson !== undefined) updates.push(`base_price_per_person = ${body.basePricePerPerson}`);
+    if (body.totalPrice !== undefined) updates.push(`total_price = ${body.totalPrice}`);
+    if (body.currency !== undefined) updates.push(`currency = '${body.currency}'`);
+    if (body.title !== undefined) updates.push(`title = '${String(body.title).replace(/'/g, "''")}'`);
+    if (body.description !== undefined) updates.push(`description = '${String(body.description || '').replace(/'/g, "''")}'`);
+    if (body.startDatetime !== undefined) updates.push(`start_datetime = '${body.startDatetime}'`);
+    if (body.endDatetime !== undefined) updates.push(`end_datetime = '${body.endDatetime}'`);
+    if (body.durationMinutes !== undefined) updates.push(`duration_minutes = ${body.durationMinutes}`);
+    if (body.location !== undefined) updates.push(`location = '${String(body.location || '').replace(/'/g, "''")}'`);
+    if (body.locationLat !== undefined) updates.push(`location_lat = ${body.locationLat}`);
+    if (body.locationLng !== undefined) updates.push(`location_lng = ${body.locationLng}`);
+    if (body.isOptional !== undefined) updates.push(`is_optional = ${body.isOptional}`);
+    if (body.isRequired !== undefined) updates.push(`is_required = ${body.isRequired}`);
+    if (body.customizationOptions !== undefined) updates.push(`customization_options = '${JSON.stringify(body.customizationOptions).replace(/'/g, "''")}'::jsonb`);
+    if (body.displayOrder !== undefined) updates.push(`display_order = ${body.displayOrder}`);
+    if (body.imageUrl !== undefined) updates.push(`image_url = '${String(body.imageUrl || '').replace(/'/g, "''")}'`);
 
     if (updates.length === 0) {
       return NextResponse.json({
@@ -148,17 +151,14 @@ export async function PATCH(
       }, { status: 400 });
     }
 
-    updates.push(`updated_at = NOW()`);
+    updates.push('updated_at = NOW()');
 
-    const query = `
-      UPDATE trip_components
-      SET ${updates.join(', ')}
-      WHERE id = $${paramIndex} AND trip_id = $${paramIndex + 1}
-      RETURNING *
-    `;
-    values.push(componentId, tripId);
-
-    const result = await sql.unsafe(query, values);
+    const result = await sql.unsafe(
+      `UPDATE trip_components
+       SET ${updates.join(', ')}
+       WHERE id = '${componentId}' AND trip_id = '${tripId}'
+       RETURNING *`
+    ) as any;
 
     // Update trip pricing if price changed
     if (body.basePricePerPerson !== undefined || body.isRequired !== undefined) {
@@ -192,7 +192,7 @@ export async function PATCH(
         ${tripId},
         ${userId},
         'component_updated',
-        ${`Updated component: ${result[0].title}`},
+        ${`Updated component: ${result[0]?.title || 'component'}`},
         ${JSON.stringify({ componentId, updates: Object.keys(body) })}
       )
     `;

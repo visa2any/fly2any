@@ -14,6 +14,8 @@ interface ViewedDestination {
   from?: string;  // Origin airport code (optional for backward compatibility)
   to: string;     // Destination airport code
   originalPrice?: number; // For price drop detection
+  departureDate?: string;
+  returnDate?: string;
 }
 
 interface RecentlyViewedSectionProps {
@@ -199,29 +201,51 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   }, [recentlyViewed.length]);
 
   useEffect(() => {
-    // Load from localStorage
-    const stored = localStorage.getItem('recentlyViewed');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
+    // Migrate and load data
+    const loadData = async () => {
+      // First, migrate old data to include dates
+      const { migrateRecentlyViewedDates } = await import('@/lib/hooks/useFavorites');
+      migrateRecentlyViewedDates();
 
-        // Deduplicate by destination, keep most recent
-        const unique = parsed.reduce((acc: ViewedDestination[], curr: ViewedDestination) => {
-          const existing = acc.find(item => item.to === curr.to && item.from === curr.from);
-          if (!existing || curr.viewedAt > existing.viewedAt) {
-            return [...acc.filter(item => !(item.to === curr.to && item.from === curr.from)), curr];
-          }
-          return acc;
-        }, []);
+      // Then load from localStorage
+      const stored = localStorage.getItem('recentlyViewed');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
 
-        // Sort by recency
-        unique.sort((a: ViewedDestination, b: ViewedDestination) => b.viewedAt - a.viewedAt);
+          // Deduplicate by destination, keep most recent
+          const unique = parsed.reduce((acc: ViewedDestination[], curr: ViewedDestination) => {
+            const existing = acc.find(item => item.to === curr.to && item.from === curr.from);
+            if (!existing || curr.viewedAt > existing.viewedAt) {
+              return [...acc.filter(item => !(item.to === curr.to && item.from === curr.from)), curr];
+            }
+            return acc;
+          }, []);
 
-        setRecentlyViewed(unique);
-      } catch (e) {
-        console.error('Error parsing recently viewed:', e);
+          // Sort by recency
+          unique.sort((a: ViewedDestination, b: ViewedDestination) => b.viewedAt - a.viewedAt);
+
+          // Debug: Log items with dates
+          console.log('📊 Recently viewed items loaded:', unique.length);
+          unique.forEach((item: ViewedDestination, idx: number) => {
+            if (item.departureDate || item.returnDate) {
+              console.log(`  ✅ Item ${idx} HAS dates:`, item.city, {
+                departure: item.departureDate,
+                return: item.returnDate
+              });
+            } else {
+              console.log(`  ❌ Item ${idx} NO dates:`, item.city);
+            }
+          });
+
+          setRecentlyViewed(unique);
+        } catch (e) {
+          console.error('Error parsing recently viewed:', e);
+        }
       }
-    }
+    };
+
+    loadData();
   }, []);
 
   const clearAll = () => {
@@ -262,6 +286,32 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
+  };
+
+  // Format dates compactly (e.g., "Jan 15" or "Jan 15 - Jan 22")
+  const formatTripDates = (departure?: string, returnDate?: string): string | null => {
+    if (!departure) {
+      console.log('🔍 No departure date found:', { departure, returnDate });
+      return null;
+    }
+
+    try {
+      const depDate = new Date(departure);
+      const depFormatted = depDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      if (returnDate) {
+        const retDate = new Date(returnDate);
+        const retFormatted = retDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        console.log('📅 Formatted dates:', `${depFormatted} - ${retFormatted}`);
+        return `${depFormatted} - ${retFormatted}`;
+      }
+
+      console.log('📅 Formatted date:', depFormatted);
+      return depFormatted;
+    } catch (e) {
+      console.error('❌ Error formatting dates:', e);
+      return null;
+    }
   };
 
   // Detect price drop
@@ -455,9 +505,32 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                 </button>
               </div>
 
-              {/* Deal Badges Row - Below route */}
+              {/* Trip Dates Row - Below route, above badges */}
+              {(() => {
+                const formattedDates = formatTripDates(item.departureDate, item.returnDate);
+                console.log(`🎨 Rendering card for ${item.city}:`, {
+                  hasDates: !!formattedDates,
+                  formattedDates,
+                  rawDeparture: item.departureDate,
+                  rawReturn: item.returnDate
+                });
+                return formattedDates ? (
+                  <div className="absolute top-7 left-1.5">
+                    <div
+                      className="text-white/90 text-[10px] font-semibold px-2 py-0.5 bg-black/20 backdrop-blur-sm rounded-md"
+                      style={{
+                        textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)'
+                      }}
+                    >
+                      {formattedDates}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Deal Badges Row - Below dates */}
               {(flashSale || hotDeal || hasPriceDrop) && (
-                <div className="absolute top-8 left-1.5 flex gap-1">
+                <div className="absolute top-12 left-1.5 flex gap-1">
                   {flashSale && (
                     <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-lg animate-pulse">
                       <Zap className="w-2.5 h-2.5" />

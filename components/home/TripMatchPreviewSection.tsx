@@ -447,7 +447,7 @@ export function TripMatchPreviewSection() {
                           from
                         </p>
                         <p className="text-xl font-bold text-white" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-                          ${Math.floor(parseFloat(trip.pricePerPerson))}
+                          ${Math.floor(parseFloat(String(trip.pricePerPerson || 0)))}
                           <span className="text-xs font-normal text-white/80">/person</span>
                         </p>
                         <div className="bg-green-500/90 text-white px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 mt-0.5">
