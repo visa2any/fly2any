@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
 
+// Force Node.js runtime and dynamic rendering for database access
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin API - Send Booking Email
  * POST /api/admin/bookings/[id]/send-email

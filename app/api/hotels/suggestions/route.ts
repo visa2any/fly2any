@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 
+// Force dynamic rendering for nextUrl.searchParams usage
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /**
  * Hotel Location Suggestions API Route
  *

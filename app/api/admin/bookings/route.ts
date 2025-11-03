@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { bookingStorage } from '@/lib/bookings/storage';
 import type { BookingStatus } from '@/lib/bookings/types';
 
+// Force Node.js runtime and dynamic rendering for database access
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin API - Get All Bookings
  * GET /api/admin/bookings

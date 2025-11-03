@@ -7,6 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/connection';
 
+// Force dynamic rendering for request.url usage
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/tripmatch/credits/history
  *

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelAPI } from '@/lib/api/duffel';
 
+// Force dynamic rendering for request.url usage
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/flights/ancillaries/baggage
  * Get real-time baggage pricing from Duffel API

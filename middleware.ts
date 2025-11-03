@@ -1,7 +1,16 @@
-import { auth } from '@/lib/auth';
+/**
+ * Edge-compatible middleware for NextAuth
+ *
+ * CRITICAL: This file runs in Edge Runtime
+ * - Uses edge-compatible auth from lib/auth-edge.ts
+ * - NO Prisma imports (causes bundle size bloat)
+ * - NO bcryptjs imports (Node.js only)
+ * - NO database lookups (edge runtime limitation)
+ */
+import { authEdge } from '@/lib/auth-edge';
 import { NextResponse } from 'next/server';
 
-export default auth((req) => {
+export default authEdge((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 

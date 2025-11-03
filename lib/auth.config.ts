@@ -1,8 +1,23 @@
+/**
+ * Node.js runtime auth configuration
+ *
+ * WARNING: This file is NOT edge-compatible
+ * - Uses Prisma for database access
+ * - Uses bcryptjs for password hashing (Node.js only)
+ * - ONLY use in Node.js runtime (API routes, server components)
+ * - DO NOT import in middleware.ts or edge runtime files
+ */
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
+
+// Lazy import bcryptjs to avoid bundling in edge runtime
+// This is only evaluated when Credentials provider is used
+const getBcrypt = async () => {
+  const bcrypt = await import('bcryptjs');
+  return bcrypt.default;
+};
 
 export const authConfig = {
   providers: [
@@ -36,6 +51,8 @@ export const authConfig = {
           throw new Error('Invalid credentials');
         }
 
+        // Dynamically import bcryptjs (Node.js only)
+        const bcrypt = await getBcrypt();
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
           user.password

@@ -3,6 +3,10 @@ import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 
+// Force dynamic rendering for nextUrl.searchParams usage
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 /**
  * Enhanced Featured Hotels API with Continent Filtering
  *

@@ -6,6 +6,8 @@ import { AIRLINES } from '@/lib/data/airlines';
 
 // Changed from 'edge' to 'nodejs' - Duffel SDK requires Node.js runtime
 export const runtime = 'nodejs';
+// Force dynamic rendering for request.url usage
+export const dynamic = 'force-dynamic';
 
 // Popular flight routes for destinations showcase
 // Organized by continent for filtering

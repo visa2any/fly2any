@@ -13,6 +13,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// Force Node.js runtime (required for Prisma database access)
+export const runtime = 'nodejs';
+
 export default async function AccountPage() {
   const session = await auth();
 
