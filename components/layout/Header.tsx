@@ -190,6 +190,7 @@ export function Header({
                 alt="Fly2Any Travel"
                 width={144}
                 height={43}
+                priority
                 className="h-9 w-auto"
                 style={{
                   width: 'auto',
