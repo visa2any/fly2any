@@ -275,6 +275,71 @@ export const borderRadius = {
 } as const;
 
 // ============================================================================
+// Z-INDEX SYSTEM - Semantic stacking layers
+// ============================================================================
+// IMPORTANT: All z-index values MUST come from this design system.
+// DO NOT use arbitrary z-index values in components.
+//
+// Layer hierarchy (ascending order):
+// - BASE: Default layer (0)
+// - DROPDOWN: Dropdowns, autocompletes (1000)
+// - STICKY: Sticky headers (1100)
+// - FIXED: Fixed navigation (1200)
+// - MODAL_BACKDROP: Modal background (1300)
+// - MODAL: Modal dialogs (1400)
+// - POPOVER: Tooltips, popovers (1500)
+// - NOTIFICATION: Toast notifications (1600)
+// - MAXIMUM: Emergency fallback (9999)
+//
+// Gaps allow room for nesting and future layers without breaking hierarchy.
+export const zIndex = {
+  // Base layer (default)
+  BASE: 0,
+
+  // Dropdowns & autocompletes (Header navigation dropdowns, autocomplete lists)
+  DROPDOWN: 1000,
+
+  // Sticky elements (Sticky headers that stay visible on scroll)
+  STICKY: 1100,
+
+  // Fixed elements (Fixed navigation bars, sidebars)
+  FIXED: 1200,
+
+  // Modal backdrop (Semi-transparent overlay behind modals)
+  MODAL_BACKDROP: 1300,
+
+  // Modal content (Dialog boxes, modal windows)
+  MODAL_CONTENT: 1400,
+
+  // Popovers & tooltips (Floating information boxes, help tooltips)
+  POPOVER: 1500,
+
+  // Notifications & toasts (Toast messages, alerts)
+  TOAST: 1600,
+
+  // Emergency/Fallback (Last resort - should rarely be used)
+  MAXIMUM: 9999,
+} as const;
+
+// Type for z-index keys
+export type ZIndexLayer = keyof typeof zIndex;
+
+/**
+ * Z-Index layer descriptions for documentation
+ */
+export const zIndexDescriptions: Record<ZIndexLayer, string> = {
+  BASE: 'Default stacking context (0)',
+  DROPDOWN: 'Dropdowns, autocomplete lists, select menus (1000)',
+  STICKY: 'Sticky headers and navigation (1100)',
+  FIXED: 'Fixed elements like navigation bars (1200)',
+  MODAL_BACKDROP: 'Semi-transparent modal backdrop (1300)',
+  MODAL_CONTENT: 'Modal dialogs and overlays (1400)',
+  POPOVER: 'Tooltips, popovers, and floating content (1500)',
+  TOAST: 'Toast notifications and temporary alerts (1600)',
+  MAXIMUM: 'Emergency fallback - avoid using (9999)',
+};
+
+// ============================================================================
 // DESIGN RULES - PLATFORM-WIDE STANDARDS
 // ============================================================================
 export const DESIGN_RULES = {
@@ -364,6 +429,8 @@ export default {
   animation,
   elevation,
   borderRadius,
+  zIndex,
+  zIndexDescriptions,
   DESIGN_RULES,
   getSpacing,
   getColor,

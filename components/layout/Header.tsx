@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { zIndex } from '@/lib/design-system';
 import { MaxWidthContainer } from './MaxWidthContainer';
 
 // Language type
@@ -156,7 +157,7 @@ export function Header({
 
   return (
     <header
-      className={`sticky top-0 z-[100] transition-all duration-300 ${className}`}
+      className={`sticky top-0 z-fixed transition-all duration-300 ${className}`}
       style={{
         background: scrolled
           ? 'rgba(255, 255, 255, 0.95)'
@@ -282,7 +283,7 @@ export function Header({
               {/* Dropdown Menu - Premium Glassmorphism */}
               {langDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-3 w-52 rounded-2xl overflow-hidden z-[9999] animate-slideDown"
+                  className="absolute right-0 mt-3 w-52 rounded-2xl overflow-hidden z-dropdown animate-slideDown"
                   style={{
                     background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(12px) saturate(180%)',

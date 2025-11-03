@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { GlobalLayout } from "@/components/layout/GlobalLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Fly2Any - Find & Book Flights, Hotels, and More | Your Travel Experts",
@@ -30,6 +31,19 @@ export default function RootLayout({
           <GlobalLayout>
             {children}
           </GlobalLayout>
+          <Toaster
+            position="bottom-right"
+            reverseOrder={false}
+            gutter={8}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'transparent',
+                padding: 0,
+                boxShadow: 'none',
+              },
+            }}
+          />
         </ErrorBoundary>
       </body>
     </html>

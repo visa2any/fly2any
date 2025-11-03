@@ -23,6 +23,17 @@ const config: Config = {
       },
     },
     extend: {
+      zIndex: {
+        'base': '0',
+        'dropdown': '1000',
+        'sticky': '1100',
+        'fixed': '1200',
+        'modal-backdrop': '1300',
+        'modal': '1400',
+        'popover': '1500',
+        'toast': '1600',
+        'maximum': '9999',
+      },
       colors: {
         primary: {
           50: '#E6F3FF',

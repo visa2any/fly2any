@@ -1269,7 +1269,7 @@ export default function EnhancedSearchBar({
 
             {showPassengerDropdown && (
               <div
-                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-[80] animate-in fade-in slide-in-from-top-2 duration-200 p-3"
+                className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-200 z-dropdown animate-in fade-in slide-in-from-top-2 duration-200 p-3"
                 style={{ width: '280px' }}
               >
                 {/* Adults */}

@@ -131,7 +131,7 @@ export function InlineAirportAutocomplete({ value, onChange, placeholder, onClos
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full z-[100] w-full min-w-[280px] max-w-[350px] mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
+          className="absolute top-full z-dropdown w-full min-w-[280px] max-w-[350px] mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200"
         >
           {suggestions.map((airport, index) => (
             <button

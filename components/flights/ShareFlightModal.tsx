@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { X, Copy, Check, MessageCircle, Send, Mail, Image as ImageIcon, Download, Instagram, Share2 } from 'lucide-react';
+import { zIndex } from '@/lib/design-system';
 import type { FlightOffer } from '@/lib/flights/types';
 import {
   extractShareData,
@@ -483,7 +484,7 @@ export default function ShareFlightModal({
 
       {/* Platform Picker Modal */}
       {showPlatformPicker && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={closePlatformPicker}>
+        <div className="fixed inset-0 z-modal-backdrop flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={closePlatformPicker}>
           <div className="relative bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl">

@@ -219,7 +219,7 @@ export default function MultiAirportSelector({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-[90] mt-2 w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute z-dropdown mt-2 w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Search Input */}
           <div className="p-2 border-b border-gray-200">
             <input

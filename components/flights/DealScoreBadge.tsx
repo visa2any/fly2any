@@ -189,7 +189,7 @@ function ScoreTooltip({ score }: { score: DealScoreBreakdown }) {
 
   return (
     <div
-      className="absolute z-[9999] p-4 bg-white rounded-lg shadow-2xl border border-gray-200 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-2 group-hover:translate-y-0 pointer-events-none top-full mt-2"
+      className="absolute z-maximum p-4 bg-white rounded-lg shadow-2xl border border-gray-200 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-2 group-hover:translate-y-0 pointer-events-none top-full mt-2"
       style={{
         left: '50%',
         transform: 'translateX(-50%)',

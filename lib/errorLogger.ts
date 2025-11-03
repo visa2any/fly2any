@@ -37,6 +37,7 @@ interface ErrorLoggerConfig {
   environment: string;
   logToConsole: boolean;
   captureUnhandledRejections: boolean;
+  showUserToasts: boolean;
 }
 
 /**
@@ -48,6 +49,7 @@ const defaultConfig: ErrorLoggerConfig = {
   environment: process.env.NODE_ENV || 'development',
   logToConsole: process.env.NODE_ENV === 'development',
   captureUnhandledRejections: true,
+  showUserToasts: true,
 };
 
 /**
@@ -75,15 +77,9 @@ export function initErrorLogger(customConfig?: Partial<ErrorLoggerConfig>) {
   // Initialize Sentry if DSN is provided
   if (config.enabled && config.sentryDsn && typeof window !== 'undefined') {
     try {
-      // TODO: Initialize Sentry here when ready
-      // import('@sentry/nextjs').then((Sentry) => {
-      //   Sentry.init({
-      //     dsn: config.sentryDsn,
-      //     environment: config.environment,
-      //     tracesSampleRate: 1.0,
-      //   });
-      // });
-      console.log('[ErrorLogger] Sentry initialization ready (uncomment when DSN is configured)');
+      // Sentry is initialized via sentry.client.config.ts
+      // This just logs that it's ready
+      console.log('[ErrorLogger] Sentry client initialized via sentry.client.config.ts');
     } catch (error) {
       console.error('[ErrorLogger] Failed to initialize Sentry:', error);
     }
@@ -166,6 +162,7 @@ function filterSensitiveData(data: unknown): unknown {
  * @param error - Error object to log
  * @param metadata - Additional metadata
  * @param severity - Error severity level
+ * @param showToast - Whether to show user-facing toast notification
  * @returns Error ID for tracking
  *
  * @example
@@ -176,7 +173,7 @@ function filterSensitiveData(data: unknown): unknown {
  *   const errorId = logError(error, {
  *     context: 'flight-search',
  *     userId: user.id,
- *   });
+ *   }, 'error', true);
  *   console.log('Error logged with ID:', errorId);
  * }
  * ```
@@ -184,7 +181,8 @@ function filterSensitiveData(data: unknown): unknown {
 export function logError(
   error: Error | unknown,
   metadata?: ErrorMetadata,
-  severity: ErrorSeverity = 'error'
+  severity: ErrorSeverity = 'error',
+  showToast?: boolean
 ): string {
   const errorId = generateErrorId();
 
@@ -214,17 +212,26 @@ export function logError(
   // Log to Sentry (when configured)
   if (config.enabled && config.sentryDsn) {
     try {
-      // TODO: Send to Sentry when configured
-      // import('@sentry/nextjs').then((Sentry) => {
-      //   Sentry.withScope((scope) => {
-      //     scope.setLevel(severity);
-      //     scope.setTag('errorId', errorId);
-      //     Object.entries(filteredMetadata).forEach(([key, value]) => {
-      //       scope.setExtra(key, value);
-      //     });
-      //     Sentry.captureException(errorObj);
-      //   });
-      // });
+      // Dynamically import Sentry to avoid SSR issues
+      import('@sentry/nextjs').then((Sentry) => {
+        Sentry.withScope((scope) => {
+          // Set severity level
+          scope.setLevel(severity);
+
+          // Add error ID as a tag for easy searching
+          scope.setTag('errorId', errorId);
+
+          // Add all metadata as extra context
+          Object.entries(filteredMetadata).forEach(([key, value]) => {
+            scope.setExtra(key, value);
+          });
+
+          // Capture the exception
+          Sentry.captureException(errorObj);
+        });
+      }).catch((importError) => {
+        console.error('[ErrorLogger] Failed to import Sentry:', importError);
+      });
     } catch (sentryError) {
       console.error('[ErrorLogger] Failed to send error to Sentry:', sentryError);
     }
@@ -254,6 +261,32 @@ export function logError(
     }
   } catch (apiError) {
     console.error('[ErrorLogger] Failed to send error to API:', apiError);
+  }
+
+  // Show user-facing toast notification if enabled
+  if (typeof window !== 'undefined' && (showToast ?? config.showUserToasts)) {
+    try {
+      // Dynamically import toast to avoid circular dependencies
+      import('./toast').then(({ showError }) => {
+        const userMessage =
+          severity === 'fatal'
+            ? `Something went wrong. Error ID: ${errorId}. Please contact support.`
+            : severity === 'error'
+              ? `An error occurred (${errorId}). Please try again.`
+              : severity === 'warning'
+                ? `Warning: ${errorObj.message}`
+                : `Info: ${errorObj.message}`;
+
+        showError(userMessage, {
+          duration: severity === 'warning' ? 5000 : severity === 'info' ? 4000 : 6000,
+        });
+      }).catch(() => {
+        // Toast module not available, silently fail
+        console.debug('[ErrorLogger] Toast module not available');
+      });
+    } catch (toastError) {
+      console.debug('[ErrorLogger] Failed to show toast:', toastError);
+    }
   }
 
   return errorId;

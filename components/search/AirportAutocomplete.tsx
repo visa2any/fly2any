@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plane, MapPin } from 'lucide-react';
+import { zIndex } from '@/lib/design-system';
 
 interface Airport {
   code: string;
@@ -389,7 +390,7 @@ export function AirportAutocomplete({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className={`absolute z-[70] w-full mt-${variant === 'default' ? '2' : '1'} bg-white ${styles.variant.dropdown} max-h-${variant === 'compact' ? '80' : '96'} overflow-y-auto ${variant === 'compact' ? 'animate-in fade-in slide-in-from-top-2 duration-200' : ''}`}
+          className={`absolute z-dropdown w-full mt-${variant === 'default' ? '2' : '1'} bg-white ${styles.variant.dropdown} max-h-${variant === 'compact' ? '80' : '96'} overflow-y-auto ${variant === 'compact' ? 'animate-in fade-in slide-in-from-top-2 duration-200' : ''}`}
         >
           {/* Loading state */}
           {isLoading && (
