@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { withQueryCache, CachePresets } from '@/lib/cache';
 
-export async function GET(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const keyword = searchParams.get('keyword');
@@ -23,5 +24,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Apply static cache preset (24h TTL) - airport data rarely changes
+export const GET = withQueryCache(handler, CachePresets.static('flight', 'airports'));
 
 export const runtime = 'edge';

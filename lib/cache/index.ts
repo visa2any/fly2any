@@ -20,7 +20,7 @@ export {
   cacheStats,
 } from './helpers';
 
-// Cache keys
+// Cache keys (legacy)
 export {
   generateFlightSearchKey,
   generateHotelSearchKey,
@@ -28,3 +28,54 @@ export {
   getRoutePattern,
   type FlightSearchParams,
 } from './keys';
+
+// Smart cache keys (new)
+export {
+  generateSmartCacheKey,
+  generateFlightCacheKey,
+  generateHotelCacheKey,
+  generateStaticCacheKey,
+  generateAnalyticsCacheKey,
+  generateGeoCacheKey,
+  generateTimeBucketedCacheKey,
+  generateUserCacheKey,
+  generateCacheKeyPattern,
+  parseCacheKey,
+  isValidCacheKey,
+  normalizeParams,
+  hashParams,
+  CacheKeys,
+  CacheKeyUtils,
+} from './smart-keys';
+
+// Cache middleware
+export {
+  withCache,
+  withQueryCache,
+  withBodyCache,
+  withTimeBucketedCache,
+  withConditionalCache,
+  withGeoCache,
+  CachePresets,
+  DEFAULT_TTLS,
+  DEFAULT_SWR,
+  type CacheMiddlewareOptions,
+} from './middleware';
+
+// Cache analytics
+export {
+  trackCacheHit,
+  trackCacheMiss,
+  trackCacheError,
+  getCacheStatistics,
+  getEndpointStatistics,
+  getHistoricalStatistics,
+  calculateCostSavings,
+  getTopPerformingEndpoints,
+  getWorstPerformingEndpoints,
+  getCacheEffectivenessScore,
+  generateCacheReport,
+  getRecentCacheEvents,
+  resetCacheStatistics,
+  CacheAnalytics,
+} from './analytics';

@@ -3,7 +3,6 @@ import "./globals.css";
 import { GlobalLayout } from "@/components/layout/GlobalLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "react-hot-toast";
-import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 
 export const metadata: Metadata = {
   title: "Fly2Any - Find & Book Flights, Hotels, and More | Your Travel Experts",
@@ -46,8 +45,6 @@ export default function RootLayout({
             }}
           />
         </ErrorBoundary>
-        {/* Web Vitals Performance Monitoring */}
-        <WebVitalsReporter />
       </body>
     </html>
   );

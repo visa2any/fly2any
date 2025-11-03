@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Clock, X, TrendingDown, Sparkles, MapPin, ArrowRight, Flame, Zap, Tag, Filter } from 'lucide-react';
 
 interface ViewedDestination {
@@ -464,10 +465,16 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
               }}
             >
               {/* Background Image with Parallax Effect */}
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                style={{ backgroundImage: `url(${item.imageUrl})` }}
-              ></div>
+              <div className="absolute inset-0 overflow-hidden">
+                <Image
+                  src={item.imageUrl}
+                  alt={`${item.city}, ${item.country}`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  priority={index < 6}
+                />
+              </div>
               {/* Lighter gradient to show photos better */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent"></div>
 

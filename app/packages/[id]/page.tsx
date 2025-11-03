@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-// Using native <img> with onError fallback to avoid Next Image failures when files are missing
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -318,12 +318,15 @@ export default function PackageDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-red-50/20 to-yellow-50/10">
       {/* Hero Section */}
       <section className="relative text-white">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1590077428593-a55bb07c4665?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80")'
-          }}
-        >
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src="https://images.unsplash.com/photo-1590077428593-a55bb07c4665?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+            alt="Porto & Douro Valley, Portugal"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority={true}
+          />
           <div className="absolute inset-0 bg-gradient-to-r from-green-900/60 via-red-900/50 to-yellow-600/40"></div>
           <div className="absolute inset-0 bg-black/30"></div>
         </div>

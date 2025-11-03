@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Users, Calendar, MapPin, Sparkles, TrendingUp, Award, ArrowRight, Plus, Heart, Star, Loader2, AlertCircle } from 'lucide-react';
 
 interface TripGroup {
@@ -371,13 +372,18 @@ export function TripMatchPreviewSection() {
                     style={{ height: '300px' }}
                   >
                   {/* Background Image */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
-                    style={{
-                      backgroundImage: `url(${trip.coverImageUrl || trip.destinationImage})`,
-                      transform: hoveredCard === trip.id ? 'scale(1.1)' : 'scale(1)',
-                    }}
-                  />
+                  <div className="absolute inset-0 overflow-hidden">
+                    <Image
+                      src={trip.coverImageUrl || trip.destinationImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop'}
+                      alt={`${trip.title} - ${trip.destination}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
+                      className={`object-cover transition-transform duration-500 ${
+                        hoveredCard === trip.id ? 'scale-110' : 'scale-100'
+                      }`}
+                      priority={false}
+                    />
+                  </div>
 
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -437,12 +443,14 @@ export function TripMatchPreviewSection() {
                           {trip.memberAvatars?.slice(0, 5).map((avatar, i) => (
                             <div
                               key={i}
-                              className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center"
+                              className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center relative"
                             >
-                              <img
+                              <Image
                                 src={avatar}
                                 alt={`Member ${i + 1}`}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="28px"
+                                className="object-cover"
                               />
                             </div>
                           ))}
