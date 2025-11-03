@@ -46,3 +46,8 @@ nul
 
 # Development logs
 dev.log
+
+# Test files (may contain API keys)
+test-*.js
+test-*.ts
+*-test.js
