@@ -146,9 +146,24 @@ function calculateCreatorCredits(memberCount: number): number {
   return Math.floor(memberCount * basePerMember * multiplier);
 }
 
-// Generate placeholder avatars
+// Generate diverse, realistic profile avatars using DiceBear API
 function generateAvatars(count: number): string[] {
-  return Array(count).fill('👤');
+  const avatarStyles = ['avataaars', 'bottts', 'personas', 'avataaars-neutral', 'big-smile'];
+  const seeds = [
+    'Sarah', 'John', 'Emma', 'Michael', 'Olivia', 'James', 'Sophia', 'William',
+    'Ava', 'David', 'Isabella', 'Robert', 'Mia', 'Daniel', 'Charlotte', 'Joseph',
+    'Amelia', 'Thomas', 'Harper', 'Christopher', 'Evelyn', 'Matthew', 'Abigail',
+    'Maria', 'Carlos', 'Ana', 'Luis', 'Sofia', 'Diego', 'Camila', 'Juan',
+  ];
+
+  const avatars: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const style = avatarStyles[i % avatarStyles.length];
+    const seed = seeds[i % seeds.length] + i; // Add index for uniqueness
+    avatars.push(`https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`);
+  }
+
+  return avatars;
 }
 
 export function TripMatchPreviewSection() {
