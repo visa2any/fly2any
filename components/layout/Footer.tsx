@@ -515,8 +515,46 @@ export function Footer({
             )}
           </div>
 
+          {/* Trust & Security Badges */}
+          <div className="mt-8 pt-6 border-t border-gray-700/30">
+            <div className="flex flex-wrap items-center justify-center gap-6 mb-6">
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-400 font-medium">
+                  {language === 'en' ? 'Secure Booking' : language === 'pt' ? 'Reserva Segura' : 'Reserva Segura'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-400 font-medium">
+                  {language === 'en' ? 'SSL Encrypted' : language === 'pt' ? 'Criptografia SSL' : 'Encriptación SSL'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-400 font-medium">
+                  {language === 'en' ? 'Powered by' : language === 'pt' ? 'Distribuído por' : 'Distribuido por'}
+                </span>
+                <strong className="text-white">Amadeus</strong>
+                <span className="text-gray-600">&</span>
+                <strong className="text-white">Duffel</strong>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-gray-400 font-medium">
+                  {language === 'en' ? 'No Hidden Fees' : language === 'pt' ? 'Sem Taxas Ocultas' : 'Sin Cargos Ocultos'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Additional Info */}
-          <div className="mt-8 pt-6 border-t border-gray-700/30 text-center">
+          <div className="text-center">
             <p className="text-xs text-gray-500">
               {language === 'en'
                 ? 'Fly2Any is a registered trademark. All rights reserved. Prices are subject to availability and may change without notice.'

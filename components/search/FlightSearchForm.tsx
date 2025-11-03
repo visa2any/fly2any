@@ -531,19 +531,19 @@ export default function FlightSearchForm({
                     type="button"
                     onClick={() => setFormData({ ...formData, departureFlex: Math.max(0, formData.departureFlex - 1) })}
                     disabled={formData.departureFlex === 0}
-                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    className="w-11 h-11 md:w-8 md:h-8 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
                     aria-label="Decrease flex days"
                   >
                     −
                   </button>
-                  <span className="text-xs font-semibold text-gray-700 min-w-[36px] text-center">
+                  <span className="text-sm md:text-xs font-semibold text-gray-700 min-w-[36px] text-center">
                     {formData.departureFlex === 0 ? 'Exact' : `±${formData.departureFlex}`}
                   </span>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, departureFlex: Math.min(5, formData.departureFlex + 1) })}
                     disabled={formData.departureFlex === 5}
-                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    className="w-11 h-11 md:w-8 md:h-8 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
                     aria-label="Increase flex days"
                   >
                     +
@@ -697,7 +697,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('adults', -1)}
                       disabled={tempPassengers.adults <= 1}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Decrease ${t.passengerTypes.adults}`}
                     >
                       −
@@ -709,7 +709,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('adults', 1)}
                       disabled={tempPassengers.adults >= 9}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Increase ${t.passengerTypes.adults}`}
                     >
                       +
@@ -728,7 +728,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('children', -1)}
                       disabled={tempPassengers.children <= 0}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Decrease ${t.passengerTypes.children}`}
                     >
                       −
@@ -740,7 +740,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('children', 1)}
                       disabled={tempPassengers.children >= 9}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Increase ${t.passengerTypes.children}`}
                     >
                       +
@@ -759,7 +759,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('infants', -1)}
                       disabled={tempPassengers.infants <= 0}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Decrease ${t.passengerTypes.infants}`}
                     >
                       −
@@ -771,7 +771,7 @@ export default function FlightSearchForm({
                       type="button"
                       onClick={() => updatePassengerCount('infants', 1)}
                       disabled={tempPassengers.infants >= tempPassengers.adults || tempPassengers.infants >= 9}
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-blue-500 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-lg font-bold"
                       aria-label={`Increase ${t.passengerTypes.infants}`}
                     >
                       +

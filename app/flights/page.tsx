@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AirportAutocomplete } from '@/components/search/AirportAutocomplete';
+import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { Plane, PlaneTakeoff, PlaneLanding } from 'lucide-react';
 
 type Language = 'en' | 'pt' | 'es';
@@ -393,6 +394,7 @@ export default function FlightsPage() {
                   }
                 }}
                 icon={<PlaneLanding className="w-5 h-5" />}
+                showExplore={true}
               />
               {errors.to && (
                 <p className="mt-1 text-sm text-red-600">{errors.to}</p>
@@ -566,6 +568,11 @@ export default function FlightsPage() {
               </>
             )}
           </button>
+        </div>
+
+        {/* Recent Searches - Show previously searched routes */}
+        <div className="mt-8">
+          <RecentlyViewedSection />
         </div>
 
         {/* Results will appear here */}

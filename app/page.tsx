@@ -99,11 +99,13 @@ export default function Home() {
             <button
               key={language}
               onClick={() => setLang(language)}
-              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-sm md:text-base font-semibold transition-all duration-300 ${
+              className={`px-4 py-2.5 md:px-4 md:py-2 rounded-full text-sm md:text-base font-semibold transition-all duration-300 min-h-[44px] min-w-[44px] ${
                 lang === language
                   ? 'bg-white text-blue-600 shadow-lg'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
+              aria-label={`Switch to ${language === 'en' ? 'English' : language === 'pt' ? 'Portuguese' : 'Spanish'}`}
+              aria-current={lang === language ? 'true' : undefined}
             >
               {language.toUpperCase()}
             </button>

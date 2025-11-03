@@ -24,6 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        {/* Skip to main content link for accessibility */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <ErrorBoundary
           variant="full-page"
           context="root-layout"

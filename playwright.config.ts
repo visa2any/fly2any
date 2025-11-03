@@ -10,14 +10,18 @@ const baseURL = `http://localhost:${PORT}`;
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  // Global timeout for each test
-  timeout: 30 * 1000,
+  // Global timeout for each test (increased for API calls)
+  timeout: 60 * 1000,
 
-  // Directory where tests are located
-  testDir: path.join(__dirname, 'e2e'),
+  // Test match patterns - use both e2e and tests/e2e directories
+  testDir: path.join(__dirname, 'tests/e2e'),
+  testMatch: '**/*.spec.ts',
 
   // Retry failed tests on CI
   retries: process.env.CI ? 2 : 0,
+
+  // Workers for parallel execution
+  workers: process.env.CI ? 2 : undefined,
 
   // Output directory for test results
   outputDir: 'test-results/',
@@ -30,8 +34,10 @@ export default defineConfig({
 
   // Configure reporters
   reporter: [
-    ['html'],
+    ['html', { outputFolder: 'playwright-report' }],
     ['list'],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['junit', { outputFile: 'test-results/junit.xml' }],
   ],
 
   // Shared settings for all projects
@@ -47,6 +53,22 @@ export default defineConfig({
 
     // Video recording on first retry
     video: 'retain-on-failure',
+
+    // Maximum time each action can take
+    actionTimeout: 15000,
+
+    // Navigation timeout
+    navigationTimeout: 30000,
+
+    // Accept downloads
+    acceptDownloads: true,
+
+    // Emulate media features
+    colorScheme: 'light',
+
+    // Locale and timezone
+    locale: 'en-US',
+    timezoneId: 'America/New_York',
   },
 
   // Configure webServer to start Next.js automatically
@@ -55,35 +77,52 @@ export default defineConfig({
     url: baseURL,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
+    stdout: 'ignore',
+    stderr: 'pipe',
   },
 
   // Configure browser projects
   projects: [
+    // Desktop browsers
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+      },
     },
 
-    // Uncomment to enable Firefox and WebKit
-    // Install with: npx playwright install firefox webkit --with-deps
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
 
     // Mobile viewports
     {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
+
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
+    },
+
+    // Tablet viewport
+    {
+      name: 'iPad Pro',
+      use: { ...devices['iPad Pro'] },
     },
   ],
 });

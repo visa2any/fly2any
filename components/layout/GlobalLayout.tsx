@@ -114,7 +114,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
       />
 
       {/* Main Content */}
-      <main className="min-h-screen">
+      <main id="main-content" className="min-h-screen" tabIndex={-1}>
         {children}
       </main>
 
