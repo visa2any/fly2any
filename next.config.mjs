@@ -4,6 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   images: {
     remotePatterns: [
+      // Tour images
       {
         protocol: 'https',
         hostname: 'www.tourradar.com',
@@ -14,20 +15,82 @@ const nextConfig = {
         hostname: 'tourradar.com',
         pathname: '/images/**',
       },
+      // User avatars
       {
         protocol: 'https',
         hostname: 'randomuser.me',
         pathname: '/api/portraits/**',
       },
+      // Stock images
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
+      // Duffel API images (flights, airlines, airports)
+      {
+        protocol: 'https',
+        hostname: 'assets.duffel.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'duffel.com',
+        pathname: '/**',
+      },
+      // Amadeus API images (hotels, destinations)
+      {
+        protocol: 'https',
+        hostname: '**.amadeus.com',
+      },
+      // Hotel images (common CDNs)
+      {
+        protocol: 'https',
+        hostname: 'pix*.agoda.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.trvl-media.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.booking.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'r-xx.bstatic.com',
+        pathname: '/**',
+      },
+      // Car rental images
+      {
+        protocol: 'https',
+        hostname: 'images.hertz.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.enterprise.com',
+        pathname: '/content/**',
+      },
+      // Generic CDNs
+      {
+        protocol: 'https',
+        hostname: 'cdn.*.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.*.com',
+      },
     ],
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/avif', 'image/webp'], // Modern formats with fallback
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Support up to 4K
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Icon and thumbnail sizes
+    minimumCacheTTL: 60 * 60 * 24 * 30, // Cache images for 30 days
+    dangerouslyAllowSVG: true, // Allow SVG for icons and logos
+    contentDispositionType: 'attachment', // Security for user-uploaded images
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // CSP for images
   },
 };
 

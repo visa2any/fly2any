@@ -11,6 +11,7 @@ import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clo
 import { motion, AnimatePresence } from 'framer-motion';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
+import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -287,17 +288,29 @@ function HotelResultsContent() {
     cancellationPolicy: [],
   });
 
-  // Fetch hotels
-  useEffect(() => {
-    const fetchHotels = async () => {
-      if (!searchData.destination || !searchData.checkIn || !searchData.checkOut) {
-        setError('Missing required search parameters');
-        setLoading(false);
-        return;
-      }
+  // Pull-to-refresh functionality for mobile users
+  const { isRefreshing: isPullRefreshing, pullIndicator } = usePullToRefresh(
+    async () => {
+      // Refetch hotel results on pull-to-refresh
+      await fetchHotels();
+    },
+    {
+      threshold: 80,
+      mobileOnly: true,
+      theme: 'orange',
+    }
+  );
 
-      setLoading(true);
-      setError(null);
+  // Fetch hotels function (extracted for reuse with pull-to-refresh)
+  const fetchHotels = async () => {
+    if (!searchData.destination || !searchData.checkIn || !searchData.checkOut) {
+      setError('Missing required search parameters');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
       try {
         const query = new URLSearchParams({
@@ -338,8 +351,10 @@ function HotelResultsContent() {
       } finally {
         setLoading(false);
       }
-    };
+  };
 
+  // Fetch hotels on mount and when search params change
+  useEffect(() => {
     fetchHotels();
   }, [searchParams]);
 
@@ -448,6 +463,18 @@ function HotelResultsContent() {
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+      {/* Pull-to-refresh indicator (mobile only) */}
+      {pullIndicator}
+
+      {/* Keyboard-accessible refresh button (mobile only, hidden during pull) */}
+      <div className="md:hidden">
+        <RefreshButton
+          onRefresh={fetchHotels}
+          isRefreshing={loading || isPullRefreshing}
+          theme="orange"
+        />
+      </div>
+
       {/* Scroll Progress */}
       <ScrollProgress />
 

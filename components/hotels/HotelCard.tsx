@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check, ChevronDown, ChevronUp, Users, Clock, Info, Sparkles, Wifi, Coffee, Dumbbell, Car, Shield } from 'lucide-react';
 import { dimensions, spacing, typography, colors } from '@/lib/design-system';
+import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
 import type { MockHotel } from '@/lib/mock-data/hotels';
 
 export interface HotelCardProps {
@@ -162,7 +164,7 @@ export function HotelCard({
       {/* MAIN CONTENT - Photo Left | All Info Right (ULTRA COMPACT HORIZONTAL LAYOUT) */}
       <div className="flex flex-col md:flex-row">
         {/* Image Carousel - Left Side (LARGER - Full height) */}
-        <div className="relative w-full md:w-80 h-48 md:h-auto flex-shrink-0 overflow-hidden">
+        <div className="relative w-full md:w-80 h-48 md:h-auto flex-shrink-0 overflow-hidden bg-gray-100">
           {/* Deal Badge */}
           {bestRate.deal_type && (
             <div className="absolute top-2 left-2 z-10">
@@ -205,11 +207,20 @@ export function HotelCard({
             </button>
           </div>
 
-          {/* Image */}
-          <img
-            src={hotel.photos[currentImageIndex]}
-            alt={hotel.name}
-            className="w-full h-full object-cover"
+          {/* Image - Optimized with Next.js Image */}
+          <Image
+            {...getOptimizedImageProps(
+              hotel.photos[currentImageIndex],
+              `${hotel.name} - Photo ${currentImageIndex + 1}`,
+              'hotelCard',
+              {
+                priority: currentImageIndex === 0, // Priority load first image only
+                loading: currentImageIndex === 0 ? 'eager' : 'lazy',
+              }
+            )}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
           />
 
           {/* Image Navigation */}

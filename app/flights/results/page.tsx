@@ -40,6 +40,7 @@ import { trackConversion } from '@/lib/conversion-metrics';
 import { abTestManager } from '@/lib/ab-testing/test-manager';
 import { analyticsTracker } from '@/lib/ab-testing/analytics-tracker';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
+import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -784,21 +785,33 @@ function FlightResultsContent() {
     return combinedFlight;
   };
 
-  // Fetch flights on mount and when search params change
-  useEffect(() => {
-    const fetchFlights = async () => {
-      if (!searchData.from || !searchData.to || !searchData.departure) {
-        setError('Missing required search parameters');
-        setLoading(false);
-        return;
-      }
+  // Pull-to-refresh functionality for mobile users
+  const { isRefreshing: isPullRefreshing, pullIndicator } = usePullToRefresh(
+    async () => {
+      // Refetch search results on pull-to-refresh
+      await fetchFlights();
+    },
+    {
+      threshold: 80,
+      mobileOnly: true,
+      theme: 'blue',
+    }
+  );
 
-      setLoading(true);
-      setError(null);
-      setSearchBarCollapsed(false); // Reset to expanded when new search starts
+  // Fetch flights function (extracted for reuse with pull-to-refresh)
+  const fetchFlights = async () => {
+    if (!searchData.from || !searchData.to || !searchData.departure) {
+      setError('Missing required search parameters');
+      setLoading(false);
+      return;
+    }
 
-      // Announce search start
-      announceResults(0); // Will be updated when results load
+    setLoading(true);
+    setError(null);
+    setSearchBarCollapsed(false); // Reset to expanded when new search starts
+
+    // Announce search start
+    announceResults(0); // Will be updated when results load
 
       // Handle multi-city separately
       console.log('🔍 BEFORE CONDITION CHECK:', { isMultiCity, additionalFlightsLength: additionalFlights.length, willEnterMultiCity: isMultiCity && additionalFlights.length > 0 });
@@ -1057,8 +1070,10 @@ function FlightResultsContent() {
           setSearchBarCollapsed(true);
         }
       }
-    };
+  };
 
+  // Fetch flights on mount and when search params change
+  useEffect(() => {
     fetchFlights();
   }, [searchParams]);
 
@@ -1487,6 +1502,18 @@ function FlightResultsContent() {
   // Main results view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
+      {/* Pull-to-refresh indicator (mobile only) */}
+      {pullIndicator}
+
+      {/* Keyboard-accessible refresh button (mobile only, hidden during pull) */}
+      <div className="md:hidden">
+        <RefreshButton
+          onRefresh={fetchFlights}
+          isRefreshing={loading || isPullRefreshing}
+          theme="blue"
+        />
+      </div>
+
       {/* Test Mode Banner - Removed for production */}
       {/* <TestModeBanner /> */}
 
