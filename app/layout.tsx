@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GlobalLayout } from "@/components/layout/GlobalLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "Fly2Any - Find & Book Flights, Hotels, and More | Your Travel Experts",
@@ -21,9 +22,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <GlobalLayout>
-          {children}
-        </GlobalLayout>
+        <ErrorBoundary
+          variant="full-page"
+          context="root-layout"
+          showDetails={process.env.NODE_ENV === 'development'}
+        >
+          <GlobalLayout>
+            {children}
+          </GlobalLayout>
+        </ErrorBoundary>
       </body>
     </html>
   );
