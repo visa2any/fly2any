@@ -355,7 +355,11 @@ export function TripMatchPreviewSection() {
                   animation: 'slideInUp 0.5s ease-out forwards',
                 }}
               >
-                <Link href={`/tripmatch/trips/${trip.id}`}>
+                <Link
+                  href={`/tripmatch/trips/${trip.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <div
                     className={`
                       relative rounded-xl overflow-hidden cursor-pointer

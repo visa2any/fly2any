@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: 'tourradar.com',
         pathname: '/images/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+        pathname: '/api/portraits/**',
+      },
     ],
   },
 };
