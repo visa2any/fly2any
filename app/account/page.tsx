@@ -17,28 +17,43 @@ import Link from 'next/link';
 export const runtime = 'nodejs';
 
 export default async function AccountPage() {
-  const session = await auth();
+  // Check if database is configured
+  const isDatabaseConfigured = !!process.env.DATABASE_URL;
 
-  if (!session) {
-    redirect('/auth/signin');
+  let session = null;
+  let savedSearches: any[] = [];
+  let priceAlerts: any[] = [];
+  let preferences = null;
+
+  try {
+    if (isDatabaseConfigured) {
+      session = await auth();
+
+      if (!session) {
+        redirect('/auth/signin');
+      }
+
+      // Fetch user data
+      [savedSearches, priceAlerts, preferences] = await Promise.all([
+        prisma.savedSearch.findMany({
+          where: { userId: session.user.id },
+          orderBy: { lastSearched: 'desc' },
+          take: 5,
+        }),
+        prisma.priceAlert.findMany({
+          where: { userId: session.user.id, active: true },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+        }),
+        prisma.userPreferences.findUnique({
+          where: { userId: session.user.id },
+        }),
+      ]);
+    }
+  } catch (error) {
+    console.error('Account page error:', error);
+    // Continue with empty data
   }
-
-  // Fetch user data
-  const [savedSearches, priceAlerts, preferences] = await Promise.all([
-    prisma.savedSearch.findMany({
-      where: { userId: session.user.id },
-      orderBy: { lastSearched: 'desc' },
-      take: 5,
-    }),
-    prisma.priceAlert.findMany({
-      where: { userId: session.user.id, active: true },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.userPreferences.findUnique({
-      where: { userId: session.user.id },
-    }),
-  ]);
 
   const stats = {
     savedSearches: savedSearches.length,
@@ -48,30 +63,67 @@ export default async function AccountPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
-        <div className="flex items-center gap-6">
-          {session.user.image ? (
-            <img
-              src={session.user.image}
-              alt={session.user.name || 'User'}
-              className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-4 border-white">
-              {session.user.name?.[0] || 'U'}
+      {/* Database Not Configured Notice */}
+      {!isDatabaseConfigured && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
-          )}
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {session.user.name?.split(' ')[0] || 'Traveler'}!
-            </h1>
-            <p className="text-blue-100 text-lg">
-              Manage your searches, track prices, and plan your next adventure
-            </p>
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold text-yellow-800">
+                Account Features Temporarily Unavailable
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p className="mb-2">
+                  The account system requires database configuration to store your saved searches, price alerts, and preferences.
+                </p>
+                <p className="font-medium">
+                  You can still search for flights and hotels! Account features will be available once the database is set up.
+                </p>
+              </div>
+              <div className="mt-4">
+                <Link
+                  href="/"
+                  className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Search Flights & Hotels
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Welcome Section */}
+      {session && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
+          <div className="flex items-center gap-6">
+            {session.user.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-4 border-white">
+                {session.user.name?.[0] || 'U'}
+              </div>
+            )}
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">
+                Welcome back, {session.user.name?.split(' ')[0] || 'Traveler'}!
+              </h1>
+              <p className="text-blue-100 text-lg">
+                Manage your searches, track prices, and plan your next adventure
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
