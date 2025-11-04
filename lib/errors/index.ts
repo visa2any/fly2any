@@ -52,4 +52,4 @@ export { DatabaseErrorBoundary } from '@/components/errors/DatabaseErrorBoundary
 export { default as ErrorAlert } from '@/components/errors/ErrorAlert';
 export { default as ErrorPage } from '@/components/errors/ErrorPage';
 export { default as ErrorToast, useToast } from '@/components/errors/ErrorToast';
-export type { ErrorAlertType, ToastType } from '@/components/errors/ErrorToast';
+export type { ToastType } from '@/components/errors/ErrorToast';
