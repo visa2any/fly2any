@@ -167,6 +167,11 @@ export function dollarsToCredits(
  */
 export async function getUserCredits(userId: string): Promise<UserCredits | null> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     const result = await sql`
       SELECT *
       FROM user_credits
@@ -208,6 +213,11 @@ export async function awardCredits(
   } = {}
 ): Promise<CreditTransaction | null> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     // Insert transaction (trigger will update balance)
     const result = await sql`
       INSERT INTO credit_transactions (
@@ -267,6 +277,11 @@ export async function spendCredits(
   } = {}
 ): Promise<CreditTransaction | null> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     // Check if user has enough credits
     const userCredits = await getUserCredits(userId);
     if (!userCredits || userCredits.balance < amount) {
@@ -325,6 +340,11 @@ export async function getCreditHistory(
   limit: number = 50
 ): Promise<CreditTransaction[]> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     const result = await sql`
       SELECT *
       FROM credit_transactions
@@ -489,6 +509,11 @@ export async function checkAndAwardCreatorAchievements(
   creatorId: string
 ): Promise<void> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return;
+    }
+
     // Get creator's trip count
     const result = await sql`
       SELECT COUNT(*) as trip_count
@@ -557,6 +582,11 @@ export async function getTopCreditEarners(limit: number = 10): Promise<
   }>
 > {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     const result = await sql`
       SELECT
         uc.user_id,
@@ -592,6 +622,16 @@ export async function getCreditStats(): Promise<{
   avgCreditsPerUser: number;
 }> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return {
+        totalCreditsAwarded: 0,
+        totalCreditsSpent: 0,
+        activeUsers: 0,
+        avgCreditsPerUser: 0,
+      };
+    }
+
     const result = await sql`
       SELECT
         SUM(lifetime_earned) as total_earned,

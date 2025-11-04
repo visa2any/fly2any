@@ -21,6 +21,14 @@ import type { TripGroup, TripSummary } from '@/lib/tripmatch/types';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Parse query parameters
@@ -182,6 +190,14 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
 
     // TODO: Get user ID from auth session (Clerk/NextAuth)

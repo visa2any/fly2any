@@ -43,6 +43,14 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const tripId = params.id;
     const body = await request.json();
 
@@ -222,6 +230,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const tripId = params.id;
     const { searchParams } = new URL(request.url);
 

@@ -397,6 +397,14 @@ const SAMPLE_TRIPS = [
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     console.log('🌱 Starting TripMatch seed data creation...\n');
 
     // Step 1: Check if schema exists, if not apply it

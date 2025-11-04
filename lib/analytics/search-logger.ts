@@ -136,6 +136,11 @@ export async function logFlightSearch(
   request?: Request
 ): Promise<string | null> {
   try {
+    if (!sql) {
+      console.warn('Database not configured - skipping search logging');
+      return null;
+    }
+
     // Hash IP for privacy
     const ipHash = search.ipAddress
       ? hashIP(search.ipAddress)
@@ -239,6 +244,11 @@ export async function logBookingConversion(
   conversion: BookingConversion
 ): Promise<void> {
   try {
+    if (!sql) {
+      console.warn('Database not configured - skipping booking conversion logging');
+      return;
+    }
+
     await sql`
       UPDATE flight_search_logs
       SET
@@ -268,6 +278,11 @@ export async function getRouteStatistics(route: string): Promise<{
   recommendedTtl: number;
 } | null> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     const result = await sql`
       SELECT
         searches_30d,
@@ -309,6 +324,11 @@ export async function getPopularRoutes(limit: number = 50): Promise<{
   avgPrice: number;
 }[]> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     const result = await sql`
       SELECT
         route,
@@ -345,6 +365,11 @@ export async function updateCacheCoverage(
   source: 'user-search' | 'pre-warm' | 'demo' = 'user-search'
 ): Promise<void> {
   try {
+    if (!sql) {
+      console.warn('Database not configured - skipping cache coverage update');
+      return;
+    }
+
     const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
 
     await sql`
@@ -399,6 +424,11 @@ export async function getCacheCoverage(
   expiresAt: string | null;
 }[]> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     const result = await sql`
       SELECT
         date,

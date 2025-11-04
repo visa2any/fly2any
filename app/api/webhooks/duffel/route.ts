@@ -80,6 +80,11 @@ async function logWebhookEvent(
   error?: string
 ): Promise<void> {
   try {
+    if (!sql) {
+      console.warn('Database not configured - skipping webhook event logging');
+      return;
+    }
+
     await sql`
       INSERT INTO webhook_events (
         id,
@@ -115,6 +120,11 @@ async function logWebhookEvent(
  */
 async function isEventProcessed(eventId: string): Promise<boolean> {
   try {
+    if (!sql) {
+      console.warn('Database not configured');
+      return false;
+    }
+
     const result = await sql`
       SELECT status FROM webhook_events WHERE id = ${eventId}
     `;
@@ -282,6 +292,18 @@ async function processEventAsync(event: DuffelWebhookEvent): Promise<void> {
  */
 export async function GET(req: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        {
+          status: 'unhealthy',
+          service: 'duffel-webhooks',
+          error: 'Database not configured',
+        },
+        { status: 503 }
+      );
+    }
+
     // Check database connection
     const dbCheck = await sql`SELECT 1 as health`;
 

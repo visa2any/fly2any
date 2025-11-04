@@ -18,6 +18,14 @@ export async function GET(
   { params }: { params: { id: string; memberId: string } }
 ) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { id: tripId, memberId } = params;
 
     const result = await sql`
@@ -104,6 +112,14 @@ export async function PATCH(
   { params }: { params: { id: string; memberId: string } }
 ) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { id: tripId, memberId } = params;
     const body = await request.json();
 
@@ -304,6 +320,14 @@ export async function DELETE(
   { params }: { params: { id: string; memberId: string } }
 ) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { id: tripId, memberId } = params;
 
     // TODO: Get user ID from auth

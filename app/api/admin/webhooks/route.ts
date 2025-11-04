@@ -12,6 +12,14 @@ import { handleWebhookEvent, type DuffelWebhookEvent } from '@/lib/webhooks/even
  */
 export async function GET(req: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
 
     // Query parameters
@@ -108,6 +116,14 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const body = await req.json();
     const { eventId, action } = body;
 

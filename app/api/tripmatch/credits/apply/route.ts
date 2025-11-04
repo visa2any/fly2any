@@ -22,6 +22,14 @@ import { sql } from '@/lib/db/connection';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is configured
+    if (!sql) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
 
     // TODO: Get user ID from auth
