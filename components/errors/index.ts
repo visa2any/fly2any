@@ -11,4 +11,4 @@ export { DatabaseErrorBoundary } from './DatabaseErrorBoundary';
 export { default as ErrorAlert } from './ErrorAlert';
 export { default as ErrorPage } from './ErrorPage';
 export { default as ErrorToast, useToast } from './ErrorToast';
-export type { ErrorAlertType, ToastType } from './ErrorToast';
+export type { ToastType } from './ErrorToast';
