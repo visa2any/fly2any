@@ -12,6 +12,11 @@ import * as path from 'path';
 async function applyMigration() {
   console.log('🚀 Starting TripMatch database migration...\n');
 
+  if (!sql) {
+    console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
+    process.exit(1);
+  }
+
   try {
     // Read the migration file
     const migrationPath = path.join(__dirname, '../lib/db/migrations/001_tripmatch_schema.sql');
@@ -104,6 +109,12 @@ async function applyMigration() {
     console.error('\n❌ Migration failed:', error);
     process.exit(1);
   }
+}
+
+// Check database connection before running
+if (!sql) {
+  console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
+  process.exit(1);
 }
 
 function extractTableName(statement: string): string {

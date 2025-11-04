@@ -47,6 +47,10 @@ class BookingStorage {
    * Create a new booking
    */
   async create(booking: Omit<Booking, 'id' | 'bookingReference' | 'createdAt' | 'updatedAt'>): Promise<Booking> {
+    if (!sql) {
+      throw new Error('Database not configured');
+    }
+
     try {
       const now = new Date().toISOString();
       const id = this.generateBookingId();
@@ -110,6 +114,11 @@ class BookingStorage {
    * Find booking by ID
    */
   async findById(id: string): Promise<Booking | null> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     try {
       const result = await sql`
         SELECT * FROM bookings WHERE id = ${id}
@@ -140,6 +149,11 @@ class BookingStorage {
    * Find booking by reference (async version)
    */
   async findByReferenceAsync(reference: string): Promise<Booking | null> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     try {
       const result = await sql`
         SELECT * FROM bookings WHERE booking_reference = ${reference}
@@ -160,6 +174,11 @@ class BookingStorage {
    * Search bookings with filters
    */
   async search(params: BookingSearchParams): Promise<Booking[]> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     try {
       const conditions: string[] = [];
       const values: any[] = [];
@@ -218,6 +237,10 @@ class BookingStorage {
    * Helper method to execute search query with dynamic parameters
    */
   private async executeSearchQuery(params: BookingSearchParams): Promise<any[]> {
+    if (!sql) {
+      return [];
+    }
+
     const offset = params.offset || 0;
     const limit = params.limit || 50;
 
@@ -329,6 +352,11 @@ class BookingStorage {
    * Update an existing booking
    */
   async update(id: string, updates: Partial<Booking>): Promise<Booking | null> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     try {
       const booking = await this.findById(id);
 
@@ -374,6 +402,11 @@ class BookingStorage {
    * Cancel a booking (soft delete)
    */
   async cancel(id: string, reason?: string): Promise<Booking | null> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return null;
+    }
+
     try {
       const booking = await this.findById(id);
 
@@ -411,6 +444,11 @@ class BookingStorage {
    * Hard delete a booking (for admin/testing purposes)
    */
   async delete(id: string): Promise<boolean> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return false;
+    }
+
     try {
       const result = await sql`
         DELETE FROM bookings WHERE id = ${id}
@@ -428,6 +466,11 @@ class BookingStorage {
    * Get total count of bookings
    */
   async count(params?: BookingSearchParams): Promise<number> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return 0;
+    }
+
     try {
       if (!params || Object.keys(params).length === 0) {
         const result = await sql`
@@ -475,6 +518,10 @@ class BookingStorage {
    * Clear all bookings (for testing purposes)
    */
   async clearAll(): Promise<void> {
+    if (!sql) {
+      throw new Error('Database not configured');
+    }
+
     try {
       await sql`TRUNCATE TABLE bookings`;
     } catch (error) {
@@ -487,6 +534,11 @@ class BookingStorage {
    * Get all bookings (for admin purposes)
    */
   async getAll(): Promise<Booking[]> {
+    if (!sql) {
+      console.warn('Database not configured');
+      return [];
+    }
+
     try {
       const result = await sql`
         SELECT * FROM bookings

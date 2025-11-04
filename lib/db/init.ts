@@ -42,6 +42,10 @@ export async function initDatabase() {
  * Check if database is properly initialized
  */
 export async function checkDatabase() {
+  if (!sql) {
+    throw new Error('Database not configured');
+  }
+
   try {
     const result = await sql`
       SELECT table_name

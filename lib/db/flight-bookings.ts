@@ -45,6 +45,11 @@ export interface PopularFlight {
  * @returns Number of confirmed bookings in last 24 hours
  */
 export async function getBookingsToday(flightId: string): Promise<number> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return 0;
+  }
+
   try {
     const result = await sql`
       SELECT COUNT(*) as count
@@ -68,6 +73,11 @@ export async function getBookingsToday(flightId: string): Promise<number> {
  * @returns Number of confirmed bookings yesterday
  */
 export async function getBookingsYesterday(flightId: string): Promise<number> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return 0;
+  }
+
   try {
     const result = await sql`
       SELECT COUNT(*) as count
@@ -121,6 +131,18 @@ export async function getBookingsTrend(flightId: string): Promise<'rising' | 'st
  * @returns Complete booking count object with trend
  */
 export async function getFlightBookingStats(flightId: string): Promise<FlightBookingCount> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return {
+      flightId,
+      bookingsToday: 0,
+      bookingsYesterday: 0,
+      trend: 'steady',
+      totalPassengers: 0,
+      avgPrice: 0,
+    };
+  }
+
   try {
     // Single optimized query for all stats
     const result = await sql`
@@ -198,6 +220,11 @@ export async function getFlightBookingStats(flightId: string): Promise<FlightBoo
 export async function getBatchBookingCounts(
   flightIds: string[]
 ): Promise<Map<string, number>> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return new Map();
+  }
+
   try {
     if (flightIds.length === 0) return new Map();
 
@@ -234,6 +261,11 @@ export async function getBatchBookingCounts(
 export async function getBatchBookingStats(
   flightIds: string[]
 ): Promise<Map<string, FlightBookingCount>> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return new Map();
+  }
+
   try {
     if (flightIds.length === 0) return new Map();
 
@@ -309,6 +341,15 @@ export async function getBatchBookingStats(
  * @returns Route booking statistics
  */
 export async function getRouteBookingStats(routeKey: string): Promise<RouteBookingStats> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return {
+      routeKey,
+      bookingsToday: 0,
+      trend: 'steady',
+    };
+  }
+
   try {
     const result = await sql`
       SELECT
@@ -367,6 +408,11 @@ export async function getRouteBookingStats(routeKey: string): Promise<RouteBooki
  * @returns Array of popular flights with booking counts
  */
 export async function getPopularFlights(limit: number = 10): Promise<PopularFlight[]> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return [];
+  }
+
   try {
     const result = await sql`
       SELECT

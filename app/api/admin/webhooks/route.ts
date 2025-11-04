@@ -226,6 +226,11 @@ export async function POST(req: NextRequest) {
  * (Neon's sql template doesn't support dynamic parameter building well)
  */
 async function executeQuery(query: string, params: any[]): Promise<any[]> {
+  if (!sql) {
+    console.warn('Database not configured');
+    return [];
+  }
+
   // For simple queries without parameters
   if (params.length === 0) {
     return await sql`${sql.unsafe(query)}` as any[];
@@ -309,6 +314,18 @@ async function executeQuery(query: string, params: any[]): Promise<any[]> {
  * Get webhook statistics
  */
 async function getWebhookStats() {
+  if (!sql) {
+    console.warn('Database not configured');
+    return {
+      total: 0,
+      processed: 0,
+      failed: 0,
+      processing: 0,
+      received: 0,
+      recentEvents: [],
+    };
+  }
+
   try {
     const stats = await sql`
       SELECT

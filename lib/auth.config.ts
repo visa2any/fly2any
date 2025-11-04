@@ -43,6 +43,10 @@ export const authConfig = {
           throw new Error('Email and password required');
         }
 
+        if (!prisma) {
+          throw new Error('Database not configured');
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
         });
@@ -81,6 +85,11 @@ export const authConfig = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
+        if (!prisma) {
+          console.error('Database not configured');
+          return false;
+        }
+
         try {
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
@@ -112,13 +121,15 @@ export const authConfig = {
         session.user.id = token.sub!;
 
         // Update last login
-        try {
-          await prisma.user.update({
-            where: { id: token.sub! },
-            data: { lastLoginAt: new Date() },
-          });
-        } catch (error) {
-          console.error('Error updating last login:', error);
+        if (prisma) {
+          try {
+            await prisma.user.update({
+              where: { id: token.sub! },
+              data: { lastLoginAt: new Date() },
+            });
+          } catch (error) {
+            console.error('Error updating last login:', error);
+          }
         }
       }
       return session;

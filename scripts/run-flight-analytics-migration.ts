@@ -17,6 +17,11 @@ import * as path from 'path';
 async function runMigration() {
   console.log('🚀 Starting flight search analytics migration...\n');
 
+  if (!sql) {
+    console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
+    process.exit(1);
+  }
+
   try {
     // Read the migration SQL file
     const migrationPath = path.join(__dirname, '../lib/db/migrations/001_flight_search_analytics.sql');
@@ -145,6 +150,12 @@ async function runMigration() {
     console.error('\n❌ Migration failed:', error);
     process.exit(1);
   }
+}
+
+// Check database connection before running
+if (!sql) {
+  console.error('❌ Database not configured. Please check your DATABASE_URL environment variable.');
+  process.exit(1);
 }
 
 // Run the migration

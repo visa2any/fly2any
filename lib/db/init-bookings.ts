@@ -6,6 +6,10 @@
 import { sql } from './connection';
 
 export async function initBookingsTables() {
+  if (!sql) {
+    throw new Error('Database not configured');
+  }
+
   try {
     console.log('Creating bookings table...');
 
@@ -93,6 +97,14 @@ export async function initBookingsTables() {
 }
 
 export async function checkBookingsTable() {
+  if (!sql) {
+    return {
+      success: false,
+      tableExists: false,
+      recordCount: 0
+    };
+  }
+
   try {
     const result = await sql`
       SELECT COUNT(*) as count FROM bookings
