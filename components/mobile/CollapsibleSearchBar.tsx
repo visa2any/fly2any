@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Calendar, Users, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 export interface SearchSummary {
   origin: string;
@@ -63,11 +64,41 @@ export function CollapsibleSearchBar({
   mobileOnly = true,
 }: CollapsibleSearchBarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [manualOverride, setManualOverride] = useState(false);
+
+  // Smart scroll behavior: auto-collapse on scroll down, auto-expand on scroll up
+  const { scrollDirection, isAtTop } = useScrollDirection({
+    threshold: 50,
+    debounceDelay: 100,
+    mobileOnly: true,
+  });
+
+  // Auto-collapse/expand based on scroll direction (unless manually overridden)
+  useEffect(() => {
+    if (manualOverride) return;
+
+    // Auto-collapse when scrolling down and not at top
+    if (scrollDirection === 'down' && !isAtTop) {
+      setIsCollapsed(true);
+      onCollapseChange?.(true);
+    }
+    // Auto-expand when scrolling up or at top
+    else if ((scrollDirection === 'up' || isAtTop) && isCollapsed) {
+      setIsCollapsed(false);
+      onCollapseChange?.(false);
+    }
+  }, [scrollDirection, isAtTop, manualOverride, isCollapsed, onCollapseChange]);
 
   const handleToggle = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
+    setManualOverride(true); // User manually toggled, disable auto behavior temporarily
     onCollapseChange?.(newState);
+
+    // Re-enable auto behavior after 3 seconds
+    setTimeout(() => {
+      setManualOverride(false);
+    }, 3000);
   };
 
   // Calculate total passengers

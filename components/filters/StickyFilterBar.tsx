@@ -13,6 +13,7 @@
 'use client';
 
 import { X, Sliders, ChevronRight } from 'lucide-react';
+import { zIndex } from '@/lib/design-system';
 import { FlightFilters } from '@/components/flights/FlightFilters';
 import { getFilterSummary, type FilterSummary } from '@/lib/filters/filterState';
 
@@ -64,7 +65,7 @@ export default function StickyFilterBar({
   const hasActiveFilters = filterSummary.length > 0;
 
   return (
-    <div className="sticky top-0 z-40 bg-white/98 backdrop-blur-xl border-b border-gray-200 shadow-sm">
+    <div className="sticky top-0 bg-white/98 backdrop-blur-xl border-b border-gray-200 shadow-sm" style={{ zIndex: zIndex.STICKY }}>
       {/* Mobile & Tablet Layout */}
       <div className="flex items-center gap-2 px-3 py-2.5 overflow-x-auto scrollbar-hide scroll-smooth">
         {/* Filter Button - Always visible */}

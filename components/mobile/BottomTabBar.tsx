@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { zIndex } from '@/lib/design-system';
 import type { HeaderTranslations } from '@/components/layout/Header';
+import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 interface BottomTabBarProps {
   translations: HeaderTranslations;
@@ -33,6 +34,13 @@ interface Tab {
  */
 export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
   const pathname = usePathname();
+
+  // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.2)
+  const { scrollDirection, isAtTop } = useScrollDirection({
+    threshold: 50,
+    debounceDelay: 100,
+    mobileOnly: true, // Only auto-hide on mobile
+  });
 
   // Define tabs with translations
   const tabs: Tab[] = [
@@ -97,6 +105,12 @@ export function BottomTabBar({ translations, onMoreClick }: BottomTabBarProps) {
         boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.08)',
         // Safe area padding for devices with notches/home indicators
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        // Phase 8 Track 2A.2: Auto-hide on scroll down (mobile only, 56px savings)
+        transform: scrollDirection === 'down' && !isAtTop
+          ? 'translateY(100%)' // Hide by moving down
+          : 'translateY(0)',    // Show at normal position
+        transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+        willChange: 'transform',
       }}
       role="navigation"
       aria-label="Mobile bottom navigation"

@@ -1,7 +1,45 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import { createRequire } from 'module';
+
+// Create require function for CommonJS modules in ESM context
+const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Production optimizations (Phase 8 - Quick Win 1A)
+  compiler: {
+    // Remove console.log statements in production (keeps error/warn for monitoring)
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
+  },
+
+  // Enable SWC minification (faster than Terser)
+  swcMinify: true,
+
+  // Experimental optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react'], // Tree-shake icons
+  },
+
+  // Webpack configuration (Phase 8 - Quick Win 1D)
+  webpack: (config, { dev, isServer }) => {
+    // Add bundle analyzer in production builds (client-side only)
+    if (!dev && !isServer) {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+          reportFilename: '../analyze/client.html',
+          generateStatsFile: true,
+          statsFilename: '../analyze/client-stats.json',
+        })
+      );
+    }
+    return config;
+  },
+
   images: {
     remotePatterns: [
       // Tour images

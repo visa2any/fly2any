@@ -12,6 +12,7 @@ import { ReviewAndPay } from '@/components/booking/ReviewAndPay';
 import SeatMapModal from '@/components/flights/SeatMapModal';
 import { parseSeatMap, type ParsedSeatMap, type Seat } from '@/lib/flights/seat-map-parser';
 import { AIRPORTS } from '@/lib/data/airports';
+import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -128,6 +129,13 @@ function BookingPageContent() {
 
   // Price tracking
   const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 10, seconds: 0 });
+
+  // Scroll direction detection for auto-hide header (Phase 8 Track 2B.1)
+  const { scrollDirection, isAtTop } = useScrollDirection({
+    threshold: 50,
+    debounceDelay: 100,
+    mobileOnly: true,
+  });
 
   // ===========================
   // LOAD FLIGHT DATA
@@ -965,8 +973,15 @@ function BookingPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      {/* Header - Auto-hides on scroll down (Phase 8 Track 2B.1) */}
+      <div
+        className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm"
+        style={{
+          transform: scrollDirection === 'down' && !isAtTop ? 'translateY(-100%)' : 'translateY(0)',
+          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          willChange: 'transform',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

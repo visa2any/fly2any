@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, Building2, Plus, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { typography, spacing, colors, dimensions, layout, borderRadius } from '@/lib/design-system';
+import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
@@ -935,7 +935,7 @@ export default function EnhancedSearchBar({
   }, []);
 
   return (
-    <div className="sticky top-0 z-50 bg-white shadow-md">
+    <div className="sticky top-0 bg-white shadow-md" style={{ zIndex: zIndex.STICKY }}>
       {/* Container with max-width matching results page (Priceline-style) */}
       <MaxWidthContainer
         style={{

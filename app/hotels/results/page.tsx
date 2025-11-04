@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
+import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -288,6 +289,12 @@ function HotelResultsContent() {
     cancellationPolicy: [],
   });
 
+  // Smart scroll behavior: minimize sticky search bar on scroll down
+  const shouldMinimize = useScrollMinimize({
+    threshold: 50,
+    mobileOnly: true,
+  });
+
   // Pull-to-refresh functionality for mobile users
   const { isRefreshing: isPullRefreshing, pullIndicator } = usePullToRefresh(
     async () => {
@@ -478,19 +485,39 @@ function HotelResultsContent() {
       {/* Scroll Progress */}
       <ScrollProgress />
 
-      {/* Modify Search Bar - Sticky (ENHANCED READABILITY) */}
-      <div className="sticky top-0 z-50 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200/80 shadow-sm">
+      {/* Modify Search Bar - Sticky with Smart Scroll (ENHANCED READABILITY) */}
+      <div
+        className={`sticky top-0 z-50 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200/80 shadow-sm transition-all duration-300 ${
+          shouldMinimize ? 'md:py-0' : ''
+        }`}
+        style={{
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+        }}
+      >
         <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
-          <div className="flex items-center justify-between" style={{ paddingTop: '14px', paddingBottom: '14px' }}>
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">Hotels in {searchData.destination}</h1>
-              <p className="text-sm text-slate-600 mt-1 leading-relaxed tracking-normal">
+          <div
+            className={`flex items-center justify-between transition-all duration-300 ${
+              shouldMinimize ? 'py-2 md:py-3' : 'py-3.5 md:py-4'
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <h1 className={`font-semibold text-slate-900 tracking-tight leading-tight transition-all duration-300 ${
+                shouldMinimize ? 'text-lg md:text-2xl' : 'text-2xl'
+              }`}>
+                Hotels in {searchData.destination}
+              </h1>
+              <p className={`text-sm text-slate-600 leading-relaxed tracking-normal transition-all duration-300 ${
+                shouldMinimize ? 'mt-0 md:mt-1 text-xs md:text-sm' : 'mt-1'
+              }`}>
                 {searchData.checkIn} - {searchData.checkOut} · {searchData.adults} adults · {searchData.rooms} room{searchData.rooms > 1 ? 's' : ''} · {nights} night{nights > 1 ? 's' : ''}
               </p>
             </div>
             <button
               onClick={() => router.push('/home-new')}
-              className="text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors px-4 py-2 rounded-lg hover:bg-orange-50/80"
+              className={`text-sm font-semibold text-orange-600 hover:text-orange-700 transition-all px-4 rounded-lg hover:bg-orange-50/80 flex-shrink-0 ${
+                shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'
+              }`}
             >
               {t.modifySearch}
             </button>

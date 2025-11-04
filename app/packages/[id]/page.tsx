@@ -455,10 +455,13 @@ export default function PackageDetailPage() {
               }`}
               onClick={() => { setSelectedImage(index); setLightboxIndex(index); setLightboxOpen(true); }}
             >
-              <img
+              <Image
                 src={img.src}
                 alt={img.caption}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
+                loading="lazy"
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
                   if (!target.dataset.fallbackApplied) {
@@ -506,10 +509,13 @@ export default function PackageDetailPage() {
             ‹
           </button>
           <div className="relative w-[90vw] max-w-5xl h-[70vh]">
-            <img
+            <Image
               src={packageImages[lightboxIndex].src}
               alt={packageImages[lightboxIndex].caption}
-              className="w-full h-full object-contain"
+              fill
+              sizes="90vw"
+              className="object-contain"
+              loading="lazy"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
                 if (!target.dataset.fallbackApplied) {

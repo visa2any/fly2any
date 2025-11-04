@@ -5,6 +5,9 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/playwright/.cache
 
 # next.js
 /.next/
@@ -53,3 +56,12 @@ test-*.ts
 *-test.js
 
 /lib/generated/prisma
+
+# Phase 8 - Quick Wins additions
+# Test screenshots (moved to test-results/)
+*.png
+!public/**/*.png
+
+# Bundle analyzer reports
+analyze/
+*.stats.json

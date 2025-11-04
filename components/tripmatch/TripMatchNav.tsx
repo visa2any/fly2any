@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, Home, Search, Plus, LayoutDashboard, Menu, X, DollarSign } from 'lucide-react';
+import { zIndex } from '@/lib/design-system';
 
 export default function TripMatchNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function TripMatchNav() {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-b border-white/10 sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-b border-white/10 sticky top-0 backdrop-blur-sm" style={{ zIndex: zIndex.FIXED }}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

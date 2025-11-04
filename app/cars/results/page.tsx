@@ -8,6 +8,7 @@ import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -142,6 +143,12 @@ function CarResultsContent() {
     passengers: [],
     features: [],
     companies: [],
+  });
+
+  // Smart scroll behavior: minimize sticky search bar on scroll down
+  const shouldMinimize = useScrollMinimize({
+    threshold: 50,
+    mobileOnly: true,
   });
 
   const lang: 'en' | 'pt' | 'es' = (searchParams.get('lang') as any) || 'en';
@@ -549,19 +556,39 @@ function CarResultsContent() {
       {/* Scroll Progress Bar */}
       <ScrollProgress />
 
-      {/* Sticky Search Bar */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">Car Rentals in {searchData.pickup}</h1>
-              <p className="text-sm text-slate-600 mt-1 leading-relaxed tracking-normal">
+      {/* Sticky Search Bar with Smart Scroll */}
+      <div
+        className={`sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm transition-all duration-300 ${
+          shouldMinimize ? 'md:py-0' : ''
+        }`}
+        style={{
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+        }}
+      >
+        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
+          <div
+            className={`flex items-center justify-between transition-all duration-300 ${
+              shouldMinimize ? 'py-2 md:py-3' : 'py-4 md:py-4'
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <h1 className={`font-semibold text-slate-900 tracking-tight leading-tight transition-all duration-300 ${
+                shouldMinimize ? 'text-lg md:text-2xl' : 'text-2xl'
+              }`}>
+                Car Rentals in {searchData.pickup}
+              </h1>
+              <p className={`text-sm text-slate-600 leading-relaxed tracking-normal transition-all duration-300 ${
+                shouldMinimize ? 'mt-0 md:mt-1 text-xs md:text-sm' : 'mt-1'
+              }`}>
                 {searchData.pickupDate} - {searchData.dropoffDate} · {days} day{days > 1 ? 's' : ''}
               </p>
             </div>
             <button
               onClick={() => router.push('/home-new')}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 rounded-lg hover:bg-blue-50/80"
+              className={`text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all px-4 rounded-lg hover:bg-blue-50/80 flex-shrink-0 ${
+                shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'
+              }`}
             >
               {t.modifySearch}
             </button>

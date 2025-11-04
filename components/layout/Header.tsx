@@ -6,6 +6,7 @@ import { zIndex } from '@/lib/design-system';
 import { MaxWidthContainer } from './MaxWidthContainer';
 import { HamburgerMenu } from '@/components/mobile/HamburgerMenu';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
+import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 // Language type
 export type Language = 'en' | 'pt' | 'es';
@@ -109,7 +110,14 @@ export function Header({
   // Use provided translations or defaults
   const t = translations || headerTranslations[language];
 
-  // Scroll detection for enhanced header visibility
+  // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.1)
+  const { scrollDirection, isAtTop } = useScrollDirection({
+    threshold: 50,
+    debounceDelay: 100,
+    mobileOnly: true, // Only auto-hide on mobile
+  });
+
+  // Scroll detection for enhanced header visibility (background blur effect)
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -161,7 +169,7 @@ export function Header({
   return (
     <>
       <header
-        className={`sticky top-0 z-fixed transition-all duration-300 ${className}`}
+        className={`sticky top-0 z-fixed ${className}`}
         style={{
           background: scrolled
             ? 'rgba(255, 255, 255, 0.95)'
@@ -174,10 +182,16 @@ export function Header({
           boxShadow: scrolled
             ? '0 2px 12px rgba(0, 0, 0, 0.08)'
             : '0 1px 4px rgba(0, 0, 0, 0.04)',
+          // Phase 8 Track 2A.1: Auto-hide on scroll down (mobile only, 80px savings)
+          transform: scrollDirection === 'down' && !isAtTop
+            ? 'translateY(-100%)'
+            : 'translateY(0)',
+          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1), background 300ms, border 300ms, box-shadow 300ms',
+          willChange: 'transform',
         }}
       >
         <MaxWidthContainer noPadding style={{ padding: '0 24px' }}>
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16 md:h-20">
             {/* Hamburger Menu (Mobile Only) */}
             <HamburgerMenu
               isOpen={mobileMenuOpen}

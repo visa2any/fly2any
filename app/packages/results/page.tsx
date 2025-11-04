@@ -4,12 +4,20 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 function PackageResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Scroll direction detection for auto-hide header (Phase 8 Track 2C.1)
+  const { scrollDirection, isAtTop } = useScrollDirection({
+    threshold: 50,
+    debounceDelay: 100,
+    mobileOnly: true,
+  });
 
   const searchData = {
     from: searchParams.get('from') || '',
@@ -75,7 +83,15 @@ function PackageResultsContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm">
+      {/* Header - Auto-hides on scroll down (Phase 8 Track 2C.1) */}
+      <div
+        className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm"
+        style={{
+          transform: scrollDirection === 'down' && !isAtTop ? 'translateY(-100%)' : 'translateY(0)',
+          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          willChange: 'transform',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>

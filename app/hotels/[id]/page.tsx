@@ -220,8 +220,25 @@ export default function HotelDetailPage() {
               {/* CTA Buttons */}
               <button
                 onClick={() => {
-                  // For now, just go back or show a message
-                  alert('Hotel booking flow coming soon! This hotel is from Duffel Stays API.');
+                  // Store hotel data for booking flow
+                  const bookingData = {
+                    hotelId: hotel.id,
+                    name: hotel.name,
+                    location: `${hotel.address?.city}, ${hotel.address?.country}`,
+                    checkIn: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+                    checkOut: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // Day after
+                    adults: 2,
+                    children: 0,
+                    price: price,
+                    currency: lowestRate?.totalPrice.currency || 'USD',
+                    image: mainImage,
+                    stars: hotel.starRating,
+                  };
+
+                  sessionStorage.setItem(`hotel_booking_${hotel.id}`, JSON.stringify(bookingData));
+
+                  // Navigate to booking page
+                  router.push(`/hotels/booking?hotelId=${hotel.id}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=2&children=0&price=${price}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
                 }}
                 className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-lg transition-colors mb-3"
               >
