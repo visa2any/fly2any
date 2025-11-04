@@ -26,7 +26,7 @@ export default async function AccountPage() {
   let preferences = null;
 
   try {
-    if (isDatabaseConfigured) {
+    if (isDatabaseConfigured && prisma) {
       session = await auth();
 
       if (!session) {
