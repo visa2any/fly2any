@@ -7,12 +7,32 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+// Check if DATABASE_URL is configured before creating Prisma client
+const isDatabaseConfigured = !!process.env.DATABASE_URL;
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+// Only create PrismaClient if DATABASE_URL is configured
+export const prisma = isDatabaseConfigured
+  ? (globalForPrisma.prisma ??
+    new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    }))
+  : null;
+
+// Only attach to global if database is configured
+if (isDatabaseConfigured && process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma as PrismaClient;
+}
+
+// Helper function to check if Prisma is available
+export function isPrismaAvailable(): boolean {
+  return isDatabaseConfigured && prisma !== null;
+}
+
+// Helper to log warning when database is not configured
+if (!isDatabaseConfigured && process.env.NODE_ENV === 'development') {
+  console.warn(
+    '⚠️  DATABASE_URL not configured. Prisma client not initialized. Database features will be unavailable.'
+  );
+}
 
 export default prisma;
