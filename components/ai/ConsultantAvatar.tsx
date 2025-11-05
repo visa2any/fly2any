@@ -94,18 +94,24 @@ export function ConsultantAvatar({
 }: ConsultantAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [currentImagePath, setCurrentImagePath] = useState(`/consultants/${consultantId}.png`);
+  const [triedPng, setTriedPng] = useState(false);
 
   const config = sizeConfig[size];
   const gradient = getGradientColors(name);
   const initials = getInitials(name);
 
-  // Construct image path
-  const imagePath = `/consultants/${consultantId}.jpg`;
-  const imagePathAlt = `/consultants/${consultantId}.png`;
-
   const handleImageError = () => {
-    setImageError(true);
-    setImageLoading(false);
+    // Try .jpg if .png failed
+    if (!triedPng) {
+      setTriedPng(true);
+      setCurrentImagePath(`/consultants/${consultantId}.jpg`);
+      setImageLoading(true);
+    } else {
+      // Both formats failed, show fallback
+      setImageError(true);
+      setImageLoading(false);
+    }
   };
 
   const handleImageLoad = () => {
@@ -126,7 +132,7 @@ export function ConsultantAvatar({
           <>
             {/* Real Photo */}
             <Image
-              src={imagePath}
+              src={currentImagePath}
               alt={`${name} - Travel Consultant`}
               width={config.image}
               height={config.image}
@@ -135,6 +141,7 @@ export function ConsultantAvatar({
               onLoad={handleImageLoad}
               loading="lazy"
               quality={85}
+              key={currentImagePath}
             />
             {/* Loading state */}
             {imageLoading && (
