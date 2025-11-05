@@ -9,7 +9,8 @@ import {
   TrendingDown,
   Sparkles,
   Calendar,
-  MapPin
+  MapPin,
+  MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +25,7 @@ export default async function AccountPage() {
   let savedSearches: any[] = [];
   let priceAlerts: any[] = [];
   let preferences = null;
+  let aiConversationsCount = 0;
 
   try {
     if (isDatabaseConfigured && prisma) {
@@ -40,7 +42,7 @@ export default async function AccountPage() {
       }
 
       // Fetch user data
-      [savedSearches, priceAlerts, preferences] = await Promise.all([
+      [savedSearches, priceAlerts, preferences, aiConversationsCount] = await Promise.all([
         prisma.savedSearch.findMany({
           where: { userId: session.user.id },
           orderBy: { lastSearched: 'desc' },
@@ -54,6 +56,9 @@ export default async function AccountPage() {
         prisma.userPreferences.findUnique({
           where: { userId: session.user.id },
         }),
+        prisma.aIConversation.count({
+          where: { userId: session.user.id },
+        }),
       ]);
     }
   } catch (error) {
@@ -65,6 +70,7 @@ export default async function AccountPage() {
     savedSearches: savedSearches.length,
     activeAlerts: priceAlerts.filter((a: any) => a.active).length,
     triggeredAlerts: priceAlerts.filter((a: any) => a.triggered).length,
+    aiConversations: aiConversationsCount,
   };
 
   return (
@@ -132,7 +138,7 @@ export default async function AccountPage() {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Link
           href="/account/searches"
           className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-blue-400"
@@ -178,6 +184,22 @@ export default async function AccountPage() {
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">Bookings</h3>
           <p className="text-sm text-gray-600">View your travel history</p>
+        </Link>
+
+        <Link
+          href="/account/conversations"
+          className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-green-400"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-50 rounded-lg">
+              <MessageCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <span className="text-3xl font-bold text-gray-900">
+              {stats.aiConversations || 0}
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">AI Conversations</h3>
+          <p className="text-sm text-gray-600">View chat history</p>
         </Link>
       </div>
 

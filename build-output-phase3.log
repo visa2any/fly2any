@@ -1,0 +1,261 @@
+
+> fly2any@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+[1mWebpack Bundle Analyzer[22m saved report to [1mC:\Users\Power\fly2any-fresh\analyze\client.html[22m
+[1mWebpack Bundle Analyzer[22m saved stats file to [1mC:\Users\Power\fly2any-fresh\analyze\client-stats.json[22m
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+The `fetchConnectionCache` option is deprecated (now always `true`)
+The `fetchConnectionCache` option is deprecated (now always `true`)
+The `fetchConnectionCache` option is deprecated (now always `true`)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  Redis not configured - caching disabled (set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+⚠️  STRIPE_SECRET_KEY not set - Stripe payments will not be available
+   Generating static pages (0/94) ...
+Failed to load conversations: n [Error]: Dynamic server usage: Route /api/ai/conversation/list couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (C:\Users\Power\fly2any-fresh\.next\server\chunks\8948.js:1:56329)
+    at d (C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:1:1599)
+    at C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:404:60312
+    at l (C:\Users\Power\fly2any-fresh\.next\server\app\api\ai\conversation\list\route.js:1:961)
+    at C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:6:38417
+    at C:\Users\Power\fly2any-fresh\node_modules\next\dist\server\lib\trace\tracer.js:140:36
+    at NoopContextManager.with (C:\Users\Power\fly2any-fresh\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:25:19)
+    at ContextAPI.with (C:\Users\Power\fly2any-fresh\node_modules\@opentelemetry\api\build\src\api\context.js:60:46)
+    at NoopTracer.startActiveSpan (C:\Users\Power\fly2any-fresh\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:65:31)
+    at ProxyTracer.startActiveSpan (C:\Users\Power\fly2any-fresh\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:36:24) {
+  description: "Route /api/ai/conversation/list couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (23/94) 
+   Generating static pages (46/94) 
+Account page error: n [Error]: Dynamic server usage: Route /account couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (C:\Users\Power\fly2any-fresh\.next\server\chunks\8948.js:1:56329)
+    at d (C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:1:1599)
+    at C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:404:60312
+    at y (C:\Users\Power\fly2any-fresh\.next\server\app\account\page.js:1:6119)
+    at eh (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:134660)
+    at e (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:137545)
+    at ek (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:138019)
+    at Array.toJSON (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:135629)
+    at stringify (<anonymous>)
+    at eP (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:142093) {
+  description: "Route /account couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Account page error: n [Error]: Dynamic server usage: Route /account couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (C:\Users\Power\fly2any-fresh\.next\server\chunks\8948.js:1:56329)
+    at d (C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:1:1599)
+    at C:\Users\Power\fly2any-fresh\.next\server\chunks\559.js:404:60312
+    at y (C:\Users\Power\fly2any-fresh\.next\server\app\account\page.js:1:6119)
+    at eh (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:134660)
+    at e (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:137545)
+    at ek (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:138019)
+    at Array.toJSON (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:135629)
+    at stringify (<anonymous>)
+    at eP (C:\Users\Power\fly2any-fresh\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:12:142093) {
+  description: "Route /account couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (70/94) 
+❌ Duffel Stays API error:
+   Error type: h
+   Error message: request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443
+   Full error object: {
+  "name": "FetchError",
+  "message": "request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443"
+}
+❌ Duffel Stays API error:
+   Error type: h
+   Error message: request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443
+   Full error object: {
+  "name": "FetchError",
+  "message": "request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443"
+}
+❌ Duffel Stays API error:
+   Error type: h
+   Error message: request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443
+   Full error object: {
+  "name": "FetchError",
+  "message": "request to https://api.duffel.com/stays/search failed, reason: connect ETIMEDOUT 34.120.197.152:443"
+}
+ ✓ Generating static pages (94/94)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                             Size     First Load JS
+┌ ○ /                                                   3.81 kB        96.6 kB
+├ ○ /_not-found                                         880 B          88.4 kB
+├ ƒ /account                                            190 B          96.8 kB
+├ ƒ /account/conversations                              6.23 kB         103 kB
+├ ○ /admin                                              6.64 kB         103 kB
+├ ○ /admin/ai-analytics                                 6.29 kB        93.8 kB
+├ ○ /admin/bookings                                     4.35 kB         101 kB
+├ ƒ /admin/bookings/[id]                                5.24 kB         102 kB
+├ ○ /admin/monitoring                                   3.31 kB        90.8 kB
+├ ○ /admin/performance                                  5.53 kB          93 kB
+├ ○ /admin/webhooks                                     5.03 kB         102 kB
+├ ƒ /api/admin/bookings                                 0 B                0 B
+├ ƒ /api/admin/bookings/[id]                            0 B                0 B
+├ ƒ /api/admin/bookings/[id]/confirm                    0 B                0 B
+├ ƒ /api/admin/bookings/[id]/send-email                 0 B                0 B
+├ ƒ /api/admin/init-bookings                            0 B                0 B
+├ ƒ /api/admin/init-db                                  0 B                0 B
+├ ƒ /api/admin/webhooks                                 0 B                0 B
+├ ƒ /api/ai/analytics                                   0 B                0 B
+├ ƒ /api/ai/conversation/[id]                           0 B                0 B
+├ ƒ /api/ai/conversation/list                           0 B                0 B
+├ ƒ /api/ai/conversation/migrate                        0 B                0 B
+├ ƒ /api/ai/search-flights                              0 B                0 B
+├ ƒ /api/ai/search-hotels                               0 B                0 B
+├ ƒ /api/ai/session                                     0 B                0 B
+├ ○ /api/analytics/ab-tests                             0 B                0 B
+├ ○ /api/analytics/cache-report                         0 B                0 B
+├ ƒ /api/analytics/share                                0 B                0 B
+├ ƒ /api/analytics/share-view                           0 B                0 B
+├ ƒ /api/analytics/track                                0 B                0 B
+├ ƒ /api/analytics/vitals                               0 B                0 B
+├ ƒ /api/auth/[...nextauth]                             0 B                0 B
+├ ƒ /api/auth/register                                  0 B                0 B
+├ ƒ /api/auth/verify                                    0 B                0 B
+├ ƒ /api/bookings                                       0 B                0 B
+├ ƒ /api/bookings/[id]                                  0 B                0 B
+├ ƒ /api/branded-fares                                  0 B                0 B
+├ ƒ /api/bundles/generate                               0 B                0 B
+├ ƒ /api/cache/invalidate                               0 B                0 B
+├ ƒ /api/cache/stats                                    0 B                0 B
+├ ƒ /api/cars                                           0 B                0 B
+├ ƒ /api/cars/featured-enhanced                         0 B                0 B
+├ ƒ /api/cart/recover                                   0 B                0 B
+├ ƒ /api/cart/track                                     0 B                0 B
+├ ƒ /api/cheapest-dates                                 0 B                0 B
+├ ƒ /api/co2-emissions                                  0 B                0 B
+├ ƒ /api/currency                                       0 B                0 B
+├ ○ /api/debug-env                                      0 B                0 B
+├ ○ /api/environment                                    0 B                0 B
+├ ƒ /api/fare-rules                                     0 B                0 B
+├ ƒ /api/flight-prediction                              0 B                0 B
+├ ƒ /api/flight-viewers                                 0 B                0 B
+├ ƒ /api/flights/[id]                                   0 B                0 B
+├ ƒ /api/flights/airports                               0 B                0 B
+├ ƒ /api/flights/airports-enhanced                      0 B                0 B
+├ ƒ /api/flights/ancillaries                            0 B                0 B
+├ ƒ /api/flights/ancillaries/baggage                    0 B                0 B
+├ ƒ /api/flights/booking/create                         0 B                0 B
+├ ƒ /api/flights/branded-fares                          0 B                0 B
+├ ƒ /api/flights/calendar-prices                        0 B                0 B
+├ ƒ /api/flights/confirm                                0 B                0 B
+├ ƒ /api/flights/destinations-enhanced                  0 B                0 B
+├ ƒ /api/flights/fare-rules                             0 B                0 B
+├ ƒ /api/flights/flash-deals-enhanced                   0 B                0 B
+├ ƒ /api/flights/search                                 0 B                0 B
+├ ƒ /api/flights/seat-map                               0 B                0 B
+├ ƒ /api/flights/seat-map/duffel                        0 B                0 B
+├ ƒ /api/flights/upselling                              0 B                0 B
+├ ƒ /api/flights/urgency                                0 B                0 B
+├ ƒ /api/hotels                                         0 B                0 B
+├ ƒ /api/hotels/[id]                                    0 B                0 B
+├ ƒ /api/hotels/booking/[id]                            0 B                0 B
+├ ƒ /api/hotels/booking/[id]/cancel                     0 B                0 B
+├ ƒ /api/hotels/booking/create                          0 B                0 B
+├ ƒ /api/hotels/cities                                  0 B                0 B
+├ ƒ /api/hotels/cities-enhanced                         0 B                0 B
+├ ○ /api/hotels/featured                                0 B                0 B
+├ ƒ /api/hotels/featured-enhanced                       0 B                0 B
+├ ƒ /api/hotels/quote                                   0 B                0 B
+├ ƒ /api/hotels/search                                  0 B                0 B
+├ ƒ /api/hotels/suggestions                             0 B                0 B
+├ ƒ /api/inspiration                                    0 B                0 B
+├ ƒ /api/insurance                                      0 B                0 B
+├ ƒ /api/log-error                                      0 B                0 B
+├ ƒ /api/ml/analytics                                   0 B                0 B
+├ ƒ /api/ml/prefetch                                    0 B                0 B
+├ ƒ /api/ml/segment-user                                0 B                0 B
+├ ƒ /api/orders/cancel/confirm                          0 B                0 B
+├ ƒ /api/orders/cancel/quote                            0 B                0 B
+├ ƒ /api/orders/modify/confirm                          0 B                0 B
+├ ƒ /api/orders/modify/offers                           0 B                0 B
+├ ƒ /api/orders/modify/request                          0 B                0 B
+├ ƒ /api/packages                                       0 B                0 B
+├ ƒ /api/payments/confirm                               0 B                0 B
+├ ƒ /api/payments/create-intent                         0 B                0 B
+├ ƒ /api/payments/webhook                               0 B                0 B
+├ ƒ /api/poi                                            0 B                0 B
+├ ƒ /api/popular-routes                                 0 B                0 B
+├ ƒ /api/price-analytics                                0 B                0 B
+├ ƒ /api/seatmaps                                       0 B                0 B
+├ ƒ /api/tours                                          0 B                0 B
+├ ƒ /api/transfers                                      0 B                0 B
+├ ƒ /api/trip-purpose                                   0 B                0 B
+├ ƒ /api/tripmatch/credits                              0 B                0 B
+├ ƒ /api/tripmatch/credits/apply                        0 B                0 B
+├ ƒ /api/tripmatch/credits/history                      0 B                0 B
+├ ƒ /api/tripmatch/seed                                 0 B                0 B
+├ ƒ /api/tripmatch/trips                                0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]                           0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]/components                0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]/components/[componentId]  0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]/join                      0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]/members                   0 B                0 B
+├ ƒ /api/tripmatch/trips/[id]/members/[memberId]        0 B                0 B
+├ ƒ /api/webhooks/duffel                                0 B                0 B
+├ ○ /auth-demo                                          10.4 kB          98 kB
+├ ○ /auth/signin                                        6.03 kB         103 kB
+├ ○ /baggage-fees                                       190 B          96.8 kB
+├ ○ /blog                                               9.56 kB         121 kB
+├ ƒ /blog/[slug]                                        2.72 kB         105 kB
+├ ƒ /blog/category/[category]                           2.66 kB         105 kB
+├ ○ /blog/news                                          2.17 kB         105 kB
+├ ○ /cars/results                                       12.5 kB         150 kB
+├ ○ /demo/alternative-airports                          8.37 kB        95.9 kB
+├ ƒ /flight/[id]                                        190 B          96.8 kB
+├ ○ /flights                                            10.7 kB         112 kB
+├ ○ /flights/booking                                    1.42 kB        88.9 kB
+├ ○ /flights/booking-optimized                          36.5 kB         130 kB
+├ ƒ /flights/booking/confirmation                       15.1 kB         111 kB
+├ ○ /flights/price-calendar-demo                        6.92 kB        94.4 kB
+├ ○ /flights/results                                    137 kB          313 kB
+├ ○ /home-new                                           39.8 kB         229 kB
+├ ○ /hotels                                             1.59 kB        94.4 kB
+├ ƒ /hotels/[id]                                        5.22 kB        92.7 kB
+├ ○ /hotels/booking                                     6.9 kB         94.4 kB
+├ ○ /hotels/booking/confirmation                        4.89 kB        92.4 kB
+├ ○ /hotels/results                                     13 kB           169 kB
+├ ○ /insurance/results                                  3 kB           98.4 kB
+├ ○ /ml/dashboard                                       4.72 kB        92.2 kB
+├ ƒ /packages/[id]                                      7.88 kB         109 kB
+├ ○ /packages/results                                   3.45 kB        98.9 kB
+├ ƒ /payments/confirm/[paymentId]                       2.96 kB        90.5 kB
+├ ○ /privacy                                            155 B          87.7 kB
+├ ○ /robots.txt                                         0 B                0 B
+├ ○ /sitemap.xml                                        0 B                0 B
+├ ○ /terms                                              155 B          87.7 kB
+├ ○ /tours/results                                      2.86 kB        98.3 kB
+├ ○ /tripmatch/browse                                   4.19 kB         138 kB
+├ ○ /tripmatch/create                                   7.17 kB         132 kB
+├ ○ /tripmatch/dashboard                                4.25 kB         138 kB
+└ ƒ /tripmatch/trips/[id]                               5.44 kB         130 kB
++ First Load JS shared by all                           87.5 kB
+  ├ chunks/2117-32907e83fa4af6af.js                     31.7 kB
+  ├ chunks/fd9d1056-5bb65c1c549e0d0b.js                 53.6 kB
+  └ other shared chunks (total)                         2.15 kB
+
+
+ƒ Middleware                                            77.7 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

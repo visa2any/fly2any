@@ -256,6 +256,45 @@ export async function markConversationComplete(
 }
 
 /**
+ * Delete a specific conversation by ID
+ * Verifies ownership before deletion
+ */
+export async function deleteConversationFromDB(
+  conversationId: string,
+  userId: string
+): Promise<void> {
+  if (!prisma) {
+    throw new Error('Database not configured');
+  }
+
+  try {
+    // First, verify the conversation exists and belongs to the user
+    const conversation = await prisma.aIConversation.findUnique({
+      where: { id: conversationId },
+      select: { userId: true },
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.userId !== userId) {
+      throw new Error('Forbidden - not your conversation');
+    }
+
+    // Delete the conversation (messages will be cascade deleted)
+    await prisma.aIConversation.delete({
+      where: { id: conversationId },
+    });
+
+    console.log(`Deleted conversation ${conversationId} for user ${userId}`);
+  } catch (error) {
+    console.error('Failed to delete conversation:', error);
+    throw error;
+  }
+}
+
+/**
  * Delete old conversations (cleanup job)
  */
 export async function deleteOldConversations(
