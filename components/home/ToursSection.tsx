@@ -219,6 +219,7 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
           <div
             key={tour.id}
             className={`
+              flex flex-col
               bg-white rounded-lg border-2 border-gray-200
               hover:border-primary-400 hover:shadow-lg
               transition-all duration-200 overflow-hidden
@@ -251,27 +252,46 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
             </div>
 
             {/* Tour Details */}
-            <div className="p-4">
+            <div className="p-2.5 flex-1 flex flex-col">
               {/* Title and Destination */}
-              <h3 className="font-bold text-gray-900 text-base mb-1 line-clamp-2">{tour.title}</h3>
-              <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+              <h3 className="font-bold text-gray-900 text-base mb-0.5 line-clamp-2">{tour.title}</h3>
+              <p className="text-xs text-gray-600 mb-1.5 flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 {tour.destination}
               </p>
 
-              {/* Rating and Reviews */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-sm">
-                  <Star className="w-3 h-3 fill-current" />
-                  {tour.rating}
+              {/* Rating + Reviews + Badges + Demand - ALL ON ONE LINE */}
+              <div className="h-[52px] mb-1.5 overflow-hidden">
+                <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                  <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold">
+                    <Star className="w-3 h-3 fill-current" />
+                    {tour.rating}
+                  </div>
+                  <span className="text-xs text-gray-600">({tour.reviews.toLocaleString()})</span>
+                  {tour.badges.slice(0, 2).map((badge, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-1.5 py-0.5 bg-green-100 border border-green-300 text-green-700 rounded text-[10px] font-bold"
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                  {tour.demandLevel && tour.demandLevel > 85 && (
+                    <span className="inline-flex items-center gap-0.5 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
+                      <TrendingUp className="w-2.5 h-2.5" />
+                      High
+                    </span>
+                  )}
+                  {tour.groupSize && tour.demandLevel && tour.demandLevel > 90 && (
+                    <span className="inline-flex items-center gap-0.5 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">
+                      ⚠️ {Math.floor(tour.groupSize * 0.3)} left
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs text-gray-600">
-                  {tour.reviews.toLocaleString()} {t.reviews}
-                </span>
               </div>
 
-              {/* Duration and Group Size */}
-              <div className="flex items-center justify-between mb-3 text-xs text-gray-600">
+              {/* Duration + Group Size + Difficulty - ONE LINE */}
+              <div className="flex items-center gap-2 mb-1.5 text-[10px] text-gray-600 flex-wrap">
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   <span>{tour.duration}</span>
@@ -282,24 +302,20 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
                     <span>Max {tour.groupSize}</span>
                   </div>
                 )}
-              </div>
-
-              {/* Difficulty */}
-              {tour.difficulty && (
-                <div className="mb-3">
-                  <span className={`inline-flex items-center px-2 py-0.5 border rounded text-xs font-semibold ${difficultyColors[tour.difficulty as keyof typeof difficultyColors]}`}>
+                {tour.difficulty && (
+                  <span className={`inline-flex items-center px-1.5 py-0.5 border rounded text-[10px] font-semibold ${difficultyColors[tour.difficulty as keyof typeof difficultyColors]}`}>
                     {getDifficultyLabel(tour.difficulty)}
                   </span>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Highlights */}
-              <div className="mb-3">
+              {/* Highlights - COMPACT */}
+              <div className="mb-1.5">
                 <div className="flex flex-wrap gap-1">
                   {tour.highlights.slice(0, 3).map((highlight, idx) => (
                     <span
                       key={idx}
-                      className="text-xs text-gray-600 bg-gray-50 px-2 py-0.5 rounded"
+                      className="text-[10px] text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded"
                     >
                       • {highlight}
                     </span>
@@ -307,35 +323,8 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
                 </div>
               </div>
 
-              {/* Badges */}
-              <div className="flex flex-wrap gap-1 mb-3">
-                {tour.badges.map((badge, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center px-2 py-0.5 bg-gray-100 border border-gray-300 text-gray-700 rounded text-xs font-semibold"
-                  >
-                    {badge}
-                  </span>
-                ))}
-              </div>
-
-              {/* Demand Indicator */}
-              {tour.demandLevel && tour.demandLevel > 85 && (
-                <div className="flex items-center gap-1 text-xs text-orange-600 mb-2 font-semibold">
-                  <TrendingUp className="w-3 h-3" />
-                  {t.highDemand}
-                </div>
-              )}
-
-              {/* Low Availability Warning */}
-              {tour.groupSize && tour.demandLevel && tour.demandLevel > 90 && (
-                <div className="flex items-center gap-1 text-xs text-red-600 mb-3 font-semibold">
-                  ⚠️ Only {Math.floor(tour.groupSize * 0.3)} {t.spots}
-                </div>
-              )}
-
               {/* Price Section */}
-              <div className="border-t border-gray-200 pt-3">
+              <div className="mt-auto border-t border-gray-200 pt-2">
                 <div className="flex items-end justify-between">
                   <div>
                     {tour.originalPrice && (
@@ -343,7 +332,7 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
                         ${tour.originalPrice}
                       </div>
                     )}
-                    <div className="text-xl font-bold text-primary-600">
+                    <div className="text-lg font-bold text-primary-600">
                       ${tour.pricePerPerson}
                     </div>
                     <div className="text-xs text-gray-600">{t.perPerson}</div>

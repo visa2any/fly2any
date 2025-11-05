@@ -7,6 +7,8 @@ import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircl
 import { getAirportCity } from '@/lib/data/airports';
 import { getAirlineData } from '@/lib/flights/airline-data';
 import { saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
+import { useClientCache } from '@/lib/hooks/useClientCache';
+import { CacheIndicator } from '@/components/cache/CacheIndicator';
 
 interface FlashDealData {
   id: string;
@@ -129,31 +131,40 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
   const router = useRouter();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [deals, setDeals] = useState<FlashDealData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  // Fetch flash deals from API
-  useEffect(() => {
-    const fetchDeals = async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const response = await fetch('/api/flights/flash-deals-enhanced');
-
-        if (!response.ok) throw new Error('Failed to fetch');
-
-        const data = await response.json();
-        setDeals(data.data || []);
-      } catch (err) {
-        console.error('Error fetching flash deals:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
+  // ✅ NEW: Client-side cache for instant loads (30min TTL for time-sensitive deals)
+  interface FlashDealsResponse {
+    data: FlashDealData[];
+    meta?: {
+      totalDeals: number;
+      averageSavings: number;
     };
+  }
 
-    fetchDeals();
-  }, []);
+  const {
+    data: dealsData,
+    loading,
+    error: fetchError,
+    fromCache,
+    cacheAgeFormatted,
+    timeUntilExpiry,
+    refresh,
+  } = useClientCache<FlashDealsResponse>(
+    '/api/flights/flash-deals-enhanced',
+    {
+      ttl: 1800, // 30 minutes (matches server-side time-bucketed cache)
+      autoRefresh: true, // Auto-refresh when expired for deals
+    }
+  );
+
+  const error = !!fetchError;
+
+  // ✅ FIX: Update local state only when cache data changes (prevents infinite loop)
+  useEffect(() => {
+    if (dealsData?.data) {
+      setDeals(dealsData.data);
+    }
+  }, [dealsData]);
 
   // Update time remaining every 60 seconds
   useEffect(() => {
@@ -220,7 +231,30 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          {/* ✅ Cache Indicator with countdown timer */}
+          {fromCache && cacheAgeFormatted && (
+            <div className="flex items-center gap-3">
+              <CacheIndicator
+                cacheAge={null}
+                cacheAgeFormatted={cacheAgeFormatted}
+                fromCache={fromCache}
+                onRefresh={refresh}
+                compact
+              />
+              {/* Countdown Timer until next refresh */}
+              {timeUntilExpiry && (
+                <div className="flex items-center gap-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
+                  <Clock className="w-3 h-3 text-orange-600" />
+                  <span className="text-xs font-bold text-orange-600">
+                    {Math.floor(timeUntilExpiry / 60)}:{(timeUntilExpiry % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <button
           className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
           onClick={() => window.open('/flights/results', '_blank')}

@@ -356,7 +356,7 @@ export default function BrowseTripsPage() {
                     <div className="absolute bottom-3 right-3">
                       <div className="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg">
                         <p className="text-white font-bold">
-                          ${Math.floor(trip.estimatedPricePerPerson)}
+                          ${Math.floor(trip.estimatedPricePerPerson / 100).toLocaleString()}
                         </p>
                         <p className="text-white/70 text-xs">per person</p>
                       </div>

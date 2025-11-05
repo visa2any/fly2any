@@ -26,33 +26,74 @@ interface DuffelSearchParams {
 class DuffelAPI {
   private client: Duffel;
   private isInitialized: boolean = false;
+  private static initWarningLogged = false;
 
   constructor() {
     const token = process.env.DUFFEL_ACCESS_TOKEN;
 
-    if (!token) {
-      console.warn('⚠️  DUFFEL_ACCESS_TOKEN not set - Duffel API will not be available');
-      this.isInitialized = false;
+    // Check if token is actually configured (not placeholder)
+    this.isInitialized = this.hasValidCredentials(token);
+
+    if (!this.isInitialized) {
+      if (process.env.NODE_ENV === 'development' && !DuffelAPI.initWarningLogged) {
+        console.warn('⚠️  Duffel API not configured - will use demo data');
+        console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
+        DuffelAPI.initWarningLogged = true;
+      }
       // Create a dummy client to prevent crashes
       this.client = new Duffel({ token: 'dummy' });
     } else {
-      this.client = new Duffel({ token });
-      this.isInitialized = true;
-      console.log('✅ Duffel API initialized');
+      this.client = new Duffel({ token: token! });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Duffel API configured');
+      }
     }
+  }
+
+  /**
+   * Check if Duffel token is actually configured (not placeholder)
+   */
+  private hasValidCredentials(token: string | undefined): boolean {
+    if (!token) {
+      return false;
+    }
+
+    // Check for placeholder values
+    const placeholders = ['your_', 'placeholder', 'REPLACE_', 'xxx', 'TOKEN_HERE'];
+    const tokenLower = token.toLowerCase();
+
+    for (const placeholder of placeholders) {
+      if (tokenLower.includes(placeholder.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Valid Duffel tokens start with "duffel_test_" or "duffel_live_"
+    if (!token.startsWith('duffel_')) {
+      return false;
+    }
+
+    // Valid tokens must be at least 30 characters
+    if (token.length < 30) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
    * Search for flights using Duffel API
    */
   async searchFlights(params: DuffelSearchParams) {
+    // Silently return empty results if not configured
     if (!this.isInitialized) {
-      console.warn('⚠️  Duffel API not initialized - skipping');
       return { data: [], meta: { count: 0 } };
     }
 
     try {
-      console.log('🔍 Searching Duffel API:', params);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 Searching Duffel API:', params);
+      }
 
       // Build passengers array
       const passengers: any[] = [];

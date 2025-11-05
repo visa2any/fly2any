@@ -484,7 +484,7 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
               <div className="text-center mb-6">
                 <p className="text-sm opacity-80 mb-1">Total Price Per Person</p>
                 <p className="text-5xl font-black mb-2">
-                  ${Math.floor(trip.estimatedPricePerPerson)}
+                  ${Math.floor(trip.estimatedPricePerPerson / 100).toLocaleString()}
                 </p>
                 <p className="text-sm opacity-80">{getDurationDays()} days trip</p>
               </div>

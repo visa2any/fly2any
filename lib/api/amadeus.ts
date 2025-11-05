@@ -1,5 +1,6 @@
 // Amadeus API Integration for Flight Search
 import axios from 'axios';
+import { showStartupBanner } from './startup-banner';
 
 interface AmadeusTokenResponse {
   access_token: string;
@@ -28,6 +29,7 @@ class AmadeusAPI {
   private baseUrl: string;
   private accessToken: string | null = null;
   private tokenExpiry: number | null = null;
+  private isValidCredentials: boolean = false;
 
   constructor() {
     this.apiKey = process.env.AMADEUS_API_KEY || '';
@@ -37,13 +39,63 @@ class AmadeusAPI {
       ? 'https://api.amadeus.com'
       : 'https://test.api.amadeus.com';
 
-    // Debug: Log API configuration (only show first few characters for security)
-    if (!this.apiKey || !this.apiSecret) {
-      console.warn('⚠️  Amadeus API credentials NOT loaded - will use mock data');
-    } else {
-      console.log(`✅ Amadeus API initialized (${this.environment} environment)`);
-      console.log(`   API Key: ${this.apiKey.substring(0, 10)}...`);
+    // Check if credentials are actually configured (not placeholders)
+    this.isValidCredentials = this.hasValidCredentials();
+
+    // Show startup banner (only once)
+    showStartupBanner();
+
+    // Debug: Log API configuration (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      if (!this.isValidCredentials) {
+        console.warn('⚠️  Amadeus API not configured - will use demo data');
+        console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
+      } else {
+        console.log(`✅ Amadeus API configured (${this.environment} environment)`);
+        console.log(`   API Key: ${this.apiKey.substring(0, 10)}...`);
+      }
     }
+  }
+
+  /**
+   * Check if API credentials are actually configured (not placeholders)
+   */
+  private hasValidCredentials(): boolean {
+    if (!this.apiKey || !this.apiSecret) {
+      return false;
+    }
+
+    // Check for placeholder values
+    const placeholders = ['your_', 'placeholder', 'REPLACE_', 'xxx', 'KEY_HERE', 'SECRET_HERE'];
+    const keyLower = this.apiKey.toLowerCase();
+    const secretLower = this.apiSecret.toLowerCase();
+
+    for (const placeholder of placeholders) {
+      if (keyLower.includes(placeholder.toLowerCase()) || secretLower.includes(placeholder.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Valid credentials must be at least 20 characters
+    if (this.apiKey.length < 20 || this.apiSecret.length < 20) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Helper: Format error for clean logging (avoid dumping huge objects)
+   */
+  private formatError(error: any): any {
+    return {
+      message: error?.message || 'Unknown error',
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      code: error?.code,
+      type: error?.name || error?.constructor?.name,
+      details: error?.response?.data?.errors?.[0]?.detail || error?.response?.data?.error_description
+    };
   }
 
   /**
@@ -94,6 +146,11 @@ class AmadeusAPI {
    * Get OAuth access token
    */
   private async getAccessToken(): Promise<string> {
+    // Check if credentials are configured FIRST (before any network calls)
+    if (!this.isValidCredentials) {
+      throw new Error('AMADEUS_NOT_CONFIGURED');
+    }
+
     // Return cached token if still valid
     if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
       return this.accessToken;
@@ -119,19 +176,36 @@ class AmadeusAPI {
       this.tokenExpiry = Date.now() + (response.data.expires_in - 300) * 1000;
 
       return this.accessToken;
-    } catch (error) {
-      console.error('Error getting Amadeus access token:', error);
+    } catch (error: any) {
+      // Only log auth errors ONCE per server restart (not on every API call)
+      // Use a static flag to prevent spam
+      if (process.env.NODE_ENV === 'development' && !AmadeusAPI.authErrorLogged) {
+        console.error('❌ Amadeus authentication failed:', this.formatError(error));
+        console.error('   📖 See: SETUP_REAL_APIS.md for setup instructions');
+        AmadeusAPI.authErrorLogged = true;
+      }
+
+      // Provide helpful error messages
+      if (error?.response?.status === 401) {
+        throw new Error('Invalid Amadeus API credentials. Please check AMADEUS_API_KEY and AMADEUS_API_SECRET in .env.local');
+      } else if (error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED') {
+        throw new Error('Cannot connect to Amadeus API. Please check your internet connection.');
+      }
+
       throw new Error('Failed to authenticate with Amadeus API');
     }
   }
+
+  // Static flag to prevent repeated auth error logging
+  private static authErrorLogged = false;
 
   /**
    * Search for flight offers
    */
   async searchFlights(params: FlightSearchParams) {
-    // If no API credentials, throw error
-    if (!this.apiKey || !this.apiSecret) {
-      throw new Error('Amadeus API credentials not configured. Please set AMADEUS_API_KEY and AMADEUS_API_SECRET in .env.local');
+    // If credentials not configured, throw special error code
+    if (!this.isValidCredentials) {
+      throw new Error('AMADEUS_NOT_CONFIGURED');
     }
 
     try {
@@ -248,8 +322,7 @@ class AmadeusAPI {
 
       return data;
     } catch (error: any) {
-      console.error('❌ Error searching flights:', error.response?.data || error.message);
-      console.error('Full error:', error);
+      console.error('❌ Error searching flights:', this.formatError(error));
 
       // NO MORE MOCK DATA FALLBACK - Throw the actual error
       throw new Error(`Amadeus API flight search failed: ${error.response?.data?.errors?.[0]?.detail || error.message}`);
@@ -1080,6 +1153,12 @@ class AmadeusAPI {
     ratings?: number[];
     hotelName?: string;
   }) {
+    // Check credentials before attempting API call
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials not configured, returning empty hotel results');
+      return { data: [] };
+    }
+
     const token = await this.getAccessToken();
 
     try {
@@ -1142,6 +1221,12 @@ class AmadeusAPI {
     startDateTime: string;
     passengers: number;
   }) {
+    // Check credentials before attempting API call
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials not configured, returning empty transfer results');
+      return { data: [] };
+    }
+
     const token = await this.getAccessToken();
 
     try {
@@ -1175,6 +1260,12 @@ class AmadeusAPI {
     driverAge?: number;
     currency?: string;
   }) {
+    // Check credentials FIRST before attempting any API calls
+    if (!this.isValidCredentials) {
+      // Return empty results silently - calling code will use demo fallback
+      return { data: [] };
+    }
+
     const token = await this.getAccessToken();
 
     try {
@@ -1223,6 +1314,12 @@ class AmadeusAPI {
     longitude: number;
     radius?: number; // in kilometers (default 1km, max 20km)
   }) {
+    // Check credentials before attempting API call
+    if (!this.apiKey || !this.apiSecret) {
+      console.warn('⚠️  Amadeus API credentials not configured, returning empty activity results');
+      return { data: [] };
+    }
+
     const token = await this.getAccessToken();
 
     try {

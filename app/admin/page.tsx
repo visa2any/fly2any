@@ -26,7 +26,8 @@ import {
   Hotel,
   Car,
   Shield,
-  Webhook
+  Webhook,
+  Bot
 } from 'lucide-react';
 
 // ===========================
@@ -385,6 +386,13 @@ export default function AdminDashboard() {
                 label="ML Cost Savings"
                 href="/ml/dashboard"
                 color="purple"
+              />
+
+              <QuickAction
+                icon={<Bot className="w-4 h-4" />}
+                label="AI Analytics"
+                href="/admin/ai-analytics"
+                color="pink"
               />
 
               <QuickAction

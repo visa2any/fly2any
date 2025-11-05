@@ -1,0 +1,25 @@
+
+> fly2any@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+[1mWebpack Bundle Analyzer[22m saved report to [1mC:\Users\Power\fly2any-fresh\analyze\client.html[22m
+[1mWebpack Bundle Analyzer[22m saved stats file to [1mC:\Users\Power\fly2any-fresh\analyze\client-stats.json[22m
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./components/ai/AITravelAssistant.tsx:601:17
+Type error: Cannot find name 'sendAIMessagesWithTyping'. Did you mean 'sendAIResponseWithTyping'?
+
+[0m [90m 599 |[39m             [33m:[39m [32m"\n\n¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨"[39m[33m;[39m[0m
+[0m [90m 600 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 601 |[39m           [36mawait[39m sendAIMessagesWithTyping([[0m
+[0m [90m     |[39m                 [31m[1m^[22m[39m[0m
+[0m [90m 602 |[39m             {[0m
+[0m [90m 603 |[39m               content[33m:[39m warmResponse[0m
+[0m [90m 604 |[39m             }[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null

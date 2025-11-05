@@ -66,7 +66,7 @@ export async function GET(
         userEmail: m.user_email,
         userAvatarUrl: m.avatar_url,
         customizations: m.customizations,
-        totalPrice: m.total_price ? parseFloat(m.total_price) : null,
+        totalPrice: m.total_price ? parseFloat(m.total_price) : undefined,
         creditsApplied: m.credits_applied,
         amountPaid: parseFloat(m.amount_paid || '0'),
         paymentStatus: m.payment_status,
@@ -79,7 +79,7 @@ export async function GET(
           bio: m.bio,
           travelStyle: m.travel_style,
           tripsCompleted: m.trips_completed,
-          avgRating: m.avg_rating ? parseFloat(m.avg_rating) : null,
+          avgRating: m.avg_rating ? parseFloat(m.avg_rating) : undefined,
         },
       },
     });

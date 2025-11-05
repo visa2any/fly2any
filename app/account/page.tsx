@@ -29,7 +29,13 @@ export default async function AccountPage() {
     if (isDatabaseConfigured && prisma) {
       session = await auth();
 
-      if (!session) {
+      if (!session || !session.user) {
+        redirect('/auth/signin');
+      }
+
+      // Ensure session.user has required properties
+      if (!session.user.id) {
+        console.error('Session user missing ID:', session.user);
         redirect('/auth/signin');
       }
 
@@ -99,7 +105,7 @@ export default async function AccountPage() {
       )}
 
       {/* Welcome Section */}
-      {session && (
+      {session && session.user && (
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
           <div className="flex items-center gap-6">
             {session.user.image ? (

@@ -220,7 +220,9 @@ export async function GET(request: NextRequest) {
 
     // FALLBACK: Generate demo data if Duffel returns empty results
     if (validHotels.length === 0) {
-      console.log(`⚠️  Duffel API returned no hotels - using demo fallback data`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`⚠️  Duffel API returned no hotels - using demo fallback data`);
+      }
 
       validHotels = filteredDestinations.map((dest, index) => {
         const demoSeed = dest.city;
@@ -286,7 +288,9 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      console.log(`✅ Generated ${validHotels.length} demo hotels for ${continentFilter}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Generated ${validHotels.length} demo hotels for ${continentFilter}`);
+      }
     }
 
     // Sort by value score

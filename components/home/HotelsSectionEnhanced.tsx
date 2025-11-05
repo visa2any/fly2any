@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame, Eye, ShoppingCart, Clock, Zap } from 'lucide-react';
@@ -128,6 +128,187 @@ const amenityIcons: { [key: string]: React.ReactNode } = {
   coffee: <Coffee className="w-4 h-4" />,
 };
 
+// Memoized hotel card component for performance
+const HotelCard = memo(({
+  hotel,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  t
+}: {
+  hotel: HotelEnhanced;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  onClick: () => void;
+  t: any;
+}) => (
+  <div
+    onClick={onClick}
+    className={`
+      bg-white rounded-xl border-2 border-gray-200
+      hover:border-primary-400 hover:shadow-2xl
+      transition-all duration-300 ease-out overflow-hidden cursor-pointer
+      ${isHovered ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
+    `}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+  >
+    {/* Hotel Photo - COMPACT with Error Handling */}
+    <div className="relative h-36 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
+      {hotel.mainImage ? (
+        <>
+          <img
+            src={hotel.mainImage}
+            alt={hotel.name}
+            className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+            crossOrigin="anonymous"
+            loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+        </>
+      ) : null}
+      {/* Fallback Icon - Always present, hidden if image loads */}
+      {(!hotel.mainImage) && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-6xl">🏨</span>
+        </div>
+      )}
+
+      {/* Value Score Badge - Top Right */}
+      <div className="absolute top-2 right-2">
+        <ValueScoreBadge score={hotel.valueScore} size="sm" showLabel={false} />
+      </div>
+
+      {/* Trending/Price Drop Badge - Top Left */}
+      {hotel.priceDropRecent && (
+        <div className="absolute top-2 left-2 bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
+          <TrendingDown className="w-3 h-3" />
+          {t.priceDrop}
+        </div>
+      )}
+      {hotel.trending && !hotel.priceDropRecent && (
+        <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
+          <Flame className="w-3 h-3" />
+          {t.trending}
+        </div>
+      )}
+
+      {/* Star Rating Badge - Bottom Left */}
+      {hotel.starRating && (
+        <div className="absolute bottom-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <span className="text-sm font-bold text-gray-900">{hotel.starRating}</span>
+        </div>
+      )}
+    </div>
+
+    {/* Hotel Details - COMPACT */}
+    <div className="p-3">
+      {/* Location */}
+      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+        <MapPin className="w-3 h-3" />
+        <span>{hotel.city}, {hotel.country}</span>
+      </div>
+
+      {/* Hotel Name - SINGLE LINE */}
+      <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-1">
+        {hotel.name}
+      </h3>
+
+      {/* Reviews */}
+      {hotel.reviewCount > 0 && (
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-xs">
+            <Star className="w-3 h-3 fill-current" />
+            {hotel.reviewRating?.toFixed(1) || hotel.starRating || '4.5'}
+          </div>
+          <span className="text-xs text-gray-600">
+            ({hotel.reviewCount.toLocaleString()} {t.reviews})
+          </span>
+        </div>
+      )}
+
+      {/* Social Proof - COMPACT ONE LINE */}
+      <div className="flex items-center gap-1.5 mb-2 flex-wrap text-[10px]">
+        {hotel.viewersLast24h > 100 && (
+          <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
+            <Eye className="w-2.5 h-2.5" />
+            {hotel.viewersLast24h}
+          </span>
+        )}
+        {hotel.bookingsLast24h > 10 && (
+          <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
+            <ShoppingCart className="w-2.5 h-2.5" />
+            {hotel.bookingsLast24h}
+          </span>
+        )}
+        {hotel.demandLevel > 85 && (
+          <span className="inline-flex items-center gap-0.5 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
+            <Flame className="w-2.5 h-2.5" />
+            High
+          </span>
+        )}
+        {hotel.availableRooms <= 5 && (
+          <span className="inline-flex items-center gap-0.5 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">
+            <Clock className="w-2.5 h-2.5" />
+            {hotel.availableRooms} left
+          </span>
+        )}
+      </div>
+
+      {/* Amenities Preview - COMPACT */}
+      <div className="flex items-center gap-2 mb-2">
+        {hotel.amenities.slice(0, 4).map((amenity, idx) => (
+          <div
+            key={idx}
+            className="text-gray-600 hover:text-primary-600 transition-colors"
+            title={amenity}
+          >
+            {amenityIcons[amenity] || <Zap className="w-4 h-4" />}
+          </div>
+        ))}
+        {hotel.amenities.length > 4 && (
+          <span className="text-xs text-gray-500">+{hotel.amenities.length - 4}</span>
+        )}
+      </div>
+
+      {/* Price Section - COMPACT WITH INLINE SAVINGS */}
+      <div className="flex items-end justify-between gap-2">
+        <div className="flex-1">
+          <div className="flex items-baseline gap-1.5 mb-0.5">
+            <span className="text-2xl font-bold text-primary-600">${hotel.pricePerNight.toFixed(0)}</span>
+            {hotel.originalPrice && hotel.originalPrice > hotel.pricePerNight && (
+              <>
+                <span className="text-xs text-gray-400 line-through">
+                  ${hotel.originalPrice.toFixed(0)}
+                </span>
+                <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                  💚 {Math.round(((hotel.originalPrice - hotel.pricePerNight) / hotel.originalPrice) * 100)}%
+                </span>
+              </>
+            )}
+          </div>
+          <div className="text-[10px] text-gray-500">{t.perNight}</div>
+        </div>
+        <button className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1">
+          <span>{t.bookNow}</span>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+));
+
+HotelCard.displayName = 'HotelCard';
+
 export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProps) {
   const t = translations[lang];
   const router = useRouter();
@@ -160,9 +341,10 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
     fetchHotels();
   }, [activeFilter]);
 
-  const handleHotelClick = (hotelId: string) => {
+  // Memoize click handler to prevent recreating on every render
+  const handleHotelClick = useCallback((hotelId: string) => {
     window.open(`/hotels/${hotelId}`, '_blank');
-  };
+  }, []);
 
   return (
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
@@ -217,182 +399,20 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
         </div>
       )}
 
-      {/* Hotels Grid */}
+      {/* Hotels Grid - Using Memoized Components for Performance */}
       {!loading && hotels.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {hotels.map((hotel) => (
-              <div
+              <HotelCard
                 key={hotel.id}
-                onClick={() => handleHotelClick(hotel.id)}
-                className={`
-                  bg-white rounded-xl border-2 border-gray-200
-                  hover:border-primary-400 hover:shadow-2xl
-                  transition-all duration-300 ease-out overflow-hidden cursor-pointer
-                  ${hoveredId === hotel.id ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
-                `}
+                hotel={hotel}
+                isHovered={hoveredId === hotel.id}
                 onMouseEnter={() => setHoveredId(hotel.id)}
                 onMouseLeave={() => setHoveredId(null)}
-              >
-                {/* Hotel Photo */}
-                <div className="relative h-44 overflow-hidden">
-                  {hotel.mainImage ? (
-                    <>
-                      <img
-                        src={hotel.mainImage}
-                        alt={hotel.name}
-                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100 flex items-center justify-center">
-                      <span className="text-6xl">🏨</span>
-                    </div>
-                  )}
-
-                  {/* Value Score Badge - Top Right */}
-                  <div className="absolute top-2 right-2">
-                    <ValueScoreBadge score={hotel.valueScore} size="sm" showLabel={false} />
-                  </div>
-
-                  {/* Trending/Price Drop Badge - Top Left */}
-                  {hotel.priceDropRecent && (
-                    <div className="absolute top-2 left-2 bg-gray-700 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                      <TrendingDown className="w-3 h-3" />
-                      {t.priceDrop}
-                    </div>
-                  )}
-                  {hotel.trending && !hotel.priceDropRecent && (
-                    <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
-                      <Flame className="w-3 h-3" />
-                      {t.trending}
-                    </div>
-                  )}
-
-                  {/* Star Rating Badge - Bottom Left */}
-                  {hotel.starRating && (
-                    <div className="absolute bottom-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-bold text-gray-900">{hotel.starRating}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Hotel Details */}
-                <div className="p-4">
-                  {/* Location */}
-                  <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                    <MapPin className="w-3 h-3" />
-                    <span>{hotel.city}, {hotel.country}</span>
-                  </div>
-
-                  {/* Hotel Name */}
-                  <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-2 min-h-[2.5rem]">
-                    {hotel.name}
-                  </h3>
-
-                  {/* Reviews */}
-                  {hotel.reviewCount > 0 && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-xs">
-                        <Star className="w-3 h-3 fill-current" />
-                        {hotel.reviewRating?.toFixed(1) || hotel.starRating || '4.5'}
-                      </div>
-                      <span className="text-xs text-gray-600">
-                        ({hotel.reviewCount.toLocaleString()} {t.reviews})
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Social Proof Indicators */}
-                  <div className="space-y-2 mb-3">
-                    {/* Viewers - Only show if very high (100+) */}
-                    {hotel.viewersLast24h > 100 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600 font-semibold bg-gray-100 px-2 py-1 rounded">
-                        <Eye className="w-3 h-3" />
-                        <span>{hotel.viewersLast24h} {t.peopleViewing}</span>
-                      </div>
-                    )}
-
-                    {/* Bookings Today - Only show if significant (10+) */}
-                    {hotel.bookingsLast24h > 10 && (
-                      <div className="flex items-center gap-1 text-xs text-gray-600 font-semibold bg-gray-100 px-2 py-1 rounded">
-                        <ShoppingCart className="w-3 h-3" />
-                        <span>{hotel.bookingsLast24h} {t.bookings24h}</span>
-                      </div>
-                    )}
-
-                    {/* High Demand Warning */}
-                    {hotel.demandLevel > 85 && (
-                      <div className="flex items-center gap-1 text-xs text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded">
-                        <Flame className="w-3 h-3" />
-                        <span>{t.highDemand}</span>
-                      </div>
-                    )}
-
-                    {/* Limited Availability */}
-                    {hotel.availableRooms <= 5 && (
-                      <div className="flex items-center gap-1 text-xs text-red-600 font-bold bg-red-50 px-2 py-1 rounded animate-pulse">
-                        <Clock className="w-3 h-3" />
-                        <span>⚠️ {hotel.availableRooms} {t.roomsLeft}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Amenities Preview */}
-                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
-                    {hotel.amenities.slice(0, 4).map((amenity, idx) => (
-                      <div
-                        key={idx}
-                        className="text-gray-600 hover:text-primary-600 transition-colors"
-                        title={amenity}
-                      >
-                        {amenityIcons[amenity] || <Zap className="w-4 h-4" />}
-                      </div>
-                    ))}
-                    {hotel.amenities.length > 4 && (
-                      <span className="text-xs text-gray-500">+{hotel.amenities.length - 4}</span>
-                    )}
-                  </div>
-
-                  {/* You Save Indicator */}
-                  {hotel.originalPrice && hotel.originalPrice > hotel.pricePerNight && (
-                    <div className="mb-3 inline-flex items-center gap-2 px-3 py-2 bg-green-50 border-2 border-green-500 rounded-lg shadow-sm">
-                      <TrendingDown className="w-4 h-4 text-green-600" />
-                      <div className="text-sm">
-                        <span className="font-bold text-green-700">
-                          You Save ${(hotel.originalPrice - hotel.pricePerNight).toFixed(2)}
-                        </span>
-                        <span className="text-green-600 ml-1">
-                          ({Math.round(((hotel.originalPrice - hotel.pricePerNight) / hotel.originalPrice) * 100)}% off)
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Price Section */}
-                  <div className="flex items-end justify-between">
-                    <div>
-                      {hotel.originalPrice && (
-                        <div className="text-xs text-gray-500 line-through">
-                          ${hotel.originalPrice.toFixed(2)}
-                        </div>
-                      )}
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-primary-600">${hotel.pricePerNight.toFixed(0)}</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">{t.perNight}</div>
-                    </div>
-                    <button className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5">
-                      <span>{t.bookNow}</span>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
+                onClick={() => handleHotelClick(hotel.id)}
+                t={t}
+              />
             ))}
           </div>
 

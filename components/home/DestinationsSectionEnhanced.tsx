@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
-import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart, MapPin } from 'lucide-react';
 import { AIRLINE_DATABASE } from '@/lib/flights/airline-data';
 import { useFavorites, saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
+import { useClientCache } from '@/lib/hooks/useClientCache';
+import { CacheIndicator } from '@/components/cache/CacheIndicator';
 
 interface DestinationData {
   id: string;
@@ -157,73 +159,184 @@ const DESTINATION_IMAGES: Record<string, string> = {
 
 type FilterType = 'all' | 'americas' | 'south-america' | 'europe' | 'asia-pacific' | 'caribbean' | 'beach';
 
+// Memoized single destination card to prevent re-renders
+const DestinationCard = memo(({
+  destination,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  isFavorite,
+  toggleFavorite,
+  t,
+  getDestinationImage,
+  getAirlineInfo,
+  getCountryFlag
+}: any) => (
+  <div
+    onClick={onClick}
+    className={`
+      group bg-white rounded-xl border-2 border-gray-200
+      hover:border-primary-400 hover:shadow-2xl
+      transition-all duration-300 ease-out overflow-hidden cursor-pointer
+      ${isHovered ? 'scale-[1.03] shadow-2xl -translate-y-2' : ''}
+    `}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+  >
+    {/* Destination Photo - TripMATCH Style with Fallback */}
+    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
+      <img
+        src={getDestinationImage(destination.to)}
+        alt={`${destination.city}, ${destination.country}`}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        style={{ objectPosition: 'center center', objectFit: 'cover', display: 'block' }}
+        loading="lazy"
+        crossOrigin="anonymous"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const parent = target.parentElement;
+          if (parent && !parent.querySelector('.fallback-icon')) {
+            const fallback = document.createElement('div');
+            fallback.className = 'fallback-icon w-full h-full flex items-center justify-center';
+            fallback.innerHTML = '<span class="text-6xl">✈️</span>';
+            parent.appendChild(fallback);
+          }
+        }}
+      />
+      {/* TripMATCH Gradient - Exact Match */}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+
+      {/* TOP LEFT - Airline Badge (TripMATCH style) */}
+      <div className="absolute top-3 left-3">
+        {(() => {
+          const airline = getAirlineInfo(destination.carrier);
+          return (
+            <div className="bg-blue-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+              <span>{airline.logo}</span>
+              <span>{airline.name}</span>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* TOP RIGHT - Value Score + Favorite (TripMATCH style) */}
+      <div className="absolute top-3 right-3 flex gap-2">
+        <ValueScoreBadge score={destination.valueScore} size="sm" showLabel={false} />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite({
+              id: destination.id,
+              city: destination.city,
+              country: destination.country,
+              price: destination.price,
+              from: destination.from,
+              to: destination.to,
+            });
+          }}
+          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+            isFavorite(destination.id)
+              ? 'bg-red-500 text-white'
+              : 'bg-white/90 text-gray-600 hover:text-red-500'
+          }`}
+        >
+          <Heart
+            className="w-3.5 h-3.5"
+            fill={isFavorite(destination.id) ? 'currentColor' : 'none'}
+          />
+        </button>
+      </div>
+
+      {/* CENTER - Urgency Badge (if critical) */}
+      {destination.seatsAvailable <= 8 && (
+        <div className="absolute top-14 left-3">
+          <div className="bg-orange-500 px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+            <Flame className="w-3 h-3" />
+            <span>{destination.seatsAvailable} seats left</span>
+          </div>
+        </div>
+      )}
+
+      {/* BOTTOM RIGHT - Price Box (TripMATCH style) */}
+      <div className="absolute bottom-3 right-3">
+        <div className="bg-black/60 backdrop-blur-sm px-3 py-2 rounded-lg">
+          <p className="text-white font-bold text-lg">
+            ${destination.price.toFixed(0)}
+          </p>
+          <p className="text-white/70 text-xs">per person</p>
+        </div>
+      </div>
+
+      {/* BOTTOM LEFT - Destination (TripMATCH style) */}
+      <div className="absolute bottom-3 left-3 right-24">
+        <h3 className="font-bold text-white text-lg mb-1 group-hover:text-primary-400 transition-colors line-clamp-1 drop-shadow-lg">
+          {getCountryFlag(destination.country)} {destination.city}
+        </h3>
+        <div className="flex items-center gap-1 text-white/60 text-sm">
+          <MapPin className="w-4 h-4" />
+          <span className="line-clamp-1">
+            from {(() => {
+              const cityMap: Record<string, string> = {
+                'JFK': 'New York', 'LAX': 'Los Angeles', 'ORD': 'Chicago', 'MIA': 'Miami',
+                'SFO': 'San Francisco', 'DEN': 'Denver', 'ATL': 'Atlanta', 'SEA': 'Seattle',
+                'IAH': 'Houston', 'YYZ': 'Toronto', 'YVR': 'Vancouver', 'MEX': 'Mexico City'
+              };
+              return cityMap[destination.from] || destination.from;
+            })()}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+DestinationCard.displayName = 'DestinationCard';
+
 export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSectionEnhancedProps) {
   const t = translations[lang];
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [destinations, setDestinations] = useState<DestinationData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
 
-  // Fetch destinations from API
-  useEffect(() => {
-    const fetchDestinations = async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const filterParam = activeFilter === 'all' ? '?limit=8' : `?continent=${activeFilter}&limit=8`;
-        const response = await fetch(`/api/flights/destinations-enhanced${filterParam}`);
+  // ✅ NEW: Dynamic URL based on continent filter
+  const filterParam = activeFilter === 'all' ? '?limit=8' : `?continent=${activeFilter}&limit=8`;
+  const url = `/api/flights/destinations-enhanced${filterParam}`;
 
-        if (!response.ok) throw new Error('Failed to fetch');
-
-        const data = await response.json();
-        setDestinations(data.data || []);
-      } catch (err) {
-        console.error('Error fetching destinations:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
+  // ✅ NEW: Client-side cache for instant loads (1hr TTL for analytics data)
+  interface DestinationsResponse {
+    data: DestinationData[];
+    meta?: {
+      totalDestinations: number;
     };
+  }
 
-    fetchDestinations();
-  }, [activeFilter]);
+  const {
+    data: destinationsData,
+    loading,
+    error: fetchError,
+    fromCache,
+    cacheAgeFormatted,
+    refresh,
+  } = useClientCache<DestinationsResponse>(
+    url,
+    {
+      ttl: 3600, // 1 hour (destinations don't change often)
+    }
+  );
 
-  const handleDestinationClick = (destination: DestinationData) => {
-    // Save to recently viewed
-    saveToRecentlyViewed({
-      id: destination.id,
-      city: destination.city,
-      country: destination.country,
-      price: destination.price,
-      imageUrl: getDestinationImage(destination.to),
-      from: destination.from,
-      to: destination.to,
-    });
-    // Build search params - must match EnhancedSearchBar parameter names
-    const params = new URLSearchParams({
-      from: destination.from,
-      to: destination.to,
-      departure: destination.departureDate,
-      ...(destination.returnDate && { return: destination.returnDate }),
-      adults: '1',
-      children: '0',
-      infants: '0',
-      class: 'economy',
-    });
+  const destinations = destinationsData?.data || [];
+  const error = !!fetchError;
 
-    // Navigate to flight results (open in new tab)
-    window.open(`/flights/results?${params.toString()}`, '_blank');
-  };
-
-  const getDestinationImage = (airportCode: string): string => {
+  // Memoize helper functions to prevent recreating on every render
+  const getDestinationImage = useCallback((airportCode: string): string => {
     return DESTINATION_IMAGES[airportCode] || DESTINATION_IMAGES['default'];
-  };
+  }, []);
 
   // Get airline info with logo and branding
-  const getAirlineInfo = (carrierCode: string | undefined) => {
+  const getAirlineInfo = useCallback((carrierCode: string | undefined) => {
     if (!carrierCode) {
       // Return default fallback when carrier is missing
       return {
@@ -240,10 +353,10 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       logo: '✈️',
       color: '#6B7280'
     };
-  };
+  }, []);
 
-  // Country flags mapping
-  const getCountryFlag = (country: string): string => {
+  // Country flags mapping - memoized
+  const getCountryFlag = useCallback((country: string): string => {
     const flags: Record<string, string> = {
       'United States': '🇺🇸',
       'Canada': '🇨🇦',
@@ -292,10 +405,36 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       'St. Maarten': '🇸🇽',
     };
     return flags[country] || '🌍';
-  };
+  }, []);
+
+  // Memoize click handler
+  const handleDestinationClick = useCallback((destination: DestinationData) => {
+    // Save to recently viewed
+    saveToRecentlyViewed({
+      id: destination.id,
+      city: destination.city,
+      country: destination.country,
+      price: destination.price,
+      imageUrl: getDestinationImage(destination.to),
+      from: destination.from,
+      to: destination.to,
+    });
+    // Build search params
+    const params = new URLSearchParams({
+      from: destination.from,
+      to: destination.to,
+      departure: destination.departureDate,
+      ...(destination.returnDate && { return: destination.returnDate }),
+      adults: '1',
+      children: '0',
+      infants: '0',
+      class: 'economy',
+    });
+    window.open(`/flights/results?${params.toString()}`, '_blank');
+  }, [getDestinationImage]);
 
   // Open booking in same tab (not new tab) for better UX
-  const handleBookNow = (destination: DestinationData, e: React.MouseEvent) => {
+  const handleBookNow = useCallback((destination: DestinationData, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
 
     // Save to recently viewed before navigating
@@ -323,13 +462,25 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
 
     // Navigate in new tab
     window.open(`/flights/results?${params.toString()}`, '_blank');
-  };
+  }, [getDestinationImage]);
 
   return (
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          {/* ✅ Cache Indicator - Shows instant load status */}
+          {fromCache && cacheAgeFormatted && (
+            <CacheIndicator
+              cacheAge={null}
+              cacheAgeFormatted={cacheAgeFormatted}
+              fromCache={fromCache}
+              onRefresh={refresh}
+              compact
+            />
+          )}
+        </div>
         <button
           className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
           onClick={() => window.open('/flights/results', '_blank')}
@@ -391,168 +542,25 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
         </div>
       )}
 
-      {/* Destinations Grid */}
+      {/* Destinations Grid - Using Memoized Components for Performance */}
       {!loading && !error && destinations.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {destinations.map((destination) => (
-              <div
+              <DestinationCard
                 key={destination.id}
-                onClick={() => handleDestinationClick(destination)}
-                className={`
-                  bg-white rounded-xl border-2 border-gray-200
-                  hover:border-primary-400 hover:shadow-2xl
-                  transition-all duration-300 ease-out overflow-hidden cursor-pointer
-                  ${hoveredId === destination.id ? 'scale-[1.03] shadow-2xl -translate-y-1' : ''}
-                `}
+                destination={destination}
+                isHovered={hoveredId === destination.id}
                 onMouseEnter={() => setHoveredId(destination.id)}
                 onMouseLeave={() => setHoveredId(null)}
-              >
-                {/* Destination Photo */}
-                <div className="relative h-44 overflow-hidden">
-                  <img
-                    src={getDestinationImage(destination.to)}
-                    alt={`${destination.city}, ${destination.country}`}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    style={{ objectPosition: 'center center', objectFit: 'cover', display: 'block' }}
-                    loading="lazy"
-                  />
-                  {/* Enhanced overlay for better text contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-
-                  {/* Top Right Controls: Value Score + Favorite */}
-                  <div className="absolute top-2 right-2 flex items-center gap-2">
-                    {/* Favorite Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite({
-                          id: destination.id,
-                          city: destination.city,
-                          country: destination.country,
-                          price: destination.price,
-                          from: destination.from,
-                          to: destination.to,
-                        });
-                      }}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        isFavorite(destination.id)
-                          ? 'bg-red-500 text-white shadow-lg'
-                          : 'bg-white/90 hover:bg-white text-gray-600 hover:text-red-500 shadow-md'
-                      }`}
-                      title={isFavorite(destination.id) ? 'Remove from favorites' : 'Add to favorites'}
-                    >
-                      <Heart
-                        className="w-4 h-4"
-                        fill={isFavorite(destination.id) ? 'currentColor' : 'none'}
-                      />
-                    </button>
-                    {/* Value Score Badge */}
-                    <ValueScoreBadge score={destination.valueScore} size="sm" showLabel={false} />
-                  </div>
-
-                  {/* Airline Branding - Top Left - PROMINENT */}
-                  {(() => {
-                    const airline = getAirlineInfo(destination.carrier);
-                    return (
-                      <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-lg border border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{airline.logo}</span>
-                          <span className="text-xs font-bold text-gray-900">{airline.name}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* City/Country with Flag - Bottom */}
-                  <div className="absolute bottom-2 left-2 right-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl">{getCountryFlag(destination.country)}</span>
-                      <h3 className="text-xl font-bold text-white drop-shadow-2xl" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
-                        {destination.city}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-white/95 drop-shadow-lg font-medium" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
-                      {destination.country}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Destination Details - REDESIGNED COMPACT */}
-                <div className="p-3 space-y-2.5">
-                  {/* From City Display */}
-                  <div className="text-xs text-gray-500 font-medium">
-                    {t.from} {(() => {
-                      const cityMap: Record<string, string> = {
-                        'JFK': 'New York', 'LAX': 'Los Angeles', 'ORD': 'Chicago', 'MIA': 'Miami',
-                        'SFO': 'San Francisco', 'DEN': 'Denver', 'ATL': 'Atlanta', 'SEA': 'Seattle',
-                        'IAH': 'Houston', 'YYZ': 'Toronto', 'YVR': 'Vancouver', 'MEX': 'Mexico City'
-                      };
-                      return cityMap[destination.from] || destination.from;
-                    })()}
-                  </div>
-
-                  {/* Price Section - ENHANCED FOR EMPHASIS */}
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <div className="text-xs text-gray-500 font-medium mb-1">{t.priceStartsFrom}</div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-extrabold text-primary-600">${destination.price.toFixed(0)}</span>
-                        {destination.originalPrice && destination.priceDropRecent && (
-                          <span className="text-xs text-gray-400 line-through font-medium">${destination.originalPrice.toFixed(0)}</span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">per person</div>
-                    </div>
-                    {destination.originalPrice && destination.priceDropRecent && (
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                        -{Math.round(((destination.originalPrice - destination.price) / destination.originalPrice) * 100)}%
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Social Proof - UNIFIED GRAY, MAX 2 BADGES */}
-                  <div className="flex flex-wrap gap-1.5 items-center">
-                    {/* Priority 1: Urgency (Low Seats) - Keep urgency color for conversion */}
-                    {destination.seatsAvailable <= 10 && (
-                      <span className="inline-flex items-center gap-0.5 px-2 py-1 bg-orange-100 rounded text-[10px] font-bold text-orange-700">
-                        <Flame className="w-3 h-3" />
-                        {destination.seatsAvailable} seats left
-                      </span>
-                    )}
-                    {/* Priority 2: Trending - Only if no urgency */}
-                    {destination.trending && destination.seatsAvailable > 10 && (
-                      <span className="inline-flex items-center gap-0.5 px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold text-gray-700">
-                        <TrendingUp className="w-3 h-3" />
-                        Trending
-                      </span>
-                    )}
-                    {/* Priority 3: Social Proof (Viewers or Bookings) - Unified Gray */}
-                    {destination.viewersLast24h > 100 && (
-                      <span className="inline-flex items-center gap-0.5 px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold text-gray-600">
-                        <Eye className="w-3 h-3" />
-                        {destination.viewersLast24h} viewing
-                      </span>
-                    )}
-                    {destination.bookingsLast24h > 15 && destination.viewersLast24h <= 100 && (
-                      <span className="inline-flex items-center gap-0.5 px-2 py-1 bg-gray-100 rounded text-[10px] font-semibold text-gray-600">
-                        <ShoppingCart className="w-3 h-3" />
-                        {destination.bookingsLast24h} bookings
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Book Now Button - REFINED CTA */}
-                  <button
-                    onClick={(e) => handleBookNow(destination, e)}
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 group"
-                  >
-                    <Plane className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    <span>Book Now</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
+                onClick={() => handleDestinationClick(destination)}
+                isFavorite={isFavorite}
+                toggleFavorite={toggleFavorite}
+                t={t}
+                getDestinationImage={getDestinationImage}
+                getAirlineInfo={getAirlineInfo}
+                getCountryFlag={getCountryFlag}
+              />
             ))}
           </div>
 

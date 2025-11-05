@@ -1,0 +1,1030 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import {
+  MessageCircle,
+  X,
+  Send,
+  Minimize2,
+  Bot,
+  User,
+  Loader2,
+  Phone,
+  Mail,
+  Sparkles,
+  LogIn,
+  UserPlus,
+  Plane
+} from 'lucide-react';
+import { getConsultant, type TeamType } from '@/lib/ai/consultant-profiles';
+import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
+import { FlightResultCard } from './FlightResultCard';
+import { useRouter } from 'next/navigation';
+import { useAIAnalytics } from '@/lib/hooks/useAIAnalytics';
+import {
+  calculateTypingDelay,
+  calculateThinkingDelay,
+  calculateMultiMessageDelay,
+  detectMessageType,
+  getTypingIndicatorText,
+  type TypingState
+} from '@/lib/utils/typing-simulation';
+
+interface FlightSearchResult {
+  id: string;
+  airline: string;
+  flightNumber: string;
+  departure: {
+    airport: string;
+    time: string;
+    terminal?: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+    terminal?: string;
+  };
+  duration: string;
+  stops: number;
+  stopover?: string;
+  price: {
+    amount: string;
+    currency: string;
+  };
+  cabinClass: string;
+  seatsAvailable: number;
+  baggage: {
+    checked: string;
+    cabin: string;
+  };
+}
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  consultant?: {
+    name: string;
+    title: string;
+    avatar: string;
+    team: TeamType;
+  };
+  flightResults?: FlightSearchResult[];
+  isSearching?: boolean;
+}
+
+interface Props {
+  language?: 'en' | 'pt' | 'es';
+}
+
+export function AITravelAssistant({ language = 'en' }: Props) {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingState, setTypingState] = useState<TypingState | null>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptMessage, setAuthPromptMessage] = useState('');
+  const [isSearchingFlights, setIsSearchingFlights] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // User session tracking (simplified for now - will connect to real API later)
+  const [userSession, setUserSession] = useState<UserSession>({
+    sessionId: `session_${Date.now()}`,
+    ipAddress: 'unknown', // Will be fetched from API
+    isAuthenticated: false,
+    conversationCount: 0,
+    lastActivity: new Date(),
+    createdAt: new Date()
+  });
+
+  // Analytics tracking
+  const analytics = useAIAnalytics({
+    sessionId: userSession.sessionId,
+    userId: undefined, // TODO: Connect to real user auth
+    isAuthenticated: userSession.isAuthenticated,
+  });
+
+  // Translations
+  const translations = {
+    en: {
+      title: 'Travel Expert Assistant',
+      subtitle: '12 Specialized Consultants • 24/7',
+      placeholder: 'Ask me anything about your travel...',
+      send: 'Send',
+      close: 'Close',
+      minimize: 'Minimize',
+      welcome: 'Hello! 👋 I\'m your AI Travel Assistant. How can I help you today?',
+      typing: 'is typing...',
+      quickActions: 'Quick Actions:',
+      quickQuestions: [
+        'Flight from NYC to Dubai on Nov 15',
+        '🏨 Best hotel deals',
+        '📞 Contact support',
+        '💳 Payment methods',
+        '❓ FAQ & Help'
+      ],
+      contactSupport: 'Need human assistance?',
+      callUs: 'Call Us',
+      emailUs: 'Email Us',
+      poweredBy: 'Expert Team • 24/7 Available',
+      signIn: 'Sign In',
+      signUp: 'Create Free Account',
+      continueAsGuest: 'Continue as Guest'
+    },
+    pt: {
+      title: 'Assistente de Especialistas',
+      subtitle: '12 Consultores Especializados • 24/7',
+      placeholder: 'Pergunte-me sobre sua viagem...',
+      send: 'Enviar',
+      close: 'Fechar',
+      minimize: 'Minimizar',
+      welcome: 'Olá! 👋 Sou seu Assistente de Viagem IA. Como posso ajudá-lo hoje?',
+      typing: 'está digitando...',
+      quickActions: 'Ações Rápidas:',
+      quickQuestions: [
+        'Voo de São Paulo para Lisboa em 15 nov',
+        '🏨 Melhores ofertas de hotéis',
+        '📞 Contatar suporte',
+        '💳 Métodos de pagamento',
+        '❓ FAQ & Ajuda'
+      ],
+      contactSupport: 'Precisa de assistência humana?',
+      callUs: 'Ligar',
+      emailUs: 'Email',
+      poweredBy: 'Equipe de Especialistas • 24/7',
+      signIn: 'Entrar',
+      signUp: 'Criar Conta Grátis',
+      continueAsGuest: 'Continuar como Convidado'
+    },
+    es: {
+      title: 'Asistente de Expertos',
+      subtitle: '12 Consultores Especializados • 24/7',
+      placeholder: 'Pregúntame sobre tu viaje...',
+      send: 'Enviar',
+      close: 'Cerrar',
+      minimize: 'Minimizar',
+      welcome: '¡Hola! 👋 Soy tu Asistente de Viajes IA. ¿Cómo puedo ayudarte hoy?',
+      typing: 'está escribiendo...',
+      quickActions: 'Acciones Rápidas:',
+      quickQuestions: [
+        'Vuelo de Madrid a Nueva York el 15 nov',
+        '🏨 Mejores ofertas de hoteles',
+        '📞 Contactar soporte',
+        '💳 Métodos de pago',
+        '❓ FAQ & Ayuda'
+      ],
+      contactSupport: '¿Necesitas asistencia humana?',
+      callUs: 'Llamar',
+      emailUs: 'Email',
+      poweredBy: 'Equipo de Expertos • 24/7',
+      signIn: 'Iniciar Sesión',
+      signUp: 'Crear Cuenta Gratis',
+      continueAsGuest: 'Continuar como Invitado'
+    }
+  };
+
+  const t = translations[language];
+
+  // Initialize with welcome message from Lisa (Customer Service)
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      const lisaConsultant = getConsultant('customer-service');
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: lisaConsultant.greeting[language],
+          timestamp: new Date(),
+          consultant: {
+            name: lisaConsultant.name,
+            title: lisaConsultant.title,
+            avatar: lisaConsultant.avatar,
+            team: lisaConsultant.team
+          }
+        }
+      ]);
+    }
+  }, [isOpen, messages.length, language]);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  // Focus input when opened
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      inputRef.current?.focus();
+    }
+  }, [isOpen, isMinimized]);
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  /**
+   * Send AI response with realistic human-like typing behavior
+   * Includes thinking phase, typing phase, and natural delays
+   */
+  const sendAIResponseWithTyping = async (
+    responseContent: string,
+    consultant: ReturnType<typeof getConsultant>,
+    userMessage: string,
+    additionalData?: Partial<Message>
+  ) => {
+    // Clear any existing typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Detect message type for pacing
+    const messageType = detectMessageType(responseContent);
+
+    // Phase 1: Thinking (reading user's message)
+    const thinkingDelay = calculateThinkingDelay(userMessage, messageType);
+    setTypingState({
+      phase: 'thinking',
+      consultantName: consultant.name
+    });
+    setIsTyping(true);
+
+    await new Promise(resolve => {
+      typingTimeoutRef.current = setTimeout(resolve, thinkingDelay);
+    });
+
+    // Phase 2: Typing
+    const typingDelay = calculateTypingDelay(responseContent, messageType);
+    setTypingState({
+      phase: 'typing',
+      consultantName: consultant.name,
+      message: responseContent
+    });
+
+    await new Promise(resolve => {
+      typingTimeoutRef.current = setTimeout(resolve, typingDelay);
+    });
+
+    // Phase 3: Display message
+    const aiResponse: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: responseContent,
+      timestamp: new Date(),
+      consultant: {
+        name: consultant.name,
+        title: consultant.title,
+        avatar: consultant.avatar,
+        team: consultant.team
+      },
+      ...additionalData
+    };
+
+    setMessages(prev => [...prev, aiResponse]);
+    setIsTyping(false);
+    setTypingState(null);
+
+    // Track assistant message
+    analytics.trackMessage('assistant', {
+      team: consultant.team,
+      name: consultant.name,
+    });
+
+    return aiResponse;
+  };
+
+  /**
+   * Send multiple AI responses in sequence with natural pauses
+   */
+  const sendMultipleAIResponses = async (
+    responses: Array<{
+      content: string;
+      additionalData?: Partial<Message>;
+    }>,
+    consultant: ReturnType<typeof getConsultant>,
+    userMessage: string
+  ) => {
+    for (let i = 0; i < responses.length; i++) {
+      const { content, additionalData } = responses[i];
+
+      // Add delay between messages (except first one)
+      if (i > 0) {
+        const multiMessageDelay = calculateMultiMessageDelay(i, responses.length);
+        await new Promise(resolve => {
+          typingTimeoutRef.current = setTimeout(resolve, multiMessageDelay);
+        });
+      }
+
+      await sendAIResponseWithTyping(content, consultant, userMessage, additionalData);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const queryText = inputMessage;
+    setInputMessage('');
+    setIsTyping(true);
+
+    // Track user message
+    analytics.trackMessage('user');
+
+    // Update conversation count
+    const newConversationCount = userSession.conversationCount + 1;
+    setUserSession(prev => ({
+      ...prev,
+      conversationCount: newConversationCount,
+      lastActivity: new Date()
+    }));
+
+    // Determine which consultant should respond
+    const consultantTeam = determineConsultantTeam(queryText);
+    const consultant = getConsultant(consultantTeam);
+
+    // Track consultant routing
+    analytics.trackConsultantRouted({
+      team: consultant.team,
+      name: consultant.name,
+    });
+
+    // Check if auth prompt should be shown (progressive engagement)
+    const engagement = getEngagementStage(
+      { ...userSession, conversationCount: newConversationCount },
+      'ask-question'
+    );
+
+    // Check if this is a flight search query
+    const isFlightQuery = detectFlightSearchIntent(queryText);
+
+    if (isFlightQuery && consultantTeam === 'flight-operations') {
+      // Show realistic typing for search initiation message
+      const searchInitMessage = language === 'en'
+        ? "I'll search for flights for you right away..."
+        : language === 'pt'
+        ? "Vou pesquisar voos para você agora mesmo..."
+        : "Buscaré vuelos para ti de inmediato...";
+
+      await sendAIResponseWithTyping(searchInitMessage, consultant, queryText, {
+        isSearching: true
+      });
+
+      setIsSearchingFlights(true);
+
+      // Call flight search API
+      const searchStartTime = Date.now();
+      try {
+        const response = await fetch('/api/ai/search-flights', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: queryText, language })
+        });
+
+        const data = await response.json();
+        const searchDuration = Date.now() - searchStartTime;
+
+        setIsSearchingFlights(false);
+
+        // Track flight search
+        analytics.trackFlightSearch({
+          searchQuery: queryText,
+          origin: data.origin,
+          destination: data.destination,
+          resultsCount: data.flights?.length || 0,
+          searchDuration,
+        });
+
+        if (data.success && data.flights && data.flights.length > 0) {
+          // Remove searching message and add results
+          setMessages(prev => prev.filter(m => !m.isSearching));
+
+          // Prepare messages for multi-message flow
+          const resultsContent = data.message || (language === 'en'
+            ? "I found these great options for you:"
+            : language === 'pt'
+            ? "Encontrei estas ótimas opções para você:"
+            : "¡Encontré estas excelentes opciones para ti!");
+
+          const followUpContent = language === 'en'
+            ? "Would you like to proceed with booking any of these flights? Or I can help you modify your search!"
+            : language === 'pt'
+            ? "Gostaria de prosseguir com a reserva de algum desses voos? Ou posso ajudá-lo a modificar sua pesquisa!"
+            : "¿Te gustaría proceder con la reserva de alguno de estos vuelos? ¡O puedo ayudarte a modificar tu búsqueda!";
+
+          // Send messages with realistic typing and pauses
+          await sendMultipleAIResponses([
+            {
+              content: resultsContent,
+              additionalData: { flightResults: data.flights.slice(0, 3) }
+            },
+            {
+              content: followUpContent
+            }
+          ], consultant, queryText);
+        } else {
+          // No flights found or error
+          setMessages(prev => prev.filter(m => !m.isSearching));
+
+          const errorContent = language === 'en'
+            ? "I couldn't find flights matching your criteria. Could you provide more details like the origin city, destination, and travel dates?"
+            : language === 'pt'
+            ? "Não consegui encontrar voos correspondentes aos seus critérios. Você poderia fornecer mais detalhes como cidade de origem, destino e datas de viagem?"
+            : "No pude encontrar vuelos que coincidan con tus criterios. ¿Podrías proporcionar más detalles como la ciudad de origen, el destino y las fechas de viaje?";
+
+          await sendAIResponseWithTyping(errorContent, consultant, queryText);
+        }
+      } catch (error) {
+        console.error('Flight search error:', error);
+        setIsSearchingFlights(false);
+        setMessages(prev => prev.filter(m => !m.isSearching));
+
+        const errorContent = language === 'en'
+          ? "I encountered an error searching for flights. Please try again or contact support if the issue persists."
+          : language === 'pt'
+          ? "Encontrei um erro ao pesquisar voos. Tente novamente ou entre em contato com o suporte se o problema persistir."
+          : "Encontré un error al buscar vuelos. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
+
+        await sendAIResponseWithTyping(errorContent, consultant, queryText);
+      }
+    } else {
+      // Regular AI response (not flight search) - use realistic typing
+      const responseContent = generateAIResponse(queryText, language, consultant);
+      await sendAIResponseWithTyping(responseContent, consultant, queryText);
+
+      // Show progressive engagement auth prompt if needed
+      if (engagement.showAuthPrompt && engagement.promptMessage) {
+        setAuthPromptMessage(engagement.promptMessage);
+        setShowAuthPrompt(true);
+
+        // Track auth prompt shown
+        const stage = engagement.stage === 'early'
+          ? 'first_interaction'
+          : engagement.stage === 'mid'
+          ? 'search_performed'
+          : engagement.stage === 'late'
+          ? 'results_viewed'
+          : 'pre_booking';
+        analytics.trackAuthPromptShown(stage as any);
+      }
+    }
+  };
+
+  const handleQuickQuestion = (question: string) => {
+    setInputMessage(question);
+    inputRef.current?.focus();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleFlightSelect = (flightId: string) => {
+    // Navigate to full search results page with this flight pre-selected
+    router.push(`/flights/results?flightId=${flightId}`);
+  };
+
+  const handleSeeMoreFlights = () => {
+    // Navigate to full flight search page
+    router.push('/flights/results');
+  };
+
+  // Track chat open/close
+  useEffect(() => {
+    if (isOpen) {
+      analytics.trackChatOpen();
+    } else if (messages.length > 0) {
+      // Only track close if chat was actually used
+      analytics.trackChatClose();
+    }
+  }, [isOpen]);
+
+  if (!isOpen) {
+    return (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-6 right-6 z-[1500] w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"
+        aria-label="Open AI Travel Assistant"
+      >
+        <Bot className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse" />
+        <Sparkles className="absolute -top-2 -left-2 w-5 h-5 text-yellow-400 animate-pulse" />
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`fixed bottom-6 right-6 z-[1500] w-[400px] max-w-[calc(100vw-3rem)] transition-all duration-300 ${
+        isMinimized ? 'h-16' : 'h-[600px] max-h-[calc(100vh-3rem)]'
+      }`}
+    >
+      {/* Chat Window */}
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col h-full overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-primary-600 rounded-full" />
+            </div>
+            <div className="text-white">
+              <h3 className="font-bold text-base">{t.title}</h3>
+              <p className="text-xs text-primary-100">{t.subtitle}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              aria-label={t.minimize}
+            >
+              <Minimize2 className="w-4 h-4 text-white" />
+            </button>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              aria-label={t.close}
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {!isMinimized && (
+          <>
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-3 ${
+                    message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                  }`}
+                >
+                  {/* Avatar */}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      message.role === 'user'
+                        ? 'bg-primary-100 text-primary-600'
+                        : 'bg-gradient-to-br from-primary-500 to-primary-700 text-white'
+                    }`}
+                    title={message.consultant ? `${message.consultant.name} - ${message.consultant.title}` : undefined}
+                  >
+                    {message.role === 'user' ? (
+                      <User className="w-4 h-4" />
+                    ) : message.consultant?.avatar ? (
+                      <span className="text-base">{message.consultant.avatar}</span>
+                    ) : (
+                      <Bot className="w-4 h-4" />
+                    )}
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div className="flex flex-col gap-1 max-w-[75%]">
+                    {/* Consultant Name & Title (only for assistant messages) */}
+                    {message.role === 'assistant' && message.consultant && (
+                      <div className="flex items-center gap-2 px-1">
+                        <p className="text-[11px] font-semibold text-gray-700">
+                          {message.consultant.name}
+                        </p>
+                        <span className="text-[10px] text-gray-400">•</span>
+                        <p className="text-[10px] text-gray-500">
+                          {message.consultant.title}
+                        </p>
+                      </div>
+                    )}
+
+                    <div
+                      className={`rounded-2xl px-4 py-2.5 ${
+                        message.role === 'user'
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-white text-gray-900 border border-gray-200'
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                      <p
+                        className={`text-[10px] mt-1.5 ${
+                          message.role === 'user' ? 'text-primary-100' : 'text-gray-400'
+                        }`}
+                      >
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Flight Results */}
+              {messages.map((message) => {
+                if (message.flightResults && message.flightResults.length > 0) {
+                  return (
+                    <div key={`flights-${message.id}`} className="space-y-2 mt-2">
+                      {message.flightResults.map((flight) => (
+                        <FlightResultCard
+                          key={flight.id}
+                          flight={flight}
+                          onSelect={handleFlightSelect}
+                          compact={true}
+                          onFlightSelected={(flightId, flightPrice) => {
+                            analytics.trackFlightSelected(flightId, flightPrice);
+                          }}
+                        />
+                      ))}
+                      {/* See More Flights Button */}
+                      <button
+                        onClick={handleSeeMoreFlights}
+                        className="w-full py-2 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all text-sm"
+                      >
+                        See More Flights →
+                      </button>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+
+              {/* Enhanced Typing Indicator */}
+              {isTyping && (
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                    {typingState?.phase === 'thinking' ? (
+                      <Bot className="w-4 h-4 text-white animate-pulse" />
+                    ) : (
+                      <Bot className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-gray-500 px-1 font-medium">
+                      {typingState && (typingState.phase === 'thinking' || typingState.phase === 'typing')
+                        ? getTypingIndicatorText(typingState.phase, typingState.consultantName, language)
+                        : t.typing}
+                    </p>
+                    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5">
+                      {typingState?.phase === 'thinking' ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-gray-500">
+                            {language === 'en' ? 'Reading...' : language === 'pt' ? 'Lendo...' : 'Leyendo...'}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Flight Search Loading */}
+              {isSearchingFlights && (
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+                    <Plane className="w-4 h-4 text-white animate-pulse" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-gray-500 px-1">
+                      Searching flights...
+                    </p>
+                    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-gray-600">Finding best options...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Progressive Auth Prompt */}
+            {showAuthPrompt && !userSession.isAuthenticated && (
+              <div className="mx-4 my-3 p-4 bg-gradient-to-br from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-xl animate-fadeIn">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700 mb-3 whitespace-pre-line">
+                      {authPromptMessage}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          analytics.trackAuthPromptClicked('signup');
+                          // TODO: Open signup modal
+                          setShowAuthPrompt(false);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>{t.signUp}</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          analytics.trackAuthPromptClicked('login');
+                          // TODO: Open signin modal
+                          setShowAuthPrompt(false);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border-2 border-primary-600 text-primary-600 text-xs font-semibold rounded-lg transition-colors"
+                      >
+                        <LogIn className="w-3.5 h-3.5" />
+                        <span>{t.signIn}</span>
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      analytics.trackAuthPromptClicked('dismiss');
+                      setShowAuthPrompt(false);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            {messages.length === 1 && (
+              <div className="px-4 py-3 bg-white border-t border-gray-200">
+                <p className="text-xs font-semibold text-gray-600 mb-2">
+                  {t.quickActions}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {t.quickQuestions.map((question, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleQuickQuestion(question)}
+                      className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Support Banner */}
+            <div className="px-4 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+              <p className="text-[11px] text-gray-600 mb-2 text-center font-medium">
+                {t.contactSupport}
+              </p>
+              <div className="flex gap-2 justify-center">
+                <a
+                  href="tel:+13322200838"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                >
+                  <Phone className="w-3 h-3" />
+                  <span>{t.callUs}</span>
+                </a>
+                <a
+                  href="mailto:support@fly2any.com"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary-600 hover:bg-secondary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                >
+                  <Mail className="w-3 h-3" />
+                  <span>{t.emailUs}</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-white border-t border-gray-200">
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={t.placeholder}
+                  className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors text-sm"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isTyping}
+                  className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center gap-2 font-semibold text-sm disabled:cursor-not-allowed"
+                >
+                  {isTyping ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2 text-center">
+                {t.poweredBy}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Detect if the user message is requesting a flight search
+ */
+function detectFlightSearchIntent(userMessage: string): boolean {
+  const msg = userMessage.toLowerCase();
+
+  // Keywords that indicate flight search intent
+  const flightKeywords = [
+    'flight', 'flights', 'fly', 'voo', 'voos', 'vuelo', 'vuelos',
+    'airline', 'airfare', 'ticket', 'tickets'
+  ];
+
+  // Location/destination keywords
+  const locationKeywords = [
+    'from', 'to', 'de', 'para', 'desde', 'hasta',
+    'nyc', 'dubai', 'london', 'paris', 'tokyo', 'miami', 'los angeles'
+  ];
+
+  // Date keywords
+  const dateKeywords = [
+    'on', 'in', 'november', 'december', 'january', 'february',
+    'nov', 'dec', 'jan', 'feb', 'next week', 'next month',
+    'tomorrow', 'today', 'weekend'
+  ];
+
+  // Check if message contains flight keywords AND (location OR date)
+  const hasFlightKeyword = flightKeywords.some(keyword => msg.includes(keyword));
+  const hasLocationKeyword = locationKeywords.some(keyword => msg.includes(keyword));
+  const hasDateKeyword = dateKeywords.some(keyword => msg.includes(keyword));
+
+  // Intent detected if flight keyword + (location or date)
+  return hasFlightKeyword && (hasLocationKeyword || hasDateKeyword);
+}
+
+/**
+ * Determine which consultant team should respond based on user query
+ */
+function determineConsultantTeam(userMessage: string): TeamType {
+  const msg = userMessage.toLowerCase();
+
+  // Flight related
+  if (msg.includes('flight') || msg.includes('voo') || msg.includes('vuelo') ||
+      msg.includes('ticket') || msg.includes('airline') || msg.includes('airport')) {
+    return 'flight-operations';
+  }
+
+  // Hotel related
+  if (msg.includes('hotel') || msg.includes('accommodation') || msg.includes('stay') ||
+      msg.includes('room') || msg.includes('resort')) {
+    return 'hotel-accommodations';
+  }
+
+  // Payment related
+  if (msg.includes('payment') || msg.includes('pagamento') || msg.includes('pago') ||
+      msg.includes('card') || msg.includes('refund') || msg.includes('charge')) {
+    return 'payment-billing';
+  }
+
+  // Legal/Cancellation
+  if (msg.includes('cancel') || msg.includes('cancelar') || msg.includes('rights') ||
+      msg.includes('compensation') || msg.includes('refund') || msg.includes('policy')) {
+    return 'legal-compliance';
+  }
+
+  // Insurance
+  if (msg.includes('insurance') || msg.includes('seguro') || msg.includes('coverage') ||
+      msg.includes('claim')) {
+    return 'travel-insurance';
+  }
+
+  // Visa/Documentation
+  if (msg.includes('visa') || msg.includes('visto') || msg.includes('passport') ||
+      msg.includes('documento') || msg.includes('document')) {
+    return 'visa-documentation';
+  }
+
+  // Car rental
+  if (msg.includes('car') || msg.includes('carro') || msg.includes('rental') ||
+      msg.includes('aluguel') || msg.includes('drive')) {
+    return 'car-rental';
+  }
+
+  // Loyalty/Rewards
+  if (msg.includes('points') || msg.includes('pontos') || msg.includes('loyalty') ||
+      msg.includes('fidelidade') || msg.includes('reward') || msg.includes('miles')) {
+    return 'loyalty-rewards';
+  }
+
+  // Technical issues
+  if (msg.includes('technical') || msg.includes('técnico') || msg.includes('error') ||
+      msg.includes('bug') || msg.includes('website') || msg.includes('app')) {
+    return 'technical-support';
+  }
+
+  // Special needs
+  if (msg.includes('wheelchair') || msg.includes('disability') || msg.includes('special need') ||
+      msg.includes('accessible') || msg.includes('diet') || msg.includes('child')) {
+    return 'special-services';
+  }
+
+  // Emergency
+  if (msg.includes('emergency') || msg.includes('emergência') || msg.includes('urgente') ||
+      msg.includes('urgent') || msg.includes('help') || msg.includes('lost')) {
+    return 'crisis-management';
+  }
+
+  // Default to customer service
+  return 'customer-service';
+}
+
+/**
+ * AI Response Generator (placeholder - replace with actual AI API)
+ */
+function generateAIResponse(
+  userMessage: string,
+  language: 'en' | 'pt' | 'es',
+  consultant: ReturnType<typeof getConsultant>
+): string {
+  const msg = userMessage.toLowerCase();
+
+  // Flight related - now with search capability
+  if (msg.includes('flight') || msg.includes('voo') || msg.includes('vuelo')) {
+    return language === 'en'
+      ? 'I can help you find the best flights! Just tell me your departure city, destination, and travel dates. For example: "I need a flight from NYC to Dubai on November 15". I\'ll search for the best options for you!'
+      : language === 'pt'
+      ? 'Posso ajudá-lo a encontrar os melhores voos! Apenas me diga sua cidade de partida, destino e datas de viagem. Por exemplo: "Preciso de um voo de São Paulo para Lisboa em 15 de novembro". Vou pesquisar as melhores opções para você!'
+      : '¡Puedo ayudarte a encontrar los mejores vuelos! Solo dime tu ciudad de salida, destino y fechas de viaje. Por ejemplo: "Necesito un vuelo de Madrid a Nueva York el 15 de noviembre". ¡Buscaré las mejores opciones para ti!';
+  }
+
+  // Hotel related
+  if (msg.includes('hotel') || msg.includes('accommodation')) {
+    return language === 'en'
+      ? 'Looking for hotels? We have thousands of hotel options worldwide with great deals! You can filter by price, location, amenities, and ratings. What destination are you interested in?'
+      : language === 'pt'
+      ? 'Procurando hotéis? Temos milhares de opções de hotéis em todo o mundo com ótimas ofertas! Você pode filtrar por preço, localização, comodidades e classificações. Qual destino você está interessado?'
+      : '¿Buscas hoteles? ¡Tenemos miles de opciones de hoteles en todo el mundo con grandes ofertas! Puedes filtrar por precio, ubicación, servicios y calificaciones. ¿Qué destino te interesa?';
+  }
+
+  // Payment related
+  if (msg.includes('payment') || msg.includes('pagamento') || msg.includes('pago')) {
+    return language === 'en'
+      ? 'We accept all major credit cards (Visa, Mastercard, Amex), PayPal, and bank transfers. All payments are secured with 256-bit SSL encryption. We also offer payment plans for bookings over $500. Is there a specific payment method you\'d like to use?'
+      : language === 'pt'
+      ? 'Aceitamos todos os principais cartões de crédito (Visa, Mastercard, Amex), PayPal e transferências bancárias. Todos os pagamentos são protegidos com criptografia SSL de 256 bits. Também oferecemos planos de pagamento para reservas acima de $500. Há um método de pagamento específico que você gostaria de usar?'
+      : 'Aceptamos todas las principales tarjetas de crédito (Visa, Mastercard, Amex), PayPal y transferencias bancarias. Todos los pagos están asegurados con cifrado SSL de 256 bits. También ofrecemos planes de pago para reservas superiores a $500. ¿Hay un método de pago específico que te gustaría usar?';
+  }
+
+  // Cancel related
+  if (msg.includes('cancel') || msg.includes('cancelar')) {
+    return language === 'en'
+      ? 'For cancellation policies, it depends on your booking type. Most flights offer free cancellation within 24 hours. Hotels vary by property. You can check your specific booking details in "My Bookings" or call us at 1-332-220-0838 for immediate assistance.'
+      : language === 'pt'
+      ? 'Para políticas de cancelamento, depende do tipo de reserva. A maioria dos voos oferece cancelamento gratuito em até 24 horas. Os hotéis variam de acordo com a propriedade. Você pode verificar os detalhes específicos da sua reserva em "Minhas Reservas" ou ligar para 1-332-220-0838 para assistência imediata.'
+      : 'Para políticas de cancelación, depende del tipo de reserva. La mayoría de los vuelos ofrecen cancelación gratuita dentro de las 24 horas. Los hoteles varían según la propiedad. Puedes verificar los detalles específicos de tu reserva en "Mis Reservas" o llamar al 1-332-220-0838 para asistencia inmediata.';
+  }
+
+  // Support/Contact
+  if (msg.includes('support') || msg.includes('contact') || msg.includes('help') || msg.includes('suporte') || msg.includes('ayuda')) {
+    return language === 'en'
+      ? 'I\'m here to help 24/7! For immediate assistance, you can:\n\n📞 Call us: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOr continue chatting with me, and I\'ll do my best to assist you!'
+      : language === 'pt'
+      ? 'Estou aqui para ajudar 24/7! Para assistência imediata, você pode:\n\n📞 Ligar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOu continue conversando comigo, e farei o meu melhor para ajudá-lo!'
+      : '¡Estoy aquí para ayudar 24/7! Para asistencia inmediata, puedes:\n\n📞 Llamar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\n¡O continúa chateando conmigo, y haré mi mejor esfuerzo para ayudarte!';
+  }
+
+  // Default response
+  return language === 'en'
+    ? 'I\'d be happy to help! I can assist you with:\n\n✈️ Finding and booking flights\n🏨 Hotel reservations\n🚗 Car rentals\n💳 Payment options\n📞 Customer support\n❓ General questions\n\nWhat would you like to know more about?'
+    : language === 'pt'
+    ? 'Ficarei feliz em ajudar! Posso ajudá-lo com:\n\n✈️ Encontrar e reservar voos\n🏨 Reservas de hotel\n🚗 Aluguel de carros\n💳 Opções de pagamento\n📞 Suporte ao cliente\n❓ Perguntas gerais\n\nSobre o que você gostaria de saber mais?'
+    : '¡Estaré encantado de ayudar! Puedo ayudarte con:\n\n✈️ Encontrar y reservar vuelos\n🏨 Reservas de hotel\n🚗 Alquiler de autos\n💳 Opciones de pago\n📞 Soporte al cliente\n❓ Preguntas generales\n\n¿Sobre qué te gustaría saber más?';
+}

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Star, Users, Gauge, Fuel, Settings, CheckCircle2, Zap, Shield, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -71,13 +73,22 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
       className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     >
       <div className="flex flex-col md:flex-row">
-        {/* PHOTO - Left Side (320px) */}
+        {/* PHOTO - Left Side (320px) - OPTIMIZED WITH NEXT.JS IMAGE */}
         <div className="md:w-80 h-48 md:h-auto relative bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden">
           {typeof car.image === 'string' && car.image.startsWith('http') ? (
-            <img
-              src={car.image}
-              alt={car.name}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            <Image
+              {...getOptimizedImageProps(
+                car.image,
+                car.name,
+                'hotelCard', // 400x300 preset
+                {
+                  priority: false,
+                  loading: 'lazy',
+                }
+              )}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 320px"
               onLoad={() => setImageLoaded(true)}
             />
           ) : (

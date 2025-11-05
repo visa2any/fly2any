@@ -233,6 +233,7 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
             <div
               key={car.id}
               className={`
+                flex flex-col
                 bg-white rounded-xl border-2 border-gray-200
                 hover:border-primary-400 hover:shadow-2xl
                 transition-all duration-300 ease-out overflow-hidden
@@ -292,143 +293,121 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                 )}
               </div>
 
-              {/* Car Details */}
-              <div className="p-4">
-                {/* Type and Model */}
-                <div className="text-xs text-gray-500 mb-1">{car.type}</div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">{car.model}</h3>
-
-                {/* Company with Logo */}
-                <div className="flex items-center gap-2 mb-3">
-                  {car.companyLogo && (
-                    <img
-                      src={car.companyLogo}
-                      alt={car.company}
-                      className="h-4 w-auto object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <p className="text-sm text-gray-600">{car.company}</p>
-                </div>
-
-                {/* Rating and Location */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-1 text-sm">
-                    <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold text-xs">
-                      ⭐ {car.rating.toFixed(1)}
-                    </div>
-                    <span className="text-xs text-gray-600">({car.reviews.toLocaleString()})</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
+              {/* Car Details - COMPACT */}
+              <div className="p-2.5 flex-1 flex flex-col">
+                {/* Type and Location - COMBINED LINE */}
+                <div className="flex items-center justify-between mb-1 text-xs text-gray-500">
+                  <span>{car.type}</span>
+                  <div className="flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     <span className="line-clamp-1">{car.location}</span>
                   </div>
                 </div>
 
-                {/* Social Proof - Viewers and Bookings - Only show if significant */}
-                {(car.viewers || car.bookings) && (
-                  <div className="flex items-center gap-3 mb-3 text-xs">
-                    {car.viewers && car.viewers > 50 && (
-                      <div className="flex items-center gap-1 text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                        <Eye className="w-3 h-3" />
-                        <span className="font-semibold">{car.viewers} {t.viewers}</span>
-                      </div>
-                    )}
-                    {car.bookings && car.bookings > 10 && (
-                      <div className="flex items-center gap-1 text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                        <ShoppingCart className="w-3 h-3" />
-                        <span className="font-semibold">{car.bookings} {t.bookings}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Model Name */}
+                <h3 className="font-bold text-gray-900 text-base mb-1.5 line-clamp-1">{car.model}</h3>
 
-                {/* Specs */}
-                <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
-                  <div className="flex items-center gap-1 text-gray-700">
-                    <Users className="w-3 h-3" />
-                    <span>{car.specs.seats} {t.seats}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-gray-700">
-                    <Briefcase className="w-3 h-3" />
-                    <span>{car.specs.bags} {t.bags}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-gray-700">
-                    <Settings className="w-3 h-3" />
-                    <span className="line-clamp-1">{car.specs.transmission === 'automatic' ? t.automatic : t.manual}</span>
-                  </div>
-                </div>
-
-                {/* Fuel Type */}
-                <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
-                  <Fuel className="w-3 h-3" />
-                  <span>{car.specs.fuel}</span>
-                  {(car.specs.fuel === 'Hybrid' || car.specs.fuel.toLowerCase().includes('hybrid')) && (
-                    <Zap className="w-3 h-3 text-green-600" />
+                {/* Company - INLINE with Logo */}
+                <div className="flex items-center gap-1.5 mb-1.5 text-sm text-gray-600">
+                  {car.companyLogo && (
+                    <img
+                      src={car.companyLogo}
+                      alt={car.company}
+                      className="h-3.5 w-auto object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
                   )}
+                  <span className="line-clamp-1">{car.company}</span>
                 </div>
 
-                {/* Badges */}
-                {car.badges && car.badges.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {car.badges.map((badge, idx) => (
+                {/* Rating + Social Proof + Badges - ALL ON ONE LINE */}
+                <div className="h-[52px] mb-1.5 overflow-hidden">
+                  <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                    <div className="flex items-center gap-1 bg-primary-600 text-white px-2 py-0.5 rounded font-bold">
+                      ⭐ {car.rating.toFixed(1)}
+                    </div>
+                    <span className="text-xs text-gray-600">({car.reviews.toLocaleString()})</span>
+                    {car.badges && car.badges.length > 0 && car.badges.slice(0, 2).map((badge, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center px-2 py-0.5 bg-gray-100 border border-gray-300 text-gray-700 rounded text-xs font-semibold"
+                        className="inline-flex items-center px-1.5 py-0.5 bg-green-100 border border-green-300 text-green-700 rounded text-[10px] font-bold"
                       >
                         {badge}
                       </span>
                     ))}
+                    {car.viewers && car.viewers > 50 && (
+                      <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
+                        <Eye className="w-2.5 h-2.5" />
+                        {car.viewers}
+                      </span>
+                    )}
+                    {car.bookings && car.bookings > 10 && (
+                      <span className="inline-flex items-center gap-0.5 bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded font-semibold">
+                        <ShoppingCart className="w-2.5 h-2.5" />
+                        {car.bookings}
+                      </span>
+                    )}
+                    {car.demandLevel && car.demandLevel > 80 && (
+                      <span className="inline-flex items-center gap-0.5 bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">
+                        <TrendingUp className="w-2.5 h-2.5" />
+                        High
+                      </span>
+                    )}
+                    {car.availability && car.availability <= 5 && (
+                      <span className="inline-flex items-center gap-0.5 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">
+                        ⚠️ {car.availability} left
+                      </span>
+                    )}
                   </div>
-                )}
+                </div>
 
-                {/* Demand Indicator */}
-                {car.demandLevel && car.demandLevel > 80 && (
-                  <div className="flex items-center gap-1 text-xs text-orange-600 mb-2">
-                    <TrendingUp className="w-3 h-3" />
-                    <span className="font-semibold">{t.highDemand}</span>
+                {/* Specs - 4 COLUMNS with Fuel */}
+                <div className="grid grid-cols-4 gap-1.5 mb-1.5 text-[10px]">
+                  <div className="flex items-center gap-0.5 text-gray-700">
+                    <Users className="w-3 h-3" />
+                    <span>{car.specs.seats}</span>
                   </div>
-                )}
-
-                {/* Low Availability Warning */}
-                {car.availability && car.availability <= 5 && (
-                  <div className="flex items-center gap-1 text-xs text-red-600 mb-3 font-semibold">
-                    ⚠️ Only {car.availability} {t.carsAvailable}
+                  <div className="flex items-center gap-0.5 text-gray-700">
+                    <Briefcase className="w-3 h-3" />
+                    <span>{car.specs.bags}</span>
                   </div>
-                )}
-
-                {/* You Save Indicator */}
-                {car.originalPrice && car.originalPrice > car.pricePerDay && (
-                  <div className="mb-3 inline-flex items-center gap-1 px-2 py-1.5 bg-green-50 border-2 border-green-500 rounded-lg shadow-sm">
-                    <TrendingDown className="w-3 h-3 text-green-600" />
-                    <span className="text-xs font-bold text-green-700">
-                      Save ${(car.originalPrice - car.pricePerDay).toFixed(2)}/day
-                    </span>
-                    <span className="text-xs text-green-600">
-                      ({Math.round(((car.originalPrice - car.pricePerDay) / car.originalPrice) * 100)}%)
-                    </span>
+                  <div className="flex items-center gap-0.5 text-gray-700">
+                    <Settings className="w-3 h-3" />
+                    <span className="line-clamp-1">{car.specs.transmission === 'automatic' ? 'Auto' : 'Manual'}</span>
                   </div>
-                )}
+                  <div className="flex items-center gap-0.5 text-gray-700">
+                    <Fuel className="w-3 h-3" />
+                    <span className="line-clamp-1">{car.specs.fuel}</span>
+                    {(car.specs.fuel === 'Hybrid' || car.specs.fuel.toLowerCase().includes('hybrid')) && (
+                      <Zap className="w-2.5 h-2.5 text-green-600" />
+                    )}
+                  </div>
+                </div>
 
-                {/* Price Section */}
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      {car.originalPrice && car.originalPrice > car.pricePerDay && (
-                        <div className="text-xs text-gray-500 line-through">
-                          ${car.originalPrice.toFixed(2)}
-                        </div>
-                      )}
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold text-primary-600">${car.pricePerDay.toFixed(0)}</span>
+                {/* Price Section - COMPACT WITH INLINE SAVINGS */}
+                <div className="mt-auto border-t border-gray-200 pt-2">
+                  <div className="flex items-end justify-between gap-2">
+                    <div className="flex-1">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold text-primary-600">${car.pricePerDay.toFixed(0)}</span>
+                        {car.originalPrice && car.originalPrice > car.pricePerDay && (
+                          <>
+                            <span className="text-xs text-gray-400 line-through">
+                              ${car.originalPrice.toFixed(0)}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5 bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                              💚 {Math.round(((car.originalPrice - car.pricePerDay) / car.originalPrice) * 100)}%
+                            </span>
+                          </>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">{t.perDay}</div>
+                      <div className="text-[10px] text-gray-500">{t.perDay}</div>
                     </div>
-                    <button className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5">
+                    <button className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-1">
                       <span>{t.bookNow}</span>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </button>

@@ -284,6 +284,7 @@ export const borderRadius = {
 // - BASE: Default layer (0)
 // - DROPDOWN: Dropdowns, autocompletes (1000)
 // - STICKY: Sticky headers (1100)
+// - TRUST_BAR: Sticky trust bar (1150)
 // - FIXED: Fixed navigation (1200)
 // - MODAL_BACKDROP: Modal background (1300)
 // - MODAL: Modal dialogs (1400)
@@ -301,6 +302,9 @@ export const zIndex = {
 
   // Sticky elements (Sticky headers that stay visible on scroll)
   STICKY: 1100,
+
+  // Trust bar (Sticky trust indicators between search and content)
+  TRUST_BAR: 1150,
 
   // Fixed elements (Fixed navigation bars, sidebars)
   FIXED: 1200,
@@ -331,6 +335,7 @@ export const zIndexDescriptions: Record<ZIndexLayer, string> = {
   BASE: 'Default stacking context (0)',
   DROPDOWN: 'Dropdowns, autocomplete lists, select menus (1000)',
   STICKY: 'Sticky headers and navigation (1100)',
+  TRUST_BAR: 'Sticky trust indicators bar (1150)',
   FIXED: 'Fixed elements like navigation bars (1200)',
   MODAL_BACKDROP: 'Semi-transparent modal backdrop (1300)',
   MODAL_CONTENT: 'Modal dialogs and overlays (1400)',

@@ -53,9 +53,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result);
     } catch (amadeusError: any) {
       // If Amadeus API fails (404 in test env), fall back to enhanced mock data
-      console.log('⚠️  Amadeus Car Rental API returned error (expected in test environment)');
-      console.log(`   Error: ${amadeusError.response?.data?.errors?.[0]?.detail || amadeusError.message}`);
-      console.log('💡 Using enhanced mock data that matches Amadeus API format');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️  Amadeus Car Rental API returned error (expected in test environment)');
+        console.log(`   Error: ${amadeusError.response?.data?.errors?.[0]?.detail || amadeusError.message}`);
+        console.log('💡 Using enhanced mock data that matches Amadeus API format');
+      }
 
       const mockData = generateMockCarRentals({
         pickupLocation,
@@ -66,7 +68,9 @@ export async function GET(request: NextRequest) {
         dropoffTime: dropoffTime || undefined,
       });
 
-      console.log(`✅ Generated ${mockData.data.length} mock car rental options`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Generated ${mockData.data.length} mock car rental options`);
+      }
       return NextResponse.json(mockData);
     }
   } catch (error: any) {

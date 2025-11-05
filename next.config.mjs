@@ -37,6 +37,14 @@ const nextConfig = {
         })
       );
     }
+
+    // Suppress warnings from Prisma instrumentation and OpenTelemetry
+    config.ignoreWarnings = [
+      { module: /node_modules\/@prisma\/instrumentation/ },
+      { module: /node_modules\/@opentelemetry\/instrumentation/ },
+      { module: /node_modules\/require-in-the-middle/ },
+    ];
+
     return config;
   },
 
@@ -59,10 +67,15 @@ const nextConfig = {
         hostname: 'randomuser.me',
         pathname: '/api/portraits/**',
       },
-      // Stock images
+      // Stock images - Unsplash
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'source.unsplash.com',
         pathname: '/**',
       },
       // Duffel API images (flights, airlines, airports)

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
-import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, Shield } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, Shield, Info, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function HotelDetailPage() {
   const params = useParams();
@@ -13,29 +13,46 @@ export default function HotelDetailPage() {
   const [hotel, setHotel] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoData, setIsDemoData] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     const fetchHotelDetails = async () => {
       try {
+        setError(null); // Clear previous errors
         const response = await fetch(`/api/hotels/${hotelId}`);
 
         if (!response.ok) {
-          throw new Error('Hotel not found');
+          // Handle different error statuses
+          if (response.status === 404) {
+            throw new Error('Hotel not found. Please try searching again.');
+          } else if (response.status === 500) {
+            throw new Error('Server error. Our team has been notified. Please try again later.');
+          } else {
+            throw new Error('Failed to load hotel details. Please try again.');
+          }
         }
 
         const data = await response.json();
         setHotel(data.data);
+
+        // Check if this is demo data
+        if (data.meta?.isDemoData || data.meta?.source === 'Demo Data') {
+          setIsDemoData(true);
+        }
       } catch (err: any) {
+        console.error('Hotel fetch error:', err);
         setError(err.message || 'Failed to load hotel details');
       } finally {
         setLoading(false);
+        setRetrying(false);
       }
     };
 
     if (hotelId) {
       fetchHotelDetails();
     }
-  }, [hotelId]);
+  }, [hotelId, retrying]);
 
   const amenityIcons: { [key: string]: React.ReactNode } = {
     wifi: <Wifi className="w-5 h-5" />,
@@ -56,19 +73,55 @@ export default function HotelDetailPage() {
     );
   }
 
+  // Retry handler
+  const handleRetry = () => {
+    setLoading(true);
+    setRetrying(true);
+  };
+
   if (error || !hotel) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-xl text-gray-900 mb-4">
-            {error || 'Hotel not found'}
-          </p>
-          <button
-            onClick={() => router.back()}
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Oops! Something went wrong
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {error || 'Hotel not found. The hotel you\'re looking for may no longer be available.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={handleRetry}
+                disabled={retrying}
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {retrying ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Retrying...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Try Again</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Go Back
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-6">
+              If the problem persists, please contact our support team.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -92,6 +145,25 @@ export default function HotelDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Demo Data Banner */}
+      {isDemoData && (
+        <div className="bg-blue-50 border-b border-blue-200">
+          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '12px 24px' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <Info className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-blue-900">
+                  <span className="font-semibold">Demo Data:</span> This is sample hotel information for demonstration purposes.
+                  {' '}Real hotel data will be available when you configure your API credentials.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hotel Content */}
       <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '32px 24px' }}>

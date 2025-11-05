@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Header, type Language } from './Header';
-import { Footer } from '../home/Footer';
+import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
+import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
 import { headerTranslations } from './Header';
 
 interface GlobalLayoutProps {
@@ -85,10 +86,14 @@ const footerContent = {
  * - Global Header (sticky, with language switcher)
  * - Main content area
  * - Global Footer
+ * - AI Travel Assistant (floating, 24/7 available)
+ * - Mobile Bottom Tab Bar
+ * - Mobile Navigation Drawer
  *
  * Manages global state:
  * - Language selection (EN/PT/ES)
  * - Persists language to localStorage
+ * - Mobile navigation state
  */
 export function GlobalLayout({ children }: GlobalLayoutProps) {
   const [language, setLanguage] = useState<Language>('en');
@@ -137,7 +142,7 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
       </main>
 
       {/* Global Footer */}
-      <Footer content={footerContent[language]} />
+      <Footer content={footerContent[language]} language={language} />
 
       {/* Mobile Bottom Tab Bar */}
       <BottomTabBar
@@ -153,6 +158,9 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
         onLanguageChange={handleLanguageChange}
         translations={headerTranslations[language]}
       />
+
+      {/* AI Travel Assistant - Available on all pages */}
+      <AITravelAssistant language={language} />
     </>
   );
 }

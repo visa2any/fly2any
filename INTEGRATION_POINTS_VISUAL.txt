@@ -1,0 +1,243 @@
+AITravelAssistant.tsx - Best Integration Points for Agent Behavior
+==================================================================
+
+CURRENT FLOW (REACTIVE):
+User Input → handleSendMessage() → Analyze → Route → Respond → End
+
+WHAT'S MISSING (AGENT BEHAVIORS):
+- Conversation stage tracking
+- Proactive question asking
+- Action announcements
+- Context-aware suggestions
+
+
+INTEGRATION POINT #1: CONVERSATION FLOW TRACKING [HIGH PRIORITY]
+================================================================
+
+Location: After line 374 (after analyzeConversationIntent)
+
+INSERT:
+  const stage = conversationContext.getStage();
+  const collected = conversationContext.getCollectedInfo();
+  const missing = getMissingInfo(analysis.intent, collected);
+  
+  if (missing.length > 0) {
+    const question = generateClarifyingQuestion(missing[0]);
+    await sendAIResponseWithTyping(question, consultant, queryText);
+    return; // Gate response behind info collection
+  }
+
+EFFECT: Component can now:
+  ✓ Track what info has been gathered (origin, destination, dates, passengers)
+  ✓ Ask for missing fields before proceeding
+  ✓ Progress through conversation stages
+  ✓ Gate complex operations (searches, bookings) on having required data
+
+EFFORT: Medium (expand ConversationContext class)
+IMPACT: High (enables all multi-turn behavior)
+
+
+INTEGRATION POINT #2: PROACTIVE QUESTIONS [MEDIUM PRIORITY]
+===========================================================
+
+Location: After line 514 (after sendAIResponseWithTyping in Path 3)
+
+INSERT:
+  const followUp = getFollowUpQuestion(
+    analysis.intent,
+    consultant.team,
+    conversationContext
+  );
+  
+  if (followUp) {
+    const delay = calculateMultiMessageDelay(messages.length, 5);
+    await wait(delay);
+    await sendAIResponseWithTyping(followUp, consultant, queryText, {
+      isFollowUp: true
+    });
+  }
+
+EFFECT: Component now:
+  ✓ Asks natural follow-up questions
+  ✓ Guides users through booking funnel
+  ✓ Reduces decision fatigue
+  ✓ Improves conversation feel (less robotic)
+
+EFFORT: Medium (implement question generation logic)
+IMPACT: High (improves conversion, conversation quality)
+
+
+INTEGRATION POINT #3: ACTION ANNOUNCEMENTS [MEDIUM PRIORITY]
+============================================================
+
+Location: Lines 418-420, 426 (before flight search API call)
+
+MODIFY:
+  // BEFORE API call (line 426)
+  const announcement = `I'm searching for flights as your ${consultant.name}...`;
+  await sendAIResponseWithTyping(announcement, consultant, queryText, {
+    actionType: 'flight-search',
+    status: 'announced'
+  });
+  
+  // DURING search (between 426 and 432)
+  const progressUpdate = `Checking ${count} airlines...`;
+  updateLastMessage(progressUpdate);
+  
+  // AFTER success (line 445)
+  const completion = `Found ${data.flights.length} amazing options!`;
+  await sendAIResponseWithTyping(completion, consultant, queryText, {
+    actionType: 'flight-search',
+    status: 'complete'
+  });
+
+EFFECT: Component now:
+  ✓ Announces what it's doing before actions
+  ✓ Shows progress during long operations
+  ✓ Provides completion confirmation
+  ✓ Feels more intelligent and transparent
+
+EFFORT: Low (leverage existing typing system)
+IMPACT: Medium (improves UX, trust, but doesn't change core logic)
+
+
+INTEGRATION POINT #4: SUGGESTION DISPLAY [MEDIUM PRIORITY]
+===========================================================
+
+Location: After line 514 + new UI section (after messages area)
+
+INSERT (State):
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+
+INSERT (After line 514):
+  const suggestions = generateSuggestions({
+    intent: analysis.intent,
+    team: consultant.team,
+    stage: conversationContext.getStage(),
+    collected: conversationContext.getCollectedInfo()
+  });
+  
+  setSuggestions(suggestions.slice(0, 3)); // Top 3
+
+INSERT (UI, line 847 after quick actions):
+  {suggestions.length > 0 && (
+    <div className="px-4 py-3 bg-primary-50 border-t">
+      <p className="text-xs font-semibold mb-2">Suggestions:</p>
+      <div className="flex gap-2 flex-wrap">
+        {suggestions.map(s => (
+          <button onClick={() => {setInputMessage(s.text); handleSendMessage();}}>
+            {s.text}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+
+EFFECT: Component now:
+  ✓ Shows context-aware next steps
+  ✓ Reduces user uncertainty
+  ✓ Guides through available options
+  ✓ Improves conversion rates
+
+EFFORT: Medium (implement suggestion generation)
+IMPACT: High (improves UX, conversion)
+
+
+SUPPORTING CHANGES NEEDED
+==========================
+
+1. EXPAND ConversationContext CLASS
+   Add methods:
+   - getStage(): 'greeting' | 'discovery' | 'exploration' | 'decision'
+   - getCollectedInfo(): {origin?, destination?, dates?, passengers?}
+   - getMissingInfo(intent): string[] // Required fields
+   - shouldCloseTopic(): boolean
+   - updateStage(newStage): void
+   - addCollectedInfo(field, value): void
+
+2. EXTEND Message Interface
+   Add fields:
+   - actionType?: 'flight-search' | 'question' | 'suggestion'
+   - actionStatus?: 'announced' | 'in_progress' | 'complete' | 'failed'
+   - suggestions?: Suggestion[]
+   - isFollowUp?: boolean
+   - conversationStage?: string
+
+3. CREATE Question Bank
+   File: lib/ai/agent-question-bank.ts
+   Functions:
+   - getFollowUpQuestion(intent, team, context): string
+   - getClarifyingQuestion(missingField): string
+
+4. CREATE Suggestion Generator
+   File: lib/ai/agent-suggestions.ts
+   Functions:
+   - generateSuggestions(context): Suggestion[]
+
+
+IMPLEMENTATION ROADMAP
+======================
+
+Phase 1 (Foundation): 2-3 hours
+└─ Expand ConversationContext
+└─ Add stage tracking
+└─ Gate responses by info completeness
+
+Phase 2 (Interactivity): 4-6 hours
+├─ Implement question generation
+├─ Implement suggestion generation
+└─ Add action metadata to messages
+
+Phase 3 (Full Agent): 8-12 hours
+└─ Reference AITravelAssistant-AGENT-MODE.tsx
+└─ Implement full conversation management
+└─ Add autonomous action planning
+
+
+KEY FILES TO UNDERSTAND
+=======================
+
+Components:
+- components/ai/AITravelAssistant.tsx (this file)
+- components/ai/AITravelAssistant-AGENT-MODE.tsx (reference implementation)
+
+Libraries (to expand/create):
+- lib/ai/conversational-intelligence.ts (expand ConversationContext)
+- lib/ai/consultant-profiles.ts (already complete)
+- lib/ai/auth-strategy.ts (already complete)
+
+New files to create:
+- lib/ai/agent-question-bank.ts
+- lib/ai/agent-suggestions.ts
+
+
+CRITICAL SUCCESS FACTORS
+========================
+
+1. ConversationContext MUST track stage + collected info
+   (Without this, can't gate responses or ask intelligently)
+
+2. Message flow MUST be consistently finalized
+   (Currently has two return paths with different handling)
+
+3. Consultant assignment should happen earlier
+   (So consultant-specific logic can be used in analysis)
+
+4. Flight search needs progress indicators
+   (Users need to see something happening during long waits)
+
+
+QUICK CHECKLIST TO START
+=========================
+
+□ Read AITravelAssistant-AGENT-MODE.tsx lines 61-101 (imports)
+□ Understand ConversationContext current usage (lines 118, 404, 517)
+□ Create question bank structure (Phase 1)
+□ Expand ConversationContext with stage tracking (Phase 1)
+□ Test gate logic with simple info collection (Phase 1)
+□ Add follow-up question hook (Phase 2)
+□ Implement suggestion generation (Phase 2)
+□ Add action announcement pattern (Phase 3)
+□ Full migration to AGENT-MODE.tsx patterns (Phase 3)
+
+START WITH PHASE 1. THE OTHER PHASES DEPEND ON IT.

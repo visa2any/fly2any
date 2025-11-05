@@ -3,8 +3,12 @@ import { neon, neonConfig, NeonQueryFunction } from '@neondatabase/serverless';
 // Configure Neon for edge runtime
 neonConfig.fetchConnectionCache = true;
 
-// Check if POSTGRES_URL is configured
-const isPostgresConfigured = !!process.env.POSTGRES_URL;
+// Check if POSTGRES_URL is configured (and not a placeholder)
+const isPostgresConfigured = !!(
+  process.env.POSTGRES_URL &&
+  !process.env.POSTGRES_URL.includes('placeholder') &&
+  !process.env.POSTGRES_URL.includes('localhost')
+);
 
 // Only create Neon connection if POSTGRES_URL is configured
 // Export null if not configured to prevent import-time errors
@@ -20,7 +24,7 @@ export function isDatabaseAvailable(): boolean {
 // Log warning in development if not configured
 if (!isPostgresConfigured && process.env.NODE_ENV === 'development') {
   console.warn(
-    '⚠️  POSTGRES_URL not configured. Neon database connection not initialized. TripMatch features will be unavailable.'
+    '⚠️  POSTGRES_URL not configured or using placeholder/localhost. Database features will use demo data.'
   );
 }
 

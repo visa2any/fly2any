@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
-import { getVehiclePhotoAsync, getRentalCompanyLogo } from '@/lib/data/car-photos';
+import { getVehiclePhoto, getRentalCompanyLogo } from '@/lib/data/car-photos';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 
@@ -179,8 +179,8 @@ async function searchCarsForLocation(
       return [];
     }
 
-    // Map to async operations and wait for all to complete
-    const carPromises = response.data.map(async (car: any) => {
+    // Map to synchronous operations (photos are cached, no async needed)
+    const carPromises = response.data.map((car: any) => {
       const vehicle = car.vehicle || {};
       const quote = car.quote || {};
 
@@ -202,8 +202,8 @@ async function searchCarsForLocation(
       const companyCode = car.provider?.companyCode || 'UNKNOWN';
       const companyName = car.provider?.name || companyCode;
 
-      // Get photos (async with Pexels API integration)
-      const photos = await getVehiclePhotoAsync({
+      // Get photos (synchronous - uses curated high-quality images)
+      const photos = getVehiclePhoto({
         category: vehicle.category,
         type: vehicle.type,
         make: vehicle.make,
@@ -266,9 +266,19 @@ async function searchCarsForLocation(
       };
     });
 
-    return Promise.all(carPromises);
-  } catch (error) {
-    console.error(`Error searching cars for ${locationCode}:`, error);
+    // No Promise.all needed - all operations are synchronous now
+    return carPromises;
+  } catch (error: any) {
+    // Don't log errors if Amadeus is not configured (expected behavior)
+    if (error?.message !== 'AMADEUS_NOT_CONFIGURED' && process.env.NODE_ENV === 'development') {
+      // Log only essential error info to avoid dumping huge objects
+      console.error(`Error searching cars for ${locationCode}:`, {
+        message: error?.message || 'Unknown error',
+        status: error?.response?.status,
+        code: error?.code,
+        type: error?.name || error?.constructor?.name
+      });
+    }
     return [];
   }
 }
@@ -333,7 +343,9 @@ export async function GET(request: NextRequest) {
 
     // FALLBACK: Generate demo data if Amadeus returns empty/404 results
     if (allCars.length === 0) {
-      console.log(`⚠️  Amadeus API returned no cars - using demo fallback data`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`⚠️  Amadeus API returned no cars - using demo fallback data`);
+      }
 
       const demoCarModels = [
         { type: 'ECONOMY', model: 'Toyota Corolla', seats: 5, bags: 2, fuel: 'Gasoline', make: 'Toyota' },
@@ -379,8 +391,8 @@ export async function GET(request: NextRequest) {
         };
         const badges = generateBadges({ category: car.type }, pricePerDay, valueScore, synthetic);
 
-        // Get photos with Pexels API integration
-        const photos = await getVehiclePhotoAsync({
+        // Get photos (synchronous - uses curated high-quality images)
+        const photos = getVehiclePhoto({
           category: car.type,
           type: car.type,
           make: car.make,
@@ -415,12 +427,14 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Log the variety of cars generated
-      const uniqueModels = [...new Set(allCars.map(c => c.model))];
-      const uniqueTypes = [...new Set(allCars.map(c => c.type))];
-      console.log(`✅ Generated ${allCars.length} demo cars for ${locationParam}`);
-      console.log(`   Models: ${uniqueModels.join(', ')}`);
-      console.log(`   Types: ${uniqueTypes.join(', ')}`);
+      // Log the variety of cars generated (development only)
+      if (process.env.NODE_ENV === 'development') {
+        const uniqueModels = [...new Set(allCars.map(c => c.model))];
+        const uniqueTypes = [...new Set(allCars.map(c => c.type))];
+        console.log(`✅ Generated ${allCars.length} demo cars for ${locationParam}`);
+        console.log(`   Models: ${uniqueModels.join(', ')}`);
+        console.log(`   Types: ${uniqueTypes.join(', ')}`);
+      }
     }
 
     // Sort by value score (highest first)

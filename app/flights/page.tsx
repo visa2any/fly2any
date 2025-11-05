@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AirportAutocomplete } from '@/components/search/AirportAutocomplete';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
+import PopularRoutesSection from '@/components/home/PopularRoutesSection';
 import { Plane, PlaneTakeoff, PlaneLanding } from 'lucide-react';
 
 type Language = 'en' | 'pt' | 'es';
@@ -575,9 +576,9 @@ export default function FlightsPage() {
           <RecentlyViewedSection />
         </div>
 
-        {/* Results will appear here */}
-        <div className="text-center text-gray-500">
-          <p className="text-lg">Search results will appear here</p>
+        {/* Popular Routes - Trending routes based on real searches */}
+        <div className="mt-8">
+          <PopularRoutesSection />
         </div>
       </main>
     </div>

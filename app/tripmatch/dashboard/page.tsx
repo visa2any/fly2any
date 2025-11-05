@@ -322,7 +322,7 @@ export default function DashboardPage() {
 
                           <div className="flex items-center justify-between">
                             <p className="text-lg font-bold text-white">
-                              ${Math.floor(trip.estimatedPricePerPerson)}
+                              ${Math.floor(trip.estimatedPricePerPerson / 100).toLocaleString()}
                               <span className="text-sm font-normal text-white/60">/person</span>
                             </p>
                             <ArrowRight className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform" />

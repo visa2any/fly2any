@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Users, Calendar, MapPin, Sparkles, TrendingUp, Award, ArrowRight, Plus, Heart, Star, Loader2, AlertCircle } from 'lucide-react';
+import { useClientCache } from '@/lib/hooks/useClientCache';
+import { CacheIndicator } from '@/components/cache/CacheIndicator';
 
 interface TripGroup {
   id: string;
@@ -162,82 +164,201 @@ function generateAvatars(count: number): string[] {
   return avatars;
 }
 
+// Memoized Trip Card Component to prevent unnecessary re-renders
+const TripCard = memo(({
+  trip,
+  index,
+  hoveredCard,
+  onHover,
+  onLeave
+}: {
+  trip: TripGroup;
+  index: number;
+  hoveredCard: string | null;
+  onHover: (id: string) => void;
+  onLeave: () => void;
+}) => {
+  return (
+    <div
+      key={trip.id}
+      onMouseEnter={() => onHover(trip.id)}
+      onMouseLeave={onLeave}
+      className="flex-shrink-0 snap-start"
+      style={{
+        width: '300px',
+        animationDelay: `${index * 100}ms`,
+        animation: 'slideInUp 0.5s ease-out forwards',
+      }}
+    >
+      <Link
+        href={`/tripmatch/trips/${trip.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div
+          className={`
+            relative rounded-xl overflow-hidden cursor-pointer
+            transform transition-all duration-300
+            ${hoveredCard === trip.id ? 'scale-105 shadow-2xl' : 'shadow-lg'}
+            ${trip.featured ? 'ring-2 ring-purple-400' : ''}
+            bg-white
+          `}
+          style={{ height: '300px' }}
+        >
+        {/* Background Image */}
+        <div className="absolute inset-0 overflow-hidden bg-gray-200">
+          <Image
+            src={trip.coverImageUrl || trip.destinationImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop'}
+            alt={`${trip.title} - ${trip.destination}`}
+            fill
+            sizes="300px"
+            className={`object-cover transition-transform duration-500 ${
+              hoveredCard === trip.id ? 'scale-110' : 'scale-100'
+            }`}
+            priority={index < 3}
+            loading={index < 3 ? 'eager' : 'lazy'}
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+          />
+        </div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          {trip.trending && (
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
+              <TrendingUp className="w-3 h-3" />
+              <span className="text-xs font-bold">Trending</span>
+            </div>
+          )}
+          {trip.featured && (
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg">
+              <Star className="w-3 h-3 fill-white" />
+              <span className="text-xs font-bold">Featured</span>
+            </div>
+          )}
+        </div>
+
+        {/* Category Badge */}
+        <div className="absolute top-3 right-3">
+          <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+            {trip.category}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="absolute inset-0 p-3 flex flex-col justify-end">
+          {/* Trip Title & Destination */}
+          <div className="mb-2">
+            <h3 className="text-base font-bold text-white mb-0.5" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+              {trip.title}
+            </h3>
+            <div className="flex items-center gap-1 text-white/90" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
+              <MapPin className="w-3 h-3" />
+              <span className="text-xs font-medium">{trip.destination}</span>
+            </div>
+          </div>
+
+          {/* Trip Info Grid */}
+          <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 space-y-1.5 mb-2">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-1 text-white/90">
+                <Calendar className="w-4 h-4" />
+                <span className="font-medium">{trip.dates}</span>
+              </div>
+              <div className="flex items-center gap-1 text-white/90">
+                <Users className="w-4 h-4" />
+                <span className="font-bold">{trip.members}/{trip.maxMembers}</span>
+              </div>
+            </div>
+
+            {/* Member Avatars */}
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {trip.memberAvatars?.slice(0, 5).map((avatar, i) => {
+                  // Check if avatar is a valid URL (starts with http://, https://, or /)
+                  const isValidUrl = avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('/');
+
+                  return (
+                    <div
+                      key={i}
+                      className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center relative"
+                    >
+                      {isValidUrl ? (
+                        <Image
+                          src={avatar}
+                          alt={`Member ${i + 1}`}
+                          fill
+                          sizes="28px"
+                          className="object-cover"
+                          loading="lazy"
+                          quality={60}
+                        />
+                      ) : (
+                        <span className="text-white text-sm">{avatar}</span>
+                      )}
+                    </div>
+                  );
+                })}
+                {trip.members && trip.members > 5 && (
+                  <div className="w-7 h-7 rounded-full bg-gray-800 border-2 border-white flex items-center justify-center text-xs text-white font-bold">
+                    +{trip.members - 5}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs text-white/70 font-medium">
+                {trip.maxMembers - (trip.members || 0)} spots left
+              </span>
+            </div>
+          </div>
+
+          {/* Price & Credits */}
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[10px] text-white/70" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+                from
+              </p>
+              <p className="text-xl font-bold text-white" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+                ${Math.floor((parseFloat(String(trip.pricePerPerson || 0)) / 100)).toLocaleString()}
+                <span className="text-xs font-normal text-white/80">/person</span>
+              </p>
+              <div className="bg-green-500/90 text-white px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 mt-0.5">
+                <Award className="w-2.5 h-2.5" />
+                <span className="text-[10px] font-bold">
+                  Creator earns ${Math.floor((trip.creatorCredits || 0) / 100).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Join Button */}
+            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-1 text-xs">
+              Join Trip
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
+        {/* Shimmer Effect on Hover */}
+        <div
+          className={`
+            absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+            transition-transform duration-1000
+            ${hoveredCard === trip.id ? 'translate-x-[200%]' : 'translate-x-[-200%]'}
+          `}
+        />
+      </div>
+      </Link>
+    </div>
+  );
+});
+
+TripCard.displayName = 'TripCard';
+
 export function TripMatchPreviewSection() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [trips, setTrips] = useState<TripGroup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
-
-  // Fetch trips from API
-  useEffect(() => {
-    async function fetchTrips() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('🔄 TripMatch: Fetching trips from API...');
-
-        const response = await fetch('/api/tripmatch/trips?trending=true&limit=6');
-
-        if (!response.ok) {
-          throw new Error(`API returned ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to fetch trips');
-        }
-
-        console.log(`✅ TripMatch: Loaded ${data.data.length} trips from API`);
-
-        // Transform API data to component format
-        const transformedTrips: TripGroup[] = data.data.map((trip: any) => ({
-          id: trip.id,
-          title: trip.title,
-          destination: trip.destination,
-          coverImageUrl: trip.coverImageUrl || trip.cover_image_url,
-          category: formatCategory(trip.category),
-          dates: formatDateRange(trip.startDate || trip.start_date, trip.endDate || trip.end_date),
-          members: trip.currentMembers || trip.current_members || 0,
-          maxMembers: trip.maxMembers || trip.max_members || 12,
-          pricePerPerson: trip.estimatedPricePerPerson || trip.estimated_price_per_person || 0,
-          creatorCredits: calculateCreatorCredits(trip.currentMembers || trip.current_members || 0),
-          trending: trip.trending,
-          featured: trip.featured,
-          memberAvatars: generateAvatars(trip.currentMembers || trip.current_members || 0),
-        }));
-
-        if (transformedTrips.length === 0) {
-          console.log('⚠️  TripMatch: No trips found, using fallback data');
-          setTrips(FALLBACK_TRIPS);
-          setUsingFallback(true);
-        } else {
-          setTrips(transformedTrips);
-          setUsingFallback(false);
-        }
-
-      } catch (err: any) {
-        console.error('❌ TripMatch: Error fetching trips:', err);
-
-        // Check if it's a database/seeding issue
-        if (err.message?.includes('does not exist') || err.message?.includes('503')) {
-          setError('Database not initialized. Using sample data.');
-        } else {
-          setError('Unable to load trips. Using sample data.');
-        }
-
-        // Fallback to static data
-        setTrips(FALLBACK_TRIPS);
-        setUsingFallback(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTrips();
-  }, []);
 
   // Format category for display
   function formatCategory(category: string): string {
@@ -257,63 +378,112 @@ export function TripMatchPreviewSection() {
     return categoryMap[category] || category;
   }
 
+  // ✅ NEW: Client-side cache for instant loads (0ms on refresh)
+  interface TripMatchResponse {
+    success: boolean;
+    data: any[];
+    count: number;
+    error?: string;
+  }
+
+  const {
+    data: apiData,
+    loading,
+    error: fetchError,
+    fromCache,
+    cacheAge,
+    cacheAgeFormatted,
+    refresh,
+  } = useClientCache<TripMatchResponse>(
+    '/api/tripmatch/trips?trending=true&limit=6',
+    {
+      ttl: 300, // 5 minutes (user-generated content changes frequently)
+    }
+  );
+
+  // Transform API data to component format
+  const trips = useMemo(() => {
+    if (!apiData?.data || apiData.data.length === 0) {
+      console.log('⚠️  TripMatch: No trips found, using fallback data');
+      return FALLBACK_TRIPS;
+    }
+
+    return apiData.data.map((trip: any) => ({
+      id: trip.id,
+      title: trip.title,
+      destination: trip.destination,
+      coverImageUrl: trip.coverImageUrl || trip.cover_image_url,
+      category: formatCategory(trip.category),
+      dates: formatDateRange(trip.startDate || trip.start_date, trip.endDate || trip.end_date),
+      members: trip.currentMembers || trip.current_members || 0,
+      maxMembers: trip.maxMembers || trip.max_members || 12,
+      pricePerPerson: trip.estimatedPricePerPerson || trip.estimated_price_per_person || 0,
+      creatorCredits: calculateCreatorCredits(trip.currentMembers || trip.current_members || 0),
+      trending: trip.trending,
+      featured: trip.featured,
+      memberAvatars: generateAvatars(trip.currentMembers || trip.current_members || 0),
+    }));
+  }, [apiData]);
+
+  const error = fetchError ? fetchError.message : null;
+  const usingFallback = !apiData?.data || apiData.data.length === 0;
+
   return (
     <section className="py-3 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-      {/* Header with CTA */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-            <Users className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-900">TripMATCH</h2>
-              <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
-                NEW
-              </span>
-              {usingFallback && (
-                <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  DEMO
-                </span>
-              )}
+      {/* Unified Compact Header */}
+      <div className="mb-3">
+        {/* Row 1: Logo + Title + NEW + Cache + CTAs */}
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+              <Users className="w-6 h-6 text-white" />
             </div>
-            <p className="text-xs text-gray-600 mt-0.5">
-              Find travel companions, share costs, earn credits 💰
-            </p>
+            <h2 className="text-xl font-bold text-gray-900">TripMATCH</h2>
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+              NEW
+            </span>
+            {usingFallback && (
+              <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                DEMO
+              </span>
+            )}
+            {/* Cache Indicator - After TripMATCH NEW */}
+            {fromCache && cacheAgeFormatted && (
+              <CacheIndicator
+                cacheAge={cacheAge}
+                cacheAgeFormatted={cacheAgeFormatted}
+                fromCache={fromCache}
+                onRefresh={refresh}
+                compact
+              />
+            )}
+          </div>
+
+          {/* CTAs */}
+          <div className="flex items-center gap-2">
+            <a
+              href="/tripmatch/browse"
+              className="text-sm text-purple-600 font-medium hover:underline transition-colors"
+            >
+              Browse All →
+            </a>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl text-sm">
+              <Plus className="w-4 h-4" />
+              Create Trip
+            </button>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-purple-200 text-purple-700 rounded-lg font-semibold hover:bg-purple-50 hover:border-purple-400 transition-all text-sm">
-            <TrendingUp className="w-4 h-4" />
-            Browse All
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl text-sm">
-            <Plus className="w-4 h-4" />
-            Create Trip
-          </button>
+        {/* Row 2: Subtitle + Creator Incentive */}
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs">
+          <p className="text-gray-600">
+            Find travel companions, share costs, and explore together
+          </p>
+          <p className="font-semibold text-purple-700 flex items-center gap-1">
+            <span>🎁</span>
+            Create a trip, bring 8 friends = Earn $80 in credits! Use credits on YOUR next trip. 100% free!
+          </p>
         </div>
-      </div>
-
-      {/* Creator Incentive Banner */}
-      <div className="mb-3 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border border-purple-200 rounded-lg p-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-white rounded-lg shadow-sm">
-            <Award className="w-4 h-4 text-purple-600" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-gray-900">
-              🎁 Create a trip, bring 8 friends = Earn $80 in credits!
-            </p>
-            <p className="text-[10px] text-gray-600">
-              Use credits to get discounts on YOUR next trip. No subscriptions, 100% free!
-            </p>
-          </div>
-        </div>
-        <button className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all text-xs whitespace-nowrap">
-          Start Earning
-          <ArrowRight className="w-3 h-3" />
-        </button>
       </div>
 
       {/* Error Message */}
@@ -345,164 +515,14 @@ export function TripMatchPreviewSection() {
             }}
           >
             {trips.map((trip, index) => (
-              <div
+              <TripCard
                 key={trip.id}
-                onMouseEnter={() => setHoveredCard(trip.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className="flex-shrink-0 snap-start"
-                style={{
-                  width: '300px',
-                  animationDelay: `${index * 100}ms`,
-                  animation: 'slideInUp 0.5s ease-out forwards',
-                }}
-              >
-                <Link
-                  href={`/tripmatch/trips/${trip.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div
-                    className={`
-                      relative rounded-xl overflow-hidden cursor-pointer
-                      transform transition-all duration-300
-                      ${hoveredCard === trip.id ? 'scale-105 shadow-2xl' : 'shadow-lg'}
-                      ${trip.featured ? 'ring-2 ring-purple-400' : ''}
-                      bg-white
-                    `}
-                    style={{ height: '300px' }}
-                  >
-                  {/* Background Image */}
-                  <div className="absolute inset-0 overflow-hidden">
-                    <Image
-                      src={trip.coverImageUrl || trip.destinationImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop'}
-                      alt={`${trip.title} - ${trip.destination}`}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 300px"
-                      className={`object-cover transition-transform duration-500 ${
-                        hoveredCard === trip.id ? 'scale-110' : 'scale-100'
-                      }`}
-                      priority={false}
-                    />
-                  </div>
-
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    {trip.trending && (
-                      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="text-xs font-bold">Trending</span>
-                      </div>
-                    )}
-                    {trip.featured && (
-                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg">
-                        <Star className="w-3 h-3 fill-white" />
-                        <span className="text-xs font-bold">Featured</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Category Badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-                      {trip.category}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="absolute inset-0 p-3 flex flex-col justify-end">
-                    {/* Trip Title & Destination */}
-                    <div className="mb-2">
-                      <h3 className="text-base font-bold text-white mb-0.5" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-                        {trip.title}
-                      </h3>
-                      <div className="flex items-center gap-1 text-white/90" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
-                        <MapPin className="w-3 h-3" />
-                        <span className="text-xs font-medium">{trip.destination}</span>
-                      </div>
-                    </div>
-
-                    {/* Trip Info Grid */}
-                    <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 space-y-1.5 mb-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-1 text-white/90">
-                          <Calendar className="w-4 h-4" />
-                          <span className="font-medium">{trip.dates}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-white/90">
-                          <Users className="w-4 h-4" />
-                          <span className="font-bold">{trip.members}/{trip.maxMembers}</span>
-                        </div>
-                      </div>
-
-                      {/* Member Avatars */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex -space-x-2">
-                          {trip.memberAvatars?.slice(0, 5).map((avatar, i) => (
-                            <div
-                              key={i}
-                              className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center relative"
-                            >
-                              <Image
-                                src={avatar}
-                                alt={`Member ${i + 1}`}
-                                fill
-                                sizes="28px"
-                                className="object-cover"
-                              />
-                            </div>
-                          ))}
-                          {trip.members && trip.members > 5 && (
-                            <div className="w-7 h-7 rounded-full bg-gray-800 border-2 border-white flex items-center justify-center text-xs text-white font-bold">
-                              +{trip.members - 5}
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs text-white/70 font-medium">
-                          {trip.maxMembers - (trip.members || 0)} spots left
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Price & Credits */}
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-[10px] text-white/70" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                          from
-                        </p>
-                        <p className="text-xl font-bold text-white" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
-                          ${Math.floor(parseFloat(String(trip.pricePerPerson || 0)))}
-                          <span className="text-xs font-normal text-white/80">/person</span>
-                        </p>
-                        <div className="bg-green-500/90 text-white px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 mt-0.5">
-                          <Award className="w-2.5 h-2.5" />
-                          <span className="text-[10px] font-bold">
-                            Creator earns ${Math.floor((trip.creatorCredits || 0) / 10)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Join Button */}
-                      <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-1 text-xs">
-                        Join Trip
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Shimmer Effect on Hover */}
-                  <div
-                    className={`
-                      absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
-                      transition-transform duration-1000
-                      ${hoveredCard === trip.id ? 'translate-x-[200%]' : 'translate-x-[-200%]'}
-                    `}
-                  />
-                </div>
-                </Link>
-              </div>
+                trip={trip}
+                index={index}
+                hoveredCard={hoveredCard}
+                onHover={setHoveredCard}
+                onLeave={() => setHoveredCard(null)}
+              />
             ))}
           </div>
 

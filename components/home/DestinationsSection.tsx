@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
 import { TrendingUp, TrendingDown, Users, Flame, Sparkles } from 'lucide-react';
+import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
 
 interface Destination {
   id: string;
@@ -291,12 +293,18 @@ export function DestinationsSection({ lang = 'en' }: DestinationsSectionProps) {
               ${hoveredId === destination.id ? 'scale-[1.02]' : ''}
             `}
           >
-            {/* Destination Photo */}
+            {/* Destination Photo - OPTIMIZED */}
             <div className="relative h-40 overflow-hidden">
-              <img
-                src={destination.image}
-                alt={`${destination.city}, ${destination.country}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              <Image
+                {...getOptimizedImageProps(
+                  destination.image,
+                  `${destination.city}, ${destination.country}`,
+                  'destinationCard',
+                  { priority: false, loading: 'lazy' }
+                )}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-110"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 360px"
               />
               {/* Dark overlay for better text contrast */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>

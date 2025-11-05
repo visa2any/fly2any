@@ -225,14 +225,16 @@ export async function logFlightSearch(
 
     const searchId = result[0]?.id;
 
-    if (searchId) {
+    if (searchId && process.env.NODE_ENV === 'development') {
       console.log(`📊 Logged flight search: ${search.origin}→${search.destination} (${searchId})`);
     }
 
     return searchId;
   } catch (error) {
-    // Don't block search if logging fails
-    console.error('Failed to log flight search:', error);
+    // Don't block search if logging fails - silently fail
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to log flight search:', error instanceof Error ? error.message : 'Unknown error');
+    }
     return null;
   }
 }
@@ -259,9 +261,13 @@ export async function logBookingConversion(
       WHERE id = ${conversion.searchId}
     `;
 
-    console.log(`🎉 Logged booking conversion for search ${conversion.searchId}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🎉 Logged booking conversion for search ${conversion.searchId}`);
+    }
   } catch (error) {
-    console.error('Failed to log booking conversion:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to log booking conversion:', error instanceof Error ? error.message : 'Unknown error');
+    }
   }
 }
 
@@ -308,7 +314,9 @@ export async function getRouteStatistics(route: string): Promise<{
       recommendedTtl: result[0].recommended_ttl_seconds || 900,
     };
   } catch (error) {
-    console.error('Failed to get route statistics:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to get route statistics:', error instanceof Error ? error.message : 'Unknown error');
+    }
     return null;
   }
 }
@@ -349,7 +357,9 @@ export async function getPopularRoutes(limit: number = 50): Promise<{
       avgPrice: row.avg_price || 0,
     }));
   } catch (error) {
-    console.error('Failed to get popular routes:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to get popular routes:', error instanceof Error ? error.message : 'Unknown error');
+    }
     return [];
   }
 }
@@ -404,9 +414,13 @@ export async function updateCacheCoverage(
         updated_at = NOW()
     `;
 
-    console.log(`📅 Updated cache coverage: ${route} on ${date} = $${(cachedPrice / 100).toFixed(2)}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📅 Updated cache coverage: ${route} on ${date} = $${(cachedPrice / 100).toFixed(2)}`);
+    }
   } catch (error) {
-    console.error('Failed to update cache coverage:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to update cache coverage:', error instanceof Error ? error.message : 'Unknown error');
+    }
   }
 }
 
@@ -449,7 +463,9 @@ export async function getCacheCoverage(
       expiresAt: row.expires_at,
     }));
   } catch (error) {
-    console.error('Failed to get cache coverage:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Failed to get cache coverage:', error instanceof Error ? error.message : 'Unknown error');
+    }
     return [];
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
+import { isDemoHotelId, generateDemoHotelDetails } from '@/lib/utils/demo-hotels';
 
 /**
  * Hotel Details API Route
@@ -30,6 +31,38 @@ export async function GET(
         { error: 'Missing accommodation ID' },
         { status: 400 }
       );
+    }
+
+    // ✅ EMERGENCY FIX: Handle demo hotel IDs
+    // Demo hotels are generated as fallback data when real API fails
+    // Format: demo-hotel-{city}-{index}
+    if (isDemoHotelId(accommodationId)) {
+      console.log(`🏨 [DEMO] Generating demo hotel details for ${accommodationId}`);
+
+      try {
+        const demoHotel = generateDemoHotelDetails(accommodationId);
+
+        return NextResponse.json({
+          data: demoHotel,
+          meta: {
+            lastUpdated: new Date().toISOString(),
+            source: 'Demo Data',
+            isDemoData: true,
+            message: 'This is demo data. Configure real APIs for production use.',
+          },
+        }, {
+          headers: {
+            'X-Data-Source': 'DEMO',
+            'Cache-Control': 'public, max-age=3600', // Cache demo data for 1 hour
+          }
+        });
+      } catch (error: any) {
+        console.error(`❌ [DEMO] Failed to generate demo hotel:`, error);
+        return NextResponse.json(
+          { error: 'Invalid demo hotel ID format' },
+          { status: 400 }
+        );
+      }
     }
 
     // Generate cache key

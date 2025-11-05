@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
 import { MapPin, Star, Users, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, TrendingUp, TrendingDown, Flame } from 'lucide-react';
+import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
 
 interface Hotel {
   id: string;
@@ -266,13 +268,19 @@ export function HotelsSection({ lang = 'en' }: HotelsSectionProps) {
             onMouseEnter={() => setHoveredId(hotel.id)}
             onMouseLeave={() => setHoveredId(null)}
           >
-            {/* Hotel Image */}
+            {/* Hotel Image - OPTIMIZED */}
             <div className="relative h-40 overflow-hidden">
               {hotel.image && hotel.image.startsWith('http') ? (
-                <img
-                  src={hotel.image}
-                  alt={hotel.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                <Image
+                  {...getOptimizedImageProps(
+                    hotel.image,
+                    hotel.name,
+                    'hotelCard',
+                    { priority: false, loading: 'lazy' }
+                  )}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">

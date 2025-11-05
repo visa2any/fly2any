@@ -226,18 +226,8 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
           // Sort by recency
           unique.sort((a: ViewedDestination, b: ViewedDestination) => b.viewedAt - a.viewedAt);
 
-          // Debug: Log items with dates
-          console.log('📊 Recently viewed items loaded:', unique.length);
-          unique.forEach((item: ViewedDestination, idx: number) => {
-            if (item.departureDate || item.returnDate) {
-              console.log(`  ✅ Item ${idx} HAS dates:`, item.city, {
-                departure: item.departureDate,
-                return: item.returnDate
-              });
-            } else {
-              console.log(`  ❌ Item ${idx} NO dates:`, item.city);
-            }
-          });
+          // Debug: Removed console.log to reduce console spam
+          // console.log('📊 Recently viewed items loaded:', unique.length);
 
           setRecentlyViewed(unique);
         } catch (e) {
@@ -292,7 +282,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   // Format dates compactly (e.g., "Jan 15" or "Jan 15 - Jan 22")
   const formatTripDates = (departure?: string, returnDate?: string): string | null => {
     if (!departure) {
-      console.log('🔍 No departure date found:', { departure, returnDate });
+      // Removed console.log to reduce console spam
       return null;
     }
 
@@ -303,11 +293,11 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
       if (returnDate) {
         const retDate = new Date(returnDate);
         const retFormatted = retDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        console.log('📅 Formatted dates:', `${depFormatted} - ${retFormatted}`);
+        // Removed console.log to reduce console spam
         return `${depFormatted} - ${retFormatted}`;
       }
 
-      console.log('📅 Formatted date:', depFormatted);
+      // Removed console.log to reduce console spam
       return depFormatted;
     } catch (e) {
       console.error('❌ Error formatting dates:', e);
@@ -515,12 +505,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
               {/* Trip Dates Row - Below route, above badges */}
               {(() => {
                 const formattedDates = formatTripDates(item.departureDate, item.returnDate);
-                console.log(`🎨 Rendering card for ${item.city}:`, {
-                  hasDates: !!formattedDates,
-                  formattedDates,
-                  rawDeparture: item.departureDate,
-                  rawReturn: item.returnDate
-                });
+                // Removed console.log to reduce console spam
                 return formattedDates ? (
                   <div className="absolute top-7 left-1.5">
                     <div
