@@ -56,6 +56,7 @@ import {
   type ConversationState
 } from '@/lib/ai/conversation-persistence';
 import { ConversationRecoveryBanner } from './ConversationRecoveryBanner';
+import { useConversationSync, useDatabaseSync } from '@/lib/hooks/useConversationSync';
 
 interface FlightSearchResult {
   id: string;
@@ -146,6 +147,12 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     userId: undefined, // TODO: Connect to real user auth
     isAuthenticated: userSession.isAuthenticated,
   });
+
+  // CONVERSATION SYNC: Auto-migrate to database when user logs in
+  const { isAuthenticated, userId } = useConversationSync();
+
+  // CONVERSATION SYNC: Periodic sync to database for logged-in users
+  useDatabaseSync(conversation, isAuthenticated);
 
   // Translations
   const translations = {

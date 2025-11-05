@@ -13,7 +13,7 @@
  */
 import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma, isPrismaAvailable } from './prisma';
+import { prisma, isPrismaAvailable } from './db/prisma';
 import { authConfig } from './auth.config';
 
 // Only use PrismaAdapter if DATABASE_URL is configured

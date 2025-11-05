@@ -27,12 +27,13 @@ model User {
   lastLoginAt   DateTime?
 
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  savedSearches SavedSearch[]
-  priceAlerts   PriceAlert[]
-  preferences   UserPreferences?
-  recentSearches RecentSearch[]
+  accounts         Account[]
+  sessions         Session[]
+  savedSearches    SavedSearch[]
+  priceAlerts      PriceAlert[]
+  preferences      UserPreferences?
+  recentSearches   RecentSearch[]
+  aiConversations  AIConversation[]
 
   @@map("users")
 }
@@ -234,4 +235,68 @@ model UserActivity {
   @@index([userId, createdAt])
   @@index([eventType, createdAt])
   @@map("user_activities")
+}
+
+// ==========================================
+// AI Conversation Persistence System
+// ==========================================
+
+model AIConversation {
+  id        String   @id @default(cuid())
+  sessionId String   @unique // UUID from localStorage
+  userId    String?  // Nullable - can be anonymous initially
+
+  // Conversation status
+  status    String   @default("active") // active, completed, abandoned
+
+  // Current state
+  currentConsultantTeam String?
+  conversationContext   Json?    // Flexible storage for conversation state
+  searchHistory         Json?    // Array of search queries performed
+
+  // Metadata (stored as JSON for flexibility)
+  metadata  Json     // { startedAt, lastMessageAt, completedAt, messageCount, platform, browser }
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  messages  AIMessage[]
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+
+  // Message content
+  role           String   // user, assistant
+  content        String   @db.Text
+
+  // Consultant info (for assistant messages)
+  consultantName  String?
+  consultantTeam  String?
+  consultantEmoji String?
+
+  // Search results attached to message
+  flightResults  Json?    // Array of flight results
+  hotelResults   Json?    // Array of hotel results
+
+  // Timing
+  timestamp      BigInt   // Unix timestamp from client
+  createdAt      DateTime @default(now())
+
+  // Relations
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([conversationId, timestamp])
+  @@map("ai_messages")
 }

@@ -1,0 +1,62 @@
+
+> fly2any@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+[1mWebpack Bundle Analyzer[22m saved report to [1mC:\Users\Power\fly2any-fresh\analyze\client.html[22m
+[1mWebpack Bundle Analyzer[22m saved stats file to [1mC:\Users\Power\fly2any-fresh\analyze\client-stats.json[22m
+ ⚠ Compiled with warnings
+
+./app/api/ai/conversation/[id]/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
+
+Import trace for requested module:
+./app/api/ai/conversation/[id]/route.ts
+
+./app/api/ai/conversation/[id]/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/ai/conversation/[id]/route.ts
+
+./app/api/ai/conversation/list/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
+
+Import trace for requested module:
+./app/api/ai/conversation/list/route.ts
+
+./app/api/ai/conversation/list/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/ai/conversation/list/route.ts
+
+./app/api/ai/conversation/migrate/route.ts
+Attempted import error: 'getServerSession' is not exported from 'next-auth' (imported as 'getServerSession').
+
+Import trace for requested module:
+./app/api/ai/conversation/migrate/route.ts
+
+./app/api/ai/conversation/migrate/route.ts
+Attempted import error: 'authOptions' is not exported from '@/app/api/auth/[...nextauth]/route' (imported as 'authOptions').
+
+Import trace for requested module:
+./app/api/ai/conversation/migrate/route.ts
+
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/api/ai/conversation/[id]/route.ts:9:10
+Type error: Module '"next-auth"' has no exported member 'getServerSession'. Did you mean to use 'import getServerSession from "next-auth"' instead?
+
+[0m [90m  7 |[39m[0m
+[0m [90m  8 |[39m [36mimport[39m { [33mNextRequest[39m[33m,[39m [33mNextResponse[39m } [36mfrom[39m [32m'next/server'[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { getServerSession } [36mfrom[39m [32m'next-auth'[39m[33m;[39m[0m
+[0m [90m    |[39m          [31m[1m^[22m[39m[0m
+[0m [90m 10 |[39m [36mimport[39m { authOptions } [36mfrom[39m [32m'@/app/api/auth/[...nextauth]/route'[39m[33m;[39m[0m
+[0m [90m 11 |[39m [36mimport[39m { loadConversationFromDB } [36mfrom[39m [32m'@/lib/ai/conversation-db'[39m[33m;[39m[0m
+[0m [90m 12 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null
