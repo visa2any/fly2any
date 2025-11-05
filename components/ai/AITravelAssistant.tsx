@@ -44,6 +44,18 @@ import {
   getPreviousConsultantTeam,
   type TeamType as HandoffTeamType
 } from '@/lib/ai/consultant-handoff';
+// CONVERSATION PERSISTENCE
+import {
+  loadConversation,
+  saveConversation,
+  startConversation,
+  addMessage,
+  clearConversation,
+  hasRecoverableConversation,
+  shouldShowRecoveryPrompt,
+  type ConversationState
+} from '@/lib/ai/conversation-persistence';
+import { ConversationRecoveryBanner } from './ConversationRecoveryBanner';
 
 interface FlightSearchResult {
   id: string;
@@ -122,6 +134,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   // CONVERSATION CONTEXT TRACKING
   const [conversationContext] = useState(() => new ConversationContext());
+
+  // CONVERSATION PERSISTENCE
+  const [conversation, setConversation] = useState<ConversationState | null>(null);
+  const [recoverableConversation, setRecoverableConversation] = useState<ConversationState | null>(null);
+  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
 
   // Analytics tracking
   const analytics = useAIAnalytics({
@@ -254,6 +271,49 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     };
   }, []);
 
+  // CONVERSATION PERSISTENCE: Load or start conversation on mount
+  useEffect(() => {
+    const existingConversation = loadConversation();
+
+    if (existingConversation && shouldShowRecoveryPrompt(existingConversation)) {
+      // Show recovery banner for recent conversations
+      setRecoverableConversation(existingConversation);
+      setShowRecoveryBanner(true);
+
+      // Start fresh conversation (user can resume if they want)
+      const newConversation = startConversation(
+        userSession.isAuthenticated ? userSession.sessionId : null
+      );
+      setConversation(newConversation);
+    } else if (existingConversation) {
+      // Auto-resume very recent conversations (< 1 minute old)
+      setConversation(existingConversation);
+
+      // Restore messages from conversation
+      const restoredMessages = existingConversation.messages.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+        consultant: msg.consultant ? {
+          id: msg.consultant.name.toLowerCase().replace(/\s+/g, '-'),
+          name: msg.consultant.name,
+          title: getConsultant(msg.consultant.team as TeamType).title,
+          avatar: getConsultant(msg.consultant.team as TeamType).avatar,
+          team: msg.consultant.team as TeamType
+        } : undefined,
+        flightResults: msg.flightResults,
+      }));
+      setMessages(restoredMessages);
+    } else {
+      // Start new conversation
+      const newConversation = startConversation(
+        userSession.isAuthenticated ? userSession.sessionId : null
+      );
+      setConversation(newConversation);
+    }
+  }, []); // Only run once on mount
+
   /**
    * Send AI response with realistic human-like typing behavior
    */
@@ -313,6 +373,21 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     setIsTyping(false);
     setTypingState(null);
 
+    // Save assistant message to conversation persistence
+    if (conversation) {
+      const updatedConversation = addMessage(conversation, {
+        role: 'assistant',
+        content: responseContent,
+        consultant: {
+          name: consultant.name,
+          team: consultant.team,
+          emoji: consultant.avatar
+        },
+        flightResults: additionalData?.flightResults,
+      });
+      setConversation(updatedConversation);
+    }
+
     analytics.trackMessage('assistant', {
       team: consultant.team,
       name: consultant.name,
@@ -360,6 +435,15 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const queryText = inputMessage;
     setInputMessage('');
     setIsTyping(true);
+
+    // Save user message to conversation persistence
+    if (conversation) {
+      const updatedConversation = addMessage(conversation, {
+        role: 'user',
+        content: inputMessage
+      });
+      setConversation(updatedConversation);
+    }
 
     analytics.trackMessage('user');
 
@@ -708,6 +792,57 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
   }, [isOpen]);
 
+  // RECOVERY BANNER HANDLERS
+  const handleResumeConversation = () => {
+    if (recoverableConversation) {
+      // Restore the recoverable conversation
+      setConversation(recoverableConversation);
+
+      // Restore messages
+      const restoredMessages = recoverableConversation.messages.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+        consultant: msg.consultant ? {
+          id: msg.consultant.name.toLowerCase().replace(/\s+/g, '-'),
+          name: msg.consultant.name,
+          title: getConsultant(msg.consultant.team as TeamType).title,
+          avatar: getConsultant(msg.consultant.team as TeamType).avatar,
+          team: msg.consultant.team as TeamType
+        } : undefined,
+        flightResults: msg.flightResults,
+      }));
+      setMessages(restoredMessages);
+
+      // Hide banner and clear recoverable state
+      setShowRecoveryBanner(false);
+      setRecoverableConversation(null);
+    }
+  };
+
+  const handleStartNewConversation = () => {
+    if (conversation) {
+      // Clear current conversation
+      clearConversation();
+
+      // Start fresh
+      const newConversation = startConversation(
+        userSession.isAuthenticated ? userSession.sessionId : null
+      );
+      setConversation(newConversation);
+      setMessages([]);
+
+      // Hide banner and clear recoverable state
+      setShowRecoveryBanner(false);
+      setRecoverableConversation(null);
+    }
+  };
+
+  const handleDismissRecoveryBanner = () => {
+    setShowRecoveryBanner(false);
+  };
+
   if (!isOpen) {
     return (
       <button
@@ -724,6 +859,16 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   return (
     <>
+      {/* Conversation Recovery Banner */}
+      {showRecoveryBanner && recoverableConversation && (
+        <ConversationRecoveryBanner
+          conversation={recoverableConversation}
+          onResume={handleResumeConversation}
+          onStartNew={handleStartNewConversation}
+          onDismiss={handleDismissRecoveryBanner}
+        />
+      )}
+
       <div
         className={`fixed bottom-6 right-6 z-[1500] w-[400px] max-w-[calc(100vw-3rem)] transition-all duration-300 ${
           isMinimized ? 'h-16' : 'h-[600px] max-h-[calc(100vh-3rem)]'
