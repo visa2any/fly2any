@@ -48,7 +48,7 @@ export function useConversationSync() {
 
   useEffect(() => {
     // Only run once when user becomes authenticated
-    if (!isAuthenticated || !userId || hasMigrated.current) {
+    if (!sessionData.isAuthenticated || !sessionData.userId || hasMigrated.current) {
       return;
     }
 
@@ -63,7 +63,7 @@ export function useConversationSync() {
         }
 
         // Check if already associated with this user
-        if (localConversation.userId === userId) {
+        if (localConversation.userId === sessionData.userId) {
           console.log('Conversation already associated with user');
           return;
         }
@@ -102,11 +102,11 @@ export function useConversationSync() {
     };
 
     migrateConversation();
-  }, [isAuthenticated, userId]);
+  }, [sessionData.isAuthenticated, sessionData.userId]);
 
   return {
-    isAuthenticated,
-    userId,
+    isAuthenticated: sessionData.isAuthenticated,
+    userId: sessionData.userId,
   };
 }
 
