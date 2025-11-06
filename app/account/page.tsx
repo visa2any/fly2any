@@ -56,9 +56,9 @@ export default async function AccountPage() {
         prisma.userPreferences.findUnique({
           where: { userId: session.user.id },
         }),
-        prisma.aIConversation.count({
+        (prisma as any).aIConversation?.count({
           where: { userId: session.user.id },
-        }),
+        }) ?? Promise.resolve(0)
       ]);
     }
   } catch (error) {
