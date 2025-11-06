@@ -1229,7 +1229,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         widget: {
           type: 'passenger_details',
           data: {
-            passengerCount: bookingFlow.activeBooking.searchParams.passengers || 1,
+            passengerCount: bookingFlow.activeBooking.searchParams?.passengers || 1,
             flightType,
           },
         },
@@ -1239,7 +1239,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       setMessages(prev => [...prev, passengerMessage]);
       setIsTyping(false);
       setTypingState(null);
-      bookingFlow.advanceStage('passenger_details');
+      bookingFlow.advanceStage('payment');
 
       console.log('✅ Passenger details widget shown');
     } catch (error) {
@@ -1279,9 +1279,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookingId: bookingFlow.activeBooking.id,
-          amount: bookingFlow.activeBooking.totalPrice,
-          currency: bookingFlow.activeBooking.currency || 'USD',
+          bookingState: bookingFlow.activeBooking,
           passengers,
         }),
       });
@@ -1302,16 +1300,16 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         widget: {
           type: 'payment_form',
           data: {
-            amount: bookingFlow.activeBooking.totalPrice,
-            currency: bookingFlow.activeBooking.currency || 'USD',
-            bookingReference: bookingFlow.activeBooking.id,
-            clientSecret: paymentData.clientSecret,
+            amount: bookingFlow.activeBooking.pricing.total,
+            currency: bookingFlow.activeBooking.pricing.currency || 'USD',
+            bookingReference: paymentData.bookingReference || bookingFlow.activeBooking.id,
+            clientSecret: paymentData.paymentIntent.clientSecret,
             passengers,
             flight: {
               airline: bookingFlow.activeBooking.selectedFlight?.airline,
               flightNumber: bookingFlow.activeBooking.selectedFlight?.flightNumber,
-              origin: bookingFlow.activeBooking.searchParams.origin,
-              destination: bookingFlow.activeBooking.searchParams.destination,
+              origin: bookingFlow.activeBooking.searchParams?.origin,
+              destination: bookingFlow.activeBooking.searchParams?.destination,
             },
           },
         },
@@ -1402,20 +1400,20 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         widget: {
           type: 'booking_confirmation',
           data: {
-            bookingReference: confirmationData.bookingReference || bookingFlow.activeBooking.id,
-            pnr: confirmationData.pnr,
+            bookingReference: confirmationData.booking?.bookingReference || bookingFlow.activeBooking.id,
+            pnr: confirmationData.booking?.pnr || '',
             flight: {
-              airline: bookingFlow.activeBooking.selectedFlight?.airline,
-              flightNumber: bookingFlow.activeBooking.selectedFlight?.flightNumber,
-              origin: bookingFlow.activeBooking.searchParams.origin,
-              destination: bookingFlow.activeBooking.searchParams.destination,
-              departureDate: bookingFlow.activeBooking.searchParams.departureDate,
-              departureTime: bookingFlow.activeBooking.selectedFlight?.departure.time,
-              arrivalTime: bookingFlow.activeBooking.selectedFlight?.arrival.time,
+              airline: bookingFlow.activeBooking.selectedFlight?.airline || '',
+              flightNumber: bookingFlow.activeBooking.selectedFlight?.flightNumber || '',
+              origin: bookingFlow.activeBooking.searchParams?.origin || '',
+              destination: bookingFlow.activeBooking.searchParams?.destination || '',
+              departureDate: bookingFlow.activeBooking.searchParams?.departureDate || '',
+              departureTime: '', // Time info not stored in BookingState.selectedFlight
+              arrivalTime: '', // Time info not stored in BookingState.selectedFlight
             },
             passengers,
-            totalPaid: bookingFlow.activeBooking.totalPrice,
-            currency: bookingFlow.activeBooking.currency || 'USD',
+            totalPaid: bookingFlow.activeBooking.pricing.total,
+            currency: bookingFlow.activeBooking.pricing.currency || 'USD',
             confirmationEmail: passengers[0]?.email || '',
           },
         },
@@ -1425,7 +1423,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       setMessages(prev => [...prev, confirmationMessage]);
       setIsTyping(false);
       setTypingState(null);
-      bookingFlow.advanceStage('confirmed');
+      bookingFlow.advanceStage('confirmation');
 
       console.log('✅ Booking confirmation shown');
     } catch (error) {
