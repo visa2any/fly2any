@@ -6,6 +6,9 @@
 import { prisma } from '@/lib/db/prisma';
 import type { ConversationState } from './conversation-persistence';
 
+// Type assertion for Prisma models (AIConversation generates as aIConversation)
+const db = prisma as any;
+
 /**
  * Save conversation to database
  * Creates or updates conversation and all messages
@@ -21,7 +24,7 @@ export async function saveConversationToDB(
 
   try {
     // Upsert conversation
-    await prisma.aIConversation.upsert({
+    await db.aIConversation.upsert({
       where: { sessionId: conversation.sessionId },
       create: {
         sessionId: conversation.sessionId,
@@ -44,7 +47,7 @@ export async function saveConversationToDB(
     });
 
     // Get conversation ID
-    const dbConversation = await prisma.aIConversation.findUnique({
+    const dbConversation = await db.aIConversation.findUnique({
       where: { sessionId: conversation.sessionId },
       select: { id: true },
     });
@@ -55,7 +58,7 @@ export async function saveConversationToDB(
 
     // Save all messages
     for (const message of conversation.messages) {
-      await prisma.aIMessage.upsert({
+      await db.aIMessage.upsert({
         where: { id: message.id },
         create: {
           id: message.id,
@@ -97,7 +100,7 @@ export async function loadConversationFromDB(
   }
 
   try {
-    const conversation = await prisma.aIConversation.findUnique({
+    const conversation = await db.aIConversation.findUnique({
       where: { sessionId },
       include: {
         messages: {
@@ -120,7 +123,7 @@ export async function loadConversationFromDB(
       conversationContext: conversation.conversationContext as any,
       searchHistory: conversation.searchHistory as any,
       metadata: conversation.metadata as any,
-      messages: conversation.messages.map(msg => ({
+      messages: conversation.messages.map((msg: any) => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
@@ -155,7 +158,7 @@ export async function loadUserConversations(
   }
 
   try {
-    const conversations = await prisma.aIConversation.findMany({
+    const conversations = await db.aIConversation.findMany({
       where: { userId },
       include: {
         messages: {
@@ -166,7 +169,7 @@ export async function loadUserConversations(
       take: limit,
     });
 
-    return conversations.map(conversation => ({
+    return conversations.map((conversation: any) => ({
       id: conversation.id,
       sessionId: conversation.sessionId,
       userId: conversation.userId,
@@ -175,7 +178,7 @@ export async function loadUserConversations(
       conversationContext: conversation.conversationContext as any,
       searchHistory: conversation.searchHistory as any,
       metadata: conversation.metadata as any,
-      messages: conversation.messages.map(msg => ({
+      messages: conversation.messages.map((msg: any) => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
@@ -210,7 +213,7 @@ export async function associateConversationWithUser(
   }
 
   try {
-    await prisma.aIConversation.update({
+    await db.aIConversation.update({
       where: { sessionId },
       data: { userId },
     });
@@ -232,7 +235,7 @@ export async function markConversationComplete(
   }
 
   try {
-    const conversation = await prisma.aIConversation.findUnique({
+    const conversation = await db.aIConversation.findUnique({
       where: { sessionId },
       select: { metadata: true },
     });
@@ -242,7 +245,7 @@ export async function markConversationComplete(
     const metadata = conversation.metadata as any;
     metadata.completedAt = Date.now();
 
-    await prisma.aIConversation.update({
+    await db.aIConversation.update({
       where: { sessionId },
       data: {
         status: 'completed',
@@ -269,7 +272,7 @@ export async function deleteConversationFromDB(
 
   try {
     // First, verify the conversation exists and belongs to the user
-    const conversation = await prisma.aIConversation.findUnique({
+    const conversation = await db.aIConversation.findUnique({
       where: { id: conversationId },
       select: { userId: true },
     });
@@ -283,7 +286,7 @@ export async function deleteConversationFromDB(
     }
 
     // Delete the conversation (messages will be cascade deleted)
-    await prisma.aIConversation.delete({
+    await db.aIConversation.delete({
       where: { id: conversationId },
     });
 
@@ -309,7 +312,7 @@ export async function deleteOldConversations(
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-    const result = await prisma.aIConversation.deleteMany({
+    const result = await db.aIConversation.deleteMany({
       where: {
         updatedAt: {
           lt: cutoffDate,
