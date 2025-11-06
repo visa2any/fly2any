@@ -65,3 +65,8 @@ test-*.ts
 # Bundle analyzer reports
 analyze/
 *.stats.json
+
+# Build logs
+build-output.log
+build-final.log
+*.log
