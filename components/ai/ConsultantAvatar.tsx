@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { User } from 'lucide-react';
 
 export interface ConsultantAvatarProps {
@@ -41,20 +40,20 @@ const sizeConfig = {
 };
 
 /**
- * Generate gradient background based on name
+ * Generate professional gradient background based on name
  */
 function getGradientColors(name: string): string {
   const gradients = [
-    'from-blue-500 to-blue-700',
-    'from-purple-500 to-purple-700',
-    'from-pink-500 to-pink-700',
-    'from-green-500 to-green-700',
-    'from-yellow-500 to-yellow-700',
-    'from-red-500 to-red-700',
-    'from-indigo-500 to-indigo-700',
-    'from-teal-500 to-teal-700',
-    'from-orange-500 to-orange-700',
-    'from-cyan-500 to-cyan-700',
+    'from-blue-600 to-blue-800',      // Professional blue
+    'from-purple-600 to-purple-800',  // Elegant purple
+    'from-pink-600 to-pink-800',      // Warm pink
+    'from-emerald-600 to-emerald-800',// Fresh green
+    'from-amber-600 to-amber-800',    // Warm amber
+    'from-rose-600 to-rose-800',      // Deep rose
+    'from-indigo-600 to-indigo-800',  // Rich indigo
+    'from-teal-600 to-teal-800',      // Cool teal
+    'from-orange-600 to-orange-800',  // Vibrant orange
+    'from-cyan-600 to-cyan-800',      // Bright cyan
   ];
 
   // Simple hash based on name to get consistent color
@@ -94,6 +93,7 @@ export function ConsultantAvatar({
 }: ConsultantAvatarProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  // Start with simple path - no cache busting initially
   const [currentImagePath, setCurrentImagePath] = useState(`/consultants/${consultantId}.png`);
   const [triedPng, setTriedPng] = useState(false);
 
@@ -101,20 +101,46 @@ export function ConsultantAvatar({
   const gradient = getGradientColors(name);
   const initials = getInitials(name);
 
-  const handleImageError = () => {
+  // Debug logging
+  console.log('[ConsultantAvatar] Rendering:', {
+    consultantId,
+    name,
+    currentImagePath,
+    imageError,
+    imageLoading,
+    triedPng
+  });
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('[ConsultantAvatar] Image failed to load:', {
+      consultantId,
+      path: currentImagePath,
+      error: e,
+      naturalWidth: (e.target as HTMLImageElement).naturalWidth,
+      naturalHeight: (e.target as HTMLImageElement).naturalHeight
+    });
+
     // Try .jpg if .png failed
     if (!triedPng) {
+      console.log('[ConsultantAvatar] Trying .jpg format...');
       setTriedPng(true);
       setCurrentImagePath(`/consultants/${consultantId}.jpg`);
       setImageLoading(true);
     } else {
       // Both formats failed, show fallback
+      console.warn(`[ConsultantAvatar] Avatar image not found for ${consultantId} (tried .png and .jpg)`);
       setImageError(true);
       setImageLoading(false);
     }
   };
 
-  const handleImageLoad = () => {
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.log('[ConsultantAvatar] Image loaded successfully!', {
+      consultantId,
+      path: currentImagePath,
+      naturalWidth: (e.target as HTMLImageElement).naturalWidth,
+      naturalHeight: (e.target as HTMLImageElement).naturalHeight
+    });
     setImageLoading(false);
   };
 
@@ -126,50 +152,37 @@ export function ConsultantAvatar({
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `View ${name}'s profile` : `${name}'s avatar`}
     >
-      {/* Avatar Container */}
-      <div className="w-full h-full rounded-full overflow-hidden ring-2 ring-white shadow-md">
-        {!imageError ? (
-          <>
-            {/* Real Photo */}
-            <Image
-              src={currentImagePath}
-              alt={`${name} - Travel Consultant`}
-              width={config.image}
-              height={config.image}
-              className="object-cover w-full h-full"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-              loading="lazy"
-              quality={85}
-              key={currentImagePath}
-            />
-            {/* Loading state */}
-            {imageLoading && (
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}
-              >
-                <span className={`font-bold text-white ${config.text}`}>
-                  {initials}
-                </span>
-              </div>
-            )}
-          </>
-        ) : (
-          /* Fallback: Gradient with Initials */
-          <div
-            className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
-          >
-            <span className={`font-bold text-white ${config.text}`}>
-              {initials}
-            </span>
-          </div>
+      {/* Avatar Container - Square with rounded corners */}
+      <div className="w-full h-full rounded-lg overflow-hidden ring-2 ring-white shadow-md relative">
+        {/* Always show gradient background */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${gradient} flex items-center justify-center`}
+        >
+          <span className={`font-bold text-white ${config.text}`}>
+            {initials}
+          </span>
+        </div>
+
+        {/* Try to load photo on top - using regular img tag */}
+        {!imageError && (
+          <img
+            src={currentImagePath}
+            alt={`${name} - Travel Consultant`}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            style={{
+              opacity: imageLoading ? 0 : 1,
+              transition: 'opacity 0.3s ease-in-out'
+            }}
+          />
         )}
       </div>
 
-      {/* Online Status Indicator */}
+      {/* Online Status Indicator - Positioned for square avatar */}
       {showStatus && (
         <div
-          className={`absolute ${config.status} bg-green-500 border-white rounded-full`}
+          className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"
           title="Online"
           aria-label="Online status"
         >

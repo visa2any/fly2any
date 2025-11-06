@@ -189,13 +189,14 @@ function generateHowAreYouResponse(
   }
 
   if (personality.traits.warmth >= 9) {
-    // Very warm
+    // Very warm - Responses for reciprocal greetings ("Fine, and you?")
+    // These acknowledge the user said they're well AND answer their question
     const responses = [
-      `I'm doing great, thank you so much for asking! ${personality.emoji} How about you? How's your day going?`,
-      `Aw, I'm wonderful, thanks for asking! ${personality.emoji} That's so sweet! How are YOU doing?`,
-      `I'm doing fantastic, thank you! ${personality.emoji} How are things with you today?`,
-      `I'm having a lovely day, thank you for asking! ${personality.emoji} How about yourself?`,
-      `I'm doing really well, thanks! ${personality.emoji} So kind of you to ask! How are you?`
+      `I'm doing great, thanks for asking! ${personality.emoji} Glad to hear you're doing well! What brings you here today?`,
+      `Aw, I'm wonderful, thank you! ${personality.emoji} So happy to hear you're doing fine! How can I help you?`,
+      `I'm doing fantastic, thank you! ${personality.emoji} That's lovely that you're doing well! What can I do for you today?`,
+      `I'm having a lovely day, thanks! ${personality.emoji} Great to hear you're doing good! What are you looking for today?`,
+      `I'm doing really well, thanks for asking! ${personality.emoji} Glad you're doing fine! What can I help you with?`
     ];
     return selectUniqueResponse(responses, context);
   }

@@ -52,7 +52,13 @@ export function analyzeConversationIntent(
     /how are things/,
     /what's up with you/,
     /how have you been/,
-    /you doing (ok|okay|well|good|alright)/
+    /you doing (ok|okay|well|good|alright)/,
+    // Reciprocal greetings - "and you?", "how about you?", etc.
+    /and you\??$/,
+    /what about you\??$/,
+    /how about you\??$/,
+    /yourself\??$/,
+    /,\s*you\??$/  // Catches "Fine, you?"
   ];
 
   // Small talk patterns
@@ -111,7 +117,135 @@ export function analyzeConversationIntent(
     /where to (celebrate|spend)/
   ];
 
-  // Service request patterns (flights, hotels, bookings)
+  // Booking management patterns (existing reservations/bookings)
+  const bookingManagementPatterns = [
+    // Status checks
+    /check (the )?(status|reservation|booking)/,
+    /view (my )?(reservation|booking|trip|order)/,
+    /see (my )?(reservation|booking|trip|order)/,
+    /show (my )?(reservation|booking|trip|order)/,
+    /find (my )?(reservation|booking|trip|order)/,
+    /look up (my )?(reservation|booking|trip|order)/,
+    /reservation (status|number|details|confirmation)/,
+    /booking (status|number|details|confirmation)/,
+    /confirmation (number|code|email)/,
+    /track (my )?(flight|booking|order)/,
+    /where (is|'s) my (flight|booking|reservation)/,
+    /status of my (flight|booking|reservation|trip)/,
+    /already (booked|have a)/,
+    /have (a )?(reservation|booking)/,
+
+    // Modifications
+    /cancel (my )?(flight|booking|reservation|trip)/,
+    /modify (my )?(flight|booking|reservation|trip)/,
+    /change (my )?(flight|booking|reservation|trip|seat|date)/,
+    /reschedule (my )?(flight|booking)/,
+    /update (my )?(booking|reservation|details)/,
+    /move my (flight|booking|trip)/,
+    /switch (my )?(flight|seat|room)/,
+
+    // Refunds & payments
+    /refund/,
+    /money back/,
+    /reimbursement/,
+    /invoice/,
+    /receipt/,
+    /payment (issue|problem|failed|declined)/,
+    /charge/,
+    /credit card/,
+
+    // Upgrades & add-ons
+    /upgrade (my )?(seat|room|flight)/,
+    /add (baggage|luggage|bag)/,
+    /extra (baggage|luggage|bag)/,
+    /seat selection/,
+    /choose (a |my )?seat/,
+    /meal preference/,
+    /special (meal|request)/,
+
+    // Issues & emergencies
+    /(flight|hotel|trip) (delayed|cancelled|canceled)/,
+    /missed (flight|connection)/,
+    /lost (baggage|luggage)/,
+    /emergency/,
+    /urgent/,
+    /help (with|me)/,
+    /problem (with|my)/,
+    /issue (with|my)/,
+    /complaint/,
+
+    // Travel documents
+    /e.?ticket/,
+    /boarding pass/,
+    /itinerary/,
+    /travel document/,
+    /send (me )?(confirmation|receipt|invoice)/,
+    /email (my )?(confirmation|receipt|invoice)/
+  ];
+
+  // Travel information & requirements patterns
+  const travelInfoPatterns = [
+    /(do i|will i|should i) need (a )?(visa|passport)/,
+    /visa (requirement|application|info|information)/,
+    /passport (requirement|expir|valid)/,
+    /travel (advisory|warning|restriction|requirement)/,
+    /covid (test|requirement|restriction|protocol)/,
+    /vaccination (requirement|needed|certificate)/,
+    /(entry|exit) (requirement|restriction)/,
+    /quarantine/,
+    /travel insurance/,
+    /insurance (quote|coverage|claim)/,
+    /what do i need to (travel|enter|visit)/,
+    /currency (exchange|rate)/,
+    /best time to (visit|travel|go)/,
+    /weather in/,
+    /(is it|what's the weather) (safe|dangerous)/,
+    /luggage (allowance|limit|restriction|weight)/,
+    /baggage (allowance|limit|restriction|weight)/,
+    /carry.on (rules|restriction|size)/,
+    /customs (declaration|form|rules)/,
+    /duty.free/
+  ];
+
+  // Special assistance & accessibility patterns
+  const specialAssistancePatterns = [
+    /wheelchair/,
+    /disability/,
+    /special (assistance|need|service|accommodation)/,
+    /accessible/,
+    /mobility (issue|problem|aid)/,
+    /medical (equipment|condition|device)/,
+    /oxygen/,
+    /dietary (restriction|requirement|need)/,
+    /allergy|allergies/,
+    /vegan|vegetarian|gluten|halal|kosher/,
+    /(pregnant|pregnancy|expecting)/,
+    /traveling with (infant|baby|child|pet|animal)/,
+    /(service|emotional support) (animal|dog)/,
+    /unaccompanied minor/,
+    /elderly (passenger|traveler)/,
+    /hearing (impaired|aid)/,
+    /vision (impaired|blind)/
+  ];
+
+  // Loyalty & rewards patterns
+  const loyaltyPatternsSpecific = [
+    /loyalty (program|point|mile|reward)/,
+    /frequent (flyer|traveler|guest)/,
+    /miles|points/,
+    /reward (program|point)/,
+    /membership (level|status|tier)/,
+    /(earn|redeem|use) (point|mile)/,
+    /upgrade with (point|mile)/,
+    /status match/,
+    /elite (status|member)/,
+    /lounge access/,
+    /priority (boarding|check.in)/,
+    /credit (my )?(point|mile)/,
+    /missing (point|mile)/
+  ];
+
+  // Service request patterns (NEW bookings - flights, hotels, etc)
   const servicePatterns = [
     /book (a )?(flight|hotel|room|trip|ticket)/,
     /find (a )?(flight|hotel|room|deal)/,
@@ -191,6 +325,54 @@ export function analyzeConversationIntent(
       requiresPersonalResponse: true,
       sentiment: 'positive',
       topics: ['casual', 'social']
+    };
+  }
+
+  // Check for booking management/status queries (BEFORE new bookings)
+  if (bookingManagementPatterns.some(pattern => pattern.test(message))) {
+    return {
+      intent: 'booking-management',
+      confidence: 0.95,
+      isServiceRequest: true,
+      requiresPersonalResponse: true, // Needs empathetic handling
+      sentiment: 'neutral',
+      topics: extractBookingTopics(message)
+    };
+  }
+
+  // Check for special assistance needs (high priority - needs Nina)
+  if (specialAssistancePatterns.some(pattern => pattern.test(message))) {
+    return {
+      intent: 'service-request',
+      confidence: 0.95,
+      isServiceRequest: true,
+      requiresPersonalResponse: true, // Very empathetic handling needed
+      sentiment: 'neutral',
+      topics: ['special-assistance', ...extractSpecialAssistanceTopics(message)]
+    };
+  }
+
+  // Check for travel information queries (needs Sophia for visa/docs, others for general info)
+  if (travelInfoPatterns.some(pattern => pattern.test(message))) {
+    return {
+      intent: 'service-request',
+      confidence: 0.9,
+      isServiceRequest: true,
+      requiresPersonalResponse: true,
+      sentiment: 'curious',
+      topics: ['travel-info', ...extractTravelInfoTopics(message)]
+    };
+  }
+
+  // Check for loyalty/rewards queries (needs Amanda)
+  if (loyaltyPatternsSpecific.some(pattern => pattern.test(message))) {
+    return {
+      intent: 'service-request',
+      confidence: 0.95,
+      isServiceRequest: true,
+      requiresPersonalResponse: true,
+      sentiment: 'curious',
+      topics: ['loyalty-rewards', ...extractLoyaltyTopics(message)]
     };
   }
 
@@ -284,6 +466,85 @@ function extractServiceTopics(message: string): string[] {
   if (/(price|cost|cheap|expensive|budget)/i.test(message)) topics.push('pricing');
 
   return topics.length > 0 ? topics : ['general-service'];
+}
+
+/**
+ * Extract booking management topics from message
+ */
+function extractBookingTopics(message: string): string[] {
+  const topics: string[] = ['booking-management'];
+
+  // Determine action type
+  if (/(check|view|see|show|find|look up|status)/i.test(message)) topics.push('status-check');
+  if (/(cancel|cancellation)/i.test(message)) topics.push('cancellation');
+  if (/(modify|change|reschedule|update)/i.test(message)) topics.push('modification');
+  if (/(refund|money back)/i.test(message)) topics.push('refund');
+  if (/(confirmation|number|code)/i.test(message)) topics.push('confirmation');
+  if (/(track|where is)/i.test(message)) topics.push('tracking');
+
+  // Determine booking type
+  if (/(flight|plane|airline)/i.test(message)) topics.push('flight');
+  if (/(hotel|room|accommodation)/i.test(message)) topics.push('hotel');
+  if (/(car|rental)/i.test(message)) topics.push('car');
+  if (/(trip|package)/i.test(message)) topics.push('package');
+
+  return topics;
+}
+
+/**
+ * Extract special assistance topics from message
+ */
+function extractSpecialAssistanceTopics(message: string): string[] {
+  const topics: string[] = [];
+
+  if (/wheelchair|mobility/i.test(message)) topics.push('wheelchair');
+  if (/medical|oxygen|equipment/i.test(message)) topics.push('medical');
+  if (/dietary|allergy|vegan|vegetarian|gluten|halal|kosher/i.test(message)) topics.push('dietary');
+  if (/pregnant|pregnancy/i.test(message)) topics.push('pregnancy');
+  if (/(infant|baby|child)/i.test(message)) topics.push('traveling-with-children');
+  if (/(service|emotional support) (animal|dog)/i.test(message)) topics.push('service-animal');
+  if (/hearing|vision|blind|deaf/i.test(message)) topics.push('sensory');
+  if (/unaccompanied minor/i.test(message)) topics.push('unaccompanied-minor');
+
+  return topics;
+}
+
+/**
+ * Extract travel information topics from message
+ */
+function extractTravelInfoTopics(message: string): string[] {
+  const topics: string[] = [];
+
+  if (/visa/i.test(message)) topics.push('visa');
+  if (/passport/i.test(message)) topics.push('passport');
+  if (/covid|vaccination|quarantine/i.test(message)) topics.push('covid-requirements');
+  if (/insurance/i.test(message)) topics.push('travel-insurance');
+  if (/luggage|baggage|carry.on/i.test(message)) topics.push('baggage');
+  if (/customs|duty.free/i.test(message)) topics.push('customs');
+  if (/weather|best time/i.test(message)) topics.push('destination-info');
+  if (/currency|exchange/i.test(message)) topics.push('currency');
+  if (/travel (advisory|warning|restriction)/i.test(message)) topics.push('travel-advisory');
+  if (/(entry|exit) requirement/i.test(message)) topics.push('entry-requirements');
+
+  return topics;
+}
+
+/**
+ * Extract loyalty topics from message
+ */
+function extractLoyaltyTopics(message: string): string[] {
+  const topics: string[] = [];
+
+  if (/earn/i.test(message)) topics.push('earning');
+  if (/redeem|use/i.test(message)) topics.push('redemption');
+  if (/upgrade/i.test(message)) topics.push('upgrade');
+  if (/status|tier|elite/i.test(message)) topics.push('status');
+  if (/lounge/i.test(message)) topics.push('lounge-access');
+  if (/missing|credit/i.test(message)) topics.push('missing-points');
+  if (/transfer/i.test(message)) topics.push('point-transfer');
+  if (/expire|expiration/i.test(message)) topics.push('expiration');
+
+  return topics;
 }
 
 /**
@@ -447,6 +708,52 @@ export function detectFrustration(message: string): boolean {
   ];
 
   return frustrationPatterns.some(pattern => pattern.test(message));
+}
+
+/**
+ * Get context-appropriate loading message based on intent
+ * CRITICAL for UX: Users must see messages that match their actual query!
+ * Example: "Hi" should NOT show "Searching flights..."
+ */
+export function getContextLoadingMessage(intentType?: IntentType | string, consultantName?: string): string {
+  // Type assertion needed because we also accept custom string types like 'flight-search'
+  const intent = intentType as string;
+
+  switch (intent) {
+    // Casual conversation
+    case 'greeting':
+    case 'how-are-you':
+    case 'small-talk':
+    case 'personal-question':
+    case 'casual':
+      return 'Typing a response...';
+
+    case 'gratitude':
+    case 'farewell':
+      return 'Responding...';
+
+    // Search operations
+    case 'flight-search':
+      return 'Searching for flights...';
+
+    case 'hotel-search':
+      return 'Searching for hotels...';
+
+    // Service operations
+    case 'booking-management':
+      return 'Looking up your reservation...';
+
+    case 'destination-recommendation':
+      return 'Finding great destinations...';
+
+    case 'service-request':
+      return 'Processing your request...';
+
+    // Default cases
+    case 'question':
+    default:
+      return 'Thinking...';
+  }
 }
 
 export { ConversationContext } from './conversation-context';

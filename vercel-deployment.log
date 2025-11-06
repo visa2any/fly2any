@@ -1,0 +1,11 @@
+Vercel CLI 44.7.3
+Retrieving project…
+Error: An unexpected error occurred!
+Error: connect ETIMEDOUT 35.186.247.156:443
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). The promise rejected with the reason:
+Error: connect ETIMEDOUT 35.186.247.156:443
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)
+Error: An unexpected error occurred!
+Error: connect ETIMEDOUT 35.186.247.156:443
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)

@@ -1,0 +1,24 @@
+
+> fly2any@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+[1mWebpack Bundle Analyzer[22m saved report to [1mC:\Users\Power\fly2any-fresh\analyze\client.html[22m
+[1mWebpack Bundle Analyzer[22m saved stats file to [1mC:\Users\Power\fly2any-fresh\analyze\client-stats.json[22m
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+unhandledRejection Error [PageNotFoundError]: Cannot find module for page: /_document
+    at getPagePath (C:\Users\Power\fly2any-fresh\node_modules\next\dist\server\require.js:94:15)
+    at requirePage (C:\Users\Power\fly2any-fresh\node_modules\next\dist\server\require.js:99:22)
+    at C:\Users\Power\fly2any-fresh\node_modules\next\dist\server\load-components.js:72:65
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (C:\Users\Power\fly2any-fresh\node_modules\next\dist\server\load-components.js:71:33)
+    at async Object.hasCustomGetInitialProps (C:\Users\Power\fly2any-fresh\node_modules\next\dist\build\utils.js:1274:24) {
+  type: 'PageNotFoundError',
+  code: 'ENOENT'
+}

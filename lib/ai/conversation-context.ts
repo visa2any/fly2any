@@ -10,6 +10,7 @@ export type IntentType =
   | 'personal-question'
   | 'gratitude'
   | 'destination-recommendation'
+  | 'booking-management'
   | 'service-request'
   | 'question'
   | 'casual'

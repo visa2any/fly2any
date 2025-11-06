@@ -71,6 +71,9 @@ import { CompactSeatMap } from '@/components/booking/CompactSeatMap';
 import { BaggageUpsellWidget } from '@/components/booking/BaggageUpsellWidget';
 import { BookingSummaryCard } from '@/components/booking/BookingSummaryCard';
 import { ProgressIndicator } from '@/components/booking/ProgressIndicator';
+import { PassengerDetailsWidget, type PassengerInfo } from '@/components/booking/PassengerDetailsWidget';
+import { PaymentWidget } from '@/components/booking/PaymentWidget';
+import { BookingConfirmationWidget } from '@/components/booking/BookingConfirmationWidget';
 import type { FlightOption, FareOption, SeatOption, BaggageOption } from '@/types/booking-flow';
 
 interface FlightSearchResult {
@@ -118,7 +121,7 @@ interface Message {
   isSearching?: boolean;
   // NEW: E2E Booking Flow Widgets
   widget?: {
-    type: 'fare_selector' | 'seat_map' | 'baggage_selector' | 'booking_summary' | 'progress';
+    type: 'fare_selector' | 'seat_map' | 'baggage_selector' | 'booking_summary' | 'progress' | 'passenger_details' | 'payment_form' | 'booking_confirmation';
     data: any;
   };
   bookingRef?: string; // References active booking ID
@@ -1190,7 +1193,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   /**
    * HANDLE CONFIRM BOOKING
-   * User confirms → Proceed to payment (Phase 5)
+   * User confirms booking summary → Show passenger details form
    */
   const handleConfirmBooking = async () => {
     try {
@@ -1199,22 +1202,247 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         return;
       }
 
-      console.log('✅ User confirmed booking');
+      console.log('✅ User confirmed booking summary');
 
-      // TODO: Phase 5 - Payment Integration
+      // Show consultant typing indicator
       const consultant = currentTypingConsultant || getConsultant('customer-service');
-      const confirmMessage: Message = {
+      setCurrentTypingConsultant(consultant);
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Preparing passenger details form...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Determine if flight is international (requires passport info)
+      const flightType: 'domestic' | 'international' = 'international'; // TODO: Detect from flight details
+
+      // Show passenger details widget
+      const passengerMessage: Message = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: "Great! Payment integration is coming in Phase 5. For now, your booking details have been saved.",
+        content: `Perfect! Now I need some passenger details to complete your booking. Please fill in the information below:`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'passenger_details',
+          data: {
+            passengerCount: bookingFlow.activeBooking.searchParams.passengers || 1,
+            flightType,
+          },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, passengerMessage]);
+      setIsTyping(false);
+      setTypingState(null);
+      bookingFlow.advanceStage('passenger_details');
+
+      console.log('✅ Passenger details widget shown');
+    } catch (error) {
+      console.error('❌ Error in handleConfirmBooking:', error);
+      setIsTyping(false);
+      setTypingState(null);
+    }
+  };
+
+  /**
+   * HANDLE PASSENGER SUBMIT
+   * User submits passenger details → Create payment intent → Show payment form
+   */
+  const handlePassengerSubmit = async (passengers: PassengerInfo[]) => {
+    try {
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking');
+        return;
+      }
+
+      console.log('👥 User submitted passenger details:', passengers.length, 'passengers');
+
+      // Show consultant typing indicator
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      setCurrentTypingConsultant(consultant);
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Setting up secure payment...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Call API to create payment intent
+      const response = await fetch('/api/booking-flow/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: bookingFlow.activeBooking.id,
+          amount: bookingFlow.activeBooking.totalPrice,
+          currency: bookingFlow.activeBooking.currency || 'USD',
+          passengers,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const paymentData = await response.json();
+
+      // Show payment widget
+      const paymentMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `Excellent! Your details are saved. Now let's complete the payment securely:`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'payment_form',
+          data: {
+            amount: bookingFlow.activeBooking.totalPrice,
+            currency: bookingFlow.activeBooking.currency || 'USD',
+            bookingReference: bookingFlow.activeBooking.id,
+            clientSecret: paymentData.clientSecret,
+            passengers,
+            flight: {
+              airline: bookingFlow.activeBooking.selectedFlight?.airline,
+              flightNumber: bookingFlow.activeBooking.selectedFlight?.flightNumber,
+              origin: bookingFlow.activeBooking.searchParams.origin,
+              destination: bookingFlow.activeBooking.searchParams.destination,
+            },
+          },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, paymentMessage]);
+      setIsTyping(false);
+      setTypingState(null);
+      bookingFlow.advanceStage('payment');
+
+      console.log('✅ Payment widget shown');
+    } catch (error) {
+      console.error('❌ Error in handlePassengerSubmit:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: 'I apologize, but there was an error setting up the payment. Please try again or contact support.',
         consultant,
         timestamp: new Date(),
       };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
 
-      setMessages(prev => [...prev, confirmMessage]);
-      bookingFlow.advanceStage('payment');
+  /**
+   * HANDLE PAYMENT SUCCESS
+   * Payment completed successfully → Show confirmation
+   */
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    try {
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking');
+        return;
+      }
+
+      console.log('💳 Payment successful:', paymentIntentId);
+
+      // Show consultant typing indicator
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      setCurrentTypingConsultant(consultant);
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Confirming your booking...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Call API to confirm booking
+      const response = await fetch('/api/booking-flow/confirm-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: bookingFlow.activeBooking.id,
+          paymentIntentId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to confirm booking');
+      }
+
+      const confirmationData = await response.json();
+
+      // Get passenger info from previous message
+      let passengers: PassengerInfo[] = [];
+      for (const message of messages) {
+        if (message.widget?.type === 'payment_form' && message.widget.data?.passengers) {
+          passengers = message.widget.data.passengers;
+          break;
+        }
+      }
+
+      // Show confirmation widget
+      const confirmationMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `🎉 Congratulations! Your booking is confirmed. Here are your travel details:`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'booking_confirmation',
+          data: {
+            bookingReference: confirmationData.bookingReference || bookingFlow.activeBooking.id,
+            pnr: confirmationData.pnr,
+            flight: {
+              airline: bookingFlow.activeBooking.selectedFlight?.airline,
+              flightNumber: bookingFlow.activeBooking.selectedFlight?.flightNumber,
+              origin: bookingFlow.activeBooking.searchParams.origin,
+              destination: bookingFlow.activeBooking.searchParams.destination,
+              departureDate: bookingFlow.activeBooking.searchParams.departureDate,
+              departureTime: bookingFlow.activeBooking.selectedFlight?.departure.time,
+              arrivalTime: bookingFlow.activeBooking.selectedFlight?.arrival.time,
+            },
+            passengers,
+            totalPaid: bookingFlow.activeBooking.totalPrice,
+            currency: bookingFlow.activeBooking.currency || 'USD',
+            confirmationEmail: passengers[0]?.email || '',
+          },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, confirmationMessage]);
+      setIsTyping(false);
+      setTypingState(null);
+      bookingFlow.advanceStage('confirmed');
+
+      console.log('✅ Booking confirmation shown');
     } catch (error) {
-      console.error('❌ Error in handleConfirmBooking:', error);
+      console.error('❌ Error in handlePaymentSuccess:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: 'There was an error confirming your booking, but your payment was successful. Please contact support with your payment ID for assistance.',
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1351,6 +1579,62 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       case 'progress':
         return (
           <ProgressIndicator progress={data.progress} />
+        );
+
+      case 'passenger_details':
+        return (
+          <PassengerDetailsWidget
+            passengerCount={data.passengerCount || 1}
+            flightType={data.flightType || 'international'}
+            onSubmit={handlePassengerSubmit}
+            isProcessing={false}
+          />
+        );
+
+      case 'payment_form':
+        return (
+          <PaymentWidget
+            amount={data.amount}
+            currency={data.currency}
+            bookingReference={data.bookingReference}
+            clientSecret={data.clientSecret}
+            passengers={data.passengers}
+            flight={data.flight}
+            onSuccess={handlePaymentSuccess}
+            onError={(error) => {
+              console.error('💳 Payment error:', error);
+              const consultant = currentTypingConsultant || getConsultant('customer-service');
+              const errorMessage: Message = {
+                id: `msg_${Date.now()}`,
+                role: 'assistant',
+                content: `I'm sorry, there was an error processing your payment: ${error}. Please try again or contact support.`,
+                consultant,
+                timestamp: new Date(),
+              };
+              setMessages(prev => [...prev, errorMessage]);
+            }}
+          />
+        );
+
+      case 'booking_confirmation':
+        return (
+          <BookingConfirmationWidget
+            bookingReference={data.bookingReference}
+            pnr={data.pnr}
+            flight={data.flight}
+            passengers={data.passengers}
+            totalPaid={data.totalPaid}
+            currency={data.currency}
+            confirmationEmail={data.confirmationEmail}
+            onDownloadTicket={() => {
+              console.log('📄 Download ticket requested');
+              // TODO: Implement ticket download
+            }}
+            onViewBooking={() => {
+              console.log('👁️  View booking requested');
+              router.push('/account/bookings');
+            }}
+          />
         );
 
       default:

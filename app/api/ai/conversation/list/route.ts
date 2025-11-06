@@ -12,6 +12,9 @@ import { loadUserConversations } from '@/lib/ai/conversation-db';
 // Force Node.js runtime for Prisma
 export const runtime = 'nodejs';
 
+// Force dynamic rendering for auth headers and query parameters
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Get authenticated user session

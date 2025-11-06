@@ -287,6 +287,7 @@ export interface TypingState {
   phase: 'thinking' | 'typing' | 'paused' | 'complete';
   consultantName: string;
   message?: string;
+  contextMessage?: string; // Context-aware message for what AI is doing
 }
 
 /**

@@ -130,11 +130,13 @@ const config: Config = {
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',
+        'fade-in': 'fadeIn 0.3s ease-in',
         'slideUp': 'slideUp 0.3s ease-out',
         'slideDown': 'slideDown 0.3s ease-out',
         'scaleIn': 'scaleIn 0.2s ease-out',
         'shimmer': 'shimmer 2s infinite',
         'wiggle': 'wiggle 0.5s ease-in-out',
+        'pulse-subtle': 'pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {
@@ -161,6 +163,10 @@ const config: Config = {
           '0%, 100%': { transform: 'rotate(0deg)' },
           '25%': { transform: 'rotate(-10deg)' },
           '75%': { transform: 'rotate(10deg)' },
+        },
+        pulseSubtle: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' },
         },
       },
     },

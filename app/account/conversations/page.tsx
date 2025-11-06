@@ -12,6 +12,9 @@ import Link from 'next/link';
 // Force Node.js runtime for auth
 export const runtime = 'nodejs';
 
+// Force dynamic rendering (requires database at runtime)
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Conversation History | Fly2Any',
   description: 'View your past conversations with our AI travel assistants',

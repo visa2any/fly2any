@@ -13,6 +13,9 @@ import { loadConversationFromDB, deleteConversationFromDB } from '@/lib/ai/conve
 // Force Node.js runtime for Prisma
 export const runtime = 'nodejs';
 
+// Force dynamic rendering for auth headers and dynamic route params
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
