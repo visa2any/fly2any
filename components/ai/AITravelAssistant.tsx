@@ -21,6 +21,7 @@ import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/
 import { FlightResultCard } from './FlightResultCard';
 import { ConsultantAvatar, UserAvatar } from './ConsultantAvatar';
 import { ConsultantProfileModal } from './ConsultantProfileModal';
+import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
 import { useRouter } from 'next/navigation';
 import { useAIAnalytics } from '@/lib/hooks/useAIAnalytics';
 import {
@@ -31,10 +32,16 @@ import {
   getTypingIndicatorText,
   type TypingState
 } from '@/lib/utils/typing-simulation';
+import {
+  getLoadingMessage,
+  getTypicalStages,
+  estimateProcessingTime,
+} from '@/lib/ai/consultant-loading-messages';
 // CONVERSATIONAL INTELLIGENCE INTEGRATION
 import {
   analyzeConversationIntent,
   getConversationalResponse,
+  getContextLoadingMessage,
   ConversationContext,
   type IntentType
 } from '@/lib/ai/conversational-intelligence';
@@ -57,6 +64,14 @@ import {
 } from '@/lib/ai/conversation-persistence';
 import { ConversationRecoveryBanner } from './ConversationRecoveryBanner';
 import { useConversationSync, useDatabaseSync } from '@/lib/hooks/useConversationSync';
+// E2E BOOKING FLOW INTEGRATION
+import { useBookingFlow } from '@/lib/hooks/useBookingFlow';
+import { InlineFareSelector } from '@/components/booking/InlineFareSelector';
+import { CompactSeatMap } from '@/components/booking/CompactSeatMap';
+import { BaggageUpsellWidget } from '@/components/booking/BaggageUpsellWidget';
+import { BookingSummaryCard } from '@/components/booking/BookingSummaryCard';
+import { ProgressIndicator } from '@/components/booking/ProgressIndicator';
+import type { FlightOption, FareOption, SeatOption, BaggageOption } from '@/types/booking-flow';
 
 interface FlightSearchResult {
   id: string;
@@ -101,6 +116,12 @@ interface Message {
   };
   flightResults?: FlightSearchResult[];
   isSearching?: boolean;
+  // NEW: E2E Booking Flow Widgets
+  widget?: {
+    type: 'fare_selector' | 'seat_map' | 'baggage_selector' | 'booking_summary' | 'progress';
+    data: any;
+  };
+  bookingRef?: string; // References active booking ID
 }
 
 interface Props {
@@ -119,6 +140,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [authPromptMessage, setAuthPromptMessage] = useState('');
   const [isSearchingFlights, setIsSearchingFlights] = useState(false);
   const [selectedConsultant, setSelectedConsultant] = useState<ConsultantProfile | null>(null);
+  const [currentTypingConsultant, setCurrentTypingConsultant] = useState<ConsultantProfile | null>(null);
+  const [typingStage, setTypingStage] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -154,6 +177,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   // CONVERSATION SYNC: Periodic sync to database for logged-in users
   useDatabaseSync(conversation, isAuthenticated);
 
+  // E2E BOOKING FLOW: State management and API integration
+  const bookingFlow = useBookingFlow();
+
   // Translations
   const translations = {
     en: {
@@ -167,11 +193,10 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       typing: 'is typing...',
       quickActions: 'Quick Actions:',
       quickQuestions: [
-        'Flight from NYC to Dubai on Nov 15',
-        '🏨 Best hotel deals',
+        '✈️ Search flights',
+        '🏨 Find hotels',
         '📞 Contact support',
-        '💳 Payment methods',
-        '❓ FAQ & Help'
+        '💳 Payment options'
       ],
       contactSupport: 'Need human assistance?',
       callUs: 'Call Us',
@@ -328,7 +353,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     responseContent: string,
     consultant: ReturnType<typeof getConsultant>,
     userMessage: string,
-    additionalData?: Partial<Message>
+    additionalData?: Partial<Message>,
+    intentType?: IntentType | string
   ) => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -336,29 +362,73 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
     const messageType = detectMessageType(responseContent);
 
-    // Phase 1: Thinking
+    // Calculate delays
     const thinkingDelay = calculateThinkingDelay(userMessage, messageType);
-    setTypingState({
-      phase: 'thinking',
-      consultantName: consultant.name
-    });
-    setIsTyping(true);
-
-    await new Promise(resolve => {
-      typingTimeoutRef.current = setTimeout(resolve, thinkingDelay);
-    });
-
-    // Phase 2: Typing
     const typingDelay = calculateTypingDelay(responseContent, messageType);
-    setTypingState({
-      phase: 'typing',
-      consultantName: consultant.name,
-      message: responseContent
-    });
+    const totalDelay = thinkingDelay + typingDelay;
 
-    await new Promise(resolve => {
-      typingTimeoutRef.current = setTimeout(resolve, typingDelay);
-    });
+    // BEST PRACTICE: Don't show indicator immediately
+    // Wait 800ms before showing to avoid flash for quick responses
+    const INDICATOR_DELAY = 800;
+
+    // Phase 1: Brief pause (no indicator yet)
+    await new Promise(resolve => setTimeout(resolve, Math.min(INDICATOR_DELAY, thinkingDelay)));
+
+    // Only show indicator if response takes longer than the initial delay
+    if (totalDelay > INDICATOR_DELAY) {
+      // Set current consultant for EnhancedTypingIndicator
+      setCurrentTypingConsultant(consultant);
+      setTypingStage(0);
+      setIsTyping(true);
+
+      // Get stages for this consultant
+      const stages = getTypicalStages(consultant.id);
+      const remainingDelay = totalDelay - INDICATOR_DELAY;
+      const stageDelay = remainingDelay / stages.length;
+
+      // Phase 2: Thinking (if more time needed)
+      if (thinkingDelay > INDICATOR_DELAY) {
+        setTypingState({
+          phase: 'thinking',
+          consultantName: consultant.name,
+          contextMessage: getContextLoadingMessage(intentType, consultant.name)
+        });
+
+        await new Promise(resolve => {
+          typingTimeoutRef.current = setTimeout(resolve, thinkingDelay - INDICATOR_DELAY);
+        });
+      }
+
+      // Phase 3: Typing with stage progression
+      setTypingState({
+        phase: 'typing',
+        consultantName: consultant.name,
+        message: responseContent,
+        contextMessage: getContextLoadingMessage(intentType, consultant.name)
+      });
+
+      // Progress through stages
+      const stageProgressInterval = setInterval(() => {
+        setTypingStage(prev => {
+          if (prev >= stages.length - 1) {
+            clearInterval(stageProgressInterval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, stageDelay);
+
+      await new Promise(resolve => {
+        typingTimeoutRef.current = setTimeout(resolve, typingDelay);
+      });
+
+      clearInterval(stageProgressInterval);
+    } else {
+      // Quick response - just wait the remaining time without indicator
+      await new Promise(resolve => {
+        typingTimeoutRef.current = setTimeout(resolve, totalDelay - INDICATOR_DELAY);
+      });
+    }
 
     // Phase 3: Display message
     const aiResponse: Message = {
@@ -379,6 +449,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     setMessages(prev => [...prev, aiResponse]);
     setIsTyping(false);
     setTypingState(null);
+    setCurrentTypingConsultant(null);
+    setTypingStage(0);
 
     // Save assistant message to conversation persistence
     if (conversation) {
@@ -483,11 +555,14 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const handoffNeeded = needsHandoff(previousTeam, consultantTeam as HandoffTeamType);
 
     if (handoffNeeded && previousTeam) {
+      // Extract context from user message for handoff
+      const contextParams = extractSearchContext(queryText, consultantTeam);
+
       const handoff = generateHandoffMessage(
         previousTeam as HandoffTeamType,
         consultantTeam as HandoffTeamType,
         queryText,
-        null // Will be populated after parsing
+        contextParams // Pass extracted context
       );
 
       // Previous consultant announces transfer
@@ -495,18 +570,34 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       await sendAIResponseWithTyping(
         handoff.transferAnnouncement,
         previousConsultant,
-        queryText
+        queryText,
+        undefined,
+        'service-request'
       );
 
       // Small delay between consultants
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // New consultant introduces themselves
+      // New consultant introduces themselves with context
       await sendAIResponseWithTyping(
         handoff.introduction,
         consultant,
-        queryText
+        queryText,
+        undefined,
+        'service-request'
       );
+
+      // If context was understood, display confirmation
+      if (handoff.context) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        await sendAIResponseWithTyping(
+          handoff.context,
+          consultant,
+          queryText,
+          undefined,
+          'confirmation'
+        );
+      }
     }
 
     const engagement = getEngagementStage(
@@ -526,7 +617,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         conversationContext
       );
 
-      await sendAIResponseWithTyping(naturalResponse, consultant, queryText);
+      // CRITICAL: Pass the actual intent so typing indicator shows appropriate message
+      // Example: "Hi" → greeting intent → shows "Typing a response..." not "Searching..."
+      await sendAIResponseWithTyping(naturalResponse, consultant, queryText, undefined, analysis.intent);
 
       // Track conversation context
       conversationContext.addInteraction(analysis.intent, naturalResponse, queryText);
@@ -545,7 +638,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       await sendAIResponseWithTyping(searchInitMessage, consultant, queryText, {
         isSearching: true
-      });
+      }, 'flight-search');
 
       setIsSearchingFlights(true);
 
@@ -608,7 +701,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             ? "Não consegui encontrar voos correspondentes aos seus critérios. Você poderia fornecer mais detalhes como cidade de origem, destino e datas de viagem?"
             : "No pude encontrar vuelos que coincidan con tus criterios. ¿Podrías proporcionar más detalles como la ciudad de origen, el destino y las fechas de viaje?";
 
-          await sendAIResponseWithTyping(errorContent, consultant, queryText);
+          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
         }
       } catch (error) {
         console.error('Flight search error:', error);
@@ -621,7 +714,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           ? "Encontrei um erro ao pesquisar voos. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar vuelos. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
-        await sendAIResponseWithTyping(errorContent, consultant, queryText);
+        await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
       }
     }
 
@@ -637,7 +730,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       await sendAIResponseWithTyping(searchInitMessage, consultant, queryText, {
         isSearching: true
-      });
+      }, 'hotel-search');
 
       try {
         const response = await fetch('/api/ai/search-hotels', {
@@ -706,7 +799,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             ? "Não consegui encontrar hotéis correspondentes à sua solicitação. Você poderia fornecer a cidade, data de check-in, data de check-out e número de hóspedes?"
             : "No pude encontrar hoteles que coincidan con tu solicitud. ¿Podrías proporcionar la ciudad, fecha de entrada, fecha de salida y número de huéspedes?";
 
-          await sendAIResponseWithTyping(errorContent, consultant, queryText);
+          await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'question');
         }
       } catch (error) {
         console.error('Hotel search error:', error);
@@ -718,7 +811,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           ? "Encontrei um erro ao pesquisar hotéis. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar hoteles. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
-        await sendAIResponseWithTyping(errorContent, consultant, queryText);
+        await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
       }
     } else if (!isFlightQuery && !isHotelQuery) {
       // SERVICE REQUEST OR GENERAL INQUIRY
@@ -741,7 +834,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         responseContent = generateAIResponse(queryText, language, consultant);
       }
 
-      await sendAIResponseWithTyping(responseContent, consultant, queryText);
+      await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
 
       // Track conversation context
       conversationContext.addInteraction(
@@ -778,8 +871,360 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
   };
 
-  const handleFlightSelect = (flightId: string) => {
-    router.push(`/flights/results?flightId=${flightId}`);
+  // ============================================================================
+  // E2E BOOKING FLOW HANDLERS
+  // ============================================================================
+
+  /**
+   * HANDLE BOOKING FLIGHT SELECT
+   * User clicks a flight → Load fares → Show fare selector widget
+   *
+   * REPLACES the old handleFlightSelect that redirected to /flights/results
+   */
+  const handleFlightSelect = async (flightId: string) => {
+    try {
+      // Find the selected flight from messages
+      let selectedFlight: FlightOption | null = null;
+
+      for (const message of messages) {
+        if (message.flightResults) {
+          const flight = message.flightResults.find((f: any) => f.id === flightId);
+          if (flight) {
+            // Transform FlightSearchResult to FlightOption
+            selectedFlight = {
+              id: flight.id,
+              offerId: flight.id, // Use ID as offerId for now
+              airline: flight.airline,
+              airlineLogo: '',
+              flightNumber: flight.flightNumber,
+              departure: {
+                airport: flight.departure.airport,
+                airportCode: flight.departure.airport.split(' ')[0] || 'JFK',
+                time: flight.departure.time,
+                terminal: flight.departure.terminal,
+              },
+              arrival: {
+                airport: flight.arrival.airport,
+                airportCode: flight.arrival.airport.split(' ')[0] || 'DXB',
+                time: flight.arrival.time,
+                terminal: flight.arrival.terminal,
+              },
+              duration: flight.duration,
+              stops: flight.stops,
+              stopDetails: flight.stopover || (flight.stops === 0 ? 'Non-stop' : `${flight.stops} stop(s)`),
+              price: parseFloat(flight.price.amount),
+              currency: flight.price.currency,
+              cabinClass: flight.cabinClass,
+              availableSeats: flight.seatsAvailable,
+            };
+            break;
+          }
+        }
+      }
+
+      if (!selectedFlight) {
+        console.error('Flight not found:', flightId);
+        return;
+      }
+
+      console.log('✈️  User selected flight:', selectedFlight.airline, selectedFlight.flightNumber);
+
+      // Create booking in state
+      const bookingId = bookingFlow.createBooking(selectedFlight, {
+        origin: selectedFlight.departure.airportCode,
+        destination: selectedFlight.arrival.airportCode,
+        departureDate: new Date().toISOString().split('T')[0],
+        passengers: 1,
+        class: 'economy',
+      });
+
+      // Show thinking/typing indicator
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      setCurrentTypingConsultant(consultant);
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Let me get you the best fare options...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Load fare options from API
+      const fares = await bookingFlow.loadFareOptions(selectedFlight.offerId);
+
+      if (fares.length === 0) {
+        // Fallback: show error message
+        const errorMsg: Message = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: "I apologize, but I couldn't load the fare options. Please try selecting another flight.",
+          consultant,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        setIsTyping(false);
+        return;
+      }
+
+      // Send message with fare selector widget
+      const fareMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `Perfect choice! The **${selectedFlight.airline} ${selectedFlight.flightNumber}** from ${selectedFlight.departure.airportCode} to ${selectedFlight.arrival.airportCode} is available. Now, let's choose your fare class:`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'fare_selector',
+          data: { fares },
+        },
+        bookingRef: bookingId,
+      };
+
+      setMessages(prev => [...prev, fareMessage]);
+      setIsTyping(false);
+      bookingFlow.advanceStage('fare_selection');
+
+      console.log('✅ Fare selector widget shown');
+    } catch (error) {
+      console.error('❌ Error in handleFlightSelect:', error);
+      setIsTyping(false);
+    }
+  };
+
+  /**
+   * HANDLE FARE SELECT
+   * User selects fare class → Load seat map → Show seat selection widget
+   */
+  const handleFareSelect = async (fareId: string) => {
+    try {
+      // Find fare from message widget data
+      let selectedFare: FareOption | null = null;
+      for (const message of messages) {
+        if (message.widget?.type === 'fare_selector' && message.widget.data?.fares) {
+          selectedFare = message.widget.data.fares.find((f: FareOption) => f.id === fareId);
+          if (selectedFare) break;
+        }
+      }
+
+      if (!selectedFare || !bookingFlow.activeBooking) {
+        console.error('Fare not found or no active booking');
+        return;
+      }
+
+      console.log('💺 User selected fare:', selectedFare.name, '$' + selectedFare.price);
+
+      // Update booking state
+      bookingFlow.updateFare(bookingFlow.activeBooking.id, selectedFare);
+
+      // Show typing indicator
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Loading seat map...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Load seat map from API
+      const seats = await bookingFlow.loadSeatMap(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+      // Send message with seat map widget
+      const seatMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `Great choice! You've selected the **${selectedFare.name}** fare. Would you like to choose your seat now, or skip this step?`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'seat_map',
+          data: { seats },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, seatMessage]);
+      setIsTyping(false);
+      bookingFlow.advanceStage('seat_selection');
+
+      console.log('✅ Seat map widget shown');
+    } catch (error) {
+      console.error('❌ Error in handleFareSelect:', error);
+      setIsTyping(false);
+    }
+  };
+
+  /**
+   * HANDLE SEAT SELECT
+   * User selects seat → Load baggage options → Show baggage widget
+   */
+  const handleSeatSelect = async (seatNumber: string) => {
+    try {
+      // Find seat from message widget data
+      let selectedSeat: SeatOption | null = null;
+      for (const message of messages) {
+        if (message.widget?.type === 'seat_map' && message.widget.data?.seats) {
+          selectedSeat = message.widget.data.seats.find((s: SeatOption) => s.number === seatNumber);
+          if (selectedSeat) break;
+        }
+      }
+
+      if (!selectedSeat || !bookingFlow.activeBooking) {
+        console.error('Seat not found or no active booking');
+        return;
+      }
+
+      console.log('🪑 User selected seat:', seatNumber, '$' + selectedSeat.price);
+
+      // Update booking state
+      bookingFlow.updateSeat(bookingFlow.activeBooking.id, seatNumber, selectedSeat.price);
+
+      // Load baggage options
+      const baggage = await bookingFlow.loadBaggageOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+      // Send message with baggage widget
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const baggageMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `Perfect! Seat **${seatNumber}** is now reserved for you. Would you like to add checked baggage?`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'baggage_selector',
+          data: { baggage },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, baggageMessage]);
+      bookingFlow.advanceStage('baggage_selection');
+
+      console.log('✅ Baggage widget shown');
+    } catch (error) {
+      console.error('❌ Error in handleSeatSelect:', error);
+    }
+  };
+
+  /**
+   * HANDLE SKIP SEATS
+   * User skips seat selection → Go to baggage
+   */
+  const handleSkipSeats = async () => {
+    try {
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking');
+        return;
+      }
+
+      console.log('➡️  User skipped seat selection');
+
+      // Load baggage options
+      const baggage = await bookingFlow.loadBaggageOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+      // Send message with baggage widget
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const baggageMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: "No problem! Seats will be assigned at check-in. Would you like to add checked baggage?",
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'baggage_selector',
+          data: { baggage },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, baggageMessage]);
+      bookingFlow.advanceStage('baggage_selection');
+
+      console.log('✅ Baggage widget shown (seats skipped)');
+    } catch (error) {
+      console.error('❌ Error in handleSkipSeats:', error);
+    }
+  };
+
+  /**
+   * HANDLE BAGGAGE SELECT
+   * User selects baggage → Show booking summary
+   */
+  const handleBaggageSelect = async (quantity: number, price: number) => {
+    try {
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking');
+        return;
+      }
+
+      console.log('🧳 User selected baggage:', quantity, 'bags, $' + price);
+
+      // Update booking state
+      bookingFlow.updateBaggage(bookingFlow.activeBooking.id, quantity, price);
+
+      // Show booking summary
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const summaryMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `Excellent! Here's your booking summary. Please review the details and total price:`,
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'booking_summary',
+          data: { booking: bookingFlow.activeBooking },
+        },
+        bookingRef: bookingFlow.activeBooking.id,
+      };
+
+      setMessages(prev => [...prev, summaryMessage]);
+      bookingFlow.advanceStage('review');
+
+      console.log('✅ Booking summary shown');
+    } catch (error) {
+      console.error('❌ Error in handleBaggageSelect:', error);
+    }
+  };
+
+  /**
+   * HANDLE CONFIRM BOOKING
+   * User confirms → Proceed to payment (Phase 5)
+   */
+  const handleConfirmBooking = async () => {
+    try {
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking');
+        return;
+      }
+
+      console.log('✅ User confirmed booking');
+
+      // TODO: Phase 5 - Payment Integration
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const confirmMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: "Great! Payment integration is coming in Phase 5. For now, your booking details have been saved.",
+        consultant,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, confirmMessage]);
+      bookingFlow.advanceStage('payment');
+    } catch (error) {
+      console.error('❌ Error in handleConfirmBooking:', error);
+    }
+  };
+
+  /**
+   * HANDLE EDIT BOOKING
+   * User wants to edit → Go back to previous step
+   */
+  const handleEditBooking = (editType: 'flight' | 'fare' | 'seat' | 'baggage') => {
+    console.log('✏️  User wants to edit:', editType);
+    // TODO: Implement edit flow - reload relevant widget
   };
 
   const handleSeeMoreFlights = () => {
@@ -848,6 +1293,69 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   const handleDismissRecoveryBanner = () => {
     setShowRecoveryBanner(false);
+  };
+
+  // ============================================================================
+  // WIDGET RENDERING
+  // ============================================================================
+
+  /**
+   * Render booking flow widgets
+   */
+  const renderWidget = (message: Message) => {
+    if (!message.widget) return null;
+
+    const { type, data } = message.widget;
+
+    switch (type) {
+      case 'fare_selector':
+        return (
+          <InlineFareSelector
+            fares={data.fares || []}
+            onSelect={handleFareSelect}
+          />
+        );
+
+      case 'seat_map':
+        return (
+          <CompactSeatMap
+            seats={data.seats || []}
+            onSelect={handleSeatSelect}
+            onSkip={handleSkipSeats}
+          />
+        );
+
+      case 'baggage_selector':
+        return (
+          <BaggageUpsellWidget
+            options={data.baggage || []}
+            onSelect={(quantity) => {
+              const selectedBaggage = (data.baggage || []).find((b: BaggageOption) => b.quantity === quantity);
+              const price = selectedBaggage?.price || 0;
+              handleBaggageSelect(quantity, price);
+            }}
+          />
+        );
+
+      case 'booking_summary':
+        return (
+          <BookingSummaryCard
+            booking={data.booking}
+            onConfirm={handleConfirmBooking}
+            onEdit={(section: 'flight' | 'fare' | 'baggage' | 'seats') => {
+              handleEditBooking(section === 'seats' ? 'seat' : section);
+            }}
+          />
+        );
+
+      case 'progress':
+        return (
+          <ProgressIndicator progress={data.progress} />
+        );
+
+      default:
+        return null;
+    }
   };
 
   if (!isOpen) {
@@ -1011,37 +1519,42 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                   return null;
                 })}
 
-                {/* Enhanced Typing Indicator */}
-                {isTyping && typingState && (
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                      {typingState.phase === 'thinking' ? (
-                        <Bot className="w-4 h-4 text-white animate-pulse" />
-                      ) : (
-                        <Bot className="w-4 h-4 text-white" />
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1">
+                {/* E2E Booking Flow Widgets */}
+                {messages.map((message) => {
+                  if (message.widget) {
+                    return (
+                      <div key={`widget-${message.id}`} className="mt-3">
+                        {renderWidget(message)}
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Enhanced Typing Indicator - Context-Aware */}
+                {isTyping && currentTypingConsultant && typingState && (
+                  <div className="flex gap-3 animate-fade-in">
+                    <ConsultantAvatar
+                      consultantId={currentTypingConsultant.id}
+                      name={currentTypingConsultant.name}
+                      size="sm"
+                      showStatus={true}
+                    />
+                    <div className="flex flex-col gap-1 flex-1">
                       <p className="text-[10px] text-gray-500 px-1 font-medium">
-                        {(typingState.phase === 'thinking' || typingState.phase === 'typing')
-                          ? getTypingIndicatorText(typingState.phase, typingState.consultantName, language)
-                          : t.typing}
+                        {currentTypingConsultant.name}
                       </p>
-                      <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5">
-                        {typingState.phase === 'thinking' ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
-                            <span className="text-xs text-gray-500">
-                              {language === 'en' ? 'Reading...' : language === 'pt' ? 'Lendo...' : 'Leyendo...'}
-                            </span>
+                      <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2.5 max-w-[280px]">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-0.5">
+                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce" />
+                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                            <div className="w-1.5 h-1.5 bg-primary-500 rounded-full animate-bounce [animation-delay:0.4s]" />
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
-                          </div>
-                        )}
+                          <span className="text-xs text-gray-600">
+                            {typingState.contextMessage || 'Typing...'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1070,65 +1583,66 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Progressive Auth Prompt */}
+              {/* Ultra-Compact Auth Prompt - Redesigned for better UX */}
               {showAuthPrompt && !userSession.isAuthenticated && (
-                <div className="mx-4 my-3 p-4 bg-gradient-to-br from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-xl animate-fadeIn">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-700 mb-3 whitespace-pre-line">
+                <div className="mx-3 my-2 px-3 py-2 bg-gradient-to-r from-primary-50 to-secondary-50 border border-primary-300 rounded-lg animate-fadeIn">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Sparkles className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                      <p className="text-[10px] text-gray-700 font-medium line-clamp-1">
                         {authPromptMessage}
                       </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            analytics.trackAuthPromptClicked('signup');
-                            setShowAuthPrompt(false);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-colors"
-                        >
-                          <UserPlus className="w-3.5 h-3.5" />
-                          <span>{t.signUp}</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            analytics.trackAuthPromptClicked('login');
-                            setShowAuthPrompt(false);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border-2 border-primary-600 text-primary-600 text-xs font-semibold rounded-lg transition-colors"
-                        >
-                          <LogIn className="w-3.5 h-3.5" />
-                          <span>{t.signIn}</span>
-                        </button>
-                      </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        analytics.trackAuthPromptClicked('dismiss');
-                        setShowAuthPrompt(false);
-                      }}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => {
+                          analytics.trackAuthPromptClicked('signup');
+                          router.push('/auth/signup');
+                          setShowAuthPrompt(false);
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold rounded transition-colors"
+                      >
+                        <UserPlus className="w-2.5 h-2.5" />
+                        <span className="hidden sm:inline">Sign Up</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          analytics.trackAuthPromptClicked('login');
+                          router.push('/auth/signin');
+                          setShowAuthPrompt(false);
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-gray-50 border border-primary-600 text-primary-600 text-[10px] font-semibold rounded transition-colors"
+                      >
+                        <LogIn className="w-2.5 h-2.5" />
+                        <span className="hidden sm:inline">Sign In</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          analytics.trackAuthPromptClicked('dismiss');
+                          setShowAuthPrompt(false);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                        title="Dismiss"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Quick Actions */}
+              {/* Quick Actions - Compact Horizontal Pills */}
               {messages.length === 1 && (
-                <div className="px-4 py-3 bg-white border-t border-gray-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-2">
+                <div className="px-3 py-2 bg-white border-t border-gray-100">
+                  <p className="text-[10px] font-semibold text-gray-500 mb-1.5">
                     {t.quickActions}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {t.quickQuestions.map((question, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleQuickQuestion(question)}
-                        className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                        className="text-[11px] px-2.5 py-1 bg-gray-50 hover:bg-primary-50 border border-gray-200 hover:border-primary-300 text-gray-700 hover:text-primary-700 rounded-full transition-colors"
                       >
                         {question}
                       </button>
@@ -1137,31 +1651,35 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 </div>
               )}
 
-              {/* Contact Support Banner */}
-              <div className="px-4 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
-                <p className="text-[11px] text-gray-600 mb-2 text-center font-medium">
+              {/* Ultra-Compact Contact Support - Only show after 3+ messages */}
+              {messages.length >= 3 && (
+              <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between animate-fadeIn">
+                <p className="text-[9px] text-gray-500 font-medium">
                   {t.contactSupport}
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-1.5">
                   <a
                     href="tel:+13322200838"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    title="Call Us"
+                    className="flex items-center gap-1 px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold rounded transition-colors"
                   >
-                    <Phone className="w-3 h-3" />
-                    <span>{t.callUs}</span>
+                    <Phone className="w-2.5 h-2.5" />
+                    <span className="hidden sm:inline">{t.callUs}</span>
                   </a>
                   <a
                     href="mailto:support@fly2any.com"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary-600 hover:bg-secondary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    title="Email Us"
+                    className="flex items-center gap-1 px-2 py-1 bg-secondary-600 hover:bg-secondary-700 text-white text-[10px] font-semibold rounded transition-colors"
                   >
-                    <Mail className="w-3 h-3" />
-                    <span>{t.emailUs}</span>
+                    <Mail className="w-2.5 h-2.5" />
+                    <span className="hidden sm:inline">{t.emailUs}</span>
                   </a>
                 </div>
               </div>
+              )}
 
-              {/* Input Area */}
-              <div className="p-4 bg-white border-t border-gray-200">
+              {/* Input Area - Enhanced Visual Prominence */}
+              <div className="p-4 bg-white border-t-2 border-primary-100">
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}
@@ -1170,21 +1688,22 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={t.placeholder}
-                    className="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors text-sm"
+                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all text-sm placeholder:text-gray-400 hover:border-gray-400"
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center gap-2 font-semibold text-sm disabled:cursor-not-allowed"
+                    className="px-5 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl transition-all duration-200 flex items-center gap-2 font-semibold text-sm disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
                   >
                     {isTyping ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <Send className="w-5 h-5" />
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-2 text-center">
+                <p className="text-[10px] text-gray-400 mt-2.5 text-center flex items-center justify-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                   {t.poweredBy}
                 </p>
               </div>
@@ -1262,6 +1781,66 @@ function detectHotelSearchIntent(userMessage: string): boolean {
   const hasDateKeyword = dateKeywords.some(keyword => msg.includes(keyword));
 
   return hasHotelKeyword && (hasLocationKeyword || hasDateKeyword);
+}
+
+/**
+ * Extract search context from user message for handoff
+ * Parses key information (locations, dates, guests) to pass to new agent
+ */
+function extractSearchContext(userMessage: string, team: string): any {
+  const msg = userMessage.toLowerCase();
+
+  // Flight context extraction
+  if (team === 'flight-operations') {
+    // Try to extract origin and destination
+    const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to|\s+on|\s+in|\s*$)/i);
+    const toMatch = msg.match(/to\s+([a-z\s]+?)(?:\s+on|\s+in|\s+from|\s*$)/i);
+
+    // Try to extract dates
+    const dateMatch = msg.match(/(?:on|in|for)\s+([a-z]+\s+\d+|\d+\/\d+|next\s+\w+|tomorrow|today)/i);
+
+    // Try to extract passengers
+    const passengersMatch = msg.match(/(\d+)\s+(?:passenger|person|people|traveler)/i);
+
+    // Try to extract cabin class
+    const hasBusinessClass = msg.includes('business') || msg.includes('first class');
+    const hasEconomyClass = msg.includes('economy') || msg.includes('coach');
+
+    const context: any = {};
+    if (fromMatch) context.origin = fromMatch[1].trim();
+    if (toMatch) context.destination = toMatch[1].trim();
+    if (dateMatch) context.departureDate = dateMatch[1].trim();
+    if (passengersMatch) context.passengers = parseInt(passengersMatch[1]);
+    if (hasBusinessClass) context.cabinClass = 'business';
+    else if (hasEconomyClass) context.cabinClass = 'economy';
+
+    return Object.keys(context).length > 0 ? context : null;
+  }
+
+  // Hotel context extraction
+  if (team === 'hotel-accommodations') {
+    // Try to extract city
+    const inMatch = msg.match(/(?:in|at|near)\s+([a-z\s]+?)(?:\s+from|\s+for|\s+on|\s*$)/i);
+
+    // Try to extract dates
+    const checkInMatch = msg.match(/(?:from|check\s*in|checkin)\s+([a-z]+\s+\d+|\d+\/\d+)/i);
+    const checkOutMatch = msg.match(/(?:to|check\s*out|checkout|until)\s+([a-z]+\s+\d+|\d+\/\d+)/i);
+
+    // Try to extract guests
+    const guestsMatch = msg.match(/(\d+)\s+(?:guest|person|people)/i);
+    const roomsMatch = msg.match(/(\d+)\s+room/i);
+
+    const context: any = {};
+    if (inMatch) context.city = inMatch[1].trim();
+    if (checkInMatch) context.checkIn = checkInMatch[1].trim();
+    if (checkOutMatch) context.checkOut = checkOutMatch[1].trim();
+    if (guestsMatch) context.guests = parseInt(guestsMatch[1]);
+    if (roomsMatch) context.rooms = parseInt(roomsMatch[1]);
+
+    return Object.keys(context).length > 0 ? context : null;
+  }
+
+  return null;
 }
 
 /**
