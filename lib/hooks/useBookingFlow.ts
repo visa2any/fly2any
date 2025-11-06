@@ -17,6 +17,33 @@ import {
   BOOKING_FLOW_STAGES_CONFIG,
 } from '@/types/booking-flow';
 
+export interface PassengerInfo {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  email: string;
+  phone: string;
+  gender: 'male' | 'female';
+  title: 'mr' | 'mrs' | 'ms' | 'miss';
+  passportNumber?: string;
+  passportExpiryDate?: string;
+  nationality?: string;
+}
+
+interface PaymentIntentResult {
+  paymentIntentId: string;
+  clientSecret: string;
+  amount: number;
+  currency: string;
+}
+
+interface BookingResult {
+  bookingReference: string;
+  pnr: string;
+  duffelOrderId?: string;
+  status: string;
+}
+
 interface BookingFlowHook {
   // State
   activeBooking: BookingState | null;
@@ -42,6 +69,12 @@ interface BookingFlowHook {
 
   // Validation
   validateBooking: (requiredFields: string[]) => boolean;
+
+  // PHASE 5: Passenger & Payment Methods
+  updatePassengers: (bookingId: string, passengers: PassengerInfo[]) => void;
+  createPaymentIntent: (bookingId: string) => Promise<PaymentIntentResult>;
+  confirmPayment: (bookingId: string, paymentIntentId: string) => void;
+  createOrder: (bookingId: string) => Promise<BookingResult>;
 }
 
 export function useBookingFlow(): BookingFlowHook {
@@ -409,6 +442,204 @@ export function useBookingFlow(): BookingFlowHook {
     [activeBooking]
   );
 
+  /**
+   * PHASE 5: UPDATE PASSENGERS
+   * Store passenger information in booking state
+   */
+  const updatePassengers = useCallback(
+    (bookingId: string, passengers: PassengerInfo[]) => {
+      setActiveBooking(prev => {
+        if (!prev || prev.id !== bookingId) return prev;
+
+        const updated: BookingState = {
+          ...prev,
+          passengers: passengers.map((p, idx) => ({
+            id: `passenger_${idx + 1}`,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            dateOfBirth: p.dateOfBirth,
+            email: p.email,
+            phone: p.phone,
+            gender: p.gender,
+            title: p.title,
+            passportNumber: p.passportNumber,
+            passportExpiryDate: p.passportExpiryDate,
+            nationality: p.nationality,
+          })),
+          updatedAt: new Date(),
+        };
+
+        // Save to localStorage
+        localStorage.setItem('activeBooking', JSON.stringify(updated));
+
+        return updated;
+      });
+    },
+    []
+  );
+
+  /**
+   * PHASE 5: CREATE PAYMENT INTENT
+   * Call Stripe API to create payment intent
+   */
+  const createPaymentIntent = useCallback(
+    async (bookingId: string): Promise<PaymentIntentResult> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const booking = activeBooking;
+        if (!booking || booking.id !== bookingId) {
+          throw new Error('Booking not found');
+        }
+
+        if (!booking.passengers || booking.passengers.length === 0) {
+          throw new Error('Passenger details required');
+        }
+
+        const response = await fetch('/api/payments/create-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: booking.pricing.total,
+            currency: booking.pricing.currency,
+            bookingReference: booking.id,
+            customerEmail: booking.passengers[0].email,
+            customerName: `${booking.passengers[0].firstName} ${booking.passengers[0].lastName}`,
+            description: `Flight booking ${booking.selectedFlight?.airline} ${booking.selectedFlight?.flightNumber}`,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to create payment intent');
+        }
+
+        const data = await response.json();
+
+        setIsLoading(false);
+        return data.paymentIntent;
+      } catch (err: any) {
+        setIsLoading(false);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [activeBooking]
+  );
+
+  /**
+   * PHASE 5: CONFIRM PAYMENT
+   * Mark payment as confirmed in booking state
+   */
+  const confirmPayment = useCallback(
+    (bookingId: string, paymentIntentId: string) => {
+      setActiveBooking(prev => {
+        if (!prev || prev.id !== bookingId) return prev;
+
+        const updated: BookingState = {
+          ...prev,
+          paymentIntentId,
+          paymentStatus: 'confirmed',
+          updatedAt: new Date(),
+        };
+
+        localStorage.setItem('activeBooking', JSON.stringify(updated));
+
+        return updated;
+      });
+    },
+    []
+  );
+
+  /**
+   * PHASE 5: CREATE ORDER
+   * Call Duffel API to create the actual booking
+   */
+  const createOrder = useCallback(
+    async (bookingId: string): Promise<BookingResult> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const booking = activeBooking;
+        if (!booking || booking.id !== bookingId) {
+          throw new Error('Booking not found');
+        }
+
+        if (!booking.passengers || booking.passengers.length === 0) {
+          throw new Error('Passenger details required');
+        }
+
+        if (!booking.paymentIntentId) {
+          throw new Error('Payment confirmation required');
+        }
+
+        // Prepare flight offer for API
+        const flightOffer = {
+          id: booking.selectedFlight?.offerId || '',
+          price: {
+            total: booking.pricing.baseFare.toString(),
+            base: booking.pricing.baseFare.toString(),
+            currency: booking.pricing.currency,
+          },
+          source: 'Duffel',
+          // Add required flight details from selectedFlight
+          airline: booking.selectedFlight?.airline,
+          flightNumber: booking.selectedFlight?.flightNumber,
+        };
+
+        // Call booking creation API
+        const response = await fetch('/api/flights/booking/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flightOffer,
+            passengers: booking.passengers,
+            payment: {
+              method: 'card',
+              paymentIntentId: booking.paymentIntentId,
+            },
+            contactInfo: {
+              email: booking.passengers[0].email,
+              phone: booking.passengers[0].phone,
+            },
+            seats: booking.selectedSeats,
+            addOns: booking.selectedBaggage
+              ? [
+                  {
+                    type: 'baggage',
+                    quantity: booking.selectedBaggage[0]?.quantity || 0,
+                    price: booking.selectedBaggage[0]?.price || 0,
+                  },
+                ]
+              : [],
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to create booking');
+        }
+
+        const data = await response.json();
+
+        setIsLoading(false);
+        return {
+          bookingReference: data.booking.bookingReference,
+          pnr: data.booking.pnr,
+          duffelOrderId: data.booking.duffelOrderId,
+          status: data.booking.status,
+        };
+      } catch (err: any) {
+        setIsLoading(false);
+        setError(err.message);
+        throw err;
+      }
+    },
+    [activeBooking]
+  );
+
   return {
     // State
     activeBooking,
@@ -434,5 +665,11 @@ export function useBookingFlow(): BookingFlowHook {
 
     // Validation
     validateBooking,
+
+    // PHASE 5: Passenger & Payment
+    updatePassengers,
+    createPaymentIntent,
+    confirmPayment,
+    createOrder,
   };
 }

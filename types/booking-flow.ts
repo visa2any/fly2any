@@ -113,8 +113,24 @@ export interface BookingState {
     currency: string;
   };
 
-  // Payment
+  // PHASE 5: Passengers
+  passengers?: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    email: string;
+    phone: string;
+    gender: string;
+    title: string;
+    passportNumber?: string;
+    passportExpiryDate?: string;
+    nationality?: string;
+  }>;
+
+  // PHASE 5: Payment
   paymentIntentId?: string;
+  paymentStatus?: 'pending' | 'confirmed' | 'failed';
 
   // Confirmation
   bookingReference?: string;
