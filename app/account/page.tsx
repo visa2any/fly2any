@@ -56,9 +56,10 @@ export default async function AccountPage() {
         prisma.userPreferences.findUnique({
           where: { userId: session.user.id },
         }),
-        prisma.aIConversation.count({
-          where: { userId: session.user.id },
-        }),
+        // prisma.aIConversation.count({
+        //   where: { userId: session.user.id },
+        // }),
+        0, // Temporary fix for deployment
       ]);
     }
   } catch (error) {
