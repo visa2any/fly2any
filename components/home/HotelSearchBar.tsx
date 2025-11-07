@@ -73,6 +73,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
+  const [minDate, setMinDate] = useState('');
 
   // UI State
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
@@ -84,13 +85,15 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const destinationRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
 
-  // Set default dates (tomorrow and day after)
+  // Set default dates (tomorrow and day after) - client-side only to prevent hydration errors
   useEffect(() => {
+    const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dayAfter = new Date();
     dayAfter.setDate(dayAfter.getDate() + 2);
 
+    setMinDate(today.toISOString().split('T')[0]);
     setCheckIn(tomorrow.toISOString().split('T')[0]);
     setCheckOut(dayAfter.toISOString().split('T')[0]);
   }, []);
@@ -280,7 +283,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             type="date"
             value={checkIn}
             onChange={(e) => setCheckIn(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
+            min={minDate}
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
           />
         </div>
@@ -295,7 +298,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             type="date"
             value={checkOut}
             onChange={(e) => setCheckOut(e.target.value)}
-            min={checkIn || new Date().toISOString().split('T')[0]}
+            min={checkIn || minDate}
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
           />
         </div>

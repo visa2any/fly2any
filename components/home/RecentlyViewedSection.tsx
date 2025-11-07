@@ -490,7 +490,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                     <span className="text-[11px] font-bold">{item.to}</span>
                     <span className="text-[11px]">•</span>
                     <Clock className="w-3 h-3 text-blue-300 drop-shadow-lg" strokeWidth={2.5} />
-                    <span className="text-[10px] font-semibold">{formatTimeAgo(item.viewedAt)}</span>
+                    <span className="text-[10px] font-semibold" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
                   </div>
                 ) : (
                   <div></div>
@@ -520,6 +520,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                       style={{
                         textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)'
                       }}
+                      suppressHydrationWarning
                     >
                       {formattedDates}
                     </div>

@@ -49,6 +49,7 @@ const nextConfig = {
   },
 
   images: {
+    unoptimized: false, // Keep optimization enabled
     remotePatterns: [
       // Tour images
       {
@@ -135,7 +136,7 @@ const nextConfig = {
         hostname: 'images.*.com',
       },
     ],
-    formats: ['image/avif', 'image/webp'], // Modern formats with fallback
+    formats: ['image/avif', 'image/webp'], // Modern formats (PNG works as source)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // Support up to 4K
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // Icon and thumbnail sizes
     minimumCacheTTL: 60 * 60 * 24 * 30, // Cache images for 30 days

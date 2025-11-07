@@ -134,8 +134,8 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
         const data = await response.json();
 
         // Transform API data to match CarRental interface
-        const transformedCars: CarRental[] = (data.data || []).map((car: any) => ({
-          id: car.id || Math.random().toString(),
+        const transformedCars: CarRental[] = (data.data || []).map((car: any, index: number) => ({
+          id: car.id || `car-${location}-${index}-${car.type || 'vehicle'}`,
           type: car.type || car.category || 'Standard',
           model: car.model || car.vehicle?.model || 'Vehicle',
           company: car.company || car.vendor?.name || 'Unknown',
