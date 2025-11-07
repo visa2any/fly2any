@@ -61,11 +61,11 @@ export const DIALOGUE_TEMPLATES: Record<TeamType, DialogueSet> = {
   'customer-service': {
     // Lisa Thompson - Very warm, maternal, enthusiastic
     greetings: [
-      "Hi there, sweetie! 😊 How are you doing today?",
+      "Hi there, sweetie! 😊 Welcome to Fly2Any! How are you doing today?",
       "Hello, hon! So lovely to hear from you! 💕",
       "Hey there, dear! Hope you're having a wonderful day! ✨",
-      "Welcome back! It's so good to see you again! 💖",
-      "Hi! I'm so glad you reached out to us! 🎧",
+      "Welcome back to Fly2Any! It's so good to see you again! 💖",
+      "Hi! I'm so glad you reached out to Fly2Any! 🎧",
     ],
 
     howAreYou: [
@@ -199,10 +199,10 @@ export const DIALOGUE_TEMPLATES: Record<TeamType, DialogueSet> = {
     ],
 
     reassurance: [
-      "Don't you worry, hon! We've got this! 💪",
+      "Don't you worry, hon! We've got this at Fly2Any! 💪",
       "Everything is going to be just fine, sweetie! 💕",
-      "You're in good hands, dear! I promise! ✨",
-      "We'll take care of you! That's what family does! 💖",
+      "You're in good hands with Fly2Any, dear! I promise! ✨",
+      "We'll take care of you! That's what we do at Fly2Any! 💖",
     ],
 
     celebration: [
@@ -244,9 +244,9 @@ export const DIALOGUE_TEMPLATES: Record<TeamType, DialogueSet> = {
   'flight-operations': {
     // Sarah Chen - Professional, efficient, knowledgeable
     greetings: [
-      "Hello! Great to see you. How can I help you fly today?",
-      "Hi! I'm Sarah, ready to help you find the perfect flight.",
-      "Welcome! Let's find you some excellent flight options.",
+      "Hello! Great to see you at Fly2Any. How can I help you fly today?",
+      "Hi! I'm Sarah from Fly2Any, ready to help you find the perfect flight.",
+      "Welcome to Fly2Any! Let's find you some excellent flight options.",
       "Good to see you! What route are you looking to fly?",
       "Hello! I'll help you navigate today's flight options.",
     ],
@@ -411,10 +411,10 @@ export const DIALOGUE_TEMPLATES: Record<TeamType, DialogueSet> = {
     ],
 
     farewells: [
-      "Have a great flight!",
-      "Safe travels!",
+      "Have a great flight! Thank you for choosing Fly2Any!",
+      "Safe travels from all of us at Fly2Any!",
       "Enjoy your trip!",
-      "Happy flying!",
+      "Happy flying! We're here 24/7 if you need anything!",
     ],
 
     encouragement: [
