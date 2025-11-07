@@ -47,9 +47,11 @@ export default function LanguageDetectionDemoPage() {
   };
 
   const resetDemo = () => {
-    // Clear all storage
-    localStorage.removeItem('fly2any_language_detection_dismissed');
-    sessionStorage.removeItem('fly2any_language_popup_shown');
+    // Clear all storage (only in browser)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('fly2any_language_detection_dismissed');
+      sessionStorage.removeItem('fly2any_language_popup_shown');
+    }
     setShowPopup(false);
     setDetectionResults(null);
     setTestInput('');
@@ -86,7 +88,7 @@ export default function LanguageDetectionDemoPage() {
             <div className="bg-pink-50 rounded-lg p-4">
               <p className="text-sm text-gray-600 mb-1">Session Shown</p>
               <p className="text-2xl font-bold text-pink-600">
-                {sessionStorage.getItem('fly2any_language_popup_shown') ? 'Yes' : 'No'}
+                {typeof window !== 'undefined' && sessionStorage.getItem('fly2any_language_popup_shown') ? 'Yes' : 'No'}
               </p>
             </div>
           </div>

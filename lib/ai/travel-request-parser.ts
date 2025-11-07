@@ -34,7 +34,7 @@ export interface ParsedTravelRequest {
 }
 
 // Comprehensive list of major airports and cities
-const LOCATION_DATABASE = {
+const LOCATION_DATABASE: Record<string, any> = {
   // North America - USA
   'nyc': { city: 'New York', airports: ['JFK', 'LGA', 'EWR'], country: 'USA' },
   'new york': { city: 'New York', airports: ['JFK', 'LGA', 'EWR'], country: 'USA' },
@@ -81,7 +81,7 @@ const LOCATION_DATABASE = {
 };
 
 // Month names and variations
-const MONTH_PATTERNS = {
+const MONTH_PATTERNS: Record<string, number> = {
   'january': 1, 'jan': 1,
   'february': 2, 'feb': 2,
   'march': 3, 'mar': 3,

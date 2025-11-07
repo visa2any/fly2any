@@ -74,68 +74,36 @@ export function ConsultantHandoffAnimation({
     };
   }, [FADE_OUT_DURATION, CONNECTING_DURATION, FADE_IN_DURATION, onComplete]);
 
-  // Animation variants for reduced motion
-  const getVariants = () => {
-    if (shouldReduceMotion) {
-      return {
-        fadeOut: {
-          initial: { opacity: 1 },
-          animate: { opacity: 1 },
-          exit: { opacity: 0 },
-        },
-        connecting: {
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          exit: { opacity: 0 },
-        },
-        fadeIn: {
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          exit: { opacity: 0 },
-        },
-      };
-    }
-
-    return {
-      fadeOut: {
-        initial: { opacity: 1, y: 0 },
-        animate: { opacity: 1, y: 0 },
-        exit: {
-          opacity: 0,
-          y: -20,
-          transition: { duration: 0.8, ease: 'easeInOut' }
-        },
-      },
-      connecting: {
-        initial: { opacity: 0, scale: 0.8 },
-        animate: {
-          opacity: 1,
-          scale: 1,
-          transition: { duration: 0.3, ease: 'easeOut' }
-        },
-        exit: {
-          opacity: 0,
-          scale: 0.8,
-          transition: { duration: 0.3, ease: 'easeIn' }
-        },
-      },
-      fadeIn: {
-        initial: { opacity: 0, y: 20, scale: 0.95 },
-        animate: {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          transition: {
-            duration: 0.8,
-            ease: [0.34, 1.56, 0.64, 1], // Bounce easing
-          }
-        },
-        exit: { opacity: 0 },
-      },
-    };
+  // Simple animation config (without variants to avoid TypeScript issues)
+  const fadeOutAnimation = shouldReduceMotion ? {
+    initial: { opacity: 1 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  } : {
+    initial: { opacity: 1, y: 0 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.8 } },
   };
 
-  const variants = getVariants();
+  const connectingAnimation = shouldReduceMotion ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  } : {
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } },
+  };
+
+  const fadeInAnimation = shouldReduceMotion ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  } : {
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8 } },
+    exit: { opacity: 0 },
+  };
 
   return (
     <div className="relative w-full min-h-[200px] flex items-center justify-center p-6">
@@ -145,17 +113,14 @@ export function ConsultantHandoffAnimation({
           <motion.div
             key="fadeOut"
             className="absolute inset-0 flex flex-col items-center justify-center text-center"
-            variants={variants.fadeOut}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+            {...fadeOutAnimation}
           >
             {/* From Consultant Avatar */}
             <motion.div
               className="text-7xl mb-4"
               animate={shouldReduceMotion ? {} : {
                 scale: [1, 1.1, 1],
-                transition: { duration: 0.6, ease: 'easeInOut' }
+                transition: { duration: 0.6, ease: [0.42, 0, 0.58, 1] } // easeInOut
               }}
             >
               {fromConsultant.avatar}
@@ -178,10 +143,7 @@ export function ConsultantHandoffAnimation({
           <motion.div
             key="connecting"
             className="absolute inset-0 flex flex-col items-center justify-center text-center"
-            variants={variants.connecting}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+            {...connectingAnimation}
           >
             {/* Pulse Animation */}
             <div className="relative">
@@ -192,7 +154,7 @@ export function ConsultantHandoffAnimation({
                   transition: {
                     duration: 0.5,
                     repeat: Infinity,
-                    ease: 'easeInOut',
+                    ease: [0.42, 0, 0.58, 1], // easeInOut
                   }
                 }}
               >
@@ -210,7 +172,7 @@ export function ConsultantHandoffAnimation({
                   transition={{
                     duration: 0.5,
                     repeat: Infinity,
-                    ease: 'easeOut',
+                    ease: [0, 0, 0.58, 1], // easeOut
                   }}
                 />
               )}
@@ -224,7 +186,7 @@ export function ConsultantHandoffAnimation({
                 transition: {
                   duration: 1,
                   repeat: Infinity,
-                  ease: 'easeInOut',
+                  ease: [0.42, 0, 0.58, 1], // easeInOut
                 }
               }}
             >
@@ -238,10 +200,7 @@ export function ConsultantHandoffAnimation({
           <motion.div
             key="fadeIn"
             className="absolute inset-0 flex flex-col items-center justify-center text-center"
-            variants={variants.fadeIn}
-            initial="initial"
-            animate="animate"
-            exit="exit"
+            {...fadeInAnimation}
           >
             {/* To Consultant Avatar with bounce */}
             <motion.div
@@ -251,7 +210,7 @@ export function ConsultantHandoffAnimation({
                 transition: {
                   duration: 0.6,
                   delay: 0.2,
-                  ease: 'easeInOut'
+                  ease: [0.42, 0, 0.58, 1] // easeInOut
                 }
               }}
             >

@@ -77,7 +77,7 @@ export function handleError(context: ErrorContext): ErrorResponse {
  * When external flight/hotel APIs fail
  */
 function handleAPIFailure(context: ErrorContext): ErrorResponse {
-  const messages = {
+  const messages: Partial<Record<TeamType, string[]>> & { default: string[] } = {
     'flight-operations': [
       "I'm having trouble connecting to our flight search system right now. Let me try an alternative approach.",
       "Our primary flight search is temporarily unavailable. I can still help you - let me check our backup systems.",
@@ -95,7 +95,7 @@ function handleAPIFailure(context: ErrorContext): ErrorResponse {
     ],
   };
 
-  const consultantMessages = messages[context.consultant] || messages['default'];
+  const consultantMessages = messages[context.consultant] || messages.default;
   const message = consultantMessages[Math.floor(Math.random() * consultantMessages.length)];
 
   return {
