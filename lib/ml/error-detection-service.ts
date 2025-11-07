@@ -120,9 +120,12 @@ class ErrorDetectionService {
           await telemetry.trackError(data.conversationId, {
             type: error.type,
             severity: error.severity,
-            message: this.formatErrorMessage(error),
             timestamp: new Date(),
+            confidence: error.confidence,
             context: error.context,
+            suggestedFix: error.suggestedFix,
+            autoFixable: error.autoFixable,
+            fixed: false,
           });
 
           // Notify subscribers
@@ -139,13 +142,6 @@ class ErrorDetectionService {
     } catch (err) {
       console.error('[ErrorDetectionService] Error processing conversation:', err);
     }
-  }
-
-  /**
-   * Format error message for display
-   */
-  private formatErrorMessage(error: DetectedError): string {
-    return `${error.type}: ${error.context.expectedBehavior} (got: ${error.context.actualBehavior})`;
   }
 
   /**

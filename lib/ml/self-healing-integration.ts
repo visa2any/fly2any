@@ -6,7 +6,6 @@
  */
 
 import { getErrorDetectionService, type DetectedErrorWithContext } from './error-detection-service';
-import { getTelemetry } from './conversation-telemetry';
 import { healError, getSelfHealingService, type HealingResult, type HealingAction } from './self-healing';
 
 export interface AutoHealConfig {
@@ -201,16 +200,7 @@ export class AutoHealingService {
     // In real implementation, this would update the conversation state
     console.log(`[AutoHealing] Switching to language: ${action.implementation.newLanguage}`);
     console.log(`[AutoHealing] New prompt: ${action.implementation.newPrompt}`);
-
-    // Track in telemetry
-    const telemetry = getTelemetry();
-    await telemetry.trackError(error.conversationId, {
-      type: 'auto-fix-applied',
-      severity: 'low',
-      message: `Language switched to ${action.implementation.newLanguage}`,
-      timestamp: new Date(),
-      context: { fixType: 'language_switch' },
-    });
+    console.log(`[AutoHealing] Fix applied for conversation: ${error.conversationId}`);
   }
 
   /**
@@ -219,15 +209,7 @@ export class AutoHealingService {
   private async applyConsultantSwitch(action: HealingAction, error: DetectedErrorWithContext) {
     console.log(`[AutoHealing] Switching to consultant: ${action.implementation.newConsultant}`);
     console.log(`[AutoHealing] New prompt: ${action.implementation.newPrompt}`);
-
-    const telemetry = getTelemetry();
-    await telemetry.trackError(error.conversationId, {
-      type: 'auto-fix-applied',
-      severity: 'low',
-      message: `Consultant switched to ${action.implementation.newConsultant}`,
-      timestamp: new Date(),
-      context: { fixType: 'consultant_switch' },
-    });
+    console.log(`[AutoHealing] Fix applied for conversation: ${error.conversationId}`);
   }
 
   /**
@@ -235,15 +217,7 @@ export class AutoHealingService {
    */
   private async applyClarificationLoop(action: HealingAction, error: DetectedErrorWithContext) {
     console.log(`[AutoHealing] Asking clarification: ${action.implementation.clarificationQuestion}`);
-
-    const telemetry = getTelemetry();
-    await telemetry.trackError(error.conversationId, {
-      type: 'auto-fix-applied',
-      severity: 'low',
-      message: 'Clarification question sent',
-      timestamp: new Date(),
-      context: { fixType: 'clarification_loop' },
-    });
+    console.log(`[AutoHealing] Fix applied for conversation: ${error.conversationId}`);
   }
 
   /**
@@ -251,15 +225,7 @@ export class AutoHealingService {
    */
   private async applyPromptRefinement(action: HealingAction, error: DetectedErrorWithContext) {
     console.log(`[AutoHealing] Refining prompt: ${action.implementation.newPrompt?.slice(0, 100)}...`);
-
-    const telemetry = getTelemetry();
-    await telemetry.trackError(error.conversationId, {
-      type: 'auto-fix-applied',
-      severity: 'low',
-      message: 'Prompt refined',
-      timestamp: new Date(),
-      context: { fixType: 'prompt_refinement' },
-    });
+    console.log(`[AutoHealing] Fix applied for conversation: ${error.conversationId}`);
   }
 
   /**
@@ -267,15 +233,7 @@ export class AutoHealingService {
    */
   private async applyHumanEscalation(action: HealingAction, error: DetectedErrorWithContext) {
     console.log(`[AutoHealing] Escalating to human: ${action.implementation.escalationReason}`);
-
-    const telemetry = getTelemetry();
-    await telemetry.trackError(error.conversationId, {
-      type: 'auto-fix-applied',
-      severity: 'medium',
-      message: `Escalated to human: ${action.implementation.escalationReason}`,
-      timestamp: new Date(),
-      context: { fixType: 'human_escalation' },
-    });
+    console.log(`[AutoHealing] Fix applied for conversation: ${error.conversationId}`);
   }
 
   /**
