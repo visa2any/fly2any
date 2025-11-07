@@ -9,11 +9,14 @@
 
 import { useState, useEffect } from 'react';
 import { getTelemetry, type ConversationMetrics, type ConversationTelemetry } from '@/lib/ml/conversation-telemetry';
-import { AlertCircle, TrendingUp, TrendingDown, Activity, Users, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import { getErrorDetectionService, type DetectedErrorWithContext, type ErrorStatistics } from '@/lib/ml/error-detection-service';
+import { AlertCircle, TrendingUp, TrendingDown, Activity, Users, CheckCircle, XCircle, AlertTriangle, Clock, Bug, Zap } from 'lucide-react';
 
 export function ConversationMonitoringDashboard() {
   const [metrics, setMetrics] = useState<ConversationMetrics | null>(null);
   const [recentConversations, setRecentConversations] = useState<ConversationTelemetry[]>([]);
+  const [errorStats, setErrorStats] = useState<ErrorStatistics | null>(null);
+  const [recentErrors, setRecentErrors] = useState<DetectedErrorWithContext[]>([]);
   const [period, setPeriod] = useState<'hour' | 'day' | 'week' | 'month'>('day');
   const [loading, setLoading] = useState(true);
 
@@ -34,11 +37,28 @@ export function ConversationMonitoringDashboard() {
     return unsubscribe;
   }, []);
 
+  // Subscribe to real-time error detection
+  useEffect(() => {
+    const errorService = getErrorDetectionService();
+    const unsubscribe = errorService.subscribe((error) => {
+      setRecentErrors(prev => [error, ...prev].slice(0, 20));
+    });
+
+    return unsubscribe;
+  }, []);
+
   async function loadMetrics() {
     try {
       const telemetry = getTelemetry();
-      const data = await telemetry.getMetrics(period);
-      setMetrics(data);
+      const errorService = getErrorDetectionService();
+
+      const [metricsData, errorStatsData] = await Promise.all([
+        telemetry.getMetrics(period),
+        errorService.getStatistics(period),
+      ]);
+
+      setMetrics(metricsData);
+      setErrorStats(errorStatsData);
       setLoading(false);
     } catch (error) {
       console.error('Failed to load metrics:', error);
@@ -171,6 +191,107 @@ export function ConversationMonitoringDashboard() {
         </div>
       </div>
 
+      {/* Error Detection Analytics (Layer 2) */}
+      {errorStats && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <Bug className="w-6 h-6 text-red-600" />
+              Real-Time Error Detection
+              <span className="text-sm font-normal text-gray-500">(Layer 2: ML Detection)</span>
+            </h2>
+            {errorStats.totalErrors > 0 && (
+              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                {errorStats.totalErrors} errors detected
+              </span>
+            )}
+          </div>
+
+          {/* Error Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-red-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">Total Errors</span>
+                <XCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <p className="text-3xl font-bold text-red-600">{errorStats.totalErrors}</p>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">Auto-Fixable</span>
+                <Zap className="w-5 h-5 text-green-600" />
+              </div>
+              <p className="text-3xl font-bold text-green-600">{errorStats.autoFixableCount}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {errorStats.totalErrors > 0
+                  ? `${((errorStats.autoFixableCount / errorStats.totalErrors) * 100).toFixed(0)}% fixable`
+                  : '0% fixable'}
+              </p>
+            </div>
+
+            <div className="bg-orange-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">Error Rate</span>
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              </div>
+              <p className="text-3xl font-bold text-orange-600">{errorStats.errorRate.toFixed(2)}</p>
+              <p className="text-xs text-gray-500 mt-1">per conversation</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">Avg Confidence</span>
+                <Activity className="w-5 h-5 text-purple-600" />
+              </div>
+              <p className="text-3xl font-bold text-purple-600">
+                {(errorStats.averageConfidence * 100).toFixed(0)}%
+              </p>
+            </div>
+          </div>
+
+          {/* Errors by Severity */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Errors by Severity</h3>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-center p-3 bg-gray-50 rounded">
+                <p className="text-2xl font-bold text-gray-600">{errorStats.errorsBySeverity.low}</p>
+                <p className="text-xs text-gray-500">Low</p>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded">
+                <p className="text-2xl font-bold text-yellow-600">{errorStats.errorsBySeverity.medium}</p>
+                <p className="text-xs text-gray-500">Medium</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded">
+                <p className="text-2xl font-bold text-orange-600">{errorStats.errorsBySeverity.high}</p>
+                <p className="text-xs text-gray-500">High</p>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded">
+                <p className="text-2xl font-bold text-red-600">{errorStats.errorsBySeverity.critical}</p>
+                <p className="text-xs text-gray-500">Critical</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Most Common Error */}
+          {errorStats.mostCommonError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+                <div>
+                  <p className="font-semibold text-gray-900">Most Common Error</p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">{formatErrorType(errorStats.mostCommonError.type)}</span>
+                    {' - '}
+                    {errorStats.mostCommonError.count} occurrence{errorStats.mostCommonError.count !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Top Errors */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Top Errors (Past {period})</h2>
@@ -271,6 +392,102 @@ export function ConversationMonitoringDashboard() {
                         ⚠️ High abandonment risk
                       </span>
                     )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Real-Time Error Feed (Layer 2) */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Bug className="w-6 h-6 text-red-600" />
+          Live Error Detection Feed
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+        </h2>
+        {recentErrors.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <CheckCircle className="w-12 h-12 mx-auto mb-2 text-green-500" />
+            <p>No errors detected recently - system running smoothly! ✨</p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {recentErrors.map((error, idx) => (
+              <div
+                key={`${error.conversationId}-${error.type}-${idx}`}
+                className={`p-4 rounded-lg border-l-4 ${
+                  error.severity === 'critical' ? 'bg-red-50 border-red-500' :
+                  error.severity === 'high' ? 'bg-orange-50 border-orange-500' :
+                  error.severity === 'medium' ? 'bg-yellow-50 border-yellow-500' :
+                  'bg-gray-50 border-gray-400'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      error.severity === 'critical' ? 'bg-red-600 text-white' :
+                      error.severity === 'high' ? 'bg-orange-600 text-white' :
+                      error.severity === 'medium' ? 'bg-yellow-600 text-white' :
+                      'bg-gray-600 text-white'
+                    }`}>
+                      {error.severity.toUpperCase()}
+                    </span>
+                    <p className="font-semibold text-gray-900">
+                      {formatErrorType(error.type)}
+                    </p>
+                    {error.autoFixable && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium flex items-center gap-1">
+                        <Zap className="w-3 h-3" />
+                        Auto-fixable
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {new Date(error.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">User Message:</p>
+                    <p className="text-gray-700 bg-white p-2 rounded border border-gray-200 truncate">
+                      {error.userMessage}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Agent Response:</p>
+                    <p className="text-gray-700 bg-white p-2 rounded border border-gray-200 truncate">
+                      {error.agentResponse}
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white p-2 rounded border border-gray-200">
+                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-700 mb-1">Issue:</p>
+                      <p className="text-xs text-gray-600">
+                        Expected: {error.context.expectedBehavior}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Got: {error.context.actualBehavior}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                    <p className="text-xs font-medium text-blue-900 mb-1">💡 Suggested Fix:</p>
+                    <p className="text-xs text-blue-700">{error.suggestedFix}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>Confidence: {(error.confidence * 100).toFixed(0)}%</span>
+                    <span className="truncate ml-2">ID: {error.conversationId.slice(0, 8)}...</span>
                   </div>
                 </div>
               </div>
