@@ -425,6 +425,15 @@ export function getTelemetry(): ConversationTelemetryService {
 }
 
 /**
+ * Initialize telemetry service
+ * Call this once at app startup to ensure telemetry is ready
+ */
+export function initializeTelemetry(): void {
+  const service = getTelemetry();
+  console.log('[Telemetry] Service initialized and ready');
+}
+
+/**
  * Hook for tracking conversation in React components
  */
 export function useConversationTelemetry() {
