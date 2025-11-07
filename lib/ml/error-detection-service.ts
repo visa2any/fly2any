@@ -120,12 +120,10 @@ class ErrorDetectionService {
           await telemetry.trackError(data.conversationId, {
             type: error.type,
             severity: error.severity,
-            timestamp: new Date(),
             confidence: error.confidence,
             context: error.context,
             suggestedFix: error.suggestedFix,
             autoFixable: error.autoFixable,
-            fixed: false,
           });
 
           // Notify subscribers
