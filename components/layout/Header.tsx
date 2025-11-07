@@ -98,7 +98,7 @@ export function Header({
   translations,
   className = '',
   showAuth = true,
-  logoUrl = '/fly2any-logo.png',
+  logoUrl = '/fly2any-logo.svg',
   onSignIn,
   onSignUp,
   children,
