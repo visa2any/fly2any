@@ -206,9 +206,9 @@ function generateConsultantIntroduction(
   // Marcus Rodriguez - The Host
   if (consultant.name === 'Marcus Rodriguez') {
     if (parsedContext?.city) {
-      return `¡Hola! I'm ${consultant.name}, your ${consultant.title} at Fly2Any. ${consultant.emoji}\n\nI understand you need accommodation in ${parsedContext.city}${parsedContext.checkIn ? ` from ${formatDate(parsedContext.checkIn)} to ${formatDate(parsedContext.checkOut)}` : ''}${parsedContext.guests ? ` for ${parsedContext.guests} guest${parsedContext.guests > 1 ? 's' : ''}` : ''}. Let me find you the perfect place to stay!`;
+      return `¡Hola, amigo! I'm ${consultant.name} ${consultant.emoji}\n\nI see you need a place in ${parsedContext.city}${parsedContext.checkIn ? ` from ${formatDate(parsedContext.checkIn)} to ${formatDate(parsedContext.checkOut)}` : ''}${parsedContext.guests ? ` for ${parsedContext.guests} guest${parsedContext.guests > 1 ? 's' : ''}` : ''}. Let me find you something perfect!`;
     }
-    return `Hello! I'm ${consultant.name}, your ${consultant.title} at Fly2Any. ${consultant.emoji}\n\nHow can I help you find the perfect accommodation today?`;
+    return `Welcome, my friend! I'm ${consultant.name} ${consultant.emoji}\n\nI'd love to help you find the perfect place to stay. Where are you headed?`;
   }
 
   // Sarah Chen - The Professional
@@ -249,18 +249,18 @@ function generateConsultantIntroduction(
         flightDesc += ` (${preferences.join(', ')})`;
       }
 
-      return `Hi! I'm ${consultant.name}, your ${consultant.title} at Fly2Any. ${consultant.emoji}\n\nI see you're looking for ${flightDesc}. I'll find you the best options!`;
+      return `Hey! I'm ${consultant.name} ${consultant.emoji}\n\nI see you're looking for ${flightDesc}. Let me find you some great options!`;
     }
-    return `Hi! I'm ${consultant.name}, your ${consultant.title} at Fly2Any. ${consultant.emoji}\n\nI'll help you find and book the perfect flight.`;
+    return `Hey! I'm ${consultant.name} ${consultant.emoji}\n\nI love helping people find perfect flights! Where do you want to go?`;
   }
 
   // Lisa Thompson - The Nurturer
   if (consultant.name === 'Lisa Thompson') {
-    return `Welcome back, sweetie! ${consultant.emoji} I'm ${consultant.name}, your ${consultant.title} at Fly2Any. How can I make your day better?`;
+    return `Hi sweetie! 💕 I'm ${consultant.name} and I'm here to help you plan something amazing. What are you dreaming about?`;
   }
 
-  // Default professional introduction
-  return `Hello! I'm ${consultant.name}, your ${consultant.title} at Fly2Any. ${consultant.emoji}\n\nHow can I assist you today?`;
+  // Default warm introduction
+  return `Hey! I'm ${consultant.name} ${consultant.emoji}\n\nI'm here to help! What do you need?`;
 }
 
 /**

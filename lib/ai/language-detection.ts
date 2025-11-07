@@ -330,33 +330,51 @@ export function getTranslation(
 
 /**
  * Format a consultant greeting in the detected language
- * with proper grammar for each language
+ * Natural and humanized, not corporate
  */
 export function formatConsultantGreeting(
   consultantName: string,
   consultantTitle: string,
-  language: SupportedLanguage,
-  isAI: boolean = true
+  language: SupportedLanguage
 ): string {
+  // Map of natural greetings by consultant type and language
+  const greetings: Record<string, Record<SupportedLanguage, string>> = {
+    'Flight': {
+      en: `Hey! I'm ${consultantName} 👋 I love helping people find great flights! Where are you looking to go?`,
+      es: `¡Hola! Soy ${consultantName} 👋 ¡Me encanta ayudar a encontrar vuelos perfectos! ¿A dónde quieres ir?`,
+      pt: `Oi! Sou ${consultantName} 👋 Adoro ajudar pessoas a encontrar voos perfeitos! Para onde você quer ir?`,
+    },
+    'Hotel': {
+      en: `Welcome! 🏨 I'm ${consultantName} and I'd love to help you find the perfect place to stay. Where are you headed?`,
+      es: `¡Bienvenido! 🏨 Soy ${consultantName} y me encantaría ayudarte a encontrar el lugar perfecto. ¿A dónde vas?`,
+      pt: `Bem-vindo! 🏨 Sou ${consultantName} e adoraria te ajudar a encontrar o lugar perfeito. Pra onde você vai?`,
+    },
+    'Customer Service': {
+      en: `Hi! 💕 I'm ${consultantName} - I'm here to help you plan something amazing. What kind of trip are you dreaming about?`,
+      es: `¡Hola! 💕 Soy ${consultantName} - estoy aquí para ayudarte a planear algo increíble. ¿Qué tipo de viaje estás soñando?`,
+      pt: `Oi! 💕 Sou ${consultantName} - estou aqui pra te ajudar a planejar algo incrível. Que tipo de viagem você está sonhando?`,
+    },
+  };
+
+  // Try to match consultant title to greeting type
+  for (const [type, languageGreetings] of Object.entries(greetings)) {
+    if (consultantTitle.toLowerCase().includes(type.toLowerCase())) {
+      return languageGreetings[language];
+    }
+  }
+
+  // Default natural greeting
   if (language === 'en') {
-    return isAI
-      ? `Hi! I'm ${consultantName}, your AI-powered ${consultantTitle} at Fly2Any. I'm here to help you find the perfect travel options! ✈️`
-      : `Hi! I'm ${consultantName}, your ${consultantTitle} at Fly2Any. How can I help you today?`;
+    return `Hey! I'm ${consultantName} 👋 I'm here to help. What do you need?`;
   }
-
   if (language === 'es') {
-    return isAI
-      ? `¡Hola! Soy ${consultantName}, tu ${consultantTitle} con IA en Fly2Any. ¡Estoy aquí para ayudarte a encontrar las mejores opciones de viaje! ✈️`
-      : `¡Hola! Soy ${consultantName}, tu ${consultantTitle} en Fly2Any. ¿Cómo puedo ayudarte hoy?`;
+    return `¡Hola! Soy ${consultantName} 👋 Estoy aquí para ayudar. ¿Qué necesitas?`;
   }
-
   if (language === 'pt') {
-    return isAI
-      ? `Olá! Sou ${consultantName}, seu ${consultantTitle} com IA na Fly2Any. Estou aqui para ajudá-lo a encontrar as melhores opções de viagem! ✈️`
-      : `Olá! Sou ${consultantName}, seu ${consultantTitle} na Fly2Any. Como posso ajudá-lo hoje?`;
+    return `Oi! Sou ${consultantName} 👋 Estou aqui pra ajudar. O que você precisa?`;
   }
 
-  return `Hi! I'm ${consultantName} at Fly2Any.`;
+  return `Hey! I'm ${consultantName} 👋`;
 }
 
 /**
