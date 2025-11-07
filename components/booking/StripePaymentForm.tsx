@@ -10,8 +10,11 @@ import {
 } from '@stripe/react-stripe-js';
 import { Lock, AlertCircle, CheckCircle } from 'lucide-react';
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || '');
+// Initialize Stripe - Only if key is available
+// Prevents "empty string" error in development/staging without Stripe configured
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY)
+  : null;
 
 interface StripePaymentFormProps {
   clientSecret: string;
@@ -137,6 +140,21 @@ export function StripePaymentForm(props: StripePaymentFormProps) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Check if Stripe is configured
+  if (!stripePromise) {
+    return (
+      <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-red-900">Payment Configuration Missing</p>
+          <p className="text-xs text-red-700 mt-1">
+            Stripe publishable key is not configured. Please contact support.
+          </p>
+        </div>
       </div>
     );
   }

@@ -8,13 +8,21 @@ interface Props {
 }
 
 export function CountdownTimer({ endTime, size = 'md' }: Props) {
+  const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState({
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
 
+  // Fix hydration error: Only calculate time on client-side
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return; // Skip on server-side
+
     const target = new Date(endTime);
     const calculateTimeLeft = () => {
       const difference = target.getTime() - new Date().getTime();
@@ -34,7 +42,7 @@ export function CountdownTimer({ endTime, size = 'md' }: Props) {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [endTime]);
+  }, [endTime, mounted]);
 
   const sizes = {
     sm: 'text-sm',
@@ -56,6 +64,28 @@ export function CountdownTimer({ endTime, size = 'md' }: Props) {
       <div className="text-xs text-gray-600 mt-1 uppercase">{label}</div>
     </div>
   );
+
+  // Show skeleton during SSR to prevent hydration errors
+  if (!mounted) {
+    return (
+      <div className="flex gap-2 items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center">
+          <div className={`${padSize[size]} bg-gray-200 rounded-lg ${sizes[size]} min-w-[3rem] h-10`}></div>
+          <div className="text-xs text-gray-400 mt-1 uppercase">Hours</div>
+        </div>
+        <div className={`${sizes[size]} font-bold text-gray-400`}>:</div>
+        <div className="flex flex-col items-center">
+          <div className={`${padSize[size]} bg-gray-200 rounded-lg ${sizes[size]} min-w-[3rem] h-10`}></div>
+          <div className="text-xs text-gray-400 mt-1 uppercase">Min</div>
+        </div>
+        <div className={`${sizes[size]} font-bold text-gray-400`}>:</div>
+        <div className="flex flex-col items-center">
+          <div className={`${padSize[size]} bg-gray-200 rounded-lg ${sizes[size]} min-w-[3rem] h-10`}></div>
+          <div className="text-xs text-gray-400 mt-1 uppercase">Sec</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-2 items-center justify-center">

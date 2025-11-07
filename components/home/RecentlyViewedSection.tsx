@@ -173,9 +173,14 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  // Calculate dynamic max items based on screen width
+  // Fix hydration error: Mark as mounted first
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Calculate dynamic max items based on screen width (client-side only)
+  useEffect(() => {
+    if (!mounted) return; // Skip on server-side
 
     const calculateMaxItems = () => {
       const width = window.innerWidth;
@@ -199,9 +204,11 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     updateMaxItems();
     window.addEventListener('resize', updateMaxItems);
     return () => window.removeEventListener('resize', updateMaxItems);
-  }, [recentlyViewed.length]);
+  }, [recentlyViewed.length, mounted]);
 
   useEffect(() => {
+    if (!mounted) return; // Skip on server-side
+
     // Migrate and load data
     const loadData = async () => {
       // First, migrate old data to include dates
@@ -237,7 +244,7 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     };
 
     loadData();
-  }, []);
+  }, [mounted]);
 
   const clearAll = () => {
     localStorage.removeItem('recentlyViewed');
