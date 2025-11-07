@@ -412,9 +412,13 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   };
 
   /**
-   * AGENT MODE: Extract information from user message
+   * AGENT MODE: Extract information from user message using comprehensive NLP parser
    */
   const extractInformationFromMessage = (message: string): Partial<CollectedInfo> => {
+    // Use the comprehensive travel request parser
+    const { parseTravelRequest, extractPassengers, extractPreferences } = require('@/lib/ai/travel-request-parser');
+    const parsed = parseTravelRequest(message);
+
     const extracted: Partial<CollectedInfo> = {};
     const lowerMsg = message.toLowerCase();
 
@@ -438,37 +442,51 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       extracted.tripType = 'romantic';
     }
 
-    // Extract destinations (simplified - in production use NLP)
-    const cities = [
-      'paris', 'london', 'new york', 'nyc', 'dubai', 'tokyo', 'sydney',
-      'rome', 'barcelona', 'amsterdam', 'singapore', 'miami', 'los angeles'
-    ];
+    // Use parsed results from comprehensive parser
+    if (parsed.origin && parsed.confidence.origin > 0.5) {
+      extracted.origin = parsed.origin;
+    }
 
-    cities.forEach(city => {
-      if (lowerMsg.includes(city)) {
-        extracted.destination = city.charAt(0).toUpperCase() + city.slice(1);
+    if (parsed.destination && parsed.confidence.destination > 0.5) {
+      extracted.destination = parsed.destination;
+    }
+
+    // Extract dates with comprehensive parser
+    if (parsed.departureDate || parsed.returnDate) {
+      extracted.dates = {
+        departure: parsed.departureDate || '',
+        return: parsed.returnDate,
+        flexible: false,
+      };
+    }
+
+    // Extract passengers
+    if (parsed.passengers) {
+      extracted.travelers = parsed.passengers;
+    }
+
+    // Extract preferences
+    if (parsed.preferences) {
+      extracted.preferences = {
+        directFlights: parsed.preferences.directFlights,
+        specialRequirements: [],
+      };
+
+      // Add bag requirement to special requirements
+      if (parsed.preferences.includeBags) {
+        extracted.preferences.specialRequirements?.push('checked baggage included');
       }
-    });
+    }
 
     // Extract budget level
-    if (lowerMsg.includes('cheap') || lowerMsg.includes('budget') || lowerMsg.includes('economy')) {
+    if (parsed.preferences?.cabinClass) {
+      extracted.budget = parsed.preferences.cabinClass === 'first' ? 'luxury' :
+                        parsed.preferences.cabinClass === 'business' ? 'premium' :
+                        'economy';
+    } else if (lowerMsg.includes('cheap') || lowerMsg.includes('budget')) {
       extracted.budget = 'economy';
-    } else if (lowerMsg.includes('luxury') || lowerMsg.includes('first class')) {
+    } else if (lowerMsg.includes('luxury')) {
       extracted.budget = 'luxury';
-    } else if (lowerMsg.includes('premium') || lowerMsg.includes('business class')) {
-      extracted.budget = 'premium';
-    }
-
-    // Extract dates (simplified pattern matching)
-    const dateMatch = message.match(/(\w+ \d{1,2})|(\d{1,2}\/\d{1,2})/);
-    if (dateMatch) {
-      extracted.dates = { departure: dateMatch[0], flexible: false };
-    }
-
-    // Extract traveler count
-    const travelerMatch = message.match(/(\d+) (?:person|people|passenger|traveler)/i);
-    if (travelerMatch) {
-      extracted.travelers = { adults: parseInt(travelerMatch[1]) };
     }
 
     return extracted;

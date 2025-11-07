@@ -214,7 +214,42 @@ function generateConsultantIntroduction(
   // Sarah Chen - The Professional
   if (consultant.name === 'Sarah Chen') {
     if (parsedContext?.origin && parsedContext?.destination) {
-      return `Hi! I'm ${consultant.name}, your ${consultant.title}. ${consultant.emoji}\n\nI see you're looking for flights from ${parsedContext.origin} to ${parsedContext.destination}${parsedContext.departureDate ? ` on ${formatDate(parsedContext.departureDate)}` : ''}. I'll find you the best options!`;
+      // Build a natural description
+      let flightDesc = `flights from ${parsedContext.origin} to ${parsedContext.destination}`;
+
+      // Add departure date if available
+      if (parsedContext.departureDate && parsedContext.departureDate !== 'Invalid Date') {
+        try {
+          const deptDate = new Date(parsedContext.departureDate);
+          if (!isNaN(deptDate.getTime())) {
+            flightDesc += ` leaving on ${formatDate(parsedContext.departureDate)}`;
+          }
+        } catch (e) {
+          // Date parsing failed, skip it
+        }
+      }
+
+      // Add return date if round-trip
+      if (parsedContext.returnDate && parsedContext.returnDate !== 'Invalid Date') {
+        try {
+          const retDate = new Date(parsedContext.returnDate);
+          if (!isNaN(retDate.getTime())) {
+            flightDesc += `, returning ${formatDate(parsedContext.returnDate)}`;
+          }
+        } catch (e) {
+          // Date parsing failed, skip it
+        }
+      }
+
+      // Add preferences naturally
+      const preferences = [];
+      if (parsedContext.directFlights) preferences.push('direct flights');
+      if (parsedContext.includeBags) preferences.push('with checked baggage');
+      if (preferences.length > 0) {
+        flightDesc += ` (${preferences.join(', ')})`;
+      }
+
+      return `Hi! I'm ${consultant.name}, your ${consultant.title}. ${consultant.emoji}\n\nI see you're looking for ${flightDesc}. I'll find you the best options!`;
     }
     return `Hi! I'm ${consultant.name}, your ${consultant.title}. ${consultant.emoji}\n\nI'll help you find and book the perfect flight.`;
   }
@@ -258,13 +293,46 @@ function generateContextConfirmation(
 
   // Flight context
   if (parsedContext.origin && parsedContext.destination) {
-    return `Just to confirm - you need:\n` +
-           `📍 From: ${parsedContext.origin}\n` +
-           `📍 To: ${parsedContext.destination}\n` +
-           `📅 Departure: ${formatDate(parsedContext.departureDate)}\n` +
-           `${parsedContext.returnDate ? `📅 Return: ${formatDate(parsedContext.returnDate)}\n` : ''}` +
-           `👥 Passengers: ${parsedContext.passengers || 1}\n` +
-           `💺 Class: ${parsedContext.cabinClass || 'Economy'}`;
+    let confirmation = `Just to confirm - you need:\n`;
+    confirmation += `📍 From: ${parsedContext.origin}\n`;
+    confirmation += `📍 To: ${parsedContext.destination}\n`;
+
+    // Only add departure date if valid
+    if (parsedContext.departureDate && parsedContext.departureDate !== 'Invalid Date') {
+      try {
+        const deptDate = new Date(parsedContext.departureDate);
+        if (!isNaN(deptDate.getTime())) {
+          confirmation += `📅 Departure: ${formatDate(parsedContext.departureDate)}\n`;
+        }
+      } catch (e) {
+        // Skip invalid date
+      }
+    }
+
+    // Only add return date if valid
+    if (parsedContext.returnDate && parsedContext.returnDate !== 'Invalid Date') {
+      try {
+        const retDate = new Date(parsedContext.returnDate);
+        if (!isNaN(retDate.getTime())) {
+          confirmation += `📅 Return: ${formatDate(parsedContext.returnDate)}\n`;
+        }
+      } catch (e) {
+        // Skip invalid date
+      }
+    }
+
+    confirmation += `👥 Passengers: ${parsedContext.passengers || 1}\n`;
+    confirmation += `💺 Class: ${parsedContext.cabinClass || 'Economy'}`;
+
+    // Add preferences
+    if (parsedContext.directFlights) {
+      confirmation += `\n✈️ Direct flights only`;
+    }
+    if (parsedContext.includeBags) {
+      confirmation += `\n🧳 Checked baggage included`;
+    }
+
+    return confirmation;
   }
 
   return undefined;
