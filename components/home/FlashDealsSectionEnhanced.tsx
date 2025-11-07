@@ -356,7 +356,7 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4 text-orange-600 animate-pulse" />
-                          <span className="text-sm font-bold text-orange-600">
+                          <span className="text-sm font-bold text-orange-600" suppressHydrationWarning>
                             ⏱️ {deal.timeRemaining}
                           </span>
                         </div>

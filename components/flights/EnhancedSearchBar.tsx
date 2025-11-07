@@ -324,6 +324,7 @@ export default function EnhancedSearchBar({
   const [hotelRooms, setHotelRooms] = useState(1);
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
+  const [minDate, setMinDate] = useState('');
   const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
   const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
@@ -378,13 +379,15 @@ export default function EnhancedSearchBar({
   const carPickupDateRef = useRef<HTMLButtonElement>(null);
   const carDropoffDateRef = useRef<HTMLButtonElement>(null);
 
-  // Set default dates for hotels
+  // Set default dates for hotels and minDate (prevent hydration errors)
   useEffect(() => {
+    const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dayAfter = new Date();
     dayAfter.setDate(dayAfter.getDate() + 2);
 
+    setMinDate(today.toISOString().split('T')[0]);
     setCheckInDate(tomorrow.toISOString().split('T')[0]);
     setCheckOutDate(dayAfter.toISOString().split('T')[0]);
   }, []);
@@ -2125,7 +2128,7 @@ export default function EnhancedSearchBar({
                     type="date"
                     value={formatDateForInput(departureDate)}
                     onChange={(e) => setDepartureDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={minDate}
                     className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
                   />
                 </div>
@@ -2273,7 +2276,7 @@ export default function EnhancedSearchBar({
                   type="date"
                   value={checkInDate}
                   onChange={(e) => setCheckInDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={minDate}
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
                 />
               </div>
@@ -2288,7 +2291,7 @@ export default function EnhancedSearchBar({
                   type="date"
                   value={checkOutDate}
                   onChange={(e) => setCheckOutDate(e.target.value)}
-                  min={checkInDate || new Date().toISOString().split('T')[0]}
+                  min={checkInDate || minDate}
                   className="w-full pl-9 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900"
                 />
               </div>
