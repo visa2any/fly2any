@@ -47,12 +47,13 @@ const LANGUAGE_PATTERNS = {
       'vuelo', 'hotel', 'viajar', 'necesito', 'quiero', 'busco',
       'desde', 'hasta', 'cuando', 'donde', 'como', 'que', 'cual',
       'tengo', 'tiene', 'hay', 'hacer', 'ir', 'venir', 'ver',
+      'cuesta', 'puedo', 'puede', 'ayudar', 'buscar', 'reservar',
     ],
-    // Spanish-specific question patterns
-    questions: /\b(qué|cuál|cuáles|cuándo|dónde|cómo|por qué|quién|quiénes)\b/i,
+    // Spanish-specific question patterns (added cuánto, cuánta, cuántos, cuántas)
+    questions: /\b(qué|cuál|cuáles|cuándo|cuánto|cuánta|cuántos|cuántas|dónde|cómo|por qué|quién|quiénes)\b/i,
     // Spanish verb forms
-    verbForms: /\b(soy|eres|es|somos|son|estoy|estás|está|estamos|están|tengo|tienes|tiene|tenemos|tienen)\b/i,
-    // Spanish accents
+    verbForms: /\b(soy|eres|es|somos|son|estoy|estás|está|estamos|están|tengo|tienes|tiene|tenemos|tienen|cuesta|cuestan|puedo|puede|pueden)\b/i,
+    // Spanish accents and punctuation
     accents: /[áéíóúñ¿¡]/i,
   },
 
@@ -135,10 +136,13 @@ function scoreLanguage(
   let score = 0;
   const totalWords = words.length;
 
-  // Score based on keyword matches
+  // Score based on keyword matches (using word boundaries to avoid substring false positives)
   let keywordMatches = 0;
   for (const keyword of patterns.keywords) {
-    if (text.includes(keyword)) {
+    // Escape special regex characters and use word boundaries
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
+    if (regex.test(text)) {
       keywordMatches++;
     }
   }
@@ -154,12 +158,20 @@ function scoreLanguage(
     score += 20;
   }
 
-  // Score based on accent marks (for Spanish and Portuguese)
+  // Score based on accent marks and special characters
   if (lang === 'es' && patterns.accents && patterns.accents.test(text)) {
     score += 15;
+    // Extra boost for Spanish-exclusive punctuation ¿ and ¡
+    if (/[¿¡]/.test(text)) {
+      score += 10; // These are ONLY used in Spanish
+    }
   }
   if (lang === 'pt' && patterns.accents && patterns.accents.test(text)) {
     score += 15;
+    // Extra boost for Portuguese-exclusive characters ç, ã, õ
+    if (/[çãõ]/.test(text)) {
+      score += 10; // These are very common in Portuguese
+    }
   }
 
   // Score based on distinct words (for Portuguese)
@@ -168,7 +180,9 @@ function scoreLanguage(
   }
 
   // Normalize score to 0-1 range
-  return Math.min(score / 100, 1.0);
+  // Max possible: 115 for PT (40+20+20+15+10+10), 105 for ES (40+20+20+15+10), 80 for EN (40+20+20)
+  const maxScore = lang === 'pt' ? 115 : lang === 'es' ? 105 : 80;
+  return Math.min(score / maxScore, 1.0);
 }
 
 /**
