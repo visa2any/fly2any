@@ -20,11 +20,16 @@ analyze
 coverage
 test-results
 playwright-report
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.mp4
+test-results/**/*.png
+playwright-report/**/*.png
+playwright-report/**/*.jpg
+playwright-report/**/*.jpeg
+# Allow public assets - logo and images needed for production
+!public/**/*.png
+!public/**/*.jpg
+!public/**/*.jpeg
+!public/**/*.gif
+!public/**/*.svg
 
 # Development
 .env*.local

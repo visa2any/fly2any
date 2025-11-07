@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CO2Badge from './CO2Badge';
 import { ScarcityIndicator } from '../conversion/ScarcityIndicator';
 
@@ -323,6 +323,8 @@ export const FlightCard: React.FC<FlightCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [mockViewers, setMockViewers] = useState(15); // Default value for SSR
+  const [mockBookings, setMockBookings] = useState(175); // Default value for SSR
   const t = translations[lang];
 
   const firstSegment = outbound.segments[0];
@@ -330,9 +332,11 @@ export const FlightCard: React.FC<FlightCardProps> = ({
   const savings = calculateSavings(price);
   const savingsPercentage = calculateSavingsPercentage(price);
 
-  // Generate mock social proof data (replace with real data from API later)
-  const mockViewers = Math.floor(Math.random() * 20) + 8; // 8-27 viewers
-  const mockBookings = Math.floor(Math.random() * 150) + 100; // 100-250 bookings
+  // Generate mock social proof data on client-side only (prevents hydration mismatch)
+  useEffect(() => {
+    setMockViewers(Math.floor(Math.random() * 20) + 8); // 8-27 viewers
+    setMockBookings(Math.floor(Math.random() * 150) + 100); // 100-250 bookings
+  }, []);
 
   const handleSelectFlight = () => {
     if (onSelectFlight) {

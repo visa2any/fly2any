@@ -49,7 +49,7 @@ export default function PremiumDatePicker({
   prices,
   loadingPrices = false
 }: PremiumDatePickerProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [selectedDeparture, setSelectedDeparture] = useState<Date | null>(
     value ? new Date(value) : null
   );
@@ -60,6 +60,13 @@ export default function PremiumDatePicker({
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // Initialize currentMonth on client-side only to prevent hydration mismatch
+  useEffect(() => {
+    if (!currentMonth) {
+      setCurrentMonth(new Date());
+    }
+  }, [currentMonth]);
 
   // Sync state with props when they change
   useEffect(() => {
@@ -349,6 +356,7 @@ export default function PremiumDatePicker({
   };
 
   const handlePreviousMonth = () => {
+    if (!currentMonth) return;
     setSlideDirection('right');
     setTimeout(() => {
       setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -357,6 +365,7 @@ export default function PremiumDatePicker({
   };
 
   const handleNextMonth = () => {
+    if (!currentMonth) return;
     setSlideDirection('left');
     setTimeout(() => {
       setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
@@ -553,6 +562,7 @@ export default function PremiumDatePicker({
   };
 
   if (!isOpen) return null;
+  if (!currentMonth) return null; // Wait for client-side initialization
 
   return (
     <>

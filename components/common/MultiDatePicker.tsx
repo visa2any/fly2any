@@ -56,11 +56,18 @@ export default function MultiDatePicker({
     }
   };
 
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  // Initialize currentMonth on client-side only to prevent hydration mismatch
+  useEffect(() => {
+    if (!currentMonth) {
+      setCurrentMonth(new Date());
+    }
+  }, [currentMonth]);
 
   // Calculate position relative to anchor element
   useEffect(() => {
@@ -208,6 +215,7 @@ export default function MultiDatePicker({
   };
 
   const handlePreviousMonth = () => {
+    if (!currentMonth) return;
     setSlideDirection('right');
     setTimeout(() => {
       setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -216,6 +224,7 @@ export default function MultiDatePicker({
   };
 
   const handleNextMonth = () => {
+    if (!currentMonth) return;
     setSlideDirection('left');
     setTimeout(() => {
       setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
@@ -317,6 +326,9 @@ export default function MultiDatePicker({
 
   // Sort dates chronologically for display
   const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
+
+  // Wait for client-side initialization
+  if (!currentMonth) return null;
 
   return (
     <div className={`relative ${className}`}>
