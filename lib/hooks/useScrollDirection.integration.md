@@ -441,7 +441,7 @@ function CombinedScrollEffects() {
 
 ```typescript
 // Example Jest test
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { useScrollDirection } from '@/lib/hooks';
 
 describe('useScrollDirection', () => {

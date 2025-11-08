@@ -265,7 +265,7 @@ return <div>{isAtTop ? 'Top' : 'Scrolled'}</div>; // Rarely re-renders
 
 ### Automated Testing
 ```typescript
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { useScrollDirection } from '@/lib/hooks';
 
 test('detects scroll down', () => {

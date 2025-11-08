@@ -26,8 +26,7 @@ yarn install
 The following testing dependencies will be installed:
 - `jest` - Testing framework
 - `ts-jest` - TypeScript support for Jest
-- `@testing-library/react` - React testing utilities
-- `@testing-library/react-hooks` - Hook testing utilities
+- `@testing-library/react` - React testing utilities (includes native hook testing for React 18)
 - `@testing-library/jest-dom` - Custom Jest matchers
 - `@types/jest` - TypeScript types for Jest
 

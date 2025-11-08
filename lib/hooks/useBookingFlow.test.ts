@@ -1,6 +1,7 @@
 /**
  * useBookingFlow Hook - Comprehensive Test Suite
  * Tests booking flow state management and API integration
+ * @jest-environment jsdom
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';

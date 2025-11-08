@@ -561,7 +561,7 @@ useEffect(() => {
 ### Unit Test Example
 
 ```typescript
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh';
 
 describe('usePullToRefresh', () => {

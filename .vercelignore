@@ -24,6 +24,15 @@ test-results/**/*.png
 playwright-report/**/*.png
 playwright-report/**/*.jpg
 playwright-report/**/*.jpeg
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+tests/
+jest.config.js
+jest.setup.js
 # Allow public assets - logo and images needed for production
 !public/**/*.png
 !public/**/*.jpg
