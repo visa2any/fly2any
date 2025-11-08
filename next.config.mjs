@@ -1,8 +1,14 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import { createRequire } from 'module';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Create require function for CommonJS modules in ESM context
 const require = createRequire(import.meta.url);
+
+// Get __dirname equivalent in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -21,6 +27,9 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'], // Tree-shake icons
   },
+
+  // Ensure all local packages are transpiled (helps with Vercel module resolution)
+  transpilePackages: [],
 
   // Webpack configuration (Phase 8 - Quick Win 1D)
   webpack: (config, { dev, isServer }) => {
@@ -51,6 +60,12 @@ const nextConfig = {
       { module: /node_modules\/@opentelemetry\/instrumentation/ },
       { module: /node_modules\/require-in-the-middle/ },
     ];
+
+    // Add webpack alias for '@' to resolve to project root (helps with Vercel module resolution)
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname),
+    };
 
     return config;
   },
