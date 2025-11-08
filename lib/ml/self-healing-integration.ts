@@ -6,6 +6,7 @@
  */
 
 import { getErrorDetectionService, type DetectedErrorWithContext } from './error-detection-service';
+import { getTelemetry } from './conversation-telemetry';
 import { healError, getSelfHealingService, type HealingResult, type HealingAction } from './self-healing';
 
 export interface AutoHealConfig {
@@ -89,6 +90,7 @@ export class AutoHealingService {
         userSentiment: 'neutral' as const,
         agentResponse: error.agentResponse,
         agentConsultant: error.agentConsultant,
+        agentTeam: 'customer-support', // Default team for error handling
         responseTime: 0,
         messageIndex: 0,
         intentDetectionConfidence: error.confidence,
@@ -97,7 +99,13 @@ export class AutoHealingService {
         responseQuality: 0,
         userSatisfactionPrediction: 0,
         errors: [],
+        warnings: [],
         errorCount: 1,
+        conversationStage: 'discovery' as const,
+        conversationCompleted: false,
+        userAbandoned: false,
+        bookingMade: false,
+        apiCalls: [],
       };
 
       // Attempt healing

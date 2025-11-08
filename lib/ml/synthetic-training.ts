@@ -9,6 +9,7 @@ import { getContinuousLearningService, type LearningData } from './continuous-le
 import { detectErrors } from './error-detection';
 import { analyzeSentiment } from './sentiment-analysis';
 import { classifyIntent } from './intent-classification';
+import type { ErrorType } from './conversation-telemetry';
 
 export interface SyntheticScenario {
   id: string;
@@ -27,7 +28,7 @@ export interface SyntheticConversation {
   turns: {
     userMessage: string;
     expectedAgentResponse: string;
-    potentialErrors: string[];
+    potentialErrors: ErrorType[];
   }[];
   learningObjective: string;
   successCriteria: string;
@@ -426,7 +427,7 @@ export class SyntheticTrainingService {
       turns.push({
         userMessage: this.generateFollowUp(scenario),
         expectedAgentResponse: this.generateFollowUpResponse(scenario),
-        potentialErrors: ['parsing-failure', 'low-confidence'],
+        potentialErrors: ['parsing-failure', 'low-confidence'] as ErrorType[],
       });
     }
 
@@ -470,8 +471,8 @@ export class SyntheticTrainingService {
   /**
    * Identify potential errors in scenario
    */
-  private identifyPotentialErrors(scenario: SyntheticScenario): string[] {
-    const errors: string[] = [];
+  private identifyPotentialErrors(scenario: SyntheticScenario): ErrorType[] {
+    const errors: ErrorType[] = [];
 
     if (scenario.category === 'edge_case') {
       errors.push('parsing-failure', 'intent-misunderstanding');
