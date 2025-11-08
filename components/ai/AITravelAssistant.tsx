@@ -37,6 +37,12 @@ import {
   getTypicalStages,
   estimateProcessingTime,
 } from '@/lib/ai/consultant-loading-messages';
+// LANGUAGE DETECTION INTEGRATION
+import {
+  detectLanguage,
+  detectLanguageQuick,
+  type SupportedLanguage
+} from '@/lib/ai/language-detection';
 // CONVERSATIONAL INTELLIGENCE INTEGRATION
 import {
   analyzeConversationIntent,
@@ -145,6 +151,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [selectedConsultant, setSelectedConsultant] = useState<ConsultantProfile | null>(null);
   const [currentTypingConsultant, setCurrentTypingConsultant] = useState<ConsultantProfile | null>(null);
   const [typingStage, setTypingStage] = useState(0);
+  // LANGUAGE DETECTION STATE
+  const [detectedLanguage, setDetectedLanguage] = useState<SupportedLanguage>(language);
+  const [languageConfidence, setLanguageConfidence] = useState<number>(1.0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -261,7 +270,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
   };
 
-  const t = translations[language];
+  // Use detected language for all UI text and responses
+  const t = translations[detectedLanguage];
 
   // Initialize with welcome message from Lisa (Customer Service)
   useEffect(() => {
@@ -271,7 +281,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         {
           id: '1',
           role: 'assistant',
-          content: lisaConsultant.greeting[language],
+          content: lisaConsultant.greeting[detectedLanguage],
           timestamp: new Date(),
           consultant: {
             id: lisaConsultant.id,
@@ -283,7 +293,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         }
       ]);
     }
-  }, [isOpen, messages.length, language]);
+  }, [isOpen, messages.length, detectedLanguage]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -517,6 +527,22 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const queryText = inputMessage;
     setInputMessage('');
     setIsTyping(true);
+
+    // 🌍 AUTOMATIC LANGUAGE DETECTION
+    // Detect user's language from their message
+    const languageDetection = detectLanguage(queryText);
+
+    // Update detected language if confidence is high enough
+    if (languageDetection.confidence > 0.6) {
+      setDetectedLanguage(languageDetection.language);
+      setLanguageConfidence(languageDetection.confidence);
+
+      // Log language switch for debugging
+      if (languageDetection.language !== detectedLanguage) {
+        console.log(`🌍 Language detected: ${languageDetection.language} (${(languageDetection.confidence * 100).toFixed(0)}% confidence)`);
+        console.log(`   Switching from ${detectedLanguage} → ${languageDetection.language}`);
+      }
+    }
 
     // Save user message to conversation persistence
     if (conversation) {
