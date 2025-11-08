@@ -300,3 +300,46 @@ model AIMessage {
   @@index([conversationId, timestamp])
   @@map("ai_messages")
 }
+
+// ==========================================
+// User Session Tracking
+// ==========================================
+
+model UserSessionTracking {
+  id           String   @id @default(cuid())
+  sessionId    String   @unique // Generated session ID
+
+  // IP and Location
+  ipAddress    String
+  ipHash       String?  // Hashed IP for privacy
+  country      String?
+  region       String?
+  timezone     String?
+
+  // User Authentication
+  isAuthenticated Boolean @default(false)
+  userId          String?
+  email           String?
+  name            String?
+
+  // Engagement Tracking
+  conversationCount Int @default(0)
+  searchCount       Int @default(0)
+  bookingAttempts   Int @default(0)
+
+  // Activity
+  lastActivity DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Session expiration (24 hours)
+  expiresAt    DateTime
+
+  @@index([ipAddress])
+  @@index([ipHash])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([isAuthenticated])
+  @@map("user_session_tracking")
+}

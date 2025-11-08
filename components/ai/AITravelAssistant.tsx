@@ -18,12 +18,14 @@ import {
 } from 'lucide-react';
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
 import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
+import { detectFlightTypeSimple } from '@/lib/ai/flight-type-detector';
 import { FlightResultCard } from './FlightResultCard';
 import { ConsultantAvatar, UserAvatar } from './ConsultantAvatar';
 import { ConsultantProfileModal } from './ConsultantProfileModal';
 import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
 import { useRouter } from 'next/navigation';
 import { useAIAnalytics } from '@/lib/hooks/useAIAnalytics';
+import { generateETicketPDF, type TicketData } from '@/lib/pdf/ticket-generator';
 import {
   calculateTypingDelay,
   calculateThinkingDelay,
@@ -167,15 +169,15 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const [recoverableConversation, setRecoverableConversation] = useState<ConversationState | null>(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
 
+  // CONVERSATION SYNC: Auto-migrate to database when user logs in
+  const { isAuthenticated, userId } = useConversationSync();
+
   // Analytics tracking
   const analytics = useAIAnalytics({
     sessionId: userSession.sessionId,
-    userId: undefined, // TODO: Connect to real user auth
+    userId: userId || undefined,
     isAuthenticated: userSession.isAuthenticated,
   });
-
-  // CONVERSATION SYNC: Auto-migrate to database when user logs in
-  const { isAuthenticated, userId } = useConversationSync();
 
   // CONVERSATION SYNC: Periodic sync to database for logged-in users
   useDatabaseSync(conversation, isAuthenticated);
@@ -941,32 +943,63 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         class: 'economy',
       });
 
-      // Show thinking/typing indicator
+      // Show success confirmation
       const consultant = currentTypingConsultant || getConsultant('customer-service');
       setCurrentTypingConsultant(consultant);
+      const successMessage: Message = {
+        id: `msg_${Date.now()}_success`,
+        role: 'assistant',
+        content: `✅ Excellent! **${selectedFlight.airline} ${selectedFlight.flightNumber}** selected for $${selectedFlight.price}.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Show progress indicator
+      const progressMessage: Message = {
+        id: `msg_${Date.now()}_progress`,
+        role: 'assistant',
+        content: '',
+        consultant,
+        timestamp: new Date(),
+        widget: {
+          type: 'progress',
+          data: {
+            progress: bookingFlow.getProgress(),
+          },
+        },
+      };
+      setMessages(prev => [...prev, progressMessage]);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Show thinking/typing indicator
       setIsTyping(true);
       setTypingState({
         phase: 'thinking',
         consultantName: consultant.name,
-        contextMessage: 'Let me get you the best fare options...',
+        contextMessage: 'Loading available fare classes...',
       });
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Load fare options from API
       const fares = await bookingFlow.loadFareOptions(selectedFlight.offerId);
 
       if (fares.length === 0) {
-        // Fallback: show error message
+        // Fallback: show user-friendly error message
         const errorMsg: Message = {
-          id: `msg_${Date.now()}`,
+          id: `msg_${Date.now()}_error`,
           role: 'assistant',
-          content: "I apologize, but I couldn't load the fare options. Please try selecting another flight.",
+          content: "I apologize, but I'm having trouble loading the fare options for this flight right now. This might be a temporary issue. Would you like to:\n\n1️⃣ Try selecting this flight again\n2️⃣ Choose a different flight\n3️⃣ Contact our support team for assistance",
           consultant,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, errorMsg]);
         setIsTyping(false);
+        setTypingState(null);
         return;
       }
 
@@ -992,6 +1025,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     } catch (error) {
       console.error('❌ Error in handleFlightSelect:', error);
       setIsTyping(false);
+      setTypingState(null);
+
+      // Show user-friendly error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `I'm sorry, something went wrong while processing your flight selection. Your search results are still available above. Please try selecting the flight again, or let me know if you'd like to search for different flights.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1020,8 +1065,20 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       // Update booking state
       bookingFlow.updateFare(bookingFlow.activeBooking.id, selectedFare);
 
-      // Show typing indicator
+      // Show success confirmation
       const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const successMessage: Message = {
+        id: `msg_${Date.now()}_success`,
+        role: 'assistant',
+        content: `✅ Perfect! **${selectedFare.name}** fare selected at $${selectedFare.price}.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Show typing indicator
       setIsTyping(true);
       setTypingState({
         phase: 'thinking',
@@ -1056,6 +1113,18 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     } catch (error) {
       console.error('❌ Error in handleFareSelect:', error);
       setIsTyping(false);
+      setTypingState(null);
+
+      // Show user-friendly error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `I'm sorry, I encountered an issue loading the seat options. This might be a temporary problem. Please try selecting the fare again, or contact our support team if the issue continues.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1084,11 +1153,36 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       // Update booking state
       bookingFlow.updateSeat(bookingFlow.activeBooking.id, seatNumber, selectedSeat.price);
 
+      // Show success confirmation
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const successMessage: Message = {
+        id: `msg_${Date.now()}_success`,
+        role: 'assistant',
+        content: `✅ Great choice! Seat **${seatNumber}** has been reserved for you${selectedSeat.price > 0 ? ` at $${selectedSeat.price}` : ''}.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Show loading state for baggage
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Loading baggage options...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Load baggage options
       const baggage = await bookingFlow.loadBaggageOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
 
+      setIsTyping(false);
+      setTypingState(null);
+
       // Send message with baggage widget
-      const consultant = currentTypingConsultant || getConsultant('customer-service');
       const baggageMessage: Message = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
@@ -1108,6 +1202,19 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       console.log('✅ Baggage widget shown');
     } catch (error) {
       console.error('❌ Error in handleSeatSelect:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show user-friendly error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `I'm sorry, there was an issue reserving your seat. Your previous selections are still saved. Please try selecting a seat again, or you can skip seat selection and we'll assign one at check-in.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1124,11 +1231,24 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       console.log('➡️  User skipped seat selection');
 
+      // Show loading state
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Loading baggage options...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Load baggage options
       const baggage = await bookingFlow.loadBaggageOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
 
+      setIsTyping(false);
+      setTypingState(null);
+
       // Send message with baggage widget
-      const consultant = currentTypingConsultant || getConsultant('customer-service');
       const baggageMessage: Message = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
@@ -1148,6 +1268,19 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       console.log('✅ Baggage widget shown (seats skipped)');
     } catch (error) {
       console.error('❌ Error in handleSkipSeats:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show user-friendly error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `I'm sorry, I had trouble loading the next step. Let me try again. Please wait a moment...`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1167,8 +1300,33 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       // Update booking state
       bookingFlow.updateBaggage(bookingFlow.activeBooking.id, quantity, price);
 
-      // Show booking summary
+      // Show success confirmation
       const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const successMessage: Message = {
+        id: `msg_${Date.now()}_success`,
+        role: 'assistant',
+        content: `✅ Excellent! ${quantity > 0 ? `${quantity} checked bag(s) added` : 'No checked baggage selected'}${price > 0 ? ` for $${price}` : ''}.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, successMessage]);
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Show loading state for summary
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: 'Preparing your booking summary...',
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1200));
+
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show booking summary
       const summaryMessage: Message = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
@@ -1188,6 +1346,19 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       console.log('✅ Booking summary shown');
     } catch (error) {
       console.error('❌ Error in handleBaggageSelect:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show user-friendly error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: `I'm sorry, there was an issue processing your baggage selection. Your flight and fare are still saved. Please try again or contact support if the problem persists.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -1217,7 +1388,10 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Determine if flight is international (requires passport info)
-      const flightType: 'domestic' | 'international' = 'international'; // TODO: Detect from flight details
+      // Detect from origin/destination airport codes (simple heuristic: if both codes share same country, it's domestic)
+      const origin = bookingFlow.activeBooking.searchParams?.origin || '';
+      const destination = bookingFlow.activeBooking.searchParams?.destination || '';
+      const flightType: 'domestic' | 'international' = detectFlightType(origin, destination);
 
       // Show passenger details widget
       const passengerMessage: Message = {
@@ -1446,11 +1620,132 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   /**
    * HANDLE EDIT BOOKING
-   * User wants to edit → Go back to previous step
+   * User wants to edit → Go back to previous step and reload widget
    */
-  const handleEditBooking = (editType: 'flight' | 'fare' | 'seat' | 'baggage') => {
-    console.log('✏️  User wants to edit:', editType);
-    // TODO: Implement edit flow - reload relevant widget
+  const handleEditBooking = async (editType: 'flight' | 'fare' | 'seat' | 'baggage') => {
+    try {
+      console.log('✏️  User wants to edit:', editType);
+
+      if (!bookingFlow.activeBooking) {
+        console.error('No active booking to edit');
+        return;
+      }
+
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+
+      // Show loading state
+      setIsTyping(true);
+      setTypingState({
+        phase: 'thinking',
+        consultantName: consultant.name,
+        contextMessage: `Loading ${editType} options...`,
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      let editMessage: Message | null = null;
+
+      // Handle different edit types
+      switch (editType) {
+        case 'fare':
+          // Reload fare options
+          const fares = await bookingFlow.loadFareOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+          editMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'assistant',
+            content: `No problem! Let's review the fare options again. You can choose a different fare class:`,
+            consultant,
+            timestamp: new Date(),
+            widget: {
+              type: 'fare_selector',
+              data: { fares },
+            },
+            bookingRef: bookingFlow.activeBooking.id,
+          };
+
+          // Go back to fare selection stage
+          bookingFlow.advanceStage('fare_selection');
+          break;
+
+        case 'seat':
+          // Reload seat map
+          const seats = await bookingFlow.loadSeatMap(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+          editMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'assistant',
+            content: `Of course! Here's the seat map again. Choose your preferred seat or skip this step:`,
+            consultant,
+            timestamp: new Date(),
+            widget: {
+              type: 'seat_map',
+              data: { seats },
+            },
+            bookingRef: bookingFlow.activeBooking.id,
+          };
+
+          // Go back to seat selection stage
+          bookingFlow.advanceStage('seat_selection');
+          break;
+
+        case 'baggage':
+          // Reload baggage options
+          const baggage = await bookingFlow.loadBaggageOptions(bookingFlow.activeBooking.selectedFlight!.offerId);
+
+          editMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'assistant',
+            content: `Sure! Let's review the baggage options. You can change your selection:`,
+            consultant,
+            timestamp: new Date(),
+            widget: {
+              type: 'baggage_selector',
+              data: { baggage },
+            },
+            bookingRef: bookingFlow.activeBooking.id,
+          };
+
+          // Go back to baggage selection stage
+          bookingFlow.advanceStage('baggage_selection');
+          break;
+
+        case 'flight':
+          // For flight editing, redirect to flight results page
+          editMessage = {
+            id: `msg_${Date.now()}`,
+            role: 'assistant',
+            content: `I understand you'd like to change your flight. Let me help you search for alternative options. You can either:\n\n1️⃣ Tell me your new travel preferences here\n2️⃣ Use the [flight search page](/flights/search) for more filtering options`,
+            consultant,
+            timestamp: new Date(),
+          };
+          break;
+      }
+
+      if (editMessage) {
+        setMessages(prev => [...prev, editMessage as Message]);
+      }
+
+      setIsTyping(false);
+      setTypingState(null);
+
+      console.log(`✅ Edit flow initiated for: ${editType}`);
+    } catch (error) {
+      console.error('❌ Error in handleEditBooking:', error);
+      setIsTyping(false);
+      setTypingState(null);
+
+      // Show error message
+      const consultant = currentTypingConsultant || getConsultant('customer-service');
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: `I'm sorry, I encountered an error while trying to load the ${editType} options. Please try again or contact support if the issue persists.`,
+        consultant,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleSeeMoreFlights = () => {
@@ -1624,9 +1919,66 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             totalPaid={data.totalPaid}
             currency={data.currency}
             confirmationEmail={data.confirmationEmail}
-            onDownloadTicket={() => {
+            onDownloadTicket={async () => {
               console.log('📄 Download ticket requested');
-              // TODO: Implement ticket download
+              try {
+                // Prepare ticket data for PDF generation
+                const ticketData: TicketData = {
+                  bookingReference: data.bookingReference,
+                  pnr: data.pnr,
+                  flight: {
+                    airline: data.flight.airline || 'Airline',
+                    flightNumber: data.flight.flightNumber || 'N/A',
+                    origin: data.flight.origin || 'N/A',
+                    originCity: data.flight.originCity,
+                    destination: data.flight.destination || 'N/A',
+                    destinationCity: data.flight.destinationCity,
+                    departureDate: data.flight.departureDate,
+                    departureTime: data.flight.departureTime,
+                    arrivalDate: data.flight.arrivalDate,
+                    arrivalTime: data.flight.arrivalTime,
+                    duration: data.flight.duration,
+                    aircraft: data.flight.aircraft,
+                    cabin: data.flight.cabin || 'Economy',
+                    seatNumber: data.flight.seatNumber,
+                    gate: data.flight.gate,
+                    terminal: data.flight.terminal,
+                    baggageAllowance: data.flight.baggageAllowance || '23kg',
+                  },
+                  passengers: data.passengers,
+                  totalPaid: data.totalPaid,
+                  currency: data.currency,
+                  confirmationEmail: data.confirmationEmail,
+                  bookingDate: new Date().toISOString(),
+                  ticketNumber: `FLY2ANY-${data.bookingReference}-${Date.now()}`,
+                  fareType: 'Standard',
+                };
+
+                // Generate and download the PDF
+                await generateETicketPDF(ticketData);
+
+                // Show success message
+                const consultant = currentTypingConsultant || getConsultant('customer-service');
+                const successMessage: Message = {
+                  id: `msg_${Date.now()}`,
+                  role: 'assistant',
+                  content: 'Your e-ticket has been downloaded successfully! You can also find it in your email. Have a great flight!',
+                  consultant,
+                  timestamp: new Date(),
+                };
+                setMessages(prev => [...prev, successMessage]);
+              } catch (error) {
+                console.error('Error downloading ticket:', error);
+                const consultant = currentTypingConsultant || getConsultant('customer-service');
+                const errorMessage: Message = {
+                  id: `msg_${Date.now()}`,
+                  role: 'assistant',
+                  content: 'Sorry, there was an error downloading your ticket. Please try again or contact support.',
+                  consultant,
+                  timestamp: new Date(),
+                };
+                setMessages(prev => [...prev, errorMessage]);
+              }
             }}
             onViewBooking={() => {
               console.log('👁️  View booking requested');
@@ -2034,6 +2386,20 @@ function detectFlightSearchIntent(userMessage: string): boolean {
   const hasDateKeyword = dateKeywords.some(keyword => msg.includes(keyword));
 
   return hasFlightKeyword && (hasLocationKeyword || hasDateKeyword);
+}
+
+/**
+ * Detect if flight is domestic or international based on airport codes
+ * Uses comprehensive flight type detector with support for:
+ * - Multiple countries and territories
+ * - Schengen Area detection
+ * - US territories (Puerto Rico, Guam, etc.)
+ * - UK and French territories
+ * - Edge cases and special regions
+ */
+function detectFlightType(origin: string, destination: string): 'domestic' | 'international' {
+  // Use the comprehensive flight type detector
+  return detectFlightTypeSimple(origin, destination);
 }
 
 /**

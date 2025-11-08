@@ -8,6 +8,9 @@
  * - Security (require auth for sensitive operations)
  */
 
+import { prisma } from '@/lib/db/prisma';
+import { createHash } from 'crypto';
+
 export interface UserSession {
   sessionId: string;
   ipAddress: string;
@@ -291,28 +294,240 @@ export async function trackUserSession(ipAddress: string): Promise<UserSession> 
 }
 
 /**
- * Database operations (integrate with your existing DB)
+ * Database operations (Prisma integration)
+ */
+
+/**
+ * Hash IP address for privacy (GDPR compliance)
+ */
+function hashIP(ip: string): string {
+  return createHash('sha256').update(ip).digest('hex');
+}
+
+/**
+ * Resolve IP address to geolocation data
+ * Uses ipapi.co free tier (1000 requests/day)
+ */
+async function resolveGeolocation(ipAddress: string): Promise<{
+  country_code: string | null;
+  region: string | null;
+  timezone: string | null;
+} | null> {
+  try {
+    // Skip private/local IPs
+    if (
+      ipAddress === '127.0.0.1' ||
+      ipAddress === 'localhost' ||
+      ipAddress.startsWith('192.168.') ||
+      ipAddress.startsWith('10.') ||
+      ipAddress.startsWith('172.16.')
+    ) {
+      return null;
+    }
+
+    // Call ipapi.co (free, no auth required)
+    const response = await fetch(`https://ipapi.co/${ipAddress}/json/`, {
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+      headers: {
+        'User-Agent': 'Fly2Any-AuthStrategy/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      console.warn(`[AuthStrategy] Geolocation API returned ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Check for rate limit or error
+    if (data.error) {
+      console.warn('[AuthStrategy] Geolocation API error:', data.reason || data.error);
+      return null;
+    }
+
+    return {
+      country_code: data.country_code || data.country || null,
+      region: data.region || data.region_code || null,
+      timezone: data.timezone || null
+    };
+  } catch (error) {
+    // Fail silently - geolocation is nice-to-have
+    console.warn('[AuthStrategy] Geolocation failed:', error instanceof Error ? error.message : 'Unknown error');
+    return null;
+  }
+}
+
+/**
+ * Find session by IP address (within 24 hours)
  */
 async function findSessionByIP(ipAddress: string): Promise<UserSession | null> {
-  // TODO: Implement database query
-  // SELECT * FROM user_sessions WHERE ip_address = ? AND created_at > NOW() - INTERVAL 24 HOUR
-  return null;
+  try {
+    if (!prisma) {
+      console.warn('[AuthStrategy] Prisma not configured - skipping session lookup');
+      return null;
+    }
+
+    const ipHash = hashIP(ipAddress);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const session = await prisma.userSessionTracking.findFirst({
+      where: {
+        ipHash,
+        createdAt: {
+          gte: twentyFourHoursAgo
+        }
+      },
+      orderBy: {
+        lastActivity: 'desc'
+      }
+    });
+
+    if (!session) {
+      return null;
+    }
+
+    return {
+      sessionId: session.sessionId,
+      ipAddress: session.ipAddress,
+      country: session.country || undefined,
+      isAuthenticated: session.isAuthenticated,
+      userId: session.userId || undefined,
+      email: session.email || undefined,
+      name: session.name || undefined,
+      conversationCount: session.conversationCount,
+      lastActivity: session.lastActivity,
+      createdAt: session.createdAt
+    };
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to find session by IP:', error instanceof Error ? error.message : 'Unknown error');
+    return null;
+  }
 }
 
+/**
+ * Update session activity timestamp
+ */
 async function updateSessionActivity(sessionId: string): Promise<void> {
-  // TODO: Implement database update
-  // UPDATE user_sessions SET last_activity = NOW() WHERE session_id = ?
+  try {
+    if (!prisma) {
+      console.warn('[AuthStrategy] Prisma not configured - skipping activity update');
+      return;
+    }
+
+    await prisma.userSessionTracking.update({
+      where: { sessionId },
+      data: {
+        lastActivity: new Date(),
+        updatedAt: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to update session activity:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
+/**
+ * Save new session to database
+ */
 async function saveSession(session: UserSession): Promise<void> {
-  // TODO: Implement database insert
-  // INSERT INTO user_sessions (session_id, ip_address, country, ...) VALUES (?, ?, ?, ...)
+  try {
+    if (!prisma) {
+      console.warn('[AuthStrategy] Prisma not configured - skipping session save');
+      return;
+    }
+
+    const ipHash = hashIP(session.ipAddress);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+
+    await prisma.userSessionTracking.create({
+      data: {
+        sessionId: session.sessionId,
+        ipAddress: session.ipAddress,
+        ipHash,
+        country: session.country || null,
+        isAuthenticated: session.isAuthenticated,
+        userId: session.userId || null,
+        email: session.email || null,
+        name: session.name || null,
+        conversationCount: session.conversationCount,
+        searchCount: 0,
+        bookingAttempts: 0,
+        lastActivity: session.lastActivity,
+        createdAt: session.createdAt,
+        expiresAt
+      }
+    });
+
+    console.log(`[AuthStrategy] Saved new session: ${session.sessionId}`);
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to save session:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
+/**
+ * Get country from IP address using geolocation service
+ */
 async function getCountryFromIP(ipAddress: string): Promise<string | undefined> {
-  // TODO: Use your existing IP geolocation service
-  // You mentioned you already have IP tracking implemented
-  return undefined;
+  const geoData = await resolveGeolocation(ipAddress);
+  return geoData?.country_code || undefined;
+}
+
+/**
+ * Increment conversation count for a session
+ */
+export async function incrementConversationCount(sessionId: string): Promise<void> {
+  try {
+    if (!prisma) return;
+
+    await prisma.userSessionTracking.update({
+      where: { sessionId },
+      data: {
+        conversationCount: { increment: 1 },
+        lastActivity: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to increment conversation count:', error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+/**
+ * Increment search count for a session
+ */
+export async function incrementSearchCount(sessionId: string): Promise<void> {
+  try {
+    if (!prisma) return;
+
+    await prisma.userSessionTracking.update({
+      where: { sessionId },
+      data: {
+        searchCount: { increment: 1 },
+        lastActivity: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to increment search count:', error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+/**
+ * Increment booking attempts for a session
+ */
+export async function incrementBookingAttempts(sessionId: string): Promise<void> {
+  try {
+    if (!prisma) return;
+
+    await prisma.userSessionTracking.update({
+      where: { sessionId },
+      data: {
+        bookingAttempts: { increment: 1 },
+        lastActivity: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to increment booking attempts:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 function generateSessionId(): string {
@@ -328,14 +543,38 @@ export async function upgradeToAuthenticatedUser(
   email: string,
   name: string
 ): Promise<void> {
-  // Update session with user info
-  // UPDATE user_sessions SET is_authenticated = TRUE, user_id = ?, email = ?, name = ? WHERE session_id = ?
+  try {
+    if (!prisma) {
+      console.warn('[AuthStrategy] Prisma not configured - skipping user upgrade');
+      return;
+    }
 
-  // Migrate conversation history to user account
-  // UPDATE conversations SET user_id = ? WHERE session_id = ?
+    // Update session with user info
+    await prisma.userSessionTracking.update({
+      where: { sessionId },
+      data: {
+        isAuthenticated: true,
+        userId,
+        email,
+        name,
+        updatedAt: new Date()
+      }
+    });
 
-  // Award sign-up bonus (10% discount coupon)
-  // INSERT INTO user_coupons (user_id, code, discount, ...) VALUES (?, ?, 10, ...)
+    // Migrate conversation history to user account
+    await prisma.aIConversation.updateMany({
+      where: { sessionId },
+      data: {
+        userId,
+        updatedAt: new Date()
+      }
+    });
+
+    console.log(`[AuthStrategy] Upgraded session ${sessionId} to authenticated user ${userId}`);
+  } catch (error) {
+    console.error('[AuthStrategy] Failed to upgrade user:', error instanceof Error ? error.message : 'Unknown error');
+    throw error;
+  }
 }
 
 /**

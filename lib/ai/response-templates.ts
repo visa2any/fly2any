@@ -483,6 +483,385 @@ export const RESPONSE_TEMPLATES: Record<
       actionOriented: false,
     },
   },
+
+  // Travel-specific emotions
+  travel_anxiety: {
+    en: {
+      opening: [
+        "I understand flying can be nerve-wracking. Let me help ease your concerns.",
+        "It's completely normal to feel anxious. I'm here to guide you through everything.",
+        "Your safety and comfort are our priorities. Let me explain what to expect.",
+      ],
+      closing: [
+        "Flying is very safe, and you're in good hands!",
+        "I'll be here to answer any questions you have.",
+        "You've got this! It will be a smooth experience.",
+      ],
+      tone: 'empathetic',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Entendo que voar pode ser estressante. Deixe-me ajudar a aliviar suas preocupações.",
+        "É completamente normal se sentir ansioso. Estou aqui para orientá-lo em tudo.",
+        "Sua segurança e conforto são nossas prioridades. Deixe-me explicar o que esperar.",
+      ],
+      closing: [
+        "Voar é muito seguro e você está em boas mãos!",
+        "Estarei aqui para responder qualquer pergunta que você tenha.",
+        "Você consegue! Será uma experiência tranquila.",
+      ],
+      tone: 'empathetic',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "Entiendo que volar puede ser estresante. Déjame ayudar a aliviar tus preocupaciones.",
+        "Es completamente normal sentirse ansioso. Estoy aquí para guiarte en todo.",
+        "Tu seguridad y comodidad son nuestras prioridades. Déjame explicar qué esperar.",
+      ],
+      closing: [
+        "¡Volar es muy seguro y estás en buenas manos!",
+        "Estaré aquí para responder cualquier pregunta que tengas.",
+        "¡Puedes hacerlo! Será una experiencia fluida.",
+      ],
+      tone: 'empathetic',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+  },
+
+  vacation_excitement: {
+    en: {
+      opening: [
+        "How exciting! A vacation is just what you need!",
+        "I love planning dream vacations! Let's make this unforgettable!",
+        "Your vacation awaits! I'm thrilled to help you plan this!",
+      ],
+      closing: [
+        "This is going to be an amazing trip!",
+        "Can't wait to help you create wonderful memories!",
+        "Have the time of your life!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Que emocionante! Umas férias são exatamente o que você precisa!",
+        "Adoro planejar férias dos sonhos! Vamos tornar isso inesquecível!",
+        "Suas férias aguardam! Estou animado para ajudá-lo a planejar isso!",
+      ],
+      closing: [
+        "Essa vai ser uma viagem incrível!",
+        "Mal posso esperar para ajudá-lo a criar memórias maravilhosas!",
+        "Aproveite ao máximo!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "¡Qué emocionante! ¡Unas vacaciones son justo lo que necesitas!",
+        "¡Me encanta planear vacaciones de ensueño! ¡Hagamos esto inolvidable!",
+        "¡Tus vacaciones te esperan! ¡Estoy emocionado de ayudarte a planear esto!",
+      ],
+      closing: [
+        "¡Este va a ser un viaje increíble!",
+        "¡No puedo esperar para ayudarte a crear recuerdos maravillosos!",
+        "¡Que lo pases de maravilla!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+  },
+
+  business_urgency: {
+    en: {
+      opening: [
+        "I understand this is time-sensitive. Let me find the fastest options.",
+        "Business travel requires efficiency. I'll prioritize speed and convenience.",
+        "Got it - let's get you there on time.",
+      ],
+      closing: [
+        "I'll ensure you arrive prepared and on time.",
+        "Your business trip is in good hands.",
+        "Let's make this trip efficient and stress-free.",
+      ],
+      tone: 'urgent',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Entendo que isso é urgente. Deixe-me encontrar as opções mais rápidas.",
+        "Viagens de negócios exigem eficiência. Vou priorizar velocidade e conveniência.",
+        "Entendi - vamos levá-lo lá a tempo.",
+      ],
+      closing: [
+        "Vou garantir que você chegue preparado e no horário.",
+        "Sua viagem de negócios está em boas mãos.",
+        "Vamos tornar esta viagem eficiente e sem estresse.",
+      ],
+      tone: 'urgent',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "Entiendo que esto es urgente. Déjame encontrar las opciones más rápidas.",
+        "Los viajes de negocios requieren eficiencia. Priorizaré velocidad y conveniencia.",
+        "Entendido - te llevaré allí a tiempo.",
+      ],
+      closing: [
+        "Me aseguraré de que llegues preparado y a tiempo.",
+        "Tu viaje de negocios está en buenas manos.",
+        "Hagamos este viaje eficiente y sin estrés.",
+      ],
+      tone: 'urgent',
+      useExclamation: false,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+  },
+
+  family_stress: {
+    en: {
+      opening: [
+        "Traveling with family can be challenging! Let me help make it easier.",
+        "I'll find family-friendly options that work for everyone.",
+        "Family travel requires special attention. I've got you covered!",
+      ],
+      closing: [
+        "Your family's comfort and safety come first.",
+        "Let's make this a fun trip for the whole family!",
+        "I'm here to make family travel stress-free.",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Viajar com a família pode ser desafiador! Deixe-me ajudar a tornar isso mais fácil.",
+        "Vou encontrar opções adequadas para famílias que funcionem para todos.",
+        "Viagens em família requerem atenção especial. Estou aqui para ajudar!",
+      ],
+      closing: [
+        "O conforto e a segurança de sua família vêm em primeiro lugar.",
+        "Vamos tornar esta uma viagem divertida para toda a família!",
+        "Estou aqui para tornar as viagens em família livres de estresse.",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "¡Viajar con la familia puede ser desafiante! Déjame ayudar a hacerlo más fácil.",
+        "Encontraré opciones aptas para familias que funcionen para todos.",
+        "Los viajes familiares requieren atención especial. ¡Te tengo cubierto!",
+      ],
+      closing: [
+        "La comodidad y seguridad de tu familia son lo primero.",
+        "¡Hagamos de este un viaje divertido para toda la familia!",
+        "Estoy aquí para hacer que los viajes familiares sean libres de estrés.",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+  },
+
+  budget_concerned: {
+    en: {
+      opening: [
+        "I totally understand - let's find the best value!",
+        "Budget travel doesn't mean sacrificing quality. Let me find great deals!",
+        "Smart spending is important. I'll find affordable options.",
+      ],
+      closing: [
+        "You don't have to break the bank for a great trip!",
+        "Let me help you save while traveling smart.",
+        "Great value is out there - let's find it!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Eu entendo completamente - vamos encontrar o melhor valor!",
+        "Viajar com orçamento não significa sacrificar qualidade. Deixe-me encontrar ótimas ofertas!",
+        "Gastar com sabedoria é importante. Vou encontrar opções acessíveis.",
+      ],
+      closing: [
+        "Você não precisa gastar muito para uma ótima viagem!",
+        "Deixe-me ajudá-lo a economizar enquanto viaja com inteligência.",
+        "Há grande valor por aí - vamos encontrá-lo!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "¡Lo entiendo totalmente - vamos a encontrar el mejor valor!",
+        "Viajar con presupuesto no significa sacrificar calidad. ¡Déjame encontrar grandes ofertas!",
+        "Gastar inteligentemente es importante. Encontraré opciones asequibles.",
+      ],
+      closing: [
+        "¡No tienes que romper el banco para un gran viaje!",
+        "Déjame ayudarte a ahorrar mientras viajas inteligentemente.",
+        "¡Hay gran valor ahí fuera - vamos a encontrarlo!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+  },
+
+  first_time_flyer: {
+    en: {
+      opening: [
+        "Congratulations on your first flight! I'll guide you through everything.",
+        "First-time flying is exciting! Let me help you prepare.",
+        "Welcome to the world of travel! I'm here to answer all your questions.",
+      ],
+      closing: [
+        "You're going to do great!",
+        "Flying is easier than you think - you've got this!",
+        "I'm here if you have any questions along the way!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Parabéns pelo seu primeiro voo! Vou orientá-lo em tudo.",
+        "Voar pela primeira vez é emocionante! Deixe-me ajudá-lo a se preparar.",
+        "Bem-vindo ao mundo das viagens! Estou aqui para responder todas as suas perguntas.",
+      ],
+      closing: [
+        "Você vai se sair muito bem!",
+        "Voar é mais fácil do que você pensa - você consegue!",
+        "Estou aqui se você tiver alguma pergunta ao longo do caminho!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "¡Felicitaciones por tu primer vuelo! Te guiaré en todo.",
+        "¡Volar por primera vez es emocionante! Déjame ayudarte a prepararte.",
+        "¡Bienvenido al mundo de los viajes! Estoy aquí para responder todas tus preguntas.",
+      ],
+      closing: [
+        "¡Lo vas a hacer genial!",
+        "Volar es más fácil de lo que piensas - ¡puedes hacerlo!",
+        "¡Estoy aquí si tienes alguna pregunta en el camino!",
+      ],
+      tone: 'empathetic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: true,
+      actionOriented: true,
+    },
+  },
+
+  honeymoon_bliss: {
+    en: {
+      opening: [
+        "Congratulations on your wedding! Let's plan the perfect honeymoon!",
+        "How romantic! I'll help you create unforgettable memories.",
+        "Newlyweds deserve the best! Let's make this magical!",
+      ],
+      closing: [
+        "Wishing you a beautiful honeymoon and a lifetime of happiness!",
+        "This is going to be so special!",
+        "May your honeymoon be as wonderful as your love story!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    pt: {
+      opening: [
+        "Parabéns pelo casamento! Vamos planejar a lua de mel perfeita!",
+        "Que romântico! Vou ajudá-lo a criar memórias inesquecíveis.",
+        "Recém-casados merecem o melhor! Vamos tornar isso mágico!",
+      ],
+      closing: [
+        "Desejando-lhe uma bela lua de mel e uma vida de felicidade!",
+        "Isso vai ser tão especial!",
+        "Que sua lua de mel seja tão maravilhosa quanto sua história de amor!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+    es: {
+      opening: [
+        "¡Felicitaciones por tu boda! ¡Vamos a planear la luna de miel perfecta!",
+        "¡Qué romántico! Te ayudaré a crear recuerdos inolvidables.",
+        "¡Los recién casados merecen lo mejor! ¡Hagamos esto mágico!",
+      ],
+      closing: [
+        "¡Deseándote una hermosa luna de miel y una vida de felicidad!",
+        "¡Esto va a ser tan especial!",
+        "¡Que tu luna de miel sea tan maravillosa como tu historia de amor!",
+      ],
+      tone: 'enthusiastic',
+      useExclamation: true,
+      useBulletPoints: true,
+      explainMode: false,
+      actionOriented: true,
+    },
+  },
 };
 
 /**

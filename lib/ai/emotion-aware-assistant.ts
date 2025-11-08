@@ -274,6 +274,56 @@ export function getEmotionVisualStyle(emotion: EmotionalState): {
       borderColor: 'border-gray-200',
       icon: '😐',
       shouldPulse: false
+    },
+    // Travel-specific emotions
+    travel_anxiety: {
+      backgroundColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
+      borderColor: 'border-amber-300',
+      icon: '✈️',
+      shouldPulse: false
+    },
+    vacation_excitement: {
+      backgroundColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700',
+      borderColor: 'border-emerald-300',
+      icon: '🏖️',
+      shouldPulse: false
+    },
+    business_urgency: {
+      backgroundColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      borderColor: 'border-purple-300',
+      icon: '💼',
+      shouldPulse: true
+    },
+    family_stress: {
+      backgroundColor: 'bg-pink-50',
+      textColor: 'text-pink-700',
+      borderColor: 'border-pink-300',
+      icon: '👨‍👩‍👧‍👦',
+      shouldPulse: false
+    },
+    budget_concerned: {
+      backgroundColor: 'bg-cyan-50',
+      textColor: 'text-cyan-700',
+      borderColor: 'border-cyan-300',
+      icon: '💰',
+      shouldPulse: false
+    },
+    first_time_flyer: {
+      backgroundColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700',
+      borderColor: 'border-indigo-300',
+      icon: '🎫',
+      shouldPulse: false
+    },
+    honeymoon_bliss: {
+      backgroundColor: 'bg-rose-50',
+      textColor: 'text-rose-700',
+      borderColor: 'border-rose-300',
+      icon: '💑',
+      shouldPulse: false
     }
   };
 

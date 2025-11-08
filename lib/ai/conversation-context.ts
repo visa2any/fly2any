@@ -11,16 +11,38 @@ export type IntentType =
   | 'gratitude'
   | 'destination-recommendation'
   | 'booking-management'
+  | 'booking-modification'
+  | 'booking-cancellation'
   | 'service-request'
   | 'question'
   | 'casual'
   | 'farewell';
+
+export interface FlightSearchInfo {
+  origin: string;
+  destination: string;
+  departureDate?: string;
+  returnDate?: string;
+  flightType?: 'domestic' | 'international';
+  passengers?: number;
+  timestamp: number;
+}
+
+export interface BookingModificationInfo {
+  bookingReference: string;
+  modificationType: 'date' | 'route' | 'passenger' | 'class' | 'cancellation';
+  requestedAt: number;
+  status: 'requested' | 'quoted' | 'confirmed' | 'failed';
+  details?: any;
+}
 
 export interface ConversationInteraction {
   intent: IntentType;
   userMessage?: string;
   assistantResponse: string;
   timestamp: number;
+  flightSearch?: FlightSearchInfo;
+  bookingModification?: BookingModificationInfo;
 }
 
 export interface ConversationIntent {
@@ -43,6 +65,9 @@ export class ConversationContext {
   private hasAskedWellbeing: boolean = false;
   private hasOfferedService: boolean = false;
   private rapportLevel: number = 0; // 0-10 scale
+  private flightSearches: FlightSearchInfo[] = [];
+  private bookingModifications: BookingModificationInfo[] = [];
+  private lastFlightType?: 'domestic' | 'international';
 
   constructor() {
     this.conversationStart = Date.now();
@@ -52,17 +77,38 @@ export class ConversationContext {
   /**
    * Add an interaction to the history
    */
-  addInteraction(intent: IntentType, response: string, userMessage?: string): void {
+  addInteraction(
+    intent: IntentType,
+    response: string,
+    userMessage?: string,
+    flightSearch?: FlightSearchInfo,
+    bookingModification?: BookingModificationInfo
+  ): void {
     const interaction: ConversationInteraction = {
       intent,
       userMessage,
       assistantResponse: response,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      flightSearch,
+      bookingModification
     };
 
     this.interactions.push(interaction);
     this.intents.set(intent, (this.intents.get(intent) || 0) + 1);
     this.lastResponseTime = Date.now();
+
+    // Track flight searches
+    if (flightSearch) {
+      this.flightSearches.push(flightSearch);
+      if (flightSearch.flightType) {
+        this.lastFlightType = flightSearch.flightType;
+      }
+    }
+
+    // Track booking modifications
+    if (bookingModification) {
+      this.bookingModifications.push(bookingModification);
+    }
 
     // Update flags based on intent
     if (intent === 'greeting') {
@@ -238,6 +284,157 @@ export class ConversationContext {
   }
 
   /**
+   * Track flight search with flight type detection
+   */
+  addFlightSearch(searchInfo: FlightSearchInfo): void {
+    this.flightSearches.push(searchInfo);
+    if (searchInfo.flightType) {
+      this.lastFlightType = searchInfo.flightType;
+    }
+  }
+
+  /**
+   * Track booking modification
+   */
+  addBookingModification(modificationInfo: BookingModificationInfo): void {
+    this.bookingModifications.push(modificationInfo);
+  }
+
+  /**
+   * Get all flight searches
+   */
+  getFlightSearches(): FlightSearchInfo[] {
+    return [...this.flightSearches];
+  }
+
+  /**
+   * Get recent flight searches
+   */
+  getRecentFlightSearches(count: number = 5): FlightSearchInfo[] {
+    return this.flightSearches.slice(-count);
+  }
+
+  /**
+   * Get last flight type searched
+   */
+  getLastFlightType(): 'domestic' | 'international' | undefined {
+    return this.lastFlightType;
+  }
+
+  /**
+   * Get all booking modifications
+   */
+  getBookingModifications(): BookingModificationInfo[] {
+    return [...this.bookingModifications];
+  }
+
+  /**
+   * Get pending booking modifications
+   */
+  getPendingModifications(): BookingModificationInfo[] {
+    return this.bookingModifications.filter(
+      mod => mod.status === 'requested' || mod.status === 'quoted'
+    );
+  }
+
+  /**
+   * Check if user has searched for flights
+   */
+  hasSearchedFlights(): boolean {
+    return this.flightSearches.length > 0;
+  }
+
+  /**
+   * Check if user has requested booking modifications
+   */
+  hasRequestedModifications(): boolean {
+    return this.bookingModifications.length > 0;
+  }
+
+  /**
+   * Get most searched route
+   */
+  getMostSearchedRoute(): { origin: string; destination: string; count: number } | undefined {
+    const routeCounts = new Map<string, { origin: string; destination: string; count: number }>();
+
+    for (const search of this.flightSearches) {
+      const routeKey = `${search.origin}-${search.destination}`;
+      const existing = routeCounts.get(routeKey);
+
+      if (existing) {
+        existing.count++;
+      } else {
+        routeCounts.set(routeKey, {
+          origin: search.origin,
+          destination: search.destination,
+          count: 1
+        });
+      }
+    }
+
+    if (routeCounts.size === 0) return undefined;
+
+    let mostSearched = { origin: '', destination: '', count: 0 };
+    for (const route of routeCounts.values()) {
+      if (route.count > mostSearched.count) {
+        mostSearched = route;
+      }
+    }
+
+    return mostSearched;
+  }
+
+  /**
+   * Get user preferences based on search history
+   */
+  getUserPreferences(): {
+    preferredOrigins: string[];
+    preferredDestinations: string[];
+    prefersDomestic: boolean;
+    prefersInternational: boolean;
+    averagePassengers: number;
+  } {
+    const origins = new Map<string, number>();
+    const destinations = new Map<string, number>();
+    let domesticCount = 0;
+    let internationalCount = 0;
+    let totalPassengers = 0;
+    let passengerSearchCount = 0;
+
+    for (const search of this.flightSearches) {
+      origins.set(search.origin, (origins.get(search.origin) || 0) + 1);
+      destinations.set(search.destination, (destinations.get(search.destination) || 0) + 1);
+
+      if (search.flightType === 'domestic') domesticCount++;
+      if (search.flightType === 'international') internationalCount++;
+
+      if (search.passengers) {
+        totalPassengers += search.passengers;
+        passengerSearchCount++;
+      }
+    }
+
+    // Get top 3 origins and destinations
+    const topOrigins = Array.from(origins.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([code]) => code);
+
+    const topDestinations = Array.from(destinations.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([code]) => code);
+
+    return {
+      preferredOrigins: topOrigins,
+      preferredDestinations: topDestinations,
+      prefersDomestic: domesticCount > internationalCount,
+      prefersInternational: internationalCount > domesticCount,
+      averagePassengers: passengerSearchCount > 0 ? Math.round(totalPassengers / passengerSearchCount) : 1
+    };
+  }
+
+  /**
    * Get conversation summary
    */
   getSummary(): {
@@ -248,6 +445,9 @@ export class ConversationContext {
     hasGreeted: boolean;
     hasEstablishedRapport: boolean;
     isServiceMode: boolean;
+    flightSearchCount: number;
+    bookingModificationCount: number;
+    lastFlightType?: 'domestic' | 'international';
   } {
     return {
       duration: this.getConversationDuration(),
@@ -256,7 +456,10 @@ export class ConversationContext {
       rapportLevel: this.rapportLevel,
       hasGreeted: this.hasGreeted,
       hasEstablishedRapport: this.hasEstablishedRapport(),
-      isServiceMode: this.isServiceMode()
+      isServiceMode: this.isServiceMode(),
+      flightSearchCount: this.flightSearches.length,
+      bookingModificationCount: this.bookingModifications.length,
+      lastFlightType: this.lastFlightType
     };
   }
 
@@ -274,5 +477,8 @@ export class ConversationContext {
     this.hasAskedWellbeing = false;
     this.hasOfferedService = false;
     this.rapportLevel = 0;
+    this.flightSearches = [];
+    this.bookingModifications = [];
+    this.lastFlightType = undefined;
   }
 }
