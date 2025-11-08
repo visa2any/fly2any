@@ -25,17 +25,24 @@ const nextConfig = {
   // Webpack configuration (Phase 8 - Quick Win 1D)
   webpack: (config, { dev, isServer }) => {
     // Add bundle analyzer in production builds (client-side only)
+    // Only if webpack-bundle-analyzer is installed (dev environment)
     if (!dev && !isServer) {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: false,
-          reportFilename: '../analyze/client.html',
-          generateStatsFile: true,
-          statsFilename: '../analyze/client-stats.json',
-        })
-      );
+      try {
+        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            openAnalyzer: false,
+            reportFilename: '../analyze/client.html',
+            generateStatsFile: true,
+            statsFilename: '../analyze/client-stats.json',
+          })
+        );
+      } catch (err) {
+        // webpack-bundle-analyzer not installed (production build)
+        // This is expected on Vercel - analyzer only runs in local dev builds
+        console.log('Bundle analyzer skipped (not installed in production)');
+      }
     }
 
     // Suppress warnings from Prisma instrumentation and OpenTelemetry
