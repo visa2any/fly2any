@@ -546,6 +546,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     setIsTyping(true);
 
     // AUTOMATIC LANGUAGE DETECTION
+    // Get Lisa consultant for language switch messages
+    const lisaConsultant = getConsultant('customer-service');
+
     // Check if user is explicitly requesting a language switch
     const explicitLanguageSwitch = detectLanguageSwitchIntent(queryText);
     if (explicitLanguageSwitch && explicitLanguageSwitch !== activeLanguage) {
@@ -558,9 +561,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         content: getLanguageSwitchMessage(explicitLanguageSwitch),
         timestamp: new Date(),
         consultant: {
-          id: 'lisa',
-          name: 'Lisa Thompson',
-          team: 'customer-service'
+          id: lisaConsultant.id,
+          name: lisaConsultant.name,
+          title: lisaConsultant.title,
+          avatar: lisaConsultant.avatar,
+          team: lisaConsultant.team
         }
       };
 
@@ -585,9 +590,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             content: getLanguageSwitchMessage(autoDetectedLang),
             timestamp: new Date(),
             consultant: {
-              id: 'lisa',
-              name: 'Lisa Thompson',
-              team: 'customer-service'
+              id: lisaConsultant.id,
+              name: lisaConsultant.name,
+              title: lisaConsultant.title,
+              avatar: lisaConsultant.avatar,
+              team: lisaConsultant.team
             }
           };
 
