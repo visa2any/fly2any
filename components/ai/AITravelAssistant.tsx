@@ -549,10 +549,14 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     // Get Lisa consultant for language switch messages
     const lisaConsultant = getConsultant('customer-service');
 
+    // Determine the language to use for THIS message (don't rely on state that hasn't updated yet!)
+    let currentLanguage: 'en' | 'pt' | 'es' = detectedLanguage || language;
+
     // Check if user is explicitly requesting a language switch
     const explicitLanguageSwitch = detectLanguageSwitchIntent(queryText);
-    if (explicitLanguageSwitch && explicitLanguageSwitch !== activeLanguage) {
+    if (explicitLanguageSwitch && explicitLanguageSwitch !== currentLanguage) {
       setDetectedLanguage(explicitLanguageSwitch);
+      currentLanguage = explicitLanguageSwitch; // Use the new language immediately!
 
       // Send confirmation message
       const confirmationMessage: Message = {
@@ -579,8 +583,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     // Auto-detect language from message (if not already detected)
     if (!detectedLanguage) {
       const autoDetectedLang = detectLanguageFromMessage(queryText);
-      if (autoDetectedLang !== activeLanguage) {
+      if (autoDetectedLang !== currentLanguage) {
         setDetectedLanguage(autoDetectedLang);
+        currentLanguage = autoDetectedLang; // Use the detected language immediately!
 
         // Only show confirmation if switching from default English
         if (language === 'en' && autoDetectedLang !== 'en') {
@@ -708,7 +713,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           emoji: '😊'
         },
         conversationContext,
-        language
+        currentLanguage
       );
 
       // CRITICAL: Pass the actual intent so typing indicator shows appropriate message
@@ -724,9 +729,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const isFlightQuery = detectFlightSearchIntent(queryText);
 
     if (isFlightQuery && consultantTeam === 'flight-operations') {
-      const searchInitMessage = activeLanguage === 'en'
+      const searchInitMessage = currentLanguage === 'en'
         ? "I'll search for flights for you right away..."
-        : activeLanguage === 'pt'
+        : currentLanguage === 'pt'
         ? "Vou pesquisar voos para você agora mesmo..."
         : "Buscaré vuelos para ti de inmediato...";
 
@@ -741,7 +746,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         const response = await fetch('/api/ai/search-flights', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: queryText, activeLanguage })
+          body: JSON.stringify({ query: queryText, currentLanguage })
         });
 
         const data = await response.json();
@@ -765,15 +770,15 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           const cabinClass = data.searchParams?.cabinClass || 'economy';
           const isBusinessClass = cabinClass === 'business' || cabinClass === 'first';
 
-          const resultsContent = activeLanguage === 'en'
+          const resultsContent = currentLanguage === 'en'
             ? `Oh wonderful, sweetie! ✈️ I found ${data.flights.length} fantastic ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options for your ${tripType} journey! Let me show you the best ones:`
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? `Que maravilha, querido! ✈️ Encontrei ${data.flights.length} opções fantásticas ${isBusinessClass ? 'em ' + cabinClass : ''} para sua viagem ${tripType === 'round-trip' ? 'ida e volta' : 'só ida'}! Deixe-me mostrar as melhores:`
             : `¡Qué maravilloso, cariño! ✈️ Encontré ${data.flights.length} opciones fantásticas ${isBusinessClass ? 'en ' + cabinClass : ''} para tu viaje de ${tripType === 'round-trip' ? 'ida y vuelta' : 'solo ida'}! Déjame mostrarte las mejores:`;
 
-          const followUpContent = activeLanguage === 'en'
+          const followUpContent = currentLanguage === 'en'
             ? "Which of these catches your eye, hon? I'm here to help you with the booking or we can adjust the search if you'd like! 💕"
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? "Qual desses chamou sua atenção, querido? Estou aqui para ajudá-lo com a reserva ou podemos ajustar a busca se você quiser! 💕"
             : "¿Cuál de estos te llama la atención, cariño? ¡Estoy aquí para ayudarte con la reserva o podemos ajustar la búsqueda si quieres! 💕";
 
@@ -789,9 +794,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = activeLanguage === 'en'
+          const errorContent = currentLanguage === 'en'
             ? "I couldn't find flights matching your criteria. Could you provide more details like the origin city, destination, and travel dates?"
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? "Não consegui encontrar voos correspondentes aos seus critérios. Você poderia fornecer mais detalhes como cidade de origem, destino e datas de viagem?"
             : "No pude encontrar vuelos que coincidan con tus criterios. ¿Podrías proporcionar más detalles como la ciudad de origen, el destino y las fechas de viaje?";
 
@@ -802,9 +807,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         setIsSearchingFlights(false);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = activeLanguage === 'en'
+        const errorContent = currentLanguage === 'en'
           ? "I encountered an error searching for flights. Please try again or contact support if the issue persists."
-          : activeLanguage === 'pt'
+          : currentLanguage === 'pt'
           ? "Encontrei um erro ao pesquisar voos. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar vuelos. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
@@ -816,9 +821,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const isHotelQuery = detectHotelSearchIntent(queryText);
 
     if (isHotelQuery && consultantTeam === 'hotel-accommodations') {
-      const searchInitMessage = activeLanguage === 'en'
+      const searchInitMessage = currentLanguage === 'en'
         ? "Let me search for the perfect accommodations for you..."
-        : activeLanguage === 'pt'
+        : currentLanguage === 'pt'
         ? "Deixe-me procurar as acomodações perfeitas para você..."
         : "Déjame buscar el alojamiento perfecto para ti...";
 
@@ -830,7 +835,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         const response = await fetch('/api/ai/search-hotels', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: queryText, activeLanguage })
+          body: JSON.stringify({ query: queryText, currentLanguage })
         });
 
         const data = await response.json();
@@ -844,7 +849,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             ? Math.ceil((new Date(data.searchParams.checkOut).getTime() - new Date(data.searchParams.checkIn).getTime()) / (1000 * 60 * 60 * 24))
             : 0;
 
-          const warmResponse = activeLanguage === 'en'
+          const warmResponse = currentLanguage === 'en'
             ? `¡Perfecto! I found ${hotelCount} wonderful options in ${data.searchParams.city} for you! 🏨\n\n` +
               `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} to ${data.searchParams.checkOut}) ` +
               `with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Let me show you the best choices:\n\n` +
@@ -854,7 +859,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 `   💰 $${hotel.pricePerNight}/night ($${hotel.totalPrice} total)\n` +
                 `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
               ).join('\n\n')
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? `¡Perfeito! Encontrei ${hotelCount} opções maravilhosas em ${data.searchParams.city} para você! 🏨\n\n` +
               data.hotels.slice(0, 3).map((hotel: any, i: number) =>
                 `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
@@ -870,9 +875,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
               ).join('\n\n');
 
-          const followUpContent = activeLanguage === 'en'
+          const followUpContent = currentLanguage === 'en'
             ? "\n\nWhich one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? "\n\nQual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
             : "\n\n¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
 
@@ -887,9 +892,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = activeLanguage === 'en'
+          const errorContent = currentLanguage === 'en'
             ? "I couldn't find hotels matching your request. Could you provide the city, check-in date, check-out date, and number of guests?"
-            : activeLanguage === 'pt'
+            : currentLanguage === 'pt'
             ? "Não consegui encontrar hotéis correspondentes à sua solicitação. Você poderia fornecer a cidade, data de check-in, data de check-out e número de hóspedes?"
             : "No pude encontrar hoteles que coincidan con tu solicitud. ¿Podrías proporcionar la ciudad, fecha de entrada, fecha de salida y número de huéspedes?";
 
@@ -899,9 +904,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         console.error('Hotel search error:', error);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = activeLanguage === 'en'
+        const errorContent = currentLanguage === 'en'
           ? "I encountered an error searching for hotels. Please try again or contact support if the issue persists."
-          : activeLanguage === 'pt'
+          : currentLanguage === 'pt'
           ? "Encontrei um erro ao pesquisar hotéis. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar hoteles. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
@@ -926,7 +931,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         );
       } else {
         // Use legacy response for complex queries
-        responseContent = generateAIResponse(queryText, activeLanguage, consultant);
+        responseContent = generateAIResponse(queryText, currentLanguage, consultant);
       }
 
       await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
