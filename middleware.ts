@@ -33,6 +33,7 @@ export default authEdge((req) => {
       // Logged in but not admin - show access denied
       const deniedUrl = new URL('/auth/access-denied', nextUrl.origin);
       deniedUrl.searchParams.set('message', 'Admin access required');
+      deniedUrl.searchParams.set('callbackUrl', nextUrl.pathname);
       return NextResponse.redirect(deniedUrl);
     }
     // Admin user - allow access

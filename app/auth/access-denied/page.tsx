@@ -2,12 +2,35 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Shield, ArrowLeft, Home } from 'lucide-react';
+import { Shield, ArrowLeft, Home, LogIn } from 'lucide-react';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 function AccessDeniedContent() {
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const message = searchParams.get('message') || 'You do not have permission to access this resource';
+  const error = searchParams.get('error');
+  const callbackUrl = searchParams.get('callbackUrl') || '/admin';
+
+  // Check if user is logged in
+  const isLoggedIn = status === 'authenticated' && !!session?.user;
+  const isLoading = status === 'loading';
+
+  // If still loading session, show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  // Determine the message based on login status
+  const displayMessage = !isLoggedIn
+    ? 'You must be logged in as an administrator to access this area.'
+    : message;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -21,12 +44,12 @@ function AccessDeniedContent() {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-gray-900 mb-3">
-          Access Denied
+          {!isLoggedIn ? 'Authentication Required' : 'Access Denied'}
         </h1>
 
         {/* Message */}
         <p className="text-gray-600 mb-8">
-          {message}
+          {displayMessage}
         </p>
 
         {/* Description */}
@@ -34,27 +57,55 @@ function AccessDeniedContent() {
           <p className="text-sm text-gray-700">
             <strong className="text-red-700">Admin Access Required</strong>
             <br />
-            This area is restricted to administrators only. If you believe you should have access, please contact your system administrator.
+            {!isLoggedIn ? (
+              <>Please sign in with an administrator account to continue.</>
+            ) : (
+              <>This area is restricted to administrators only. If you believe you should have access, please contact your system administrator.</>
+            )}
           </p>
         </div>
 
-        {/* Actions */}
+        {/* Actions - Different based on login status */}
         <div className="flex flex-col gap-3">
-          <Link
-            href="/account"
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Go to My Account
-          </Link>
+          {!isLoggedIn ? (
+            // Not logged in - show sign in button
+            <>
+              <Link
+                href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In as Admin
+              </Link>
 
-          <Link
-            href="/"
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
-          >
-            <Home className="w-4 h-4" />
-            Go to Homepage
-          </Link>
+              <Link
+                href="/"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                Go to Homepage
+              </Link>
+            </>
+          ) : (
+            // Logged in but not admin - show account/home links
+            <>
+              <Link
+                href="/account"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Go to My Account
+              </Link>
+
+              <Link
+                href="/"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                Go to Homepage
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Help */}
@@ -71,14 +122,16 @@ function AccessDeniedContent() {
 
 export default function AccessDeniedPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      }
-    >
-      <AccessDeniedContent />
-    </Suspense>
+    <AuthProvider>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+            <div className="text-gray-600">Loading...</div>
+          </div>
+        }
+      >
+        <AccessDeniedContent />
+      </Suspense>
+    </AuthProvider>
   );
 }
