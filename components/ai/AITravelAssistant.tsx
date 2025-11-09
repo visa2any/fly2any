@@ -538,14 +538,44 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       lastActivity: new Date()
     }));
 
-    // ANALYZE CONVERSATION INTENT FIRST
+    // ANALYZE CONVERSATION INTENT FIRST (includes LOCAL ML language detection)
     const messageHistory = messages.map(m => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
       timestamp: m.timestamp.getTime()
     }));
 
-    const analysis = analyzeConversationIntent(queryText, messageHistory);
+    const analysis = await analyzeConversationIntent(queryText, messageHistory);
+
+    // LANGUAGE DETECTION RESULT from LOCAL ML
+    const detectedLanguage = analysis.detectedLanguage || 'en';
+    const languageConfidence = analysis.languageConfidence || 0.5;
+    const languageSwitchRequested = analysis.languageSwitchRequested || false;
+
+    // Update language if detected different from current (high confidence)
+    if (detectedLanguage !== language && languageConfidence > 0.7) {
+      console.log(`🌐 Language switched: ${language} → ${detectedLanguage} (confidence: ${(languageConfidence * 100).toFixed(0)}%)`);
+      setLanguage(detectedLanguage);
+
+      // Notify user of language switch with appropriate message
+      const languageSwitchMessage = detectedLanguage === 'pt'
+        ? "Detectei que você está escrevendo em português! Vou continuar nossa conversa em português. 😊"
+        : detectedLanguage === 'es'
+        ? "¡Detecté que estás escribiendo en español! Continuaré nuestra conversación en español. 😊"
+        : "I've switched back to English! 😊";
+
+      // Get consultant for language switch notification
+      const tempConsultant = getConsultant('customer-service'); // Lisa handles language switches
+
+      // Send language switch notification (quick, no typing simulation needed)
+      await sendAIResponseWithTyping(
+        languageSwitchMessage,
+        tempConsultant,
+        queryText,
+        undefined,
+        'confirmation'
+      );
+    }
 
     const consultantTeam = determineConsultantTeam(queryText);
     const consultant = getConsultant(consultantTeam);
