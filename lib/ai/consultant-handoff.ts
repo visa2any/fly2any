@@ -3,6 +3,8 @@
  * Manages professional transfers between travel agents
  */
 
+import { formatDateSafe } from '@/lib/utils/date-parsing';
+
 export type TeamType =
   | 'customer-service'
   | 'flight-operations'
@@ -274,16 +276,7 @@ function generateContextConfirmation(
  * Format date for display
  */
 function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  } catch {
-    return dateString;
-  }
+  return formatDateSafe(dateString);
 }
 
 /**

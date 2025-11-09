@@ -25,6 +25,7 @@ import { ConsultantProfileModal } from './ConsultantProfileModal';
 import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
 import { useRouter } from 'next/navigation';
 import { useAIAnalytics } from '@/lib/hooks/useAIAnalytics';
+import { extractDateFromQuery } from '@/lib/utils/date-parsing';
 import {
   calculateTypingDelay,
   calculateThinkingDelay,
@@ -2191,8 +2192,9 @@ function extractSearchContext(userMessage: string, team: string): any {
     const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to|\s+on|\s+in|\s*$)/i);
     const toMatch = msg.match(/to\s+([a-z\s]+?)(?:\s+on|\s+in|\s+from|\s*$)/i);
 
-    // Try to extract dates
-    const dateMatch = msg.match(/(?:on|in|for)\s+([a-z]+\s+\d+|\d+\/\d+|next\s+\w+|tomorrow|today)/i);
+    // Try to extract dates using the robust date parser
+    const departureDate = extractDateFromQuery(userMessage, 'departure');
+    const returnDate = extractDateFromQuery(userMessage, 'return');
 
     // Try to extract passengers
     const passengersMatch = msg.match(/(\d+)\s+(?:passenger|person|people|traveler)/i);
@@ -2204,7 +2206,8 @@ function extractSearchContext(userMessage: string, team: string): any {
     const context: any = {};
     if (fromMatch) context.origin = fromMatch[1].trim();
     if (toMatch) context.destination = toMatch[1].trim();
-    if (dateMatch) context.departureDate = dateMatch[1].trim();
+    if (departureDate) context.departureDate = departureDate.isoDate; // Use ISO format
+    if (returnDate) context.returnDate = returnDate.isoDate; // Use ISO format
     if (passengersMatch) context.passengers = parseInt(passengersMatch[1]);
     if (hasBusinessClass) context.cabinClass = 'business';
     else if (hasEconomyClass) context.cabinClass = 'economy';
@@ -2217,9 +2220,9 @@ function extractSearchContext(userMessage: string, team: string): any {
     // Try to extract city
     const inMatch = msg.match(/(?:in|at|near)\s+([a-z\s]+?)(?:\s+from|\s+for|\s+on|\s*$)/i);
 
-    // Try to extract dates
-    const checkInMatch = msg.match(/(?:from|check\s*in|checkin)\s+([a-z]+\s+\d+|\d+\/\d+)/i);
-    const checkOutMatch = msg.match(/(?:to|check\s*out|checkout|until)\s+([a-z]+\s+\d+|\d+\/\d+)/i);
+    // Try to extract dates using the robust date parser
+    const checkIn = extractDateFromQuery(userMessage, 'checkin');
+    const checkOut = extractDateFromQuery(userMessage, 'checkout');
 
     // Try to extract guests
     const guestsMatch = msg.match(/(\d+)\s+(?:guest|person|people)/i);
@@ -2227,8 +2230,8 @@ function extractSearchContext(userMessage: string, team: string): any {
 
     const context: any = {};
     if (inMatch) context.city = inMatch[1].trim();
-    if (checkInMatch) context.checkIn = checkInMatch[1].trim();
-    if (checkOutMatch) context.checkOut = checkOutMatch[1].trim();
+    if (checkIn) context.checkIn = checkIn.isoDate; // Use ISO format
+    if (checkOut) context.checkOut = checkOut.isoDate; // Use ISO format
     if (guestsMatch) context.guests = parseInt(guestsMatch[1]);
     if (roomsMatch) context.rooms = parseInt(roomsMatch[1]);
 

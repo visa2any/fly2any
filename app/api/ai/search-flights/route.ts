@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelAPI } from '@/lib/api/duffel';
+import { extractDateFromQuery } from '@/lib/utils/date-parsing';
 
 /**
  * AI Assistant Flight Search API
@@ -15,6 +16,7 @@ interface FlightSearchParams {
   returnDate?: string;
   passengers: number;
   cabinClass: 'economy' | 'premium_economy' | 'business' | 'first';
+  maxStops?: number; // For non-stop filtering
 }
 
 export async function POST(request: NextRequest) {
@@ -152,9 +154,9 @@ function parseFlightQuery(query: string): FlightSearchParams | null {
     destination = cityToIATA[destCity] || destCity.substring(0, 3).toUpperCase();
   }
 
-  // Extract dates
-  const departureDate = extractDate(lowerQuery, 'departure');
-  const returnDate = extractDate(lowerQuery, 'return');
+  // Extract dates using robust parser
+  const departureParsed = extractDateFromQuery(query, 'departure');
+  const returnParsed = extractDateFromQuery(query, 'return');
 
   // Extract cabin class
   let cabinClass: 'economy' | 'premium_economy' | 'business' | 'first' = 'economy';
@@ -166,18 +168,27 @@ function parseFlightQuery(query: string): FlightSearchParams | null {
   const passengersMatch = lowerQuery.match(/(\d+)\s+passenger/);
   const passengers = passengersMatch ? parseInt(passengersMatch[1]) : 1;
 
+  // Extract max stops for non-stop/direct flights
+  let maxStops: number | undefined = undefined;
+  if (lowerQuery.includes('non-stop') || lowerQuery.includes('nonstop') || lowerQuery.includes('direct')) {
+    maxStops = 0;
+  } else if (lowerQuery.includes('1 stop') || lowerQuery.includes('one stop')) {
+    maxStops = 1;
+  }
+
   // Validate required fields
-  if (!origin || !destination || !departureDate) {
+  if (!origin || !destination || !departureParsed) {
     return null;
   }
 
   return {
     origin,
     destination,
-    departureDate,
-    returnDate,
+    departureDate: departureParsed.isoDate,
+    returnDate: returnParsed?.isoDate,
     passengers,
-    cabinClass
+    cabinClass,
+    maxStops
   };
 }
 
@@ -305,6 +316,7 @@ async function searchFlights(params: FlightSearchParams) {
       returnDate: params.returnDate,
       adults: params.passengers,
       cabinClass: params.cabinClass,
+      maxStops: params.maxStops, // Non-stop filtering
       maxResults: 3, // Limit to top 3 results for chat UI
     });
 

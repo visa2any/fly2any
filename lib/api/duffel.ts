@@ -20,6 +20,7 @@ interface DuffelSearchParams {
   children?: number;
   infants?: number;
   cabinClass?: 'economy' | 'premium_economy' | 'business' | 'first';
+  maxStops?: number; // For non-stop/direct flight filtering
   maxResults?: number;
 }
 
@@ -140,12 +141,18 @@ class DuffelAPI {
       };
 
       // Create offer request
+      // Duffel API only accepts 0, 1, or 2 for max_connections
+      let maxConnections: 0 | 1 | 2 = 2; // Default to 2 connections
+      if (params.maxStops !== undefined) {
+        maxConnections = Math.min(Math.max(params.maxStops, 0), 2) as 0 | 1 | 2;
+      }
+
       const offerRequest = await this.client.offerRequests.create({
         slices,
         passengers,
         cabin_class: cabinClassMap[params.cabinClass || 'economy'],
         return_offers: true,
-        max_connections: 2, // Allow up to 2 connections
+        max_connections: maxConnections,
       });
 
       console.log(`✅ Duffel returned offer request ID: ${offerRequest.data.id}`);
