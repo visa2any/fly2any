@@ -20,7 +20,8 @@ export interface AIAnalyticsEvent {
     | 'conversion_login'
     | 'conversion_booking'
     | 'session_engaged'
-    | 'flight_selected';
+    | 'flight_selected'
+    | 'hotel_selected';
 
   // Session tracking
   sessionId: string;
@@ -62,6 +63,10 @@ export interface AIAnalyticsEvent {
     // Flight selection
     flightId?: string;
     flightPrice?: number;
+
+    // Hotel selection
+    hotelId?: string;
+    totalPrice?: number;
   };
 
   // Geo context (aggregate only)

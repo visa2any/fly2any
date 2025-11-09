@@ -27,6 +27,7 @@ interface UseAIAnalyticsReturn {
   trackAuthPromptClicked: (action: 'signup' | 'login' | 'dismiss') => void;
   trackConversion: (type: 'signup' | 'login' | 'booking', value?: number) => void;
   trackFlightSelected: (flightId: string, flightPrice?: number) => void;
+  trackHotelSelected: (hotelId: string, totalPrice?: number) => void;
   trackSessionEngagement: (engagement: {
     duration: number;
     messageCount: number;
@@ -325,6 +326,22 @@ export function useAIAnalytics(options: AnalyticsOptions): UseAIAnalyticsReturn 
   }, [queueEvent]);
 
   /**
+   * Track hotel selected
+   */
+  const trackHotelSelected = useCallback((
+    hotelId: string,
+    totalPrice?: number
+  ) => {
+    queueEvent({
+      eventType: 'hotel_selected',
+      metadata: {
+        hotelId,
+        totalPrice,
+      },
+    });
+  }, [queueEvent]);
+
+  /**
    * Track session engagement
    */
   const trackSessionEngagement = useCallback((engagement: {
@@ -352,6 +369,7 @@ export function useAIAnalytics(options: AnalyticsOptions): UseAIAnalyticsReturn 
     trackAuthPromptClicked,
     trackConversion,
     trackFlightSelected,
+    trackHotelSelected,
     trackSessionEngagement,
   };
 }

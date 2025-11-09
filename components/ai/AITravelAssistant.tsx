@@ -19,6 +19,7 @@ import {
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
 import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
 import { FlightResultCard } from './FlightResultCard';
+import { HotelResultCard } from './HotelResultCard';
 import { ConsultantAvatar, UserAvatar } from './ConsultantAvatar';
 import { ConsultantProfileModal } from './ConsultantProfileModal';
 import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
@@ -123,6 +124,7 @@ interface Message {
     team: TeamType;
   };
   flightResults?: FlightSearchResult[];
+  hotelResults?: any[]; // Hotel search results for display
   isSearching?: boolean;
   // NEW: E2E Booking Flow Widgets
   widget?: {
@@ -852,38 +854,27 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           const warmResponse = currentLanguage === 'en'
             ? `¡Perfecto! I found ${hotelCount} wonderful options in ${data.searchParams.city} for you! 🏨\n\n` +
               `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} to ${data.searchParams.checkOut}) ` +
-              `with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Let me show you the best choices:\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/night ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n')
+              `with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Let me show you the best choices:`
             : currentLanguage === 'pt'
             ? `¡Perfeito! Encontrei ${hotelCount} opções maravilhosas em ${data.searchParams.city} para você! 🏨\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/noite ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n')
+              `Você ficará por ${nights} noite${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} até ${data.searchParams.checkOut}) ` +
+              `com ${data.searchParams.guests} hóspede${data.searchParams.guests > 1 ? 's' : ''}. Deixe-me mostrar as melhores opções:`
             : `¡Perfecto! Encontré ${hotelCount} opciones maravillosas en ${data.searchParams.city} para ti! 🏨\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/noche ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n');
+              `Estarás alojado por ${nights} noche${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} hasta ${data.searchParams.checkOut}) ` +
+              `con ${data.searchParams.guests} huésped${data.searchParams.guests > 1 ? 'es' : ''}. Déjame mostrarte las mejores opciones:`;
 
           const followUpContent = currentLanguage === 'en'
-            ? "\n\nWhich one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
+            ? "Which one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
             : currentLanguage === 'pt'
-            ? "\n\nQual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
-            : "\n\n¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
+            ? "Qual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
+            : "¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
 
           await sendMultipleAIResponses([
             {
-              content: warmResponse
+              content: warmResponse,
+              additionalData: {
+                hotelResults: data.hotels.slice(0, 3)
+              }
             },
             {
               content: followUpContent
@@ -1892,6 +1883,31 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                         >
                           See More Flights →
                         </button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Hotel Results */}
+                {messages.map((message) => {
+                  if (message.hotelResults && message.hotelResults.length > 0) {
+                    return (
+                      <div key={`hotels-${message.id}`} className="space-y-2 mt-2">
+                        {message.hotelResults.map((hotel) => (
+                          <HotelResultCard
+                            key={hotel.id}
+                            hotel={hotel}
+                            onSelect={(hotelId) => {
+                              console.log('Hotel selected:', hotelId);
+                              // TODO: Implement hotel booking flow
+                            }}
+                            compact={true}
+                            onHotelSelected={(hotelId, totalPrice) => {
+                              analytics.trackHotelSelected(hotelId, totalPrice);
+                            }}
+                          />
+                        ))}
                       </div>
                     );
                   }
