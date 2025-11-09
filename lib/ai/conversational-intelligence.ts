@@ -6,6 +6,7 @@
 import { ConversationContext, ConversationIntent, IntentType } from './conversation-context';
 import { generateNaturalResponse } from './natural-responses';
 import { getSmallTalkResponse } from './small-talk';
+import { languageDetector, type SupportedLanguage } from '../ml/language-detector';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -20,19 +21,42 @@ export interface ConversationAnalysis {
   requiresPersonalResponse: boolean;
   sentiment: 'positive' | 'neutral' | 'negative' | 'curious';
   topics: string[];
+  detectedLanguage?: SupportedLanguage;
+  languageConfidence?: number;
+  languageSwitchRequested?: boolean;
 }
 
 /**
  * Analyze user message to determine conversation intent
+ * Now includes LOCAL ML language detection
  */
-export function analyzeConversationIntent(
+export async function analyzeConversationIntent(
   userMessage: string,
   conversationHistory: Message[]
-): ConversationAnalysis {
+): Promise<ConversationAnalysis> {
   const message = userMessage.toLowerCase().trim();
 
   // Remove punctuation for pattern matching
   const cleanMessage = message.replace(/[.,!?;:]/g, '').trim();
+
+  // STEP 1: LOCAL ML LANGUAGE DETECTION (runs on every message)
+  const languageResult = await languageDetector.detect(userMessage);
+  const detectedLanguage = languageResult.language;
+  const languageConfidence = languageResult.confidence;
+
+  // Check if this is an explicit language switch request
+  const languageSwitchRequested = languageResult.method === 'pattern' &&
+    languageResult.indicators.some(indicator =>
+      /(portuguese|português|spanish|español|english)/i.test(indicator)
+    );
+
+  // Helper to add language data to analysis result
+  const withLanguageData = (baseAnalysis: Omit<ConversationAnalysis, 'detectedLanguage' | 'languageConfidence' | 'languageSwitchRequested'>): ConversationAnalysis => ({
+    ...baseAnalysis,
+    detectedLanguage,
+    languageConfidence,
+    languageSwitchRequested,
+  });
 
   // Greeting patterns
   const greetingPatterns = [
@@ -274,36 +298,36 @@ export function analyzeConversationIntent(
 
   // Check patterns in order of priority
   if (greetingPatterns.some(pattern => pattern.test(cleanMessage))) {
-    return {
+    return withLanguageData({
       intent: 'greeting',
       confidence: 0.95,
       isServiceRequest: false,
       requiresPersonalResponse: true,
       sentiment: 'positive',
       topics: ['greeting']
-    };
+    });
   }
 
   if (howAreYouPatterns.some(pattern => pattern.test(message))) {
-    return {
+    return withLanguageData({
       intent: 'how-are-you',
       confidence: 0.95,
       isServiceRequest: false,
       requiresPersonalResponse: true,
       sentiment: 'curious',
       topics: ['wellbeing', 'personal']
-    };
+    });
   }
 
   if (personalQuestionPatterns.some(pattern => pattern.test(message))) {
-    return {
+    return withLanguageData({
       intent: 'personal-question',
       confidence: 0.9,
       isServiceRequest: false,
       requiresPersonalResponse: true,
       sentiment: 'curious',
       topics: ['identity', 'personal']
-    };
+    });
   }
 
   if (gratitudePatterns.some(pattern => pattern.test(message))) {
@@ -411,14 +435,14 @@ export function analyzeConversationIntent(
   }
 
   // Default to casual conversation
-  return {
+  return withLanguageData({
     intent: 'casual',
     confidence: 0.6,
     isServiceRequest: false,
     requiresPersonalResponse: true,
     sentiment: 'neutral',
     topics: ['general']
-  };
+  });
 }
 
 /**
