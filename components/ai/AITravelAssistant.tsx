@@ -133,13 +133,15 @@ interface Props {
   language?: 'en' | 'pt' | 'es';
 }
 
-export function AITravelAssistant({ language = 'en' }: Props) {
+export function AITravelAssistant({ language: initialLanguage = 'en' }: Props) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  // Language state - can be dynamically changed by ML detection
+  const [language, setLanguage] = useState<'en' | 'pt' | 'es'>(initialLanguage);
   const [typingState, setTypingState] = useState<TypingState | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [authPromptMessage, setAuthPromptMessage] = useState('');

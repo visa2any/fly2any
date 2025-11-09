@@ -501,7 +501,9 @@ export class LanguageDetector {
     // LRU cache - remove oldest if full
     if (this.cache.size >= this.CACHE_SIZE) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(text, result);
