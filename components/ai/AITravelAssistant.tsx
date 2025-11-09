@@ -617,7 +617,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           personality: consultant.personality || 'friendly',
           emoji: '😊'
         },
-        conversationContext
+        conversationContext,
+        language
       );
 
       // CRITICAL: Pass the actual intent so typing indicator shows appropriate message
@@ -830,7 +831,8 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             personality: consultant.personality || 'friendly',
             emoji: '😊'
           },
-          conversationContext
+          conversationContext,
+          language
         );
       } else {
         // Use legacy response for complex queries

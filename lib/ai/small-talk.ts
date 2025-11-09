@@ -139,13 +139,14 @@ export const SMALL_TALK_PATTERNS: SmallTalkPattern[] = [
 export function getSmallTalkResponse(
   message: string,
   consultant: { name: string; personality: string; emoji: string },
-  context: ConversationContext
+  context: ConversationContext,
+  language: 'en' | 'pt' | 'es' = 'en'
 ): string | null {
   // Try to match against patterns
   for (const pattern of SMALL_TALK_PATTERNS) {
     for (const regex of pattern.patterns) {
       if (regex.test(message)) {
-        const response = selectResponse(pattern.responses, context);
+        const response = selectResponse(pattern.responses, context, language, pattern.category);
         return response;
       }
     }
@@ -157,9 +158,17 @@ export function getSmallTalkResponse(
 /**
  * Select a response that hasn't been used recently
  */
-function selectResponse(responses: string[], context: ConversationContext): string {
+function selectResponse(
+  responses: string[],
+  context: ConversationContext,
+  language: 'en' | 'pt' | 'es',
+  category: 'weather' | 'time' | 'emotion' | 'casual' | 'affirmation' | 'concern'
+): string {
+  // Translate responses based on language
+  const translatedResponses = translateSmallTalkResponses(responses, language, category);
+
   const recentResponses = context.getRecentInteractions(5);
-  const availableResponses = responses.filter(
+  const availableResponses = translatedResponses.filter(
     response =>
       !recentResponses.some(interaction =>
         interaction.assistantResponse.toLowerCase().includes(response.toLowerCase())
@@ -167,10 +176,131 @@ function selectResponse(responses: string[], context: ConversationContext): stri
   );
 
   if (availableResponses.length === 0) {
-    return responses[Math.floor(Math.random() * responses.length)];
+    return translatedResponses[Math.floor(Math.random() * translatedResponses.length)];
   }
 
   return availableResponses[Math.floor(Math.random() * availableResponses.length)];
+}
+
+/**
+ * Translate small talk responses to target language
+ */
+function translateSmallTalkResponses(
+  responses: string[],
+  language: 'en' | 'pt' | 'es',
+  category: 'weather' | 'time' | 'emotion' | 'casual' | 'affirmation' | 'concern'
+): string[] {
+  if (language === 'en') return responses;
+
+  // Portuguese translations
+  if (language === 'pt') {
+    switch (category) {
+      case 'weather':
+        return [
+          "Espero que você esteja aproveitando! 😊 Como posso ajudar hoje?",
+          "Dia perfeito para planejar uma viagem! ☀️ Para onde você gostaria de ir?",
+          "De fato! 🌤️ Falando nisso, algum plano de viagem em mente?",
+          "Espero que você esteja aproveitando ao máximo! 😊 Agora, o que posso fazer por você?"
+        ];
+      case 'time':
+        return [
+          "Estou aqui sempre que precisar! 😊 O que te traz aqui?",
+          "Momento perfeito! Como posso ajudar?",
+          "Estou sempre pronta para ajudar! O que você está procurando?",
+          "Que bom que você está aqui! Como posso ajudá-lo hoje?"
+        ];
+      case 'emotion':
+        return category === 'emotion' && responses[0].includes('exciting') ?
+          [
+            "Que incrível! 🎉 Adoro sua energia! Sobre o que você está animado?",
+            "Seu entusiasmo é contagiante! 😊 Me conte mais!",
+            "Maravilhoso! ✨ O que estamos planejando?",
+            "Posso sentir sua animação! 🌟 Vamos fazer acontecer! Do que você precisa?"
+          ] : [
+            "Parece que você precisa de uma escapada! 🌴 Deixe-me ajudá-lo a fugir!",
+            "Você merece um descanso! ✈️ Para onde gostaria de relaxar?",
+            "Umas férias podem ser exatamente o que você precisa! 😊 Para onde devemos te enviar?",
+            "Vamos te levar para algum lugar relaxante! 🏖️ O que soa bem para você?"
+          ];
+      case 'affirmation':
+        return [
+          "Ótimo! 😊 Qual é o próximo passo?",
+          "Maravilhoso! O que posso fazer por você?",
+          "Perfeito! Como posso ajudar?",
+          "Excelente! Do que você precisa?"
+        ];
+      case 'concern':
+        return [
+          "Absolutamente! Priorizamos sua segurança e proteção. 🔒 O que te preocupa?",
+          "Ótima pergunta! Sua segurança é nossa prioridade máxima. O que você gostaria de saber?",
+          "Entendo sua preocupação. Levamos a segurança muito a sério. Como posso tranquilizá-lo?",
+          "Sua segurança é importante para nós! 🛡️ Que perguntas você tem?"
+        ];
+      case 'casual':
+        return [
+          "Muito obrigada! 😊 Você também! Mais alguma coisa que eu possa ajudar?",
+          "Que gentil! 🌟 Igualmente! Precisa de mais alguma coisa?",
+          "Obrigada! Você é maravilhoso! 😊 Mais alguma coisa?",
+          "Agradeço! Você também! 🌟 Precisa de ajuda?"
+        ];
+    }
+  }
+
+  // Spanish translations
+  if (language === 'es') {
+    switch (category) {
+      case 'weather':
+        return [
+          "¡Espero que lo estés disfrutando! 😊 ¿Cómo puedo ayudarte hoy?",
+          "¡Día perfecto para planear un viaje! ☀️ ¿A dónde te gustaría ir?",
+          "¡De hecho! 🌤️ Hablando de eso, ¿algún plan de viaje en mente?",
+          "¡Espero que lo estés aprovechando al máximo! 😊 Ahora, ¿qué puedo hacer por ti?"
+        ];
+      case 'time':
+        return [
+          "¡Estoy aquí cuando me necesites! 😊 ¿Qué te trae aquí?",
+          "¡Momento perfecto! ¿Cómo puedo ayudarte?",
+          "¡Siempre estoy lista para ayudar! ¿Qué estás buscando?",
+          "¡Me alegra que estés aquí! ¿Cómo puedo asistirte hoy?"
+        ];
+      case 'emotion':
+        return category === 'emotion' && responses[0].includes('exciting') ?
+          [
+            "¡Eso es increíble! 🎉 ¡Me encanta tu energía! ¿Sobre qué estás emocionado?",
+            "¡Tu entusiasmo es contagioso! 😊 ¡Cuéntame más!",
+            "¡Maravilloso! ✨ ¿Qué estamos planeando?",
+            "¡Puedo sentir tu emoción! 🌟 ¡Hagámoslo realidad! ¿Qué necesitas?"
+          ] : [
+            "¡Parece que podrías usar una escapada! 🌴 ¡Déjame ayudarte a escapar!",
+            "¡Te mereces un descanso! ✈️ ¿Dónde te gustaría relajarte?",
+            "¡Unas vacaciones podrían ser justo lo que necesitas! 😊 ¿A dónde deberíamos enviarte?",
+            "¡Vamos a llevarte a algún lugar relajante! 🏖️ ¿Qué te suena bien?"
+          ];
+      case 'affirmation':
+        return [
+          "¡Genial! 😊 ¿Cuál es el siguiente paso?",
+          "¡Maravilloso! ¿Qué puedo hacer por ti?",
+          "¡Perfecto! ¿Cómo puedo ayudarte?",
+          "¡Excelente! ¿Qué necesitas?"
+        ];
+      case 'concern':
+        return [
+          "¡Por supuesto! Priorizamos tu seguridad y protección. 🔒 ¿Qué te preocupa?",
+          "¡Excelente pregunta! Tu seguridad es nuestra máxima prioridad. ¿Qué te gustaría saber?",
+          "Entiendo tu preocupación. Tomamos la seguridad muy en serio. ¿Cómo puedo tranquilizarte?",
+          "¡Tu seguridad nos importa! 🛡️ ¿Qué preguntas tienes?"
+        ];
+      case 'casual':
+        return [
+          "¡Muchas gracias! 😊 ¡Tú también! ¿Algo más en lo que pueda ayudar?",
+          "¡Qué amable! 🌟 ¡Igualmente! ¿Necesitas algo más?",
+          "¡Gracias! ¡Eres maravilloso! 😊 ¿Algo más?",
+          "¡Lo aprecio! ¡Tú también! 🌟 ¿Necesitas ayuda?"
+        ];
+    }
+  }
+
+  return responses;
 }
 
 /**

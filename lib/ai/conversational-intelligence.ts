@@ -557,7 +557,8 @@ export function getConversationalResponse(
     personality: string;
     emoji: string;
   },
-  context: ConversationContext
+  context: ConversationContext,
+  language: 'en' | 'pt' | 'es' = 'en'
 ): string {
   // For personal/casual interactions, use natural responses
   if (analysis.requiresPersonalResponse) {
@@ -565,7 +566,8 @@ export function getConversationalResponse(
       analysis.intent,
       consultant,
       context,
-      analysis.sentiment
+      analysis.sentiment,
+      language
     );
 
     // Update context
@@ -576,8 +578,8 @@ export function getConversationalResponse(
 
   // For service requests, still be personable but transition to business
   if (analysis.isServiceRequest) {
-    const greeting = getPersonableServiceGreeting(consultant, context);
-    const serviceResponse = getServiceResponse(analysis.topics, consultant);
+    const greeting = getPersonableServiceGreeting(consultant, context, language);
+    const serviceResponse = getServiceResponse(analysis.topics, consultant, language);
 
     context.addInteraction(analysis.intent, greeting + ' ' + serviceResponse);
 
@@ -589,7 +591,8 @@ export function getConversationalResponse(
     'casual',
     consultant,
     context,
-    analysis.sentiment
+    analysis.sentiment,
+    language
   );
 
   context.addInteraction('casual', response);
@@ -602,22 +605,42 @@ export function getConversationalResponse(
  */
 function getPersonableServiceGreeting(
   consultant: { name: string; personality: string; emoji: string },
-  context: ConversationContext
+  context: ConversationContext,
+  language: 'en' | 'pt' | 'es' = 'en'
 ): string {
   const { name } = consultant;
 
   // Don't repeat greetings if already greeted
   if (context.hasInteracted('greeting') || context.hasInteracted('service-request')) {
-    return getDirectServiceTransition(consultant);
+    return getDirectServiceTransition(consultant, language);
   }
 
-  const greetings = [
-    `Wonderful! I'd love to help you with that. ${consultant.emoji}`,
-    `Great! Let me assist you with that right away.`,
-    `Perfect! I can definitely help you with that.`,
-    `Excellent! I'm here to make this easy for you.`,
-    `Fantastic! Let's get you sorted.`
-  ];
+  let greetings: string[];
+  if (language === 'pt') {
+    greetings = [
+      `Maravilhoso! Adoraria ajudá-lo com isso. ${consultant.emoji}`,
+      `Ótimo! Deixe-me ajudá-lo com isso imediatamente.`,
+      `Perfeito! Com certeza posso ajudá-lo com isso.`,
+      `Excelente! Estou aqui para facilitar isso para você.`,
+      `Fantástico! Vamos resolver isso.`
+    ];
+  } else if (language === 'es') {
+    greetings = [
+      `¡Maravilloso! Me encantaría ayudarte con eso. ${consultant.emoji}`,
+      `¡Genial! Déjame ayudarte con eso de inmediato.`,
+      `¡Perfecto! Definitivamente puedo ayudarte con eso.`,
+      `¡Excelente! Estoy aquí para hacerlo fácil para ti.`,
+      `¡Fantástico! Vamos a resolverlo.`
+    ];
+  } else {
+    greetings = [
+      `Wonderful! I'd love to help you with that. ${consultant.emoji}`,
+      `Great! Let me assist you with that right away.`,
+      `Perfect! I can definitely help you with that.`,
+      `Excellent! I'm here to make this easy for you.`,
+      `Fantastic! Let's get you sorted.`
+    ];
+  }
 
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
@@ -625,14 +648,36 @@ function getPersonableServiceGreeting(
 /**
  * Get direct service transition for returning conversation
  */
-function getDirectServiceTransition(consultant: { name: string; personality: string }): string {
-  const transitions = [
-    `Of course!`,
-    `Absolutely!`,
-    `Sure thing!`,
-    `I can help with that!`,
-    `Let me help you with that!`
-  ];
+function getDirectServiceTransition(
+  consultant: { name: string; personality: string },
+  language: 'en' | 'pt' | 'es' = 'en'
+): string {
+  let transitions: string[];
+  if (language === 'pt') {
+    transitions = [
+      `Claro!`,
+      `Absolutamente!`,
+      `Com certeza!`,
+      `Posso ajudar com isso!`,
+      `Deixe-me ajudá-lo com isso!`
+    ];
+  } else if (language === 'es') {
+    transitions = [
+      `¡Por supuesto!`,
+      `¡Absolutamente!`,
+      `¡Claro que sí!`,
+      `¡Puedo ayudarte con eso!`,
+      `¡Déjame ayudarte con eso!`
+    ];
+  } else {
+    transitions = [
+      `Of course!`,
+      `Absolutely!`,
+      `Sure thing!`,
+      `I can help with that!`,
+      `Let me help you with that!`
+    ];
+  }
 
   return transitions[Math.floor(Math.random() * transitions.length)];
 }
@@ -640,28 +685,72 @@ function getDirectServiceTransition(consultant: { name: string; personality: str
 /**
  * Get service-specific response based on topics
  */
-function getServiceResponse(topics: string[], consultant: { name: string; personality: string }): string {
+function getServiceResponse(
+  topics: string[],
+  consultant: { name: string; personality: string },
+  language: 'en' | 'pt' | 'es' = 'en'
+): string {
   if (topics.includes('flights')) {
+    if (language === 'pt') {
+      return `Posso ajudá-lo a encontrar o voo perfeito. Para onde você gostaria de ir? Vou pesquisar as melhores ofertas e opções para você.`;
+    } else if (language === 'es') {
+      return `Puedo ayudarte a encontrar el vuelo perfecto. ¿A dónde te gustaría ir? Buscaré las mejores ofertas y opciones para ti.`;
+    }
     return `I can help you find the perfect flight. Where would you like to go? I'll search for the best deals and options for you.`;
   }
 
   if (topics.includes('hotels')) {
+    if (language === 'pt') {
+      return `Posso ajudá-lo a encontrar uma ótima acomodação. Em que cidade você está procurando se hospedar? Vou encontrar as melhores opções dentro do seu orçamento.`;
+    } else if (language === 'es') {
+      return `Puedo ayudarte a encontrar un gran alojamiento. ¿En qué ciudad buscas alojarte? Encontraré las mejores opciones dentro de tu presupuesto.`;
+    }
     return `I can help you find great accommodation. What city are you looking to stay in? I'll find the best options within your budget.`;
   }
 
   if (topics.includes('cars')) {
+    if (language === 'pt') {
+      return `Posso ajudá-lo a alugar um carro. Onde e quando você precisa? Vou encontrar tarifas competitivas para você.`;
+    } else if (language === 'es') {
+      return `Puedo ayudarte a rentar un auto. ¿Dónde y cuándo lo necesitas? Encontraré tarifas competitivas para ti.`;
+    }
     return `I can help you arrange a rental car. Where and when do you need it? I'll find competitive rates for you.`;
   }
 
   if (topics.includes('packages')) {
+    if (language === 'pt') {
+      return `Posso ajudá-lo a criar um pacote de viagem completo. Me diga seu destino e vou montar voos, hotéis e muito mais!`;
+    } else if (language === 'es') {
+      return `Puedo ayudarte a crear un paquete de viaje completo. ¡Dime tu destino y armaré vuelos, hoteles y más!`;
+    }
     return `I can help you create a complete travel package. Tell me your destination and I'll put together flights, hotels, and more!`;
   }
 
   if (topics.includes('pricing')) {
+    if (language === 'pt') {
+      return `Adoraria ajudá-lo a encontrar os melhores preços! Me diga para onde você quer ir e quando, e vou pesquisar as opções mais econômicas.`;
+    } else if (language === 'es') {
+      return `¡Me encantaría ayudarte a encontrar los mejores precios! Dime a dónde quieres ir y cuándo, y buscaré las opciones más económicas.`;
+    }
     return `I'd be happy to help you find the best prices! Tell me where you want to go and when, and I'll search for the most budget-friendly options.`;
   }
 
   // Generic service response
+  if (language === 'pt') {
+    return `Estou aqui para ajudar com todas as suas necessidades de viagem. O que você gostaria de fazer hoje?\n\n` +
+      `Posso ajudá-lo:\n` +
+      `✈️ Reservar voos\n` +
+      `🏨 Encontrar hotéis\n` +
+      `🚗 Alugar carros\n` +
+      `🎫 Criar pacotes de viagem`;
+  } else if (language === 'es') {
+    return `Estoy aquí para ayudar con todas tus necesidades de viaje. ¿Qué te gustaría hacer hoy?\n\n` +
+      `Puedo ayudarte a:\n` +
+      `✈️ Reservar vuelos\n` +
+      `🏨 Encontrar hoteles\n` +
+      `🚗 Rentar autos\n` +
+      `🎫 Crear paquetes de viaje`;
+  }
   return `I'm here to help with all your travel needs. What would you like to do today?\n\n` +
     `I can help you:\n` +
     `✈️ Book flights\n` +
