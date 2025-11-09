@@ -60,8 +60,8 @@ function parseFlightQuery(query: string): FlightSearchParams | null {
   const lowerQuery = query.toLowerCase();
 
   // Extract origin and destination with improved patterns
-  // Pattern 1: "from X to Y" or "X to Y"
-  const fromToMatch = lowerQuery.match(/(?:from\s+)?([a-z\s]+?)\s+to\s+([a-z\s]+?)(?:\s+on|\s+in|\s+leaving|\s+departing|\s+return|\s+and|\s+\?|$)/i);
+  // Pattern 1: "from X to Y" - REQUIRE "from" keyword to avoid matching conversation words
+  const fromToMatch = lowerQuery.match(/\bfrom\s+([a-z]{3}|[a-z\s]+?)\s+to\s+([a-z]{3}|[a-z\s]+?)(?:\s+on|\s+in|\s+leaving|\s+departing|\s+return|\s+round|\s+and|\s+until|\s+through|\s+\?|$)/i);
 
   // Common city to IATA code mapping
   const cityToIATA: Record<string, string> = {
@@ -70,23 +70,40 @@ function parseFlightQuery(query: string): FlightSearchParams | null {
     'jfk': 'JFK',
     'new york city': 'NYC',
     'dubai': 'DXB',
+    'dxb': 'DXB',
     'london': 'LON',
+    'lon': 'LON',
+    'lhr': 'LHR',
     'paris': 'PAR',
+    'cdg': 'CDG',
     'tokyo': 'TYO',
+    'nrt': 'NRT',
+    'hnd': 'HND',
     'los angeles': 'LAX',
     'la': 'LAX',
+    'lax': 'LAX',
     'miami': 'MIA',
+    'mia': 'MIA',
     'chicago': 'CHI',
+    'ord': 'ORD',
     'san francisco': 'SFO',
     'sf': 'SFO',
+    'sfo': 'SFO',
     'boston': 'BOS',
+    'bos': 'BOS',
     'washington': 'WAS',
     'dc': 'WAS',
+    'iad': 'IAD',
+    'dca': 'DCA',
     'atlanta': 'ATL',
+    'atl': 'ATL',
     'orlando': 'MCO',
+    'mco': 'MCO',
     'las vegas': 'LAS',
     'vegas': 'LAS',
+    'las': 'LAS',
     'seattle': 'SEA',
+    'sea': 'SEA',
     'madrid': 'MAD',
     'barcelona': 'BCN',
     'rome': 'ROM',
@@ -216,11 +233,11 @@ function extractDate(query: string, type: 'departure' | 'return'): string {
     }
   }
 
-  // For return date, look for "returning" or "return" keywords
+  // For return date, look for "returning", "return", "until", "through" keywords
   if (type === 'return') {
     const returnPatterns = [
-      /(?:returning|return(?:ing)?)\s+(?:on\s+)?(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)\s+(\d+)(?:st|nd|rd|th)?/i,
-      /(?:returning|return(?:ing)?)\s+(\d+)(?:st|nd|rd|th)?\s+(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)/i
+      /(?:returning|return(?:ing)?|until|through)\s+(?:on\s+)?(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)\s+(\d+)(?:st|nd|rd|th)?/i,
+      /(?:returning|return(?:ing)?|until|through)\s+(\d+)(?:st|nd|rd|th)?\s+(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)/i
     ];
 
     for (const pattern of returnPatterns) {
@@ -268,6 +285,13 @@ async function searchFlights(params: FlightSearchParams) {
   // Base price multiplier for round trip
   const priceMultiplier = isRoundTrip ? 1.8 : 1; // Round trip is ~1.8x one-way
 
+  // Helper to calculate next day
+  const getNextDay = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0];
+  };
+
   const flights = [
     {
       id: 'flight-1',
@@ -289,7 +313,7 @@ async function searchFlights(params: FlightSearchParams) {
         stops: 0
       },
       // Return leg (if round trip)
-      ...(isRoundTrip && {
+      ...(isRoundTrip && params.returnDate && {
         return: {
           departure: {
             airport: params.destination,
@@ -298,7 +322,7 @@ async function searchFlights(params: FlightSearchParams) {
           },
           arrival: {
             airport: params.origin,
-            time: `${params.returnDate}T08:30:00+1`,
+            time: `${getNextDay(params.returnDate)}T08:30:00`,
             terminal: '4'
           },
           duration: '13h 30m',
@@ -336,7 +360,7 @@ async function searchFlights(params: FlightSearchParams) {
         stops: 0
       },
       // Return leg (if round trip)
-      ...(isRoundTrip && {
+      ...(isRoundTrip && params.returnDate && {
         return: {
           departure: {
             airport: params.destination,
@@ -376,7 +400,7 @@ async function searchFlights(params: FlightSearchParams) {
         },
         arrival: {
           airport: params.destination,
-          time: `${params.departureDate}T06:30:00+1`,
+          time: `${getNextDay(params.departureDate)}T06:30:00`,
           terminal: '1'
         },
         duration: '14h 45m',
@@ -384,7 +408,7 @@ async function searchFlights(params: FlightSearchParams) {
         stopover: 'Doha (DOH) - 2h 15m'
       },
       // Return leg (if round trip)
-      ...(isRoundTrip && {
+      ...(isRoundTrip && params.returnDate && {
         return: {
           departure: {
             airport: params.destination,
