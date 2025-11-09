@@ -51,6 +51,11 @@ import {
   getPreviousConsultantTeam,
   type TeamType as HandoffTeamType
 } from '@/lib/ai/consultant-handoff';
+import {
+  detectLanguageFromMessage,
+  detectLanguageSwitchIntent,
+  getLanguageSwitchMessage
+} from '@/lib/utils/language-detection';
 // CONVERSATION PERSISTENCE
 import {
   loadConversation,
@@ -148,6 +153,28 @@ export function AITravelAssistant({ language = 'en' }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // AUTO-DETECTED LANGUAGE STATE
+  // This overrides the prop language when auto-detected from user messages
+  const [detectedLanguage, setDetectedLanguage] = useState<'en' | 'pt' | 'es' | null>(null);
+
+  // Use detected language if available, otherwise use prop language
+  const activeLanguage = detectedLanguage || language;
+
+  // Persist detected language to localStorage
+  useEffect(() => {
+    if (detectedLanguage) {
+      localStorage.setItem('fly2any_chat_language', detectedLanguage);
+    }
+  }, [detectedLanguage]);
+
+  // Load detected language from localStorage on mount
+  useEffect(() => {
+    const savedChatLanguage = localStorage.getItem('fly2any_chat_language');
+    if (savedChatLanguage && ['en', 'pt', 'es'].includes(savedChatLanguage)) {
+      setDetectedLanguage(savedChatLanguage as 'en' | 'pt' | 'es');
+    }
+  }, []);
 
   // User session tracking (simplified for now - will connect to real API later)
   const [userSession, setUserSession] = useState<UserSession>({
@@ -261,7 +288,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
   };
 
-  const t = translations[language];
+  const t = translations[activeLanguage];
 
   // Initialize with welcome message from Lisa (Customer Service)
   useEffect(() => {
@@ -271,7 +298,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         {
           id: '1',
           role: 'assistant',
-          content: lisaConsultant.greeting[language],
+          content: lisaConsultant.greeting[activeLanguage],
           timestamp: new Date(),
           consultant: {
             id: lisaConsultant.id,
@@ -283,7 +310,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         }
       ]);
     }
-  }, [isOpen, messages.length, language]);
+  }, [isOpen, messages.length, activeLanguage]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -518,6 +545,62 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     setInputMessage('');
     setIsTyping(true);
 
+    // AUTOMATIC LANGUAGE DETECTION
+    // Check if user is explicitly requesting a language switch
+    const explicitLanguageSwitch = detectLanguageSwitchIntent(queryText);
+    if (explicitLanguageSwitch && explicitLanguageSwitch !== activeLanguage) {
+      setDetectedLanguage(explicitLanguageSwitch);
+
+      // Send confirmation message
+      const confirmationMessage: Message = {
+        id: `lang_switch_${Date.now()}`,
+        role: 'assistant',
+        content: getLanguageSwitchMessage(explicitLanguageSwitch),
+        timestamp: new Date(),
+        consultant: {
+          id: 'lisa',
+          name: 'Lisa Thompson',
+          team: 'customer-service'
+        }
+      };
+
+      // Small delay before showing confirmation
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setMessages(prev => [...prev, confirmationMessage]);
+      setIsTyping(false);
+      return; // Exit early - language switch confirmation is the only response needed
+    }
+
+    // Auto-detect language from message (if not already detected)
+    if (!detectedLanguage) {
+      const autoDetectedLang = detectLanguageFromMessage(queryText);
+      if (autoDetectedLang !== activeLanguage) {
+        setDetectedLanguage(autoDetectedLang);
+
+        // Only show confirmation if switching from default English
+        if (language === 'en' && autoDetectedLang !== 'en') {
+          const confirmationMessage: Message = {
+            id: `lang_switch_${Date.now()}`,
+            role: 'assistant',
+            content: getLanguageSwitchMessage(autoDetectedLang),
+            timestamp: new Date(),
+            consultant: {
+              id: 'lisa',
+              name: 'Lisa Thompson',
+              team: 'customer-service'
+            }
+          };
+
+          // Small delay before showing confirmation
+          await new Promise(resolve => setTimeout(resolve, 800));
+          setMessages(prev => [...prev, confirmationMessage]);
+
+          // Brief pause before continuing with the actual response
+          await new Promise(resolve => setTimeout(resolve, 600));
+        }
+      }
+    }
+
     // Save user message to conversation persistence
     if (conversation) {
       const updatedConversation = addMessage(conversation, {
@@ -634,9 +717,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const isFlightQuery = detectFlightSearchIntent(queryText);
 
     if (isFlightQuery && consultantTeam === 'flight-operations') {
-      const searchInitMessage = language === 'en'
+      const searchInitMessage = activeLanguage === 'en'
         ? "I'll search for flights for you right away..."
-        : language === 'pt'
+        : activeLanguage === 'pt'
         ? "Vou pesquisar voos para você agora mesmo..."
         : "Buscaré vuelos para ti de inmediato...";
 
@@ -651,7 +734,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         const response = await fetch('/api/ai/search-flights', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: queryText, language })
+          body: JSON.stringify({ query: queryText, activeLanguage })
         });
 
         const data = await response.json();
@@ -675,15 +758,15 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           const cabinClass = data.searchParams?.cabinClass || 'economy';
           const isBusinessClass = cabinClass === 'business' || cabinClass === 'first';
 
-          const resultsContent = language === 'en'
+          const resultsContent = activeLanguage === 'en'
             ? `Oh wonderful, sweetie! ✈️ I found ${data.flights.length} fantastic ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options for your ${tripType} journey! Let me show you the best ones:`
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? `Que maravilha, querido! ✈️ Encontrei ${data.flights.length} opções fantásticas ${isBusinessClass ? 'em ' + cabinClass : ''} para sua viagem ${tripType === 'round-trip' ? 'ida e volta' : 'só ida'}! Deixe-me mostrar as melhores:`
             : `¡Qué maravilloso, cariño! ✈️ Encontré ${data.flights.length} opciones fantásticas ${isBusinessClass ? 'en ' + cabinClass : ''} para tu viaje de ${tripType === 'round-trip' ? 'ida y vuelta' : 'solo ida'}! Déjame mostrarte las mejores:`;
 
-          const followUpContent = language === 'en'
+          const followUpContent = activeLanguage === 'en'
             ? "Which of these catches your eye, hon? I'm here to help you with the booking or we can adjust the search if you'd like! 💕"
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? "Qual desses chamou sua atenção, querido? Estou aqui para ajudá-lo com a reserva ou podemos ajustar a busca se você quiser! 💕"
             : "¿Cuál de estos te llama la atención, cariño? ¡Estoy aquí para ayudarte con la reserva o podemos ajustar la búsqueda si quieres! 💕";
 
@@ -699,9 +782,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = language === 'en'
+          const errorContent = activeLanguage === 'en'
             ? "I couldn't find flights matching your criteria. Could you provide more details like the origin city, destination, and travel dates?"
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? "Não consegui encontrar voos correspondentes aos seus critérios. Você poderia fornecer mais detalhes como cidade de origem, destino e datas de viagem?"
             : "No pude encontrar vuelos que coincidan con tus criterios. ¿Podrías proporcionar más detalles como la ciudad de origen, el destino y las fechas de viaje?";
 
@@ -712,9 +795,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         setIsSearchingFlights(false);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = language === 'en'
+        const errorContent = activeLanguage === 'en'
           ? "I encountered an error searching for flights. Please try again or contact support if the issue persists."
-          : language === 'pt'
+          : activeLanguage === 'pt'
           ? "Encontrei um erro ao pesquisar voos. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar vuelos. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
@@ -726,9 +809,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     const isHotelQuery = detectHotelSearchIntent(queryText);
 
     if (isHotelQuery && consultantTeam === 'hotel-accommodations') {
-      const searchInitMessage = language === 'en'
+      const searchInitMessage = activeLanguage === 'en'
         ? "Let me search for the perfect accommodations for you..."
-        : language === 'pt'
+        : activeLanguage === 'pt'
         ? "Deixe-me procurar as acomodações perfeitas para você..."
         : "Déjame buscar el alojamiento perfecto para ti...";
 
@@ -740,7 +823,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         const response = await fetch('/api/ai/search-hotels', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: queryText, language })
+          body: JSON.stringify({ query: queryText, activeLanguage })
         });
 
         const data = await response.json();
@@ -754,7 +837,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
             ? Math.ceil((new Date(data.searchParams.checkOut).getTime() - new Date(data.searchParams.checkIn).getTime()) / (1000 * 60 * 60 * 24))
             : 0;
 
-          const warmResponse = language === 'en'
+          const warmResponse = activeLanguage === 'en'
             ? `¡Perfecto! I found ${hotelCount} wonderful options in ${data.searchParams.city} for you! 🏨\n\n` +
               `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} to ${data.searchParams.checkOut}) ` +
               `with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Let me show you the best choices:\n\n` +
@@ -764,7 +847,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 `   💰 $${hotel.pricePerNight}/night ($${hotel.totalPrice} total)\n` +
                 `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
               ).join('\n\n')
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? `¡Perfeito! Encontrei ${hotelCount} opções maravilhosas em ${data.searchParams.city} para você! 🏨\n\n` +
               data.hotels.slice(0, 3).map((hotel: any, i: number) =>
                 `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
@@ -780,9 +863,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                 `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
               ).join('\n\n');
 
-          const followUpContent = language === 'en'
+          const followUpContent = activeLanguage === 'en'
             ? "\n\nWhich one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? "\n\nQual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
             : "\n\n¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
 
@@ -797,9 +880,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         } else {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          const errorContent = language === 'en'
+          const errorContent = activeLanguage === 'en'
             ? "I couldn't find hotels matching your request. Could you provide the city, check-in date, check-out date, and number of guests?"
-            : language === 'pt'
+            : activeLanguage === 'pt'
             ? "Não consegui encontrar hotéis correspondentes à sua solicitação. Você poderia fornecer a cidade, data de check-in, data de check-out e número de hóspedes?"
             : "No pude encontrar hoteles que coincidan con tu solicitud. ¿Podrías proporcionar la ciudad, fecha de entrada, fecha de salida y número de huéspedes?";
 
@@ -809,9 +892,9 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         console.error('Hotel search error:', error);
         setMessages(prev => prev.filter(m => !m.isSearching));
 
-        const errorContent = language === 'en'
+        const errorContent = activeLanguage === 'en'
           ? "I encountered an error searching for hotels. Please try again or contact support if the issue persists."
-          : language === 'pt'
+          : activeLanguage === 'pt'
           ? "Encontrei um erro ao pesquisar hotéis. Tente novamente ou entre em contato com o suporte se o problema persistir."
           : "Encontré un error al buscar hoteles. Por favor, inténtalo de nuevo o contacta con soporte si el problema persiste.";
 
@@ -836,7 +919,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         );
       } else {
         // Use legacy response for complex queries
-        responseContent = generateAIResponse(queryText, language, consultant);
+        responseContent = generateAIResponse(queryText, activeLanguage, consultant);
       }
 
       await sendAIResponseWithTyping(responseContent, consultant, queryText, undefined, analysis.intent);
@@ -2202,48 +2285,48 @@ function generateAIResponse(
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('flight') || msg.includes('voo') || msg.includes('vuelo')) {
-    return language === 'en'
+    return activeLanguage === 'en'
       ? 'I can help you find the best flights! Just tell me your departure city, destination, and travel dates. For example: "I need a flight from NYC to Dubai on November 15". I\'ll search for the best options for you!'
-      : language === 'pt'
+      : activeLanguage === 'pt'
       ? 'Posso ajudá-lo a encontrar os melhores voos! Apenas me diga sua cidade de partida, destino e datas de viagem. Por exemplo: "Preciso de um voo de São Paulo para Lisboa em 15 de novembro". Vou pesquisar as melhores opções para você!'
       : '¡Puedo ayudarte a encontrar los mejores vuelos! Solo dime tu ciudad de salida, destino y fechas de viaje. Por ejemplo: "Necesito un vuelo de Madrid a Nueva York el 15 de noviembre". ¡Buscaré las mejores opciones para ti!';
   }
 
   if (msg.includes('hotel') || msg.includes('accommodation')) {
-    return language === 'en'
+    return activeLanguage === 'en'
       ? 'Looking for hotels? We have thousands of hotel options worldwide with great deals! You can filter by price, location, amenities, and ratings. What destination are you interested in?'
-      : language === 'pt'
+      : activeLanguage === 'pt'
       ? 'Procurando hotéis? Temos milhares de opções de hotéis em todo o mundo com ótimas ofertas! Você pode filtrar por preço, localização, comodidades e classificações. Qual destino você está interessado?'
       : '¿Buscas hoteles? ¡Tenemos miles de opciones de hoteles en todo el mundo con grandes ofertas! Puedes filtrar por precio, ubicación, servicios y calificaciones. ¿Qué destino te interesa?';
   }
 
   if (msg.includes('payment') || msg.includes('pagamento') || msg.includes('pago')) {
-    return language === 'en'
+    return activeLanguage === 'en'
       ? 'We accept all major credit cards (Visa, Mastercard, Amex), PayPal, and bank transfers. All payments are secured with 256-bit SSL encryption. We also offer payment plans for bookings over $500. Is there a specific payment method you\'d like to use?'
-      : language === 'pt'
+      : activeLanguage === 'pt'
       ? 'Aceitamos todos os principais cartões de crédito (Visa, Mastercard, Amex), PayPal e transferências bancárias. Todos os pagamentos são protegidos com criptografia SSL de 256 bits. Também oferecemos planos de pagamento para reservas acima de $500. Há um método de pagamento específico que você gostaria de usar?'
       : 'Aceptamos todas las principales tarjetas de crédito (Visa, Mastercard, Amex), PayPal y transferencias bancarias. Todos los pagos están asegurados con cifrado SSL de 256 bits. También ofrecemos planes de pago para reservas superiores a $500. ¿Hay un método de pago específico que te gustaría usar?';
   }
 
   if (msg.includes('cancel') || msg.includes('cancelar')) {
-    return language === 'en'
+    return activeLanguage === 'en'
       ? 'For cancellation policies, it depends on your booking type. Most flights offer free cancellation within 24 hours. Hotels vary by property. You can check your specific booking details in "My Bookings" or call us at 1-332-220-0838 for immediate assistance.'
-      : language === 'pt'
+      : activeLanguage === 'pt'
       ? 'Para políticas de cancelamento, depende do tipo de reserva. A maioria dos voos oferece cancelamento gratuito em até 24 horas. Os hotéis variam de acordo com a propriedade. Você pode verificar os detalhes específicos da sua reserva em "Minhas Reservas" ou ligar para 1-332-220-0838 para assistência imediata.'
       : 'Para políticas de cancelación, depende del tipo de reserva. La mayoría de los vuelos ofrecen cancelación gratuita dentro de las 24 horas. Los hoteles varían según la propiedad. Puedes verificar los detalles específicos de tu reserva en "Mis Reservas" o llamar al 1-332-220-0838 para asistencia inmediata.';
   }
 
   if (msg.includes('support') || msg.includes('contact') || msg.includes('help') || msg.includes('suporte') || msg.includes('ayuda')) {
-    return language === 'en'
+    return activeLanguage === 'en'
       ? 'I\'m here to help 24/7! For immediate assistance, you can:\n\n📞 Call us: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOr continue chatting with me, and I\'ll do my best to assist you!'
-      : language === 'pt'
+      : activeLanguage === 'pt'
       ? 'Estou aqui para ajudar 24/7! Para assistência imediata, você pode:\n\n📞 Ligar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOu continue conversando comigo, e farei o meu melhor para ajudá-lo!'
       : '¡Estoy aquí para ayudar 24/7! Para asistencia inmediata, puedes:\n\n📞 Llamar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\n¡O continúa chateando conmigo, y haré mi mejor esfuerzo para ayudarte!';
   }
 
-  return language === 'en'
+  return activeLanguage === 'en'
     ? 'I\'d be happy to help! I can assist you with:\n\n✈️ Finding and booking flights\n🏨 Hotel reservations\n🚗 Car rentals\n💳 Payment options\n📞 Customer support\n❓ General questions\n\nWhat would you like to know more about?'
-    : language === 'pt'
+    : activeLanguage === 'pt'
     ? 'Ficarei feliz em ajudar! Posso ajudá-lo com:\n\n✈️ Encontrar e reservar voos\n🏨 Reservas de hotel\n🚗 Aluguel de carros\n💳 Opções de pagamento\n📞 Suporte ao cliente\n❓ Perguntas gerais\n\nSobre o que você gostaria de saber mais?'
     : '¡Estaré encantado de ayudar! Puedo ayudarte con:\n\n✈️ Encontrar y reservar vuelos\n🏨 Reservas de hotel\n🚗 Alquiler de autos\n💳 Opciones de pago\n📞 Soporte al cliente\n❓ Preguntas generales\n\n¿Sobre qué te gustaría saber más?';
 }
