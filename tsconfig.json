@@ -14,7 +14,7 @@
     "jsx": "preserve",
     "incremental": true,
     "downlevelIteration": true,
-    "types": ["@playwright/test", "node"],
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"
@@ -25,5 +25,20 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts", "e2e/**/*", "lib/airports/alternatives.test.ts", "lib/flights/dealScore.test.ts", "components/search/AirportAutocompleteCompact.example.backup.tsx"]
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "e2e/**/*",
+    "tests/**/*",
+    "test-results/**/*",
+    "playwright.config.ts",
+    "jest.config.js",
+    "jest.setup.js",
+    "lib/airports/alternatives.test.ts",
+    "lib/flights/dealScore.test.ts",
+    "components/search/AirportAutocompleteCompact.example.backup.tsx"
+  ]
 }
