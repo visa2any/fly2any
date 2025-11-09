@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { duffelAPI } from '@/lib/api/duffel';
 
 /**
  * AI Assistant Flight Search API
@@ -274,16 +275,184 @@ function extractDate(query: string, type: 'departure' | 'return'): string {
 }
 
 /**
- * Search flights (mock implementation - replace with actual Duffel API call)
+ * Calculate flight duration in hours and minutes
+ */
+function formatDuration(isoDuration: string): string {
+  // Parse ISO 8601 duration format (e.g., "PT13H30M")
+  const match = isoDuration.match(/PT(\d+H)?(\d+M)?/);
+  if (!match) return 'N/A';
+
+  const hours = match[1] ? parseInt(match[1]) : 0;
+  const minutes = match[2] ? parseInt(match[2]) : 0;
+
+  return `${hours}h ${minutes}m`;
+}
+
+/**
+ * Search flights using Duffel API with fallback to mock data
  */
 async function searchFlights(params: FlightSearchParams) {
-  // TODO: Integrate with actual Duffel API
-  // For now, return mock data
-
   const isRoundTrip = !!params.returnDate;
 
-  // Base price multiplier for round trip
-  const priceMultiplier = isRoundTrip ? 1.8 : 1; // Round trip is ~1.8x one-way
+  try {
+    // Call REAL Duffel API
+    console.log('🔍 AI Chat - Calling Duffel API with params:', params);
+
+    const duffelResponse = await duffelAPI.searchFlights({
+      origin: params.origin,
+      destination: params.destination,
+      departureDate: params.departureDate,
+      returnDate: params.returnDate,
+      adults: params.passengers,
+      cabinClass: params.cabinClass,
+      maxResults: 3, // Limit to top 3 results for chat UI
+    });
+
+    console.log(`✅ Duffel returned ${duffelResponse.data.length} offers`);
+
+    // Transform Duffel offers to FlightResultCard format
+    if (duffelResponse.data.length > 0) {
+      return duffelResponse.data.map((offer: any) => transformDuffelOffer(offer, params));
+    }
+
+    // If no results, fall back to mock data
+    console.log('⚠️  No Duffel results - falling back to mock data');
+    return generateMockFlights(params);
+
+  } catch (error: any) {
+    console.error('❌ Duffel API error in AI chat:', error.message);
+    console.log('⚠️  Falling back to mock data');
+    return generateMockFlights(params);
+  }
+}
+
+/**
+ * Transform Duffel offer to FlightResultCard format
+ */
+function transformDuffelOffer(duffelOffer: any, params: FlightSearchParams): any {
+  const isRoundTrip = !!params.returnDate;
+
+  // Extract airline info from first segment
+  const firstSegment = duffelOffer.itineraries[0].segments[0];
+  const airline = getAirlineName(firstSegment.carrierCode);
+  const flightNumber = `${firstSegment.carrierCode} ${firstSegment.number}`;
+
+  // Calculate baggage allowance
+  const baggageInfo = extractBaggage(duffelOffer);
+
+  // Build outbound flight leg
+  const outbound = {
+    departure: {
+      airport: params.origin,
+      time: firstSegment.departure.at,
+      terminal: firstSegment.departure.terminal || 'N/A',
+    },
+    arrival: {
+      airport: params.destination,
+      time: duffelOffer.itineraries[0].segments[duffelOffer.itineraries[0].segments.length - 1].arrival.at,
+      terminal: duffelOffer.itineraries[0].segments[duffelOffer.itineraries[0].segments.length - 1].arrival.terminal || 'N/A',
+    },
+    duration: formatDuration(duffelOffer.itineraries[0].duration),
+    stops: duffelOffer.itineraries[0].segments.length - 1,
+  };
+
+  // Build return flight leg (if round-trip)
+  let returnFlight = undefined;
+  if (isRoundTrip && duffelOffer.itineraries.length > 1) {
+    const returnSegments = duffelOffer.itineraries[1].segments;
+    const firstReturnSegment = returnSegments[0];
+    const lastReturnSegment = returnSegments[returnSegments.length - 1];
+
+    returnFlight = {
+      departure: {
+        airport: params.destination,
+        time: firstReturnSegment.departure.at,
+        terminal: firstReturnSegment.departure.terminal || 'N/A',
+      },
+      arrival: {
+        airport: params.origin,
+        time: lastReturnSegment.arrival.at,
+        terminal: lastReturnSegment.arrival.terminal || 'N/A',
+      },
+      duration: formatDuration(duffelOffer.itineraries[1].duration),
+      stops: returnSegments.length - 1,
+    };
+  }
+
+  return {
+    id: duffelOffer.id,
+    airline,
+    flightNumber,
+    outbound,
+    ...(returnFlight && { return: returnFlight }),
+    price: {
+      amount: parseFloat(duffelOffer.price.total).toFixed(0),
+      currency: duffelOffer.price.currency,
+    },
+    cabinClass: params.cabinClass,
+    seatsAvailable: duffelOffer.numberOfBookableSeats || 9,
+    baggage: baggageInfo,
+  };
+}
+
+/**
+ * Extract baggage allowance from Duffel offer
+ */
+function extractBaggage(offer: any): { checked: string; cabin: string } {
+  // Try to get baggage from traveler pricings
+  if (offer.travelerPricings && offer.travelerPricings[0]?.fareDetailsBySegment?.[0]) {
+    const segment = offer.travelerPricings[0].fareDetailsBySegment[0];
+    const checkedBags = segment.includedCheckedBags?.quantity || 0;
+
+    return {
+      checked: checkedBags > 0 ? `${checkedBags} x 23kg` : 'Not included',
+      cabin: '1 x 7kg', // Standard cabin baggage
+    };
+  }
+
+  // Default baggage allowance
+  return {
+    checked: '1 x 23kg',
+    cabin: '1 x 7kg',
+  };
+}
+
+/**
+ * Get airline name from IATA code
+ */
+function getAirlineName(code: string): string {
+  const airlines: Record<string, string> = {
+    'AA': 'American Airlines',
+    'UA': 'United Airlines',
+    'DL': 'Delta Air Lines',
+    'BA': 'British Airways',
+    'AF': 'Air France',
+    'LH': 'Lufthansa',
+    'EK': 'Emirates',
+    'QR': 'Qatar Airways',
+    'EY': 'Etihad Airways',
+    'TK': 'Turkish Airlines',
+    'SQ': 'Singapore Airlines',
+    'CX': 'Cathay Pacific',
+    'NH': 'ANA',
+    'JL': 'Japan Airlines',
+    'AC': 'Air Canada',
+    'VS': 'Virgin Atlantic',
+    'KL': 'KLM',
+    'IB': 'Iberia',
+    'AZ': 'ITA Airways',
+    'LX': 'SWISS',
+  };
+
+  return airlines[code] || code;
+}
+
+/**
+ * Generate mock flights as fallback when Duffel API is unavailable
+ */
+function generateMockFlights(params: FlightSearchParams) {
+  const isRoundTrip = !!params.returnDate;
+  const priceMultiplier = isRoundTrip ? 1.8 : 1;
 
   // Helper to calculate next day
   const getNextDay = (dateStr: string): string => {
