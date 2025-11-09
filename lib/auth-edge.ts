@@ -36,13 +36,30 @@ export const authEdgeConfig = {
     // Edge-safe callbacks - NO database access
     async authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
+      const isAdmin = auth?.user?.role === 'admin';
       const isAccountPage = nextUrl.pathname.startsWith('/account');
+      const isAdminPage = nextUrl.pathname.startsWith('/admin');
       const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
 
-      if (isAccountPage) {
-        return isLoggedIn; // Only authenticated users can access account pages
+      // Protect admin routes - require login AND admin role
+      if (isAdminPage) {
+        if (!isLoggedIn) {
+          // Not logged in - redirect to signin
+          return false;
+        }
+        if (!isAdmin) {
+          // Logged in but not admin - redirect to account with error
+          return false;
+        }
+        return true; // Admin user - allow access
       }
 
+      // Protect account pages - require login
+      if (isAccountPage) {
+        return isLoggedIn;
+      }
+
+      // Redirect logged-in users away from signin page
       if (isAuthPage && isLoggedIn) {
         return Response.redirect(new URL('/account', nextUrl));
       }
@@ -56,6 +73,7 @@ export const authEdgeConfig = {
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
+        token.role = user.role || 'user'; // Add role to JWT
       }
       return token;
     },
@@ -66,6 +84,7 @@ export const authEdgeConfig = {
         session.user.email = token.email!;
         session.user.name = token.name;
         session.user.image = token.picture as string | null;
+        session.user.role = token.role as string; // Add role to session
       }
       return session;
     },

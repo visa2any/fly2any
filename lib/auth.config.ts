@@ -71,6 +71,7 @@ export const authConfig = {
           email: user.email,
           name: user.name,
           image: user.image,
+          role: user.role || 'user',
         };
       },
     }),
@@ -119,6 +120,7 @@ export const authConfig = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.sub!;
+        session.user.role = (token.role as string) || 'user'; // Add role to session
 
         // Update last login
         if (prisma) {
@@ -137,6 +139,21 @@ export const authConfig = {
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
+        token.role = user.role || 'user'; // Add role to JWT
+      }
+      // Fetch role from database if not in token (for existing sessions)
+      if (!token.role && token.sub && prisma) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { role: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role || 'user';
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+        }
       }
       return token;
     },

@@ -13,11 +13,33 @@ import { NextResponse } from 'next/server';
 export default authEdge((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
+  const isAdmin = req.auth?.user?.role === 'admin';
 
   // Protected routes
   const isAccountPage = nextUrl.pathname.startsWith('/account');
+  const isAdminPage = nextUrl.pathname.startsWith('/admin');
+  const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
 
-  // Redirect to signin if accessing protected routes while not logged in
+  // CRITICAL: Protect admin routes - require login AND admin role
+  if (isAdminPage) {
+    if (!isLoggedIn) {
+      // Not logged in - redirect to signin
+      const signInUrl = new URL('/auth/signin', nextUrl.origin);
+      signInUrl.searchParams.set('callbackUrl', nextUrl.pathname);
+      signInUrl.searchParams.set('error', 'AdminAccessRequired');
+      return NextResponse.redirect(signInUrl);
+    }
+    if (!isAdmin) {
+      // Logged in but not admin - show access denied
+      const deniedUrl = new URL('/auth/access-denied', nextUrl.origin);
+      deniedUrl.searchParams.set('message', 'Admin access required');
+      return NextResponse.redirect(deniedUrl);
+    }
+    // Admin user - allow access
+    return NextResponse.next();
+  }
+
+  // Protect account pages - require login
   if (isAccountPage && !isLoggedIn) {
     const signInUrl = new URL('/auth/signin', nextUrl.origin);
     signInUrl.searchParams.set('callbackUrl', nextUrl.pathname);
@@ -25,7 +47,6 @@ export default authEdge((req) => {
   }
 
   // Redirect logged-in users away from auth pages
-  const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
   if (isAuthPage && isLoggedIn) {
     return NextResponse.redirect(new URL('/account', nextUrl.origin));
   }
@@ -34,5 +55,5 @@ export default authEdge((req) => {
 });
 
 export const config = {
-  matcher: ['/account/:path*', '/auth/:path*'],
+  matcher: ['/account/:path*', '/auth/:path*', '/admin/:path*'],
 };
