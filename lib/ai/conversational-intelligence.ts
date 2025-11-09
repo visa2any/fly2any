@@ -263,7 +263,12 @@ export function analyzeConversationIntent(
     /cost/,
     /help me (find|book|with)/,
     /whole package/,
-    /including (everything|all)/
+    /including (everything|all)/,
+    // CRITICAL: Direct flight/hotel requests without action verbs
+    /^(flight|flights) (from|to)/,  // "flight from X to Y"
+    /(hotel|hotels) (in|at|near)/,   // "hotel in Paris"
+    /round.?trip (from|to|flight)/,  // "round trip from X to Y"
+    /one.?way (from|to|flight)/      // "one way from X to Y"
   ];
 
   // Question patterns (general inquiry)
