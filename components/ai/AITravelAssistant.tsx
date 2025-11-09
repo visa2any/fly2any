@@ -2292,48 +2292,48 @@ function generateAIResponse(
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('flight') || msg.includes('voo') || msg.includes('vuelo')) {
-    return activeLanguage === 'en'
+    return language === 'en'
       ? 'I can help you find the best flights! Just tell me your departure city, destination, and travel dates. For example: "I need a flight from NYC to Dubai on November 15". I\'ll search for the best options for you!'
-      : activeLanguage === 'pt'
+      : language === 'pt'
       ? 'Posso ajudá-lo a encontrar os melhores voos! Apenas me diga sua cidade de partida, destino e datas de viagem. Por exemplo: "Preciso de um voo de São Paulo para Lisboa em 15 de novembro". Vou pesquisar as melhores opções para você!'
       : '¡Puedo ayudarte a encontrar los mejores vuelos! Solo dime tu ciudad de salida, destino y fechas de viaje. Por ejemplo: "Necesito un vuelo de Madrid a Nueva York el 15 de noviembre". ¡Buscaré las mejores opciones para ti!';
   }
 
   if (msg.includes('hotel') || msg.includes('accommodation')) {
-    return activeLanguage === 'en'
+    return language === 'en'
       ? 'Looking for hotels? We have thousands of hotel options worldwide with great deals! You can filter by price, location, amenities, and ratings. What destination are you interested in?'
-      : activeLanguage === 'pt'
+      : language === 'pt'
       ? 'Procurando hotéis? Temos milhares de opções de hotéis em todo o mundo com ótimas ofertas! Você pode filtrar por preço, localização, comodidades e classificações. Qual destino você está interessado?'
       : '¿Buscas hoteles? ¡Tenemos miles de opciones de hoteles en todo el mundo con grandes ofertas! Puedes filtrar por precio, ubicación, servicios y calificaciones. ¿Qué destino te interesa?';
   }
 
   if (msg.includes('payment') || msg.includes('pagamento') || msg.includes('pago')) {
-    return activeLanguage === 'en'
+    return language === 'en'
       ? 'We accept all major credit cards (Visa, Mastercard, Amex), PayPal, and bank transfers. All payments are secured with 256-bit SSL encryption. We also offer payment plans for bookings over $500. Is there a specific payment method you\'d like to use?'
-      : activeLanguage === 'pt'
+      : language === 'pt'
       ? 'Aceitamos todos os principais cartões de crédito (Visa, Mastercard, Amex), PayPal e transferências bancárias. Todos os pagamentos são protegidos com criptografia SSL de 256 bits. Também oferecemos planos de pagamento para reservas acima de $500. Há um método de pagamento específico que você gostaria de usar?'
       : 'Aceptamos todas las principales tarjetas de crédito (Visa, Mastercard, Amex), PayPal y transferencias bancarias. Todos los pagos están asegurados con cifrado SSL de 256 bits. También ofrecemos planes de pago para reservas superiores a $500. ¿Hay un método de pago específico que te gustaría usar?';
   }
 
   if (msg.includes('cancel') || msg.includes('cancelar')) {
-    return activeLanguage === 'en'
+    return language === 'en'
       ? 'For cancellation policies, it depends on your booking type. Most flights offer free cancellation within 24 hours. Hotels vary by property. You can check your specific booking details in "My Bookings" or call us at 1-332-220-0838 for immediate assistance.'
-      : activeLanguage === 'pt'
+      : language === 'pt'
       ? 'Para políticas de cancelamento, depende do tipo de reserva. A maioria dos voos oferece cancelamento gratuito em até 24 horas. Os hotéis variam de acordo com a propriedade. Você pode verificar os detalhes específicos da sua reserva em "Minhas Reservas" ou ligar para 1-332-220-0838 para assistência imediata.'
       : 'Para políticas de cancelación, depende del tipo de reserva. La mayoría de los vuelos ofrecen cancelación gratuita dentro de las 24 horas. Los hoteles varían según la propiedad. Puedes verificar los detalles específicos de tu reserva en "Mis Reservas" o llamar al 1-332-220-0838 para asistencia inmediata.';
   }
 
   if (msg.includes('support') || msg.includes('contact') || msg.includes('help') || msg.includes('suporte') || msg.includes('ayuda')) {
-    return activeLanguage === 'en'
+    return language === 'en'
       ? 'I\'m here to help 24/7! For immediate assistance, you can:\n\n📞 Call us: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOr continue chatting with me, and I\'ll do my best to assist you!'
-      : activeLanguage === 'pt'
+      : language === 'pt'
       ? 'Estou aqui para ajudar 24/7! Para assistência imediata, você pode:\n\n📞 Ligar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\nOu continue conversando comigo, e farei o meu melhor para ajudá-lo!'
       : '¡Estoy aquí para ayudar 24/7! Para asistencia inmediata, puedes:\n\n📞 Llamar: 1-332-220-0838\n📧 Email: support@fly2any.com\n\n¡O continúa chateando conmigo, y haré mi mejor esfuerzo para ayudarte!';
   }
 
-  return activeLanguage === 'en'
+  return language === 'en'
     ? 'I\'d be happy to help! I can assist you with:\n\n✈️ Finding and booking flights\n🏨 Hotel reservations\n🚗 Car rentals\n💳 Payment options\n📞 Customer support\n❓ General questions\n\nWhat would you like to know more about?'
-    : activeLanguage === 'pt'
+    : language === 'pt'
     ? 'Ficarei feliz em ajudar! Posso ajudá-lo com:\n\n✈️ Encontrar e reservar voos\n🏨 Reservas de hotel\n🚗 Aluguel de carros\n💳 Opções de pagamento\n📞 Suporte ao cliente\n❓ Perguntas gerais\n\nSobre o que você gostaria de saber mais?'
     : '¡Estaré encantado de ayudar! Puedo ayudarte con:\n\n✈️ Encontrar y reservar vuelos\n🏨 Reservas de hotel\n🚗 Alquiler de autos\n💳 Opciones de pago\n📞 Soporte al cliente\n❓ Preguntas generales\n\n¿Sobre qué te gustaría saber más?';
 }
