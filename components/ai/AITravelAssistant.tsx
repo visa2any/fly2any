@@ -608,8 +608,14 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       'ask-question'
     );
 
+    // CHECK FOR FLIGHT/HOTEL QUERIES FIRST (before personal responses)
+    // This ensures "Morning! Need a flight to Paris" prioritizes the flight search
+    const isFlightQuery = detectFlightSearchIntent(queryText);
+    const isHotelQuery = detectHotelSearchIntent(queryText);
+
     // HANDLE CONVERSATIONAL RESPONSES (greetings, small talk, etc.)
-    if (analysis.requiresPersonalResponse && !analysis.isServiceRequest) {
+    // BUT: Skip if this is clearly a flight or hotel search
+    if (analysis.requiresPersonalResponse && !analysis.isServiceRequest && !isFlightQuery && !isHotelQuery) {
       const naturalResponse = getConversationalResponse(
         analysis,
         {
@@ -629,8 +635,6 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       return; // Exit early for conversational responses
     }
-
-    const isFlightQuery = detectFlightSearchIntent(queryText);
 
     if (isFlightQuery && consultantTeam === 'flight-operations') {
       const searchInitMessage = language === 'en'
@@ -722,8 +726,6 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     }
 
     // HANDLE HOTEL SEARCH
-    const isHotelQuery = detectHotelSearchIntent(queryText);
-
     if (isHotelQuery && consultantTeam === 'hotel-accommodations') {
       const searchInitMessage = language === 'en'
         ? "Let me search for the perfect accommodations for you..."
