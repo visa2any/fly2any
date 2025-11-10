@@ -81,16 +81,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if Stripe is available
-    if (!paymentService.isStripeAvailable()) {
-      return NextResponse.json(
-        {
-          error: 'SERVICE_UNAVAILABLE',
-          message: 'Payment service is currently unavailable. Please try again later.',
-        },
-        { status: 503 }
-      );
-    }
+    // NOTE: Stripe check removed - payment service now supports TEST MODE
+    // If Stripe not configured, it will automatically use test mode
 
     console.log('💳 Creating payment intent...');
     console.log(`   Amount: ${amount} ${currency}`);

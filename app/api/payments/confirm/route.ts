@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/payments/payment-service';
 import { bookingStorage } from '@/lib/bookings/storage';
+import { emailService } from '@/lib/email/service';
 
 /**
  * Confirm Payment API
@@ -117,6 +118,16 @@ export async function POST(request: NextRequest) {
       console.log('✅ Booking updated successfully');
       console.log(`   Status: confirmed`);
       console.log(`   Payment Status: paid`);
+
+      // STEP: Send booking confirmation email
+      console.log('📧 Sending booking confirmation email...');
+      try {
+        await emailService.sendBookingConfirmation(updatedBooking);
+        console.log('✅ Booking confirmation email sent');
+      } catch (emailError) {
+        console.error('⚠️  Failed to send confirmation email, but booking was confirmed:', emailError);
+        // Don't fail the payment confirmation if email fails
+      }
 
       return NextResponse.json(
         {
