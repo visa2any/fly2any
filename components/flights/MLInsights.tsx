@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import PricePredictionCard, { generatePricePrediction, type PricePrediction } from './PricePrediction';
 import { Brain, Zap, TrendingUp, Clock, Database, CheckCircle2 } from 'lucide-react';
 
 // ===========================
@@ -42,7 +41,6 @@ const translations = {
     subtitle: 'AI-Powered Cost Optimization',
     cacheSection: 'Smart Caching',
     apiSection: 'API Optimization',
-    predictionSection: 'Price Forecast',
     cacheTTL: 'Cache Duration',
     cacheConfidence: 'Confidence',
     cacheReason: 'Why',
@@ -64,7 +62,6 @@ const translations = {
     subtitle: 'Otimização de Custo com IA',
     cacheSection: 'Cache Inteligente',
     apiSection: 'Otimização de API',
-    predictionSection: 'Previsão de Preço',
     cacheTTL: 'Duração do Cache',
     cacheConfidence: 'Confiança',
     cacheReason: 'Porquê',
@@ -86,7 +83,6 @@ const translations = {
     subtitle: 'Optimización de Costo con IA',
     cacheSection: 'Caché Inteligente',
     apiSection: 'Optimización de API',
-    predictionSection: 'Pronóstico de Precio',
     cacheTTL: 'Duración de Caché',
     cacheConfidence: 'Confianza',
     cacheReason: 'Por qué',
@@ -197,34 +193,10 @@ export const MLInsights: React.FC<MLInsightsProps> = ({
 }) => {
   const t = translations[lang];
   const [isVisible, setIsVisible] = useState(false);
-  const [prediction, setPrediction] = useState<PricePrediction | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
-  // Generate price prediction
-  useEffect(() => {
-    if (currentPrice && averagePrice) {
-      // Calculate days until departure
-      const departureDate = new Date(route.departureDate);
-      const today = new Date();
-      const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Estimate volatility and popularity (in production, this comes from route profiler)
-      const volatility = Math.abs(currentPrice - averagePrice) / averagePrice;
-      const popularity = 50; // Mock value
-
-      const generatedPrediction = generatePricePrediction(
-        currentPrice,
-        volatility,
-        daysUntilDeparture,
-        popularity
-      );
-
-      setPrediction(generatedPrediction);
-    }
-  }, [currentPrice, averagePrice, route.departureDate]);
 
   // If no ML metadata available yet
   if (!mlMetadata || Object.keys(mlMetadata).length === 0) {
@@ -381,21 +353,6 @@ export const MLInsights: React.FC<MLInsightsProps> = ({
                 </p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Price Prediction Section */}
-        {prediction && (
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-gray-700 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-orange-600" />
-              {t.predictionSection}
-            </h4>
-
-            <PricePredictionCard
-              prediction={prediction}
-              currency={currency}
-            />
           </div>
         )}
       </div>

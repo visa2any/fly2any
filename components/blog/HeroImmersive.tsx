@@ -7,7 +7,7 @@ import { HeroStats } from './HeroStats';
 import { HeroSearchBar } from './HeroSearchBar';
 import { HeroUrgencyBadge } from './HeroUrgencyBadge';
 import { HeroSocialProof } from './HeroSocialProof';
-import { BlogPost } from './BlogCard';
+import type { BlogPost } from '@/lib/types/blog';
 
 interface Deal {
   destination: string;
