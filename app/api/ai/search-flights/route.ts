@@ -257,164 +257,189 @@ function extractDate(query: string, type: 'departure' | 'return'): string {
 }
 
 /**
- * Search flights (mock implementation - replace with actual Duffel API call)
+ * Search flights using Duffel API
  */
 async function searchFlights(params: FlightSearchParams) {
-  // TODO: Integrate with actual Duffel API
-  // For now, return mock data
+  // Import Duffel API client
+  const { duffelAPI } = await import('@/lib/api/duffel');
 
+  console.log('🔍 AI Search: Calling Duffel API with params:', params);
+
+  try {
+    // Call Duffel API with standardized parameters
+    const result = await duffelAPI.searchFlights({
+      origin: params.origin,
+      destination: params.destination,
+      departureDate: params.departureDate,
+      returnDate: params.returnDate,
+      adults: params.passengers,
+      cabinClass: params.cabinClass,
+      maxResults: 5, // Limit to top 5 results for AI chat
+    });
+
+    console.log(`✅ Duffel returned ${result.data.length} offers`);
+
+    // Convert Duffel standardized offers to AI chat format
+    const flights = result.data.map((offer: any) => convertOfferToChatFormat(offer, params));
+
+    return flights;
+  } catch (error: any) {
+    console.error('❌ Duffel search failed:', error.message);
+
+    // Fallback to limited mock data on error
+    console.warn('⚠️  Returning fallback demo data');
+    return getFallbackFlights(params);
+  }
+}
+
+/**
+ * Convert Duffel standardized offer to AI chat format
+ */
+function convertOfferToChatFormat(offer: any, params: FlightSearchParams) {
+  const outboundSlice = offer.itineraries[0];
+  const outboundSegment = outboundSlice.segments[0];
+  const outboundLastSegment = outboundSlice.segments[outboundSlice.segments.length - 1];
+
+  const flight: any = {
+    id: offer.id,
+    airline: getAirlineName(outboundSegment.carrierCode),
+    flightNumber: `${outboundSegment.carrierCode} ${outboundSegment.number}`,
+    // Outbound leg
+    outbound: {
+      departure: {
+        airport: outboundSegment.departure.iataCode,
+        time: outboundSegment.departure.at,
+        terminal: outboundSegment.departure.terminal || ''
+      },
+      arrival: {
+        airport: outboundLastSegment.arrival.iataCode,
+        time: outboundLastSegment.arrival.at,
+        terminal: outboundLastSegment.arrival.terminal || ''
+      },
+      duration: outboundSlice.duration,
+      stops: outboundSlice.segments.length - 1,
+      ...(outboundSlice.segments.length > 1 && {
+        stopover: `${outboundSlice.segments[0].arrival.iataCode} - Layover`
+      })
+    },
+    price: {
+      amount: offer.price.total,
+      currency: offer.price.currency
+    },
+    cabinClass: params.cabinClass,
+    seatsAvailable: offer.numberOfBookableSeats || 9,
+    baggage: {
+      checked: offer.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.includedCheckedBags?.quantity
+        ? `${offer.travelerPricings[0].fareDetailsBySegment[0].includedCheckedBags.quantity} x 23kg`
+        : '1 x 23kg',
+      cabin: '1 x 7kg'
+    }
+  };
+
+  // Add return leg if round-trip
+  if (offer.itineraries.length > 1) {
+    const returnSlice = offer.itineraries[1];
+    const returnSegment = returnSlice.segments[0];
+    const returnLastSegment = returnSlice.segments[returnSlice.segments.length - 1];
+
+    flight.return = {
+      departure: {
+        airport: returnSegment.departure.iataCode,
+        time: returnSegment.departure.at,
+        terminal: returnSegment.departure.terminal || ''
+      },
+      arrival: {
+        airport: returnLastSegment.arrival.iataCode,
+        time: returnLastSegment.arrival.at,
+        terminal: returnLastSegment.arrival.terminal || ''
+      },
+      duration: returnSlice.duration,
+      stops: returnSlice.segments.length - 1,
+      ...(returnSlice.segments.length > 1 && {
+        stopover: `${returnSlice.segments[0].arrival.iataCode} - Layover`
+      })
+    };
+  }
+
+  return flight;
+}
+
+/**
+ * Get airline name from carrier code
+ */
+function getAirlineName(carrierCode: string): string {
+  const airlines: Record<string, string> = {
+    'EK': 'Emirates',
+    'EY': 'Etihad Airways',
+    'QR': 'Qatar Airways',
+    'AA': 'American Airlines',
+    'DL': 'Delta Air Lines',
+    'UA': 'United Airlines',
+    'BA': 'British Airways',
+    'LH': 'Lufthansa',
+    'AF': 'Air France',
+    'KL': 'KLM',
+    'SQ': 'Singapore Airlines',
+    'TK': 'Turkish Airlines',
+  };
+
+  return airlines[carrierCode] || carrierCode;
+}
+
+/**
+ * Fallback mock data when Duffel API fails
+ */
+function getFallbackFlights(params: FlightSearchParams) {
   const isRoundTrip = !!params.returnDate;
+  const priceMultiplier = isRoundTrip ? 1.8 : 1;
 
-  // Base price multiplier for round trip
-  const priceMultiplier = isRoundTrip ? 1.8 : 1; // Round trip is ~1.8x one-way
-
-  const flights = [
+  return [
     {
-      id: 'flight-1',
-      airline: 'Emirates',
-      flightNumber: 'EK 201',
-      // Outbound leg
+      id: 'fallback-1',
+      airline: 'Demo Airline',
+      flightNumber: 'DEMO 101',
       outbound: {
         departure: {
           airport: params.origin,
           time: `${params.departureDate}T08:00:00`,
-          terminal: '4'
+          terminal: '1'
         },
         arrival: {
           airport: params.destination,
           time: `${params.departureDate}T19:30:00`,
-          terminal: '3'
+          terminal: '2'
         },
-        duration: '13h 30m',
+        duration: '11h 30m',
         stops: 0
       },
-      // Return leg (if round trip)
       ...(isRoundTrip && {
         return: {
           departure: {
             airport: params.destination,
             time: `${params.returnDate}T21:00:00`,
-            terminal: '3'
+            terminal: '2'
           },
           arrival: {
             airport: params.origin,
             time: `${params.returnDate}T08:30:00+1`,
-            terminal: '4'
+            terminal: '1'
           },
-          duration: '13h 30m',
+          duration: '11h 30m',
           stops: 0
         }
       }),
       price: {
-        amount: Math.round((params.cabinClass === 'business' ? 5499 : 899) * priceMultiplier).toString(),
+        amount: Math.round((params.cabinClass === 'business' ? 4999 : 799) * priceMultiplier).toString(),
         currency: 'USD'
       },
       cabinClass: params.cabinClass,
       seatsAvailable: 9,
       baggage: {
-        checked: params.cabinClass === 'business' ? '2 x 32kg' : '2 x 23kg',
-        cabin: '1 x 7kg'
-      }
-    },
-    {
-      id: 'flight-2',
-      airline: 'Etihad Airways',
-      flightNumber: 'EY 103',
-      // Outbound leg
-      outbound: {
-        departure: {
-          airport: params.origin,
-          time: `${params.departureDate}T10:30:00`,
-          terminal: '4'
-        },
-        arrival: {
-          airport: params.destination,
-          time: `${params.departureDate}T22:15:00`,
-          terminal: '1'
-        },
-        duration: '13h 45m',
-        stops: 0
-      },
-      // Return leg (if round trip)
-      ...(isRoundTrip && {
-        return: {
-          departure: {
-            airport: params.destination,
-            time: `${params.returnDate}T09:30:00`,
-            terminal: '1'
-          },
-          arrival: {
-            airport: params.origin,
-            time: `${params.returnDate}T19:15:00`,
-            terminal: '4'
-          },
-          duration: '13h 45m',
-          stops: 0
-        }
-      }),
-      price: {
-        amount: Math.round((params.cabinClass === 'business' ? 4899 : 799) * priceMultiplier).toString(),
-        currency: 'USD'
-      },
-      cabinClass: params.cabinClass,
-      seatsAvailable: 12,
-      baggage: {
-        checked: params.cabinClass === 'business' ? '2 x 32kg' : '2 x 23kg',
-        cabin: '1 x 7kg'
-      }
-    },
-    {
-      id: 'flight-3',
-      airline: 'Qatar Airways',
-      flightNumber: 'QR 701',
-      // Outbound leg
-      outbound: {
-        departure: {
-          airport: params.origin,
-          time: `${params.departureDate}T14:45:00`,
-          terminal: '8'
-        },
-        arrival: {
-          airport: params.destination,
-          time: `${params.departureDate}T06:30:00+1`,
-          terminal: '1'
-        },
-        duration: '14h 45m',
-        stops: 1,
-        stopover: 'Doha (DOH) - 2h 15m'
-      },
-      // Return leg (if round trip)
-      ...(isRoundTrip && {
-        return: {
-          departure: {
-            airport: params.destination,
-            time: `${params.returnDate}T08:00:00`,
-            terminal: '1'
-          },
-          arrival: {
-            airport: params.origin,
-            time: `${params.returnDate}T21:45:00`,
-            terminal: '8'
-          },
-          duration: '15h 45m',
-          stops: 1,
-          stopover: 'Doha (DOH) - 3h 10m'
-        }
-      }),
-      price: {
-        amount: Math.round((params.cabinClass === 'business' ? 4599 : 749) * priceMultiplier).toString(),
-        currency: 'USD'
-      },
-      cabinClass: params.cabinClass,
-      seatsAvailable: 8,
-      baggage: {
-        checked: params.cabinClass === 'business' ? '2 x 32kg' : '2 x 23kg',
+        checked: '1 x 23kg',
         cabin: '1 x 7kg'
       }
     }
   ];
-
-  return flights;
 }
 
 /**
