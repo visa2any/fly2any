@@ -120,13 +120,15 @@ export async function POST(request: NextRequest) {
       console.log(`   Payment Status: paid`);
 
       // STEP: Send booking confirmation email
-      console.log('📧 Sending booking confirmation email...');
-      try {
-        await emailService.sendBookingConfirmation(updatedBooking);
-        console.log('✅ Booking confirmation email sent');
-      } catch (emailError) {
-        console.error('⚠️  Failed to send confirmation email, but booking was confirmed:', emailError);
-        // Don't fail the payment confirmation if email fails
+      if (updatedBooking) {
+        console.log('📧 Sending booking confirmation email...');
+        try {
+          await emailService.sendBookingConfirmation(updatedBooking);
+          console.log('✅ Booking confirmation email sent');
+        } catch (emailError) {
+          console.error('⚠️  Failed to send confirmation email, but booking was confirmed:', emailError);
+          // Don't fail the payment confirmation if email fails
+        }
       }
 
       return NextResponse.json(
