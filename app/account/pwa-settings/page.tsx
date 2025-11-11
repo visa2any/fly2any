@@ -30,11 +30,16 @@ import toast from 'react-hot-toast';
 
 export default function PWASettingsPage() {
   const [isInstalled, setIsInstalled] = useState(false);
-  const [notificationState, setNotificationState] = useState({
+  const [notificationState, setNotificationState] = useState<{
+    supported: boolean;
+    permission: NotificationPermission;
+    subscribed: boolean;
+    endpoint?: string | undefined;
+  }>({
     supported: false,
     permission: 'default' as NotificationPermission,
     subscribed: false,
-    endpoint: '' as string | undefined,
+    endpoint: undefined,
   });
   const [syncStatus, setSyncStatus] = useState({
     pending: 0,
