@@ -65,8 +65,8 @@ async function createAdminUser(email: string, role: string) {
       const adminUser = await prisma.adminUser.create({
         data: {
           userId: user.id,
-          role,
-          permissions: null // null = all permissions for the role
+          role
+          // permissions: undefined means use default role permissions
         }
       })
 
