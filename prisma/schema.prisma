@@ -53,6 +53,7 @@ model User {
   notifications     Notification[]
   wishlistItems     WishlistItem[]
   pushSubscriptions PushSubscription[]
+  adminUser         AdminUser?
 
   @@map("users")
 }
@@ -727,4 +728,211 @@ model UserCohort {
   @@index([cohortWeek])
   @@index([cohortMonth])
   @@map("user_cohorts")
+}
+
+// ==========================================
+// Phase 9: Admin Dashboard & CMS
+// ==========================================
+
+// Admin User Roles
+model AdminUser {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  role        String // 'super_admin', 'admin', 'moderator'
+  permissions Json? // Custom permissions override
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([role])
+  @@map("admin_users")
+}
+
+// Audit Trail for Admin Actions
+model AuditLog {
+  id        String @id @default(cuid())
+  userId    String
+  userEmail String
+  userRole  String
+
+  action     String // 'create', 'update', 'delete', 'view'
+  resource   String // 'user', 'deal', 'experiment', etc.
+  resourceId String
+  changes    Json?
+
+  ipAddress String?
+  userAgent String?
+  requestId String?
+
+  success      Boolean @default(true)
+  errorMessage String?
+
+  timestamp DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([resource, resourceId])
+  @@index([timestamp])
+  @@index([action, resource])
+  @@map("audit_logs")
+}
+
+// Travel Deals Content
+model Deal {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  title       String
+  description String @db.Text
+
+  destination Json // {city, country, airportCode}
+  origin      String
+
+  originalPrice   Float
+  discountedPrice Float
+  currency        String @default("USD")
+
+  flightDetails Json // {airline, flightNumber, duration, stops, departDate, returnDate, etc}
+
+  dealScore Int       @default(50)
+  featured  Boolean   @default(false)
+  active    Boolean   @default(true)
+  expiresAt DateTime?
+
+  category String   @default("featured") // flash_sale, last_minute, featured, seasonal
+  tags     String[]
+
+  images       Json // {thumbnail, hero, gallery}
+  restrictions String[]
+
+  seo Json // {metaTitle, metaDescription, keywords}
+
+  // Analytics
+  views       Int @default(0)
+  clicks      Int @default(0)
+  conversions Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@index([slug])
+  @@index([active, featured])
+  @@index([expiresAt])
+  @@index([category])
+  @@map("deals")
+}
+
+// Destinations Content
+model Destination {
+  id          String @id @default(cuid())
+  slug        String @unique
+  airportCode String @unique
+
+  city    String
+  country String
+  region  String
+
+  description      String   @db.Text
+  shortDescription String
+  highlights       String[]
+
+  travelInfo   Json // {bestTimeToVisit, climate, activities, avgTemp, etc}
+  priceRange   String // 'budget', 'moderate', 'luxury'
+  avgPrice     Float?
+  travelStyles String[] // beach, adventure, culture, food, romantic, etc
+
+  images Json // {hero, gallery, video}
+
+  seo Json // {metaTitle, metaDescription, keywords}
+
+  published Boolean @default(false)
+  featured  Boolean @default(false)
+  trending  Boolean @default(false)
+
+  // Analytics
+  views    Int @default(0)
+  searches Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([airportCode])
+  @@index([published, featured])
+  @@index([trending])
+  @@map("destinations")
+}
+
+// Email Templates
+model EmailTemplate {
+  id   String @id @default(cuid())
+  name String @unique
+  key  String @unique // Internal key for referencing
+
+  subject   String
+  preheader String?
+  body      String  @db.Text
+  variables Json // [{name, type, default}]
+
+  layout      String  @default("default") // default, marketing, transactional
+  brandColor  String  @default("#3b82f6")
+  headerImage String?
+  footerText  String  @default("© 2025 Fly2Any. All rights reserved.")
+
+  active Boolean @default(true)
+
+  // Testing
+  lastTested      DateTime?
+  testRecipients  String[]
+  testsSent       Int       @default(0)
+  lastTestResults Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([active])
+  @@map("email_templates")
+}
+
+// System Health Monitoring
+model HealthCheck {
+  id String @id @default(cuid())
+
+  service String // 'database', 'api', 'external:duffel', 'external:amadeus', etc
+  status  String // 'healthy', 'degraded', 'down'
+
+  responseTime Float?
+  errorMessage String?
+  metadata     Json?
+
+  timestamp DateTime @default(now())
+
+  @@index([service, timestamp])
+  @@index([status, timestamp])
+  @@map("health_checks")
+}
+
+// Search Autocomplete Cache
+model SearchSuggestion {
+  id String @id @default(cuid())
+
+  query      String  @unique
+  type       String // 'airport', 'city', 'country'
+  code       String? // Airport code
+  name       String
+  country    String?
+  popularity Int     @default(0)
+
+  metadata Json? // Additional data (coordinates, timezone, etc)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([query])
+  @@index([type, popularity])
+  @@map("search_suggestions")
 }
