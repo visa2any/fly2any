@@ -24,9 +24,14 @@ export default authEdge((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Redirect logged-in users away from auth pages
+  // Redirect logged-in users away from auth pages (unless coming from admin callback)
   const isAuthPage = nextUrl.pathname.startsWith('/auth/signin');
+  const callbackUrl = nextUrl.searchParams.get('callbackUrl');
   if (isAuthPage && isLoggedIn) {
+    // If callback URL is admin, redirect there instead of /account
+    if (callbackUrl?.startsWith('/admin')) {
+      return NextResponse.redirect(new URL(callbackUrl, nextUrl.origin));
+    }
     return NextResponse.redirect(new URL('/account', nextUrl.origin));
   }
 
