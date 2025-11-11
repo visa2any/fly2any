@@ -195,7 +195,9 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
         {role === 'super_admin' && (
           <div className={`mt-6 ${isCollapsed ? 'p-2' : 'p-4'} bg-purple-50 rounded-lg border border-purple-200 transition-all`}>
             <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2 mb-2'}`}>
-              <Shield className="h-4 w-4 text-purple-600 flex-shrink-0" title={isCollapsed ? 'SUPER ADMIN - Full system access' : undefined} />
+              <span title={isCollapsed ? 'SUPER ADMIN - Full system access' : undefined}>
+                <Shield className="h-4 w-4 text-purple-600 flex-shrink-0" />
+              </span>
               {!isCollapsed && <span className="text-xs font-semibold text-purple-600">SUPER ADMIN</span>}
             </div>
             {!isCollapsed && (
