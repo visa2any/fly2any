@@ -1,9 +1,12 @@
 /**
  * Performance Monitoring Service
  * Tracks Web Vitals and sends performance metrics to backend
+ *
+ * Note: FID (First Input Delay) is deprecated in web-vitals v3+
+ * Use INP (Interaction to Next Paint) instead
  */
 
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP, Metric } from 'web-vitals'
+import { onCLS, onLCP, onFCP, onTTFB, onINP, Metric } from 'web-vitals'
 
 interface PerformanceMetricData {
   metricName: string
@@ -148,7 +151,6 @@ class PerformanceMonitor {
     if (typeof window === 'undefined') return
 
     onCLS((metric) => this.handleMetric(metric))
-    onFID((metric) => this.handleMetric(metric))
     onLCP((metric) => this.handleMetric(metric))
     onFCP((metric) => this.handleMetric(metric))
     onTTFB((metric) => this.handleMetric(metric))
