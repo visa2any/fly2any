@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 import { withPermission, logAdminAction } from '@/lib/admin/middleware'
 import { Resource, Action } from '@/lib/admin/rbac'
+
+const prisma = getPrismaClient()
 
 // GET /api/admin/users - List users with filters
 export const GET = withPermission(Resource.USERS, Action.READ, async (request, context) => {

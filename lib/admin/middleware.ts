@@ -4,10 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
+import { getPrismaClient } from '@/lib/prisma'
 import { Role, hasPermission, Resource, Action } from './rbac'
+
+const prisma = getPrismaClient()
 
 export interface AdminContext {
   userId: string
@@ -20,7 +21,7 @@ export interface AdminContext {
  * Require admin authentication
  */
 export async function requireAdmin(request: NextRequest): Promise<AdminContext | NextResponse> {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   if (!session?.user?.id || !session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -33,3 +33,6 @@ export const {
   signIn,
   signOut,
 } = NextAuth(authOptions);
+
+// Export authOptions for backwards compatibility
+export { authOptions };
