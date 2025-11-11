@@ -460,3 +460,271 @@ model Notification {
   @@index([createdAt])
   @@map("notifications")
 }
+
+// ==========================================
+// Phase 8: Analytics & Business Intelligence
+// ==========================================
+
+// Analytics Events - Raw event tracking
+model AnalyticsEvent {
+  id        String  @id @default(cuid())
+  userId    String?
+  sessionId String
+  eventType String // page_view, search, click, booking, conversion, etc.
+  eventData Json // Flexible storage for event-specific data
+
+  // Context
+  url       String?
+  referrer  String?
+  userAgent String?
+  ipAddress String?
+
+  timestamp DateTime @default(now())
+
+  @@index([eventType, timestamp])
+  @@index([userId, timestamp])
+  @@index([sessionId, timestamp])
+  @@index([timestamp]) // For time-range queries
+  @@map("analytics_events")
+}
+
+// Aggregated Metrics - Pre-calculated for dashboard performance
+model MetricSnapshot {
+  id          String   @id @default(cuid())
+  metricName  String // dau, searches, conversions, revenue, etc.
+  value       Float
+  dimensions  Json // {route: "NYC-LAX", date: "2025-01-01", segment: "mobile"}
+  timestamp   DateTime @default(now())
+  granularity String // hourly, daily, weekly, monthly
+
+  @@unique([metricName, granularity, timestamp])
+  @@index([metricName, timestamp])
+  @@index([timestamp, granularity])
+  @@map("metric_snapshots")
+}
+
+// ML Price Predictions
+model PricePrediction {
+  id             String  @id @default(cuid())
+  origin         String
+  destination    String
+  departDate     String
+  returnDate     String?
+  predictedPrice Float
+  confidence     Float // 0.0 to 1.0
+  priceRange     Json // {min: 450, max: 650}
+  modelVersion   String
+  features       Json // Feature values used for prediction
+
+  // Recommendation
+  recommendation  String? // "book_now", "wait", "flexible_dates"
+  savingsEstimate Float?
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Predictions valid for limited time
+
+  @@index([origin, destination, departDate])
+  @@index([createdAt])
+  @@map("price_predictions")
+}
+
+// ML Model Metadata
+model MLModel {
+  id        String @id @default(cuid())
+  name      String @unique
+  version   String
+  modelType String // regression, classification, etc.
+  accuracy  Float? // Model performance metrics
+  metrics   Json // {rmse: 45.2, mae: 32.1, r2: 0.85}
+
+  // Training info
+  trainedAt    DateTime
+  trainingData Json // Summary of training data
+  features     String[] // Feature names used
+
+  // Deployment
+  active     Boolean   @default(false)
+  deployedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([name, version])
+  @@index([active])
+  @@map("ml_models")
+}
+
+// Feature Flags & A/B Testing
+model FeatureFlag {
+  id                String  @id @default(cuid())
+  key               String  @unique
+  name              String
+  description       String?
+  enabled           Boolean @default(false)
+  rolloutPercentage Int     @default(0) // 0-100
+  targetSegments    Json? // User segments to target
+  variants          Json // [{id: "control", weight: 50}, {id: "variant_a", weight: 50}]
+
+  // Experiment tracking
+  isExperiment      Boolean @default(false)
+  experimentStatus  String? // draft, running, completed, archived
+  successMetric     String? // Metric to optimize
+  minimumSampleSize Int?
+
+  // Results
+  experimentResults Json?
+  winningVariant    String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  participations ExperimentParticipation[]
+
+  @@index([key])
+  @@index([enabled])
+  @@index([isExperiment, experimentStatus])
+  @@map("feature_flags")
+}
+
+// Experiment Participation Tracking
+model ExperimentParticipation {
+  id         String   @id @default(cuid())
+  flagId     String
+  userId     String?
+  sessionId  String
+  variant    String
+  assignedAt DateTime @default(now())
+
+  // Conversion tracking
+  converted       Boolean   @default(false)
+  convertedAt     DateTime?
+  conversionValue Float?
+
+  flag FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  @@unique([flagId, userId])
+  @@unique([flagId, sessionId])
+  @@index([flagId, variant])
+  @@index([flagId, converted])
+  @@map("experiment_participations")
+}
+
+// Performance Metrics (Web Vitals)
+model PerformanceMetric {
+  id         String @id @default(cuid())
+  metricName String // LCP, FID, CLS, FCP, TTI, TTFB
+  value      Float
+  rating     String // good, needs-improvement, poor
+
+  // Context
+  url       String
+  userId    String?
+  sessionId String
+
+  // Environment
+  deviceType     String? // mobile, tablet, desktop
+  browser        String?
+  browserVersion String?
+  os             String?
+  connectionType String? // 4g, 3g, wifi
+
+  timestamp DateTime @default(now())
+
+  @@index([metricName, timestamp])
+  @@index([url, metricName])
+  @@index([rating, metricName])
+  @@index([timestamp])
+  @@map("performance_metrics")
+}
+
+// Error Tracking
+model ErrorLog {
+  id        String  @id @default(cuid())
+  message   String  @db.Text
+  stack     String? @db.Text
+  errorType String? // TypeError, ReferenceError, etc.
+
+  // Context
+  url       String
+  userId    String?
+  sessionId String
+
+  // Environment
+  userAgent String?
+  browser   String?
+  os        String?
+
+  // Metadata
+  severity   String // error, warning, info
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  resolvedBy String?
+  notes      String?   @db.Text
+
+  // Grouping (for similar errors)
+  fingerprint String? // Hash of error for grouping
+  count       Int     @default(1)
+
+  timestamp DateTime @default(now())
+
+  @@index([severity, resolved, timestamp])
+  @@index([fingerprint, timestamp])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("error_logs")
+}
+
+// Conversion Funnel Tracking
+model ConversionFunnel {
+  id        String  @id @default(cuid())
+  sessionId String
+  userId    String?
+
+  // Funnel stages
+  stage  String // search, results, details, booking, payment, confirmation
+  action String // entered, completed, abandoned
+
+  // Context
+  metadata Json? // Route, price, filters, etc.
+  duration Int? // Time spent in stage (ms)
+
+  timestamp DateTime @default(now())
+
+  @@index([sessionId, stage])
+  @@index([stage, action, timestamp])
+  @@index([timestamp])
+  @@map("conversion_funnels")
+}
+
+// User Cohorts for Retention Analysis
+model UserCohort {
+  id          String   @id @default(cuid())
+  userId      String
+  cohortDate  DateTime // First signup/activity date
+  cohortWeek  String // "2025-W01"
+  cohortMonth String // "2025-01"
+
+  // Activity tracking
+  lastActiveAt DateTime
+
+  // Retention flags
+  day1Retained  Boolean @default(false)
+  day7Retained  Boolean @default(false)
+  day30Retained Boolean @default(false)
+
+  // Engagement
+  totalSessions Int   @default(0)
+  totalSearches Int   @default(0)
+  totalBookings Int   @default(0)
+  lifetimeValue Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId])
+  @@index([cohortDate])
+  @@index([cohortWeek])
+  @@index([cohortMonth])
+  @@map("user_cohorts")
+}
