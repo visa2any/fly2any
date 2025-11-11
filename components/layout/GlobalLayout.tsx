@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import { SessionProvider } from '@/components/auth/SessionProvider';
 import { Header, type Language } from './Header';
 import { Footer } from './Footer';
@@ -86,8 +87,12 @@ const footerContent = {
  */
 function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [language, setLanguage] = useState<Language>('en');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Check if current route is admin area
+  const isAdminRoute = pathname?.startsWith('/admin');
 
   // Load language from localStorage on mount
   useEffect(() => {
@@ -108,6 +113,12 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
     setMobileDrawerOpen(true);
   };
 
+  // Admin routes use their own dedicated layout
+  if (isAdminRoute) {
+    return <>{children}</>;
+  }
+
+  // Standard platform layout for all other pages
   return (
     <>
       {/* Global Header */}

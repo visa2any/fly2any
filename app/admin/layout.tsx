@@ -44,7 +44,7 @@ export default async function AdminLayout({
         <AdminSidebar role={adminUser.role} />
 
         {/* Main content area - full width minus sidebar */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-6">
           <div className="max-w-[1920px] mx-auto">
             {children}
           </div>

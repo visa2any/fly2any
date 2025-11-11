@@ -100,9 +100,9 @@ const MetricCard: React.FC<{
   const colors = colorClasses[color];
 
   const content = (
-    <div className={`relative overflow-hidden bg-white rounded-xl border ${colors.border} shadow-sm hover:shadow-md transition-all p-4 ${href ? 'cursor-pointer' : ''}`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className={`rounded-lg bg-gradient-to-br ${colors.bg} p-2.5 shadow-md text-white`}>
+    <div className={`relative overflow-hidden bg-white rounded-xl border ${colors.border} shadow-sm hover:shadow-md transition-all p-3 ${href ? 'cursor-pointer' : ''}`}>
+      <div className="flex items-start justify-between mb-2">
+        <div className={`rounded-lg bg-gradient-to-br ${colors.bg} p-2 shadow-md text-white`}>
           {icon}
         </div>
         {change !== undefined && (
@@ -113,9 +113,9 @@ const MetricCard: React.FC<{
         )}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         <p className="text-xs font-medium text-gray-600">{label}</p>
-        <p className={`text-2xl font-bold ${colors.text}`}>{value}</p>
+        <p className={`text-xl font-bold ${colors.text}`}>{value}</p>
         {subValue && <p className="text-xs text-gray-500">{subValue}</p>}
       </div>
 
@@ -139,9 +139,9 @@ const QuickAction: React.FC<{
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-${color}-300 hover:shadow-md transition-all group`}
+      className={`flex items-center gap-2.5 p-3 bg-white rounded-lg border border-gray-200 hover:border-${color}-300 hover:shadow-md transition-all group`}
     >
-      <div className={`rounded-lg bg-gradient-to-br from-${color}-500 to-${color}-600 p-2 shadow-sm text-white`}>
+      <div className={`rounded-lg bg-gradient-to-br from-${color}-500 to-${color}-600 p-1.5 shadow-sm text-white`}>
         {icon}
       </div>
       <div className="flex-1">
@@ -271,17 +271,17 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 shadow-lg">
-                <LayoutDashboard className="w-7 h-7 text-white" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2 shadow-lg">
+                <LayoutDashboard className="w-6 h-6 text-white" />
               </div>
               Fly2Any Admin Dashboard
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs text-gray-600 mt-0.5">
               Last updated: {lastRefresh.toLocaleTimeString()} · Real-time system monitoring
             </p>
           </div>
@@ -336,17 +336,17 @@ export default function AdminDashboard() {
         </div>
 
         {/* ML Cost Savings Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-purple-500 via-purple-600 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+        <div className="relative overflow-hidden bg-gradient-to-r from-purple-500 via-purple-600 to-blue-600 rounded-xl shadow-lg p-4 text-white">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/50 to-blue-600/50 backdrop-blur-sm" />
 
           <div className="relative z-10 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-white/20 backdrop-blur-md p-3">
-                <Brain className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-white/20 backdrop-blur-md p-2.5">
+                <Brain className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold mb-1">ML Cost Optimization Active</h2>
-                <p className="text-purple-100 text-sm">
+                <h2 className="text-xl font-bold mb-0.5">ML Cost Optimization Active</h2>
+                <p className="text-purple-100 text-xs">
                   Status: {metrics?.ml.mlReadiness === 'ready' ? 'Fully Optimized' : 'Warming Up'} ·
                   Cache Hit Rate: {metrics?.ml.cacheHitRate.toFixed(0)}%
                 </p>
@@ -354,10 +354,10 @@ export default function AdminDashboard() {
             </div>
 
             <div className="text-right">
-              <div className="text-4xl font-bold mb-1">
+              <div className="text-3xl font-bold mb-0.5">
                 ${metrics?.ml.totalSavings.toLocaleString()}
               </div>
-              <div className="text-purple-100 text-sm mb-2">
+              <div className="text-purple-100 text-xs mb-1.5">
                 {metrics?.ml.savingsPercentage.toFixed(1)}% cost reduction
               </div>
               <Link
@@ -372,15 +372,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions & System Health */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Quick Actions */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
               <Zap className="w-5 h-5 text-blue-600" />
               Quick Actions
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               <QuickAction
                 icon={<Brain className="w-4 h-4" />}
                 label="ML Cost Savings"
@@ -440,13 +440,13 @@ export default function AdminDashboard() {
           </div>
 
           {/* System Health */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
               <Activity className="w-5 h-5 text-green-600" />
               System Health
             </h3>
 
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <SystemHealthIndicator
                 label="Redis Cache"
                 status={metrics?.systemHealth.redis || false}
@@ -480,14 +480,14 @@ export default function AdminDashboard() {
 
         {/* Service Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
+            <div className="flex items-center gap-2.5 mb-2">
               <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2 shadow-sm text-white">
                 <Plane className="w-4 h-4" />
               </div>
               <h4 className="font-semibold text-gray-900">Flight Bookings</h4>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Confirmed:</span>
                 <span className="font-semibold text-gray-900">{metrics?.bookings.confirmed}</span>
@@ -503,14 +503,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
+            <div className="flex items-center gap-2.5 mb-2">
               <div className="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-2 shadow-sm text-white">
                 <Hotel className="w-4 h-4" />
               </div>
               <h4 className="font-semibold text-gray-900">Hotel Searches</h4>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">This week:</span>
                 <span className="font-semibold text-gray-900">{metrics?.searches.hotels}</span>
@@ -522,14 +522,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
+            <div className="flex items-center gap-2.5 mb-2">
               <div className="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-2 shadow-sm text-white">
                 <Car className="w-4 h-4" />
               </div>
               <h4 className="font-semibold text-gray-900">Car Rentals</h4>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">This week:</span>
                 <span className="font-semibold text-gray-900">{metrics?.searches.cars}</span>
@@ -543,13 +543,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
             <Clock className="w-5 h-5 text-orange-600" />
             Recent Activity
           </h3>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <div className="rounded-full bg-green-100 p-2">
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
