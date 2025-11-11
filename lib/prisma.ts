@@ -29,9 +29,23 @@ export function isPrismaAvailable(): boolean {
 }
 
 // Helper function to get Prisma client or throw error
+// Returns a safe stub during build time to prevent build failures
+// At runtime (when handlers are actually called), will throw if database is not configured
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
-    throw new Error('Database not configured. Please set DATABASE_URL environment variable.');
+    // During build, Next.js imports API routes but doesn't execute handlers
+    // Return a stub that will pass type checking but never gets called
+    // At runtime, if this stub is actually used, it will fail with clear errors
+    const stub = new Proxy({} as PrismaClient, {
+      get(_target, prop) {
+        // If any method is actually called (at runtime), throw a clear error
+        throw new Error(
+          `Database not configured. Cannot call Prisma method '${String(prop)}'. ` +
+          'Please set DATABASE_URL environment variable.'
+        );
+      }
+    });
+    return stub;
   }
   return prisma;
 }
