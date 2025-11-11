@@ -116,6 +116,15 @@ export const authConfig = {
       }
       return true;
     },
+    async redirect({ url, baseUrl }) {
+      // Allow any valid URL for redirects (including /admin with callbackUrl)
+      // If url starts with baseUrl, allow it
+      if (url.startsWith(baseUrl)) return url;
+      // If url is relative (starts with /), prepend baseUrl
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      // Default to baseUrl
+      return baseUrl;
+    },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.sub!;
