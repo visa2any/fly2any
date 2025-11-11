@@ -108,7 +108,7 @@ export default function OfflinePage() {
       try {
         setSyncStatus('syncing');
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-all');
+        await (registration as any).sync.register('sync-all');
         setSyncStatus('success');
         setTimeout(() => setSyncStatus('idle'), 3000);
       } catch (error) {

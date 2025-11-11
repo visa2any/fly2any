@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Force Node.js runtime (required for Prisma)
@@ -30,6 +30,8 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const prisma = getPrismaClient();
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -74,13 +76,15 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const prisma = getPrismaClient();
+
     const body = await req.json();
 
     // Validate input
     const validation = updateProfileSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: validation.error.errors },
+        { error: 'Invalid input', details: validation.error.format() },
         { status: 400 }
       );
     }
@@ -137,6 +141,8 @@ export async function DELETE(req: NextRequest) {
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const prisma = getPrismaClient();
 
     const body = await req.json();
     const { reason } = body;

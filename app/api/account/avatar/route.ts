@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { writeFile, mkdir, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Update user record with avatar URL
     const avatarUrl = `/avatars/${filename}`;
+    const prisma = getPrismaClient();
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: { avatarUrl },
@@ -85,6 +86,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Get current avatar URL
+    const prisma = getPrismaClient();
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { avatarUrl: true },

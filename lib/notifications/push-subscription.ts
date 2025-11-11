@@ -105,7 +105,7 @@ export async function subscribeToPushNotifications(): Promise<PushSubscriptionDa
 
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as any,
     });
   }
 
@@ -291,20 +291,9 @@ export async function showTestNotification(): Promise<void> {
     icon: '/fly2any-logo.png',
     badge: '/fly2any-logo.png',
     tag: 'test-notification',
-    vibrate: [200, 100, 200],
     data: {
       url: '/',
     },
-    actions: [
-      {
-        action: 'view',
-        title: 'View',
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss',
-      },
-    ],
   });
 }
 

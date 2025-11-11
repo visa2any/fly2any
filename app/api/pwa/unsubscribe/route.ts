@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const body = await request.json();
     const { endpoint } = body;
@@ -61,6 +63,8 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Delete all subscriptions for user
     const deleted = await prisma.pushSubscription.deleteMany({

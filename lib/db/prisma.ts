@@ -44,4 +44,14 @@ export function isPrismaAvailable(): boolean {
   return prisma !== null;
 }
 
+/**
+ * Helper function to get Prisma client or throw error
+ */
+export function getPrismaClient(): PrismaClient {
+  if (!prisma) {
+    throw new Error('Database not configured. Please set POSTGRES_URL environment variable.');
+  }
+  return prisma;
+}
+
 export default prisma;

@@ -5,7 +5,7 @@
  * Handles all notification-related business logic
  */
 
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import {
   Notification,
   NotificationType,
@@ -27,6 +27,7 @@ export async function createNotification(
   data: CreateNotificationData
 ): Promise<Notification> {
   try {
+    const prisma = getPrismaClient();
     const notification = await prisma.notification.create({
       data: {
         userId: data.userId,
@@ -41,6 +42,9 @@ export async function createNotification(
 
     return {
       ...notification,
+      type: notification.type as NotificationType,
+      priority: notification.priority as NotificationPriority,
+      actionUrl: notification.actionUrl || undefined,
       createdAt: notification.createdAt,
       readAt: notification.readAt || undefined,
       metadata: notification.metadata as any,
@@ -58,6 +62,7 @@ export async function createBulkNotifications(
   notifications: CreateNotificationData[]
 ): Promise<Notification[]> {
   try {
+    const prisma = getPrismaClient();
     const created = await prisma.notification.createMany({
       data: notifications.map(n => ({
         userId: n.userId,
@@ -88,6 +93,7 @@ export async function getNotifications(
   params: NotificationListParams = {}
 ): Promise<NotificationListResponse> {
   try {
+    const prisma = getPrismaClient();
     const {
       page = 1,
       limit = NOTIFICATION_PAGE_SIZE,
@@ -142,6 +148,9 @@ export async function getNotifications(
     return {
       notifications: notifications.map(n => ({
         ...n,
+        type: n.type as NotificationType,
+        priority: n.priority as NotificationPriority,
+        actionUrl: n.actionUrl || undefined,
         createdAt: n.createdAt,
         readAt: n.readAt || undefined,
         metadata: n.metadata as any,
@@ -165,6 +174,7 @@ export async function getNotificationById(
   userId: string
 ): Promise<Notification | null> {
   try {
+    const prisma = getPrismaClient();
     const notification = await prisma.notification.findFirst({
       where: {
         id: notificationId,
@@ -178,6 +188,9 @@ export async function getNotificationById(
 
     return {
       ...notification,
+      type: notification.type as NotificationType,
+      priority: notification.priority as NotificationPriority,
+      actionUrl: notification.actionUrl || undefined,
       createdAt: notification.createdAt,
       readAt: notification.readAt || undefined,
       metadata: notification.metadata as any,
@@ -193,6 +206,7 @@ export async function getNotificationById(
  */
 export async function getUnreadCount(userId: string): Promise<number> {
   try {
+    const prisma = getPrismaClient();
     const count = await prisma.notification.count({
       where: {
         userId,
@@ -214,6 +228,7 @@ export async function getNotificationStats(
   userId: string
 ): Promise<NotificationStatsResponse> {
   try {
+    const prisma = getPrismaClient();
     const [total, unread, byType, byPriority] = await Promise.all([
       // Total count
       prisma.notification.count({ where: { userId } }),
@@ -274,6 +289,7 @@ export async function markAsRead(
   userId: string
 ): Promise<Notification> {
   try {
+    const prisma = getPrismaClient();
     const notification = await prisma.notification.update({
       where: {
         id: notificationId,
@@ -287,6 +303,9 @@ export async function markAsRead(
 
     return {
       ...notification,
+      type: notification.type as NotificationType,
+      priority: notification.priority as NotificationPriority,
+      actionUrl: notification.actionUrl || undefined,
       createdAt: notification.createdAt,
       readAt: notification.readAt || undefined,
       metadata: notification.metadata as any,
@@ -302,6 +321,7 @@ export async function markAsRead(
  */
 export async function markAllAsRead(userId: string): Promise<number> {
   try {
+    const prisma = getPrismaClient();
     const result = await prisma.notification.updateMany({
       where: {
         userId,
@@ -328,6 +348,7 @@ export async function markAsUnread(
   userId: string
 ): Promise<Notification> {
   try {
+    const prisma = getPrismaClient();
     const notification = await prisma.notification.update({
       where: {
         id: notificationId,
@@ -341,6 +362,9 @@ export async function markAsUnread(
 
     return {
       ...notification,
+      type: notification.type as NotificationType,
+      priority: notification.priority as NotificationPriority,
+      actionUrl: notification.actionUrl || undefined,
       createdAt: notification.createdAt,
       readAt: notification.readAt || undefined,
       metadata: notification.metadata as any,
@@ -361,6 +385,7 @@ export async function deleteNotification(
   userId: string
 ): Promise<void> {
   try {
+    const prisma = getPrismaClient();
     await prisma.notification.delete({
       where: {
         id: notificationId,
@@ -378,6 +403,7 @@ export async function deleteNotification(
  */
 export async function deleteAllRead(userId: string): Promise<number> {
   try {
+    const prisma = getPrismaClient();
     const result = await prisma.notification.deleteMany({
       where: {
         userId,
@@ -397,6 +423,7 @@ export async function deleteAllRead(userId: string): Promise<number> {
  */
 export async function deleteAllNotifications(userId: string): Promise<number> {
   try {
+    const prisma = getPrismaClient();
     const result = await prisma.notification.deleteMany({
       where: { userId },
     });

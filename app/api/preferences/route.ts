@@ -108,11 +108,7 @@ export async function POST(request: NextRequest) {
           error: {
             message: 'Validation failed',
             code: 'VALIDATION_ERROR',
-            details: validationResult.error.errors.map(err => ({
-              field: err.path.join('.'),
-              message: err.message,
-              code: err.code,
-            })),
+            details: validationResult.error.format(),
           },
           meta: {
             timestamp: new Date().toISOString(),
@@ -206,11 +202,7 @@ export async function PUT(request: NextRequest) {
           error: {
             message: 'Validation failed',
             code: 'VALIDATION_ERROR',
-            details: validationResult.error.errors.map(err => ({
-              field: err.path.join('.'),
-              message: err.message,
-              code: err.code,
-            })),
+            details: validationResult.error.format(),
           },
           meta: {
             timestamp: new Date().toISOString(),

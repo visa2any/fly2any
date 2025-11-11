@@ -3,7 +3,7 @@
  * Automated background job system for monitoring flight prices and triggering alerts
  */
 
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { emailService } from '@/lib/email/service';
 import { PriceAlert } from '@/lib/types/price-alerts';
 import { recordPriceHistory } from './price-history';
@@ -53,6 +53,7 @@ export async function monitorAllActiveAlerts(triggeredBy: 'cron' | 'manual' = 'c
   console.log(`[Price Monitor] Starting monitoring (triggered by: ${triggeredBy})`);
 
   try {
+    const prisma = getPrismaClient();
     // Fetch all active alerts that haven't been triggered
     const activeAlerts = await prisma.priceAlert.findMany({
       where: {
@@ -162,6 +163,7 @@ export async function checkSingleAlert(alertId: string): Promise<{
   error?: string;
 }> {
   try {
+    const prisma = getPrismaClient();
     // Fetch alert with user info
     const alert = await prisma.priceAlert.findUnique({
       where: { id: alertId },
@@ -386,13 +388,14 @@ export async function notifyUserPriceAlert(
  */
 async function logExecution(summary: MonitoringSummary, triggeredBy: 'cron' | 'manual'): Promise<void> {
   try {
+    const prisma = getPrismaClient();
     await prisma.priceMonitorLog.create({
       data: {
         executionTime: new Date(),
         alertsChecked: summary.totalChecked,
         alertsTriggered: summary.totalTriggered,
         alertsFailed: summary.totalFailed,
-        errors: summary.errors.length > 0 ? summary.errors : null,
+        errors: (summary.errors.length > 0 ? summary.errors : null) as any,
         duration: summary.duration,
         triggeredBy,
       },
@@ -419,6 +422,7 @@ export async function getMonitoringStats(): Promise<{
   recentErrors: number;
 }> {
   try {
+    const prisma = getPrismaClient();
     // Get total active alerts
     const totalActiveAlerts = await prisma.priceAlert.count({
       where: {
@@ -495,6 +499,7 @@ export async function getExecutionLogs(params: {
   const offset = params.offset || 0;
 
   try {
+    const prisma = getPrismaClient();
     const [logs, total] = await Promise.all([
       prisma.priceMonitorLog.findMany({
         take: limit,

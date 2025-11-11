@@ -48,7 +48,7 @@ export async function queueForSync(
     try {
       const registration = await navigator.serviceWorker.ready;
       if ('sync' in registration) {
-        await registration.sync.register(`sync-${type}-${id}`);
+        await (registration as any).sync.register(`sync-${type}-${id}`);
       } else {
         // Fallback: try to sync immediately if background sync not supported
         await syncItem(item);

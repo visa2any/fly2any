@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,10 +13,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { endpoint, p256dh, auth, userAgent } = body;
+    const prisma = getPrismaClient();
 
-    if (!endpoint || !p256dh || !auth) {
+    const body = await request.json();
+    const { endpoint, p256dh, userAgent } = body;
+    const authKey = body.auth;
+
+    if (!endpoint || !p256dh || !authKey) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: session.user.id,
           p256dh,
-          auth,
+          auth: authKey,
           userAgent: userAgent || null,
         },
       });
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         endpoint,
         p256dh,
-        auth,
+        auth: authKey,
         userAgent: userAgent || null,
       },
     });
@@ -86,6 +89,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user's subscriptions
     const subscriptions = await prisma.pushSubscription.findMany({

@@ -3,7 +3,7 @@
  * Tracks flight price changes over time for analysis and trending
  */
 
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 export interface PriceHistoryRecord {
   id: string;
@@ -44,6 +44,7 @@ export interface PriceTrendData {
  */
 export async function recordPriceHistory(params: PriceHistoryParams): Promise<PriceHistoryRecord> {
   try {
+    const prisma = getPrismaClient();
     const record = await prisma.priceHistory.create({
       data: {
         origin: params.origin,
@@ -84,6 +85,7 @@ export async function getPriceHistory(params: {
   const startDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
 
   try {
+    const prisma = getPrismaClient();
     const history = await prisma.priceHistory.findMany({
       where: {
         origin: params.origin,
@@ -189,6 +191,7 @@ export async function getRouteStatistics(params: {
   const startDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
 
   try {
+    const prisma = getPrismaClient();
     const results = await Promise.all(
       params.routes.map(async route => {
         const history = await prisma.priceHistory.findMany({
@@ -247,6 +250,7 @@ export async function cleanupOldHistory(daysToKeep: number = 90): Promise<number
   const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000);
 
   try {
+    const prisma = getPrismaClient();
     const result = await prisma.priceHistory.deleteMany({
       where: {
         timestamp: { lt: cutoffDate },
@@ -272,6 +276,7 @@ export async function getHistorySummary(): Promise<{
   averageChecksPerDay: number;
 }> {
   try {
+    const prisma = getPrismaClient();
     const [totalRecords, oldestRecord, newestRecord] = await Promise.all([
       prisma.priceHistory.count(),
       prisma.priceHistory.findFirst({

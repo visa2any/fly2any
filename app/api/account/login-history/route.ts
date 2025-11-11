@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const prisma = getPrismaClient();
 
     // Get login history (last 50 entries)
     const loginHistory = await prisma.loginHistory.findMany({

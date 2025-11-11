@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Validation schema for saved search
@@ -14,7 +14,7 @@ const SavedSearchSchema = z.object({
   children: z.number().int().min(0).max(9).default(0),
   infants: z.number().int().min(0).max(9).default(0),
   cabinClass: z.enum(['economy', 'premium_economy', 'business', 'first']).default('economy'),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 });
 
 /**
@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const savedSearches = await prisma.savedSearch.findMany({
       where: { userId: session.user.id },
@@ -62,6 +64,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = getPrismaClient();
+
     const body = await request.json();
 
     // Validate request body
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
           searchCount: { increment: 1 },
           lastSearched: new Date(),
           name: validatedData.name,
-          filters: validatedData.filters || existingSearch.filters,
+          filters: (validatedData.filters || existingSearch.filters) as any,
         },
       });
 
@@ -98,6 +102,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         ...validatedData,
+        filters: validatedData.filters as any,
       },
     });
 
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.format() },
         { status: 400 }
       );
     }
@@ -132,6 +137,8 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const { searchParams } = new URL(request.url);
     const searchId = searchParams.get('id');
@@ -191,6 +198,8 @@ export async function PUT(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const { searchParams } = new URL(request.url);
     const searchId = searchParams.get('id');

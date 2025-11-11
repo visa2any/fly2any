@@ -84,7 +84,7 @@ export default function OfflineIndicator() {
     if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-all');
+        await (registration as any).sync.register('sync-all');
         console.log('Background sync registered');
       } catch (error) {
         console.error('Failed to register background sync:', error);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Validation schema for price alert
@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') === 'true';
@@ -67,6 +69,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const body = await request.json();
 
@@ -121,7 +125,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.format() },
         { status: 400 }
       );
     }
@@ -148,6 +152,8 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const { searchParams } = new URL(request.url);
     const alertId = searchParams.get('id');
@@ -207,6 +213,8 @@ export async function PATCH(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const { searchParams } = new URL(request.url);
     const alertId = searchParams.get('id');

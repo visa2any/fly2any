@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 // Note: For production use, install web-push: npm install web-push
 // import webpush from 'web-push';
@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     const body = await request.json();
     const { title, message, url, userId, tag } = body;
@@ -135,6 +137,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user's subscriptions
     const subscriptions = await prisma.pushSubscription.findMany({

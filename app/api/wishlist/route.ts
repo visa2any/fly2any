@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Validation schema for wishlist item
@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user from database
     const user = await prisma.user.findUnique({
@@ -79,6 +81,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const prisma = getPrismaClient();
+
     // Get user from database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
     const wishlistItem = await prisma.wishlistItem.create({
       data: {
         userId: user.id,
-        flightData: validatedData.flightData,
+        flightData: validatedData.flightData as any,
         notes: validatedData.notes,
         targetPrice: validatedData.targetPrice,
         notifyOnDrop: validatedData.notifyOnDrop,
@@ -113,7 +117,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.format() },
         { status: 400 }
       );
     }
@@ -137,6 +141,8 @@ export async function DELETE(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user from database
     const user = await prisma.user.findUnique({

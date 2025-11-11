@@ -28,6 +28,14 @@ export function isPrismaAvailable(): boolean {
   return isDatabaseConfigured && prisma !== null;
 }
 
+// Helper function to get Prisma client or throw error
+export function getPrismaClient(): PrismaClient {
+  if (!prisma) {
+    throw new Error('Database not configured. Please set DATABASE_URL environment variable.');
+  }
+  return prisma;
+}
+
 // Helper to log warning when database is not configured
 if (!isDatabaseConfigured && process.env.NODE_ENV === 'development') {
   console.warn(

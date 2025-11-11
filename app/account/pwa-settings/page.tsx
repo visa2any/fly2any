@@ -25,6 +25,7 @@ import {
   getSyncStats,
   clearQueue,
   retryFailedSyncs,
+  type SyncStatus,
 } from '@/lib/sync/background-sync';
 import toast from 'react-hot-toast';
 
@@ -41,11 +42,10 @@ export default function PWASettingsPage() {
     subscribed: false,
     endpoint: undefined,
   });
-  const [syncStatus, setSyncStatus] = useState({
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     pending: 0,
     syncing: false,
-    lastSync: undefined as number | undefined,
-    errors: [] as string[],
+    errors: [],
   });
   const [syncStats, setSyncStats] = useState<any>(null);
   const [cacheSize, setCacheSize] = useState(0);

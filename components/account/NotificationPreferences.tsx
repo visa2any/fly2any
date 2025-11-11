@@ -193,7 +193,7 @@ export function NotificationPreferences() {
           </div>
           <Switch
             checked={preferences.inAppEnabled}
-            onChange={(checked) => handleChange('inAppEnabled', checked)}
+            onCheckedChange={(checked) => handleChange('inAppEnabled', checked)}
           />
         </div>
       </div>
@@ -220,7 +220,7 @@ export function NotificationPreferences() {
             </div>
             <Switch
               checked={preferences.emailEnabled}
-              onChange={(checked) => handleChange('emailEnabled', checked)}
+              onCheckedChange={(checked) => handleChange('emailEnabled', checked)}
             />
           </div>
 
@@ -238,7 +238,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailBookingConfirmed}
-                  onChange={(checked) => handleChange('emailBookingConfirmed', checked)}
+                  onCheckedChange={(checked) => handleChange('emailBookingConfirmed', checked)}
                 />
               </div>
 
@@ -253,7 +253,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailBookingCancelled}
-                  onChange={(checked) => handleChange('emailBookingCancelled', checked)}
+                  onCheckedChange={(checked) => handleChange('emailBookingCancelled', checked)}
                 />
               </div>
 
@@ -266,7 +266,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailPriceAlerts}
-                  onChange={(checked) => handleChange('emailPriceAlerts', checked)}
+                  onCheckedChange={(checked) => handleChange('emailPriceAlerts', checked)}
                 />
               </div>
 
@@ -281,7 +281,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailPaymentUpdates}
-                  onChange={(checked) => handleChange('emailPaymentUpdates', checked)}
+                  onCheckedChange={(checked) => handleChange('emailPaymentUpdates', checked)}
                 />
               </div>
 
@@ -292,7 +292,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailPromotions}
-                  onChange={(checked) => handleChange('emailPromotions', checked)}
+                  onCheckedChange={(checked) => handleChange('emailPromotions', checked)}
                 />
               </div>
 
@@ -307,7 +307,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.emailSystemUpdates}
-                  onChange={(checked) => handleChange('emailSystemUpdates', checked)}
+                  onCheckedChange={(checked) => handleChange('emailSystemUpdates', checked)}
                 />
               </div>
             </div>
@@ -338,7 +338,7 @@ export function NotificationPreferences() {
             {preferences.pushEnabled ? (
               <Switch
                 checked={preferences.pushEnabled}
-                onChange={(checked) => handleChange('pushEnabled', checked)}
+                onCheckedChange={(checked) => handleChange('pushEnabled', checked)}
               />
             ) : (
               <Button variant="outline" size="sm" onClick={handleEnablePush}>
@@ -361,7 +361,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.pushBookingUpdates}
-                  onChange={(checked) => handleChange('pushBookingUpdates', checked)}
+                  onCheckedChange={(checked) => handleChange('pushBookingUpdates', checked)}
                 />
               </div>
 
@@ -374,7 +374,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.pushPriceAlerts}
-                  onChange={(checked) => handleChange('pushPriceAlerts', checked)}
+                  onCheckedChange={(checked) => handleChange('pushPriceAlerts', checked)}
                 />
               </div>
 
@@ -385,7 +385,7 @@ export function NotificationPreferences() {
                 </div>
                 <Switch
                   checked={preferences.pushPromotions}
-                  onChange={(checked) => handleChange('pushPromotions', checked)}
+                  onCheckedChange={(checked) => handleChange('pushPromotions', checked)}
                 />
               </div>
             </div>
@@ -412,7 +412,7 @@ export function NotificationPreferences() {
             </div>
             <Switch
               checked={preferences.quietHoursEnabled}
-              onChange={(checked) => handleChange('quietHoursEnabled', checked)}
+              onCheckedChange={(checked) => handleChange('quietHoursEnabled', checked)}
             />
           </div>
 
@@ -464,7 +464,7 @@ export function NotificationPreferences() {
             </div>
             <Switch
               checked={preferences.digestEnabled}
-              onChange={(checked) => handleChange('digestEnabled', checked)}
+              onCheckedChange={(checked) => handleChange('digestEnabled', checked)}
             />
           </div>
 

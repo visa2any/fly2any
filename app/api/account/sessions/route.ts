@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // Force Node.js runtime (required for Prisma)
 export const runtime = 'nodejs';
@@ -59,6 +59,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const prisma = getPrismaClient();
+
     // Get current session token
     const currentSessionToken = req.cookies.get('next-auth.session-token')?.value;
 
@@ -113,6 +115,8 @@ export async function DELETE(req: NextRequest) {
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const prisma = getPrismaClient();
 
     // Get current session token
     const currentSessionToken = req.cookies.get('next-auth.session-token')?.value;

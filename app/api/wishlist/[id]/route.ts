@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 import { z } from 'zod';
 
 // Validation schema for updating wishlist item
@@ -24,6 +24,8 @@ export async function GET(
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user from database
     const user = await prisma.user.findUnique({
@@ -79,6 +81,8 @@ export async function PATCH(
       );
     }
 
+    const prisma = getPrismaClient();
+
     // Get user from database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -122,7 +126,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.format() },
         { status: 400 }
       );
     }
@@ -149,6 +153,8 @@ export async function DELETE(
         { status: 401 }
       );
     }
+
+    const prisma = getPrismaClient();
 
     // Get user from database
     const user = await prisma.user.findUnique({
