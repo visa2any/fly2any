@@ -1,0 +1,105 @@
+{
+  "name": "Fly2Any - AI Travel Assistant",
+  "short_name": "Fly2Any",
+  "description": "Your AI-powered travel companion. Search flights, get personalized recommendations, and book with confidence.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc",
+  "icons": [
+    {
+      "src": "/fly2any-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/fly2any-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["travel", "lifestyle", "productivity"],
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Home screen with AI assistant"
+    },
+    {
+      "src": "/screenshots/search.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Flight search results"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Flights",
+      "short_name": "Search",
+      "description": "Search for flights",
+      "url": "/?action=search",
+      "icons": [
+        {
+          "src": "/fly2any-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My Bookings",
+      "short_name": "Bookings",
+      "description": "View your bookings",
+      "url": "/account/bookings",
+      "icons": [
+        {
+          "src": "/fly2any-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Price Alerts",
+      "short_name": "Alerts",
+      "description": "Manage price alerts",
+      "url": "/account/alerts",
+      "icons": [
+        {
+          "src": "/fly2any-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "serviceworker": {
+    "src": "/service-worker.js",
+    "scope": "/"
+  },
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+fly2any",
+      "url": "/?action=%s"
+    }
+  ]
+}

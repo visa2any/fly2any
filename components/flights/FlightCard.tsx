@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import CO2Badge from './CO2Badge';
 import { ScarcityIndicator } from '../conversion/ScarcityIndicator';
 
@@ -325,6 +326,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [mockViewers, setMockViewers] = useState(15); // Default value for SSR
   const [mockBookings, setMockBookings] = useState(175); // Default value for SSR
+  const router = useRouter();
   const t = translations[lang];
 
   const firstSegment = outbound.segments[0];
@@ -351,6 +353,13 @@ export const FlightCard: React.FC<FlightCardProps> = ({
     setShowDetails(!showDetails);
   };
 
+  // Prefetch booking page on hover for better performance
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Prefetch the booking page
+    router.prefetch(`/booking/${id}`);
+  };
+
   return (
     <div
       className={`
@@ -364,7 +373,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
         ${isHovered ? 'border-primary-400 scale-[1.02]' : ''}
         ${className}
       `}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Glass Morphism Overlay */}

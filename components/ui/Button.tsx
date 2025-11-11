@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   fullWidth?: boolean;
   loading?: boolean;
@@ -32,6 +32,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 'bg-gradient-to-r from-secondary-500 to-secondary-600 text-white hover:from-secondary-600 hover:to-secondary-700 focus:ring-secondary-300 shadow-lg hover:shadow-xl active:scale-[0.98]',
       outline: 'border-2 border-primary-500 text-primary-600 hover:bg-primary-50 focus:ring-primary-300 active:scale-[0.98]',
       ghost: 'text-primary-600 hover:bg-gray-100 focus:ring-gray-300 active:scale-[0.98]',
+      danger: 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-300 shadow-lg hover:shadow-xl active:scale-[0.98]',
     };
 
     const sizeStyles = {

@@ -40,15 +40,16 @@
     }
   }
 
-  /* Accessibility: Focus visible (keyboard navigation) */
+  /* Accessibility: Focus visible (keyboard navigation) - Enhanced visibility */
   *:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
   }
 
   *:focus-visible {
-    outline: 2px solid #0070DB;
-    outline-offset: 2px;
+    outline: 3px solid #0070DB;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 3px rgba(0, 112, 219, 0.2);
   }
 
   /* Accessibility: Skip to main content link */
@@ -66,6 +67,31 @@
 
   .skip-link:focus {
     top: 0;
+  }
+
+  /* Accessibility: Disabled state minimum contrast */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    opacity: 0.6; /* Changed from 0.3 for better contrast */
+    cursor: not-allowed;
+  }
+
+  /* Accessibility: Minimum text size for small text */
+  .text-xs {
+    font-size: 0.875rem; /* 14px minimum instead of 12px */
+  }
+
+  /* Accessibility: High contrast mode support */
+  @media (prefers-contrast: high) {
+    * {
+      border-width: 2px !important;
+    }
+
+    *:focus-visible {
+      outline-width: 4px !important;
+    }
   }
 }
 
@@ -215,5 +241,136 @@
   /* Max-width container constraint - ensures 1600px across all environments */
   .max-w-container {
     max-width: 1600px !important;
+  }
+
+  /* UI/UX Enhancement Utilities */
+
+  /* Standardized button hover effects */
+  .btn-hover-lift {
+    @apply transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-[0.98];
+  }
+
+  /* Standardized card styling */
+  .card-standard {
+    @apply bg-white/90 backdrop-blur-md rounded-2xl border-2 border-gray-200/50 p-6 transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply hover:border-primary-300 hover:shadow-xl hover:scale-[1.02];
+  }
+
+  /* Standardized spacing scale */
+  .spacing-section {
+    @apply py-8 md:py-12;
+  }
+
+  .spacing-component {
+    @apply mb-6 md:mb-8;
+  }
+
+  .spacing-element {
+    @apply mb-4 md:mb-6;
+  }
+
+  /* Toast slide-in animation */
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Scale in animation */
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Skeleton loading shimmer */
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(229, 231, 235, 1) 0%,
+      rgba(243, 244, 246, 1) 50%,
+      rgba(229, 231, 235, 1) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 2s linear infinite;
+  }
+
+  /* Focus states for better accessibility */
+  .focus-primary:focus {
+    @apply outline-none ring-4 ring-primary-300 ring-opacity-50;
+  }
+
+  .focus-error:focus {
+    @apply outline-none ring-4 ring-red-300 ring-opacity-50;
+  }
+
+  /* Error state styling */
+  .error-input {
+    @apply border-red-500 focus:border-red-600 focus:ring-red-300;
+  }
+
+  /* Success state styling */
+  .success-input {
+    @apply border-green-500 focus:border-green-600 focus:ring-green-300;
+  }
+
+  /* Loading state */
+  .loading-overlay {
+    @apply fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center;
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }

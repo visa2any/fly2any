@@ -1,0 +1,135 @@
+PHASE 7 NAVIGATION STRUCTURE
+=============================
+
+DESKTOP HEADER (>= 1024px)
+==========================
+  [LOGO]  Flights  Hotels  Cars  Packages  Deals  Explore  Travel Guide  FAQ
+
+  AUTHENTICATED:
+  [Notifications Bell] [User Avatar Menu] [Language Selector]
+
+  NON-AUTHENTICATED:
+  [Language Selector] [Sign In] [Sign Up]
+
+
+USER MENU DROPDOWN (Authenticated Only)
+========================================
+  John Doe
+  john@example.com
+  ----------------------------
+  My Account
+  Wishlist
+  Notifications
+  Settings
+  ----------------------------
+  Sign Out
+
+
+MOBILE DRAWER (< 1024px)
+=========================
+  [LOGO]                    [Notifications*] [Close]
+
+  MY ACCOUNT* (Authenticated Only)
+  - My Account
+  - Wishlist
+  - Notifications
+
+  BOOK TRAVEL
+  - Flights
+  - Hotels
+  - Cars
+  - Packages
+
+  DISCOVER
+  - Deals
+  - Explore
+  - Travel Guide
+  - FAQ
+
+  LANGUAGE
+  - English (selected)
+  - Portugues
+  - Espanol
+
+  [Sign In]**  [Sign Up]**
+
+  * Only for authenticated users
+  ** Only for non-authenticated users
+
+
+NAVIGATION LINKS SUMMARY
+=========================
+
+PUBLIC PAGES (All Users):
+- Flights:        /flights
+- Hotels:         /hotels
+- Cars:           /cars
+- Packages:       /packages
+- Deals:          /deals (NEW)
+- Explore:        /explore (NEW)
+- Travel Guide:   /travel-guide (NEW)
+- FAQ:            /faq (NEW)
+
+AUTHENTICATED PAGES (Logged-In Only):
+- My Account:     /account
+- Wishlist:       /account/wishlist (NEW)
+- Notifications:  /account/notifications (NEW)
+- Preferences:    /account/preferences
+
+
+AUTHENTICATION STATES
+=====================
+
+NON-AUTHENTICATED USER SEES:
+Desktop:
+- Main navigation (Flights, Hotels, Cars, Packages, Deals, Explore, Travel Guide, FAQ)
+- Language selector
+- Sign In button
+- Sign Up button
+
+Mobile:
+- Book Travel section
+- Discover section
+- Language selector
+- Sign In & Sign Up buttons
+
+AUTHENTICATED USER SEES:
+Desktop:
+- Main navigation (Flights, Hotels, Cars, Packages, Deals, Explore, Travel Guide, FAQ)
+- Notification Bell (with unread count)
+- User Menu (avatar with dropdown)
+- Language selector
+
+Mobile:
+- My Account section (Account, Wishlist, Notifications)
+- NotificationBell in drawer header
+- Book Travel section
+- Discover section
+- Language selector
+- NO auth buttons
+
+
+RESPONSIVE BREAKPOINTS
+======================
+Mobile:    < 1024px  (Hamburger menu + drawer)
+Desktop:   >= 1024px (Full horizontal nav bar)
+
+
+FILES MODIFIED
+==============
+1. components/layout/Header.tsx
+   - Added translations for new pages
+   - Added 4 new desktop nav links
+   - Integrated UserMenu component
+   - Changed breakpoint from md: to lg:
+
+2. components/mobile/NavigationDrawer.tsx
+   - Added userId prop
+   - Created 3 organized sections
+   - Integrated NotificationBell
+   - Conditional rendering based on auth
+
+3. components/layout/UserMenu.tsx (NEW)
+   - Avatar/initials display
+   - Dropdown with account links
+   - Sign out functionality

@@ -20,20 +20,39 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // For email/password auth (hashed)
+  password      String? // For email/password auth (hashed)
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
+  // Profile fields
+  firstName   String?
+  lastName    String?
+  phone       String?
+  dateOfBirth DateTime?
+  gender      String?
+  country     String?
+  timezone    String?
+  bio         String?
+  avatarUrl   String?
+
+  // Metadata
+  profileCompleted Boolean @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
 
   // Relations
-  accounts         Account[]
-  sessions         Session[]
-  savedSearches    SavedSearch[]
-  priceAlerts      PriceAlert[]
-  preferences      UserPreferences?
-  recentSearches   RecentSearch[]
-  aiConversations  AIConversation[]
+  accounts          Account[]
+  sessions          Session[]
+  savedSearches     SavedSearch[]
+  priceAlerts       PriceAlert[]
+  preferences       UserPreferences?
+  recentSearches    RecentSearch[]
+  aiConversations   AIConversation[]
+  userSessions      UserSession[]
+  loginHistory      LoginHistory[]
+  notifications     Notification[]
+  wishlistItems     WishlistItem[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -87,9 +106,9 @@ model UserPreferences {
   userId String @unique
 
   // Travel preferences
-  preferredCabinClass String?   // economy, premium, business, first
-  preferredAirlines   String[]  // ['AA', 'UA', 'DL']
-  homeAirport         String?   // 'JFK'
+  preferredCabinClass String? // economy, premium, business, first
+  preferredAirlines   String[] // ['AA', 'UA', 'DL']
+  homeAirport         String? // 'JFK'
 
   // Notification preferences
   emailNotifications Boolean @default(true)
@@ -115,9 +134,9 @@ model UserPreferences {
 // ==========================================
 
 model SavedSearch {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
+  id     String @id @default(cuid())
+  userId String
+  name   String
 
   // Search parameters
   origin      String
@@ -133,7 +152,7 @@ model SavedSearch {
   filters Json?
 
   // Metadata
-  searchCount Int      @default(1)
+  searchCount  Int      @default(1)
   lastSearched DateTime @default(now())
 
   createdAt DateTime @default(now())
@@ -162,14 +181,14 @@ model PriceAlert {
   currency     String @default("USD")
 
   // Alert status
-  active       Boolean  @default(true)
-  triggered    Boolean  @default(false)
-  lastChecked  DateTime @default(now())
-  triggeredAt  DateTime?
+  active      Boolean   @default(true)
+  triggered   Boolean   @default(false)
+  lastChecked DateTime  @default(now())
+  triggeredAt DateTime?
 
   // Notification tracking
-  lastNotifiedAt DateTime?
-  notificationCount Int @default(0)
+  lastNotifiedAt    DateTime?
+  notificationCount Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -196,16 +215,16 @@ model RecentSearch {
   imageUrl    String?
 
   // Flight details
-  origin      String?
-  price       Float
+  origin        String?
+  price         Float
   originalPrice Float?
 
   // Trip dates
-  departDate  String?
-  returnDate  String?
+  departDate String?
+  returnDate String?
 
   // Metadata
-  viewedAt  DateTime @default(now())
+  viewedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -218,7 +237,7 @@ model RecentSearch {
 // ==========================================
 
 model UserActivity {
-  id     String @id @default(cuid())
+  id     String  @id @default(cuid())
   userId String?
 
   // Activity details
@@ -226,9 +245,9 @@ model UserActivity {
   eventData Json?
 
   // Context
-  ipAddress  String?
-  userAgent  String?
-  referrer   String?
+  ipAddress String?
+  userAgent String?
+  referrer  String?
 
   createdAt DateTime @default(now())
 
@@ -242,28 +261,28 @@ model UserActivity {
 // ==========================================
 
 model AIConversation {
-  id        String   @id @default(cuid())
-  sessionId String   @unique // UUID from localStorage
-  userId    String?  // Nullable - can be anonymous initially
+  id        String  @id @default(cuid())
+  sessionId String  @unique // UUID from localStorage
+  userId    String? // Nullable - can be anonymous initially
 
   // Conversation status
-  status    String   @default("active") // active, completed, abandoned
+  status String @default("active") // active, completed, abandoned
 
   // Current state
   currentConsultantTeam String?
-  conversationContext   Json?    // Flexible storage for conversation state
-  searchHistory         Json?    // Array of search queries performed
+  conversationContext   Json? // Flexible storage for conversation state
+  searchHistory         Json? // Array of search queries performed
 
   // Metadata (stored as JSON for flexibility)
-  metadata  Json     // { startedAt, lastMessageAt, completedAt, messageCount, platform, browser }
+  metadata Json // { startedAt, lastMessageAt, completedAt, messageCount, platform, browser }
 
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  messages  AIMessage[]
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages AIMessage[]
+  user     User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([sessionId])
@@ -273,12 +292,12 @@ model AIConversation {
 }
 
 model AIMessage {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   conversationId String
 
   // Message content
-  role           String   // user, assistant
-  content        String   @db.Text
+  role    String // user, assistant
+  content String @db.Text
 
   // Consultant info (for assistant messages)
   consultantName  String?
@@ -286,17 +305,158 @@ model AIMessage {
   consultantEmoji String?
 
   // Search results attached to message
-  flightResults  Json?    // Array of flight results
-  hotelResults   Json?    // Array of hotel results
+  flightResults Json? // Array of flight results
+  hotelResults  Json? // Array of hotel results
 
   // Timing
-  timestamp      BigInt   // Unix timestamp from client
-  createdAt      DateTime @default(now())
+  timestamp BigInt // Unix timestamp from client
+  createdAt DateTime @default(now())
 
   // Relations
-  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([conversationId, timestamp])
   @@map("ai_messages")
+}
+
+// ==========================================
+// User Sessions & Security
+// ==========================================
+
+model UserSession {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  device     String?
+  browser    String?
+  os         String?
+  location   String?
+  ipAddress  String?
+  lastActive DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, lastActive])
+  @@map("user_sessions")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  device    String?
+  browser   String?
+  os        String?
+  location  String?
+  ipAddress String?
+  success   Boolean  @default(true)
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("login_history")
+}
+
+// ==========================================
+// Price Monitoring System
+// ==========================================
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  origin      String
+  destination String
+  departDate  String
+  returnDate  String?
+  price       Float
+  currency    String   @default("USD")
+  provider    String // "duffel", "amadeus", or "mock"
+  timestamp   DateTime @default(now())
+
+  @@index([origin, destination, departDate])
+  @@index([timestamp])
+  @@map("price_history")
+}
+
+model PriceMonitorLog {
+  id              String   @id @default(cuid())
+  executionTime   DateTime @default(now())
+  alertsChecked   Int
+  alertsTriggered Int
+  alertsFailed    Int
+  errors          Json?
+  duration        Int // milliseconds
+  triggeredBy     String // "cron" or "manual"
+
+  @@index([executionTime])
+  @@map("price_monitor_logs")
+}
+
+// ==========================================
+// Wishlist & User Engagement
+// ==========================================
+
+model WishlistItem {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Flight details (stored as JSON for flexibility)
+  flightData Json // Complete flight information
+
+  // User customization
+  notes        String? @db.Text
+  targetPrice  Float?
+  notifyOnDrop Boolean @default(true)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("wishlist_items")
+}
+
+// ==========================================
+// PWA Push Notifications
+// ==========================================
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ==========================================
+// Notification System
+// ==========================================
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // 'booking', 'price_alert', 'system', 'promotion'
+  title     String
+  message   String    @db.Text
+  priority  String    @default("medium") // 'low', 'medium', 'high', 'urgent'
+  read      Boolean   @default(false)
+  actionUrl String?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@map("notifications")
 }

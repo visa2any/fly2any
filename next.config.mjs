@@ -19,7 +19,7 @@ const nextConfig = {
 
   // Experimental optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react'], // Tree-shake icons
+    optimizePackageImports: ['lucide-react', '@/components'], // Tree-shake icons and components
   },
 
   // Webpack configuration (Phase 8 - Quick Win 1D)

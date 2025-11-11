@@ -755,8 +755,8 @@ export function FlightCardEnhanced({
             <Share2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* Compare button - Removed */}
-          {/* {onCompare && (
+          {/* Compare button */}
+          {onCompare && (
             <button
               onClick={() => onCompare(id)}
               className={`p-1 rounded transition-all ${
@@ -764,11 +764,13 @@ export function FlightCardEnhanced({
                   ? 'bg-primary-500 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-500'
               }`}
-              title="Compare flights"
+              title={isComparing ? 'Remove from comparison' : 'Compare flights'}
+              aria-label={isComparing ? 'Remove from comparison' : 'Add to comparison'}
+              data-testid="compare-button"
             >
               <Check className="w-3.5 h-3.5" />
             </button>
-          )} */}
+          )}
         </div>
       </div>
 

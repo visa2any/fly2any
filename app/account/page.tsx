@@ -17,6 +17,9 @@ import Link from 'next/link';
 // Force Node.js runtime (required for Prisma database access)
 export const runtime = 'nodejs';
 
+// Force dynamic rendering (uses auth() which requires headers)
+export const dynamic = 'force-dynamic';
+
 export default async function AccountPage() {
   // Check if database is configured
   const isDatabaseConfigured = !!process.env.DATABASE_URL;

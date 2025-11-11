@@ -428,12 +428,37 @@ class PaymentService {
     console.log(`   Amount: ${paymentIntent.amount / 100} ${paymentIntent.currency.toUpperCase()}`);
     console.log(`   Booking Reference: ${paymentIntent.metadata.bookingReference}`);
 
-    // TODO: Update booking status in database
-    // await bookingStorage.updatePaymentStatus(
-    //   paymentIntent.metadata.bookingReference,
-    //   'paid',
-    //   paymentIntent.id
-    // );
+    // Update booking status in database
+    try {
+      const { bookingStorage } = await import('@/lib/bookings/storage');
+      const bookingReference = paymentIntent.metadata.bookingReference;
+
+      if (!bookingReference) {
+        console.error('❌ No booking reference in payment metadata');
+        return;
+      }
+
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+      if (!booking) {
+        console.error(`❌ Booking not found: ${bookingReference}`);
+        return;
+      }
+
+      await bookingStorage.update(booking.id, {
+        status: 'confirmed',
+        payment: {
+          ...booking.payment,
+          status: 'paid',
+          paymentIntentId: paymentIntent.id,
+          transactionId: paymentIntent.id,
+          paidAt: new Date().toISOString(),
+        },
+      });
+
+      console.log(`✅ Booking ${bookingReference} updated to confirmed/paid`);
+    } catch (error: any) {
+      console.error('❌ Error updating booking after payment success:', error);
+    }
   }
 
   /**
@@ -445,11 +470,33 @@ class PaymentService {
     console.error(`   Booking Reference: ${paymentIntent.metadata.bookingReference}`);
     console.error(`   Error: ${paymentIntent.last_payment_error?.message}`);
 
-    // TODO: Update booking status in database
-    // await bookingStorage.updatePaymentStatus(
-    //   paymentIntent.metadata.bookingReference,
-    //   'failed'
-    // );
+    // Update booking status in database
+    try {
+      const { bookingStorage } = await import('@/lib/bookings/storage');
+      const bookingReference = paymentIntent.metadata.bookingReference;
+
+      if (!bookingReference) {
+        console.error('❌ No booking reference in payment metadata');
+        return;
+      }
+
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
+      if (!booking) {
+        console.error(`❌ Booking not found: ${bookingReference}`);
+        return;
+      }
+
+      await bookingStorage.update(booking.id, {
+        payment: {
+          ...booking.payment,
+          status: 'failed',
+        },
+      });
+
+      console.log(`✅ Booking ${bookingReference} updated to failed payment`);
+    } catch (error: any) {
+      console.error('❌ Error updating booking after payment failure:', error);
+    }
   }
 
   /**

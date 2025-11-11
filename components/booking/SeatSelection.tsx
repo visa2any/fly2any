@@ -513,6 +513,19 @@ const SeatSelection: React.FC<SeatSelectionProps> = ({
                             onClick={() => handleSeatClick(seat)}
                             onMouseEnter={() => setHoveredSeat(seat)}
                             onMouseLeave={() => setHoveredSeat(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleSeatClick(seat);
+                              }
+                            }}
+                            disabled={seat.status === 'occupied'}
+                            aria-label={`Seat ${seat.id}, ${seat.type} seat, ${seat.class.replace('-', ' ')}, ${
+                              seat.status === 'occupied' ? 'occupied' :
+                              seat.status === 'selected' ? 'selected' :
+                              seat.price > 0 ? `premium, additional $${seat.price}` : 'available'
+                            }`}
+                            aria-pressed={seat.status === 'selected'}
                             className={`relative w-10 h-10 rounded-lg transition-all ${getSeatColor(seat)} ${
                               seat.status === 'occupied' ? '' : 'hover:scale-110 hover:shadow-lg'
                             }`}

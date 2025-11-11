@@ -383,9 +383,10 @@ export default function FlightSearchForm({
 
   return (
     <div className={`bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-4 md:p-8 ${className}`}>
-      <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6" aria-label="Flight search form">
         {/* Trip Type Toggle */}
-        <div className="flex gap-3 p-1 bg-gray-100 rounded-2xl">
+        <fieldset className="flex gap-3 p-1 bg-gray-100 rounded-2xl">
+          <legend className="sr-only">Trip Type</legend>
           <button
             type="button"
             onClick={() => handleTripTypeChange('roundtrip')}
@@ -395,6 +396,9 @@ export default function FlightSearchForm({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
             aria-label={t.tripType.roundtrip}
+            aria-pressed={formData.tripType === 'roundtrip'}
+            role="radio"
+            aria-checked={formData.tripType === 'roundtrip'}
           >
             {t.tripType.roundtrip}
           </button>
@@ -407,13 +411,17 @@ export default function FlightSearchForm({
                 : 'text-gray-600 hover:text-gray-900'
             }`}
             aria-label={t.tripType.oneway}
+            aria-pressed={formData.tripType === 'oneway'}
+            role="radio"
+            aria-checked={formData.tripType === 'oneway'}
           >
             {t.tripType.oneway}
           </button>
-        </div>
+        </fieldset>
 
         {/* Origin and Destination */}
-        <div className="grid md:grid-cols-2 gap-3 md:gap-4">
+        <fieldset className="grid md:grid-cols-2 gap-3 md:gap-4">
+          <legend className="sr-only">Flight Route</legend>
           {/* Origin */}
           <div>
             <MultiAirportSelector
@@ -432,7 +440,7 @@ export default function FlightSearchForm({
               lang={lang}
             />
             {errors.origin && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
+              <p id="origin-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
                 {errors.origin}
               </p>
             )}
@@ -456,12 +464,12 @@ export default function FlightSearchForm({
               lang={lang}
             />
             {errors.destination && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
+              <p id="destination-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
                 {errors.destination}
               </p>
             )}
           </div>
-        </div>
+        </fieldset>
 
         {/* Dates */}
         <div className="grid md:grid-cols-2 gap-3 md:gap-4">
@@ -522,6 +530,7 @@ export default function FlightSearchForm({
                     }`}
                     aria-label={t.departure}
                     aria-invalid={!!errors.departureDate}
+                    aria-describedby={errors.departureDate ? 'departure-error' : undefined}
                   />
                 </div>
 
@@ -563,7 +572,7 @@ export default function FlightSearchForm({
             )}
 
             {errors.departureDate && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
+              <p id="departure-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
                 {errors.departureDate}
               </p>
             )}
@@ -594,10 +603,11 @@ export default function FlightSearchForm({
                   }`}
                   aria-label={t.return}
                   aria-invalid={!!errors.returnDate}
+                  aria-describedby={errors.returnDate ? 'return-error' : undefined}
                 />
               </div>
               {errors.returnDate && (
-                <p className="mt-1 text-sm text-red-600" role="alert">
+                <p id="return-error" className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">
                   {errors.returnDate}
                 </p>
               )}

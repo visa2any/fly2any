@@ -1,0 +1,166 @@
+{
+  "budgets": [
+    {
+      "path": "/*",
+      "timings": [
+        {
+          "metric": "fcp",
+          "budget": 1800,
+          "description": "First Contentful Paint - Maximum 1.8s"
+        },
+        {
+          "metric": "lcp",
+          "budget": 2500,
+          "description": "Largest Contentful Paint - Maximum 2.5s"
+        },
+        {
+          "metric": "tti",
+          "budget": 3500,
+          "description": "Time to Interactive - Maximum 3.5s"
+        },
+        {
+          "metric": "tbt",
+          "budget": 300,
+          "description": "Total Blocking Time - Maximum 300ms"
+        },
+        {
+          "metric": "cls",
+          "budget": 0.1,
+          "description": "Cumulative Layout Shift - Maximum 0.1"
+        },
+        {
+          "metric": "si",
+          "budget": 3400,
+          "description": "Speed Index - Maximum 3.4s"
+        }
+      ],
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 300,
+          "description": "JavaScript bundle size - Maximum 300KB"
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": 50,
+          "description": "CSS bundle size - Maximum 50KB"
+        },
+        {
+          "resourceType": "image",
+          "budget": 500,
+          "description": "Image assets - Maximum 500KB"
+        },
+        {
+          "resourceType": "font",
+          "budget": 100,
+          "description": "Font files - Maximum 100KB"
+        },
+        {
+          "resourceType": "document",
+          "budget": 100,
+          "description": "HTML document - Maximum 100KB"
+        },
+        {
+          "resourceType": "total",
+          "budget": 1000,
+          "description": "Total page weight - Maximum 1MB"
+        }
+      ],
+      "resourceCounts": [
+        {
+          "resourceType": "script",
+          "budget": 15,
+          "description": "Number of JavaScript files"
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": 5,
+          "description": "Number of CSS files"
+        },
+        {
+          "resourceType": "third-party",
+          "budget": 10,
+          "description": "Third-party requests"
+        }
+      ]
+    },
+    {
+      "path": "/flights",
+      "timings": [
+        {
+          "metric": "fcp",
+          "budget": 1500,
+          "description": "Critical page - Faster FCP target"
+        },
+        {
+          "metric": "lcp",
+          "budget": 2000,
+          "description": "Critical page - Faster LCP target"
+        }
+      ],
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 350,
+          "description": "Flight search needs more JS"
+        }
+      ]
+    },
+    {
+      "path": "/booking/*",
+      "timings": [
+        {
+          "metric": "fcp",
+          "budget": 2000,
+          "description": "Booking pages can be slightly slower"
+        }
+      ],
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": 400,
+          "description": "Payment integration requires more JS"
+        }
+      ]
+    }
+  ],
+  "targets": {
+    "lighthouse": {
+      "performance": 95,
+      "accessibility": 95,
+      "bestPractices": 95,
+      "seo": 100,
+      "pwa": 80
+    },
+    "webVitals": {
+      "fcp": "good",
+      "lcp": "good",
+      "fid": "good",
+      "cls": "good",
+      "ttfb": "good",
+      "inp": "good"
+    }
+  },
+  "optimizationGoals": {
+    "bundleSize": {
+      "initial": "< 200KB",
+      "async": "< 100KB per chunk",
+      "total": "< 500KB"
+    },
+    "caching": {
+      "static": "1 year",
+      "api": "5 minutes",
+      "cdn": "enabled"
+    },
+    "compression": {
+      "gzip": "enabled",
+      "brotli": "preferred"
+    },
+    "images": {
+      "format": "WebP/AVIF",
+      "lazy": "enabled",
+      "responsive": "enabled",
+      "quality": 75
+    }
+  }
+}

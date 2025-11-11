@@ -450,13 +450,24 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
     });
   }, []);
 
-  // Validation
+  // Import validation functions from our security library
+  const {
+    validateEmail: validateEmailFn,
+    validatePhone: validatePhoneFn,
+    validatePassport: validatePassportFn,
+    validateDOB: validateDOBFn,
+    validatePassengerName: validateNameFn,
+  } = require('@/lib/validation');
+
+  // Validation (now using our comprehensive security library)
   const validateEmail = (email: string): boolean => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const result = validateEmailFn(email);
+    return result.valid;
   };
 
   const validatePassport = (passport: string): boolean => {
-    return /^[A-Z0-9]{6,9}$/i.test(passport);
+    const result = validatePassportFn(passport);
+    return result.valid;
   };
 
   const validateDate = (date: string): boolean => {
@@ -464,14 +475,8 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
   };
 
   const validateAge = (dob: string, type: 'adult' | 'child' | 'infant'): boolean => {
-    if (!validateDate(dob)) return false;
-    const age = Math.floor(
-      (Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-    );
-    if (type === 'adult') return age >= 18 && age <= 120;
-    if (type === 'child') return age >= 2 && age < 18;
-    if (type === 'infant') return age < 2;
-    return false;
+    const result = validateDOBFn(dob, type);
+    return result.valid;
   };
 
   const isPassportExpired = (expiryDate: string): boolean => {
@@ -554,24 +559,45 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
 
     const newErrors: { [key: string]: string } = {};
 
-    // Validate all passengers
+    // Validate all passengers (using comprehensive validation library)
     passengers.forEach((passenger, index) => {
       const type = getPassengerType(index);
 
       if (!passenger.title) newErrors[`${index}-title`] = t.required;
-      if (!passenger.firstName.trim()) newErrors[`${index}-firstName`] = t.required;
-      if (!passenger.lastName.trim()) newErrors[`${index}-lastName`] = t.required;
+
+      // Validate first name with detailed error messages
+      if (!passenger.firstName.trim()) {
+        newErrors[`${index}-firstName`] = t.required;
+      } else {
+        const nameResult = validateNameFn(passenger.firstName);
+        if (!nameResult.valid) {
+          newErrors[`${index}-firstName`] = nameResult.error || t.required;
+        }
+      }
+
+      // Validate last name with detailed error messages
+      if (!passenger.lastName.trim()) {
+        newErrors[`${index}-lastName`] = t.required;
+      } else {
+        const nameResult = validateNameFn(passenger.lastName);
+        if (!nameResult.valid) {
+          newErrors[`${index}-lastName`] = nameResult.error || t.required;
+        }
+      }
+
       if (!passenger.gender) newErrors[`${index}-gender`] = t.required;
       if (!passenger.nationality) newErrors[`${index}-nationality`] = t.required;
 
-      if (!validateDate(passenger.dateOfBirth)) {
-        newErrors[`${index}-dateOfBirth`] = t.validDate;
-      } else if (!validateAge(passenger.dateOfBirth, type)) {
-        newErrors[`${index}-dateOfBirth`] = type === 'adult' ? t.minAge : t.maxAge;
+      // Validate date of birth with detailed error messages
+      const dobResult = validateDOBFn(passenger.dateOfBirth, type);
+      if (!dobResult.valid) {
+        newErrors[`${index}-dateOfBirth`] = dobResult.error || t.validDate;
       }
 
-      if (!validatePassport(passenger.passportNumber)) {
-        newErrors[`${index}-passportNumber`] = t.validPassport;
+      // Validate passport with detailed error messages
+      const passportResult = validatePassportFn(passenger.passportNumber);
+      if (!passportResult.valid) {
+        newErrors[`${index}-passportNumber`] = passportResult.error || t.validPassport;
       }
 
       if (!validateDate(passenger.passportIssueDate)) {
@@ -584,9 +610,19 @@ export const PassengerDetailsForm: React.FC<PassengerDetailsFormProps> = ({
         newErrors[`${index}-passportExpiryDate`] = t.passportExpired;
       }
 
+      // Validate email with detailed error messages
       if (index === 0 || passenger.email) {
-        if (!validateEmail(passenger.email)) {
-          newErrors[`${index}-email`] = t.validEmail;
+        const emailResult = validateEmailFn(passenger.email);
+        if (!emailResult.valid) {
+          newErrors[`${index}-email`] = emailResult.error || t.validEmail;
+        }
+      }
+
+      // Validate phone with detailed error messages
+      if (index === 0 && passenger.phone) {
+        const phoneResult = validatePhoneFn(passenger.phone);
+        if (!phoneResult.valid) {
+          newErrors[`${index}-phone`] = phoneResult.error || 'Invalid phone format';
         }
       }
     });

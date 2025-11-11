@@ -1,0 +1,22 @@
+
+> fly2any@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.32
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./lib/payments/validation.ts
+Error: Failed to read source code from C:\Users\Power\fly2any-fresh\lib\payments\validation.ts
+
+Caused by:
+    stream did not contain valid UTF-8
+
+Import trace for requested module:
+./lib/payments/validation.ts
+./app/api/payments/create-intent/route.ts
+
+
+> Build failed because of webpack errors

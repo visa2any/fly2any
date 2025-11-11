@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { SessionProvider } from '@/components/auth/SessionProvider';
 import { Header, type Language } from './Header';
 import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
@@ -80,22 +82,10 @@ const footerContent = {
 };
 
 /**
- * Global Layout Wrapper Component
- *
- * Wraps all pages with:
- * - Global Header (sticky, with language switcher)
- * - Main content area
- * - Global Footer
- * - AI Travel Assistant (floating, 24/7 available)
- * - Mobile Bottom Tab Bar
- * - Mobile Navigation Drawer
- *
- * Manages global state:
- * - Language selection (EN/PT/ES)
- * - Persists language to localStorage
- * - Mobile navigation state
+ * Inner Layout Component (with session access)
  */
-export function GlobalLayout({ children }: GlobalLayoutProps) {
+function GlobalLayoutInner({ children }: GlobalLayoutProps) {
+  const { data: session } = useSession();
   const [language, setLanguage] = useState<Language>('en');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
@@ -157,10 +147,36 @@ export function GlobalLayout({ children }: GlobalLayoutProps) {
         language={language}
         onLanguageChange={handleLanguageChange}
         translations={headerTranslations[language]}
+        userId={session?.user?.id}
       />
 
       {/* AI Travel Assistant - Available on all pages */}
       <AITravelAssistant language={language} />
     </>
+  );
+}
+
+/**
+ * Global Layout Wrapper Component
+ *
+ * Wraps all pages with:
+ * - Session Provider (NextAuth)
+ * - Global Header (sticky, with language switcher)
+ * - Main content area
+ * - Global Footer
+ * - AI Travel Assistant (floating, 24/7 available)
+ * - Mobile Bottom Tab Bar
+ * - Mobile Navigation Drawer
+ *
+ * Manages global state:
+ * - Language selection (EN/PT/ES)
+ * - Persists language to localStorage
+ * - Mobile navigation state
+ */
+export function GlobalLayout({ children }: GlobalLayoutProps) {
+  return (
+    <SessionProvider>
+      <GlobalLayoutInner>{children}</GlobalLayoutInner>
+    </SessionProvider>
   );
 }

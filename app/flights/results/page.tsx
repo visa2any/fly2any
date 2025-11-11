@@ -14,12 +14,15 @@ import CompactSearchSummary from '@/components/flights/CompactSearchSummary';
 import { PriceInsights, type PriceStatistics, type FlightRoute } from '@/components/flights/PriceInsights';
 import { MLInsights, type MLMetadata } from '@/components/flights/MLInsights';
 import { MultipleFlightCardSkeletons } from '@/components/flights/FlightCardSkeleton';
+import FlightComparisonBar from '@/components/search/FlightComparison';
+import { type FlightForComparison } from '@/lib/types/search';
 import { CollapsibleSearchBar, type SearchSummary } from '@/components/mobile/CollapsibleSearchBar';
 // TEMPORARILY DISABLED: Virtual scrolling needs proper height calibration
 // import { VirtualFlightListOptimized as VirtualFlightList } from '@/components/flights/VirtualFlightListOptimized';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
+import SaveSearchButton from '@/components/search/SaveSearchButton';
 // import { TestModeBanner } from '@/components/TestModeBanner'; // Removed for production
 import ProgressiveFlightLoading from '@/components/flights/ProgressiveFlightLoading';
 import InlineFlightLoading from '@/components/flights/InlineFlightLoading';
@@ -551,6 +554,7 @@ function FlightResultsContent() {
 
   // New premium features state
   const [compareFlights, setCompareFlights] = useState<string[]>([]);
+  const [compareFlightsData, setCompareFlightsData] = useState<FlightForComparison[]>([]);
   const [showPriceAlert, setShowPriceAlert] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [flexibleDatePrices, setFlexibleDatePrices] = useState<DatePrice[]>([]);
@@ -1309,15 +1313,78 @@ function FlightResultsContent() {
     // Show detailed flight information
   };
 
+  // Helper function to convert ScoredFlight to FlightForComparison
+  const convertToComparisonFlight = (flight: ScoredFlight): FlightForComparison => {
+    const outbound = flight.itineraries[0];
+    const firstSegment = outbound.segments[0];
+    const lastSegment = outbound.segments[outbound.segments.length - 1];
+
+    // Get airline name from carrier code
+    const carrierCode = firstSegment.carrierCode;
+    const flightNumber = `${carrierCode}${firstSegment.number}`;
+
+    // Extract baggage info from traveler pricings
+    const travelerPricing = (flight as any).travelerPricings?.[0];
+    const fareDetails = travelerPricing?.fareDetailsBySegment?.[0];
+    const baggageInfo = fareDetails?.includedCheckedBags;
+
+    const checkedBags = baggageInfo?.quantity || 0;
+    const cabinBags = 1; // Most flights include at least 1 carry-on
+
+    // Get amenities (if available from API)
+    const amenities: string[] = [];
+    if (fareDetails?.amenities) {
+      fareDetails.amenities.forEach((amenity: any) => {
+        if (amenity.description) {
+          amenities.push(amenity.description);
+        }
+      });
+    }
+
+    // Get aircraft type
+    const aircraftType = firstSegment.aircraft?.code || 'N/A';
+    const fareClass = fareDetails?.cabin || 'Economy';
+
+    return {
+      id: flight.id,
+      airline: carrierCode,
+      flightNumber: flightNumber,
+      departure: {
+        airport: firstSegment.departure.iataCode,
+        time: new Date(firstSegment.departure.at),
+      },
+      arrival: {
+        airport: lastSegment.arrival.iataCode,
+        time: new Date(lastSegment.arrival.at),
+      },
+      duration: parseDuration(outbound.duration),
+      stops: outbound.segments.length - 1,
+      price: normalizePrice(flight.price.total),
+      baggage: {
+        checked: checkedBags,
+        cabin: cabinBags,
+      },
+      amenities: amenities,
+      aircraftType: aircraftType,
+      fareClass: fareClass,
+    };
+  };
+
   // New premium feature handlers
   const handleCompareToggle = (id: string) => {
     setCompareFlights(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(fid => fid !== id);
-      } else if (prev.length < 4) {
-        return [...prev, id];
-      }
-      return prev; // Max 4 flights
+      const newSelection = prev.includes(id)
+        ? prev.filter(fid => fid !== id)
+        : prev.length < 3
+        ? [...prev, id]
+        : prev; // Max 3 flights
+
+      // Update comparison data
+      const selectedFlights = flights.filter(f => newSelection.includes(f.id));
+      const comparisonData = selectedFlights.map(convertToComparisonFlight);
+      setCompareFlightsData(comparisonData);
+
+      return newSelection;
     });
   };
 
@@ -1337,6 +1404,21 @@ function FlightResultsContent() {
 
   const handleSetAlert = () => {
     setShowPriceAlert(true);
+  };
+
+  // Comparison handlers
+  const handleRemoveFromComparison = (id: string) => {
+    setCompareFlights(prev => {
+      const newSelection = prev.filter(fid => fid !== id);
+      const selectedFlights = flights.filter(f => newSelection.includes(f.id));
+      const comparisonData = selectedFlights.map(convertToComparisonFlight);
+      setCompareFlightsData(comparisonData);
+      return newSelection;
+    });
+  };
+
+  const handleBookFlight = (id: string) => {
+    handleSelectFlight(id);
   };
 
   // Loading state - Show 3-column layout with inline loading in main content area
@@ -1596,12 +1678,51 @@ function FlightResultsContent() {
             </div>
 
             {/* Sort Bar - IMMEDIATELY before results */}
-            <SortBar
-              currentSort={sortBy}
-              onChange={setSortBy}
-              resultCount={sortedFlights.length}
-              lang={lang}
-            />
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex-1">
+                <SortBar
+                  currentSort={sortBy}
+                  onChange={setSortBy}
+                  resultCount={sortedFlights.length}
+                  lang={lang}
+                />
+              </div>
+
+              {/* Save Search Button */}
+              <div className="hidden md:block">
+                <SaveSearchButton
+                  searchParams={{
+                    origin: searchData.from,
+                    destination: searchData.to,
+                    departDate: searchData.departure,
+                    returnDate: searchData.return,
+                    adults: searchData.adults,
+                    children: searchData.children,
+                    infants: searchData.infants,
+                    cabinClass: searchData.class,
+                  }}
+                  variant="compact"
+                />
+              </div>
+            </div>
+
+            {/* Mobile: Save Search Button below sort bar */}
+            <div className="md:hidden mb-4">
+              <SaveSearchButton
+                searchParams={{
+                  origin: searchData.from,
+                  destination: searchData.to,
+                  departDate: searchData.departure,
+                  returnDate: searchData.return,
+                  adults: searchData.adults,
+                  children: searchData.children,
+                  infants: searchData.infants,
+                  cabinClass: searchData.class,
+                }}
+                variant="compact"
+                className="w-full"
+              />
+            </div>
 
             {/* Flight Cards List - ALL RESULTS CONTINUOUSLY (No widgets interruption) */}
             <div className="space-y-2 md:space-y-4">
@@ -1908,6 +2029,18 @@ function FlightResultsContent() {
           lang={lang}
         />
       </MobileFilterSheet>
+
+      {/* Flight Comparison Sticky Bar - Bottom of page */}
+      {compareFlightsData.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 shadow-2xl">
+          <FlightComparisonBar
+            flights={compareFlightsData}
+            onRemove={handleRemoveFromComparison}
+            onBook={handleBookFlight}
+            className="max-w-7xl mx-auto"
+          />
+        </div>
+      )}
     </div>
   );
 }

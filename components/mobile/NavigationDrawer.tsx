@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { zIndex } from '@/lib/design-system';
 import type { Language, HeaderTranslations } from '@/components/layout/Header';
 import { languages } from '@/components/layout/Header';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface NavigationDrawerProps {
   onSignIn?: () => void;
   onSignUp?: () => void;
   logoUrl?: string;
+  userId?: string;
 }
 
 /**
@@ -41,6 +43,7 @@ export function NavigationDrawer({
   onSignIn,
   onSignUp,
   logoUrl = '/fly2any-logo.png',
+  userId,
 }: NavigationDrawerProps) {
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -127,7 +130,7 @@ export function NavigationDrawer({
               damping: 30,
             }}
           >
-            {/* Header with Logo and Close Button */}
+            {/* Header with Logo, Notifications, and Close Button */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <a href="/" onClick={onClose} className="flex items-center">
                 <Image
@@ -144,25 +147,77 @@ export function NavigationDrawer({
                   }}
                 />
               </a>
-              <button
-                onClick={onClose}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                aria-label="Close menu"
-              >
-                <svg
-                  className="w-6 h-6 text-gray-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+              <div className="flex items-center gap-2">
+                {/* Notification Bell for Mobile */}
+                {userId && (
+                  <NotificationBell userId={userId} />
+                )}
+                <button
+                  onClick={onClose}
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Close menu"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+                  <svg
+                    className="w-6 h-6 text-gray-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            {/* Navigation Links */}
+            {/* User Account Section - Only for authenticated users */}
+            {userId && (
+              <>
+                <div className="px-4 pt-6 pb-2">
+                  <div className="px-4 mb-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      My Account
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <a
+                      href="/account"
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+                    >
+                      <span className="text-xl">👤</span>
+                      <span className="text-base">{translations.account}</span>
+                    </a>
+                    <a
+                      href="/account/wishlist"
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+                    >
+                      <span className="text-xl">💖</span>
+                      <span className="text-base">{translations.wishlist}</span>
+                    </a>
+                    <a
+                      href="/account/notifications"
+                      onClick={onClose}
+                      className="flex items-center gap-4 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+                    >
+                      <span className="text-xl">🔔</span>
+                      <span className="text-base">{translations.notifications}</span>
+                    </a>
+                  </div>
+                </div>
+                {/* Divider */}
+                <div className="mx-6 border-t border-gray-200" />
+              </>
+            )}
+
+            {/* Main Navigation Links */}
             <nav className="px-4 py-6 space-y-2">
+              <div className="px-4 mb-3">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Book Travel
+                </span>
+              </div>
               <a
                 href="/flights"
                 onClick={onClose}
@@ -194,6 +249,50 @@ export function NavigationDrawer({
               >
                 <span className="text-2xl">📦</span>
                 <span className="text-base">{translations.packages}</span>
+              </a>
+            </nav>
+
+            {/* Divider */}
+            <div className="mx-6 border-t border-gray-200" />
+
+            {/* Discover Section */}
+            <nav className="px-4 py-6 space-y-2">
+              <div className="px-4 mb-3">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Discover
+                </span>
+              </div>
+              <a
+                href="/deals"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">💰</span>
+                <span className="text-base">{translations.deals}</span>
+              </a>
+              <a
+                href="/explore"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🌍</span>
+                <span className="text-base">{translations.explore}</span>
+              </a>
+              <a
+                href="/travel-guide"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">📚</span>
+                <span className="text-base">{translations.travelGuide}</span>
+              </a>
+              <a
+                href="/faq"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">❓</span>
+                <span className="text-base">{translations.faq}</span>
               </a>
             </nav>
 
@@ -236,27 +335,26 @@ export function NavigationDrawer({
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="mx-6 border-t border-gray-200" />
-
-            {/* Auth Buttons */}
-            <div className="px-4 py-6 space-y-3">
-              <button
-                onClick={handleSignIn}
-                className="w-full px-6 py-3.5 text-gray-700 hover:text-primary-600 font-bold text-base rounded-xl transition-all duration-200 hover:bg-primary-50 border-2 border-gray-300 hover:border-primary-500"
-              >
-                {translations.signin}
-              </button>
-              <button
-                onClick={handleSignUp}
-                className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                style={{
-                  boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
-                }}
-              >
-                {translations.signup}
-              </button>
-            </div>
+            {/* Auth Buttons - Only for non-authenticated users */}
+            {!userId && (
+              <div className="px-4 py-6 space-y-3">
+                <button
+                  onClick={handleSignIn}
+                  className="w-full px-6 py-3.5 text-gray-700 hover:text-primary-600 font-bold text-base rounded-xl transition-all duration-200 hover:bg-primary-50 border-2 border-gray-300 hover:border-primary-500"
+                >
+                  {translations.signin}
+                </button>
+                <button
+                  onClick={handleSignUp}
+                  className="w-full px-6 py-3.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-base rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                  style={{
+                    boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
+                  }}
+                >
+                  {translations.signup}
+                </button>
+              </div>
+            )}
           </motion.div>
         </>
       )}

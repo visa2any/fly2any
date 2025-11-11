@@ -81,7 +81,7 @@ export function FareSelector({
       )}
 
       {/* Fare Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" role="radiogroup" aria-label="Select fare option">
         {fares.map((fare) => {
           const isSelected = selected === fare.id;
           const isRecommended = fare.recommended;
@@ -90,6 +90,9 @@ export function FareSelector({
             <button
               key={fare.id}
               onClick={() => handleSelect(fare.id)}
+              role="radio"
+              aria-checked={isSelected}
+              aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
                 relative p-3 rounded-lg border-2 text-left transition-all duration-300 transform hover:-translate-y-1
                 ${isSelected

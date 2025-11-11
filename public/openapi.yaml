@@ -1,0 +1,1708 @@
+openapi: 3.0.3
+info:
+  title: Fly2Any API
+  description: |
+    Comprehensive flight booking and management API with AI-powered search optimization,
+    multi-source aggregation (Amadeus, Duffel), and intelligent caching.
+
+    ## Features
+    - Multi-airport and flexible date search
+    - Real-time price confirmation
+    - Seat selection and branded fares
+    - Payment processing via Stripe
+    - Booking management and modifications
+    - Price alerts and saved searches
+
+    ## Base URLs
+    - Production: https://fly2any.com/api
+    - Development: http://localhost:3000/api
+  version: 1.0.0
+  contact:
+    name: Fly2Any API Support
+    email: api-support@fly2any.com
+    url: https://fly2any.com/docs
+  license:
+    name: Proprietary
+    url: https://fly2any.com/terms
+
+servers:
+  - url: https://fly2any.com/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Flights
+    description: Flight search and retrieval
+  - name: Bookings
+    description: Booking management and modifications
+  - name: Payments
+    description: Payment processing with Stripe
+  - name: Saved Searches
+    description: User saved search management
+  - name: Price Alerts
+    description: Price monitoring and alerts
+  - name: System
+    description: System health and status
+
+security:
+  - sessionAuth: []
+
+paths:
+  /flights/search:
+    post:
+      tags:
+        - Flights
+      summary: Search for flights
+      description: |
+        Search for available flights with AI-powered scoring, multi-source aggregation,
+        and intelligent caching. Supports multi-airport search and flexible dates.
+      operationId: searchFlights
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightSearchRequest'
+            examples:
+              roundTrip:
+                summary: Round-trip search
+                value:
+                  origin: JFK
+                  destination: LAX
+                  departureDate: "2025-12-15"
+                  returnDate: "2025-12-22"
+                  adults: 2
+                  travelClass: economy
+              oneWay:
+                summary: One-way search
+                value:
+                  origin: JFK
+                  destination: LAX
+                  departureDate: "2025-12-15"
+                  adults: 1
+                  nonStop: true
+              multiAirport:
+                summary: Multi-airport search
+                value:
+                  origin: "JFK,EWR,LGA"
+                  destination: "LAX,BUR,SNA"
+                  departureDate: "2025-12-15"
+                  adults: 2
+      responses:
+        '200':
+          description: Flight search results
+          headers:
+            X-Cache-Status:
+              schema:
+                type: string
+                enum: [HIT, MISS]
+              description: Cache hit or miss status
+            X-Response-Time:
+              schema:
+                type: string
+              description: Response time in milliseconds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /flights/{id}:
+    get:
+      tags:
+        - Flights
+      summary: Get flight by ID
+      description: Retrieve a specific flight offer by its ID
+      operationId: getFlightById
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Flight offer ID
+      responses:
+        '200':
+          description: Flight details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  flight:
+                    $ref: '#/components/schemas/FlightOffer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /flights/confirm:
+    post:
+      tags:
+        - Flights
+      summary: Confirm flight pricing
+      description: Confirm current pricing and availability before booking
+      operationId: confirmFlightPrice
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - flightOffers
+              properties:
+                flightOffers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FlightOffer'
+      responses:
+        '200':
+          description: Price confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FlightOffer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Price changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /flights/seat-map/duffel:
+    post:
+      tags:
+        - Flights
+      summary: Get seat map
+      description: Retrieve seat map for a specific flight offer
+      operationId: getSeatMap
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - offerId
+              properties:
+                offerId:
+                  type: string
+                  description: Flight offer ID
+      responses:
+        '200':
+          description: Seat map retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeatMapResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /flights/branded-fares:
+    post:
+      tags:
+        - Flights
+      summary: Get branded fares
+      description: Retrieve fare options (Basic, Standard, Flex) for a flight
+      operationId: getBrandedFares
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - flightOfferId
+              properties:
+                flightOfferId:
+                  type: string
+      responses:
+        '200':
+          description: Branded fares retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandedFaresResponse'
+
+  /flights/booking/create:
+    post:
+      tags:
+        - Bookings
+      summary: Create flight booking
+      description: |
+        Create a new flight booking with passenger information and payment processing.
+        Supports hold bookings (pay later) and instant bookings.
+      operationId: createBooking
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '402':
+          description: Payment failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Price changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: Flight sold out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookings:
+    get:
+      tags:
+        - Bookings
+      summary: List bookings
+      description: Retrieve bookings with filtering and pagination
+      operationId: listBookings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, confirmed, pending, cancelled]
+          description: Filter by booking status
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by email or booking reference
+        - name: email
+          in: query
+          schema:
+            type: string
+            format: email
+          description: Filter by email address
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by date range start
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by date range end
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+          description: Maximum results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Bookings retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingsListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /bookings/{id}:
+    get:
+      tags:
+        - Bookings
+      summary: Get booking by ID
+      description: Retrieve a specific booking by its ID
+      operationId: getBookingById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Booking ID
+      responses:
+        '200':
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      booking:
+                        $ref: '#/components/schemas/Booking'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Bookings
+      summary: Update booking
+      description: Update booking contact information or special requests
+      operationId: updateBooking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookingRequest'
+      responses:
+        '200':
+          description: Booking updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      booking:
+                        $ref: '#/components/schemas/Booking'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Bookings
+      summary: Cancel booking
+      description: Cancel a booking and process refund according to fare rules
+      operationId: cancelBooking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reason
+          in: query
+          schema:
+            type: string
+          description: Cancellation reason
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/create-intent:
+    post:
+      tags:
+        - Payments
+      summary: Create payment intent
+      description: Create a Stripe payment intent for booking payment
+      operationId: createPaymentIntent
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentIntentRequest'
+      responses:
+        '201':
+          description: Payment intent created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentIntentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/confirm:
+    post:
+      tags:
+        - Payments
+      summary: Confirm payment
+      description: Confirm payment after completion (including 3D Secure)
+      operationId: confirmPayment
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - paymentIntentId
+                - bookingReference
+              properties:
+                paymentIntentId:
+                  type: string
+                  description: Stripe payment intent ID
+                bookingReference:
+                  type: string
+                  description: Booking reference number
+      responses:
+        '200':
+          description: Payment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfirmationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/webhook:
+    post:
+      tags:
+        - Payments
+      summary: Stripe webhook handler
+      description: |
+        Webhook endpoint for Stripe payment events (server-to-server only).
+        Requires valid Stripe webhook signature.
+      operationId: handlePaymentWebhook
+      security: []
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Stripe webhook signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Stripe event object
+      responses:
+        '200':
+          description: Event processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                  eventId:
+                    type: string
+                  eventType:
+                    type: string
+        '400':
+          description: Invalid signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /saved-searches:
+    get:
+      tags:
+        - Saved Searches
+      summary: List saved searches
+      description: Get all saved searches for authenticated user
+      operationId: listSavedSearches
+      responses:
+        '200':
+          description: Saved searches retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  searches:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SavedSearch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Saved Searches
+      summary: Create saved search
+      description: Save a flight search for later use
+      operationId: createSavedSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedSearchInput'
+      responses:
+        '201':
+          description: Search saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  search:
+                    $ref: '#/components/schemas/SavedSearch'
+                  created:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Saved Searches
+      summary: Update saved search
+      description: Update an existing saved search
+      operationId: updateSavedSearch
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                filters:
+                  type: object
+      responses:
+        '200':
+          description: Search updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  search:
+                    $ref: '#/components/schemas/SavedSearch'
+                  updated:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Saved Searches
+      summary: Delete saved search
+      description: Delete a saved search
+      operationId: deleteSavedSearch
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  deleted:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /price-alerts:
+    get:
+      tags:
+        - Price Alerts
+      summary: List price alerts
+      description: Get all price alerts for authenticated user
+      operationId: listPriceAlerts
+      parameters:
+        - name: active
+          in: query
+          schema:
+            type: boolean
+          description: Filter active alerts only
+      responses:
+        '200':
+          description: Price alerts retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PriceAlert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Price Alerts
+      summary: Create price alert
+      description: Create a new price alert for a route
+      operationId: createPriceAlert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriceAlertInput'
+      responses:
+        '201':
+          description: Alert created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alert:
+                    $ref: '#/components/schemas/PriceAlert'
+                  created:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags:
+        - Price Alerts
+      summary: Update price alert
+      description: Update an existing price alert
+      operationId: updatePriceAlert
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                targetPrice:
+                  type: number
+                currentPrice:
+                  type: number
+      responses:
+        '200':
+          description: Alert updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alert:
+                    $ref: '#/components/schemas/PriceAlert'
+                  updated:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Price Alerts
+      summary: Delete price alert
+      description: Delete a price alert
+      operationId: deletePriceAlert
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alert deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  deleted:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Comprehensive health check for all services
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: All services healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        '207':
+          description: Some services degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        '503':
+          description: Critical services unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+    head:
+      tags:
+        - System
+      summary: Lightweight health check
+      description: Quick health check for load balancers
+      operationId: quickHealthCheck
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+        '503':
+          description: Service unhealthy
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: Session-based authentication via NextAuth.js
+
+  schemas:
+    FlightSearchRequest:
+      type: object
+      required:
+        - origin
+        - destination
+        - departureDate
+        - adults
+      properties:
+        origin:
+          type: string
+          description: Origin airport code (IATA) or comma-separated codes
+          example: JFK
+        destination:
+          type: string
+          description: Destination airport code (IATA) or comma-separated codes
+          example: LAX
+        departureDate:
+          type: string
+          format: date
+          description: Departure date (YYYY-MM-DD)
+          example: "2025-12-15"
+        returnDate:
+          type: string
+          format: date
+          description: Return date for round-trip
+          example: "2025-12-22"
+        adults:
+          type: integer
+          minimum: 1
+          maximum: 9
+          description: Number of adult passengers
+          example: 2
+        children:
+          type: integer
+          minimum: 0
+          maximum: 9
+          default: 0
+          description: Number of children
+        infants:
+          type: integer
+          minimum: 0
+          maximum: 9
+          default: 0
+          description: Number of infants
+        travelClass:
+          type: string
+          enum: [economy, premium_economy, business, first]
+          default: economy
+          description: Cabin class
+        nonStop:
+          type: boolean
+          default: false
+          description: Only show non-stop flights
+        currencyCode:
+          type: string
+          default: USD
+          description: Currency code (ISO 4217)
+          example: USD
+        max:
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 100
+          description: Maximum number of results
+        sortBy:
+          type: string
+          enum: [best, cheapest, fastest, overall]
+          default: best
+          description: Sort order for results
+
+    FlightSearchResponse:
+      type: object
+      properties:
+        flights:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlightOffer'
+        metadata:
+          type: object
+          properties:
+            total:
+              type: integer
+            searchParams:
+              type: object
+            sortedBy:
+              type: string
+            cached:
+              type: boolean
+            timestamp:
+              type: string
+              format: date-time
+
+    FlightOffer:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [flight-offer]
+        source:
+          type: string
+          enum: [Amadeus, Duffel, GDS, DEMO]
+        instantTicketingRequired:
+          type: boolean
+        numberOfBookableSeats:
+          type: integer
+        itineraries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Itinerary'
+        price:
+          $ref: '#/components/schemas/Price'
+        validatingAirlineCodes:
+          type: array
+          items:
+            type: string
+        score:
+          type: number
+          description: AI-calculated flight score (0-100)
+        badges:
+          type: array
+          items:
+            type: string
+          description: Persuasion badges (e.g., "Best Price", "Popular")
+
+    Itinerary:
+      type: object
+      properties:
+        duration:
+          type: string
+          description: ISO 8601 duration format
+          example: PT5H30M
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+
+    Segment:
+      type: object
+      properties:
+        departure:
+          $ref: '#/components/schemas/Location'
+        arrival:
+          $ref: '#/components/schemas/Location'
+        carrierCode:
+          type: string
+          example: AA
+        number:
+          type: string
+          example: "123"
+        aircraft:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "738"
+        duration:
+          type: string
+          example: PT5H30M
+        numberOfStops:
+          type: integer
+
+    Location:
+      type: object
+      properties:
+        iataCode:
+          type: string
+          example: JFK
+        terminal:
+          type: string
+        at:
+          type: string
+          format: date-time
+
+    Price:
+      type: object
+      properties:
+        currency:
+          type: string
+          example: USD
+        total:
+          type: string
+          example: "299.99"
+        base:
+          type: string
+          example: "249.99"
+
+    SeatMapResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        seatMap:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  segmentId:
+                    type: string
+                  cabins:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cabinClass:
+                          type: string
+                        rows:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              rowNumber:
+                                type: integer
+                              seats:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    designator:
+                                      type: string
+                                    available:
+                                      type: boolean
+                                    price:
+                                      $ref: '#/components/schemas/Price'
+            meta:
+              type: object
+              properties:
+                hasRealData:
+                  type: boolean
+                source:
+                  type: string
+
+    BrandedFaresResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              fareName:
+                type: string
+              price:
+                $ref: '#/components/schemas/Price'
+              features:
+                type: object
+                properties:
+                  seatSelection:
+                    type: boolean
+                  changeable:
+                    type: boolean
+                  refundable:
+                    type: boolean
+                  checkedBags:
+                    type: integer
+        meta:
+          type: object
+          properties:
+            hasRealData:
+              type: boolean
+
+    CreateBookingRequest:
+      type: object
+      required:
+        - flightOffer
+        - passengers
+        - payment
+        - contactInfo
+      properties:
+        flightOffer:
+          $ref: '#/components/schemas/FlightOffer'
+        passengers:
+          type: array
+          minItems: 1
+          maxItems: 9
+          items:
+            $ref: '#/components/schemas/PassengerInput'
+        payment:
+          $ref: '#/components/schemas/PaymentInput'
+        contactInfo:
+          $ref: '#/components/schemas/ContactInfo'
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatSelection'
+        fareUpgrade:
+          type: object
+        bundle:
+          type: object
+        addOns:
+          type: array
+          items:
+            type: object
+        isHold:
+          type: boolean
+          default: false
+        holdDuration:
+          type: integer
+          minimum: 12
+          maximum: 72
+
+    PassengerInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - dateOfBirth
+        - gender
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [MALE, FEMALE]
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        passportNumber:
+          type: string
+        passportExpiryDate:
+          type: string
+          format: date
+        nationality:
+          type: string
+          minLength: 2
+          maxLength: 2
+
+    PaymentInput:
+      type: object
+      required:
+        - method
+      properties:
+        method:
+          type: string
+          enum: [card, bank_transfer]
+        cardNumber:
+          type: string
+        cardBrand:
+          type: string
+
+    ContactInfo:
+      type: object
+      required:
+        - email
+        - phone
+      properties:
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        alternatePhone:
+          type: string
+        emergencyContact:
+          type: object
+
+    SeatSelection:
+      type: object
+      properties:
+        passengerId:
+          type: string
+        segmentId:
+          type: string
+        seatNumber:
+          type: string
+
+    BookingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        booking:
+          type: object
+          properties:
+            id:
+              type: string
+            bookingReference:
+              type: string
+            pnr:
+              type: string
+            status:
+              type: string
+            sourceApi:
+              type: string
+            paymentIntentId:
+              type: string
+            clientSecret:
+              type: string
+            totalPrice:
+              type: number
+            currency:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+        message:
+          type: string
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        bookingReference:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+        userId:
+          type: string
+        contactInfo:
+          $ref: '#/components/schemas/ContactInfo'
+        flight:
+          type: object
+        passengers:
+          type: array
+          items:
+            type: object
+        payment:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BookingsListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            bookings:
+              type: array
+              items:
+                $ref: '#/components/schemas/Booking'
+            total:
+              type: integer
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+
+    UpdateBookingRequest:
+      type: object
+      properties:
+        contactInfo:
+          $ref: '#/components/schemas/ContactInfo'
+        passengers:
+          type: array
+          items:
+            type: object
+        specialRequests:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    CancellationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            bookingReference:
+              type: string
+            refundAmount:
+              type: number
+            refundStatus:
+              type: string
+            message:
+              type: string
+            cancellationFee:
+              type: number
+
+    CreatePaymentIntentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - customerEmail
+        - customerName
+      properties:
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        bookingId:
+          type: string
+        bookingReference:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        customerName:
+          type: string
+        description:
+          type: string
+        metadata:
+          type: object
+
+    PaymentIntentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            paymentIntent:
+              type: object
+              properties:
+                paymentIntentId:
+                  type: string
+                clientSecret:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                status:
+                  type: string
+            bookingReference:
+              type: string
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            processingTime:
+              type: integer
+
+    PaymentConfirmationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        payment:
+          type: object
+          properties:
+            paymentIntentId:
+              type: string
+            status:
+              type: string
+            amount:
+              type: number
+            currency:
+              type: string
+            paymentMethod:
+              type: string
+            last4:
+              type: string
+            brand:
+              type: string
+        booking:
+          type: object
+          properties:
+            id:
+              type: string
+            bookingReference:
+              type: string
+            status:
+              type: string
+        message:
+          type: string
+
+    SavedSearch:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        origin:
+          type: string
+        destination:
+          type: string
+        departDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        cabinClass:
+          type: string
+        filters:
+          type: object
+        searchCount:
+          type: integer
+        lastSearched:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    SavedSearchInput:
+      type: object
+      required:
+        - name
+        - origin
+        - destination
+        - departDate
+        - adults
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        origin:
+          type: string
+          minLength: 3
+          maxLength: 3
+        destination:
+          type: string
+          minLength: 3
+          maxLength: 3
+        departDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        adults:
+          type: integer
+          minimum: 1
+          maximum: 9
+        children:
+          type: integer
+          minimum: 0
+          maximum: 9
+          default: 0
+        infants:
+          type: integer
+          minimum: 0
+          maximum: 9
+          default: 0
+        cabinClass:
+          type: string
+          enum: [economy, premium_economy, business, first]
+          default: economy
+        filters:
+          type: object
+
+    PriceAlert:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        origin:
+          type: string
+        destination:
+          type: string
+        departDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        currentPrice:
+          type: number
+        targetPrice:
+          type: number
+        currency:
+          type: string
+        active:
+          type: boolean
+        triggered:
+          type: boolean
+        triggeredAt:
+          type: string
+          format: date-time
+        lastChecked:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    PriceAlertInput:
+      type: object
+      required:
+        - origin
+        - destination
+        - departDate
+        - currentPrice
+        - targetPrice
+      properties:
+        origin:
+          type: string
+          minLength: 3
+          maxLength: 3
+        destination:
+          type: string
+          minLength: 3
+          maxLength: 3
+        departDate:
+          type: string
+          format: date
+        returnDate:
+          type: string
+          format: date
+        currentPrice:
+          type: number
+          minimum: 0
+        targetPrice:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          default: USD
+
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+        checks:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/ServiceHealth'
+            redis:
+              $ref: '#/components/schemas/ServiceHealth'
+            externalAPIs:
+              type: object
+              properties:
+                duffel:
+                  $ref: '#/components/schemas/ServiceHealth'
+                amadeus:
+                  $ref: '#/components/schemas/ServiceHealth'
+                stripe:
+                  $ref: '#/components/schemas/ServiceHealth'
+            system:
+              type: object
+              properties:
+                memory:
+                  type: object
+                  properties:
+                    used:
+                      type: string
+                    total:
+                      type: string
+                    percentage:
+                      type: string
+                nodejs:
+                  type: string
+                environment:
+                  type: string
+
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        responseTime:
+          type: integer
+        lastCheck:
+          type: string
+          format: date-time
+        error:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          oneOf:
+            - type: string
+            - type: object
+              properties:
+                code:
+                  type: string
+                message:
+                  type: string
+                details:
+                  type: object
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceUnavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

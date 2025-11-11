@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { FlightCardCompact } from './FlightCardCompact';
+import { ErrorState, getErrorType } from '@/components/common/ErrorState';
+import { NoFlightsFound } from '@/components/common/EmptyState';
+import { SearchLoadingState } from '@/components/common/LoadingStates';
 
 interface FlightOffer {
   id: string;
@@ -51,6 +54,9 @@ interface FlightResultsProps {
   offers: FlightOffer[];
   onSelectFlight: (offer: FlightOffer) => void;
   isLoading: boolean;
+  error?: Error | string | null;
+  onRetry?: () => void;
+  onModifySearch?: () => void;
   lang: 'en' | 'pt' | 'es';
 }
 
@@ -93,27 +99,42 @@ const content = {
   },
 };
 
-export default function FlightResults({ offers, onSelectFlight, isLoading, lang }: FlightResultsProps) {
+export default function FlightResults({
+  offers,
+  onSelectFlight,
+  isLoading,
+  error,
+  onRetry,
+  onModifySearch,
+  lang
+}: FlightResultsProps) {
   const t = content[lang];
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
 
-  if (isLoading) {
+  // Error state
+  if (error) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
-          <p className="text-xl text-gray-600">{t.loading}</p>
-        </div>
-      </div>
+      <ErrorState
+        error={error}
+        type={getErrorType(error as Error)}
+        onRetry={onRetry}
+      />
     );
   }
 
+  // Loading state with enhanced UI
+  if (isLoading) {
+    return <SearchLoadingState message={t.loading} />;
+  }
+
+  // Empty state with helpful suggestions
   if (!offers || offers.length === 0) {
     return (
-      <div className="text-center py-20">
-        <div className="text-6xl mb-4">✈️</div>
-        <p className="text-xl text-gray-600">{t.noResults}</p>
-      </div>
+      <NoFlightsFound
+        onModifySearch={
+          onModifySearch || (() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+        }
+      />
     );
   }
 

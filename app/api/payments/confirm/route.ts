@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     console.log('💾 Updating booking status...');
 
     try {
-      const booking = await bookingStorage.findByReference(bookingReference);
+      const booking = await bookingStorage.findByReferenceAsync(bookingReference);
 
       if (!booking) {
         console.error(`❌ Booking not found: ${bookingReference}`);

@@ -112,17 +112,18 @@ class BookingStorage {
 
   /**
    * Find booking by ID
+   * Note: Excludes soft-deleted bookings by default
    */
-  async findById(id: string): Promise<Booking | null> {
+  async findById(id: string, includeDeleted: boolean = false): Promise<Booking | null> {
     if (!sql) {
       console.warn('Database not configured');
       return null;
     }
 
     try {
-      const result = await sql`
-        SELECT * FROM bookings WHERE id = ${id}
-      `;
+      const result = includeDeleted
+        ? await sql`SELECT * FROM bookings WHERE id = ${id}`
+        : await sql`SELECT * FROM bookings WHERE id = ${id} AND deleted_at IS NULL`;
 
       if (result.length === 0) {
         return null;
@@ -147,17 +148,18 @@ class BookingStorage {
 
   /**
    * Find booking by reference (async version)
+   * Note: Excludes soft-deleted bookings by default
    */
-  async findByReferenceAsync(reference: string): Promise<Booking | null> {
+  async findByReferenceAsync(reference: string, includeDeleted: boolean = false): Promise<Booking | null> {
     if (!sql) {
       console.warn('Database not configured');
       return null;
     }
 
     try {
-      const result = await sql`
-        SELECT * FROM bookings WHERE booking_reference = ${reference}
-      `;
+      const result = includeDeleted
+        ? await sql`SELECT * FROM bookings WHERE booking_reference = ${reference}`
+        : await sql`SELECT * FROM bookings WHERE booking_reference = ${reference} AND deleted_at IS NULL`;
 
       if (result.length === 0) {
         return null;
@@ -235,6 +237,7 @@ class BookingStorage {
 
   /**
    * Helper method to execute search query with dynamic parameters
+   * Note: Excludes soft-deleted bookings by default
    */
   private async executeSearchQuery(params: BookingSearchParams): Promise<any[]> {
     if (!sql) {
@@ -252,6 +255,7 @@ class BookingStorage {
           SELECT * FROM bookings
           WHERE LOWER(contact_info->>'email') = ${email}
           AND status = ${params.status}
+          AND deleted_at IS NULL
           ORDER BY created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `;
@@ -259,6 +263,7 @@ class BookingStorage {
       return await sql`
         SELECT * FROM bookings
         WHERE LOWER(contact_info->>'email') = ${email}
+        AND deleted_at IS NULL
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
@@ -270,6 +275,7 @@ class BookingStorage {
           SELECT * FROM bookings
           WHERE user_id = ${params.userId}
           AND status = ${params.status}
+          AND deleted_at IS NULL
           ORDER BY created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `;
@@ -277,6 +283,7 @@ class BookingStorage {
       return await sql`
         SELECT * FROM bookings
         WHERE user_id = ${params.userId}
+        AND deleted_at IS NULL
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
@@ -286,6 +293,7 @@ class BookingStorage {
       return await sql`
         SELECT * FROM bookings
         WHERE LOWER(booking_reference) = ${params.bookingReference.toLowerCase()}
+        AND deleted_at IS NULL
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
@@ -298,6 +306,7 @@ class BookingStorage {
           WHERE status = ${params.status}
           AND created_at >= ${params.dateFrom}
           AND created_at <= ${params.dateTo}
+          AND deleted_at IS NULL
           ORDER BY created_at DESC
           LIMIT ${limit} OFFSET ${offset}
         `;
@@ -305,6 +314,7 @@ class BookingStorage {
       return await sql`
         SELECT * FROM bookings
         WHERE status = ${params.status}
+        AND deleted_at IS NULL
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
@@ -315,14 +325,16 @@ class BookingStorage {
         SELECT * FROM bookings
         WHERE created_at >= ${params.dateFrom}
         AND created_at <= ${params.dateTo}
+        AND deleted_at IS NULL
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `;
     }
 
-    // No filters - return all with pagination
+    // No filters - return all with pagination (excluding soft-deleted)
     return await sql`
       SELECT * FROM bookings
+      WHERE deleted_at IS NULL
       ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
@@ -464,6 +476,7 @@ class BookingStorage {
 
   /**
    * Get total count of bookings
+   * Note: Excludes soft-deleted bookings by default
    */
   async count(params?: BookingSearchParams): Promise<number> {
     if (!sql) {
@@ -475,6 +488,7 @@ class BookingStorage {
       if (!params || Object.keys(params).length === 0) {
         const result = await sql`
           SELECT COUNT(*) as count FROM bookings
+          WHERE deleted_at IS NULL
         `;
         return parseInt(result[0].count);
       }
@@ -485,6 +499,7 @@ class BookingStorage {
         const result = await sql`
           SELECT COUNT(*) as count FROM bookings
           WHERE LOWER(contact_info->>'email') = ${email}
+          AND deleted_at IS NULL
         `;
         return parseInt(result[0].count);
       }
@@ -493,6 +508,7 @@ class BookingStorage {
         const result = await sql`
           SELECT COUNT(*) as count FROM bookings
           WHERE user_id = ${params.userId}
+          AND deleted_at IS NULL
         `;
         return parseInt(result[0].count);
       }
@@ -501,6 +517,7 @@ class BookingStorage {
         const result = await sql`
           SELECT COUNT(*) as count FROM bookings
           WHERE status = ${params.status}
+          AND deleted_at IS NULL
         `;
         return parseInt(result[0].count);
       }
@@ -532,18 +549,18 @@ class BookingStorage {
 
   /**
    * Get all bookings (for admin purposes)
+   * Note: Excludes soft-deleted bookings by default
    */
-  async getAll(): Promise<Booking[]> {
+  async getAll(includeDeleted: boolean = false): Promise<Booking[]> {
     if (!sql) {
       console.warn('Database not configured');
       return [];
     }
 
     try {
-      const result = await sql`
-        SELECT * FROM bookings
-        ORDER BY created_at DESC
-      `;
+      const result = includeDeleted
+        ? await sql`SELECT * FROM bookings ORDER BY created_at DESC`
+        : await sql`SELECT * FROM bookings WHERE deleted_at IS NULL ORDER BY created_at DESC`;
 
       return result.map(row => this.deserializeBooking(row));
     } catch (error) {

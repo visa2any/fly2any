@@ -345,7 +345,176 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<bo
   }
 }
 
+/**
+ * Price Alert Triggered Email
+ * Sent when a price alert is triggered
+ */
+function getPriceAlertEmail(alert: {
+  origin: string;
+  destination: string;
+  departDate: string;
+  returnDate?: string | null;
+  currentPrice: number;
+  targetPrice: number;
+  currency: string;
+}) {
+  const subject = `🎉 Price Alert: ${alert.origin} → ${alert.destination} - ${alert.currency} ${alert.currentPrice}`;
+
+  const savings = ((alert.targetPrice - alert.currentPrice) / alert.targetPrice * 100).toFixed(0);
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">🔔 ${COMPANY_NAME}</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">Price Alert Triggered!</p>
+  </div>
+
+  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+    <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
+      <h2 style="color: #92400e; margin: 0 0 10px 0;">🎉 Great News!</h2>
+      <p style="color: #78350f; margin: 0; font-size: 16px;">The price for your watched route has dropped below your target!</p>
+    </div>
+
+    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #1f2937;">Flight Route</h3>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+        <div style="text-align: center; flex: 1;">
+          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #1f2937;">${alert.origin}</p>
+          <p style="margin: 5px 0; font-size: 14px; color: #6b7280;">${new Date(alert.departDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+        </div>
+        <div style="text-align: center; padding: 0 20px;">
+          <p style="margin: 0; color: #9ca3af; font-size: 24px;">✈️</p>
+        </div>
+        <div style="text-align: center; flex: 1;">
+          <p style="margin: 0; font-size: 28px; font-weight: bold; color: #1f2937;">${alert.destination}</p>
+          ${alert.returnDate ? `<p style="margin: 5px 0; font-size: 14px; color: #6b7280;">${new Date(alert.returnDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>` : ''}
+        </div>
+      </div>
+
+      <div style="background: #d1fae5; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: center;">
+        <p style="margin: 0; color: #065f46; font-size: 14px;">Current Price</p>
+        <p style="margin: 5px 0; color: #047857; font-size: 36px; font-weight: bold;">${alert.currency} ${alert.currentPrice.toFixed(2)}</p>
+        <p style="margin: 0; color: #059669; font-size: 16px;">
+          <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+            ${savings}% below target!
+          </span>
+        </p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">Your Target Price:</td>
+          <td style="padding: 8px 0; text-align: right; font-size: 18px; color: #1f2937; text-decoration: line-through;">${alert.currency} ${alert.targetPrice.toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">Trip Type:</td>
+          <td style="padding: 8px 0; text-align: right; font-size: 16px; color: #1f2937;">${alert.returnDate ? 'Round Trip' : 'One Way'}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <h3 style="margin-top: 0; color: #92400e;">⏰ Act Fast!</h3>
+      <p style="margin: 0; color: #78350f;">Flight prices can change quickly. We recommend booking soon to lock in this great price!</p>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/flights?from=${alert.origin}&to=${alert.destination}&departure=${alert.departDate}${alert.returnDate ? `&return=${alert.returnDate}` : ''}" style="display: inline-block; background: #f59e0b; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Search This Flight</a>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="color: #6b7280; font-size: 14px; text-align: center;">
+      Want to stop receiving alerts for this route?<br>
+      <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/account/alerts" style="color: #2563eb;">Manage your price alerts</a>
+    </p>
+
+    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
+      This alert was sent by ${COMPANY_NAME}<br>
+      ${alert.origin} → ${alert.destination}
+    </p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+🔔 Price Alert Triggered!
+
+${alert.origin} → ${alert.destination}
+Departure: ${new Date(alert.departDate).toLocaleDateString()}
+${alert.returnDate ? `Return: ${new Date(alert.returnDate).toLocaleDateString()}` : 'One Way'}
+
+Current Price: ${alert.currency} ${alert.currentPrice.toFixed(2)}
+Your Target: ${alert.currency} ${alert.targetPrice.toFixed(2)}
+
+Great news! The price has dropped below your target by ${savings}%!
+
+Act fast - flight prices can change quickly. Book now to lock in this great price.
+
+Search this flight: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/flights?from=${alert.origin}&to=${alert.destination}&departure=${alert.departDate}${alert.returnDate ? `&return=${alert.returnDate}` : ''}
+
+Manage your alerts: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/account/alerts
+
+${COMPANY_NAME}
+  `;
+
+  return { subject, html, text };
+}
+
+export async function sendPriceAlertEmail(
+  email: string,
+  alert: {
+    origin: string;
+    destination: string;
+    departDate: string;
+    returnDate?: string | null;
+    currentPrice: number;
+    targetPrice: number;
+    currency: string;
+  }
+): Promise<boolean> {
+  try {
+    const { subject, html, text } = getPriceAlertEmail(alert);
+
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
+      console.log('📧 Sending price alert email...');
+      console.log(`   To: ${email}`);
+      console.log(`   Subject: ${subject}`);
+      console.log('✅ Price alert email sent (logged to console)');
+      return true;
+    }
+
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: email,
+      subject,
+      html,
+      text,
+    });
+
+    console.log('✅ Price alert email sent successfully');
+    console.log(`   To: ${email}`);
+    console.log(`   Email ID: ${result.data?.id}`);
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending price alert email:', error);
+    return false;
+  }
+}
+
 export const emailService = {
   sendPaymentInstructions: sendPaymentInstructionsEmail,
   sendBookingConfirmation: sendBookingConfirmationEmail,
+  sendPriceAlert: sendPriceAlertEmail,
 };

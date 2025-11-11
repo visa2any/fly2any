@@ -1,7 +1,89 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { testFlights, getTestDateRange } from '../fixtures/test-data';
 
-test.describe('Accessibility Tests', () => {
+test.describe('Accessibility Tests - Automated (axe-core)', () => {
+  test('should have no accessibility violations on homepage', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    expect(accessibilityScanResults.violations).toEqual([]);
+
+    console.log('✅ Homepage has no accessibility violations');
+  });
+
+  test('should have no accessibility violations on flights search page', async ({ page }) => {
+    await page.goto('/flights');
+    await page.waitForLoadState('networkidle');
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    if (accessibilityScanResults.violations.length > 0) {
+      console.log('Accessibility violations found:');
+      accessibilityScanResults.violations.forEach((violation) => {
+        console.log(`- ${violation.id}: ${violation.description}`);
+        console.log(`  Impact: ${violation.impact}`);
+        console.log(`  Nodes affected: ${violation.nodes.length}`);
+      });
+    }
+
+    expect(accessibilityScanResults.violations).toEqual([]);
+
+    console.log('✅ Flights search page has no accessibility violations');
+  });
+
+  test('should have no accessibility violations on flight results page', async ({ page }) => {
+    const dates = getTestDateRange(30, 7);
+    await page.goto(
+      `/flights/results?from=${testFlights.domestic.origin}&to=${testFlights.domestic.destination}&departure=${dates.departureDate}&return=${dates.returnDate}&adults=1`
+    );
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000); // Wait for results to load
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+
+    if (accessibilityScanResults.violations.length > 0) {
+      console.log('Accessibility violations found:');
+      accessibilityScanResults.violations.forEach((violation) => {
+        console.log(`- ${violation.id}: ${violation.description}`);
+      });
+    }
+
+    expect(accessibilityScanResults.violations).toEqual([]);
+
+    console.log('✅ Flight results page has no accessibility violations');
+  });
+
+  test('should have no accessibility violations on hotels page', async ({ page }) => {
+    await page.goto('/hotels');
+    await page.waitForLoadState('networkidle');
+
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa'])
+      .analyze();
+
+    if (accessibilityScanResults.violations.length > 0) {
+      console.log('Accessibility violations found on hotels page:');
+      accessibilityScanResults.violations.forEach((violation) => {
+        console.log(`- ${violation.id}: ${violation.description}`);
+      });
+    }
+
+    expect(accessibilityScanResults.violations).toEqual([]);
+
+    console.log('✅ Hotels page has no accessibility violations');
+  });
+});
+
+test.describe('Accessibility Tests - Manual Verification', () => {
   test('should support keyboard navigation on homepage', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

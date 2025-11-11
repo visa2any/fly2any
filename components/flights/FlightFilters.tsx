@@ -690,6 +690,7 @@ export default function FlightFilters({
             onClick={handleResetAll}
             className="text-primary-600 hover:text-primary-700 font-semibold transition-colors flex items-center gap-0.5"
             style={{ fontSize: '11px' }}
+            aria-label="Reset all filters"
           >
             <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -746,6 +747,9 @@ export default function FlightFilters({
                 WebkitTapHighlightColor: 'transparent',
               }}
               aria-label="Minimum price"
+              aria-valuemin={minPrice}
+              aria-valuemax={maxPrice}
+              aria-valuenow={localFilters.priceRange[0]}
             />
 
             {/* Max Range Slider - BUTTER-SMOOTH DRAGGING */}
@@ -771,6 +775,9 @@ export default function FlightFilters({
                 WebkitTapHighlightColor: 'transparent',
               }}
               aria-label="Maximum price"
+              aria-valuemin={minPrice}
+              aria-valuemax={maxPrice}
+              aria-valuenow={localFilters.priceRange[1]}
             />
           </div>
 
@@ -874,8 +881,9 @@ export default function FlightFilters({
                 checked={localFilters.cabinClass.includes(value)}
                 onChange={() => handleCabinClassToggle(value)}
                 className="sr-only"
+                aria-label={`Filter by ${label}`}
               />
-              <span style={{ fontSize: '14px', marginBottom: '1px' }}>{icon}</span>
+              <span style={{ fontSize: '14px', marginBottom: '1px' }} aria-hidden="true">{icon}</span>
               <span className="font-medium text-gray-900 text-center" style={{ fontSize: '10px' }}>{label}</span>
             </label>
           ))}
@@ -899,6 +907,7 @@ export default function FlightFilters({
               checked={localFilters.excludeBasicEconomy}
               onChange={handleBasicEconomyToggle}
               className="w-3 h-3 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-1 cursor-pointer"
+              aria-label={t.excludeBasicEconomy}
             />
             <div className="flex flex-col flex-1">
               <div className="flex items-center gap-1">
@@ -927,6 +936,7 @@ export default function FlightFilters({
               checked={localFilters.baggageIncluded}
               onChange={handleBaggageToggle}
               className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
+              aria-label={t.baggageIncluded}
             />
             <div className="flex flex-col flex-1">
               <div className="flex items-center gap-1">
@@ -955,6 +965,7 @@ export default function FlightFilters({
               checked={localFilters.refundableOnly}
               onChange={handleRefundableToggle}
               className="w-3 h-3 text-green-600 border-gray-300 rounded focus:ring-green-500 focus:ring-1 cursor-pointer"
+              aria-label={t.refundableOnly}
             />
             <div className="flex flex-col flex-1">
               <div className="flex items-center gap-1">
@@ -990,6 +1001,7 @@ export default function FlightFilters({
                 onFiltersChange(updated);
               }}
               className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-1 cursor-pointer"
+              aria-label={t.ndcOnly}
             />
             <div className="flex flex-col flex-1">
               <div className="flex items-center gap-1">
