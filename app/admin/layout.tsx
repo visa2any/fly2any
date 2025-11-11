@@ -45,9 +45,7 @@ export default async function AdminLayout({
 
         {/* Main content area - full width minus sidebar */}
         <main className="flex-1 p-6">
-          <div className="max-w-[1920px] mx-auto">
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>
