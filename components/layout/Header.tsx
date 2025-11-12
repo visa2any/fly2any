@@ -361,7 +361,7 @@ export function Header({
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform group-hover:scale-110">
-                  📦
+                  🎁
                 </span>
                 {t.packages}
               </span>
