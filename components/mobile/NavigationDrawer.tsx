@@ -287,6 +287,14 @@ export function NavigationDrawer({
                 </span>
               </div>
               <a
+                href="/deals"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🔥</span>
+                <span className="text-base">{translations.deals}</span>
+              </a>
+              <a
                 href="/explore"
                 onClick={onClose}
                 className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"

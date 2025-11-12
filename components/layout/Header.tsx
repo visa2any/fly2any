@@ -52,7 +52,7 @@ export const headerTranslations = {
     tours: 'Tours',
     activities: 'Activities',
     packages: 'Packages',
-    travelInsurance: 'Travel Insurance',
+    travelInsurance: 'Insurance',
     deals: 'Deals',
     discover: 'Discover',
     explore: 'Explore',
@@ -72,7 +72,7 @@ export const headerTranslations = {
     tours: 'Passeios',
     activities: 'Atividades',
     packages: 'Pacotes',
-    travelInsurance: 'Seguro Viagem',
+    travelInsurance: 'Seguro',
     deals: 'Ofertas',
     discover: 'Descobrir',
     explore: 'Explorar',
@@ -92,7 +92,7 @@ export const headerTranslations = {
     tours: 'Tours',
     activities: 'Actividades',
     packages: 'Paquetes',
-    travelInsurance: 'Seguro de Viaje',
+    travelInsurance: 'Seguro',
     deals: 'Ofertas',
     discover: 'Descubrir',
     explore: 'Explorar',
@@ -420,6 +420,13 @@ export function Header({
                   }}
                 >
                   <a
+                    href="/deals"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🔥</span>
+                    <span className="font-semibold text-sm">{t.deals}</span>
+                  </a>
+                  <a
                     href="/explore"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
@@ -463,18 +470,23 @@ export function Header({
               />
             )}
 
-            {/* Language Dropdown - Glassmorphism Style */}
+            {/* Language Selector - Enhanced Compact Design */}
             <div className="relative language-dropdown">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="group flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary-600 transition-all duration-300 rounded-lg hover:bg-primary-50/50"
+                className="group flex items-center gap-1.5 px-3 py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
+                style={{
+                  minWidth: '68px',
+                }}
               >
-                <span className="text-xl transition-transform group-hover:scale-110">
+                <span className="text-base transition-transform group-hover:scale-110">
                   {languages[language].flag}
                 </span>
-                <span className="font-bold text-sm">{languages[language].code}</span>
+                <span className="font-semibold text-xs uppercase tracking-wider text-gray-600 group-hover:text-primary-600">
+                  {languages[language].code}
+                </span>
                 <svg
-                  className={`w-4 h-4 transition-all duration-300 ${langDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`w-3 h-3 text-gray-400 transition-all duration-200 ${langDropdownOpen ? 'rotate-180 text-primary-600' : 'group-hover:text-primary-600'}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -483,34 +495,31 @@ export function Header({
                 </svg>
               </button>
 
-              {/* Dropdown Menu - Premium Glassmorphism */}
+              {/* Dropdown Menu - Clean Minimal Design */}
               {langDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-3 w-52 rounded-2xl overflow-hidden z-dropdown animate-slideDown"
+                  className="absolute right-0 mt-2 w-44 rounded-xl overflow-hidden z-dropdown animate-slideDown shadow-xl"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(12px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    background: 'white',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
                   }}
                 >
                   {(Object.keys(languages) as Language[]).map((languageKey) => (
                     <button
                       key={languageKey}
                       onClick={() => handleLanguageChange(languageKey)}
-                      className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all duration-200 ${
+                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 transition-all duration-150 ${
                         language === languageKey
-                          ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white'
-                          : 'hover:bg-primary-50/50 text-gray-700'
+                          ? 'bg-primary-600 text-white'
+                          : 'hover:bg-gray-50 text-gray-700'
                       }`}
                     >
-                      <span className="text-2xl">{languages[languageKey].flag}</span>
-                      <span className="font-semibold text-sm flex-1 text-left">
+                      <span className="text-lg">{languages[languageKey].flag}</span>
+                      <span className="font-medium text-sm flex-1 text-left">
                         {languages[languageKey].name}
                       </span>
                       {language === languageKey && (
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path
                             fillRule="evenodd"
                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
