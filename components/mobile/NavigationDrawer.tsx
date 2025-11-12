@@ -219,14 +219,6 @@ export function NavigationDrawer({
                 </span>
               </div>
               <a
-                href="/cars"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">🚗</span>
-                <span className="text-base">{translations.cars}</span>
-              </a>
-              <a
                 href="/flights"
                 onClick={onClose}
                 className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
@@ -241,6 +233,14 @@ export function NavigationDrawer({
               >
                 <span className="text-2xl">🏨</span>
                 <span className="text-base">{translations.hotels}</span>
+              </a>
+              <a
+                href="/cars"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🚗</span>
+                <span className="text-base">{translations.cars}</span>
               </a>
               <a
                 href="/tours"

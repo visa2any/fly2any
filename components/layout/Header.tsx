@@ -284,21 +284,7 @@ export function Header({
 
           {/* Main Navigation - Premium Glassmorphism Style */}
           <nav className="hidden lg:flex items-center space-x-1 ml-auto mr-6">
-            {/* Cars - First */}
-            <a
-              href="/cars"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  🚗
-                </span>
-                {t.cars}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
-
-            {/* Flights */}
+            {/* Flights - First */}
             <a
               href="/flights"
               className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
@@ -322,6 +308,20 @@ export function Header({
                   🏨
                 </span>
                 {t.hotels}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Cars */}
+            <a
+              href="/cars"
+              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-lg transition-transform group-hover:scale-110">
+                  🚗
+                </span>
+                {t.cars}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
