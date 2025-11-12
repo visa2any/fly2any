@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, Building2, Plus, Minus } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex } from '@/lib/design-system';
@@ -27,6 +27,7 @@ interface EnhancedSearchBarProps {
   passengers?: PassengerCounts;
   cabinClass?: 'economy' | 'premium' | 'business' | 'first';
   lang?: 'en' | 'pt' | 'es';
+  defaultService?: ServiceType;  // Default tab to show (flights, hotels, cars, tours)
 }
 
 interface Airport {
@@ -140,7 +141,10 @@ const content = {
     flights: 'Flights',
     hotels: 'Hotels',
     cars: 'Car Rentals',
-    tours: 'Tours & Activities',
+    tours: 'Tours',
+    activities: 'Activities',
+    packages: 'Packages',
+    insurance: 'Insurance',
 
     from: 'From',
     to: 'To',
@@ -152,6 +156,9 @@ const content = {
     searchHotels: 'Search Hotels',
     searchCars: 'Search Cars',
     searchTours: 'Search Tours',
+    searchActivities: 'Search Activities',
+    searchPackages: 'Search Packages',
+    searchInsurance: 'Get Quote',
     searching: 'Searching...',
     oneWay: 'One-way',
     roundTrip: 'Round-trip',
@@ -181,7 +188,10 @@ const content = {
     flights: 'Voos',
     hotels: 'Hotéis',
     cars: 'Aluguel de Carros',
-    tours: 'Passeios e Atividades',
+    tours: 'Passeios',
+    activities: 'Atividades',
+    packages: 'Pacotes',
+    insurance: 'Seguro',
 
     from: 'De',
     to: 'Para',
@@ -193,6 +203,9 @@ const content = {
     searchHotels: 'Buscar Hotéis',
     searchCars: 'Buscar Carros',
     searchTours: 'Buscar Passeios',
+    searchActivities: 'Buscar Atividades',
+    searchPackages: 'Buscar Pacotes',
+    searchInsurance: 'Obter Cotação',
     searching: 'Buscando...',
     oneWay: 'Só ida',
     roundTrip: 'Ida e volta',
@@ -222,7 +235,10 @@ const content = {
     flights: 'Vuelos',
     hotels: 'Hoteles',
     cars: 'Alquiler de Autos',
-    tours: 'Tours y Actividades',
+    tours: 'Tours',
+    activities: 'Actividades',
+    packages: 'Paquetes',
+    insurance: 'Seguro',
 
     from: 'Desde',
     to: 'Hasta',
@@ -234,6 +250,9 @@ const content = {
     searchHotels: 'Buscar Hoteles',
     searchCars: 'Buscar Autos',
     searchTours: 'Buscar Tours',
+    searchActivities: 'Buscar Actividades',
+    searchPackages: 'Buscar Paquetes',
+    searchInsurance: 'Obtener Cotización',
     searching: 'Buscando...',
     oneWay: 'Solo ida',
     roundTrip: 'Ida y vuelta',
@@ -268,6 +287,7 @@ export default function EnhancedSearchBar({
   passengers: initialPassengers = { adults: 1, children: 0, infants: 0 },
   cabinClass: initialCabinClass = 'economy',
   lang = 'en',
+  defaultService = 'flights',
 }: EnhancedSearchBarProps) {
   const t = content[lang];
   const router = useRouter();
@@ -292,8 +312,8 @@ export default function EnhancedSearchBar({
 
   const isMultiDateMode = detectMultiDateMode();
 
-  // Service type state
-  const [serviceType, setServiceType] = useState<ServiceType>('flights');
+  // Service type state (defaults to defaultService prop)
+  const [serviceType, setServiceType] = useState<ServiceType>(defaultService);
 
   // Form state
   const [origin, setOrigin] = useState<string[]>(parseAirportCodes(initialOrigin));
@@ -324,6 +344,7 @@ export default function EnhancedSearchBar({
   const [hotelRooms, setHotelRooms] = useState(1);
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
+  const [showHotelGuestPicker, setShowHotelGuestPicker] = useState(false);
   const [minDate, setMinDate] = useState('');
   const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
@@ -947,43 +968,29 @@ export default function EnhancedSearchBar({
       >
         {/* ============================================
             SERVICE TYPE TABS - Option A: Minimal Icon Tabs
+            Dynamic ordering based on defaultService
             ============================================ */}
         <div className="flex items-center gap-6 mb-4 border-b border-gray-200">
-          {/* Flights Tab */}
-          <button
-            type="button"
-            onClick={() => setServiceType('flights')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'flights'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
-          >
-            <Plane size={18} className={serviceType === 'flights' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.flights}</span>
-            {serviceType === 'flights' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
-          </button>
+          {/* Hotels Tab - FIRST when defaultService is 'hotels' */}
+          {defaultService === 'hotels' && (
+            <button
+              type="button"
+              onClick={() => setServiceType('hotels')}
+              className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+                serviceType === 'hotels'
+                  ? 'text-[#0087FF]'
+                  : 'text-gray-600 hover:text-[#0087FF]'
+              }`}
+            >
+              <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
+              <span className="hidden sm:inline">{t.hotels}</span>
+              {serviceType === 'hotels' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+              )}
+            </button>
+          )}
 
-          {/* Hotels Tab */}
-          <button
-            type="button"
-            onClick={() => setServiceType('hotels')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'hotels'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
-          >
-            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.hotels}</span>
-            {serviceType === 'hotels' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
-          </button>
-
-          {/* Cars Tab */}
+          {/* Cars Tab - FIRST */}
           <button
             type="button"
             onClick={() => setServiceType('cars')}
@@ -1000,7 +1007,43 @@ export default function EnhancedSearchBar({
             )}
           </button>
 
-          {/* Tours Tab */}
+          {/* Flights Tab - SECOND */}
+          <button
+            type="button"
+            onClick={() => setServiceType('flights')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'flights'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Plane size={18} className={serviceType === 'flights' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.flights}</span>
+            {serviceType === 'flights' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Hotels Tab - THIRD (when defaultService is NOT 'hotels') */}
+          {defaultService !== 'hotels' && (
+            <button
+              type="button"
+              onClick={() => setServiceType('hotels')}
+              className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+                serviceType === 'hotels'
+                  ? 'text-[#0087FF]'
+                  : 'text-gray-600 hover:text-[#0087FF]'
+              }`}
+            >
+              <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
+              <span className="hidden sm:inline">{t.hotels}</span>
+              {serviceType === 'hotels' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+              )}
+            </button>
+          )}
+
+          {/* Tours Tab - FOURTH */}
           <button
             type="button"
             onClick={() => setServiceType('tours')}
@@ -1013,6 +1056,57 @@ export default function EnhancedSearchBar({
             <Map size={18} className={serviceType === 'tours' ? 'text-[#0087FF]' : 'text-gray-500'} />
             <span className="hidden sm:inline">{t.tours}</span>
             {serviceType === 'tours' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Activities Tab - FIFTH */}
+          <button
+            type="button"
+            onClick={() => setServiceType('activities')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'activities'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Activity size={18} className={serviceType === 'activities' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.activities}</span>
+            {serviceType === 'activities' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Packages Tab - SIXTH */}
+          <button
+            type="button"
+            onClick={() => setServiceType('packages')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'packages'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Package size={18} className={serviceType === 'packages' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.packages}</span>
+            {serviceType === 'packages' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Insurance Tab - SEVENTH */}
+          <button
+            type="button"
+            onClick={() => setServiceType('insurance')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'insurance'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Shield size={18} className={serviceType === 'insurance' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="hidden sm:inline">{t.insurance}</span>
+            {serviceType === 'insurance' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
           </button>
@@ -1967,6 +2061,451 @@ export default function EnhancedSearchBar({
                 ) : (
                   <span>{t.searchCars}</span>
                 )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
+
+          {/* TOURS FIELDS */}
+          {serviceType === 'tours' && (
+          <>
+          {/* Search Fields Row */}
+          <div className="flex items-center gap-3">
+            {/* Tour Destination */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <MapPin size={13} className="text-gray-600" />
+                <span>Destination</span>
+              </label>
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder="City or attraction"
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Tour Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <CalendarDays size={13} className="text-gray-600" />
+                <span>Date</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowHotelCheckInPicker(true)}
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {checkInDate ? formatDateForDisplay(checkInDate) : 'Select date'}
+                </span>
+              </button>
+            </div>
+
+            {/* Travelers */}
+            <div className="flex-1 relative">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Users size={13} className="text-gray-600" />
+                <span>Travelers</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+              >
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {hotelAdults + hotelChildren} {hotelAdults + hotelChildren === 1 ? 'Traveler' : 'Travelers'}
+                </span>
+              </button>
+
+              {/* Guest Picker Dropdown */}
+              {showHotelGuestPicker && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 p-4 space-y-4">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Adults</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(hotelAdults + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Children</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(hotelChildren + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    onClick={() => setShowHotelGuestPicker(false)}
+                    className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button
+                type="button"
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Searching...</span>
+                  </>
+                ) : (
+                  <span>{t.searchTours}</span>
+                )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
+
+          {/* ACTIVITIES FIELDS */}
+          {serviceType === 'activities' && (
+          <>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
+            {/* Activity or Destination */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <MapPin size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Activity or Destination' : lang === 'pt' ? 'Atividade ou Destino' : 'Actividad o Destino'}</span>
+              </label>
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder={lang === 'en' ? 'e.g., Scuba Diving, Paris, Bungee Jump' : lang === 'pt' ? 'ex: Mergulho, Paris, Bungee Jump' : 'ej: Buceo, París, Bungee Jump'}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Activity Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Calendar size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Activity Date' : lang === 'pt' ? 'Data da Atividade' : 'Fecha de Actividad'}</span>
+              </label>
+              <button
+                type="button"
+                ref={hotelCheckInRef}
+                onClick={() => setShowHotelCheckInPicker(true)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
+                  <span className="font-medium text-base text-gray-800">
+                    {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
+                  </span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+            </div>
+
+            {/* Participants */}
+            <div className="flex-1 relative">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Users size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Participants' : lang === 'pt' ? 'Participantes' : 'Participantes'}</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Users size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
+                  <span className="font-medium text-base text-gray-800">
+                    {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'participant' : 'participants') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes') : (hotelAdults + hotelChildren === 1 ? 'participante' : 'participantes')}
+                  </span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+
+              {/* Participants Picker Dropdown */}
+              {showHotelGuestPicker && (
+                <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl z-[60] p-4 space-y-4">
+                  {/* Adults */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Adults' : lang === 'pt' ? 'Adultos' : 'Adultos'}</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelAdults(hotelAdults + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Children */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Children' : lang === 'pt' ? 'Crianças' : 'Niños'}</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelChildren(hotelChildren + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Done Button */}
+                  <button
+                    onClick={() => setShowHotelGuestPicker(false)}
+                    className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all"
+                  >
+                    {lang === 'en' ? 'Done' : lang === 'pt' ? 'Concluído' : 'Listo'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button
+                type="button"
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base"
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Searching...</span>
+                  </>
+                ) : (
+                  <span>{t.searchActivities}</span>
+                )}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
+
+          {/* PACKAGES FIELDS */}
+          {serviceType === 'packages' && (
+          <>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
+            {/* Destination */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <MapPin size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Destination' : lang === 'pt' ? 'Destino' : 'Destino'}</span>
+              </label>
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder={lang === 'en' ? 'e.g., Cancun, Maldives, Dubai' : lang === 'pt' ? 'ex: Cancun, Maldivas, Dubai' : 'ej: Cancún, Maldivas, Dubái'}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Check-in Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Calendar size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Departure Date' : lang === 'pt' ? 'Data de Partida' : 'Fecha de Salida'}</span>
+              </label>
+              <button
+                type="button"
+                ref={hotelCheckInRef}
+                onClick={() => setShowHotelCheckInPicker(true)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
+                  <span className="font-medium text-base text-gray-800">
+                    {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
+                  </span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+            </div>
+
+            {/* Travelers */}
+            <div className="flex-1 relative">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Users size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Travelers' : lang === 'pt' ? 'Viajantes' : 'Viajeros'}</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowHotelGuestPicker(!showHotelGuestPicker)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Users size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
+                  <span className="font-medium text-base text-gray-800">
+                    {hotelAdults + hotelChildren} {lang === 'en' ? (hotelAdults + hotelChildren === 1 ? 'traveler' : 'travelers') : lang === 'pt' ? (hotelAdults + hotelChildren === 1 ? 'viajante' : 'viajantes') : (hotelAdults + hotelChildren === 1 ? 'viajero' : 'viajeros')}
+                  </span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+
+              {/* Travelers Picker Dropdown - reuse hotel guest picker */}
+              {showHotelGuestPicker && (
+                <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl z-[60] p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Adults' : lang === 'pt' ? 'Adultos' : 'Adultos'}</span>
+                    <div className="flex items-center gap-3">
+                      <button type="button" onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
+                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
+                      <button type="button" onClick={() => setHotelAdults(hotelAdults + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">{lang === 'en' ? 'Children' : lang === 'pt' ? 'Crianças' : 'Niños'}</span>
+                    <div className="flex items-center gap-3">
+                      <button type="button" onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"><Minus size={16} /></button>
+                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
+                      <button type="button" onClick={() => setHotelChildren(hotelChildren + 1)} className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"><Plus size={16} /></button>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowHotelGuestPicker(false)} className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all">{lang === 'en' ? 'Done' : lang === 'pt' ? 'Concluído' : 'Listo'}</button>
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
+                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t.searchPackages}</span>)}
+              </button>
+            </div>
+          </div>
+          </>
+          )}
+
+          {/* INSURANCE FIELDS */}
+          {serviceType === 'insurance' && (
+          <>
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4">
+            {/* Trip Destination */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <MapPin size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Trip Destination' : lang === 'pt' ? 'Destino da Viagem' : 'Destino del Viaje'}</span>
+              </label>
+              <input
+                type="text"
+                value={hotelDestination}
+                onChange={(e) => setHotelDestination(e.target.value)}
+                placeholder={lang === 'en' ? 'Where are you traveling?' : lang === 'pt' ? 'Para onde você está viajando?' : '¿A dónde viajas?'}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Trip Start Date */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Calendar size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Trip Start Date' : lang === 'pt' ? 'Data de Início' : 'Fecha de Inicio'}</span>
+              </label>
+              <button
+                type="button"
+                ref={hotelCheckInRef}
+                onClick={() => setShowHotelCheckInPicker(true)}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <CalendarDays size={18} className="text-gray-600 group-hover:text-[#0087FF] transition-colors" />
+                  <span className="font-medium text-base text-gray-800">
+                    {checkInDate ? formatDateForDisplay(checkInDate) : lang === 'en' ? 'Select date' : lang === 'pt' ? 'Selecionar data' : 'Seleccionar fecha'}
+                  </span>
+                </div>
+                <ChevronDown size={18} className="text-gray-400" />
+              </button>
+            </div>
+
+            {/* Trip Cost */}
+            <div className="flex-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <Shield size={13} className="text-gray-600" />
+                <span>{lang === 'en' ? 'Trip Cost' : lang === 'pt' ? 'Custo da Viagem' : 'Costo del Viaje'}</span>
+              </label>
+              <input
+                type="text"
+                placeholder={lang === 'en' ? '$2,000' : lang === 'pt' ? 'R$ 10.000' : '$2,000'}
+                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] focus:outline-none focus:ring-2 focus:ring-[#0087FF] transition-all text-base font-medium"
+              />
+            </div>
+
+            {/* Get Quote Button */}
+            <div className="flex-shrink-0">
+              <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Quote</label>
+              <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
+                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t.searchInsurance}</span>)}
               </button>
             </div>
           </div>
