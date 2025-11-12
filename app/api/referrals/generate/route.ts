@@ -52,8 +52,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a referral code
-    let referralCode = await prisma.referralCode.findFirst({
-      where: { userId: user.id },
+    let referralCode = await prisma.referral.findFirst({
+      where: { referrerId: user.id, status: 'pending' },
     });
 
     // Generate new code if doesn't exist
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
       // Ensure uniqueness
       while (attempts < 10) {
-        const existing = await prisma.referralCode.findUnique({
+        const existing = await prisma.referral.findUnique({
           where: { code },
         });
 
@@ -73,11 +73,11 @@ export async function POST(request: NextRequest) {
         attempts++;
       }
 
-      referralCode = await prisma.referralCode.create({
+      referralCode = await prisma.referral.create({
         data: {
           code,
-          userId: user.id,
-          credits: 500, // 500 credits = $50
+          referrerId: user.id,
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
         },
       });
     }
@@ -145,8 +145,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const referralCode = await prisma.referralCode.findFirst({
-      where: { userId: user.id },
+    const referralCode = await prisma.referral.findFirst({
+      where: { referrerId: user.id },
     });
 
     if (!referralCode) {

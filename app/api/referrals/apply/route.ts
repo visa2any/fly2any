@@ -77,13 +77,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Find referral code
-    const referralCode = await prisma.referralCode.findUnique({
+    const referralCode = await prisma.referral.findUnique({
       where: { code: code.toUpperCase() },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true },
-        },
-      },
     });
 
     if (!referralCode) {
@@ -129,10 +124,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Update referral code usage count
-    await prisma.referralCode.update({
+    await prisma.referral.update({
       where: { id: referralCode.id },
       data: {
-        uses: { increment: 1 },
+        status: 'completed',
+        refereeId: user.id,
+        usedAt: new Date(),
       },
     });
 
