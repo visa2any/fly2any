@@ -7,13 +7,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 // Force Node.js runtime for Prisma
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     // Get authenticated user session
     const session = await auth();
 

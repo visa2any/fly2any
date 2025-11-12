@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +15,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const prisma = getPrismaClient();
     const tripId = params.id;
 
     // Get recent confirmed members (last 24 hours)

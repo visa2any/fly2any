@@ -70,3 +70,7 @@ analyze/
 build-output.log
 build-final.log
 *.log
+.env.production
+.env.vercel
+*.backup
+*.backup2

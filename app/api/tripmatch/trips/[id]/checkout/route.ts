@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 import { stripe, STRIPE_CONFIG, calculatePlatformFee } from '@/lib/stripe/config';
 
 export const runtime = 'nodejs';
@@ -26,6 +26,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const prisma = getPrismaClient();
     // Authentication check
     const session = await auth();
     if (!session?.user?.email) {

@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 
 export const runtime = 'nodejs';
 
@@ -26,6 +26,7 @@ function generateReferralCode(name: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json(

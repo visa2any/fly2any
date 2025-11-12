@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/config';
-import { prisma } from '@/lib/db/prisma';
+import { getPrismaClient } from '@/lib/db/prisma';
 import { convertAmountToCredits } from '@/lib/stripe/config';
 
 export const runtime = 'nodejs';
@@ -18,6 +18,7 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: NextRequest) {
   try {
+    const prisma = getPrismaClient();
     if (!stripe || !webhookSecret) {
       return NextResponse.json(
         { error: 'Webhook not configured' },
