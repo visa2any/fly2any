@@ -109,7 +109,7 @@ export async function POST(
     // Create Stripe Checkout Session
     const baseUrl = request.headers.get('origin') || 'http://localhost:3001';
     const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: STRIPE_CONFIG.paymentMethodTypes,
+      payment_method_types: [...STRIPE_CONFIG.paymentMethodTypes],
       line_items: [
         {
           price_data: {

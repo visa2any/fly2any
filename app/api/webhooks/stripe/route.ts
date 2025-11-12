@@ -11,6 +11,7 @@ import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/config';
 import { getPrismaClient } from '@/lib/db/prisma';
 import { convertAmountToCredits } from '@/lib/stripe/config';
+import type { PrismaClient } from '@prisma/client';
 
 export const runtime = 'nodejs';
 
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await handleCheckoutCompleted(prisma, event.data.object as Stripe.Checkout.Session);
         break;
 
       case 'payment_intent.succeeded':
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'payment_intent.payment_failed':
-        await handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+        await handlePaymentFailed(prisma, event.data.object as Stripe.PaymentIntent);
         break;
 
       case 'charge.refunded':
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(prisma: PrismaClient, session: Stripe.Checkout.Session) {
   const metadata = session.metadata;
   if (!metadata) return;
 
@@ -182,7 +183,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   // Additional payment success handling if needed
 }
 
-async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentFailed(prisma: PrismaClient, paymentIntent: Stripe.PaymentIntent) {
   console.log(`❌ Payment failed: ${paymentIntent.id}`);
 
   // Update member status to failed

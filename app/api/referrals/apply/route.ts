@@ -89,17 +89,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if not self-referral
-    if (referralCode.userId === user.id) {
+    if (referralCode.referrerId === user.id) {
       return NextResponse.json(
         { error: 'Cannot use your own referral code' },
         { status: 400 }
       );
     }
 
-    // Check if max uses reached
-    if (referralCode.maxUses && referralCode.uses >= referralCode.maxUses) {
+    // Check if already used
+    if (referralCode.status === 'completed') {
       return NextResponse.json(
-        { error: 'This referral code has reached its maximum uses' },
+        { error: 'This referral code has already been used' },
         { status: 400 }
       );
     }
@@ -112,24 +112,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create referral record
-    const referral = await prisma.referral.create({
-      data: {
-        referrerId: referralCode.userId,
-        refereeId: user.id,
-        code: referralCode.code,
-        status: 'pending', // Will be completed after first booking
-        creditsAwarded: 0,
-      },
+    // Get referrer user info for notifications
+    const referrer = await prisma.user.findUnique({
+      where: { id: referralCode.referrerId },
+      select: { name: true },
     });
 
-    // Update referral code usage count
+    // Update referral code to mark as used
     await prisma.referral.update({
       where: { id: referralCode.id },
       data: {
         status: 'completed',
         refereeId: user.id,
         usedAt: new Date(),
+        rewardPaid: true,
       },
     });
 
@@ -151,10 +147,10 @@ export async function POST(request: NextRequest) {
         amount: bonusCredits,
         source: 'referral_signup',
         status: 'completed',
-        description: `Referral bonus from ${referralCode.user.name}`,
+        description: `Referral bonus from ${referrer?.name || 'a friend'}`,
         metadata: {
           referralCode: referralCode.code,
-          referrerId: referralCode.userId,
+          referrerId: referralCode.referrerId,
         },
       },
     });
@@ -173,16 +169,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create notification for referrer
+    // Create notification for referrer (they'll get credits when referee makes first booking)
+    const referrerBonusCredits = 100; // Standard referrer reward
     await prisma.notification.create({
       data: {
-        userId: referralCode.userId,
+        userId: referralCode.referrerId,
         type: 'referral_signup',
         title: 'Someone Used Your Referral!',
-        message: `A new user signed up with your code. You'll earn ${referralCode.credits} credits when they make their first booking!`,
+        message: `A new user signed up with your code. You'll earn ${referrerBonusCredits} credits when they make their first booking!`,
         actionUrl: '/tripmatch/dashboard',
         metadata: {
-          potentialCredits: referralCode.credits,
+          potentialCredits: referrerBonusCredits,
         },
       },
     });
@@ -191,7 +188,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         bonusCredits,
-        referrerName: referralCode.user.name,
+        referrerName: referrer?.name || 'a friend',
         message: `Welcome! You've earned ${bonusCredits} credits`,
       },
     });

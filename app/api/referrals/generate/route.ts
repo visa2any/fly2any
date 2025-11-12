@@ -83,26 +83,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Get referral stats
-    const stats = await prisma.referral.aggregate({
+    const stats = await prisma.referral.count({
       where: {
         referrerId: user.id,
         status: 'completed',
       },
-      _sum: {
-        creditsAwarded: true,
+    });
+
+    // Calculate total credits from credit transactions
+    const creditStats = await prisma.creditTransaction.aggregate({
+      where: {
+        userId: user.id,
+        source: 'referral_reward',
+        status: 'completed',
       },
-      _count: true,
+      _sum: {
+        amount: true,
+      },
     });
 
     return NextResponse.json({
       success: true,
       data: {
         code: referralCode.code,
-        credits: referralCode.credits,
         referralUrl: `${request.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL}/ref/${referralCode.code}`,
         stats: {
-          totalReferrals: stats._count,
-          totalCreditsEarned: stats._sum.creditsAwarded || 0,
+          totalReferrals: stats,
+          totalCreditsEarned: creditStats._sum.amount || 0,
         },
       },
     });
@@ -165,37 +172,43 @@ export async function GET(request: NextRequest) {
         where: { referrerId: user.id, status: 'pending' },
       }),
       prisma.referral.findMany({
-        where: { referrerId: user.id },
-        include: {
-          referee: {
-            select: { name: true, createdAt: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
+        where: { referrerId: user.id, status: 'completed' },
+        orderBy: { usedAt: 'desc' },
         take: 5,
       }),
     ]);
 
-    const totalCreditsEarned = await prisma.referral.aggregate({
-      where: { referrerId: user.id, status: 'completed' },
-      _sum: { creditsAwarded: true },
+    // Get referee names for recent referrals
+    const refereeIds = recentReferrals.map(ref => ref.refereeId).filter((id): id is string => id !== null);
+    const referees = await prisma.user.findMany({
+      where: { id: { in: refereeIds } },
+      select: { id: true, name: true, createdAt: true },
+    });
+    const refereeMap = new Map(referees.map(r => [r.id, r]));
+
+    // Calculate total credits earned
+    const totalCreditsEarned = await prisma.creditTransaction.aggregate({
+      where: {
+        userId: user.id,
+        source: 'referral_reward',
+        status: 'completed',
+      },
+      _sum: { amount: true },
     });
 
     return NextResponse.json({
       success: true,
       data: {
         code: referralCode.code,
-        credits: referralCode.credits,
         referralUrl: `${request.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL}/ref/${referralCode.code}`,
         stats: {
           completedReferrals,
           pendingReferrals,
-          totalCreditsEarned: totalCreditsEarned._sum.creditsAwarded || 0,
+          totalCreditsEarned: totalCreditsEarned._sum.amount || 0,
           recentReferrals: recentReferrals.map(ref => ({
-            name: ref.referee.name,
+            name: ref.refereeId ? refereeMap.get(ref.refereeId)?.name || 'Unknown' : 'Unknown',
             status: ref.status,
-            credits: ref.creditsAwarded,
-            date: ref.createdAt,
+            date: ref.usedAt || ref.createdAt,
           })),
         },
       },
