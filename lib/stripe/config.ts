@@ -8,10 +8,7 @@ import Stripe from 'stripe';
 import { loadStripe, Stripe as StripeJS } from '@stripe/stripe-js';
 
 // Server-side Stripe instance
-if (!process.env.STRIPE_SECRET_KEY && process.env.NODE_ENV === 'production') {
-  throw new Error('STRIPE_SECRET_KEY is required in production');
-}
-
+// Note: Allow null during build time, will be checked at runtime in API routes
 export const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2025-10-29.clover',
