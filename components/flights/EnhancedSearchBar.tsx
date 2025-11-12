@@ -968,46 +968,10 @@ export default function EnhancedSearchBar({
       >
         {/* ============================================
             SERVICE TYPE TABS - Option A: Minimal Icon Tabs
-            Dynamic ordering based on defaultService
+            Fixed ordering for hydration compatibility
             ============================================ */}
         <div className="flex items-center gap-6 mb-4 border-b border-gray-200">
-          {/* Hotels Tab - FIRST when defaultService is 'hotels' */}
-          {defaultService === 'hotels' && (
-            <button
-              type="button"
-              onClick={() => setServiceType('hotels')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-                serviceType === 'hotels'
-                  ? 'text-[#0087FF]'
-                  : 'text-gray-600 hover:text-[#0087FF]'
-              }`}
-            >
-              <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-              <span className="text-xs sm:text-sm">{t.hotels}</span>
-              {serviceType === 'hotels' && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-              )}
-            </button>
-          )}
-
-          {/* Cars Tab - FIRST */}
-          <button
-            type="button"
-            onClick={() => setServiceType('cars')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'cars'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
-          >
-            <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.cars}</span>
-            {serviceType === 'cars' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
-          </button>
-
-          {/* Flights Tab - SECOND */}
+          {/* Flights Tab - FIRST */}
           <button
             type="button"
             onClick={() => setServiceType('flights')}
@@ -1024,24 +988,39 @@ export default function EnhancedSearchBar({
             )}
           </button>
 
-          {/* Hotels Tab - THIRD (when defaultService is NOT 'hotels') */}
-          {defaultService !== 'hotels' && (
-            <button
-              type="button"
-              onClick={() => setServiceType('hotels')}
-              className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-                serviceType === 'hotels'
-                  ? 'text-[#0087FF]'
-                  : 'text-gray-600 hover:text-[#0087FF]'
-              }`}
-            >
-              <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-              <span className="text-xs sm:text-sm">{t.hotels}</span>
-              {serviceType === 'hotels' && (
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-              )}
-            </button>
-          )}
+          {/* Hotels Tab - SECOND */}
+          <button
+            type="button"
+            onClick={() => setServiceType('hotels')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'hotels'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="text-xs sm:text-sm">{t.hotels}</span>
+            {serviceType === 'hotels' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
+
+          {/* Cars Tab - THIRD */}
+          <button
+            type="button"
+            onClick={() => setServiceType('cars')}
+            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
+              serviceType === 'cars'
+                ? 'text-[#0087FF]'
+                : 'text-gray-600 hover:text-[#0087FF]'
+            }`}
+          >
+            <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <span className="text-xs sm:text-sm">{t.cars}</span>
+            {serviceType === 'cars' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
+            )}
+          </button>
 
           {/* Tours Tab - FOURTH */}
           <button

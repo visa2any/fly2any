@@ -36,6 +36,14 @@ model User {
   // Metadata
   profileCompleted Boolean @default(false)
 
+  // TripMatch Credits (Travel Rewards System)
+  tripMatchCredits        Int @default(0) // Available credits
+  tripMatchLifetimeEarned Int @default(0) // Total earned (all-time)
+  tripMatchLifetimeSpent  Int @default(0) // Total redeemed (all-time)
+  tripMatchPendingCredits Int @default(0) // Pending/processing credits
+  tripMatchTier           String? // bronze, silver, gold, platinum
+  tripMatchBonusMultiplier Float @default(1.0) // 1.0 = 100%, 1.5 = 150% bonus
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   lastLoginAt DateTime?

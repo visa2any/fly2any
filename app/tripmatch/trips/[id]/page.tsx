@@ -24,6 +24,7 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react';
+import UrgencyIndicators from '@/components/tripmatch/UrgencyIndicators';
 
 interface TripComponent {
   id: string;
@@ -487,6 +488,18 @@ export default function TripDetailPage({ params }: { params: { id: string } }) {
                   ${Math.floor(trip.estimatedPricePerPerson / 100).toLocaleString()}
                 </p>
                 <p className="text-sm opacity-80">{getDurationDays()} days trip</p>
+              </div>
+
+              {/* Urgency Indicators */}
+              <div className="mb-4">
+                <UrgencyIndicators
+                  tripId={trip.id}
+                  currentMembers={trip.currentMembers}
+                  maxMembers={trip.maxMembers}
+                  pricePerPerson={trip.estimatedPricePerPerson}
+                  trending={trip.trending}
+                  featured={trip.featured}
+                />
               </div>
 
               <div className="bg-white/10 rounded-xl p-4 mb-4 space-y-2">
