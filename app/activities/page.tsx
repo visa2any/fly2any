@@ -439,7 +439,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {((t as any).activityTypesData || []).map((activity: any, index: number) => {
+            {(Array.isArray((t as any).activityTypesData) ? (t as any).activityTypesData : content.en.activityTypesData).map((activity: any, index: number) => {
               const icons = [Sparkles, Waves, Palette, Mountain, Heart, Music];
               const IconComponent = icons[index % icons.length];
               const colors = [
@@ -541,7 +541,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {((t as any).destinationsData || []).map((dest: any, index: number) => (
+            {(Array.isArray((t as any).destinationsData) ? (t as any).destinationsData : content.en.destinationsData).map((dest: any, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
@@ -601,7 +601,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {((t as any).durationsData || []).map((duration: any, index: number) => (
+            {(Array.isArray((t as any).durationsData) ? (t as any).durationsData : content.en.durationsData).map((duration: any, index: number) => (
               <div
                 key={index}
                 className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg"
@@ -646,7 +646,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {((t as any).includedData || []).map((item: any, index: number) => {
+            {(Array.isArray((t as any).includedData) ? (t as any).includedData : content.en.includedData).map((item: any, index: number) => {
               const IconComponent = item.icon;
               return (
                 <div
@@ -682,7 +682,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {((t as any).providersData || []).map((provider: any, index: number) => (
+            {(Array.isArray((t as any).providersData) ? (t as any).providersData : content.en.providersData).map((provider: any, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all"
@@ -735,7 +735,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {((t as any).tipsData || []).map((tip: any, index: number) => {
+            {(Array.isArray((t as any).tipsData) ? (t as any).tipsData : content.en.tipsData).map((tip: any, index: number) => {
               const IconComponent = tip.icon;
               return (
                 <div
@@ -764,7 +764,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {((t as any).faqData || []).map((faq: any, index: number) => (
+            {(Array.isArray((t as any).faqData) ? (t as any).faqData : content.en.faqData).map((faq: any, index: number) => (
               <details
                 key={index}
                 className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-purple-300 group"
