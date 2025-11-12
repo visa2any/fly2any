@@ -27,6 +27,8 @@ interface MobileHomeSearchWrapperProps {
   cabinClass?: 'economy' | 'premium' | 'business' | 'first';
   /** Language preference */
   lang?: 'en' | 'pt' | 'es';
+  /** Default service tab (flights, hotels, cars, tours, activities, packages, insurance) */
+  defaultService?: 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
 }
 
 type ViewState = 'collapsed' | 'expanded' | 'hidden';
@@ -59,6 +61,7 @@ export function MobileHomeSearchWrapper({
   passengers = { adults: 1, children: 0, infants: 0 },
   cabinClass,
   lang = 'en',
+  defaultService = 'flights',
 }: MobileHomeSearchWrapperProps) {
   // View state management
   const [viewState, setViewState] = useState<ViewState>('collapsed');
@@ -161,7 +164,7 @@ export function MobileHomeSearchWrapper({
 
   // If not mobile, render EnhancedSearchBar directly (desktop behavior)
   if (!isMobile) {
-    return <EnhancedSearchBar lang={lang} />;
+    return <EnhancedSearchBar lang={lang} defaultService={defaultService} />;
   }
 
   // Mobile rendering with three states
@@ -251,6 +254,7 @@ export function MobileHomeSearchWrapper({
                 passengers={passengers}
                 cabinClass={cabinClass}
                 lang={lang}
+                defaultService={defaultService}
               />
             </div>
           </motion.div>

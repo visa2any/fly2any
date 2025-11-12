@@ -343,7 +343,7 @@ export default function ActivitiesPage() {
   const [lang, setLang] = useState<Language>('en');
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang];
+  const t = content[lang] as any;
 
   useEffect(() => {
     setMounted(true);
@@ -375,7 +375,7 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-6">
             <div className="flex items-baseline gap-1 md:gap-3 flex-nowrap animate-fadeIn overflow-x-auto">
               <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap">
-                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
@@ -383,7 +383,7 @@ export default function ActivitiesPage() {
               </h1>
               <span className="separator-dot text-purple-400 font-medium text-base md:text-xl flex-shrink-0">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
-                {mounted ? t.subtitle.split('').map((char, index) => (
+                {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
@@ -439,7 +439,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.activityTypesData.map((activity, index) => {
+            {((t as any).activityTypesData || []).map((activity: any, index: number) => {
               const icons = [Sparkles, Waves, Palette, Mountain, Heart, Music];
               const IconComponent = icons[index % icons.length];
               const colors = [
@@ -506,7 +506,7 @@ export default function ActivitiesPage() {
                     <div>
                       {/* Feature tags - Subtle but readable */}
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {activity.features.map((feat, i) => (
+                        {activity.features.map((feat: string, i: number) => (
                           <span
                             key={i}
                             className="text-[11px] bg-black/50 backdrop-blur-md text-white/90 px-3 py-1.5 rounded-full font-bold border border-white/30 shadow-md"
@@ -541,7 +541,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.destinationsData?.map((dest, index) => (
+            {((t as any).destinationsData || []).map((dest: any, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
@@ -565,7 +565,7 @@ export default function ActivitiesPage() {
 
                   <div className="space-y-2 mb-4">
                     <p className="text-xs font-semibold text-gray-700">Top Experiences:</p>
-                    {dest.topExperiences.slice(0, 3).map((exp, i) => (
+                    {dest.topExperiences.slice(0, 3).map((exp: string, i: number) => (
                       <div key={i} className="flex items-start gap-2">
                         <ChevronRight className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
                         <span className="text-sm text-gray-600">{exp}</span>
@@ -601,7 +601,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {t.durationsData?.map((duration, index) => (
+            {((t as any).durationsData || []).map((duration: any, index: number) => (
               <div
                 key={index}
                 className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg"
@@ -646,7 +646,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {t.includedData?.map((item, index) => {
+            {((t as any).includedData || []).map((item: any, index: number) => {
               const IconComponent = item.icon;
               return (
                 <div
@@ -682,7 +682,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.providersData?.map((provider, index) => (
+            {((t as any).providersData || []).map((provider: any, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all"
@@ -735,7 +735,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {t.tipsData?.map((tip, index) => {
+            {((t as any).tipsData || []).map((tip: any, index: number) => {
               const IconComponent = tip.icon;
               return (
                 <div
@@ -764,7 +764,7 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {t.faqData?.map((faq, index) => (
+            {((t as any).faqData || []).map((faq: any, index: number) => (
               <details
                 key={index}
                 className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-purple-300 group"

@@ -324,7 +324,7 @@ export default function TravelInsurancePage() {
   const [lang, setLang] = useState<Language>('en');
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang];
+  const t = content[lang] as any;
 
   useEffect(() => {
     setMounted(true);
@@ -356,7 +356,7 @@ export default function TravelInsurancePage() {
           <div className="px-4 md:px-6">
             <div className="flex items-baseline gap-1 md:gap-3 flex-nowrap animate-fadeIn overflow-x-auto">
               <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap">
-                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
@@ -364,7 +364,7 @@ export default function TravelInsurancePage() {
               </h1>
               <span className="separator-dot text-blue-400 font-medium text-base md:text-xl flex-shrink-0">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
-                {mounted ? t.subtitle.split('').map((char, index) => (
+                {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
@@ -420,7 +420,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.coverageTypesData?.map((coverage, index) => {
+            {((t as any).coverageTypesData || []).map((coverage: any, index: number) => {
               const colors = [
                 'from-blue-500 to-indigo-600',
                 'from-indigo-500 to-purple-600',
@@ -479,7 +479,7 @@ export default function TravelInsurancePage() {
 
                     {/* Features */}
                     <div className="space-y-1 mb-3">
-                      {coverage.features.slice(0, 3).map((feature, i) => (
+                      {coverage.features.slice(0, 3).map((feature: string, i: number) => (
                         <div key={i} className="flex items-start gap-2">
                           <CheckCircle className="w-4 h-4 text-blue-300 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
                           <span className="text-sm text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] font-medium">{feature}</span>
@@ -511,7 +511,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.plansData?.map((plan, index) => (
+            {((t as any).plansData || []).map((plan: any, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
@@ -537,7 +537,7 @@ export default function TravelInsurancePage() {
                   <div className="text-3xl font-bold text-blue-600 mb-4">{plan.price}<span className="text-lg text-gray-500">/trip</span></div>
 
                   <div className="space-y-2 mb-4">
-                    {plan.features.map((feature, i) => (
+                    {plan.features.map((feature: string, i: number) => (
                       <div key={i} className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                         <span className="text-sm text-gray-600">{feature}</span>
@@ -570,7 +570,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {t.levelsData?.map((level, index) => (
+            {((t as any).levelsData || []).map((level: any, index: number) => (
               <div
                 key={index}
                 className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 hover:border-blue-400 transition-all hover:shadow-lg"
@@ -609,7 +609,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {t.coveredData?.map((item, index) => {
+            {((t as any).coveredData || []).map((item: any, index: number) => {
               const IconComponent = item.icon;
               return (
                 <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300">
@@ -637,7 +637,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.providersData?.map((provider, index) => (
+            {((t as any).providersData || []).map((provider: any, index: number) => (
               <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-gray-200 hover:border-blue-400 transition-all hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-lg font-bold text-gray-900">{provider.provider}</h3>
@@ -669,7 +669,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {t.tipsData?.map((tip, index) => {
+            {((t as any).tipsData || []).map((tip: any, index: number) => {
               const IconComponent = tip.icon;
               return (
                 <div key={index} className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300">
@@ -698,7 +698,7 @@ export default function TravelInsurancePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {t.faqData?.map((faq, index) => (
+            {((t as any).faqData || []).map((faq: any, index: number) => (
               <details key={index} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group">
                 <summary className="flex items-start justify-between cursor-pointer list-none">
                   <span className="font-semibold text-gray-900 pr-4 group-hover:text-blue-600 transition-colors">

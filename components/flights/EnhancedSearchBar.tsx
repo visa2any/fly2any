@@ -11,7 +11,7 @@ import MultiAirportSelector, { Airport as MultiAirport } from '@/components/comm
 import MultiDatePicker from '@/components/common/MultiDatePicker';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
-type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours';
+type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
 
 interface PassengerCounts {
   adults: number;
@@ -983,7 +983,7 @@ export default function EnhancedSearchBar({
               }`}
             >
               <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-              <span className="hidden sm:inline">{t.hotels}</span>
+              <span className="text-xs sm:text-sm">{t.hotels}</span>
               {serviceType === 'hotels' && (
                 <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
               )}
@@ -1001,7 +1001,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.cars}</span>
+            <span className="text-xs sm:text-sm">{t.cars}</span>
             {serviceType === 'cars' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1018,7 +1018,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Plane size={18} className={serviceType === 'flights' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.flights}</span>
+            <span className="text-xs sm:text-sm">{t.flights}</span>
             {serviceType === 'flights' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1036,7 +1036,7 @@ export default function EnhancedSearchBar({
               }`}
             >
               <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-              <span className="hidden sm:inline">{t.hotels}</span>
+              <span className="text-xs sm:text-sm">{t.hotels}</span>
               {serviceType === 'hotels' && (
                 <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
               )}
@@ -1054,7 +1054,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Map size={18} className={serviceType === 'tours' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.tours}</span>
+            <span className="text-xs sm:text-sm">{t.tours}</span>
             {serviceType === 'tours' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1071,7 +1071,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Activity size={18} className={serviceType === 'activities' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.activities}</span>
+            <span className="text-xs sm:text-sm">{t.activities}</span>
             {serviceType === 'activities' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1088,7 +1088,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Package size={18} className={serviceType === 'packages' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.packages}</span>
+            <span className="text-xs sm:text-sm">{t.packages}</span>
             {serviceType === 'packages' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1105,7 +1105,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Shield size={18} className={serviceType === 'insurance' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="hidden sm:inline">{t.insurance}</span>
+            <span className="text-xs sm:text-sm">{t.insurance}</span>
             {serviceType === 'insurance' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}

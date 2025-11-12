@@ -25,24 +25,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse conversation from request body
-    const conversation: ConversationState = await request.json();
-
-    if (!conversation || !conversation.sessionId) {
+    // Get the actual user ID from database (not email)
+    const { prisma } = await import('@/lib/db/prisma');
+    if (!prisma) {
       return NextResponse.json(
-        { error: 'Invalid conversation data' },
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Parse conversation from request body
+    let conversation: ConversationState;
+    try {
+      conversation = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
         { status: 400 }
       );
     }
 
-    // Save conversation to database
-    await saveConversationToDB(conversation, session.user.email);
+    if (!conversation || !conversation.sessionId) {
+      return NextResponse.json(
+        { error: 'Invalid conversation data - missing sessionId' },
+        { status: 400 }
+      );
+    }
+
+    // Save conversation to database with actual user ID
+    await saveConversationToDB(conversation, user.id);
 
     // Associate with user if not already
     if (!conversation.userId) {
       await associateConversationWithUser(
         conversation.sessionId,
-        session.user.email
+        user.id
       );
     }
 
