@@ -37,12 +37,12 @@ model User {
   profileCompleted Boolean @default(false)
 
   // TripMatch Credits (Travel Rewards System)
-  tripMatchCredits        Int @default(0) // Available credits
-  tripMatchLifetimeEarned Int @default(0) // Total earned (all-time)
-  tripMatchLifetimeSpent  Int @default(0) // Total redeemed (all-time)
-  tripMatchPendingCredits Int @default(0) // Pending/processing credits
-  tripMatchTier           String? // bronze, silver, gold, platinum
-  tripMatchBonusMultiplier Float @default(1.0) // 1.0 = 100%, 1.5 = 150% bonus
+  tripMatchCredits         Int     @default(0) // Available credits
+  tripMatchLifetimeEarned  Int     @default(0) // Total earned (all-time)
+  tripMatchLifetimeSpent   Int     @default(0) // Total redeemed (all-time)
+  tripMatchPendingCredits  Int     @default(0) // Pending/processing credits
+  tripMatchTier            String? // bronze, silver, gold, platinum
+  tripMatchBonusMultiplier Float   @default(1.0) // 1.0 = 100%, 1.5 = 150% bonus
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -62,6 +62,8 @@ model User {
   wishlistItems     WishlistItem[]
   pushSubscriptions PushSubscription[]
   adminUser         AdminUser?
+  createdTrips      TripGroup[]        @relation("TripCreator")
+  groupMemberships  GroupMember[]      @relation("GroupMemberships")
 
   @@map("users")
 }
@@ -468,6 +470,142 @@ model Notification {
   @@index([userId, read])
   @@index([createdAt])
   @@map("notifications")
+}
+
+// ==========================================
+// TripMatch Phase 2: Group Travel & Credits System
+// ==========================================
+
+// TripMatch Referral System
+model Referral {
+  id         String    @id @default(cuid())
+  referrerId String // User who shared the code
+  refereeId  String? // User who used the code (nullable until claimed)
+  code       String    @unique
+  status     String    @default("pending") // pending, completed, expired
+  rewardPaid Boolean   @default(false)
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([code])
+  @@index([status])
+  @@map("referrals")
+}
+
+// TripMatch Credit Transactions
+model CreditTransaction {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String // earn, spend, refund, bonus, expired
+  amount      Int // Credits (can be negative for spend)
+  source      String // trip_booking, referral, bonus, purchase
+  status      String    @default("completed") // pending, completed, failed, reversed
+  description String?
+  metadata    Json? // Additional context (tripId, memberId, etc)
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@index([status])
+  @@map("credit_transactions")
+}
+
+// TripMatch Group Trips
+model TripGroup {
+  id        String @id @default(cuid())
+  creatorId String
+  title     String
+  slug      String @unique
+
+  destination     String
+  destinationCode String? // Airport/city code
+  coverImageUrl   String?
+  description     String   @db.Text
+  highlights      String[]
+
+  // Trip details
+  startDate DateTime
+  endDate   DateTime
+  duration  Int // Days
+
+  // Group settings
+  minMembers     Int @default(2)
+  maxMembers     Int @default(20)
+  currentMembers Int @default(1)
+
+  // Pricing
+  estimatedPricePerPerson String
+  currency                String @default("USD")
+  totalBookingValue       Float  @default(0)
+
+  // Inclusions
+  included String[]
+
+  // Booking settings
+  bookingDeadline    DateTime?
+  cancellationPolicy String?
+
+  // Visibility
+  status     String @default("draft") // draft, published, full, completed, cancelled
+  visibility String @default("public") // public, private, unlisted
+
+  // Tags and categories
+  tags       String[]
+  category   String?  @default("adventure")
+  difficulty String?  @default("moderate")
+
+  // Analytics
+  views        Int @default(0)
+  applications Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  creator User          @relation("TripCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members GroupMember[]
+
+  @@index([creatorId])
+  @@index([slug])
+  @@index([status, visibility])
+  @@index([startDate])
+  @@index([destination])
+  @@map("trip_groups")
+}
+
+// TripMatch Group Members
+model GroupMember {
+  id          String @id @default(cuid())
+  tripGroupId String
+  userId      String
+  role        String @default("member") // creator, member
+
+  // Status
+  status      String    @default("pending") // pending, confirmed, waitlist, cancelled
+  joinedAt    DateTime  @default(now())
+  confirmedAt DateTime?
+
+  // Payment
+  paymentStatus   String    @default("pending") // pending, completed, failed, refunded
+  paymentIntentId String?
+  amountPaid      Float?
+  paidAt          DateTime?
+
+  // Customization preferences
+  customizations Json?
+
+  tripGroup TripGroup @relation(fields: [tripGroupId], references: [id], onDelete: Cascade)
+  user      User      @relation("GroupMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripGroupId, userId])
+  @@index([tripGroupId, status])
+  @@index([userId])
+  @@index([status])
+  @@map("group_members")
 }
 
 // ==========================================
