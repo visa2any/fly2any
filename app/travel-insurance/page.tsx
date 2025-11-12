@@ -17,8 +17,8 @@ type Language = 'en' | 'pt' | 'es';
 const content = {
   en: {
     // Compact Hero Section
-    sectionTitle: 'Comprehensive Travel Insurance for Worry-Free Adventures',
-    subtitle: 'Protection for trip cancellation, medical emergencies, lost luggage & more',
+    sectionTitle: 'Travel Insurance Coverage',
+    subtitle: 'Trip Cancellation, Medical & Baggage Protection',
 
     // Sections
     coverageTypes: 'Coverage Types & Plans',
@@ -297,8 +297,8 @@ const content = {
     ]
   },
   pt: {
-    sectionTitle: 'Seguro Viagem Abrangente para Aventuras sem Preocupações',
-    subtitle: 'Proteção para cancelamento, emergências médicas, bagagem perdida e mais',
+    sectionTitle: 'Cobertura de Seguro Viagem',
+    subtitle: 'Cancelamento, Médico e Proteção de Bagagem',
     coverageTypes: 'Tipos e Planos de Cobertura',
     popularPlans: 'Planos de Seguro Populares',
     coverageLevels: 'Opções de Nível de Cobertura',
@@ -308,8 +308,8 @@ const content = {
     faq: 'Perguntas Frequentes sobre Seguro Viagem'
   },
   es: {
-    sectionTitle: 'Seguro de Viaje Completo para Aventuras sin Preocupaciones',
-    subtitle: 'Protección para cancelación, emergencias médicas, equipaje perdido y más',
+    sectionTitle: 'Cobertura de Seguro de Viaje',
+    subtitle: 'Cancelación, Médico y Protección de Equipaje',
     coverageTypes: 'Tipos y Planes de Cobertura',
     popularPlans: 'Planes de Seguro Populares',
     coverageLevels: 'Opciones de Nivel de Cobertura',
@@ -354,8 +354,8 @@ export default function TravelInsurancePage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
-              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide break-words max-w-full">
+            <div className="flex items-baseline gap-1 md:gap-3 flex-nowrap animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap">
                 {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
@@ -363,7 +363,7 @@ export default function TravelInsurancePage() {
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
               <span className="separator-dot text-blue-400 font-medium text-base md:text-xl flex-shrink-0">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg break-words max-w-full flex-1" style={{ letterSpacing: '0.01em' }}>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
                 {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
