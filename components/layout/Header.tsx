@@ -26,8 +26,12 @@ export interface HeaderTranslations {
   flights: string;
   hotels: string;
   cars: string;
+  tours: string;
+  activities: string;
   packages: string;
+  travelInsurance: string;
   deals: string;
+  discover: string;
   explore: string;
   travelGuide: string;
   faq: string;
@@ -45,8 +49,12 @@ export const headerTranslations = {
     flights: 'Flights',
     hotels: 'Hotels',
     cars: 'Cars',
+    tours: 'Tours',
+    activities: 'Activities',
     packages: 'Packages',
+    travelInsurance: 'Travel Insurance',
     deals: 'Deals',
+    discover: 'Discover',
     explore: 'Explore',
     travelGuide: 'Travel Guide',
     faq: 'FAQ',
@@ -61,8 +69,12 @@ export const headerTranslations = {
     flights: 'Voos',
     hotels: 'Hotéis',
     cars: 'Carros',
+    tours: 'Passeios',
+    activities: 'Atividades',
     packages: 'Pacotes',
+    travelInsurance: 'Seguro Viagem',
     deals: 'Ofertas',
+    discover: 'Descobrir',
     explore: 'Explorar',
     travelGuide: 'Guia de Viagem',
     faq: 'Perguntas',
@@ -77,8 +89,12 @@ export const headerTranslations = {
     flights: 'Vuelos',
     hotels: 'Hoteles',
     cars: 'Autos',
+    tours: 'Tours',
+    activities: 'Actividades',
     packages: 'Paquetes',
+    travelInsurance: 'Seguro de Viaje',
     deals: 'Ofertas',
+    discover: 'Descubrir',
     explore: 'Explorar',
     travelGuide: 'Guía de Viaje',
     faq: 'Preguntas',
@@ -136,6 +152,7 @@ export function Header({
 }: HeaderProps) {
   const { data: session } = useSession();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [discoverDropdownOpen, setDiscoverDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -166,11 +183,14 @@ export function Header({
       if (langDropdownOpen && !target.closest('.language-dropdown')) {
         setLangDropdownOpen(false);
       }
+      if (discoverDropdownOpen && !target.closest('.discover-dropdown')) {
+        setDiscoverDropdownOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [langDropdownOpen]);
+  }, [langDropdownOpen, discoverDropdownOpen]);
 
   // Handle language change
   const handleLanguageChange = (lang: Language) => {
@@ -264,30 +284,7 @@ export function Header({
 
           {/* Main Navigation - Premium Glassmorphism Style */}
           <nav className="hidden lg:flex items-center space-x-1 ml-auto mr-6">
-            <a
-              href="/flights"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  ✈️
-                </span>
-                {t.flights}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
-            <a
-              href="/hotels"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  🏨
-                </span>
-                {t.hotels}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
+            {/* Cars - First */}
             <a
               href="/cars"
               className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
@@ -300,6 +297,64 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+
+            {/* Flights */}
+            <a
+              href="/flights"
+              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-lg transition-transform group-hover:scale-110">
+                  ✈️
+                </span>
+                {t.flights}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Hotels */}
+            <a
+              href="/hotels"
+              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-lg transition-transform group-hover:scale-110">
+                  🏨
+                </span>
+                {t.hotels}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Tours */}
+            <a
+              href="/tours"
+              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-lg transition-transform group-hover:scale-110">
+                  🎯
+                </span>
+                {t.tours}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Activities */}
+            <a
+              href="/activities"
+              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-lg transition-transform group-hover:scale-110">
+                  🎪
+                </span>
+                {t.activities}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Packages */}
             <a
               href="/packages"
               className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
@@ -312,54 +367,82 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+
+            {/* Travel Insurance */}
             <a
-              href="/deals"
+              href="/travel-insurance"
               className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform group-hover:scale-110">
-                  💰
+                  🛡️
                 </span>
-                {t.deals}
+                {t.travelInsurance}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
-            <a
-              href="/explore"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  🌍
+
+            {/* Discover Dropdown */}
+            <div className="relative discover-dropdown">
+              <button
+                onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
+                onMouseEnter={() => setDiscoverDropdownOpen(true)}
+                className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50 flex items-center gap-1.5"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="text-lg transition-transform group-hover:scale-110">
+                    🗺️
+                  </span>
+                  {t.discover}
                 </span>
-                {t.explore}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
-            <a
-              href="/travel-guide"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  📚
-                </span>
-                {t.travelGuide}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
-            <a
-              href="/faq"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
-            >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
-                  ❓
-                </span>
-                {t.faq}
-              </span>
-              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-            </a>
+                <svg
+                  className={`w-4 h-4 transition-all duration-300 ${discoverDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+                <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+              </button>
+
+              {/* Dropdown Menu */}
+              {discoverDropdownOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-56 rounded-2xl overflow-hidden z-dropdown animate-slideDown"
+                  onMouseLeave={() => setDiscoverDropdownOpen(false)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(12px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <a
+                    href="/explore"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🌍</span>
+                    <span className="font-semibold text-sm">{t.explore}</span>
+                  </a>
+                  <a
+                    href="/travel-guide"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">📚</span>
+                    <span className="font-semibold text-sm">{t.travelGuide}</span>
+                  </a>
+                  <a
+                    href="/faq"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">❓</span>
+                    <span className="font-semibold text-sm">{t.faq}</span>
+                  </a>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Right Actions */}

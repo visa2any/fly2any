@@ -1,586 +1,474 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { AirportAutocomplete } from '@/components/search/AirportAutocomplete';
+import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import PopularRoutesSection from '@/components/home/PopularRoutesSection';
-import { Plane, PlaneTakeoff, PlaneLanding } from 'lucide-react';
+import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
+import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSectionEnhanced';
+import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
+import {
+  Plane, Star, Wifi, TvMinimalPlay, UtensilsCrossed, Armchair,
+  Luggage, CreditCard, Award, Globe, Shield, ChevronRight,
+  Sparkles, TrendingUp, Clock, DollarSign, AlertCircle, Calendar
+} from 'lucide-react';
 
 type Language = 'en' | 'pt' | 'es';
-type TripType = 'roundtrip' | 'oneway';
-type TravelClass = 'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST';
+
+// Base data (language-agnostic)
+const baseCabinClasses = [
+  {
+    name: 'Economy Class',
+    description: 'Affordable comfort for budget-conscious travelers',
+    priceRange: '$200-$800',
+    icon: Plane,
+    color: 'from-blue-500 to-cyan-600',
+    features: ['Standard Seat', 'Carry-on Bag', 'Meal Service', 'Entertainment'],
+    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80' // Economy cabin
+  },
+  {
+    name: 'Premium Economy',
+    description: 'Extra legroom and enhanced amenities',
+    priceRange: '$500-$1,500',
+    icon: Armchair,
+    color: 'from-indigo-500 to-purple-600',
+    features: ['Extra Legroom', '2 Checked Bags', 'Priority Boarding', 'Premium Meals'],
+    image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=800&q=80' // Premium cabin
+  },
+  {
+    name: 'Business Class',
+    description: 'Lie-flat seats, gourmet dining, luxury lounges',
+    priceRange: '$2,000-$8,000',
+    icon: Award,
+    color: 'from-amber-500 to-orange-600',
+    features: ['Lie-Flat Seat', 'Lounge Access', 'Fine Dining', 'Priority Everything'],
+    image: 'https://images.unsplash.com/photo-1568495248636-6432b97bd949?w=800&q=80' // Business class
+  },
+  {
+    name: 'First Class',
+    description: 'Ultimate luxury with private suites and concierge',
+    priceRange: '$5,000-$20,000',
+    icon: Sparkles,
+    color: 'from-purple-500 to-pink-600',
+    features: ['Private Suite', 'Personal Chef', 'Chauffeur Service', 'Shower Spa'],
+    image: 'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=800&q=80' // First class luxury cabin interior
+  },
+];
+
+const baseAlliances = [
+  {
+    name: 'Star Alliance',
+    airlines: '26 airlines',
+    network: '1,200+ destinations',
+    logo: '⭐',
+    color: 'from-yellow-500 to-amber-600',
+    benefits: ['Miles pooling', 'Lounge access', 'Priority check-in']
+  },
+  {
+    name: 'oneworld',
+    airlines: '13 airlines',
+    network: '900+ destinations',
+    logo: '🌐',
+    color: 'from-red-500 to-rose-600',
+    benefits: ['Award travel', 'Fast track', 'Baggage priority']
+  },
+  {
+    name: 'SkyTeam',
+    airlines: '19 airlines',
+    network: '1,000+ destinations',
+    logo: '✈️',
+    color: 'from-blue-500 to-indigo-600',
+    benefits: ['Elite status', 'Upgrades', 'Global lounges']
+  },
+  {
+    name: 'Low-Cost Carriers',
+    airlines: 'Ryanair, Southwest, EasyJet',
+    network: 'Regional focus',
+    logo: '💰',
+    color: 'from-green-500 to-emerald-600',
+    benefits: ['Best prices', 'No frills', 'Direct booking']
+  },
+];
+
+const baseFlightFeatures = [
+  { name: 'WiFi', icon: Wifi, availability: '85% of flights' },
+  { name: 'Entertainment', icon: TvMinimalPlay, availability: '92% of flights' },
+  { name: 'Meals', icon: UtensilsCrossed, availability: '78% of flights' },
+  { name: 'Extra Legroom', icon: Armchair, availability: 'Paid upgrade' },
+  { name: 'Lounge Access', icon: Award, availability: 'Business/First' },
+  { name: 'Checked Bags', icon: Luggage, availability: 'Varies by fare' },
+];
+
+const baseBookingTips = [
+  {
+    tip: 'Book Tuesday-Thursday',
+    description: 'Airlines release deals on Monday evenings. Best prices appear Tuesday-Thursday',
+    icon: Calendar
+  },
+  {
+    tip: 'Book 6-8 weeks in advance',
+    description: 'Domestic flights peak pricing 3 weeks out. International 2-3 months ahead',
+    icon: Clock
+  },
+  {
+    tip: 'Use incognito mode',
+    description: 'Airlines track cookies and may raise prices on repeat searches',
+    icon: Shield
+  },
+  {
+    tip: 'Price tracking tools',
+    description: 'Set alerts for price drops. Hopper, Google Flights, Skyscanner',
+    icon: TrendingUp
+  },
+  {
+    tip: 'Consider nearby airports',
+    description: 'Flying from/to alternative airports can save $100-300',
+    icon: Globe
+  },
+  {
+    tip: 'Watch for hidden fees',
+    description: 'Seat selection, bags, meals can add $50-200. Factor into total cost',
+    icon: DollarSign
+  },
+];
+
+const baseFaqs = [
+  { q: 'When is the best time to book flights?', a: 'For domestic flights, book 1-3 months ahead. International flights: 2-8 months. Tuesday-Thursday mornings often have best prices.' },
+  { q: 'Can I change or cancel my flight?', a: 'Depends on fare type. Basic economy is non-changeable. Flexible fares allow changes for $50-300 fee. Premium cabins offer free changes.' },
+  { q: 'What are baggage allowances?', a: 'Economy: 1 carry-on (free), checked bags $30-50 each. Premium: 2+ bags free. Weight limits: 50lbs domestic, 70lbs international.' },
+  { q: 'How do I get flight upgrades?', a: 'Join airline loyalty programs, fly frequently for status, bid on upgrades, use miles, ask at check-in (low success rate).' },
+  { q: 'What if my flight is delayed/cancelled?', a: 'US: Airlines must rebook you free. EU: Compensation €250-600 for delays 3+ hours. Get meal vouchers, hotel if overnight.' },
+  { q: 'Are connecting flights risky?', a: 'Leave 60-90 min domestic, 2-3 hours international. Book same ticket for protection. Airlines responsible if connection missed.' },
+];
 
 const content = {
   en: {
-    title: 'Find Your Perfect Flight',
-    subtitle: 'Search and compare flights from hundreds of airlines',
-    tripType: {
-      roundtrip: 'Round Trip',
-      oneway: 'One Way',
-    },
-    from: 'From',
-    to: 'To',
-    departure: 'Departure',
-    return: 'Return',
-    passengers: 'Passengers',
-    class: 'Class',
-    classes: {
-      ECONOMY: 'Economy',
-      PREMIUM_ECONOMY: 'Premium Economy',
-      BUSINESS: 'Business',
-      FIRST: 'First Class',
-    },
-    adults: 'Adults',
-    children: 'Children',
-    infants: 'Infants',
-    search: 'Search Flights',
-    directFlights: 'Direct flights only',
-    errors: {
-      originRequired: 'Please select an origin airport',
-      destinationRequired: 'Please select a destination airport',
-      departureDateRequired: 'Please select a departure date',
-      departureDatePast: 'Departure date must be in the future',
-      returnDateRequired: 'Please select a return date for round trip',
-      returnDateInvalid: 'Return date must be after departure date',
-    },
+    pageTitle: 'Find Your Perfect Flight',
+    sectionTitle: 'Search, Compare & Book Flights with Confidence',
+    subtitle: 'AI-powered search across 500+ airlines for the best deals',
+    cabinClassTitle: '✈️ Flight Classes & Cabin Types',
+    cabinClassSubtitle: 'Choose the perfect cabin for your journey',
+    cabinClasses: baseCabinClasses,
+    alliancesTitle: '🌐 Airlines by Alliance',
+    alliancesSubtitle: 'Maximize your loyalty benefits and global network',
+    alliances: baseAlliances,
+    featuresTitle: '💼 Flight Features & Services',
+    featuresSubtitle: 'What to expect on modern flights',
+    features: baseFlightFeatures,
+    tipsTitle: '🎯 Expert Flight Booking Tips',
+    tipsSubtitle: 'Save money and get the best experience',
+    tips: baseBookingTips,
+    faqTitle: '❓ Flight Booking FAQ',
+    faqs: baseFaqs,
   },
   pt: {
-    title: 'Encontre Seu Voo Perfeito',
-    subtitle: 'Busque e compare voos de centenas de companhias aéreas',
-    tripType: {
-      roundtrip: 'Ida e Volta',
-      oneway: 'Somente Ida',
-    },
-    from: 'De',
-    to: 'Para',
-    departure: 'Ida',
-    return: 'Volta',
-    passengers: 'Passageiros',
-    class: 'Classe',
-    classes: {
-      ECONOMY: 'Econômica',
-      PREMIUM_ECONOMY: 'Econômica Premium',
-      BUSINESS: 'Executiva',
-      FIRST: 'Primeira Classe',
-    },
-    adults: 'Adultos',
-    children: 'Crianças',
-    infants: 'Bebês',
-    search: 'Buscar Voos',
-    directFlights: 'Apenas voos diretos',
-    errors: {
-      originRequired: 'Por favor, selecione um aeroporto de origem',
-      destinationRequired: 'Por favor, selecione um aeroporto de destino',
-      departureDateRequired: 'Por favor, selecione uma data de partida',
-      departureDatePast: 'A data de partida deve ser no futuro',
-      returnDateRequired: 'Por favor, selecione uma data de retorno',
-      returnDateInvalid: 'A data de retorno deve ser após a data de partida',
-    },
+    pageTitle: 'Encontre Seu Voo Perfeito',
+    sectionTitle: 'Busque, Compare e Reserve Voos com Confiança',
+    subtitle: 'Busca com IA em 500+ companhias aéreas para as melhores ofertas',
+    cabinClassTitle: '✈️ Classes e Tipos de Cabine',
+    cabinClassSubtitle: 'Escolha a cabine perfeita para sua viagem',
+    cabinClasses: baseCabinClasses,
+    alliancesTitle: '🌐 Companhias por Aliança',
+    alliancesSubtitle: 'Maximize benefícios de fidelidade e rede global',
+    alliances: baseAlliances,
+    featuresTitle: '💼 Recursos e Serviços de Voo',
+    featuresSubtitle: 'O que esperar em voos modernos',
+    features: baseFlightFeatures,
+    tipsTitle: '🎯 Dicas de Reserva',
+    tipsSubtitle: 'Economize e tenha a melhor experiência',
+    tips: baseBookingTips,
+    faqTitle: '❓ Perguntas Frequentes',
+    faqs: baseFaqs,
   },
   es: {
-    title: 'Encuentra Tu Vuelo Perfecto',
-    subtitle: 'Busca y compara vuelos de cientos de aerolíneas',
-    tripType: {
-      roundtrip: 'Ida y Vuelta',
-      oneway: 'Solo Ida',
-    },
-    from: 'De',
-    to: 'Para',
-    departure: 'Ida',
-    return: 'Vuelta',
-    passengers: 'Pasajeros',
-    class: 'Clase',
-    classes: {
-      ECONOMY: 'Económica',
-      PREMIUM_ECONOMY: 'Económica Premium',
-      BUSINESS: 'Ejecutiva',
-      FIRST: 'Primera Clase',
-    },
-    adults: 'Adultos',
-    children: 'Niños',
-    infants: 'Bebés',
-    search: 'Buscar Vuelos',
-    directFlights: 'Solo vuelos directos',
-    errors: {
-      originRequired: 'Por favor, seleccione un aeropuerto de origen',
-      destinationRequired: 'Por favor, seleccione un aeropuerto de destino',
-      departureDateRequired: 'Por favor, seleccione una fecha de salida',
-      departureDatePast: 'La fecha de salida debe ser en el futuro',
-      returnDateRequired: 'Por favor, seleccione una fecha de retorno',
-      returnDateInvalid: 'La fecha de retorno debe ser después de la fecha de salida',
-    },
+    pageTitle: 'Encuentra Tu Vuelo Perfecto',
+    sectionTitle: 'Busca, Compara y Reserva Vuelos con Confianza',
+    subtitle: 'Búsqueda con IA en 500+ aerolíneas para las mejores ofertas',
+    cabinClassTitle: '✈️ Clases y Tipos de Cabina',
+    cabinClassSubtitle: 'Elige la cabina perfecta para tu viaje',
+    cabinClasses: baseCabinClasses,
+    alliancesTitle: '🌐 Aerolíneas por Alianza',
+    alliancesSubtitle: 'Maximiza beneficios de lealtad y red global',
+    alliances: baseAlliances,
+    featuresTitle: '💼 Características y Servicios',
+    featuresSubtitle: 'Qué esperar en vuelos modernos',
+    features: baseFlightFeatures,
+    tipsTitle: '🎯 Consejos de Reserva',
+    tipsSubtitle: 'Ahorra y ten la mejor experiencia',
+    tips: baseBookingTips,
+    faqTitle: '❓ Preguntas Frecuentes',
+    faqs: baseFaqs,
   },
 };
 
 export default function FlightsPage() {
-  const router = useRouter();
   const [lang, setLang] = useState<Language>('en');
-  const [tripType, setTripType] = useState<TripType>('roundtrip');
-  const [travelClass, setTravelClass] = useState<TravelClass>('ECONOMY');
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [infants, setInfants] = useState(0);
-  const [directFlights, setDirectFlights] = useState(false);
-
-  // Form field states
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [returnDate, setReturnDate] = useState('');
-
-  // Error and loading states
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [animationKey, setAnimationKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const t = content[lang];
 
-  // Extract airport code from formatted string (e.g., "JFK - New York" -> "JFK")
-  // Also handles manual 3-letter code entry (e.g., "jfk" -> "JFK")
-  const extractAirportCode = (value: string): string => {
-    if (!value) return '';
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    // Trim and uppercase the input
-    const trimmed = value.trim().toUpperCase();
-
-    // Check if it's already a 3-letter code
-    if (/^[A-Z]{3}$/.test(trimmed)) {
-      return trimmed;
-    }
-
-    // Try to extract from formatted string (e.g., "JFK - New York")
-    const match = trimmed.match(/^([A-Z]{3})/);
-    if (match) {
-      return match[1];
-    }
-
-    // If input is 3 letters (even if lowercase), accept it
-    if (trimmed.length === 3 && /^[A-Z]{3}$/.test(trimmed)) {
-      return trimmed;
-    }
-
-    // Return as-is if nothing matches (will be caught by validation)
-    return trimmed;
-  };
-
-  // Validate form
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    // Validate origin
-    if (!from || from.trim() === '') {
-      newErrors.from = t.errors.originRequired;
-    }
-
-    // Validate destination
-    if (!to || to.trim() === '') {
-      newErrors.to = t.errors.destinationRequired;
-    }
-
-    // Validate departure date
-    if (!departureDate) {
-      newErrors.departureDate = t.errors.departureDateRequired;
-    } else {
-      const departure = new Date(departureDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (departure < today) {
-        newErrors.departureDate = t.errors.departureDatePast;
-      }
-    }
-
-    // Validate return date for round trip
-    if (tripType === 'roundtrip') {
-      if (!returnDate) {
-        newErrors.returnDate = t.errors.returnDateRequired;
-      } else if (departureDate && returnDate) {
-        const departure = new Date(departureDate);
-        const returnD = new Date(returnDate);
-
-        if (returnD <= departure) {
-          newErrors.returnDate = t.errors.returnDateInvalid;
-        }
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handle search submission
-  const handleSearch = async () => {
-    console.log('🔍 SEARCH INITIATED');
-    console.log('📋 Form Values:', { from, to, departureDate, returnDate, tripType });
-
-    // Validate form
-    const isValid = validateForm();
-    console.log('✅ Validation result:', isValid);
-
-    if (!isValid) {
-      console.log('❌ Validation failed, errors:', errors);
-      return;
-    }
-
-    setIsLoading(true);
-    console.log('⏳ Loading state set to true');
-
-    try {
-      // Extract airport codes
-      const originCode = extractAirportCode(from);
-      const destinationCode = extractAirportCode(to);
-
-      console.log('🛫 Extracted airport codes:', {
-        from,
-        originCode,
-        to,
-        destinationCode
-      });
-
-      // Validate extracted codes
-      if (!originCode || originCode.length !== 3) {
-        const errorMsg = `Invalid origin airport code: "${originCode}". Please select a valid airport from the dropdown or enter a 3-letter code (e.g., JFK).`;
-        console.error('❌', errorMsg);
-        alert(errorMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      if (!destinationCode || destinationCode.length !== 3) {
-        const errorMsg = `Invalid destination airport code: "${destinationCode}". Please select a valid airport from the dropdown or enter a 3-letter code (e.g., LAX).`;
-        console.error('❌', errorMsg);
-        alert(errorMsg);
-        setIsLoading(false);
-        return;
-      }
-
-      // Build query parameters
-      const params = new URLSearchParams({
-        from: originCode,
-        to: destinationCode,
-        departure: departureDate,
-        adults: adults.toString(),
-        children: children.toString(),
-        infants: infants.toString(),
-        class: travelClass.toLowerCase(),
-      });
-
-      // Add return date for round trip
-      if (tripType === 'roundtrip' && returnDate) {
-        params.append('return', returnDate);
-      }
-
-      // Add direct flights filter if selected
-      if (directFlights) {
-        params.append('direct', 'true');
-      }
-
-      const url = `/flights/results?${params.toString()}`;
-      console.log('🚀 Navigating to results page:', url);
-      console.log('📦 Full URL params:', Object.fromEntries(params));
-
-      // Navigate in same window for proper layout and navigation
-      router.push(url);
-    } catch (error) {
-      console.error('💥 Error during search:', error);
-      alert(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationKey(prev => prev + 1);
+    }, 12000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center">
-            <Image
-              src="/fly2any-logo.png"
-              alt="Fly2Any Travel"
-              width={200}
-              height={60}
-              className="h-12 w-auto"
-            />
-          </a>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section - Blue Theme */}
+      <div className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 border-b border-gray-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="floating-orb floating-orb-1"></div>
+          <div className="floating-orb floating-orb-2"></div>
+          <div className="floating-orb floating-orb-3"></div>
+        </div>
 
-          {/* Language Switcher */}
-          <div className="flex gap-2">
-            {(['en', 'pt', 'es'] as Language[]).map((language) => (
-              <button
-                key={language}
-                onClick={() => setLang(language)}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  lang === language
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {language.toUpperCase()}
-              </button>
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(59, 130, 246) 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }}></div>
+
+        <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
+          <div className="px-4 md:px-6">
+            <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide">
+                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
+              </h1>
+              <span className="separator-dot text-cyan-400 font-medium text-base md:text-xl">•</span>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg" style={{ letterSpacing: '0.01em' }}>
+                {mounted ? t.subtitle.split('').map((char, index) => (
+                  <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
+              </p>
+            </div>
+          </div>
+        </MaxWidthContainer>
+      </div>
+
+      <style jsx>{`
+        .floating-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.15; animation: float 20s ease-in-out infinite; z-index: 0; }
+        .floating-orb-1 { width: 200px; height: 200px; background: linear-gradient(135deg, #3b82f6, #06b6d4); top: -80px; left: 5%; animation-delay: 0s; animation-duration: 25s; }
+        .floating-orb-2 { width: 180px; height: 180px; background: linear-gradient(135deg, #0891b2, #1e40af); top: -60px; right: 10%; animation-delay: 5s; animation-duration: 30s; }
+        .floating-orb-3 { width: 150px; height: 150px; background: linear-gradient(135deg, #06b6d4, #3b82f6); bottom: -50px; left: 50%; animation-delay: 10s; animation-duration: 28s; }
+        @media (min-width: 768px) {
+          .floating-orb-1 { width: 300px; height: 300px; top: -150px; left: 10%; }
+          .floating-orb-2 { width: 250px; height: 250px; top: -100px; right: 15%; }
+          .floating-orb-3 { width: 200px; height: 200px; bottom: -100px; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(10px, -8px) scale(1.02); }
+          50% { transform: translate(-8px, 5px) scale(0.98); }
+          75% { transform: translate(6px, -6px) scale(1.01); }
+        }
+        .hero-title { color: #1e40af; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(30, 64, 175, 0.15); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; }
+        @keyframes dotPulse { 0%, 100% { transform: scale(1) translateZ(0); opacity: 0.7; } 50% { transform: scale(1.2) translateZ(0); opacity: 1; } }
+        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
+        @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
+        @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
+      `}</style>
+
+      {/* Search Bar */}
+      <div className="border-b border-gray-100">
+        <MobileHomeSearchWrapper lang={lang} />
+      </div>
+
+      {/* Compact Trust Bar */}
+      <CompactTrustBar sticky />
+
+      {/* ============ EXISTING FLIGHT SECTIONS ============ */}
+
+      {/* Recently Viewed */}
+      <div className="mt-3 md:mt-5">
+        <RecentlyViewedSection lang={lang} />
+      </div>
+
+      {/* Flash Deals */}
+      <div className="mt-3 md:mt-5">
+        <FlashDealsSectionEnhanced lang={lang} />
+      </div>
+
+      {/* Popular Routes */}
+      <div className="mt-3 md:mt-5">
+        <PopularRoutesSection />
+      </div>
+
+      {/* ============ NEW FLIGHT-SPECIFIC SECTIONS ============ */}
+
+      {/* 1. Flight Classes & Cabin Types - WITH PHOTOS */}
+      <div className="bg-gradient-to-br from-gray-50 to-white py-8 md:py-12">
+        <MaxWidthContainer>
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.cabinClassTitle}</h2>
+            <p className="text-gray-600">{t.cabinClassSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {t.cabinClasses.map((cabin, idx) => {
+              const IconComponent = cabin.icon;
+              return (
+                <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-blue-400 group cursor-pointer h-[320px]">
+                  <Image
+                    src={cabin.image}
+                    alt={cabin.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent"></div>
+                  <div className="relative h-full p-6 flex flex-col justify-between">
+                    <div>
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${cabin.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
+                        <IconComponent className="w-7 h-7 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">{cabin.name}</h3>
+                      <p className="text-sm text-white/90 mb-3 drop-shadow-md">{cabin.description}</p>
+                      <div className="text-xl font-bold text-blue-400 mb-3 drop-shadow-lg">{cabin.priceRange}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {cabin.features.map((feat, i) => (
+                          <span key={i} className="text-xs bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-white border border-white/30">{feat}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </MaxWidthContainer>
+      </div>
+
+      {/* 2. Airlines by Alliance */}
+      <div className="bg-white py-8 md:py-12">
+        <MaxWidthContainer>
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.alliancesTitle}</h2>
+            <p className="text-gray-600">{t.alliancesSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {t.alliances.map((alliance, idx) => (
+              <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer">
+                <div className="text-5xl mb-3 text-center">{alliance.logo}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{alliance.name}</h3>
+                <p className="text-sm text-gray-600 mb-1 text-center">{alliance.airlines}</p>
+                <p className="text-sm font-semibold text-blue-600 mb-4 text-center">{alliance.network}</p>
+                <div className="space-y-1">
+                  {alliance.benefits.map((benefit, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <ChevronRight className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="text-xs text-gray-700">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-      </header>
+        </MaxWidthContainer>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {t.title}
-          </h1>
-          <p className="text-xl text-gray-600">
-            {t.subtitle}
-          </p>
-        </div>
-
-        {/* Search Form */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8 mb-12">
-          {/* Trip Type Toggle */}
-          <div className="flex gap-4 mb-6">
-            <button
-              onClick={() => setTripType('roundtrip')}
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all duration-300 ${
-                tripType === 'roundtrip'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {t.tripType.roundtrip}
-            </button>
-            <button
-              onClick={() => setTripType('oneway')}
-              className={`flex-1 py-3 px-6 rounded-full font-semibold transition-all duration-300 ${
-                tripType === 'oneway'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {t.tripType.oneway}
-            </button>
+      {/* 3. Flight Features & Services */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-8 md:py-12">
+        <MaxWidthContainer>
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.featuresTitle}</h2>
+            <p className="text-gray-600">{t.featuresSubtitle}</p>
           </div>
-
-          {/* Flight Search Inputs */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {/* From */}
-            <div>
-              <AirportAutocomplete
-                label={t.from}
-                placeholder="JFK - New York"
-                value={from}
-                onChange={(value) => {
-                  setFrom(value);
-                  if (errors.from) {
-                    setErrors({ ...errors, from: '' });
-                  }
-                }}
-                icon={<PlaneTakeoff className="w-5 h-5" />}
-              />
-              {errors.from && (
-                <p className="mt-1 text-sm text-red-600">{errors.from}</p>
-              )}
-            </div>
-
-            {/* To */}
-            <div>
-              <AirportAutocomplete
-                label={t.to}
-                placeholder="LAX - Los Angeles"
-                value={to}
-                onChange={(value) => {
-                  setTo(value);
-                  if (errors.to) {
-                    setErrors({ ...errors, to: '' });
-                  }
-                }}
-                icon={<PlaneLanding className="w-5 h-5" />}
-                showExplore={true}
-              />
-              {errors.to && (
-                <p className="mt-1 text-sm text-red-600">{errors.to}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {/* Departure Date */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {t.departure}
-              </label>
-              <input
-                type="date"
-                value={departureDate}
-                onChange={(e) => {
-                  setDepartureDate(e.target.value);
-                  if (errors.departureDate) {
-                    setErrors({ ...errors, departureDate: '' });
-                  }
-                }}
-                min={new Date().toISOString().split('T')[0]}
-                className={`w-full px-4 py-3 rounded-xl border-2 ${
-                  errors.departureDate ? 'border-red-500' : 'border-gray-200'
-                } focus:border-blue-500 focus:outline-none transition-colors`}
-              />
-              {errors.departureDate && (
-                <p className="mt-1 text-sm text-red-600">{errors.departureDate}</p>
-              )}
-            </div>
-
-            {/* Return Date */}
-            {tripType === 'roundtrip' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {t.return}
-                </label>
-                <input
-                  type="date"
-                  value={returnDate}
-                  onChange={(e) => {
-                    setReturnDate(e.target.value);
-                    if (errors.returnDate) {
-                      setErrors({ ...errors, returnDate: '' });
-                    }
-                  }}
-                  min={departureDate || new Date().toISOString().split('T')[0]}
-                  className={`w-full px-4 py-3 rounded-xl border-2 ${
-                    errors.returnDate ? 'border-red-500' : 'border-gray-200'
-                  } focus:border-blue-500 focus:outline-none transition-colors`}
-                />
-                {errors.returnDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.returnDate}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Passengers and Class */}
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            {/* Passengers */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {t.passengers}
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">{t.adults}</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="9"
-                    value={adults}
-                    onChange={(e) => setAdults(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-center"
-                  />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+            {t.features.map((feature, idx) => {
+              const IconComponent = feature.icon;
+              return (
+                <div key={idx} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer text-center">
+                  <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
+                    <IconComponent className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">{feature.name}</h4>
+                  <p className="text-xs text-gray-500">{feature.availability}</p>
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">{t.children}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="9"
-                    value={children}
-                    onChange={(e) => setChildren(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-center"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">{t.infants}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="9"
-                    value={infants}
-                    onChange={(e) => setInfants(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-center"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Travel Class */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {t.class}
-              </label>
-              <select
-                value={travelClass}
-                onChange={(e) => setTravelClass(e.target.value as TravelClass)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none transition-colors"
-              >
-                <option value="ECONOMY">{t.classes.ECONOMY}</option>
-                <option value="PREMIUM_ECONOMY">{t.classes.PREMIUM_ECONOMY}</option>
-                <option value="BUSINESS">{t.classes.BUSINESS}</option>
-                <option value="FIRST">{t.classes.FIRST}</option>
-              </select>
-            </div>
+              );
+            })}
           </div>
+        </MaxWidthContainer>
+      </div>
 
-          {/* Direct Flights Checkbox */}
-          <div className="mb-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={directFlights}
-                onChange={(e) => setDirectFlights(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-gray-700">{t.directFlights}</span>
-            </label>
+      {/* 4. Expert Booking Tips */}
+      <div className="bg-white py-8 md:py-12">
+        <MaxWidthContainer>
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
+            <p className="text-gray-600">{t.tipsSubtitle}</p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {t.tips.map((tip, idx) => {
+              const IconComponent = tip.icon;
+              return (
+                <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-bold text-gray-900 mb-1">{tip.tip}</h4>
+                      <p className="text-sm text-gray-600">{tip.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </MaxWidthContainer>
+      </div>
 
-          {/* Search Button */}
-          <button
-            onClick={handleSearch}
-            disabled={isLoading}
-            className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Searching...
-              </span>
-            ) : (
-              <>
-                <Plane className="inline-block w-5 h-5 mr-2" />
-                {t.search}
-              </>
-            )}
-          </button>
-        </div>
+      {/* Destinations */}
+      <div className="mt-3 md:mt-5">
+        <DestinationsSectionEnhanced lang={lang} />
+      </div>
 
-        {/* Recent Searches - Show previously searched routes */}
-        <div className="mt-8">
-          <RecentlyViewedSection />
-        </div>
-
-        {/* Popular Routes - Trending routes based on real searches */}
-        <div className="mt-8">
-          <PopularRoutesSection />
-        </div>
-      </main>
+      {/* 5. Flight Booking FAQ */}
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 md:py-12">
+        <MaxWidthContainer>
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{t.faqTitle}</h2>
+            <p className="text-gray-600">Everything you need to know about booking flights with Fly2Any</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {t.faqs.map((faq, idx) => (
+              <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group">
+                <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
+                  <span className="flex-1 text-base md:text-lg">{faq.q}</span>
+                  <ChevronRight className="w-5 h-5 text-blue-600 group-open:rotate-90 transition-transform flex-shrink-0" />
+                </summary>
+                <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 mb-4">Still have questions?</p>
+            <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
+              <Shield className="w-5 h-5" />
+              Contact Our Support Team
+            </a>
+          </div>
+        </MaxWidthContainer>
+      </div>
     </div>
   );
 }

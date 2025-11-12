@@ -282,9 +282,9 @@ export const borderRadius = {
 //
 // Layer hierarchy (ascending order):
 // - BASE: Default layer (0)
+// - TRUST_BAR: Sticky trust bar (950) - below dropdowns to avoid overlap
 // - DROPDOWN: Dropdowns, autocompletes (1000)
 // - STICKY: Sticky headers (1100)
-// - TRUST_BAR: Sticky trust bar (1150)
 // - FIXED: Fixed navigation (1200)
 // - MODAL_BACKDROP: Modal background (1300)
 // - MODAL: Modal dialogs (1400)
@@ -297,14 +297,14 @@ export const zIndex = {
   // Base layer (default)
   BASE: 0,
 
+  // Trust bar (Sticky trust indicators - below dropdowns to avoid overlap)
+  TRUST_BAR: 950,
+
   // Dropdowns & autocompletes (Header navigation dropdowns, autocomplete lists)
   DROPDOWN: 1000,
 
   // Sticky elements (Sticky headers that stay visible on scroll)
   STICKY: 1100,
-
-  // Trust bar (Sticky trust indicators between search and content)
-  TRUST_BAR: 1150,
 
   // Fixed elements (Fixed navigation bars, sidebars)
   FIXED: 1200,
@@ -333,9 +333,9 @@ export type ZIndexLayer = keyof typeof zIndex;
  */
 export const zIndexDescriptions: Record<ZIndexLayer, string> = {
   BASE: 'Default stacking context (0)',
+  TRUST_BAR: 'Sticky trust indicators bar - below dropdowns (950)',
   DROPDOWN: 'Dropdowns, autocomplete lists, select menus (1000)',
   STICKY: 'Sticky headers and navigation (1100)',
-  TRUST_BAR: 'Sticky trust indicators bar (1150)',
   FIXED: 'Fixed elements like navigation bars (1200)',
   MODAL_BACKDROP: 'Semi-transparent modal backdrop (1300)',
   MODAL_CONTENT: 'Modal dialogs and overlays (1400)',

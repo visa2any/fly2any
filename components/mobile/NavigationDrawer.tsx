@@ -219,6 +219,14 @@ export function NavigationDrawer({
                 </span>
               </div>
               <a
+                href="/cars"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🚗</span>
+                <span className="text-base">{translations.cars}</span>
+              </a>
+              <a
                 href="/flights"
                 onClick={onClose}
                 className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
@@ -235,12 +243,20 @@ export function NavigationDrawer({
                 <span className="text-base">{translations.hotels}</span>
               </a>
               <a
-                href="/cars"
+                href="/tours"
                 onClick={onClose}
                 className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
               >
-                <span className="text-2xl">🚗</span>
-                <span className="text-base">{translations.cars}</span>
+                <span className="text-2xl">🎯</span>
+                <span className="text-base">{translations.tours}</span>
+              </a>
+              <a
+                href="/activities"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🎪</span>
+                <span className="text-base">{translations.activities}</span>
               </a>
               <a
                 href="/packages"
@@ -249,6 +265,14 @@ export function NavigationDrawer({
               >
                 <span className="text-2xl">📦</span>
                 <span className="text-base">{translations.packages}</span>
+              </a>
+              <a
+                href="/travel-insurance"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🛡️</span>
+                <span className="text-base">{translations.travelInsurance}</span>
               </a>
             </nav>
 
@@ -262,14 +286,6 @@ export function NavigationDrawer({
                   Discover
                 </span>
               </div>
-              <a
-                href="/deals"
-                onClick={onClose}
-                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
-              >
-                <span className="text-2xl">💰</span>
-                <span className="text-base">{translations.deals}</span>
-              </a>
               <a
                 href="/explore"
                 onClick={onClose}

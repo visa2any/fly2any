@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
+import { CountdownTimer } from '@/components/shared/CountdownTimer';
 import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { getAirportCity } from '@/lib/data/airports';
 import { getAirlineData } from '@/lib/flights/airline-data';
@@ -159,44 +160,12 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
 
   const error = !!fetchError;
 
-  // ✅ FIX: Update local state only when cache data changes (prevents infinite loop)
+  // Update local state when cache data changes
   useEffect(() => {
     if (dealsData?.data) {
       setDeals(dealsData.data);
     }
   }, [dealsData]);
-
-  // Update time remaining every 60 seconds
-  useEffect(() => {
-    if (deals.length === 0) return;
-
-    const interval = setInterval(() => {
-      setDeals(prevDeals =>
-        prevDeals.map(deal => ({
-          ...deal,
-          timeRemaining: calculateTimeRemaining(deal.expiresAt),
-        }))
-      );
-    }, 60000); // 60 seconds
-
-    return () => clearInterval(interval);
-  }, [deals.length]);
-
-  const calculateTimeRemaining = (expiresAt: string): string => {
-    const now = new Date().getTime();
-    const expires = new Date(expiresAt).getTime();
-    const diff = expires - now;
-
-    if (diff <= 0) return '0m';
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  };
 
   const handleDealClick = (deal: FlashDealData) => {
     // Save to recently viewed
@@ -233,26 +202,15 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
-          {/* ✅ Cache Indicator with countdown timer */}
+          {/* ✅ Cache Indicator */}
           {fromCache && cacheAgeFormatted && (
-            <div className="flex items-center gap-3">
-              <CacheIndicator
-                cacheAge={null}
-                cacheAgeFormatted={cacheAgeFormatted}
-                fromCache={fromCache}
-                onRefresh={refresh}
-                compact
-              />
-              {/* Countdown Timer until next refresh */}
-              {timeUntilExpiry && (
-                <div className="flex items-center gap-1 bg-orange-50 px-2 py-1 rounded border border-orange-200">
-                  <Clock className="w-3 h-3 text-orange-600" />
-                  <span className="text-xs font-bold text-orange-600">
-                    {Math.floor(timeUntilExpiry / 60)}:{(timeUntilExpiry % 60).toString().padStart(2, '0')}
-                  </span>
-                </div>
-              )}
-            </div>
+            <CacheIndicator
+              cacheAge={null}
+              cacheAgeFormatted={cacheAgeFormatted}
+              fromCache={fromCache}
+              onRefresh={refresh}
+              compact
+            />
           )}
         </div>
         <button
@@ -354,12 +312,12 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                     <div className="p-3 space-y-2">
                       {/* Line 1: Time + Savings Amount */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-orange-600 animate-pulse" />
-                          <span className="text-sm font-bold text-orange-600" suppressHydrationWarning>
-                            ⏱️ {deal.timeRemaining}
-                          </span>
-                        </div>
+                        <CountdownTimer
+                          expiresAt={deal.expiresAt}
+                          showIcon={true}
+                          compact={true}
+                          className="bg-orange-50 px-2 py-1 rounded border border-orange-200"
+                        />
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs font-bold text-green-700">
                           <span>💰</span>
                           <span>{t.save} ${deal.savings.toFixed(2)}</span>

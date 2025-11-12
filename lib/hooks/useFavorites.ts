@@ -49,7 +49,7 @@ const AIRPORT_TO_CITY: Record<string, { city: string; country: string; imageUrl:
   'GIG': { city: 'Rio de Janeiro', country: 'Brazil', imageUrl: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop' },
   'EZE': { city: 'Buenos Aires', country: 'Argentina', imageUrl: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800&h=600&fit=crop' },
   'LIM': { city: 'Lima', country: 'Peru', imageUrl: 'https://images.unsplash.com/photo-1531968455429-749562d22f32?w=800&h=600&fit=crop' },
-  'BOG': { city: 'Bogotá', country: 'Colombia', imageUrl: 'https://images.unsplash.com/photo-1568632234857-c9bc58428001?w=800&h=600&fit=crop' },
+  'BOG': { city: 'Bogotá', country: 'Colombia', imageUrl: 'https://images.unsplash.com/photo-1568632234816-7c8db8372f27?w=800&h=600&fit=crop' },
 
   // Asia-Pacific
   'NRT': { city: 'Tokyo', country: 'Japan', imageUrl: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&h=600&fit=crop' },
