@@ -56,19 +56,19 @@ export function CompactTrustBar({
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      <div className="flex items-center justify-center gap-4 md:gap-6 h-11 md:h-12 px-3 md:px-4 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 h-9 sm:h-10 md:h-12 px-2.5 sm:px-3 md:px-4 overflow-x-auto scrollbar-hide">
         {trustItems.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div
               key={idx}
-              className="flex items-center gap-1.5 text-gray-700 flex-shrink-0"
+              className="flex items-center gap-1 sm:gap-1.5 text-gray-700 flex-shrink-0"
             >
               <Icon
-                className={cn('w-4 h-4', item.color)}
-                strokeWidth={2}
+                className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4', item.color)}
+                strokeWidth={2.5}
               />
-              <span className="text-xs font-medium whitespace-nowrap">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap leading-tight">
                 {item.text}
               </span>
             </div>

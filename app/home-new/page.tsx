@@ -309,7 +309,7 @@ export default function NewHomePage() {
         <MaxWidthContainer
           className="relative overflow-hidden md:overflow-visible"
           noPadding={true}
-          style={{ padding: '12px 0 8px' }}
+          style={{ padding: '6px 0 4px' }}
         >
           <div className="px-4 md:px-6">
           {/* REMOVED: Airplane animation (user request) */}
@@ -318,7 +318,7 @@ export default function NewHomePage() {
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
               key={`title-${animationKey}`}
-              className="hero-title text-xl md:text-3xl font-extrabold tracking-wide"
+              className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide"
             >
               {mounted ? (
                 t.sectionTitle.split('').map((char, index) => (
@@ -349,9 +349,9 @@ export default function NewHomePage() {
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
               key={`subtitle-${animationKey}`}
-              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg"
+              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal"
               style={{
-                letterSpacing: '0.01em'
+                letterSpacing: '-0.01em'
               }}
             >
               {mounted ? (
@@ -627,8 +627,8 @@ export default function NewHomePage() {
           NEW: Find companions, share costs, earn credits!
           ============================================ */}
       {/* TRIPMATCH - Social Travel Network */}
-      {/* MOBILE OPTIMIZED: 16px mobile, 24px desktop */}
-      <div className="mt-4 md:mt-6">
+      {/* MOBILE OPTIMIZED: Ultra-compact spacing for maximum content visibility */}
+      <div className="mt-2 sm:mt-3 md:mt-6">
         <TripMatchPreviewSection />
       </div>
 
@@ -643,8 +643,8 @@ export default function NewHomePage() {
           {/* ============================================
               RECENTLY VIEWED - Personalized Recommendations
               ============================================ */}
-          {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-          <div className="mt-3 md:mt-5">
+          {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+          <div className="mt-2 sm:mt-3 md:mt-5">
             <RecentlyViewedSection lang={lang} />
           </div>
 
@@ -652,8 +652,8 @@ export default function NewHomePage() {
             DESTINATIONS SECTION - Explore by Continent
             ENHANCED with Real Duffel Flight Data, ML/AI, Marketing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-        <div className="mt-3 md:mt-5">
+        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+        <div className="mt-2 sm:mt-3 md:mt-5">
           <DestinationsSectionEnhanced lang={lang} />
         </div>
 
@@ -661,16 +661,16 @@ export default function NewHomePage() {
             FLASH DEALS SECTION - Time-Limited Offers
             ENHANCED with Real Duffel Flash Deals, ML/AI, Marketing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-        <div className="mt-3 md:mt-5">
+        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+        <div className="mt-2 sm:mt-3 md:mt-5">
           <FlashDealsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             HOTELS SECTION - ML/AI Powered with Duffel Photos
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-        <div className="mt-3 md:mt-5">
+        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+        <div className="mt-2 sm:mt-3 md:mt-5">
           <HotelsSectionEnhanced lang={lang} />
         </div>
 
@@ -678,16 +678,16 @@ export default function NewHomePage() {
             CAR RENTALS SECTION - ML/AI Powered
             ENHANCED with Real Amadeus Car Data, Photos, Marketing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-        <div className="mt-3 md:mt-5">
+        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+        <div className="mt-2 sm:mt-3 md:mt-5">
           <CarRentalsSectionEnhanced lang={lang} />
         </div>
 
         {/* ============================================
             TOURS & ACTIVITIES SECTION - ML/AI Powered
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 12px mobile, 20px desktop */}
-        <div className="mt-3 md:mt-5">
+        {/* MOBILE OPTIMIZED: Ultra-compact spacing (8px mobile, 20px desktop) */}
+        <div className="mt-2 sm:mt-3 md:mt-5">
           <ToursSection lang={lang} />
         </div>
 
@@ -711,10 +711,10 @@ export default function NewHomePage() {
 
         {/* ============================================
             FAQ - Answer Common Questions
-            Final section - extra spacing before and after
+            Final section - optimized spacing
             ============================================ */}
-        {/* MOBILE OPTIMIZED: 24px mobile, 32px desktop (top & bottom) */}
-        <div className="mt-6 md:mt-8 mb-6 md:mb-8">
+        {/* MOBILE OPTIMIZED: 16px mobile, 32px desktop (top & bottom) */}
+        <div className="mt-4 sm:mt-5 md:mt-8 mb-4 sm:mb-5 md:mb-8">
           <FAQ
             title={lang === 'en' ? '❓ Frequently Asked Questions' : lang === 'pt' ? '❓ Perguntas Frequentes' : '❓ Preguntas Frecuentes'}
             subtitle={lang === 'en' ? 'Everything you need to know about booking with Fly2Any' : lang === 'pt' ? 'Tudo o que você precisa saber sobre reservas com Fly2Any' : 'Todo lo que necesitas saber sobre reservas con Fly2Any'}

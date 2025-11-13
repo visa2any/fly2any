@@ -408,36 +408,37 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
   }
 
   return (
-    <section className="py-4 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 16px' }}>
+    <section className="py-2.5 sm:py-3 md:py-4 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 12px sm:16px 16px' }}>
       {/* Section Header - COMPACT */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
+      <div className="flex items-center justify-between mb-2.5 sm:mb-3 md:mb-4">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="p-1 sm:p-1.5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-md sm:rounded-lg">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2 leading-tight">
               {t.title}
               {recentlyViewed.length > maxItems && (
-                <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-normal text-gray-500 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
                   {t.showing} {filteredItems.length} {t.of} {recentlyViewed.length}
                 </span>
               )}
             </h2>
-            <p className="text-xs text-gray-600 mt-0.5">{t.subtitle}</p>
+            <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5 leading-tight">{t.subtitle}</p>
           </div>
         </div>
         <button
           onClick={clearAll}
-          className="text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors flex items-center gap-1.5 px-3 py-1.5 hover:bg-red-50 rounded-lg"
+          className="text-[11px] sm:text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-red-50 rounded-md sm:rounded-lg"
         >
-          <X className="w-3.5 h-3.5" />
-          {t.clearAll}
+          <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">{t.clearAll}</span>
+          <span className="sm:hidden">Clear</span>
         </button>
       </div>
 
-      {/* Responsive Grid Layout - COMPACT with gap-3 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
+      {/* Responsive Grid Layout - ULTRA COMPACT with gap-2 on mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
         {filteredItems.map((item, index) => {
           const hasPriceDrop = isPriceDrop(item);
           const priceDropPercent = getPriceDropPercentage(item);
@@ -453,10 +454,10 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                 relative w-full rounded-xl overflow-hidden cursor-pointer group
                 transform transition-all duration-300
                 hover:scale-105 hover:shadow-2xl hover:z-10
-                ${hotDeal ? 'ring-2 ring-orange-400 shadow-lg shadow-orange-100' : hasPriceDrop ? 'ring-2 ring-green-400 shadow-lg shadow-green-100' : 'border-2 border-gray-200 hover:border-blue-400'}
+                ${hotDeal ? 'ring-1 sm:ring-2 ring-orange-400 shadow-md shadow-orange-100' : hasPriceDrop ? 'ring-1 sm:ring-2 ring-green-400 shadow-md shadow-green-100' : 'border border-gray-200 hover:border-blue-400'}
               `}
               style={{
-                height: '123px',
+                height: '115px',
                 animationDelay: `${index * 50}ms`,
                 animation: mounted ? 'slideInUp 0.4s ease-out forwards' : 'none',
               }}
@@ -467,30 +468,30 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                   src={item.imageUrl}
                   alt={`${item.city}, ${item.country}`}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  priority={index < 6}
+                  priority={index < 4}
                 />
               </div>
               {/* Lighter gradient to show photos better */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent"></div>
 
               {/* Top Section - Route & X Button in one line */}
-              <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
+              <div className="absolute top-1 sm:top-1.5 left-1 sm:left-1.5 right-1 sm:right-1.5 flex items-center justify-between">
                 {/* Left Side - Route Display */}
                 {item.from ? (
                   <div
-                    className="flex items-center gap-1 text-white px-2 py-0.5 bg-black/30 backdrop-blur-sm rounded-md"
+                    className="flex items-center gap-0.5 sm:gap-1 text-white px-1.5 sm:px-2 py-0.5 bg-black/30 backdrop-blur-sm rounded-md"
                     style={{
                       textShadow: '0 2px 8px rgba(0,0,0,0.95), 0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8)'
                     }}
                   >
-                    <span className="text-[11px] font-bold">{item.from}</span>
-                    <ArrowRight className="w-3 h-3" strokeWidth={3} />
-                    <span className="text-[11px] font-bold">{item.to}</span>
-                    <span className="text-[11px]">•</span>
-                    <Clock className="w-3 h-3 text-blue-300 drop-shadow-lg" strokeWidth={2.5} />
-                    <span className="text-[10px] font-semibold" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
+                    <span className="text-[10px] sm:text-[11px] font-bold">{item.from}</span>
+                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" strokeWidth={3} />
+                    <span className="text-[10px] sm:text-[11px] font-bold">{item.to}</span>
+                    <span className="text-[10px] sm:text-[11px]">•</span>
+                    <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-300 drop-shadow-lg" strokeWidth={2.5} />
+                    <span className="text-[9px] sm:text-[10px] font-semibold" suppressHydrationWarning>{formatTimeAgo(item.viewedAt)}</span>
                   </div>
                 ) : (
                   <div></div>
@@ -502,21 +503,20 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
                     e.stopPropagation();
                     removeItem(item.id);
                   }}
-                  className="w-5 h-5 bg-white/95 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110 z-10"
+                  className="w-5 h-5 sm:w-5.5 sm:h-5.5 bg-white/95 hover:bg-red-50 hover:text-red-600 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:scale-110 z-10"
                   aria-label="Remove item"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 </button>
               </div>
 
               {/* Trip Dates Row - Below route, above badges */}
               {(() => {
                 const formattedDates = formatTripDates(item.departureDate, item.returnDate);
-                // Removed console.log to reduce console spam
                 return formattedDates ? (
-                  <div className="absolute top-7 left-1.5">
+                  <div className="absolute top-6 sm:top-7 left-1 sm:left-1.5">
                     <div
-                      className="text-white/90 text-[10px] font-semibold px-2 py-0.5 bg-black/20 backdrop-blur-sm rounded-md"
+                      className="text-white/90 text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 bg-black/20 backdrop-blur-sm rounded-md"
                       style={{
                         textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)'
                       }}
@@ -530,63 +530,63 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
 
               {/* Deal Badges Row - Below dates */}
               {(flashSale || hotDeal || hasPriceDrop) && (
-                <div className="absolute top-12 left-1.5 flex gap-1">
+                <div className="absolute top-10 sm:top-11 left-1 sm:left-1.5 flex gap-0.5 sm:gap-1">
                   {flashSale && (
-                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-lg animate-pulse">
-                      <Zap className="w-2.5 h-2.5" />
-                      <span className="text-[10px] font-bold">{t.flashSale}</span>
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1 sm:px-1.5 py-0.5 rounded-sm sm:rounded-md flex items-center gap-0.5 shadow-md animate-pulse">
+                      <Zap className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      <span className="text-[9px] sm:text-[10px] font-bold">{t.flashSale}</span>
                     </div>
                   )}
                   {hotDeal && !flashSale && (
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-lg">
-                      <Flame className="w-2.5 h-2.5" />
-                      <span className="text-[10px] font-bold">{t.hotDeal}</span>
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-1 sm:px-1.5 py-0.5 rounded-sm sm:rounded-md flex items-center gap-0.5 shadow-md">
+                      <Flame className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      <span className="text-[9px] sm:text-[10px] font-bold">{t.hotDeal}</span>
                     </div>
                   )}
                   {hasPriceDrop && !hotDeal && !flashSale && (
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-lg">
-                      <TrendingDown className="w-2.5 h-2.5" />
-                      <span className="text-[10px] font-bold">-{priceDropPercent}%</span>
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1 sm:px-1.5 py-0.5 rounded-sm sm:rounded-md flex items-center gap-0.5 shadow-md">
+                      <TrendingDown className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                      <span className="text-[9px] sm:text-[10px] font-bold">-{priceDropPercent}%</span>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Content Section - Bottom only */}
-              <div className="absolute inset-0 p-2 pt-8 flex flex-col justify-end">
-                {/* Destination - 10% smaller, all countries abbreviated */}
-                <h3 className="text-[13px] font-bold text-white leading-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)' }}>
+              <div className="absolute inset-0 p-1.5 sm:p-2 pt-7 sm:pt-8 flex flex-col justify-end">
+                {/* Destination - Optimized for mobile */}
+                <h3 className="text-xs sm:text-[13px] font-bold text-white leading-tight" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)' }}>
                   {item.city}, {getCountryCode(item.country)}
                 </h3>
 
                 {/* Price Section - Enhanced shadows for lighter background */}
-                <div className="flex items-end justify-between mt-1">
+                <div className="flex items-end justify-between mt-0.5 sm:mt-1">
                   <div className="flex flex-col">
                     {hasPriceDrop && item.originalPrice && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-white/70 line-through" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>${item.originalPrice.toFixed(0)}</span>
+                      <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5">
+                        <span className="text-[9px] sm:text-[10px] text-white/70 line-through" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>${item.originalPrice.toFixed(0)}</span>
                         <div className="bg-green-500/90 px-1 py-0.5 rounded flex items-center gap-0.5">
-                          <Tag className="w-2 h-2 text-white" />
-                          <span className="text-[9px] text-white font-bold">{t.save} ${savingsAmount.toFixed(0)}</span>
+                          <Tag className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
+                          <span className="text-[8px] sm:text-[9px] text-white font-bold">{t.save} ${savingsAmount.toFixed(0)}</span>
                         </div>
                       </div>
                     )}
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-xs text-white/80" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85)' }}>{t.from}</span>
-                      <span className="text-lg font-bold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)' }}>${item.price.toFixed(0)}</span>
+                    <div className="flex items-baseline gap-0.5 sm:gap-1">
+                      <span className="text-[10px] sm:text-xs text-white/80" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85)' }}>{t.from}</span>
+                      <span className="text-base sm:text-lg font-bold text-white" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.85), 0 0 8px rgba(0,0,0,0.7)' }}>${item.price.toFixed(0)}</span>
                     </div>
                   </div>
 
-                  {/* Book Now Button - ALWAYS VISIBLE, compact */}
+                  {/* Book Now Button - ALWAYS VISIBLE, ultra compact on mobile */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDestinationClick(item);
                     }}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-lg hover:shadow-xl transform hover:scale-105 transition-all flex items-center gap-1"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md shadow-md hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-0.5 sm:gap-1"
                   >
                     {t.bookNow}
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   </button>
                 </div>
               </div>
@@ -599,14 +599,14 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
       </div>
 
       {/* COMPACT SEARCH INFO BAR - Sticky, Single Line */}
-      <div className="sticky bottom-0 left-0 right-0 mt-3 bg-gradient-to-r from-blue-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2 gap-4 overflow-x-auto scrollbar-hide">
+      <div className="sticky bottom-0 left-0 right-0 mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-blue-50/95 via-indigo-50/95 to-purple-50/95 backdrop-blur-sm border border-gray-200 rounded-md sm:rounded-lg shadow-md overflow-hidden">
+        <div className="flex items-center justify-between px-2.5 sm:px-4 py-1.5 sm:py-2 gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
           {/* Left: Stats */}
-          <div className="flex items-center gap-4 text-xs font-medium text-gray-700 whitespace-nowrap">
-            <div className="flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <div className="flex items-center gap-2 sm:gap-4 text-[11px] sm:text-xs font-medium text-gray-700 whitespace-nowrap">
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />
               <span className="font-bold text-gray-900">{recentlyViewed.length}</span>
-              <span>{t.searchesCount}</span>
+              <span className="hidden sm:inline">{t.searchesCount}</span>
             </div>
             {stats.priceDropsCount > 0 && (
               <>
@@ -640,13 +640,13 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
           </div>
 
           {/* Right: Quick Filters */}
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <Filter className="w-3.5 h-3.5 text-gray-500" />
+          <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+            <Filter className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500 hidden sm:block" />
             <button
               onClick={() => setActiveFilter('all')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md text-[10px] sm:text-xs font-semibold transition-all ${
                 activeFilter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-sm'
               }`}
             >
@@ -654,36 +654,36 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
             </button>
             <button
               onClick={() => setActiveFilter('deals')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-0.5 sm:gap-1 ${
                 activeFilter === 'deals'
-                  ? 'bg-orange-600 text-white shadow-md'
+                  ? 'bg-orange-600 text-white shadow-sm'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-sm'
               }`}
             >
-              <Flame className="w-3 h-3" />
-              {t.filterDeals}
+              <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span className="hidden sm:inline">{t.filterDeals}</span>
             </button>
             <button
               onClick={() => setActiveFilter('drops')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-0.5 sm:gap-1 ${
                 activeFilter === 'drops'
-                  ? 'bg-green-600 text-white shadow-md'
+                  ? 'bg-green-600 text-white shadow-sm'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-sm'
               }`}
             >
-              <TrendingDown className="w-3 h-3" />
-              {t.filterDrops}
+              <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span className="hidden sm:inline">{t.filterDrops}</span>
             </button>
             <button
               onClick={() => setActiveFilter('under400')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-sm sm:rounded-md text-[10px] sm:text-xs font-semibold transition-all flex items-center gap-0.5 sm:gap-1 ${
                 activeFilter === 'under400'
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-white/50 text-gray-700 hover:bg-white hover:shadow-sm'
               }`}
             >
-              <Tag className="w-3 h-3" />
-              {t.filterUnder}
+              <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              <span className="hidden sm:inline">{t.filterUnder}</span>
             </button>
           </div>
         </div>

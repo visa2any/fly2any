@@ -183,39 +183,39 @@ export function MobileHomeSearchWrapper({
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[64px] bg-white/95 backdrop-blur-lg rounded-2xl shadow-lg p-4 hover:shadow-xl transition-shadow border border-gray-200 active:scale-[0.98] transition-transform"
+              className="w-full min-h-[56px] sm:min-h-[60px] bg-white/95 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200/80 active:scale-[0.98] p-3 sm:p-4"
               aria-label="Expand flight search form"
               aria-expanded="false"
               type="button"
             >
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5 sm:gap-2">
                 {/* Route */}
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
-                  <span className="text-sm font-semibold text-gray-900 flex-1 text-left">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-sm sm:text-base font-semibold text-gray-900 flex-1 text-left leading-tight">
                     {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
                   </span>
-                  <ChevronDown className="w-5 h-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
                 </div>
 
                 {/* Dates & Passengers */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-gray-500" aria-hidden="true" />
-                    <span className="text-xs text-gray-600">
+                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
+                    <span className="text-[11px] sm:text-xs text-gray-600">
                       {formatDate(departureDate)}
                       {returnDate && <> - {formatDate(returnDate)}</>}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-gray-500" aria-hidden="true" />
-                    <span className="text-xs text-gray-600">{totalPassengers} pax</span>
+                  <div className="flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
+                    <span className="text-[11px] sm:text-xs text-gray-600">{totalPassengers} pax</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <Search className="w-4 h-4 text-primary-600" aria-hidden="true" />
-                    <span className="text-xs font-medium text-primary-600">Search</span>
+                  <div className="flex items-center gap-1">
+                    <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600" aria-hidden="true" />
+                    <span className="text-[11px] sm:text-xs font-medium text-primary-600">Search</span>
                   </div>
                 </div>
               </div>
@@ -233,15 +233,15 @@ export function MobileHomeSearchWrapper({
             transition={springConfig}
             className="w-full relative"
           >
-            {/* Close Button - Positioned absolutely over the search bar */}
+            {/* Close Button - Positioned absolutely over the search bar with improved touch target */}
             <button
               onClick={handleCollapse}
-              className="absolute top-6 right-6 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all border border-gray-200 active:scale-90"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 min-w-[48px] min-h-[48px] flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-full shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 border border-gray-200/80 active:scale-90"
               aria-label="Collapse search form"
               aria-expanded="true"
               type="button"
             >
-              <X className="w-5 h-5 text-gray-700" aria-hidden="true" />
+              <X className="w-5 h-5 text-gray-700 stroke-[2.5]" aria-hidden="true" />
             </button>
 
             {/* Full EnhancedSearchBar - All features preserved */}

@@ -185,7 +185,7 @@ const TripCard = memo(({
       onMouseLeave={onLeave}
       className="flex-shrink-0 snap-start"
       style={{
-        width: '300px',
+        width: '260px',
         animationDelay: `${index * 100}ms`,
         animation: 'slideInUp 0.5s ease-out forwards',
       }}
@@ -203,7 +203,7 @@ const TripCard = memo(({
             ${trip.featured ? 'ring-2 ring-purple-400' : ''}
             bg-white
           `}
-          style={{ height: '300px' }}
+          style={{ height: '260px' }}
         >
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden bg-gray-200">
@@ -211,7 +211,7 @@ const TripCard = memo(({
             src={trip.coverImageUrl || trip.destinationImage || 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&h=600&fit=crop'}
             alt={`${trip.title} - ${trip.destination}`}
             fill
-            sizes="300px"
+            sizes="(max-width: 640px) 260px, 300px"
             className={`object-cover transition-transform duration-500 ${
               hoveredCard === trip.id ? 'scale-110' : 'scale-100'
             }`}
@@ -227,89 +227,89 @@ const TripCard = memo(({
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-2 left-2 flex gap-1.5">
           {trip.trending && (
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg animate-pulse">
-              <TrendingUp className="w-3 h-3" />
-              <span className="text-xs font-bold">Trending</span>
+            <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-md animate-pulse">
+              <TrendingUp className="w-2.5 h-2.5" />
+              <span className="text-[10px] font-bold">Trending</span>
             </div>
           )}
           {trip.featured && (
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg">
-              <Star className="w-3 h-3 fill-white" />
-              <span className="text-xs font-bold">Featured</span>
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-md">
+              <Star className="w-2.5 h-2.5 fill-white" />
+              <span className="text-[10px] font-bold">Featured</span>
             </div>
           )}
         </div>
 
         {/* Category Badge */}
-        <div className="absolute top-3 right-3">
-          <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+        <div className="absolute top-2 right-2">
+          <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-md">
             {trip.category}
           </div>
         </div>
 
         {/* Content */}
-        <div className="absolute inset-0 p-3 flex flex-col justify-end">
+        <div className="absolute inset-0 p-2 flex flex-col justify-end">
           {/* Trip Title & Destination */}
-          <div className="mb-2">
-            <h3 className="text-base font-bold text-white mb-0.5" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+          <div className="mb-1.5">
+            <h3 className="text-sm font-bold text-white mb-0.5 leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
               {trip.title}
             </h3>
-            <div className="flex items-center gap-1 text-white/90" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
-              <MapPin className="w-3 h-3" />
-              <span className="text-xs font-medium">{trip.destination}</span>
+            <div className="flex items-center gap-0.5 text-white/90" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
+              <MapPin className="w-2.5 h-2.5" />
+              <span className="text-[10px] font-medium">{trip.destination}</span>
             </div>
           </div>
 
           {/* Trip Info Grid */}
-          <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 space-y-1.5 mb-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-1 text-white/90">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">{trip.dates}</span>
+          <div className="bg-black/30 backdrop-blur-md rounded-md p-1.5 space-y-1 mb-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-0.5 text-white/90">
+                <Calendar className="w-3 h-3" />
+                <span className="font-medium text-[10px]">{trip.dates}</span>
               </div>
-              <div className="flex items-center gap-1 text-white/90">
-                <Users className="w-4 h-4" />
-                <span className="font-bold">{trip.members}/{trip.maxMembers}</span>
+              <div className="flex items-center gap-0.5 text-white/90">
+                <Users className="w-3 h-3" />
+                <span className="font-bold text-[10px]">{trip.members}/{trip.maxMembers}</span>
               </div>
             </div>
 
             {/* Member Avatars */}
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {trip.memberAvatars?.slice(0, 5).map((avatar, i) => {
+            <div className="flex items-center gap-1.5">
+              <div className="flex -space-x-1.5">
+                {trip.memberAvatars?.slice(0, 4).map((avatar, i) => {
                   // Check if avatar is a valid URL (starts with http://, https://, or /)
                   const isValidUrl = avatar.startsWith('http://') || avatar.startsWith('https://') || avatar.startsWith('/');
 
                   return (
                     <div
                       key={i}
-                      className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white overflow-hidden flex items-center justify-center relative"
+                      className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border border-white overflow-hidden flex items-center justify-center relative"
                     >
                       {isValidUrl ? (
                         <Image
                           src={avatar}
                           alt={`Member ${i + 1}`}
                           fill
-                          sizes="28px"
+                          sizes="20px"
                           className="object-cover"
                           loading="lazy"
                           quality={60}
                         />
                       ) : (
-                        <span className="text-white text-sm">{avatar}</span>
+                        <span className="text-white text-[10px]">{avatar}</span>
                       )}
                     </div>
                   );
                 })}
-                {trip.members && trip.members > 5 && (
-                  <div className="w-7 h-7 rounded-full bg-gray-800 border-2 border-white flex items-center justify-center text-xs text-white font-bold">
-                    +{trip.members - 5}
+                {trip.members && trip.members > 4 && (
+                  <div className="w-5 h-5 rounded-full bg-gray-800 border border-white flex items-center justify-center text-[9px] text-white font-bold">
+                    +{trip.members - 4}
                   </div>
                 )}
               </div>
-              <span className="text-xs text-white/70 font-medium">
+              <span className="text-[10px] text-white/70 font-medium">
                 {trip.maxMembers - (trip.members || 0)} spots left
               </span>
             </div>
@@ -318,24 +318,24 @@ const TripCard = memo(({
           {/* Price & Credits */}
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[10px] text-white/70" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+              <p className="text-[9px] text-white/70 leading-none mb-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
                 from
               </p>
-              <p className="text-xl font-bold text-white" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
+              <p className="text-base font-bold text-white leading-none mb-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)' }}>
                 ${Math.floor((parseFloat(String(trip.pricePerPerson || 0)) / 100)).toLocaleString()}
-                <span className="text-xs font-normal text-white/80">/person</span>
+                <span className="text-[10px] font-normal text-white/80">/person</span>
               </p>
-              <div className="bg-green-500/90 text-white px-1.5 py-0.5 rounded inline-flex items-center gap-0.5 mt-0.5">
-                <Award className="w-2.5 h-2.5" />
-                <span className="text-[10px] font-bold">
-                  Creator earns ${Math.floor((trip.creatorCredits || 0) / 100).toLocaleString()}
+              <div className="bg-green-500/90 text-white px-1 py-0.5 rounded inline-flex items-center gap-0.5">
+                <Award className="w-2 h-2" />
+                <span className="text-[9px] font-bold">
+                  Earn ${Math.floor((trip.creatorCredits || 0) / 100).toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Join Button */}
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1.5 rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-1 text-xs">
-              Join Trip
+            <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2.5 py-1 rounded-md font-bold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg flex items-center gap-0.5 text-[11px]">
+              Join
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
@@ -429,17 +429,17 @@ export function TripMatchPreviewSection() {
   const usingFallback = !apiData?.data || apiData.data.length === 0;
 
   return (
-    <section className="py-3 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
+    <section className="py-2 sm:py-2.5 md:py-3 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 16px' }}>
       {/* Unified Compact Header */}
-      <div className="mb-3">
+      <div className="mb-2 sm:mb-2.5 md:mb-3">
         {/* Row 1: Logo + Title + NEW + Cache + CTAs */}
-        <div className="flex items-center justify-between mb-1.5">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-              <Users className="w-6 h-6 text-white" />
+        <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg sm:rounded-xl shadow-md">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">TripMATCH</h2>
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">TripMATCH</h2>
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse">
               NEW
             </span>
             {usingFallback && (
@@ -460,28 +460,30 @@ export function TripMatchPreviewSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <a
               href="/tripmatch/browse"
-              className="text-sm text-purple-600 font-medium hover:underline transition-colors"
+              className="text-xs sm:text-sm text-purple-600 font-medium hover:underline transition-colors hidden sm:inline"
             >
               Browse All →
             </a>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl text-sm">
-              <Plus className="w-4 h-4" />
-              Create Trip
+            <button className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md sm:rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg text-xs sm:text-sm">
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Create Trip</span>
+              <span className="sm:hidden">Create</span>
             </button>
           </div>
         </div>
 
         {/* Row 2: Subtitle + Creator Incentive */}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs">
+        <div className="flex items-center flex-wrap gap-x-2 sm:gap-x-3 gap-y-0.5 sm:gap-y-1 text-[11px] sm:text-xs leading-tight">
           <p className="text-gray-600">
             Find travel companions, share costs, and explore together
           </p>
           <p className="font-semibold text-purple-700 flex items-center gap-1">
             <span>🎁</span>
-            Create a trip, bring 8 friends = Earn $80 in credits! Use credits on YOUR next trip. 100% free!
+            <span className="hidden sm:inline">Create a trip, bring 8 friends = Earn $80 in credits! Use credits on YOUR next trip. 100% free!</span>
+            <span className="sm:hidden">Bring 8 friends = Earn $80 credits!</span>
           </p>
         </div>
       </div>
