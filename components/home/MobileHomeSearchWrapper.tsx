@@ -111,30 +111,54 @@ export function MobileHomeSearchWrapper({
     return () => window.removeEventListener('resize', checkMobile);
   }, [viewState]);
 
-  // Scroll tracking with direction detection - Auto-hide/show behavior
+  // State-of-the-art scroll tracking with momentum detection and debouncing
   useEffect(() => {
     if (!isMobile) return;
+
+    let scrollTimeout: NodeJS.Timeout;
+    let momentumThreshold = 0;
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const direction = currentScrollY > lastScrollY.current ? 'down' : 'up';
+      const scrollDelta = Math.abs(currentScrollY - lastScrollY.current);
+
+      // Calculate scroll momentum for smoother hide/show
+      momentumThreshold = scrollDelta > 5 ? scrollDelta : momentumThreshold * 0.9;
 
       setScrollY(currentScrollY);
       setScrollDirection(direction);
       lastScrollY.current = currentScrollY;
 
-      // HIDE completely when scrolling down past threshold (better UX)
-      if (direction === 'down' && currentScrollY > 50 && viewState === 'collapsed') {
+      // Clear existing timeout
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      // STATE-OF-THE-ART: Multi-threshold scroll behavior
+      // Hide with momentum detection - only hide when scrolling down with momentum
+      if (direction === 'down' && currentScrollY > 80 && momentumThreshold > 3 && viewState === 'collapsed') {
         setViewState('hidden');
       }
-      // SHOW when scrolling back up OR near top
-      else if ((direction === 'up' || currentScrollY < 30) && viewState === 'hidden') {
-        setViewState('collapsed');
+      // Show immediately when scrolling up OR near top (< 50px)
+      else if ((direction === 'up' && momentumThreshold > 2) || currentScrollY < 50) {
+        if (viewState === 'hidden') {
+          setViewState('collapsed');
+        }
       }
+
+      // Debounce: Auto-show after scroll ends (user stopped scrolling)
+      scrollTimeout = setTimeout(() => {
+        if (currentScrollY > 50 && currentScrollY < 200 && viewState === 'hidden') {
+          setViewState('collapsed');
+        }
+        momentumThreshold = 0;
+      }, 1200);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
   }, [isMobile, viewState]);
 
   // Haptic feedback (if available on device)
@@ -171,51 +195,59 @@ export function MobileHomeSearchWrapper({
   return (
     <div ref={wrapperRef} className="mobile-search-wrapper md:hidden">
       <AnimatePresence mode="wait">
-        {/* COLLAPSED STATE - Compact summary bar (60-80px) */}
+        {/* COLLAPSED STATE - Ultra-compact summary bar (48-56px) - State-of-the-art design */}
         {viewState === 'collapsed' && (
           <motion.div
             key="collapsed"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={springConfig}
-            className="w-full px-4 py-3"
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 28,
+              mass: 0.8,
+            }}
+            className="w-full px-3 py-2"
           >
             <button
               onClick={handleExpand}
-              className="w-full min-h-[56px] sm:min-h-[60px] bg-white/95 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200/80 active:scale-[0.98] p-3 sm:p-4"
+              className="w-full min-h-[48px] sm:min-h-[52px] bg-gradient-to-br from-white/98 to-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-300/50 hover:border-primary-400/60 active:scale-[0.99] p-2.5 sm:p-3 group"
               aria-label="Expand flight search form"
               aria-expanded="false"
               type="button"
+              style={{
+                boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
+              }}
             >
-              <div className="flex flex-col gap-1.5 sm:gap-2">
-                {/* Route */}
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600 flex-shrink-0" aria-hidden="true" />
-                  <span className="text-sm sm:text-base font-semibold text-gray-900 flex-1 text-left leading-tight">
+              <div className="flex flex-col gap-1">
+                {/* Route - Single compact line */}
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                  <span className="text-xs sm:text-sm font-bold text-gray-900 flex-1 text-left leading-none tracking-tight">
                     {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
                   </span>
-                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 flex-shrink-0" aria-hidden="true" />
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 flex-shrink-0 group-hover:translate-y-0.5 transition-transform" aria-hidden="true" />
                 </div>
 
-                {/* Dates & Passengers */}
-                <div className="flex items-center justify-between gap-2 sm:gap-3">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
-                    <span className="text-[11px] sm:text-xs text-gray-600">
+                {/* Dates & Passengers - Ultra-compact */}
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+                  <div className="flex items-center gap-0.5">
+                    <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500" aria-hidden="true" />
+                    <span className="text-[10px] sm:text-[11px] text-gray-600 font-medium">
                       {formatDate(departureDate)}
                       {returnDate && <> - {formatDate(returnDate)}</>}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" aria-hidden="true" />
-                    <span className="text-[11px] sm:text-xs text-gray-600">{totalPassengers} pax</span>
+                  <div className="flex items-center gap-0.5">
+                    <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500" aria-hidden="true" />
+                    <span className="text-[10px] sm:text-[11px] text-gray-600 font-medium">{totalPassengers}p</span>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-600" aria-hidden="true" />
-                    <span className="text-[11px] sm:text-xs font-medium text-primary-600">Search</span>
+                  <div className="flex items-center gap-0.5 bg-primary-600 text-white px-2 py-0.5 rounded-full">
+                    <Search className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
+                    <span className="text-[10px] sm:text-[11px] font-bold">Go</span>
                   </div>
                 </div>
               </div>

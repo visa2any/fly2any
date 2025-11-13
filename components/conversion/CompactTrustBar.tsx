@@ -47,7 +47,7 @@ export function CompactTrustBar({
       className={cn(
         'left-0 right-0 bg-white/98 backdrop-blur-xl',
         'border-b border-gray-200',
-        sticky && 'sticky top-16 md:top-20',
+        sticky && 'sticky top-14 sm:top-16 md:top-20',
         className
       )}
       style={{
@@ -56,19 +56,28 @@ export function CompactTrustBar({
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
       }}
     >
-      <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 h-9 sm:h-10 md:h-12 px-2.5 sm:px-3 md:px-4 overflow-x-auto scrollbar-hide">
+      {/* Single-line container with horizontal scroll - GUARANTEED no wrapping */}
+      <div
+        className="flex items-center justify-start gap-2 sm:gap-3 md:gap-5 h-8 sm:h-9 md:h-11 px-2 sm:px-2.5 md:px-4 overflow-x-auto scrollbar-hide"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {trustItems.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div
               key={idx}
-              className="flex items-center gap-1 sm:gap-1.5 text-gray-700 flex-shrink-0"
+              className="flex items-center gap-0.5 sm:gap-1 text-gray-700 flex-shrink-0"
             >
               <Icon
-                className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4', item.color)}
+                className={cn('w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4', item.color)}
                 strokeWidth={2.5}
               />
-              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap leading-tight">
+              <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold whitespace-nowrap leading-none tracking-tight">
                 {item.text}
               </span>
             </div>

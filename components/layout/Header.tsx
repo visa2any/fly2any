@@ -242,18 +242,12 @@ export function Header({
           willChange: 'transform',
         }}
       >
-        <MaxWidthContainer noPadding style={{ padding: '0 24px' }}>
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Hamburger Menu (Mobile Only) */}
-            <HamburgerMenu
-              isOpen={mobileMenuOpen}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            />
-
-            {/* Logo with Enhanced Visibility - Multi-layered shadows + subtle background */}
-            <a href="/" className="flex items-center group">
+        <MaxWidthContainer noPadding style={{ padding: '0 12px md:0 24px' }}>
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+            {/* Logo with Enhanced Visibility - Left aligned, smaller on mobile */}
+            <a href="/" className="flex items-center group flex-shrink-0">
             <div
-              className="relative transition-all duration-300 group-hover:scale-105 px-3 py-2 rounded-xl"
+              className="relative transition-all duration-300 group-hover:scale-105 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl"
               style={{
                 background: scrolled
                   ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(6, 182, 212, 0.06))'
@@ -268,17 +262,29 @@ export function Header({
                 width={144}
                 height={43}
                 priority
-                className="h-9 w-auto"
+                className="w-auto h-6 sm:h-7 md:h-9"
                 style={{
                   width: 'auto',
                   height: 'auto',
-                  maxHeight: '36px',
+                  maxHeight: '24px',
                   filter: scrolled
                     ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15)) drop-shadow(0 4px 8px rgba(30, 64, 175, 0.12)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
                     : 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12)) drop-shadow(0 3px 6px rgba(30, 64, 175, 0.10)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08))',
                   transition: 'filter 0.3s ease',
                 }}
               />
+              <style jsx>{`
+                @media (min-width: 640px) {
+                  img {
+                    max-height: 28px !important;
+                  }
+                }
+                @media (min-width: 768px) {
+                  img {
+                    max-height: 36px !important;
+                  }
+                }
+              `}</style>
             </div>
           </a>
 
@@ -453,25 +459,27 @@ export function Header({
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-3">
-            {/* Notification Bell - Only for authenticated users */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Notification Bell - Only for authenticated users, hidden on mobile */}
             {session?.user && (
               <NotificationBell
                 userId={session.user.id}
-                className="hidden sm:block"
+                className="hidden md:block"
               />
             )}
 
-            {/* User Menu - Only for authenticated users */}
+            {/* User Menu - Only for authenticated users, hidden on mobile */}
             {session?.user && (
-              <UserMenu
-                user={session.user}
-                translations={t}
-              />
+              <div className="hidden md:block">
+                <UserMenu
+                  user={session.user}
+                  translations={t}
+                />
+              </div>
             )}
 
-            {/* Language Selector - Enhanced Compact Design */}
-            <div className="relative language-dropdown">
+            {/* Language Selector - Enhanced Compact Design, hidden on mobile */}
+            <div className="relative language-dropdown hidden sm:block">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="group flex items-center gap-1.5 px-3 py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
@@ -533,7 +541,7 @@ export function Header({
               )}
             </div>
 
-            {/* Auth Buttons - Premium Glassmorphism Style */}
+            {/* Auth Buttons - Premium Glassmorphism Style, hidden on mobile */}
             {showAuth && !session?.user && (
               <div className="hidden sm:flex items-center gap-2">
                 <button
@@ -554,7 +562,15 @@ export function Header({
               </div>
             )}
 
-            {/* Custom children (e.g., mobile menu button, user avatar, etc.) */}
+            {/* Hamburger Menu (Mobile Only) - Right aligned */}
+            <div className="lg:hidden">
+              <HamburgerMenu
+                isOpen={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              />
+            </div>
+
+            {/* Custom children (e.g., additional elements) */}
             {children}
           </div>
         </div>

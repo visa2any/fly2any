@@ -467,9 +467,9 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
   return (
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+      <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+          <h2 className="text-base sm:text-lg md:text-2xl font-extrabold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis">{t.title}</h2>
           {/* ✅ Cache Indicator - Shows instant load status */}
           {fromCache && cacheAgeFormatted && (
             <CacheIndicator
@@ -478,11 +478,12 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
               fromCache={fromCache}
               onRefresh={refresh}
               compact
+              className="hidden sm:block"
             />
           )}
         </div>
         <button
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          className="text-[11px] sm:text-xs md:text-sm font-bold text-primary-600 hover:text-primary-700 transition-colors flex-shrink-0 whitespace-nowrap"
           onClick={() => window.open('/flights/results', '_blank')}
         >
           {t.viewAll} →
@@ -490,10 +491,17 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
       </div>
 
       {/* Divider */}
-      <div className="h-0.5 bg-gray-200 mb-4"></div>
+      <div className="h-0.5 bg-gray-200 mb-3 sm:mb-4"></div>
 
-      {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Pill-based Filter Buttons - Horizontal scroll on mobile */}
+      <div
+        className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5 overflow-x-auto scrollbar-hide pb-1"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
         {[
           { key: 'all' as FilterType, label: t.all },
           { key: 'americas' as FilterType, label: t.americas },
@@ -507,11 +515,14 @@ export function DestinationsSectionEnhanced({ lang = 'en' }: DestinationsSection
             key={filter.key}
             onClick={() => setActiveFilter(filter.key)}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all border ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 border-2 flex-shrink-0 whitespace-nowrap ${
               activeFilter === filter.key
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-400 hover:bg-primary-50'
+                ? 'bg-primary-600 text-white border-primary-600 shadow-md scale-105'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-primary-500 hover:bg-primary-50 hover:scale-102 active:scale-100'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
+            style={{
+              minWidth: 'fit-content',
+            }}
           >
             {filter.label}
           </button>

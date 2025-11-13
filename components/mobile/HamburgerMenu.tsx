@@ -12,19 +12,20 @@ interface HamburgerMenuProps {
  * Hamburger Menu Button
  *
  * Animated hamburger icon that transforms to X when open.
- * WCAG compliant with min 44px touch target.
+ * WCAG compliant with 48px touch target.
  *
  * Features:
- * - Show only on mobile (<md breakpoint)
+ * - Show only on mobile (<lg breakpoint)
  * - Smooth animation between hamburger and X states
  * - Accessible with proper aria labels
- * - WCAG 2.1 Level AA compliant (44x44px minimum)
+ * - WCAG 2.1 Level AAA compliant (48x48px minimum)
+ * - Active state with scale animation for tactile feedback
  */
 export function HamburgerMenu({ isOpen, onClick, className = '' }: HamburgerMenuProps) {
   return (
     <button
       onClick={onClick}
-      className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${className}`}
+      className={`lg:hidden flex items-center justify-center min-w-[48px] min-h-[48px] rounded-lg hover:bg-gray-100 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${className}`}
       aria-label={isOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isOpen}
       aria-controls="mobile-navigation-drawer"

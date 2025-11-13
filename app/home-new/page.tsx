@@ -314,11 +314,17 @@ export default function NewHomePage() {
           <div className="px-4 md:px-6">
           {/* REMOVED: Airplane animation (user request) */}
 
-          <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
+          {/* Title Container - Single line, no wrapping */}
+          <div className="flex flex-col gap-1 animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
               key={`title-${animationKey}`}
-              className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide"
+              className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
             >
               {mounted ? (
                 t.sectionTitle.split('').map((char, index) => (
@@ -339,19 +345,15 @@ export default function NewHomePage() {
               )}
             </h1>
 
-            {/* Separator - Pulse Animation */}
-            <span
-              className="separator-dot text-cyan-400 font-medium text-base md:text-xl"
-            >
-              •
-            </span>
-
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p
               key={`subtitle-${animationKey}`}
-              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal"
+              className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide"
               style={{
-                letterSpacing: '-0.01em'
+                letterSpacing: '-0.01em',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
               }}
             >
               {mounted ? (
