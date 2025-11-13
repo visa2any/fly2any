@@ -320,11 +320,6 @@ export default function NewHomePage() {
             <h1
               key={`title-${animationKey}`}
               className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide"
-              style={{
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
             >
               {mounted ? (
                 t.sectionTitle.split('').map((char, index) => (
@@ -351,9 +346,6 @@ export default function NewHomePage() {
               className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide"
               style={{
                 letterSpacing: '-0.01em',
-                WebkitOverflowScrolling: 'touch',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
               }}
             >
               {mounted ? (
@@ -494,11 +486,13 @@ export default function NewHomePage() {
           position: relative;
           z-index: 10; /* Keep text ABOVE background orbs */
 
-          /* CHROME/EDGE FIX: Force GPU rendering and proper stacking */
+          /* CROSS-BROWSER: Force GPU rendering and proper stacking */
           transform: translateZ(0);
           -webkit-transform: translateZ(0);
+          -moz-transform: translateZ(0);
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
+          -moz-backface-visibility: hidden;
           isolation: isolate;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
@@ -515,9 +509,13 @@ export default function NewHomePage() {
           display: inline-block;
           position: relative;
           z-index: 10; /* Keep separator ABOVE background orbs */
-          /* CHROME/EDGE FIX: Force proper rendering */
+          /* CROSS-BROWSER: Force proper rendering */
           transform: translateZ(0);
+          -webkit-transform: translateZ(0);
+          -moz-transform: translateZ(0);
           backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          -moz-backface-visibility: hidden;
         }
 
         @keyframes dotPulse {
@@ -537,11 +535,12 @@ export default function NewHomePage() {
           animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
           transform-origin: center center;
           /* PERFORMANCE FIX: Only use will-change during animation, not permanently */
-          /* CHROME/EDGE FIX: Ensure letters stay in front */
+          /* CROSS-BROWSER: Ensure letters stay in front */
           position: relative;
           z-index: 1;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
+          -moz-backface-visibility: hidden;
         }
 
         /* Only apply will-change during active animation */

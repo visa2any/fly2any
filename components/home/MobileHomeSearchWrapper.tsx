@@ -220,35 +220,35 @@ export function MobileHomeSearchWrapper({
                 boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
               }}
             >
-              <div className="flex flex-col gap-1">
-                {/* Route - Single compact line */}
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between gap-2 w-full">
+                {/* From Location */}
+                <div className="flex items-center gap-1 flex-1 min-w-0">
                   <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary-600 flex-shrink-0" aria-hidden="true" />
-                  <span className="text-xs sm:text-sm font-bold text-gray-900 flex-1 text-left leading-none tracking-tight">
-                    {formatAirportCode(origin) || 'From'} → {formatAirportCode(destination) || 'To'}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary-500 flex-shrink-0 group-hover:translate-y-0.5 transition-transform" aria-hidden="true" />
-                </div>
-
-                {/* Dates & Passengers - Ultra-compact */}
-                <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                  <div className="flex items-center gap-0.5">
-                    <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500" aria-hidden="true" />
-                    <span className="text-[10px] sm:text-[11px] text-gray-600 font-medium">
-                      {formatDate(departureDate)}
-                      {returnDate && <> - {formatDate(returnDate)}</>}
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] text-gray-500 font-medium leading-none">From</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-900 leading-tight truncate">
+                      {formatAirportCode(origin) || 'Select'}
                     </span>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-0.5">
-                    <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-500" aria-hidden="true" />
-                    <span className="text-[10px] sm:text-[11px] text-gray-600 font-medium">{totalPassengers}p</span>
-                  </div>
+                {/* Arrow */}
+                <div className="flex-shrink-0 text-primary-600 font-bold text-sm">→</div>
 
-                  <div className="flex items-center gap-0.5 bg-primary-600 text-white px-2 py-0.5 rounded-full">
-                    <Search className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
-                    <span className="text-[10px] sm:text-[11px] font-bold">Go</span>
+                {/* To Location */}
+                <div className="flex items-center gap-1 flex-1 min-w-0">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] text-gray-500 font-medium leading-none">To</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-900 leading-tight truncate">
+                      {formatAirportCode(destination) || 'Select'}
+                    </span>
                   </div>
+                </div>
+
+                {/* Search Button */}
+                <div className="flex items-center gap-1 bg-primary-600 text-white px-2.5 py-1.5 rounded-full flex-shrink-0">
+                  <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
+                  <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
                 </div>
               </div>
             </button>

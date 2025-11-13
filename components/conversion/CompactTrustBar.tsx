@@ -47,13 +47,15 @@ export function CompactTrustBar({
       className={cn(
         'left-0 right-0 bg-white/98 backdrop-blur-xl',
         'border-b border-gray-200',
-        sticky && 'sticky top-14 sm:top-16 md:top-20',
+        // Only sticky on desktop, not on mobile
+        sticky && 'md:sticky md:top-20',
         className
       )}
       style={{
         zIndex: zIndex.TRUST_BAR,
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        backdropFilter: 'blur(12px) saturate(180%)', // Firefox, Safari, modern browsers
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)', // Older WebKit
       }}
     >
       {/* Single-line container with horizontal scroll - GUARANTEED no wrapping */}
