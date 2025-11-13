@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import FaqItem from '@/components/faq/FaqItem';
 import Link from 'next/link';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 const faqs = [
   // Booking FAQs
@@ -243,15 +244,16 @@ export default function FaqPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-black text-gray-900 mb-4">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Find quick answers to common questions about booking, payments, and more
-          </p>
+      <MaxWidthContainer className="px-0 md:px-6" noPadding={true} style={{ maxWidth: '1024px' }}>
+        <div className="py-6 sm:py-8">
+          {/* Hero Section */}
+          <div className="text-center mb-8 sm:mb-12 px-4 md:px-0">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-gray-900 mb-3 sm:mb-4 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Frequently Asked Questions
+            </h1>
+            <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-6 sm:mb-8 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Find quick answers to common questions about booking, payments, and more
+            </p>
 
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto mb-8">
@@ -281,7 +283,7 @@ export default function FaqPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 mx-2 md:mx-0">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             {categories.map((cat) => (
               <button
@@ -305,18 +307,18 @@ export default function FaqPage() {
 
         {/* FAQ List */}
         {filteredFaqs.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4 px-2 md:px-0">
             {filteredFaqs.map((faq) => (
               <FaqItem key={faq.id} {...faq} />
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center mx-2 md:mx-0">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🔍</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               No questions found
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
               Try adjusting your search or browse all questions
             </p>
             <button
@@ -332,28 +334,28 @@ export default function FaqPage() {
         )}
 
         {/* Still Have Questions */}
-        <div className="mt-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white shadow-2xl">
+        <div className="mt-8 sm:mt-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-2xl mx-2 md:mx-0">
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Still Have Questions?</h2>
-            <p className="text-lg mb-6 opacity-90">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">Still Have Questions?</h2>
+            <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 opacity-90">
               Our support team is here to help 24/7
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
               <Link
                 href="/contact"
-                className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                className="bg-white text-indigo-600 px-4 sm:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors text-sm sm:text-base"
               >
                 Contact Support
               </Link>
               <a
                 href="tel:+13153061646"
-                className="bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-800 transition-colors"
+                className="bg-indigo-700 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-indigo-800 transition-colors text-sm sm:text-base"
               >
                 Call Us
               </a>
               <a
                 href="https://wa.me/551151944717"
-                className="bg-green-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-600 transition-colors"
+                className="bg-green-500 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-lg font-bold hover:bg-green-600 transition-colors text-sm sm:text-base"
               >
                 WhatsApp
               </a>
@@ -362,21 +364,22 @@ export default function FaqPage() {
         </div>
 
         {/* Popular Topics */}
-        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Popular Topics</h3>
+        <div className="mt-6 sm:mt-8 bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 mx-2 md:mx-0">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Popular Topics</h3>
           <div className="flex flex-wrap gap-2">
             {['Booking', 'Cancellation', 'Refunds', 'Payment Methods', 'Baggage', 'Check-in', 'Seat Selection', 'Travel Insurance'].map((topic) => (
               <button
                 key={topic}
                 onClick={() => setSearchQuery(topic)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors text-sm font-medium"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors text-xs sm:text-sm font-medium"
               >
                 {topic}
               </button>
             ))}
           </div>
         </div>
-      </div>
+        </div>
+      </MaxWidthContainer>
     </div>
   );
 }

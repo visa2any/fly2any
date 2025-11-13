@@ -357,16 +357,15 @@ export default function PackagesPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex items-baseline gap-1 md:gap-3 flex-nowrap animate-fadeIn overflow-x-auto">
-              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap">
+            <div className="flex flex-col gap-1">
+              <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
-              <span className="separator-dot text-emerald-400 font-medium text-base md:text-xl flex-shrink-0">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
@@ -394,12 +393,12 @@ export default function PackagesPage() {
           50% { transform: translate(-8px, 5px) scale(0.98); }
           75% { transform: translate(6px, -6px) scale(1.01); }
         }
-        .hero-title { color: #059669; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(5, 150, 105, 0.15); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .hero-title { color: #059669; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(5, 150, 105, 0.15); position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; font-weight: 800; }
         .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; }
         @keyframes dotPulse { 0%, 100% { transform: scale(1) translateZ(0); opacity: 0.7; } 50% { transform: scale(1.2) translateZ(0); opacity: 1; } }
         .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
         @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
-        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
         @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
@@ -412,17 +411,17 @@ export default function PackagesPage() {
       <CompactTrustBar />
 
       {/* Package Types & Categories */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Package className="w-7 h-7 text-emerald-600" />
               {t.packageTypes}
             </h2>
-            <p className="text-gray-600">Save big with bundled travel deals and all-inclusive packages</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Save big with bundled travel deals and all-inclusive packages</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {((t as any).packageTypesData || []).map((pkg: any, index: number) => {
               const colors = [
                 'from-emerald-500 to-teal-600',
@@ -499,21 +498,21 @@ export default function PackagesPage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Popular Package Destinations */}
-      <section className="py-8 md:py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-gray-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Globe className="w-7 h-7 text-emerald-600" />
               {t.popularDestinations}
             </h2>
-            <p className="text-gray-600">Top destinations with the best package deals and bundles</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Top destinations with the best package deals and bundles</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {((t as any).destinationsData || []).map((dest: any, index: number) => (
               <div
                 key={index}
@@ -559,21 +558,21 @@ export default function PackagesPage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Package Duration Options */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Clock className="w-7 h-7 text-emerald-600" />
               {t.packageDurations}
             </h2>
-            <p className="text-gray-600">Find packages that fit your schedule and vacation time</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Find packages that fit your schedule and vacation time</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto">
             {((t as any).durationsData || []).map((duration: any, index: number) => (
               <div
                 key={index}
@@ -604,21 +603,21 @@ export default function PackagesPage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* What's Included Section */}
-      <section className="py-8 md:py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-gray-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <CheckCircle className="w-7 h-7 text-emerald-600" />
               {t.whatsIncluded}
             </h2>
-            <p className="text-gray-600">Essential components bundled in most vacation packages</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Essential components bundled in most vacation packages</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
             {((t as any).includedData || []).map((item: any, index: number) => {
               const IconComponent = item.icon;
               return (
@@ -632,21 +631,21 @@ export default function PackagesPage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Top Package Providers */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Award className="w-7 h-7 text-emerald-600" />
               {t.topProviders}
             </h2>
-            <p className="text-gray-600">Trusted companies offering the best vacation package deals</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Trusted companies offering the best vacation package deals</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {((t as any).providersData || []).map((provider: any, index: number) => (
               <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-gray-200 hover:border-emerald-400 transition-all hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
@@ -664,21 +663,21 @@ export default function PackagesPage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Expert Booking Tips */}
-      <section className="py-8 md:py-12 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Zap className="w-7 h-7 text-emerald-600" />
               {t.bookingTips}
             </h2>
-            <p className="text-gray-600">Maximize savings and get the best value from vacation packages</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Maximize savings and get the best value from vacation packages</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {((t as any).tipsData || []).map((tip: any, index: number) => {
               const IconComponent = tip.icon;
               return (
@@ -696,18 +695,18 @@ export default function PackagesPage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">❓ {t.faq}</h2>
-            <p className="text-gray-600">Everything you need to know about booking vacation packages</p>
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="px-4 md:px-0 mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3 md:mt-5">❓ {t.faq}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about booking vacation packages</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 lg:grid-cols-2">
             {((t as any).faqData || []).map((faq: any, index: number) => (
               <details key={index} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-emerald-300 group">
                 <summary className="flex items-start justify-between cursor-pointer list-none">
@@ -724,8 +723,8 @@ export default function PackagesPage() {
           </div>
 
           {/* Contact CTA */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Have more questions about vacation packages?</p>
+          <div className="px-4 md:px-0 mt-6 sm:mt-8 text-center">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">Have more questions about vacation packages?</p>
             <a
               href="mailto:support@fly2any.com"
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
@@ -734,7 +733,7 @@ export default function PackagesPage() {
               Contact Our Package Experts
             </a>
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
     </div>
   );

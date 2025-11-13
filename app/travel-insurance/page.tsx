@@ -354,16 +354,15 @@ export default function TravelInsurancePage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex items-baseline gap-1 md:gap-3 flex-nowrap animate-fadeIn">
-              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap">
+            <div className="flex flex-col gap-1">
+              <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
-              <span className="separator-dot text-blue-400 font-medium text-base md:text-xl flex-shrink-0">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg whitespace-nowrap" style={{ letterSpacing: '0.01em' }}>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
@@ -391,12 +390,12 @@ export default function TravelInsurancePage() {
           50% { transform: translate(-8px, 5px) scale(0.98); }
           75% { transform: translate(6px, -6px) scale(1.01); }
         }
-        .hero-title { color: #2563eb; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(37, 99, 235, 0.15); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .hero-title { color: #2563eb; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(37, 99, 235, 0.15); position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; font-weight: 800; }
         .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; }
         @keyframes dotPulse { 0%, 100% { transform: scale(1) translateZ(0); opacity: 0.7; } 50% { transform: scale(1.2) translateZ(0); opacity: 1; } }
         .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
         @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
-        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
         @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
@@ -409,17 +408,17 @@ export default function TravelInsurancePage() {
       <CompactTrustBar />
 
       {/* Coverage Types & Plans */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Shield className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Shield className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.coverageTypes}
             </h2>
-            <p className="text-gray-600">Choose the right protection for your travel needs</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Choose the right protection for your travel needs</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).coverageTypesData || []).map((coverage: any, index: number) => {
               const colors = [
                 'from-blue-500 to-indigo-600',
@@ -496,21 +495,21 @@ export default function TravelInsurancePage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Popular Insurance Plans */}
-      <section className="py-8 md:py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Award className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-gray-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Award className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.popularPlans}
             </h2>
-            <p className="text-gray-600">Most popular insurance plans for different travel needs</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Most popular insurance plans for different travel needs</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).plansData || []).map((plan: any, index: number) => (
               <div
                 key={index}
@@ -555,21 +554,21 @@ export default function TravelInsurancePage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Coverage Level Options */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Zap className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Zap className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.coverageLevels}
             </h2>
-            <p className="text-gray-600">Choose coverage based on your trip value and needs</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Choose coverage based on your trip value and needs</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 max-w-6xl mx-auto">
             {((t as any).levelsData || []).map((level: any, index: number) => (
               <div
                 key={index}
@@ -594,21 +593,21 @@ export default function TravelInsurancePage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* What's Covered Section */}
-      <section className="py-8 md:py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <CheckCircle className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-gray-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <CheckCircle className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.whatsIncluded}
             </h2>
-            <p className="text-gray-600">Key protections included in travel insurance policies</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Key protections included in travel insurance policies</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).coveredData || []).map((item: any, index: number) => {
               const IconComponent = item.icon;
               return (
@@ -622,21 +621,21 @@ export default function TravelInsurancePage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Top Insurance Providers */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Globe className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Globe className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.topProviders}
             </h2>
-            <p className="text-gray-600">Leading travel insurance companies trusted by millions</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Leading travel insurance companies trusted by millions</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).providersData || []).map((provider: any, index: number) => (
               <div key={index} className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border-2 border-gray-200 hover:border-blue-400 transition-all hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
@@ -654,21 +653,21 @@ export default function TravelInsurancePage() {
               </div>
             ))}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* Insurance Buying Tips */}
-      <section className="py-8 md:py-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-              <Sparkles className="w-7 h-7 text-blue-600" />
+      <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <Sparkles className="w-5 sm:w-6 md:w-7 h-5 sm:h-6 md:h-7 text-blue-600" />
               {t.bookingTips}
             </h2>
-            <p className="text-gray-600">Expert tips for choosing and buying travel insurance</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Expert tips for choosing and buying travel insurance</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).tipsData || []).map((tip: any, index: number) => {
               const IconComponent = tip.icon;
               return (
@@ -686,18 +685,18 @@ export default function TravelInsurancePage() {
               );
             })}
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">❓ {t.faq}</h2>
-            <p className="text-gray-600">Common questions about travel insurance answered</p>
+      <section className="py-6 sm:py-8 md:py-12 bg-white">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">❓ {t.faq}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Common questions about travel insurance answered</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
             {((t as any).faqData || []).map((faq: any, index: number) => (
               <details key={index} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group">
                 <summary className="flex items-start justify-between cursor-pointer list-none">
@@ -714,17 +713,17 @@ export default function TravelInsurancePage() {
           </div>
 
           {/* Contact CTA */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Need help choosing the right insurance plan?</p>
+          <div className="mt-6 sm:mt-8 text-center px-4 md:px-0">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-3 sm:mb-4">Need help choosing the right insurance plan?</p>
             <a
               href="mailto:support@fly2any.com"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg text-sm sm:text-base"
             >
-              <Shield className="w-5 h-5" />
+              <Shield className="w-4 sm:w-5 h-4 sm:h-5" />
               Contact Our Insurance Experts
             </a>
           </div>
-        </div>
+        </MaxWidthContainer>
       </section>
     </div>
   );

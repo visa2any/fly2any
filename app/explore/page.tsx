@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import DestinationCard from '@/components/explore/DestinationCard';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 // Mock destinations data
 const destinations = [
@@ -202,15 +203,16 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-black text-gray-900 mb-4">
-            Explore the World 🌍
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Discover amazing destinations and plan your next adventure
-          </p>
+      <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+        <div className="py-6 sm:py-8">
+          {/* Hero Section */}
+          <div className="text-center mb-8 sm:mb-12 px-4 md:px-0">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-gray-900 mb-3 sm:mb-4 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Explore the World 🌍
+            </h1>
+            <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-6 sm:mb-8 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Discover amazing destinations and plan your next adventure
+            </p>
 
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
@@ -230,11 +232,11 @@ export default function ExplorePage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 mx-2 md:mx-0">
           <div className="space-y-4">
             {/* Region Filter */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 sm:mb-3">
                 Select Region
               </label>
               <div className="flex flex-wrap gap-2">
@@ -256,7 +258,7 @@ export default function ExplorePage() {
 
             {/* Price Filter */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 sm:mb-3">
                 Budget Range
               </label>
               <div className="flex flex-wrap gap-2">
@@ -284,7 +286,7 @@ export default function ExplorePage() {
 
             {/* Tag Filter */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
+              <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 sm:mb-3">
                 Travel Style
               </label>
               <div className="flex flex-wrap gap-2">
@@ -318,12 +320,12 @@ export default function ExplorePage() {
 
         {/* Trending Destinations */}
         {selectedRegion === 'all' && selectedTag === 'all' && !searchQuery && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <div className="mb-8 sm:mb-12 px-2 md:px-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
               <span>🔥</span>
               Trending Now
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6">
               {trendingDestinations.map((destination) => (
                 <DestinationCard key={destination.id} destination={destination} />
               ))}
@@ -333,12 +335,12 @@ export default function ExplorePage() {
 
         {/* Seasonal Picks */}
         {selectedRegion === 'all' && selectedTag === 'all' && !searchQuery && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <div className="mb-8 sm:mb-12 px-2 md:px-0">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
               <span>🌸</span>
               Seasonal Favorites
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6">
               {seasonalDestinations.map((destination) => (
                 <DestinationCard key={destination.id} destination={destination} />
               ))}
@@ -347,23 +349,23 @@ export default function ExplorePage() {
         )}
 
         {/* All Destinations */}
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
+        <div className="px-2 md:px-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">
             {filteredDestinations.length} Destinations Found
           </h2>
           {filteredDestinations.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6">
               {filteredDestinations.map((destination) => (
                 <DestinationCard key={destination.id} destination={destination} />
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center">
+              <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🔍</div>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 No destinations match your filters
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                 Try adjusting your filters or search terms
               </p>
               <button
@@ -382,35 +384,36 @@ export default function ExplorePage() {
         </div>
 
         {/* Travel Tips */}
-        <div className="mt-12 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 border border-indigo-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+        <div className="mt-8 sm:mt-12 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 sm:p-8 border border-indigo-100 mx-2 md:mx-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
             Plan Your Perfect Trip
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">📅</div>
-              <h3 className="font-bold text-gray-900 mb-2">Best Time to Visit</h3>
-              <p className="text-sm text-gray-600">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">📅</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Best Time to Visit</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
                 Check each destination's best months for ideal weather and experiences
               </p>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">💡</div>
-              <h3 className="font-bold text-gray-900 mb-2">Local Insights</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">💡</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Local Insights</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
                 Discover popular activities and hidden gems in each location
               </p>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">💰</div>
-              <h3 className="font-bold text-gray-900 mb-2">Price Comparison</h3>
-              <p className="text-sm text-gray-600">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">💰</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Price Comparison</h3>
+              <p className="text-xs sm:text-sm text-gray-600">
                 Find the best flight deals and save on your dream vacation
               </p>
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </MaxWidthContainer>
     </div>
   );
 }

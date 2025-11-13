@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import TravelTipCard from '@/components/guide/TravelTipCard';
+import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 // Mock travel tips data
 const travelTips = [
@@ -202,15 +203,16 @@ export default function TravelGuidePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-black text-gray-900 mb-4">
-            Travel Guides & Tips 📚
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Essential information to help you plan and enjoy your trip
-          </p>
+      <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+        <div className="py-6 sm:py-8">
+          {/* Hero Section */}
+          <div className="text-center mb-8 sm:mb-12 px-4 md:px-0">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-gray-900 mb-3 sm:mb-4 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Travel Guides & Tips 📚
+            </h1>
+            <p className="text-sm sm:text-base md:text-xl text-gray-600 mb-6 sm:mb-8 whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+              Essential information to help you plan and enjoy your trip
+            </p>
 
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
@@ -230,8 +232,8 @@ export default function TravelGuidePage() {
         </div>
 
         {/* Destination Selector */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <label className="block text-sm font-bold text-gray-700 mb-3">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 mx-2 md:mx-0">
+          <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 sm:mb-3">
             Select Destination
           </label>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
@@ -269,8 +271,8 @@ export default function TravelGuidePage() {
         </div>
 
         {/* Category Filter */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <label className="block text-sm font-bold text-gray-700 mb-3">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 mx-2 md:mx-0">
+          <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2 sm:mb-3">
             Filter by Category
           </label>
           <div className="flex flex-wrap gap-2">
@@ -296,12 +298,12 @@ export default function TravelGuidePage() {
           <>
             {/* Essential Tips */}
             {essentialTips.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <div className="mb-8 sm:mb-12 px-2 md:px-0">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                   <span>🚨</span>
                   Essential Information
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   {essentialTips.map((tip) => (
                     <TravelTipCard key={tip.id} tip={tip} expanded={true} />
                   ))}
@@ -311,12 +313,12 @@ export default function TravelGuidePage() {
 
             {/* Important Tips */}
             {importantTips.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <div className="mb-8 sm:mb-12 px-2 md:px-0">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                   <span>⚠️</span>
                   Important to Know
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   {importantTips.map((tip) => (
                     <TravelTipCard key={tip.id} tip={tip} />
                   ))}
@@ -326,12 +328,12 @@ export default function TravelGuidePage() {
 
             {/* General Tips */}
             {generalTips.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <div className="mb-8 sm:mb-12 px-2 md:px-0">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
                   <span>💡</span>
                   Good to Know
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
                   {generalTips.map((tip) => (
                     <TravelTipCard key={tip.id} tip={tip} />
                   ))}
@@ -340,12 +342,12 @@ export default function TravelGuidePage() {
             )}
           </>
         ) : (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">📖</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center mx-2 md:mx-0">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📖</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
               No travel tips found
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
               Try selecting a different destination or category
             </p>
             <button
@@ -362,38 +364,38 @@ export default function TravelGuidePage() {
         )}
 
         {/* Resources Section */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 sm:p-8 border border-purple-100 mx-2 md:mx-0">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
             Additional Resources
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">🏥</div>
-              <h3 className="font-bold text-gray-900 mb-2">Travel Insurance</h3>
-              <p className="text-sm text-gray-600 mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🏥</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Travel Insurance</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
                 Protect yourself with comprehensive travel insurance
               </p>
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm">
                 Get a Quote →
               </a>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">📱</div>
-              <h3 className="font-bold text-gray-900 mb-2">Travel Apps</h3>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">📱</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Travel Apps</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
                 Essential apps for navigation, translation, and more
               </p>
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm">
                 View Recommendations →
               </a>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <div className="text-4xl mb-3">🌐</div>
-              <h3 className="font-bold text-gray-900 mb-2">Official Resources</h3>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">🌐</div>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Official Resources</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
                 Embassy contacts, visa requirements, and travel advisories
               </p>
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm">
                 View Resources →
               </a>
             </div>
@@ -401,18 +403,19 @@ export default function TravelGuidePage() {
         </div>
 
         {/* Disclaimer */}
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">ℹ️</span>
+        <div className="mt-6 sm:mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-4 sm:p-6 mx-2 md:mx-0">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className="text-xl sm:text-2xl flex-shrink-0">ℹ️</span>
             <div>
-              <h3 className="font-bold text-gray-900 mb-2">Important Notice</h3>
-              <p className="text-sm text-gray-700">
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 sm:mb-2">Important Notice</h3>
+              <p className="text-xs sm:text-sm text-gray-700">
                 Travel information is subject to change. Always verify visa requirements, travel advisories, and local regulations with official sources before your trip. This guide provides general information and should not be considered as official travel advice.
               </p>
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </MaxWidthContainer>
     </div>
   );
 }

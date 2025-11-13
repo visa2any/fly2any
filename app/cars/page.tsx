@@ -374,16 +374,15 @@ export default function CarsPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex items-baseline gap-1 md:gap-3 flex-wrap animate-fadeIn">
-              <h1 key={`title-${animationKey}`} className="hero-title text-xl md:text-3xl font-extrabold tracking-wide">
+            <div className="flex flex-col gap-1 animate-fadeIn">
+              <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.sectionTitle.split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
-              <span className="separator-dot text-teal-400 font-medium text-base md:text-xl">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-sm md:text-lg" style={{ letterSpacing: '0.01em' }}>
+              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }}>
                 {mounted ? t.subtitle.split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
@@ -411,12 +410,12 @@ export default function CarsPage() {
           50% { transform: translate(-8px, 5px) scale(0.98); }
           75% { transform: translate(6px, -6px) scale(1.01); }
         }
-        .hero-title { color: #0f766e; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(15, 118, 110, 0.15); position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; font-weight: 800; }
-        .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; }
+        .hero-title { color: #0f766e; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(15, 118, 110, 0.15); position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; font-weight: 800; }
+        .separator-dot { animation: fadeIn 0.8s ease-out, dotPulse 2s ease-in-out infinite; display: inline-block; position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; }
         @keyframes dotPulse { 0%, 100% { transform: scale(1) translateZ(0); opacity: 0.7; } 50% { transform: scale(1.2) translateZ(0); opacity: 1; } }
-        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; }
+        .letter-elastic { opacity: 0; animation: elasticLetterEntrance 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; transform-origin: center center; position: relative; z-index: 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; }
         @keyframes elasticLetterEntrance { 0% { opacity: 0; transform: translateY(-5px) scale(0.9) translateZ(0); } 100% { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
-        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
+        .hero-subtitle { position: relative; z-index: 10; transform: translateZ(0); -webkit-transform: translateZ(0); -moz-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; isolation: isolate; color: #374151; font-weight: 500; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
         @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
@@ -433,13 +432,13 @@ export default function CarsPage() {
       {/* ============ CAR RENTAL SECTIONS ============ */}
 
       {/* 1. Vehicle Types & Categories - WITH PHOTOS */}
-      <div className="bg-gradient-to-br from-gray-50 to-white py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.vehicleTypesTitle}</h2>
-            <p className="text-gray-600">{t.vehicleTypesSubtitle}</p>
+      <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.vehicleTypesTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.vehicleTypesSubtitle}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.vehicleTypes.map((vehicle, idx) => {
               const IconComponent = vehicle.icon;
               return (
@@ -478,13 +477,13 @@ export default function CarsPage() {
       </div>
 
       {/* 2. Top Car Rental Companies */}
-      <div className="bg-white py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.companiesTitle}</h2>
-            <p className="text-gray-600">{t.companiesSubtitle}</p>
+      <div className="bg-white py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.companiesTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.companiesSubtitle}</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
             {t.companies.map((company, idx) => (
               <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-teal-300 group cursor-pointer text-center">
                 <div className="text-5xl mb-3">{company.logo}</div>
@@ -509,13 +508,13 @@ export default function CarsPage() {
       </div>
 
       {/* 3. Insurance & Protection Options */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.insuranceTitle}</h2>
-            <p className="text-gray-600">{t.insuranceSubtitle}</p>
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.insuranceTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.insuranceSubtitle}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.insurance.map((ins, idx) => {
               const IconComponent = ins.icon;
               return (
@@ -537,13 +536,13 @@ export default function CarsPage() {
       </div>
 
       {/* 4. Rental Locations & Pickup Options */}
-      <div className="bg-white py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.locationsTitle}</h2>
-            <p className="text-gray-600">{t.locationsSubtitle}</p>
+      <div className="bg-white py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.locationsTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.locationsSubtitle}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.locations.map((loc, idx) => {
               const IconComponent = loc.icon;
               return (
@@ -565,13 +564,13 @@ export default function CarsPage() {
       </div>
 
       {/* 5. Fuel Policies Explained */}
-      <div className="bg-gradient-to-br from-teal-50 to-emerald-50 py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.fuelPoliciesTitle}</h2>
-            <p className="text-gray-600">{t.fuelPoliciesSubtitle}</p>
+      <div className="bg-gradient-to-br from-teal-50 to-emerald-50 py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.fuelPoliciesTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.fuelPoliciesSubtitle}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.fuelPolicies.map((fuel, idx) => {
               const IconComponent = fuel.icon;
               return (
@@ -592,13 +591,13 @@ export default function CarsPage() {
       </div>
 
       {/* 6. Expert Car Rental Tips */}
-      <div className="bg-white py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
-            <p className="text-gray-600">{t.tipsSubtitle}</p>
+      <div className="bg-white py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.tipsSubtitle}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.tips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
@@ -620,18 +619,18 @@ export default function CarsPage() {
       </div>
 
       {/* Recently Viewed */}
-      <div className="mt-3 md:mt-5">
+      <div className="mt-2 sm:mt-3 md:mt-5">
         <RecentlyViewedSection lang={lang} />
       </div>
 
       {/* 7. Car Rental FAQ */}
-      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 md:py-12">
-        <MaxWidthContainer>
-          <div className="mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{t.faqTitle}</h2>
-            <p className="text-gray-600">Everything you need to know about renting cars with Fly2Any</p>
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
+        <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
+          <div className="mb-6 sm:mb-8 px-4 md:px-0">
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t.faqTitle}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about renting cars with Fly2Any</p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
             {t.faqs.map((faq, idx) => (
               <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-teal-300 group">
                 <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
