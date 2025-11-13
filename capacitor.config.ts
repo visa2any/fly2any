@@ -31,12 +31,10 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     // Capture back button
     captureInput: true,
-    // Use Android X
+    // Enable web debugging in debug builds
     webContentsDebuggingEnabled: true,
     // Background color while app loads
     backgroundColor: '#ffffff',
-    // Hide splash on page load
-    hideLogs: false,
   },
 
   // Plugin configurations
