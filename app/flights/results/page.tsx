@@ -2,11 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { FlightCardEnhanced } from '@/components/flights/FlightCardEnhanced';
 import { FlexibleDates, type DatePrice } from '@/components/flights/FlexibleDates';
 import { SmartWait } from '@/components/flights/SmartWait';
 import { FlightComparison } from '@/components/flights/FlightComparison';
 import { PriceAlerts } from '@/components/flights/PriceAlerts';
+import CreatePriceAlert from '@/components/search/CreatePriceAlert';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
 import SortBar, { type SortOption } from '@/components/flights/SortBar';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
@@ -526,6 +528,7 @@ const generatePriceInsights = (flights: ScoredFlight[]): PriceStatistics => {
 function FlightResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const [lang] = useState<'en' | 'pt' | 'es'>('en');
   const t = translations[lang];
 
@@ -533,6 +536,8 @@ function FlightResultsContent() {
   const [flights, setFlights] = useState<ScoredFlight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreatePriceAlert, setShowCreatePriceAlert] = useState(false);
+  const [selectedFlightForAlert, setSelectedFlightForAlert] = useState<ScoredFlight | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('best');
   const [showPriceInsights, setShowPriceInsights] = useState(true);
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
@@ -1421,6 +1426,27 @@ function FlightResultsContent() {
     handleSelectFlight(id);
   };
 
+  // Handle Track Price - Authentication required
+  const handleTrackPrice = (flightId: string) => {
+    // Check if user is authenticated
+    if (sessionStatus === 'unauthenticated' || !session) {
+      // Redirect to sign-in with callback
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
+      return;
+    }
+
+    // Find the selected flight
+    const flight = flights.find(f => f.id === flightId);
+    if (!flight) {
+      console.error('Flight not found:', flightId);
+      return;
+    }
+
+    // Set selected flight and show modal
+    setSelectedFlightForAlert(flight);
+    setShowCreatePriceAlert(true);
+  };
+
   // Loading state - Show 3-column layout with inline loading in main content area
   if (loading) {
     return (
@@ -1756,6 +1782,7 @@ function FlightResultsContent() {
                       bookingsToday={Math.floor(Math.random() * 150) + 100}
                       onSelect={handleSelectFlight}
                       onCompare={handleCompareToggle}
+                      onTrackPrice={handleTrackPrice}
                       isComparing={compareFlights.includes(flightId)}
                       isNavigating={isNavigating && selectedFlightId === flightId}
                       lang={lang}
@@ -2040,6 +2067,29 @@ function FlightResultsContent() {
             className="max-w-7xl mx-auto"
           />
         </div>
+      )}
+
+      {/* Create Price Alert Modal - Authentication protected */}
+      {showCreatePriceAlert && selectedFlightForAlert && (
+        <CreatePriceAlert
+          isOpen={true}
+          flightData={{
+            origin: searchData.from,
+            destination: searchData.to,
+            departDate: searchData.departure.split(',')[0],
+            returnDate: searchData.return || null,
+            currentPrice: normalizePrice(selectedFlightForAlert.price.total),
+            currency: selectedFlightForAlert.price.currency,
+          }}
+          onClose={() => {
+            setShowCreatePriceAlert(false);
+            setSelectedFlightForAlert(null);
+          }}
+          onSuccess={(alert) => {
+            console.log('Price alert created:', alert);
+            // Optionally refresh price alerts list
+          }}
+        />
       )}
     </div>
   );

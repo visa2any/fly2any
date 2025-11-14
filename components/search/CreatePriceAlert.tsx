@@ -166,81 +166,73 @@ export function CreatePriceAlert({
   const currencySymbol = CURRENCY_OPTIONS.find(c => c.code === selectedCurrency)?.symbol || '$';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
-        {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-primary-500 to-primary-600 p-6 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <Bell className="w-6 h-6" />
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
+        {/* Header - Clean & Balanced */}
+        <div className="sticky top-0 bg-gradient-to-r from-primary-500 to-primary-600 px-5 py-3.5 text-white rounded-t-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-white/20 rounded-lg">
+                <Bell className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Set Price Alert</h2>
-                <p className="text-primary-100 text-sm">Get notified when prices drop</p>
+                <h2 className="text-base font-bold">Set Price Alert</h2>
+                <p className="text-primary-100 text-xs">Get notified when price drops</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+              aria-label="Close"
             >
-              <X className="w-6 h-6" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Flight Info */}
-          <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <Plane className="w-5 h-5 text-primary-500" />
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-gray-900">{flightData.origin}</span>
-                  <ArrowRight className="w-5 h-5 text-gray-400" />
-                  <span className="text-2xl font-bold text-gray-900">{flightData.destination}</span>
+        {/* Content - Well Organized */}
+        <div className="p-5">
+          {/* Section 1: Flight Route & Current Price */}
+          <div className="mb-4 p-3.5 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-200">
+            <div className="flex items-start justify-between gap-3 mb-2.5">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Plane className="w-4 h-4 text-primary-500" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-bold text-gray-900">{flightData.origin}</span>
+                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                    <span className="text-base font-bold text-gray-900">{flightData.destination}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 ml-6">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{formatDate(flightData.departDate)}</span>
+                  {flightData.returnDate && (
+                    <>
+                      <span className="mx-0.5">→</span>
+                      <span>{formatDate(flightData.returnDate)}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="text-right bg-white px-3 py-2 rounded-lg border border-blue-200">
+                <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-0.5">Current</div>
+                <div className="text-lg font-bold text-blue-600">
+                  {currencySymbol}{flightData.currentPrice.toFixed(0)}
                 </div>
               </div>
             </div>
-
-            <div className="text-sm text-gray-600 mb-3">
-              {formatCityCode(flightData.origin)} → {formatCityCode(flightData.destination)}
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(flightData.departDate)}</span>
-              {flightData.returnDate && (
-                <>
-                  <span>-</span>
-                  <span>{formatDate(flightData.returnDate)}</span>
-                </>
-              )}
-            </div>
           </div>
 
-          {/* Current Price Display */}
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-900 mb-2">
-              Current Price
-            </label>
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl border border-blue-200">
-              <div className="text-3xl font-bold text-blue-700">
-                {currencySymbol}{flightData.currentPrice.toFixed(0)}
-              </div>
-              <div className="text-xs text-blue-600 mt-1">Price as of today</div>
-            </div>
-          </div>
-
-          {/* Target Price Input */}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Target Price *
+          {/* Section 2: Target Price Selection */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2.5 flex items-center gap-2">
+                <Target className="w-4 h-4 text-green-600" />
+                Your Target Price
               </label>
 
-              {/* Quick Select Buttons */}
+              {/* Quick Select Options */}
               <div className="grid grid-cols-4 gap-2 mb-3">
                 {quickSelectOptions.map((option) => {
                   const price = Math.round(flightData.currentPrice * (1 - option.percentage / 100));
@@ -251,14 +243,14 @@ export function CreatePriceAlert({
                       type="button"
                       onClick={() => handleQuickSelect(option.percentage)}
                       className={`
-                        py-2 px-3 rounded-lg font-semibold text-sm transition-all
+                        py-2 px-2 rounded-lg text-xs font-semibold transition-all
                         ${isSelected
-                          ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg scale-105'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md scale-105'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                         }
                       `}
                     >
-                      <div className="text-xs mb-1">{option.label}</div>
+                      <div className="text-[10px] opacity-90 mb-1">{option.label}</div>
                       <div className="font-bold">{currencySymbol}{price}</div>
                     </button>
                   );
@@ -267,20 +259,19 @@ export function CreatePriceAlert({
 
               {/* Custom Price Input */}
               <div className="relative">
-                <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <span className="absolute left-11 top-1/2 -translate-y-1/2 text-gray-600 font-bold">
-                  {currencySymbol}
-                </span>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <span className="text-gray-600 font-bold text-sm">{currencySymbol}</span>
+                </div>
                 <input
                   type="number"
                   value={targetPrice || ''}
                   onChange={(e) => handleTargetPriceChange(e.target.value)}
-                  placeholder={suggestedPrice.toString()}
+                  placeholder={`Enter amount (e.g., ${suggestedPrice})`}
                   className={`
-                    w-full pl-16 pr-4 py-3 border-2 rounded-xl
+                    w-full pl-10 pr-4 py-2.5 border-2 rounded-lg text-sm font-semibold
                     focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500
-                    transition-all font-semibold text-lg
-                    ${error ? 'border-red-500' : 'border-gray-200'}
+                    transition-all placeholder:text-gray-400 placeholder:font-normal
+                    ${error ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white'}
                   `}
                   min="1"
                   max={flightData.currentPrice - 1}
@@ -289,26 +280,25 @@ export function CreatePriceAlert({
                 />
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-red-600">
-                  <AlertCircle className="w-4 h-4" />
+              {/* Error or Savings */}
+              {error ? (
+                <div className="mt-2 flex items-center gap-2 text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
-              )}
-
-              {/* Savings Display */}
-              {targetPrice > 0 && targetPrice < flightData.currentPrice && (
-                <div className="mt-3 p-3 bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg border border-green-200">
+              ) : targetPrice > 0 && targetPrice < flightData.currentPrice && (
+                <div className="mt-2.5 p-2.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700 font-medium">Potential Savings</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <TrendingDown className="w-4 h-4 text-green-600" />
-                      <span className="text-lg font-bold text-green-600">
+                      <span className="text-xs text-green-700 font-medium">You'll save</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-bold text-green-600">
                         {currencySymbol}{savings.toFixed(0)}
                       </span>
-                      <span className="text-sm text-green-600 bg-green-200 px-2 py-0.5 rounded-full font-semibold">
-                        {savingsPercentage}%
+                      <span className="text-xs text-green-700 bg-green-200 px-2 py-1 rounded-full font-semibold">
+                        {savingsPercentage}% off
                       </span>
                     </div>
                   </div>
@@ -316,97 +306,72 @@ export function CreatePriceAlert({
               )}
             </div>
 
-            {/* Currency Selector */}
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Currency
-              </label>
-              <select
-                value={selectedCurrency}
-                onChange={(e) => setSelectedCurrency(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-              >
-                {CURRENCY_OPTIONS.map((currency) => (
-                  <option key={currency.code} value={currency.code}>
-                    {currency.symbol} {currency.code}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Email Notifications Toggle */}
-            <div className="mb-6">
-              <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={emailNotifications}
-                  onChange={(e) => setEmailNotifications(e.target.checked)}
-                  className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                />
+            {/* Section 3: Options & Submit */}
+            <div className="pt-3 border-t border-gray-200">
+              <div className="flex items-center gap-3 mb-4">
+                {/* Currency */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                    <Mail className="w-4 h-4 text-primary-500" />
-                    <span>Email Notifications</span>
-                  </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    Get notified when the price drops to your target
-                  </div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Currency
+                  </label>
+                  <select
+                    value={selectedCurrency}
+                    onChange={(e) => setSelectedCurrency(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                  >
+                    {CURRENCY_OPTIONS.map((currency) => (
+                      <option key={currency.code} value={currency.code}>
+                        {currency.symbol} {currency.code}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </label>
-            </div>
 
-            {/* Info Box */}
-            <div className="mb-6 p-4 bg-gradient-to-br from-blue-50 to-blue-100/30 rounded-xl border border-blue-200">
-              <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                How it works
-              </h4>
-              <ul className="space-y-1.5 text-xs text-blue-700">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary-500 mt-0.5">•</span>
-                  <span>We monitor this flight 24/7 for price changes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary-500 mt-0.5">•</span>
-                  <span>Instant notification when price drops to your target</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary-500 mt-0.5">•</span>
-                  <span>Direct booking link included in the alert</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary-500 mt-0.5">•</span>
-                  <span>Manage all your alerts from your account dashboard</span>
-                </li>
-              </ul>
-            </div>
+                {/* Email Notification */}
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                    Notifications
+                  </label>
+                  <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors h-[38px]">
+                    <input
+                      type="checkbox"
+                      checked={emailNotifications}
+                      onChange={(e) => setEmailNotifications(e.target.checked)}
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <Mail className="w-4 h-4 text-primary-500" />
+                    <span className="text-sm font-medium text-gray-700">Email</span>
+                  </label>
+                </div>
+              </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 py-3 px-6 rounded-xl bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || !!error || targetPrice <= 0 || targetPrice >= flightData.currentPrice}
-                className="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Creating Alert...</span>
-                  </>
-                ) : (
-                  <>
-                    <Bell className="w-5 h-5" />
-                    <span>Create Price Alert</span>
-                  </>
-                )}
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-2.5 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition-colors border border-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !!error || targetPrice <= 0 || targetPrice >= flightData.currentPrice}
+                  className="flex-1 py-2.5 px-4 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      <span>Create Alert</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>

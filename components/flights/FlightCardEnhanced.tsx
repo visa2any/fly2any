@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { ChevronDown, ChevronUp, Star, Clock, Users, Plane, Wifi, Coffee, Zap, Heart, Share2, Info, Check, X, Shield, AlertTriangle, Award, Sparkles, Image as ImageIcon, Bell } from 'lucide-react';
 import ShareFlightModal from './ShareFlightModal';
 import { FlightRichContent } from './FlightRichContent';
 import { NDCBenefitsModal } from './NDCBenefitsModal';
@@ -86,6 +87,7 @@ export interface EnhancedFlightCardProps {
   dealLabel?: string; // Deal label
   onSelect?: (id: string) => void;
   onCompare?: (id: string) => void;
+  onTrackPrice?: (id: string) => void;
   isComparing?: boolean;
   isNavigating?: boolean;
   lang?: 'en' | 'pt' | 'es';
@@ -136,6 +138,7 @@ export function FlightCardEnhanced({
   dealLabel,
   onSelect,
   onCompare,
+  onTrackPrice,
   isComparing = false,
   isNavigating = false,
   lang = 'en',
@@ -173,6 +176,7 @@ export function FlightCardEnhanced({
   }
 
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -518,6 +522,40 @@ export function FlightCardEnhanced({
   const truePrice = totalPrice + estimatedBaggage + estimatedSeat;
 
   // Handle select - Navigate to booking page
+  // Handle track price click
+  const handleTrackPrice = () => {
+    if (onTrackPrice) {
+      onTrackPrice(id);
+    }
+  };
+
+  // Handle favorite click - Authentication required
+  const handleFavoriteClick = () => {
+    // Check if user is authenticated
+    if (sessionStatus === 'unauthenticated' || !session) {
+      // Redirect to sign-in with callback
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
+      return;
+    }
+
+    // Toggle favorite state (actual API call would happen here)
+    setIsFavorited(!isFavorited);
+    // TODO: Call API to save/remove favorite
+  };
+
+  // Handle share click - Authentication required
+  const handleShareClick = () => {
+    // Check if user is authenticated
+    if (sessionStatus === 'unauthenticated' || !session) {
+      // Redirect to sign-in with callback
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
+      return;
+    }
+
+    // Show share modal
+    setShowShareModal(true);
+  };
+
   const handleSelectClick = () => {
     if (isNavigating) return;
 
@@ -620,6 +658,14 @@ export function FlightCardEnhanced({
       setIsDebugMode(searchParams.get('debug') === 'true');
     }
   }, []);
+
+  // Translations for Track Price button
+  const translations = {
+    en: { trackPrice: 'Track Price' },
+    pt: { trackPrice: 'Monitorar Preço' },
+    es: { trackPrice: 'Seguir Precio' },
+  };
+  const t = translations[lang];
 
   return (
     <div
@@ -732,9 +778,9 @@ export function FlightCardEnhanced({
             </div>
           )} */}
 
-          {/* Quick Actions - Smaller */}
+          {/* Quick Actions - Smaller - Authentication required */}
           <button
-            onClick={() => setIsFavorited(!isFavorited)}
+            onClick={handleFavoriteClick}
             className={`p-1 rounded transition-all ${
               isFavorited
                 ? 'bg-red-500 text-white'
@@ -746,7 +792,7 @@ export function FlightCardEnhanced({
           </button>
 
           <button
-            onClick={() => setShowShareModal(true)}
+            onClick={handleShareClick}
             className="p-1 rounded transition-all bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
             title="Share this flight"
             aria-label="Share flight deal"
@@ -1198,6 +1244,20 @@ export function FlightCardEnhanced({
 
         {/* Right: Action Buttons - Inline */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Track Price Button - Visible to all, but requires auth to use */}
+          {onTrackPrice && (
+            <button
+              onClick={handleTrackPrice}
+              className="px-3 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded hover:from-orange-600 hover:to-orange-700 transition-all flex items-center gap-1 shadow-sm hover:shadow-md group"
+              style={{ fontSize: typography.card.meta.size }}
+              title={t.trackPrice}
+              aria-label={t.trackPrice}
+            >
+              <Bell className="w-3 h-3 group-hover:animate-pulse" />
+              {t.trackPrice}
+            </button>
+          )}
+
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             disabled={isNavigating}
