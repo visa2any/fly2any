@@ -31,8 +31,8 @@ import LoginHistory from '@/components/account/LoginHistory';
 // Force Node.js runtime (required for Prisma database access)
 export const runtime = 'nodejs';
 
-// Force dynamic rendering (uses auth() which requires headers)
-export const dynamic = 'force-dynamic';
+// Note: dynamic = 'force-dynamic' removed for mobile build compatibility
+// Mobile apps will handle auth client-side
 
 export default async function ProfilePage() {
   // Check if database is configured

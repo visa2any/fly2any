@@ -23,7 +23,7 @@ import {
   Crown,
   Star
 } from 'lucide-react';
-import type { AIAnalyticsStats } from '@/app/api/ai/analytics/route';
+import type { AIAnalyticsStats } from '@/lib/types/ai-analytics';
 
 // ===========================
 // TYPE DEFINITIONS

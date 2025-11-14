@@ -315,7 +315,7 @@ export default function NewHomePage() {
           {/* REMOVED: Airplane animation (user request) */}
 
           {/* Title Container - Single line, no wrapping */}
-          <div className="flex flex-col gap-1 animate-fadeIn">
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
             {/* Main Title - Elastic Letter Animation + Gradient Effect */}
             <h1
               key={`title-${animationKey}`}
@@ -339,6 +339,9 @@ export default function NewHomePage() {
                 <span style={{ opacity: 0 }}>{t.sectionTitle}</span>
               )}
             </h1>
+
+            {/* Separator */}
+            <span className="hidden md:inline-block text-blue-400 text-2xl font-bold mx-1">•</span>
 
             {/* Subtitle - Letter-by-Letter Elastic Animation (unified with title) */}
             <p

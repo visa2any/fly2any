@@ -574,15 +574,15 @@ function FlightResultsContent() {
 
   // Extract search parameters
   const searchData: SearchParams = {
-    from: searchParams.get('from') || '',
-    to: searchParams.get('to') || '',
-    departure: searchParams.get('departure') || '',
-    return: searchParams.get('return') || undefined,
+    from: searchParams.get('from') || searchParams.get('origin') || '',
+    to: searchParams.get('to') || searchParams.get('destination') || '',
+    departure: searchParams.get('departure') || searchParams.get('departureDate') || '',
+    return: searchParams.get('return') || searchParams.get('returnDate') || undefined,
     adults: parseInt(searchParams.get('adults') || '1'),
     children: parseInt(searchParams.get('children') || '0'),
     infants: parseInt(searchParams.get('infants') || '0'),
-    class: (searchParams.get('class') || 'economy') as any,
-    useFlexibleDates: searchParams.get('useFlexibleDates') === 'true',
+    class: (searchParams.get('travelClass') || searchParams.get('class') || 'economy') as any,
+    useFlexibleDates: searchParams.get('useFlexibleDates') === 'true' || searchParams.get('useMultiDate') === 'true',
   };
 
   // Extract independent nonstop filters from URL
@@ -916,7 +916,7 @@ function FlightResultsContent() {
             children: searchData.children,
             infants: searchData.infants,
             travelClass: searchData.class,
-            nonStop: searchParams.get('direct') === 'true',
+            nonStop: searchParams.get('nonStop') === 'true' || searchParams.get('direct') === 'true',
             currencyCode: 'USD',
             max: 50,
             useMultiDate: searchData.useFlexibleDates,

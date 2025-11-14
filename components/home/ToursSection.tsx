@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ValueScoreBadge, calculateValueScore } from '@/components/shared/ValueScoreBadge';
-import { MapPin, Star, Users, Clock, Camera, Mountain, UtensilsCrossed, TrendingUp, Flame, Award } from 'lucide-react';
+import { MapPin, Star, Users, Clock, Camera, Mountain, UtensilsCrossed, TrendingUp, Flame, Award, Compass } from 'lucide-react';
 
 interface Tour {
   id: string;
@@ -209,7 +209,12 @@ export function ToursSection({ lang = 'en' }: ToursSectionProps) {
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <div className="p-2 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg">
+            <Compass className="w-6 h-6 text-emerald-600" />
+          </div>
+          {t.title}
+        </h2>
         <p className="text-sm text-gray-600">{t.subtitle}</p>
       </div>
 

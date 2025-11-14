@@ -1,6 +1,7 @@
 /**
  * Conversation Sync Hook
  * Automatically syncs localStorage conversations to database for logged-in users
+ * Includes circuit breaker pattern to prevent blocking page loads on DB failures
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -9,6 +10,56 @@ import {
   clearConversation,
   type ConversationState,
 } from '@/lib/ai/conversation-persistence';
+
+// Circuit breaker state
+let dbFailureCount = 0;
+let lastFailureTime = 0;
+const MAX_FAILURES = 3;
+const CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
+
+function isCircuitBreakerOpen(): boolean {
+  if (dbFailureCount >= MAX_FAILURES) {
+    const timeSinceLastFailure = Date.now() - lastFailureTime;
+    if (timeSinceLastFailure < CIRCUIT_BREAKER_TIMEOUT) {
+      console.log('[ConversationSync] Circuit breaker open - skipping database call');
+      return true;
+    }
+    // Reset after timeout
+    dbFailureCount = 0;
+  }
+  return false;
+}
+
+function recordFailure(): void {
+  dbFailureCount++;
+  lastFailureTime = Date.now();
+}
+
+function recordSuccess(): void {
+  dbFailureCount = 0;
+}
+
+// Helper to fetch with timeout
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeout: number = 2000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
 
 export function useConversationSync() {
   const [sessionData, setSessionData] = useState<{
@@ -22,22 +73,25 @@ export function useConversationSync() {
   // Try to use NextAuth session if available
   useEffect(() => {
     const checkSession = async () => {
-      try {
-        // Dynamic import to avoid SSR issues
-        const { useSession } = await import('next-auth/react');
+      // Skip if circuit breaker is open
+      if (isCircuitBreakerOpen()) {
+        return;
+      }
 
-        // This won't work with hooks, so we'll use fetch instead
-        const res = await fetch('/api/auth/session');
+      try {
+        const res = await fetchWithTimeout('/api/auth/session', {}, 2000);
         if (res.ok) {
           const session = await res.json();
           setSessionData({
             isAuthenticated: !!session?.user?.email,
             userId: session?.user?.email || null,
           });
+          recordSuccess();
         }
       } catch (error) {
-        // NextAuth not available or not configured
-        console.debug('Session check not available');
+        // Session check failed - continue without auth
+        console.debug('[ConversationSync] Session check unavailable:', error instanceof Error ? error.message : 'Unknown error');
+        recordFailure();
       }
     };
 
@@ -49,6 +103,11 @@ export function useConversationSync() {
   useEffect(() => {
     // Only run once when user becomes authenticated
     if (!sessionData.isAuthenticated || !sessionData.userId || hasMigrated.current) {
+      return;
+    }
+
+    // Skip if circuit breaker is open
+    if (isCircuitBreakerOpen()) {
       return;
     }
 
@@ -73,14 +132,18 @@ export function useConversationSync() {
           messageCount: localConversation.messages.length,
         });
 
-        // Migrate to database
-        const response = await fetch('/api/ai/conversation/migrate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        // Migrate to database with timeout
+        const response = await fetchWithTimeout(
+          '/api/ai/conversation/migrate',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(localConversation),
           },
-          body: JSON.stringify(localConversation),
-        });
+          3000 // 3 second timeout
+        );
 
         if (!response.ok) {
           const error = await response.json();
@@ -89,15 +152,14 @@ export function useConversationSync() {
 
         const result = await response.json();
         console.log('Conversation migrated successfully:', result);
-
-        // Clear localStorage after successful migration
-        // Note: We don't clear it to allow seamless continuation in current session
-        // clearConversation();
+        recordSuccess();
 
         hasMigrated.current = true;
       } catch (error) {
-        console.error('Failed to migrate conversation:', error);
-        // Don't throw - allow app to continue working
+        console.warn('[ConversationSync] Failed to migrate conversation (continuing with localStorage):', 
+          error instanceof Error ? error.message : 'Unknown error');
+        recordFailure();
+        // Don't throw - allow app to continue working with localStorage
       }
     };
 
@@ -125,6 +187,11 @@ export function useDatabaseSync(
       return;
     }
 
+    // Skip if circuit breaker is open
+    if (isCircuitBreakerOpen()) {
+      return;
+    }
+
     const syncToDatabase = async () => {
       const now = Date.now();
 
@@ -134,17 +201,24 @@ export function useDatabaseSync(
       }
 
       try {
-        await fetch('/api/ai/conversation/migrate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        await fetchWithTimeout(
+          '/api/ai/conversation/migrate',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(conversation),
           },
-          body: JSON.stringify(conversation),
-        });
+          3000 // 3 second timeout
+        );
 
         lastSyncRef.current = now;
+        recordSuccess();
       } catch (error) {
-        console.error('Failed to sync conversation to database:', error);
+        console.warn('[ConversationSync] Failed to sync conversation (using localStorage):', 
+          error instanceof Error ? error.message : 'Unknown error');
+        recordFailure();
         // Fail silently - localStorage is still working
       }
     };

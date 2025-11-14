@@ -379,11 +379,11 @@ export const FlightCard: React.FC<FlightCardProps> = ({
       {/* Glass Morphism Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-transparent to-primary-50/20 pointer-events-none" />
 
-      {/* Content Container */}
-      <div className="relative p-3 md:p-6">
+      {/* Content Container - MOBILE-OPTIMIZED: Tight spacing */}
+      <div className="relative p-2 md:p-6">
 
-        {/* Header: Badges & Airline */}
-        <div className="flex items-start justify-between mb-3 md:mb-4 flex-wrap gap-2">
+        {/* Header: Badges & Airline - COMPACT on mobile */}
+        <div className="flex items-start justify-between mb-2 md:mb-4 flex-wrap gap-1.5 md:gap-2">
           <div className="flex flex-wrap gap-2">
             {badges.map((badge, idx) => (
               <Badge key={idx} type={badge} lang={lang} />
@@ -409,18 +409,18 @@ export const FlightCard: React.FC<FlightCardProps> = ({
           </div>
         </div>
 
-        {/* Main Flight Information */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-6 mb-3 md:mb-4">
+        {/* Main Flight Information - MOBILE-OPTIMIZED: Smaller fonts, tighter spacing */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2 md:gap-6 mb-2 md:mb-4">
 
-          {/* Departure Info */}
+          {/* Departure Info - COMPACT mobile fonts */}
           <div className="text-center lg:text-left">
-            <div className="text-4xl font-bold text-gray-900 mb-1 font-display">
+            <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-0.5 md:mb-1 font-display">
               {formatTime(firstSegment.departure.at)}
             </div>
-            <div className="text-lg font-semibold text-gray-700">
+            <div className="text-base md:text-lg font-semibold text-gray-700">
               {firstSegment.departure.iataCode}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-[10px] md:text-xs text-gray-500">
               {formatDate(firstSegment.departure.at)}
             </div>
             {firstSegment.departure.terminal && (
@@ -437,15 +437,15 @@ export const FlightCard: React.FC<FlightCardProps> = ({
             lang={lang}
           />
 
-          {/* Arrival Info */}
+          {/* Arrival Info - COMPACT mobile fonts */}
           <div className="text-center lg:text-right">
-            <div className="text-4xl font-bold text-gray-900 mb-1 font-display">
+            <div className="text-2xl md:text-4xl font-bold text-gray-900 mb-0.5 md:mb-1 font-display">
               {formatTime(lastSegment.arrival.at)}
             </div>
-            <div className="text-lg font-semibold text-gray-700">
+            <div className="text-base md:text-lg font-semibold text-gray-700">
               {lastSegment.arrival.iataCode}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-[10px] md:text-xs text-gray-500">
               {formatDate(lastSegment.arrival.at)}
             </div>
             {lastSegment.arrival.terminal && (
@@ -457,8 +457,8 @@ export const FlightCard: React.FC<FlightCardProps> = ({
 
         </div>
 
-        {/* Additional Info Row with Conversion Features */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        {/* Additional Info Row - MOBILE: Horizontal scroll for space efficiency */}
+        <div className="flex overflow-x-auto items-center gap-1.5 md:gap-2 mb-2 md:mb-4 pb-1 scrollbar-hide">
           <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -506,8 +506,8 @@ export const FlightCard: React.FC<FlightCardProps> = ({
           )}
         </div>
 
-        {/* Scarcity Indicators */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        {/* Scarcity Indicators - COMPACT */}
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2 md:mb-4">
           {/* Seat Scarcity - Show for seats < 5 */}
           {numberOfBookableSeats < 5 && (
             <ScarcityIndicator
@@ -518,61 +518,64 @@ export const FlightCard: React.FC<FlightCardProps> = ({
           )}
         </div>
 
-        {/* Price & Actions Section */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 pt-3 md:pt-4 border-t-2 border-gray-100">
+        {/* Price & Actions Section - MOBILE-OPTIMIZED: Compact, clear hierarchy */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 md:gap-4 pt-2 md:pt-4 border-t border-gray-200">
 
-          {/* Price Information */}
-          <div className="text-center sm:text-left">
+          {/* Price Information - MOBILE: Smaller, efficient */}
+          <div className="text-center sm:text-left w-full sm:w-auto">
             {savings && savingsPercentage && (
-              <div className="mb-2">
-                <div className="inline-flex items-center gap-2 bg-success/10 text-success px-3 py-1 rounded-lg">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <div className="mb-1 md:mb-2">
+                <div className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-2 py-0.5 md:px-3 md:py-1 rounded-md text-[10px] md:text-sm font-bold">
+                  <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm font-bold">
+                  <span>
                     {t.save} {price.currency} {savings.toFixed(2)} ({savingsPercentage}%)
                   </span>
                 </div>
-                <div className="text-sm text-gray-400 line-through mt-1">
+                <div className="text-[10px] md:text-sm text-gray-400 line-through mt-0.5">
                   {price.currency} {price.originalPrice}
                 </div>
               </div>
             )}
 
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold text-primary-600 font-display">
-                {price.currency === 'USD' ? '$' : price.currency} {parseFloat(price.total).toFixed(2)}
+            {/* MOBILE: Much smaller price (3xl = 30px vs 5xl = 48px) */}
+            <div className="flex items-baseline gap-1 md:gap-2">
+              <span className="text-3xl md:text-5xl font-bold text-primary-600 font-display">
+                {price.currency === 'USD' ? '$' : price.currency}{parseFloat(price.total).toFixed(0)}
               </span>
+              <span className="text-sm md:text-base text-gray-500">.{(parseFloat(price.total) % 1).toFixed(2).split('.')[1]}</span>
             </div>
 
             {price.fees && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
                 Includes taxes & fees
               </div>
             )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-2 w-full sm:w-auto min-w-[200px]">
+          {/* Action Buttons - MOBILE: Compact, side-by-side for space */}
+          <div className="flex gap-1.5 md:gap-2 w-full sm:w-auto sm:min-w-[200px]">
             <button
               onClick={handleSelectFlight}
               className="
-                w-full
+                flex-1 sm:w-full
                 bg-gradient-to-r from-primary-600 to-primary-500
                 hover:from-primary-700 hover:to-primary-600
-                text-white font-bold
-                py-3 md:py-4 px-6
-                rounded-xl
-                shadow-lg hover:shadow-primary
-                transition-all duration-300
-                transform hover:scale-105 active:scale-95
-                flex items-center justify-center gap-2
+                active:scale-95
+                text-white font-bold text-sm md:text-base
+                py-2.5 md:py-4 px-4 md:px-6
+                rounded-lg md:rounded-xl
+                shadow-md md:shadow-lg hover:shadow-primary
+                transition-all duration-200
+                flex items-center justify-center gap-1.5 md:gap-2
                 group
               "
             >
-              <span>{t.selectFlight}</span>
+              <span className="hidden sm:inline">{t.selectFlight}</span>
+              <span className="sm:hidden">Select</span>
               <svg
-                className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
+                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -584,20 +587,19 @@ export const FlightCard: React.FC<FlightCardProps> = ({
             <button
               onClick={handleViewDetails}
               className="
-                w-full
+                flex-none sm:w-full
                 bg-white hover:bg-gray-50
+                active:scale-95
                 text-primary-600 hover:text-primary-700
-                font-semibold
-                py-3 px-6
-                min-h-[44px]
-                rounded-xl
-                border-2 border-primary-200 hover:border-primary-300
-                transition-all duration-300
-                transform hover:scale-105 active:scale-95
-                flex items-center justify-center gap-2
+                font-semibold text-sm md:text-base
+                py-2.5 md:py-3 px-3 md:px-6
+                rounded-lg md:rounded-xl
+                border border-primary-200 md:border-2 hover:border-primary-300
+                transition-all duration-200
+                flex items-center justify-center gap-1 md:gap-2
               "
             >
-              <span>{t.viewDetails}</span>
+              <span className="hidden sm:inline">{t.viewDetails}</span>
               <svg
                 className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
                 fill="none"

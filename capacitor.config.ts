@@ -5,14 +5,16 @@ const config: CapacitorConfig = {
   appName: 'Fly2Any',
   webDir: 'out',
 
-  // Server configuration for development
+  // Server configuration
   server: {
-    // Allow live reload during development
+    // Production API URL - Mobile apps will call this
+    url: 'https://fly2any-fresh.vercel.app',
+    // Use HTTPS scheme for security
     androidScheme: 'https',
     iosScheme: 'https',
-    hostname: 'fly2any.com',
-    // Use cleartext for development (localhost)
-    cleartext: true,
+    hostname: 'fly2any-fresh.vercel.app',
+    // Enable cleartext only for development
+    cleartext: false,
   },
 
   // iOS-specific configuration
@@ -80,11 +82,8 @@ const config: CapacitorConfig = {
       sound: 'beep.wav',
     },
 
-    // App
-    App: {
-      handleUrlLinks: true,
-      appUrlOpen: true,
-    },
+    // App - Deep linking is handled via server.url configuration above
+    // No additional App plugin configuration needed
   },
 };
 

@@ -90,17 +90,25 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const pathname = usePathname();
   const [language, setLanguage] = useState<Language>('en');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Check if current route is admin area
   const isAdminRoute = pathname?.startsWith('/admin');
 
-  // Load language from localStorage on mount
+  // Fix hydration error: Mark as mounted first
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Load language from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (!mounted) return; // Skip on server-side
+
     const savedLanguage = localStorage.getItem('fly2any_language');
     if (savedLanguage && ['en', 'pt', 'es'].includes(savedLanguage)) {
       setLanguage(savedLanguage as Language);
     }
-  }, []);
+  }, [mounted]);
 
   // Save language to localStorage when it changes
   const handleLanguageChange = (lang: Language) => {

@@ -186,7 +186,12 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
     <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Section Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <div className="p-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
+            <Car className="w-6 h-6 text-blue-600" />
+          </div>
+          {t.title}
+        </h2>
         <p className="text-sm text-gray-600">{t.subtitle}</p>
       </div>
 

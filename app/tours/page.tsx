@@ -421,10 +421,11 @@ export default function ToursPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex flex-col gap-1 animate-fadeIn">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <h1 className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {t.sectionTitle}
               </h1>
+              <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
               <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '0.01em' }}>
                 {t.subtitle}
               </p>

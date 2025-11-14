@@ -2,15 +2,16 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Check, Shield, Clock, HeadphonesIcon } from 'lucide-react';
 
+// Required for static export (mobile builds)
+// Generate a placeholder path for static export
+// Real data will be fetched client-side via API
+export async function generateStaticParams() {
+  return [{ id: 'placeholder' }];
+}
+
+
 interface Props {
   params: { id: string };
-  searchParams: {
-    utm_source?: string;
-    utm_medium?: string;
-    utm_campaign?: string;
-    sharedBy?: string;
-    ref?: string;
-  };
 }
 
 // Generate Open Graph metadata for rich previews
@@ -61,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function SharedFlightPage({ params, searchParams }: Props) {
+export default function SharedFlightPage({ params }: Props) {
   const flightId = params.id;
 
   // In production, fetch flight from API using flightId
@@ -107,7 +108,7 @@ export default function SharedFlightPage({ params, searchParams }: Props) {
 
             {/* In production, show actual flight card here */}
             <Link
-              href={`/?ref=${searchParams.ref || ''}`}
+              href="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold hover:from-primary-700 hover:to-secondary-700 transition-all shadow-md"
             >
               <span>Search Flights</span>

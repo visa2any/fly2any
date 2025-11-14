@@ -8,8 +8,12 @@ export default function OfflineIndicator() {
   const [wasOffline, setWasOffline] = useState(false);
   const [showReconnected, setShowReconnected] = useState(false);
   const [pendingActions, setPendingActions] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Mark component as mounted (prevents hydration errors)
+    setMounted(true);
+
     // Initialize online status
     setIsOnline(navigator.onLine);
 

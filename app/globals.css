@@ -259,17 +259,71 @@
     @apply hover:border-primary-300 hover:shadow-xl hover:scale-[1.02];
   }
 
-  /* Standardized spacing scale */
+  /* ==========================================
+     MOBILE-FIRST SPACING SYSTEM (TikTok Shop Pattern)
+     Mobile: Compact (6-10px)
+     Desktop: Comfortable (16-24px)
+     ========================================== */
+
+  /* Card spacing - Mobile-first */
+  .card-padding-mobile {
+    @apply p-2 md:p-6; /* 8px mobile, 24px desktop */
+  }
+
+  .card-gap-mobile {
+    @apply gap-1.5 md:gap-4; /* 6px mobile, 16px desktop */
+  }
+
+  /* Section spacing - Mobile-first */
   .spacing-section {
-    @apply py-8 md:py-12;
+    @apply py-4 md:py-12; /* Reduced from py-8 */
   }
 
   .spacing-component {
-    @apply mb-6 md:mb-8;
+    @apply mb-3 md:mb-8; /* Reduced from mb-6 */
   }
 
   .spacing-element {
-    @apply mb-4 md:mb-6;
+    @apply mb-2 md:mb-6; /* Reduced from mb-4 */
+  }
+
+  /* Typography hierarchy - Mobile optimized */
+  .text-mobile-hero {
+    @apply text-2xl md:text-4xl; /* 24px mobile, 36px desktop */
+  }
+
+  .text-mobile-title {
+    @apply text-xl md:text-3xl; /* 20px mobile, 30px desktop */
+  }
+
+  .text-mobile-price {
+    @apply text-3xl md:text-5xl; /* 30px mobile, 48px desktop */
+  }
+
+  .text-mobile-body {
+    @apply text-sm md:text-base; /* 14px mobile, 16px desktop */
+  }
+
+  .text-mobile-caption {
+    @apply text-[10px] md:text-xs; /* 10px mobile, 12px desktop */
+  }
+
+  /* Button sizing - Mobile compact */
+  .btn-mobile-primary {
+    @apply py-2.5 px-4 md:py-4 md:px-6 text-sm md:text-base;
+  }
+
+  .btn-mobile-secondary {
+    @apply py-2 px-3 md:py-3 md:px-5 text-xs md:text-sm;
+  }
+
+  /* Information density - Show more on small screens */
+  .mobile-compact {
+    @apply space-y-1 md:space-y-3;
+  }
+
+  .mobile-horizontal-scroll {
+    @apply flex overflow-x-auto gap-1.5 pb-1 scrollbar-hide;
   }
 
   /* Toast slide-in animation */

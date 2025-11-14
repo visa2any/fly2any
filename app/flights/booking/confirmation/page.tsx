@@ -1,7 +1,7 @@
 import BookingConfirmationWrapper from './BookingConfirmationWrapper';
 
-// Force dynamic rendering since this page relies on search params
-export const dynamic = 'force-dynamic';
+// Note: dynamic = 'force-dynamic' removed for mobile build compatibility
+// Mobile apps will handle auth client-side
 
 export default function BookingConfirmationPage() {
   return <BookingConfirmationWrapper />;

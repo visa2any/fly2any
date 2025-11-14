@@ -13,8 +13,16 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Fix hydration: Mark as mounted first
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return; // Skip on server-side
+
     // Check if already installed
     const checkIfInstalled = () => {
       if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -75,7 +83,7 @@ export default function InstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
-  }, []);
+  }, [mounted]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {

@@ -349,9 +349,9 @@ export default function FlightSearchForm({
       adults: formData.passengers.adults.toString(),
       children: formData.passengers.children.toString(),
       infants: formData.passengers.infants.toString(),
-      class: formData.travelClass,
+      travelClass: formData.travelClass,  // Changed from 'class' to 'travelClass'
       tripType: formData.tripType,
-      direct: formData.directFlights.toString(),
+      nonStop: formData.directFlights.toString(),  // Changed from 'direct' to 'nonStop' to match API
       departureFlex: formData.departureFlex.toString(),
     });
 
@@ -507,12 +507,12 @@ export default function FlightSearchForm({
               </div>
             </div>
 
-            {/* Single Date Mode */}
+            {/* Single Date Mode - MOBILE-OPTIMIZED */}
             {!formData.useMultiDate ? (
               <div className="flex items-center gap-2">
-                {/* Date Input */}
+                {/* Date Input - MOBILE: Larger touch target, visible input */}
                 <div className="flex-1 relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <Calendar className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 pointer-events-none z-10" />
                   <input
                     type="date"
                     value={formData.departureDate}
@@ -525,34 +525,47 @@ export default function FlightSearchForm({
                         setErrors(newErrors);
                       }
                     }}
-                    className={`w-full pl-12 pr-4 py-3 md:py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
-                      errors.departureDate ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`
+                      w-full pl-10 md:pl-12 pr-3 md:pr-4
+                      py-3.5 md:py-4
+                      min-h-[48px] md:min-h-[56px]
+                      border-2 rounded-xl
+                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                      outline-none transition-all
+                      text-base md:text-lg font-semibold
+                      bg-white cursor-pointer
+                      ${errors.departureDate ? 'border-red-500' : 'border-gray-300'}
+                    `}
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                    }}
                     aria-label={t.departure}
                     aria-invalid={!!errors.departureDate}
                     aria-describedby={errors.departureDate ? 'departure-error' : undefined}
                   />
                 </div>
 
-                {/* Inline Flex Controls */}
-                <div className="flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-2 border-2 border-gray-200">
+                {/* Inline Flex Controls - MOBILE: Hidden on small screens to save space */}
+                <div className="hidden md:flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-2 border-2 border-gray-200">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, departureFlex: Math.max(0, formData.departureFlex - 1) })}
                     disabled={formData.departureFlex === 0}
-                    className="w-11 h-11 md:w-8 md:h-8 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
                     aria-label="Decrease flex days"
                   >
                     −
                   </button>
-                  <span className="text-sm md:text-xs font-semibold text-gray-700 min-w-[36px] text-center">
+                  <span className="text-xs font-semibold text-gray-700 min-w-[36px] text-center">
                     {formData.departureFlex === 0 ? 'Exact' : `±${formData.departureFlex}`}
                   </span>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, departureFlex: Math.min(5, formData.departureFlex + 1) })}
                     disabled={formData.departureFlex === 5}
-                    className="w-11 h-11 md:w-8 md:h-8 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
+                    className="w-8 h-8 rounded flex items-center justify-center hover:bg-white hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-sm font-bold"
                     aria-label="Increase flex days"
                   >
                     +
@@ -578,14 +591,14 @@ export default function FlightSearchForm({
             )}
           </div>
 
-          {/* Return Date */}
+          {/* Return Date - MOBILE-OPTIMIZED */}
           {formData.tripType === 'roundtrip' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 {t.return}
               </label>
               <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <Calendar className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 pointer-events-none z-10" />
                 <input
                   type="date"
                   value={formData.returnDate}
@@ -598,9 +611,22 @@ export default function FlightSearchForm({
                       setErrors(newErrors);
                     }
                   }}
-                  className={`w-full pl-12 pr-4 py-3 md:py-4 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-semibold ${
-                    errors.returnDate ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`
+                    w-full pl-10 md:pl-12 pr-3 md:pr-4
+                    py-3.5 md:py-4
+                    min-h-[48px] md:min-h-[56px]
+                    border-2 rounded-xl
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    outline-none transition-all
+                    text-base md:text-lg font-semibold
+                    bg-white cursor-pointer
+                    ${errors.returnDate ? 'border-red-500' : 'border-gray-300'}
+                  `}
+                  style={{
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                  }}
                   aria-label={t.return}
                   aria-invalid={!!errors.returnDate}
                   aria-describedby={errors.returnDate ? 'return-error' : undefined}

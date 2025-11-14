@@ -357,7 +357,7 @@ export default function PackagesPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
               <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
@@ -365,6 +365,7 @@ export default function PackagesPage() {
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
+              <span className="hidden md:inline-block text-emerald-400 text-2xl font-bold mx-1">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.subtitle.split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>

@@ -60,7 +60,7 @@ export function CompactTrustBar({
     >
       {/* Single-line container with horizontal scroll - GUARANTEED no wrapping */}
       <div
-        className="flex items-center justify-start gap-2 sm:gap-3 md:gap-5 h-8 sm:h-9 md:h-11 px-2 sm:px-2.5 md:px-4 overflow-x-auto scrollbar-hide"
+        className="flex items-center justify-center gap-2 sm:gap-3 md:gap-5 h-8 sm:h-9 md:h-11 px-2 sm:px-2.5 md:px-4 overflow-x-auto scrollbar-hide"
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
-import type { AIAnalyticsEvent } from '@/app/api/ai/analytics/route';
+import type { AIAnalyticsEvent } from '@/lib/types/ai-analytics';
 
 // ===========================
 // TYPE DEFINITIONS

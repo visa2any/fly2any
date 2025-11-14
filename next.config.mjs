@@ -6,6 +6,13 @@ const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Mobile build: static export for Capacitor
+  ...(process.env.MOBILE_BUILD === 'true' && {
+    output: 'export',
+    images: { unoptimized: true },
+    trailingSlash: true,
+  }),
+
   // Production optimizations (Phase 8 - Quick Win 1A)
   compiler: {
     // Remove console.log statements in production (keeps error/warn for monitoring)
@@ -24,8 +31,20 @@ const nextConfig = {
 
   // Webpack configuration (Phase 8 - Quick Win 1D)
   webpack: (config, { dev, isServer }) => {
-    // Add bundle analyzer in production builds (client-side only)
-    if (!dev && !isServer) {
+    // Mobile build: Ignore API routes (they're server-side only)
+    // Mobile apps call the production web API instead
+    if (process.env.MOBILE_BUILD === 'true' && !dev) {
+      const webpack = require('webpack');
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^\.\/app\/api\//,
+          contextRegExp: /\//,
+        })
+      );
+    }
+
+    // Add bundle analyzer ONLY in production builds (disabled in dev for performance)
+    if (!dev && !isServer && process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       config.plugins.push(
         new BundleAnalyzerPlugin({

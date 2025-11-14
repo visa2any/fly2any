@@ -337,7 +337,7 @@ export default function HotelsPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex flex-col gap-1 animate-fadeIn">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
                 {mounted ? t.sectionTitle.split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
@@ -345,6 +345,7 @@ export default function HotelsPage() {
                   </span>
                 )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
               </h1>
+              <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }}>
                 {mounted ? t.subtitle.split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
