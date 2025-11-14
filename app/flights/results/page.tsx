@@ -9,6 +9,7 @@ import { SmartWait } from '@/components/flights/SmartWait';
 import { FlightComparison } from '@/components/flights/FlightComparison';
 import { PriceAlerts } from '@/components/flights/PriceAlerts';
 import CreatePriceAlert from '@/components/search/CreatePriceAlert';
+import AuthModal from '@/components/auth/AuthModal';
 import FlightFilters, { type FlightFilters as FlightFiltersType, type FlightOffer } from '@/components/flights/FlightFilters';
 import SortBar, { type SortOption } from '@/components/flights/SortBar';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
@@ -538,6 +539,8 @@ function FlightResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [showCreatePriceAlert, setShowCreatePriceAlert] = useState(false);
   const [selectedFlightForAlert, setSelectedFlightForAlert] = useState<ScoredFlight | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingFlightForAlert, setPendingFlightForAlert] = useState<ScoredFlight | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('best');
   const [showPriceInsights, setShowPriceInsights] = useState(true);
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
@@ -1428,13 +1431,6 @@ function FlightResultsContent() {
 
   // Handle Track Price - Authentication required
   const handleTrackPrice = (flightId: string) => {
-    // Check if user is authenticated
-    if (sessionStatus === 'unauthenticated' || !session) {
-      // Redirect to sign-in with callback
-      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(window.location.href)}`);
-      return;
-    }
-
     // Find the selected flight
     const flight = flights.find(f => f.id === flightId);
     if (!flight) {
@@ -1442,9 +1438,29 @@ function FlightResultsContent() {
       return;
     }
 
-    // Set selected flight and show modal
+    // Check if user is authenticated
+    if (sessionStatus === 'unauthenticated' || !session) {
+      // Store flight for after authentication
+      setPendingFlightForAlert(flight);
+      setShowAuthModal(true);
+      return;
+    }
+
+    // Already authenticated - show price alert modal
     setSelectedFlightForAlert(flight);
     setShowCreatePriceAlert(true);
+  };
+
+  // Handle successful authentication from AuthModal
+  const handleAuthSuccess = () => {
+    setShowAuthModal(false);
+
+    // Immediately open price alert modal with the pending flight
+    if (pendingFlightForAlert) {
+      setSelectedFlightForAlert(pendingFlightForAlert);
+      setShowCreatePriceAlert(true);
+      setPendingFlightForAlert(null);
+    }
   };
 
   // Loading state - Show 3-column layout with inline loading in main content area
@@ -2067,6 +2083,25 @@ function FlightResultsContent() {
             className="max-w-7xl mx-auto"
           />
         </div>
+      )}
+
+      {/* Authentication Modal - Seamless login without redirect */}
+      {showAuthModal && pendingFlightForAlert && (
+        <AuthModal
+          isOpen={true}
+          onClose={() => {
+            setShowAuthModal(false);
+            setPendingFlightForAlert(null);
+          }}
+          onSuccess={handleAuthSuccess}
+          flightContext={{
+            origin: searchData.from,
+            destination: searchData.to,
+            departDate: searchData.departure.split(',')[0],
+            price: normalizePrice(pendingFlightForAlert.price.total),
+            currency: pendingFlightForAlert.price.currency,
+          }}
+        />
       )}
 
       {/* Create Price Alert Modal - Authentication protected */}
