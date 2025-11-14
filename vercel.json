@@ -1,14 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/scheduled-tasks",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/check-price-alerts",
-      "schedule": "0 8 * * *"
-    }
-  ],
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fly2Any",
     "NEXT_PUBLIC_APP_URL": "https://fly2any.com"
