@@ -62,8 +62,11 @@ model User {
   wishlistItems     WishlistItem[]
   pushSubscriptions PushSubscription[]
   adminUser         AdminUser?
-  createdTrips      TripGroup[]        @relation("TripCreator")
-  groupMemberships  GroupMember[]      @relation("GroupMemberships")
+  createdTrips      TripGroup[]          @relation("TripCreator")
+  groupMemberships  GroupMember[]        @relation("GroupMemberships")
+  frequentTravelers FrequentTraveler[]
+  paymentMethods    PaymentMethod[]
+  travelDocuments   TravelDocument[]
 
   @@map("users")
 }
@@ -429,6 +432,144 @@ model WishlistItem {
   @@index([userId])
   @@index([userId, createdAt])
   @@map("wishlist_items")
+}
+
+// ==========================================
+// Traveler Management (Phase 1 - Critical)
+// ==========================================
+
+model FrequentTraveler {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relationship to primary user
+  relationship String?   // self, spouse, child, parent, friend, colleague
+
+  // Personal Information
+  title        String?   // Mr, Mrs, Ms, Dr, Prof
+  firstName    String
+  middleName   String?
+  lastName     String
+  dateOfBirth  DateTime
+  gender       String    // male, female, other
+  nationality  String?   // ISO country code
+
+  // Travel Documents
+  passportNumber  String?
+  passportExpiry  DateTime?
+  passportCountry String? // Issuing country
+
+  // TSA/Security Numbers
+  knownTravelerNumber String? // TSA PreCheck, Global Entry, Nexus
+  redressNumber       String? // DHS Traveler Redress Inquiry Program
+
+  // Loyalty Programs - Flexible JSON storage
+  frequentFlyerNumbers Json? // {airline: "AA", number: "123456", tier: "Gold"}
+  hotelLoyaltyNumbers  Json? // {chain: "Marriott", number: "789", tier: "Platinum"}
+
+  // Contact (optional - for separate travelers)
+  email String?
+  phone String?
+
+  // Preferences
+  seatPreference  String? // window, aisle, middle
+  mealPreference  String? // vegetarian, vegan, kosher, halal, etc.
+  specialNeeds    String? @db.Text // wheelchair, oxygen, etc.
+
+  // Metadata
+  isDefault Boolean   @default(false) // Primary traveler for quick-fill
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("frequent_travelers")
+}
+
+// ==========================================
+// Payment Methods (Phase 1 - Critical)
+// ==========================================
+
+model PaymentMethod {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Payment Type
+  type     String // card, paypal, apple_pay, google_pay, bank_account
+  provider String // stripe, paypal, etc.
+
+  // Card Information (for card type)
+  last4       String? // Last 4 digits
+  brand       String? // visa, mastercard, amex, discover, jcb
+  expiryMonth Int?
+  expiryYear  Int?
+  cardholderName String?
+
+  // Billing Address
+  billingAddress Json? // {street, city, state, zip, country}
+
+  // Provider Integration
+  stripePaymentMethodId String? @unique // Stripe payment method ID
+  paypalAccountId       String? @unique // PayPal account reference
+
+  // Metadata
+  isDefault Boolean  @default(false)
+  nickname  String? // e.g., "Personal Visa", "Business Amex"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@index([stripePaymentMethodId])
+  @@map("payment_methods")
+}
+
+// ==========================================
+// Travel Documents (Phase 1)
+// ==========================================
+
+model TravelDocument {
+  id         String @id @default(cuid())
+  userId     String
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Document Type
+  type       String // passport, visa, national_id, driver_license, known_traveler
+
+  // Document Details
+  documentNumber String
+  issuingCountry String // ISO country code
+  firstName      String
+  lastName       String
+  middleName     String?
+
+  // Dates
+  issuedDate     DateTime?
+  expirationDate DateTime
+
+  // Optional file storage (encrypted URLs)
+  frontImageUrl String? // Front of document
+  backImageUrl  String? // Back of document (if applicable)
+
+  // Visa-specific fields
+  visaType       String? // tourist, business, student, work
+  destinationCountry String? // For visas
+
+  // Status
+  isVerified Boolean @default(false) // Admin verification
+
+  // Metadata
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([expirationDate]) // For expiration alerts
+  @@map("travel_documents")
 }
 
 // ==========================================

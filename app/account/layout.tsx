@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { AccountLayoutClient } from '@/components/account/AccountLayoutClient';
 
 export const metadata = {
   title: 'My Account - Fly2Any',
@@ -7,8 +8,8 @@ export const metadata = {
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AccountLayoutClient>
       {children}
-    </div>
+    </AccountLayoutClient>
   );
 }
