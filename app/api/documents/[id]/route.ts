@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth.config';
+import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
 
 /**
@@ -12,7 +11,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -110,7 +109,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return NextResponse.json(

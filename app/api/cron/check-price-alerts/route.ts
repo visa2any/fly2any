@@ -123,7 +123,6 @@ async function getCurrentPrice(
       children: 0,
       infants: 0,
       cabinClass: 'economy',
-      maxResults: 5, // Limit to 5 for cost optimization (correct parameter name)
     });
 
     // Duffel returns { data: [], meta: {} } structure
