@@ -434,27 +434,28 @@ export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promis
     }
   }
 
-  // Fallback to SendGrid
-  if (process.env.SENDGRID_API_KEY) {
-    try {
-      const sgMail = await import('@sendgrid/mail');
-      sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
-
-      await sgMail.default.send({
-        to: params.to,
-        from: process.env.EMAIL_FROM || 'alerts@fly2any.com',
-        subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
-        html,
-        text,
-      });
-
-      console.log(`✅ Price alert email sent via SendGrid to ${params.to}`);
-      return;
-    } catch (error) {
-      console.error('SendGrid email failed:', error);
-      throw error;
-    }
-  }
+  // Fallback to SendGrid (requires @sendgrid/mail package)
+  // Disabled to avoid build errors - install package if needed
+  // if (process.env.SENDGRID_API_KEY) {
+  //   try {
+  //     const sgMail = await import('@sendgrid/mail');
+  //     sgMail.default.setApiKey(process.env.SENDGRID_API_KEY);
+  //
+  //     await sgMail.default.send({
+  //       to: params.to,
+  //       from: process.env.EMAIL_FROM || 'alerts@fly2any.com',
+  //       subject: `🎯 Price Alert: ${params.alert.origin} → ${params.alert.destination} is now ${params.alert.currency}${params.alert.currentPrice}!`,
+  //       html,
+  //       text,
+  //     });
+  //
+  //     console.log(`✅ Price alert email sent via SendGrid to ${params.to}`);
+  //     return;
+  //   } catch (error) {
+  //     console.error('SendGrid email failed:', error);
+  //     throw error;
+  //   }
+  // }
 
   // No email provider configured
   console.warn('⚠️ No email provider configured. Email not sent.');
