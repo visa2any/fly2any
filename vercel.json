@@ -6,7 +6,7 @@
   "crons": [
     {
       "path": "/api/cron/check-price-alerts",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/cron/check-completed-trips",
