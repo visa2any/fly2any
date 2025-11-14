@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/lib/payments/payment-service';
 import { createBooking } from '@/lib/services/booking-flow-service';
+import { processBookingForReferralPoints } from '@/lib/services/referralNetworkService';
+import { auth } from '@/lib/auth';
+import { getPrismaClient } from '@/lib/prisma';
 
 /**
  * Confirm Booking - Final Step in E2E Booking Flow
@@ -163,7 +166,62 @@ export async function POST(request: NextRequest) {
       console.log('✅ Booking created successfully');
       console.log(`   Booking Reference: ${booking.bookingReference}`);
 
-      // STEP 3: Return success response
+      // STEP 3: Save booking to database & process referral points
+      try {
+        const session = await auth();
+        const prisma = getPrismaClient();
+
+        if (session?.user?.email) {
+          // Get user
+          const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { id: true },
+          });
+
+          if (user) {
+            // Extract trip dates from bookingState
+            const flight = bookingState.selectedFlight;
+            const departureDate = flight?.departure?.time
+              ? new Date(flight.departure.time)
+              : new Date();
+            const arrivalDate = flight?.arrival?.time
+              ? new Date(flight.arrival.time)
+              : new Date(departureDate.getTime() + 24 * 60 * 60 * 1000); // +1 day default
+
+            // Determine product type
+            let productType = 'flight';
+            if (bookingState.pricing?.total && bookingState.pricing.total > 1000) {
+              productType = 'flight_international'; // Assume international if > $1000
+            }
+
+            // Process referral points (async, don't block response)
+            processBookingForReferralPoints({
+              bookingId: booking.bookingReference,
+              userId: user.id,
+              amount: bookingState.pricing?.total || 0,
+              currency: bookingState.pricing?.currency || 'USD',
+              productType,
+              tripStartDate: departureDate,
+              tripEndDate: arrivalDate,
+              productData: {
+                flightNumber: flight?.flightNumber,
+                airline: flight?.airline,
+                route: `${flight?.departure?.airportCode} → ${flight?.arrival?.airportCode}`,
+              },
+            }).catch((err) => {
+              console.error('⚠️ Failed to process referral points:', err);
+              // Don't fail booking if referral points fail
+            });
+
+            console.log('✅ Referral points processing initiated');
+          }
+        }
+      } catch (referralError) {
+        console.error('⚠️ Error processing referral points:', referralError);
+        // Don't fail booking if referral points fail
+      }
+
+      // STEP 4: Return success response
       return NextResponse.json(
         {
           success: true,

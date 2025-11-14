@@ -2,5 +2,15 @@
   "env": {
     "NEXT_PUBLIC_APP_NAME": "Fly2Any",
     "NEXT_PUBLIC_APP_URL": "https://fly2any.com"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/check-price-alerts",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/check-completed-trips",
+      "schedule": "0 2 * * *"
+    }
+  ]
 }

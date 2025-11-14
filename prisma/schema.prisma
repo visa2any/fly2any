@@ -36,13 +36,26 @@ model User {
   // Metadata
   profileCompleted Boolean @default(false)
 
-  // TripMatch Credits (Travel Rewards System)
+  // TripMatch Credits (Travel Rewards System - Group Travel)
   tripMatchCredits         Int     @default(0) // Available credits
   tripMatchLifetimeEarned  Int     @default(0) // Total earned (all-time)
   tripMatchLifetimeSpent   Int     @default(0) // Total redeemed (all-time)
   tripMatchPendingCredits  Int     @default(0) // Pending/processing credits
   tripMatchTier            String? // bronze, silver, gold, platinum
   tripMatchBonusMultiplier Float   @default(1.0) // 1.0 = 100%, 1.5 = 150% bonus
+
+  // Fly2Any Rewards Points (Tiered Travel Rewards Program)
+  fly2anyPoints            Int     @default(0) // Available points (unlocked)
+  fly2anyPointsLocked      Int     @default(0) // Locked points (pending trip completion)
+  fly2anyPointsLifetime    Int     @default(0) // Total earned (all-time)
+  fly2anyPointsRedeemed    Int     @default(0) // Total spent (all-time)
+
+  // Referral Network
+  referralCode             String? @unique // User's unique referral code
+  referredBy               String? // ID of user who referred them
+  referralLevel            Int     @default(0) // Depth in referral tree (0 = top)
+  directReferralsCount     Int     @default(0) // Level 1 count
+  totalNetworkSize         Int     @default(0) // All levels combined
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -618,6 +631,97 @@ model Notification {
 // ==========================================
 
 // TripMatch Referral System
+// =============================================
+// FLY2ANY REWARDS - TIERED TRAVEL REWARDS PROGRAM
+// =============================================
+
+// Network Relationships (Who referred whom at what level)
+model ReferralNetworkRelationship {
+  id String @id @default(cuid())
+
+  // Network Structure
+  referrerId String // Person earning points
+  refereeId  String // Person who was referred
+  level      Int // 1, 2, or 3 (depth from referrer)
+
+  // Status Tracking
+  status String @default("pending")
+  // pending → signed_up → first_booking → active → churned
+
+  // Important Dates
+  signupCompletedAt    DateTime?
+  firstBookingAt       DateTime?
+  lastActivityAt       DateTime?
+  createdAt            DateTime  @default(now())
+
+  // Lifetime Value Tracking
+  totalBookings    Int     @default(0)
+  totalRevenue     Decimal @default(0) @db.Decimal(10, 2)
+  totalPointsEarned Int    @default(0) // Points this relationship generated
+
+  @@unique([referrerId, refereeId]) // Prevent duplicate relationships
+  @@index([referrerId, level])
+  @@index([refereeId])
+  @@index([status])
+  @@map("referral_network_relationships")
+}
+
+// Individual Points Transactions (Per Booking)
+model ReferralPointsTransaction {
+  id String @id @default(cuid())
+
+  // The Booking
+  bookingId     String // Reference to booking
+  bookingAmount Decimal @db.Decimal(10, 2)
+  productType   String // flight, hotel, package, car, activity
+  productData   Json? // Flight details, hotel info, etc.
+
+  // Who Earns Points
+  earnerId    String // Referrer getting points
+  customerId  String // Customer who made booking
+  level       Int // 1, 2, or 3
+
+  // Points Calculation
+  pointsRate       Int // Points per $100 (e.g., 50 for Level 1)
+  productMultiplier Decimal @default(1.0) @db.Decimal(3, 2) // 1.0x, 1.2x, 1.5x, 2.0x
+  pointsCalculated Int // Total points awarded
+  pointsAwarded    Int // Actual points (after any adjustments)
+
+  // Status Lifecycle
+  status String @default("locked")
+  // locked → trip_in_progress → trip_completed → unlocked → expired
+
+  // Trip Tracking (CRITICAL FOR ANTI-FRAUD)
+  tripStartDate      DateTime?
+  tripEndDate        DateTime?
+  tripCompletedAt    DateTime? // When trip successfully ended
+  tripCancelled      Boolean   @default(false)
+  tripCancelledAt    DateTime?
+  tripRefunded       Boolean   @default(false)
+
+  // Points Unlocking
+  pointsLockedAt   DateTime  @default(now())
+  pointsUnlockedAt DateTime? // When points become available
+  pointsExpireAt   DateTime? // Points can expire if not used
+
+  // Usage
+  pointsUsed     Boolean   @default(false)
+  pointsUsedAt   DateTime?
+  pointsUsedIn   String? // Booking ID where points were redeemed
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([earnerId, status])
+  @@index([customerId])
+  @@index([bookingId])
+  @@index([tripEndDate]) // For cron job to check completed trips
+  @@index([pointsUnlockedAt])
+  @@map("referral_points_transactions")
+}
+
+// Legacy Referral Model (Keep for backward compatibility)
 model Referral {
   id         String    @id @default(cuid())
   referrerId String // User who shared the code

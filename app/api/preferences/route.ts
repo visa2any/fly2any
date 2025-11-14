@@ -58,6 +58,23 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('GET /api/preferences error:', error);
 
+    // Handle user not found error (foreign key constraint violation)
+    if (error.message?.includes('does not exist')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            message: 'User account not found. Please sign in again.',
+            code: 'USER_NOT_FOUND',
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,

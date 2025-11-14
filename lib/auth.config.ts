@@ -132,7 +132,8 @@ export const authConfig = {
         // Update last login
         if (prisma) {
           try {
-            await prisma.user.update({
+            // Use updateMany to avoid throwing errors if user doesn't exist
+            await prisma.user.updateMany({
               where: { id: token.sub! },
               data: { lastLoginAt: new Date() },
             });

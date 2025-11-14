@@ -88,6 +88,16 @@ class PreferencesService {
     }
 
     try {
+      // Verify user exists before creating preferences
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} does not exist`);
+      }
+
       const preferences = await prisma.userPreferences.create({
         data: {
           userId,

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { createReferralRelationship } from '@/lib/services/referralNetworkService';
+import { generateReferralCode } from '@/lib/utils';
 
 /**
  * Simple User Registration for AuthModal
  *
  * Creates a user with email/password for NextAuth credentials provider
+ * Supports referral code integration for Fly2Any Rewards Network
  */
 
 export const runtime = 'nodejs';
@@ -12,7 +15,7 @@ export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password } = body;
+    const { name, email, password, referralCode } = body;
 
     // Validation
     if (!email || !password) {
@@ -61,6 +64,9 @@ export async function POST(request: NextRequest) {
     const bcrypt = await import('bcryptjs');
     const hashedPassword = await bcrypt.default.hash(password, 10);
 
+    // Generate unique referral code for new user
+    const newUserReferralCode = await generateUniqueCode();
+
     // Create user with preferences
     const user = await prisma.user.create({
       data: {
@@ -68,6 +74,7 @@ export async function POST(request: NextRequest) {
         name: name || email.split('@')[0],
         password: hashedPassword,
         emailVerified: null, // Can be verified later
+        referralCode: newUserReferralCode, // Assign referral code
         preferences: {
           create: {}, // Create default preferences
         },
@@ -80,6 +87,20 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('✅ User registered:', user.email);
+
+    // If referral code provided, create referral relationship
+    if (referralCode && referralCode.trim()) {
+      try {
+        await createReferralRelationship({
+          refereeEmail: email,
+          referralCode: referralCode.trim().toUpperCase(),
+        });
+        console.log(`✅ Referral relationship created for ${email} using code ${referralCode}`);
+      } catch (referralError: any) {
+        console.error('Failed to create referral relationship:', referralError);
+        // Don't fail registration if referral fails - just log it
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -106,4 +127,30 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Generate unique referral code
+ */
+async function generateUniqueCode(): Promise<string> {
+  if (!prisma) throw new Error('Database not configured');
+
+  let code = generateReferralCode();
+  let attempts = 0;
+
+  while (attempts < 10) {
+    const exists = await prisma.user.findUnique({
+      where: { referralCode: code },
+    });
+
+    if (!exists) {
+      return code;
+    }
+
+    code = generateReferralCode();
+    attempts++;
+  }
+
+  // Fallback: add timestamp
+  return `${code}${Date.now().toString(36).slice(-3)}`;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import {
   X,
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
+  Gift,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -35,9 +36,30 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Capture referral code from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const refParam = params.get('ref');
+
+      if (refParam) {
+        setReferralCode(refParam.toUpperCase());
+        // Store in localStorage for later use
+        localStorage.setItem('pendingReferralCode', refParam.toUpperCase());
+      } else {
+        // Check if there's a stored referral code
+        const storedRef = localStorage.getItem('pendingReferralCode');
+        if (storedRef) {
+          setReferralCode(storedRef);
+        }
+      }
+    }
+  }, []);
 
   // Reset form when modal opens/closes
   const handleClose = () => {
@@ -116,11 +138,16 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
     setError('');
 
     try {
-      // Call registration API
+      // Call registration API (include referral code if present)
       const response = await fetch('/api/auth/register-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          referralCode: referralCode.trim() || undefined,
+        }),
       });
 
       const data = await response.json();
@@ -141,6 +168,10 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
       }
 
       if (signInResult?.ok) {
+        // Clear stored referral code after successful registration
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('pendingReferralCode');
+        }
         toast.success('Account created successfully!');
         onSuccess();
       }
@@ -352,6 +383,35 @@ export function AuthModal({ isOpen, onClose, onSuccess, flightContext }: AuthMod
                 </p>
               )}
             </div>
+
+            {/* Referral Code (Sign Up only) */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Referral Code <span className="text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <Gift className="w-4 h-4 text-primary-500" />
+                  </div>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    placeholder="FLY2A-XXXXX"
+                    className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                    disabled={isLoading}
+                    maxLength={12}
+                  />
+                </div>
+                {referralCode && (
+                  <p className="mt-1.5 text-xs text-primary-600 flex items-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    You'll join the referrer's network and earn points together!
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
