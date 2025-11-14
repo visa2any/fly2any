@@ -85,12 +85,12 @@ async function getCurrentPrice(
       infants: 0,
       travelClass: 'ECONOMY',
       nonStop: false,
-      maxResults: 5, // Limit to 5 for cost optimization
+      max: 5, // Limit to 5 for cost optimization (correct parameter name)
     });
 
     if (amadeusOffers && amadeusOffers.length > 0) {
-      // Find cheapest offer
-      const cheapest = amadeusOffers.reduce((min, offer) => {
+      // Find cheapest offer with proper typing
+      const cheapest = amadeusOffers.reduce((min: any, offer: any) => {
         const price = parseFloat(String(offer.price?.total || '999999'));
         const minPrice = parseFloat(String(min.price?.total || '999999'));
         return price < minPrice ? offer : min;
@@ -114,7 +114,7 @@ async function getCurrentPrice(
 
     // Fallback to Duffel if Amadeus fails
     console.log('⚠️ Amadeus returned no results, trying Duffel...');
-    const duffelOffers = await duffelAPI.searchFlights({
+    const duffelResponse = await duffelAPI.searchFlights({
       origin,
       destination,
       departureDate: departDate,
@@ -123,11 +123,14 @@ async function getCurrentPrice(
       children: 0,
       infants: 0,
       cabinClass: 'economy',
-      maxConnections: 2,
+      maxResults: 5, // Limit to 5 for cost optimization (correct parameter name)
     });
 
+    // Duffel returns { data: [], meta: {} } structure
+    const duffelOffers = duffelResponse?.data || [];
+
     if (duffelOffers && duffelOffers.length > 0) {
-      const cheapest = duffelOffers.reduce((min, offer) => {
+      const cheapest = duffelOffers.reduce((min: any, offer: any) => {
         const price = parseFloat(String(offer.price?.total || '999999'));
         const minPrice = parseFloat(String(min.price?.total || '999999'));
         return price < minPrice ? offer : min;

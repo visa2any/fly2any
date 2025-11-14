@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-hot-toast';
 import { FlightCardEnhanced } from '@/components/flights/FlightCardEnhanced';
 import { FlexibleDates, type DatePrice } from '@/components/flights/FlexibleDates';
 import { SmartWait } from '@/components/flights/SmartWait';
@@ -2132,7 +2133,7 @@ function FlightResultsContent() {
             origin: searchData.from,
             destination: searchData.to,
             departDate: searchData.departure.split(',')[0],
-            returnDate: searchData.return || null,
+            returnDate: searchData.return || undefined,
             currentPrice: normalizePrice(selectedFlightForAlert.price.total),
             currency: selectedFlightForAlert.price.currency,
           }}
