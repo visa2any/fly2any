@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/check-price-alerts",
       "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/check-completed-trips",
-      "schedule": "0 2 * * *"
     }
   ]
 }
