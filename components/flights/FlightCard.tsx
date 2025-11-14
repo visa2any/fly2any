@@ -63,6 +63,7 @@ export interface FlightCardProps {
   fareClass?: string;
   onSelectFlight?: (id: string) => void;
   onViewDetails?: (id: string) => void;
+  onTrackPrice?: (id: string) => void;
   lang?: 'en' | 'pt' | 'es';
   className?: string;
   co2Emissions?: number; // kg of CO2
@@ -84,6 +85,7 @@ const translations = {
     },
     selectFlight: 'Select Flight',
     viewDetails: 'View Details',
+    trackPrice: 'Track Price',
     save: 'Save',
     duration: 'Duration',
     stops: {
@@ -106,6 +108,7 @@ const translations = {
     },
     selectFlight: 'Selecionar Voo',
     viewDetails: 'Ver Detalhes',
+    trackPrice: 'Rastrear Preço',
     save: 'Economize',
     duration: 'Duração',
     stops: {
@@ -128,6 +131,7 @@ const translations = {
     },
     selectFlight: 'Seleccionar Vuelo',
     viewDetails: 'Ver Detalles',
+    trackPrice: 'Rastrear Precio',
     save: 'Ahorra',
     duration: 'Duración',
     stops: {
@@ -317,6 +321,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({
   fareClass,
   onSelectFlight,
   onViewDetails,
+  onTrackPrice,
   lang = 'en',
   className = '',
   co2Emissions,
@@ -351,6 +356,12 @@ export const FlightCard: React.FC<FlightCardProps> = ({
       onViewDetails(id);
     }
     setShowDetails(!showDetails);
+  };
+
+  const handleTrackPrice = () => {
+    if (onTrackPrice) {
+      onTrackPrice(id);
+    }
   };
 
   // Prefetch booking page on hover for better performance
@@ -555,60 +566,93 @@ export const FlightCard: React.FC<FlightCardProps> = ({
           </div>
 
           {/* Action Buttons - MOBILE: Compact, side-by-side for space */}
-          <div className="flex gap-1.5 md:gap-2 w-full sm:w-auto sm:min-w-[200px]">
-            <button
-              onClick={handleSelectFlight}
-              className="
-                flex-1 sm:w-full
-                bg-gradient-to-r from-primary-600 to-primary-500
-                hover:from-primary-700 hover:to-primary-600
-                active:scale-95
-                text-white font-bold text-sm md:text-base
-                py-2.5 md:py-4 px-4 md:px-6
-                rounded-lg md:rounded-xl
-                shadow-md md:shadow-lg hover:shadow-primary
-                transition-all duration-200
-                flex items-center justify-center gap-1.5 md:gap-2
-                group
-              "
-            >
-              <span className="hidden sm:inline">{t.selectFlight}</span>
-              <span className="sm:hidden">Select</span>
-              <svg
-                className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-1.5 md:gap-2 w-full">
+              <button
+                onClick={handleSelectFlight}
+                className="
+                  flex-1
+                  bg-gradient-to-r from-primary-600 to-primary-500
+                  hover:from-primary-700 hover:to-primary-600
+                  active:scale-95
+                  text-white font-bold text-sm md:text-base
+                  py-2.5 md:py-4 px-4 md:px-6
+                  rounded-lg md:rounded-xl
+                  shadow-md md:shadow-lg hover:shadow-primary
+                  transition-all duration-200
+                  flex items-center justify-center gap-1.5 md:gap-2
+                  group
+                "
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
+                <span className="hidden sm:inline">{t.selectFlight}</span>
+                <span className="sm:hidden">Select</span>
+                <svg
+                  className="w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
 
-            <button
-              onClick={handleViewDetails}
-              className="
-                flex-none sm:w-full
-                bg-white hover:bg-gray-50
-                active:scale-95
-                text-primary-600 hover:text-primary-700
-                font-semibold text-sm md:text-base
-                py-2.5 md:py-3 px-3 md:px-6
-                rounded-lg md:rounded-xl
-                border border-primary-200 md:border-2 hover:border-primary-300
-                transition-all duration-200
-                flex items-center justify-center gap-1 md:gap-2
-              "
-            >
-              <span className="hidden sm:inline">{t.viewDetails}</span>
-              <svg
-                className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                onClick={handleViewDetails}
+                className="
+                  flex-none
+                  bg-white hover:bg-gray-50
+                  active:scale-95
+                  text-primary-600 hover:text-primary-700
+                  font-semibold text-sm md:text-base
+                  py-2.5 md:py-3 px-3 md:px-6
+                  rounded-lg md:rounded-xl
+                  border border-primary-200 md:border-2 hover:border-primary-300
+                  transition-all duration-200
+                  flex items-center justify-center gap-1 md:gap-2
+                "
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+                <span className="hidden sm:inline">{t.viewDetails}</span>
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Track Price Button - Full Width */}
+            {onTrackPrice && (
+              <button
+                onClick={handleTrackPrice}
+                className="
+                  w-full
+                  bg-gradient-to-r from-orange-500 to-orange-600
+                  hover:from-orange-600 hover:to-orange-700
+                  active:scale-95
+                  text-white font-semibold text-sm md:text-base
+                  py-2 md:py-3 px-4 md:px-6
+                  rounded-lg md:rounded-xl
+                  border-2 border-orange-400
+                  transition-all duration-200
+                  flex items-center justify-center gap-2
+                  group
+                  shadow-md hover:shadow-lg
+                "
+              >
+                <svg
+                  className="w-4 h-4 group-hover:animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span>{t.trackPrice}</span>
+              </button>
+            )}
           </div>
         </div>
 
