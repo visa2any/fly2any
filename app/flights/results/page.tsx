@@ -1089,6 +1089,17 @@ function FlightResultsContent() {
     fetchFlights();
   }, [searchParams]);
 
+  // Auto-trigger price alert modal when user becomes authenticated
+  // This handles the case where session was loading when user clicked "Track Price"
+  useEffect(() => {
+    if (sessionStatus === 'authenticated' && session && pendingFlightForAlert && !showAuthModal) {
+      console.log('🎯 Session authenticated, auto-opening price alert modal');
+      setSelectedFlightForAlert(pendingFlightForAlert);
+      setShowCreatePriceAlert(true);
+      setPendingFlightForAlert(null);
+    }
+  }, [sessionStatus, session, pendingFlightForAlert, showAuthModal]);
+
   // ML User Segmentation - Classify user based on search behavior
   useEffect(() => {
     if (flights.length > 0 && !userSegment && searchData.from && searchData.to) {
@@ -1438,15 +1449,24 @@ function FlightResultsContent() {
       return;
     }
 
+    // Handle loading state - wait for session to resolve
+    if (sessionStatus === 'loading') {
+      console.log('⏳ Session loading, please wait...');
+      toast.loading('Checking authentication...', { duration: 1000 });
+      return;
+    }
+
     // Check if user is authenticated
     if (sessionStatus === 'unauthenticated' || !session) {
-      // Store flight for after authentication
+      // Not authenticated - show AuthModal
+      console.log('🔒 User not authenticated, showing AuthModal');
       setPendingFlightForAlert(flight);
       setShowAuthModal(true);
       return;
     }
 
-    // Already authenticated - show price alert modal
+    // ✅ User is authenticated - go directly to price alert modal
+    console.log('✅ User authenticated, showing price alert modal');
     setSelectedFlightForAlert(flight);
     setShowCreatePriceAlert(true);
   };
