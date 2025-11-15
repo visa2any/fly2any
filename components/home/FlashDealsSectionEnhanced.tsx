@@ -279,10 +279,10 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                     `}
                   >
                     {/* COMPACT HEADER - Route, Airline, Value Score */}
-                    <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-3">
+                    <div className="bg-white border-b-2 border-gray-100 p-3">
                       {/* Row 1: Route + Value Score */}
                       <div className="flex items-center justify-between mb-2">
-                        <div className="text-xl font-bold">
+                        <div className="text-xl font-bold text-gray-900">
                           {fromCity} → {toCity}
                         </div>
                         <ValueScoreBadge score={deal.valueScore} size="sm" showLabel={false} />
@@ -291,18 +291,18 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                       {/* Row 2: Airline */}
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="text-base">{airline.logo}</span>
-                        <span className="text-sm font-medium opacity-90">{airline.name}</span>
+                        <span className="text-sm font-medium text-gray-700">{airline.name}</span>
                       </div>
 
                       {/* Row 3: Price + Savings Percentage */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-end gap-2">
-                          <div className="text-3xl font-bold">${deal.price.toFixed(2)}</div>
-                          <div className="text-sm line-through opacity-75 mb-1">
+                          <div className="text-3xl font-bold text-primary-600">${deal.price.toFixed(2)}</div>
+                          <div className="text-sm line-through text-gray-500 mb-1">
                             ${deal.originalPrice.toFixed(2)}
                           </div>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded font-bold text-sm">
+                        <div className="bg-green-500 text-white px-2 py-1 rounded font-bold text-sm shadow-sm">
                           -{deal.savingsPercent}% OFF
                         </div>
                       </div>
