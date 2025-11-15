@@ -9,6 +9,7 @@ import {
   DollarSign,
   User,
   Plane,
+  Hotel,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -17,12 +18,36 @@ import {
   Eye,
   Download,
   ArrowUpDown,
+  MapPin,
 } from 'lucide-react';
 import type { BookingSummary } from '@/lib/bookings/types';
 
 type StatusFilter = 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed';
 
+interface HotelBooking {
+  id: string;
+  confirmationNumber: string;
+  hotelName: string;
+  hotelCity: string;
+  hotelCountry: string;
+  checkInDate: string | Date;
+  checkOutDate: string | Date;
+  nights: number;
+  totalPrice: number | string;
+  currency: string;
+  guestFirstName: string;
+  guestLastName: string;
+  guestEmail: string;
+  status: string;
+  paymentStatus: string;
+  createdAt: string | Date;
+}
+
 export default function AdminBookingsPage() {
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels'>('flights');
+
+  // Flight bookings state
   const [bookings, setBookings] = useState<BookingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,8 +55,20 @@ export default function AdminBookingsPage() {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Hotel bookings state
+  const [hotelBookings, setHotelBookings] = useState<HotelBooking[]>([]);
+  const [hotelLoading, setHotelLoading] = useState(true);
+  const [hotelStats, setHotelStats] = useState({
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    cancelled: 0,
+    revenue: 0,
+  });
+
   useEffect(() => {
     fetchBookings();
+    fetchHotelBookings();
   }, [statusFilter, sortBy, sortOrder]);
 
   const fetchBookings = async () => {
@@ -58,6 +95,36 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const fetchHotelBookings = async () => {
+    try {
+      setHotelLoading(true);
+      const params = new URLSearchParams();
+
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      params.append('sortBy', sortBy === 'date' ? 'newest' : 'amount');
+
+      const response = await fetch(`/api/admin/hotel-bookings?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch hotel bookings');
+      }
+
+      const data = await response.json();
+      setHotelBookings(data.bookings || []);
+      if (data.stats) {
+        setHotelStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching hotel bookings:', error);
+    } finally {
+      setHotelLoading(false);
+    }
+  };
+
+  // Filter flight bookings
   const filteredBookings = bookings
     .filter(booking => {
       if (!searchTerm) return true;
@@ -76,7 +143,30 @@ export default function AdminBookingsPage() {
       return order * (a.totalAmount - b.totalAmount);
     });
 
-  const stats = {
+  // Filter hotel bookings
+  const filteredHotelBookings = hotelBookings
+    .filter(booking => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        booking.confirmationNumber.toLowerCase().includes(term) ||
+        booking.hotelName.toLowerCase().includes(term) ||
+        booking.hotelCity.toLowerCase().includes(term) ||
+        booking.guestEmail.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      const order = sortOrder === 'asc' ? 1 : -1;
+      if (sortBy === 'date') {
+        return order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+      const priceA = typeof a.totalPrice === 'string' ? parseFloat(a.totalPrice) : a.totalPrice;
+      const priceB = typeof b.totalPrice === 'string' ? parseFloat(b.totalPrice) : b.totalPrice;
+      return order * (priceA - priceB);
+    });
+
+  // Flight stats
+  const flightStats = {
     total: bookings.length,
     pending: bookings.filter(b => b.status === 'pending').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
@@ -85,6 +175,9 @@ export default function AdminBookingsPage() {
       .filter(b => b.status === 'confirmed')
       .reduce((sum, b) => sum + b.totalAmount, 0),
   };
+
+  // Use appropriate stats based on active tab
+  const stats = activeTab === 'flights' ? flightStats : hotelStats;
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -122,17 +215,20 @@ export default function AdminBookingsPage() {
               Booking Management
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              View and manage all flight bookings
+              View and manage all flight and hotel bookings
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={fetchBookings}
-              disabled={loading}
+              onClick={() => {
+                fetchBookings();
+                fetchHotelBookings();
+              }}
+              disabled={loading || hotelLoading}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 text-gray-700 font-semibold rounded-lg transition-colors shadow-sm"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${(loading || hotelLoading) ? 'animate-spin' : ''}`} />
               Refresh
             </button>
 
@@ -188,6 +284,46 @@ export default function AdminBookingsPage() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('flights')}
+            className={`flex-1 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+              activeTab === 'flights'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <Plane className="w-5 h-5" />
+            Flights
+            {flightStats.total > 0 && (
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'flights' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'
+              }`}>
+                {flightStats.total}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('hotels')}
+            className={`flex-1 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+              activeTab === 'hotels'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <Hotel className="w-5 h-5" />
+            Hotels
+            {hotelStats.total > 0 && (
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'hotels' ? 'bg-white/20' : 'bg-orange-100 text-orange-700'
+              }`}>
+                {hotelStats.total}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Filters and Search */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -240,38 +376,39 @@ export default function AdminBookingsPage() {
           </div>
         </div>
 
-        {/* Bookings Table */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Booking Ref
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Route
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Passengers
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Created
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+        {/* FLIGHTS TAB - Bookings Table */}
+        {activeTab === 'flights' && (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Booking Ref
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Route
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Passengers
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
@@ -356,6 +493,146 @@ export default function AdminBookingsPage() {
             </table>
           </div>
         </div>
+        )}
+
+        {/* HOTELS TAB - Bookings Table */}
+        {activeTab === 'hotels' && (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Confirmation
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Hotel
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Guest
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Check-in
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Nights
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {hotelLoading ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-12 text-center">
+                        <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">Loading hotel bookings...</p>
+                      </td>
+                    </tr>
+                  ) : filteredHotelBookings.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-12 text-center">
+                        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">No hotel bookings found</p>
+                        <p className="text-gray-500 text-sm mt-1">
+                          {searchTerm
+                            ? 'Try adjusting your search criteria'
+                            : 'Hotel bookings will appear here once customers complete their orders'}
+                        </p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredHotelBookings.map((booking) => {
+                      const totalPrice = typeof booking.totalPrice === 'string'
+                        ? parseFloat(booking.totalPrice)
+                        : booking.totalPrice;
+
+                      return (
+                        <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-mono text-sm font-semibold text-orange-600">
+                              {booking.confirmationNumber}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <div className="font-semibold text-gray-900 text-sm">
+                                  {booking.hotelName}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {booking.hotelCity}, {booking.hotelCountry}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm">
+                              <div className="font-semibold text-gray-900">
+                                {booking.guestFirstName} {booking.guestLastName}
+                              </div>
+                              <div className="text-xs text-gray-500">{booking.guestEmail}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-gray-700">
+                              {new Date(booking.checkInDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-gray-700">{booking.nights}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {booking.currency} {totalPrice.toFixed(2)}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {getStatusBadge(booking.status)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-xs text-gray-600">
+                              {new Date(booking.createdAt).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Link
+                              href={`/admin/hotel-bookings/${booking.id}`}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                            >
+                              <Eye className="w-3 h-3" />
+                              View
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

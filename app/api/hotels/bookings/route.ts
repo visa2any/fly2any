@@ -4,17 +4,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import prisma from '@/lib/db/prisma'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -23,9 +24,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const tab = searchParams.get('tab') || 'upcoming'
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     const now = new Date()
-    let where: any = { userId: session.user.id }
+    let where: any = { guestEmail: session.user.email }
 
     if (tab === 'upcoming') {
       where.checkInDate = { gte: now }
@@ -37,33 +40,28 @@ export async function GET(request: NextRequest) {
       where.status = 'cancelled'
     }
 
-    const bookings = await prisma.hotelBooking.findMany({
-      where,
-      orderBy: tab === 'upcoming'
-        ? { checkInDate: 'asc' }
-        : { checkOutDate: 'desc' },
-      select: {
-        id: true,
-        confirmationNumber: true,
-        hotelName: true,
-        hotelCity: true,
-        hotelCountry: true,
-        roomName: true,
-        checkInDate: true,
-        checkOutDate: true,
-        nights: true,
-        totalPrice: true,
-        currency: true,
-        status: true,
-        guestFirstName: true,
-        guestLastName: true,
-        guestEmail: true,
-        createdAt: true,
-        cancellable: true,
+    const [bookings, total] = await Promise.all([
+      prisma.hotelBooking.findMany({
+        where,
+        orderBy: tab === 'upcoming'
+          ? { checkInDate: 'asc' }
+          : { checkOutDate: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.hotelBooking.count({ where }),
+    ])
+
+    return NextResponse.json({
+      success: true,
+      bookings,
+      total,
+      pagination: {
+        limit,
+        offset,
+        hasMore: offset + limit < total,
       },
     })
-
-    return NextResponse.json({ bookings })
   } catch (error: any) {
     console.error('Error fetching bookings:', error)
     return NextResponse.json(

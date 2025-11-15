@@ -2,8 +2,17 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Hotel, ChevronLeft, ChevronRight, Loader2, User, CreditCard, MapPin, Calendar, Users as UsersIcon } from 'lucide-react';
+import { Hotel, ChevronLeft, ChevronRight, Loader2, User, CreditCard, MapPin, Calendar, Users as UsersIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import { StripePaymentForm } from '@/components/hotels/StripePaymentForm';
+import { useSession } from 'next-auth/react';
+
+// Initialize Stripe
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 // ===========================
 // TYPE DEFINITIONS
@@ -61,10 +70,13 @@ interface HotelBookingData {
 function HotelBookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
 
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Hotel data
   const [hotelData, setHotelData] = useState<HotelBookingData | null>(null);
@@ -77,7 +89,8 @@ function HotelBookingContent() {
   const [guests, setGuests] = useState<GuestData[]>([]);
 
   // Step 3: Payment
-  const [paymentData, setPaymentData] = useState<any>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
   // Price lock timer
   const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 15, seconds: 0 });
@@ -294,10 +307,15 @@ function HotelBookingContent() {
     );
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentStep === 2 && !areGuestsComplete()) {
-      alert('Please complete all required guest information before continuing.');
+      setError('Please complete all required guest information before continuing.');
       return;
+    }
+
+    if (currentStep === 2) {
+      // Moving to payment step - create payment intent
+      await createPaymentIntent();
     }
 
     if (currentStep < 3) {
@@ -310,14 +328,55 @@ function HotelBookingContent() {
     if (currentStep > 1) {
       setCurrentStep((currentStep - 1) as BookingStep);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setError(null);
     }
   };
 
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-
+  const createPaymentIntent = async () => {
     try {
+      setIsProcessing(true);
+      setError(null);
+
+      const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
+      if (!selectedRoom || !hotelData) {
+        throw new Error('Room or hotel data missing');
+      }
+
+      const response = await fetch('/api/hotels/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: getGrandTotal(),
+          currency: hotelData.currency,
+          hotelId: hotelData.hotelId,
+          hotelName: hotelData.hotelName,
+          roomId: selectedRoom.id,
+          roomName: selectedRoom.name,
+          checkIn: hotelData.checkIn,
+          checkOut: hotelData.checkOut,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
+
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+      setPaymentIntentId(data.paymentIntentId);
+    } catch (err: any) {
+      console.error('Payment intent creation failed:', err);
+      setError(err.message || 'Failed to initialize payment. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (confirmedPaymentIntentId: string) => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+
       if (!hotelData) {
         throw new Error('Hotel data is missing');
       }
@@ -327,52 +386,59 @@ function HotelBookingContent() {
         throw new Error('Please select a room');
       }
 
-      // Prepare booking request
-      const bookingRequest = {
-        hotelId: hotelData.hotelId,
-        hotelName: hotelData.hotelName,
-        roomId: selectedRoom.id,
-        roomName: selectedRoom.name,
-        checkIn: hotelData.checkIn,
-        checkOut: hotelData.checkOut,
-        nights: hotelData.nights,
-        guests: guests.map(g => ({
-          type: g.type,
-          title: g.title,
-          firstName: g.firstName,
-          lastName: g.lastName,
-          dateOfBirth: g.dateOfBirth,
-          email: g.email,
-          phone: g.phone,
-          specialRequests: g.specialRequests,
-        })),
-        payment: paymentData,
-        totalPrice: selectedRoom.price * hotelData.nights,
-        currency: hotelData.currency,
-      };
+      // Create booking in database
+      const response = await fetch('/api/hotels/booking/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hotelId: hotelData.hotelId,
+          hotelName: hotelData.hotelName,
+          hotelCity: hotelData.location.split(',')[0] || hotelData.location,
+          hotelCountry: hotelData.location.split(',').pop()?.trim() || 'Unknown',
+          roomId: selectedRoom.id,
+          roomName: selectedRoom.name,
+          bedType: selectedRoom.bedType,
+          maxGuests: selectedRoom.maxGuests,
+          checkInDate: hotelData.checkIn,
+          checkOutDate: hotelData.checkOut,
+          nights: hotelData.nights,
+          pricePerNight: selectedRoom.price.toString(),
+          subtotal: getTotalPrice().toString(),
+          taxesAndFees: getTaxesAndFees().toString(),
+          totalPrice: getGrandTotal().toString(),
+          currency: hotelData.currency,
+          guestTitle: guests[0].title,
+          guestFirstName: guests[0].firstName,
+          guestLastName: guests[0].lastName,
+          guestEmail: guests[0].email!,
+          guestPhone: guests[0].phone!,
+          additionalGuests: JSON.stringify(guests.slice(1)),
+          specialRequests: guests[0].specialRequests || '',
+          paymentIntentId: confirmedPaymentIntentId,
+          breakfastIncluded: selectedRoom.breakfastIncluded,
+          cancellable: selectedRoom.refundable,
+        }),
+      });
 
-      // Call the booking API (which already exists)
-      // For now, we'll simulate a successful booking
-      const mockBookingId = `HB${Date.now()}`;
-      const mockConfirmation = `CONF-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create booking');
+      }
 
-      // Store booking in sessionStorage for confirmation page
-      sessionStorage.setItem(`hotel_booking_${mockBookingId}`, JSON.stringify({
-        ...bookingRequest,
-        id: mockBookingId,
-        confirmationNumber: mockConfirmation,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-      }));
+      const booking = await response.json();
 
-      // Redirect to confirmation
-      router.push(`/hotels/booking/confirmation?bookingId=${mockBookingId}&ref=${mockConfirmation}`);
+      // Redirect to confirmation page
+      router.push(`/hotels/booking/confirmation?bookingId=${booking.id}&ref=${booking.confirmationNumber}`);
     } catch (error: any) {
       console.error('Booking error:', error);
-      alert(error.message || 'There was an error processing your booking. Please try again.');
-    } finally {
+      setError(error.message || 'There was an error processing your booking. Please contact support.');
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage);
+    setIsProcessing(false);
   };
 
   // ===========================
@@ -457,6 +523,34 @@ function HotelBookingContent() {
           </div>
         </div>
       </div>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="max-w-7xl mx-auto px-4 pt-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-900">Error</p>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="max-w-7xl mx-auto px-4 pt-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-green-900">Success</p>
+              <p className="text-sm text-green-700 mt-1">{success}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-4">
@@ -647,121 +741,86 @@ function HotelBookingContent() {
             {/* STEP 3: Payment */}
             {currentStep === 3 && (
               <div className="animate-fadeIn">
-                <form onSubmit={handlePaymentSubmit} id="payment-form">
-                  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                    <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                      <h2 className="text-base font-bold flex items-center gap-2">
-                        <CreditCard className="w-5 h-5" />
-                        Payment Information
-                      </h2>
-                    </div>
-                    <div className="p-4">
-                      <p className="text-sm text-gray-600 mb-4">
-                        This is a demo booking flow. Payment processing will be integrated when APIs are configured.
-                      </p>
-
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Card Number
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="4242 4242 4242 4242"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            onChange={(e) => setPaymentData({ ...paymentData, cardNumber: e.target.value })}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Expiry Date
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="MM/YY"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              onChange={(e) => setPaymentData({ ...paymentData, expiry: e.target.value })}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              CVV
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="123"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              onChange={(e) => setPaymentData({ ...paymentData, cvv: e.target.value })}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Cardholder Name
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="John Doe"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            onChange={(e) => setPaymentData({ ...paymentData, cardholderName: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-900">
-                          <strong>Note:</strong> This is a demo environment. No actual payment will be processed.
-                          When integrated with real APIs, this will process payments through Stripe or your configured payment gateway.
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
+                    <h2 className="text-base font-bold flex items-center gap-2">
+                      <CreditCard className="w-5 h-5" />
+                      Payment Information
+                    </h2>
+                  </div>
+                  <div className="p-4">
+                    {!stripePromise || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
+                      <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-900 mb-2">
+                          <strong>Configuration Required:</strong> Stripe payment processing is not configured.
+                        </p>
+                        <p className="text-xs text-amber-700">
+                          Please add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your environment variables.
                         </p>
                       </div>
-                    </div>
+                    ) : !clientSecret ? (
+                      <div className="text-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-4" />
+                        <p className="text-gray-600">Initializing secure payment...</p>
+                      </div>
+                    ) : (
+                      <Elements
+                        stripe={stripePromise}
+                        options={{
+                          clientSecret,
+                          appearance: {
+                            theme: 'stripe',
+                            variables: {
+                              colorPrimary: '#F97316',
+                              colorText: '#1F2937',
+                              fontFamily: 'system-ui, sans-serif',
+                              borderRadius: '8px',
+                            },
+                          },
+                        }}
+                      >
+                        <StripePaymentForm
+                          amount={getGrandTotal()}
+                          currency={hotelData.currency}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                          disabled={isProcessing}
+                        />
+                      </Elements>
+                    )}
                   </div>
-                </form>
+                </div>
               </div>
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between">
-              <button
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                className={`
-                  flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all text-sm
-                  ${currentStep === 1
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }
-                `}
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Back
-              </button>
+            {currentStep < 3 && (
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
+                  className={`
+                    flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all text-sm
+                    ${currentStep === 1
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }
+                  `}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </button>
 
-              {currentStep < 3 ? (
                 <button
                   onClick={handleContinue}
-                  disabled={currentStep === 2 && !areGuestsComplete()}
+                  disabled={(currentStep === 2 && !areGuestsComplete()) || isProcessing}
                   className={`
                     flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm shadow-md transition-all
-                    ${currentStep === 2 && !areGuestsComplete()
+                    ${(currentStep === 2 && !areGuestsComplete()) || isProcessing
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg'
                     }
                   `}
-                >
-                  Continue
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  form="payment-form"
-                  disabled={isProcessing}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm shadow-md transition-all bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg disabled:opacity-50"
                 >
                   {isProcessing ? (
                     <>
@@ -770,13 +829,13 @@ function HotelBookingContent() {
                     </>
                   ) : (
                     <>
-                      Complete Booking
+                      Continue
                       <ChevronRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Sticky Summary */}

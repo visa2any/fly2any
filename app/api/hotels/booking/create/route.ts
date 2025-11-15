@@ -4,7 +4,8 @@ import type { CreateBookingParams } from '@/lib/api/duffel-stays';
 import { prisma } from '@/lib/prisma';
 import { getPaymentIntent } from '@/lib/payments/stripe-hotel';
 import { sendHotelConfirmationEmail } from '@/lib/email/hotel-confirmation';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 /**
  * Hotel Booking Creation API Route
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Get current user session
-      const session = await getServerSession();
+      const session = await getServerSession(authOptions);
       const userId = session?.user?.id || null;
 
       // Extract hotel and room data from request

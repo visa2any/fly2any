@@ -1,121 +1,180 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { duffelStaysAPI } from '@/lib/api/duffel-stays';
-import { setCache, generateCacheKey } from '@/lib/cache';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import prisma from '@/lib/db/prisma';
+import Stripe from 'stripe';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-11-20.acacia',
+});
 
 /**
- * Hotel Booking Cancellation API Route
- *
- * POST /api/hotels/booking/[id]/cancel
- *
- * Request cancellation of a hotel booking.
- * Returns cancellation details including refund amount.
- *
- * Note: Cancellation policies vary by property and rate.
- * Some bookings may be non-refundable.
- *
- * Response:
- * {
- *   data: {
- *     id: string; // Cancellation ID
- *     refund_amount: string;
- *     refund_currency: string;
- *     status: string;
- *     ...
- *   }
- * }
+ * Cancel a hotel booking and process refund if applicable
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Authenticate user
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please sign in' },
+        { status: 401 }
+      );
+    }
+
     const bookingId = params.id;
 
-    if (!bookingId) {
-      return NextResponse.json(
-        { error: 'Missing booking ID' },
-        { status: 400 }
-      );
-    }
-
-    // Optional: Parse request body for cancellation reason
-    let cancellationReason = '';
-    try {
-      const body = await request.json();
-      cancellationReason = body.reason || '';
-    } catch {
-      // No body is fine
-    }
-
-    // Cancel booking using Duffel Stays API
-    console.log(`🚫 Cancelling booking: ${bookingId}`);
-    if (cancellationReason) {
-      console.log(`   Reason: ${cancellationReason}`);
-    }
-
-    const cancellation = await duffelStaysAPI.cancelBooking(bookingId);
-
-    console.log('✅ Booking cancelled successfully');
-    console.log(`   Cancellation ID: ${cancellation.data.id}`);
-    console.log(`   Refund: ${cancellation.data.refund_amount} ${cancellation.data.refund_currency}`);
-
-    // Invalidate cached booking details
-    const cacheKey = generateCacheKey('hotels:duffel:booking', { id: bookingId });
-    await setCache(cacheKey, null, 0); // Delete cache
-
-    // TODO: Update booking status in database
-    // TODO: Send cancellation confirmation email
-    // TODO: Update commission tracking (if applicable)
-
-    return NextResponse.json({
-      data: cancellation.data,
-      meta: {
-        cancelledAt: new Date().toISOString(),
-        reason: cancellationReason || null,
-      },
+    // Fetch the booking
+    const booking = await prisma.hotelBooking.findUnique({
+      where: { id: bookingId },
     });
-  } catch (error: any) {
-    console.error('❌ Booking cancellation error:', error);
 
-    // Handle specific errors
-    if (error.message.includes('ALREADY_CANCELLED')) {
-      return NextResponse.json(
-        {
-          error: 'Already cancelled',
-          message: 'This booking has already been cancelled',
-          code: 'ALREADY_CANCELLED',
-        },
-        { status: 409 }
-      );
-    }
-
-    if (error.message.includes('NOT_CANCELLABLE')) {
-      return NextResponse.json(
-        {
-          error: 'Not cancellable',
-          message: 'This booking cannot be cancelled. It may be non-refundable or the cancellation deadline has passed.',
-          code: 'NOT_CANCELLABLE',
-        },
-        { status: 409 }
-      );
-    }
-
-    if (error.message.includes('not found') || error.message.includes('NOT_FOUND')) {
+    if (!booking) {
       return NextResponse.json(
         { error: 'Booking not found' },
         { status: 404 }
       );
     }
 
+    // Verify ownership (user must own the booking or be an admin)
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    });
+
+    const isAdmin = user?.role === 'ADMIN';
+    const isOwner = booking.guestEmail === session.user.email;
+
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden - You do not have permission to cancel this booking' },
+        { status: 403 }
+      );
+    }
+
+    // Check if booking is already cancelled
+    if (booking.status === 'cancelled') {
+      return NextResponse.json(
+        { error: 'Booking is already cancelled' },
+        { status: 400 }
+      );
+    }
+
+    // Check if booking is cancellable
+    if (!booking.cancellable) {
+      return NextResponse.json(
+        { error: 'This booking is non-cancellable' },
+        { status: 400 }
+      );
+    }
+
+    // Check if check-in date has already passed
+    const checkInDate = new Date(booking.checkInDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (checkInDate < today) {
+      return NextResponse.json(
+        { error: 'Cannot cancel - check-in date has already passed' },
+        { status: 400 }
+      );
+    }
+
+    // Process refund if booking is refundable and has payment intent
+    let refundStatus = 'not_applicable';
+    let refundAmount = 0;
+
+    if (booking.refundable && booking.paymentIntentId) {
+      try {
+        // Calculate refund amount based on cancellation policy
+        const daysUntilCheckIn = Math.ceil(
+          (checkInDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // Refund policy:
+        // - Full refund if cancelled 7+ days before check-in
+        // - 50% refund if cancelled 3-6 days before check-in
+        // - No refund if cancelled less than 3 days before check-in
+        let refundPercentage = 0;
+        if (daysUntilCheckIn >= 7) {
+          refundPercentage = 100;
+        } else if (daysUntilCheckIn >= 3) {
+          refundPercentage = 50;
+        } else {
+          refundPercentage = 0;
+        }
+
+        if (refundPercentage > 0) {
+          const totalPriceInCents = Math.round(
+            parseFloat(booking.totalPrice.toString()) * 100
+          );
+          const refundAmountInCents = Math.round(
+            (totalPriceInCents * refundPercentage) / 100
+          );
+
+          // Process Stripe refund
+          const refund = await stripe.refunds.create({
+            payment_intent: booking.paymentIntentId,
+            amount: refundAmountInCents,
+            reason: 'requested_by_customer',
+            metadata: {
+              bookingId: booking.id,
+              confirmationNumber: booking.confirmationNumber,
+              refundPercentage: refundPercentage.toString(),
+            },
+          });
+
+          refundStatus = refund.status;
+          refundAmount = refundAmountInCents / 100;
+        } else {
+          refundStatus = 'no_refund_due_to_policy';
+        }
+      } catch (stripeError: any) {
+        console.error('Stripe refund error:', stripeError);
+        // Continue with cancellation even if refund fails
+        refundStatus = 'failed';
+      }
+    }
+
+    // Update booking status to cancelled
+    const updatedBooking = await prisma.hotelBooking.update({
+      where: { id: bookingId },
+      data: {
+        status: 'cancelled',
+        updatedAt: new Date(),
+      },
+    });
+
+    // TODO: Send cancellation confirmation email
+    // This would integrate with the existing email service
+    // await sendCancellationEmail(booking, refundAmount, refundStatus);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Booking cancelled successfully',
+      booking: updatedBooking,
+      refund: {
+        status: refundStatus,
+        amount: refundAmount,
+        currency: booking.currency,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error cancelling booking:', error);
     return NextResponse.json(
       {
-        error: error.message || 'Failed to cancel booking',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        success: false,
+        error: 'Failed to cancel booking',
+        message: error.message,
       },
       { status: 500 }
     );
   }
 }
-
-// Note: Using Node.js runtime (not edge) because Duffel SDK requires Node.js APIs
-// export const runtime = 'edge';

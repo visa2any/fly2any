@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   Plane,
+  Hotel,
   Calendar,
   Users,
   Filter,
@@ -16,6 +17,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import BookingCard from '@/components/account/BookingCard';
+import HotelBookingCard from '@/components/bookings/HotelBookingCard';
+import type { HotelBooking } from '@/components/bookings/HotelBookingCard';
 import BookingFilters from '@/components/account/BookingFilters';
 import BookingStats from '@/components/account/BookingStats';
 import type { Booking, BookingStatus } from '@/lib/bookings/types';
@@ -47,6 +50,10 @@ export default function BookingsPage() {
   const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels'>('flights');
+
+  // Flight bookings state
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +61,14 @@ export default function BookingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalBookings, setTotalBookings] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Hotel bookings state
+  const [hotelBookings, setHotelBookings] = useState<HotelBooking[]>([]);
+  const [filteredHotelBookings, setFilteredHotelBookings] = useState<HotelBooking[]>([]);
+  const [hotelLoading, setHotelLoading] = useState(true);
+  const [hotelError, setHotelError] = useState<string | null>(null);
+  const [hotelCurrentPage, setHotelCurrentPage] = useState(1);
+  const [totalHotelBookings, setTotalHotelBookings] = useState(0);
 
   const [filters, setFilters] = useState<FilterState>({
     status: 'all',
@@ -127,13 +142,59 @@ export default function BookingsPage() {
     }
   };
 
+  // Fetch hotel bookings
+  const fetchHotelBookings = async () => {
+    try {
+      setHotelLoading(true);
+      setHotelError(null);
+
+      const params = new URLSearchParams();
+      if (filters.status !== 'all') {
+        params.append('status', filters.status);
+      }
+      params.append('limit', ITEMS_PER_PAGE.toString());
+      params.append('offset', ((hotelCurrentPage - 1) * ITEMS_PER_PAGE).toString());
+
+      const response = await fetch(`/api/hotels/bookings?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch hotel bookings');
+      }
+
+      const data = await response.json();
+
+      let fetchedBookings = data.bookings || [];
+
+      // Apply client-side sorting
+      if (filters.sortBy === 'newest') {
+        fetchedBookings.sort((a: HotelBooking, b: HotelBooking) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else {
+        fetchedBookings.sort((a: HotelBooking, b: HotelBooking) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+
+      setHotelBookings(fetchedBookings);
+      setFilteredHotelBookings(fetchedBookings);
+      setTotalHotelBookings(data.total || fetchedBookings.length);
+    } catch (err: any) {
+      console.error('Error fetching hotel bookings:', err);
+      setHotelError(err.message || 'Failed to load hotel bookings. Please try again.');
+    } finally {
+      setHotelLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
       fetchBookings();
+      fetchHotelBookings();
     }
   }, [sessionStatus, currentPage, filters.status, filters.dateFrom, filters.dateTo]);
 
-  // Apply search filter locally
+  // Apply search filter locally for flights
   useEffect(() => {
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
@@ -153,6 +214,24 @@ export default function BookingsPage() {
     }
   }, [filters.searchQuery, bookings]);
 
+  // Apply search filter locally for hotels
+  useEffect(() => {
+    if (filters.searchQuery) {
+      const query = filters.searchQuery.toLowerCase();
+      const filtered = hotelBookings.filter(
+        (booking) =>
+          booking.confirmationNumber.toLowerCase().includes(query) ||
+          booking.guestEmail.toLowerCase().includes(query) ||
+          booking.hotelName.toLowerCase().includes(query) ||
+          booking.hotelCity.toLowerCase().includes(query) ||
+          booking.hotelCountry.toLowerCase().includes(query)
+      );
+      setFilteredHotelBookings(filtered);
+    } else {
+      setFilteredHotelBookings(hotelBookings);
+    }
+  }, [filters.searchQuery, hotelBookings]);
+
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
     setCurrentPage(1); // Reset to first page when filters change
@@ -163,9 +242,10 @@ export default function BookingsPage() {
   };
 
   const totalPages = Math.ceil(totalBookings / ITEMS_PER_PAGE);
+  const totalHotelPages = Math.ceil(totalHotelBookings / ITEMS_PER_PAGE);
 
-  // Calculate stats
-  const stats = {
+  // Calculate stats for both flights and hotels
+  const flightStats = {
     total: totalBookings,
     upcoming: bookings.filter(
       (b) =>
@@ -176,7 +256,26 @@ export default function BookingsPage() {
     cancelled: bookings.filter((b) => b.status === 'cancelled').length,
   };
 
-  if (sessionStatus === 'loading' || loading) {
+  const hotelStats = {
+    total: totalHotelBookings,
+    upcoming: hotelBookings.filter(
+      (b) =>
+        b.status === 'confirmed' &&
+        new Date(b.checkInDate) > new Date()
+    ).length,
+    completed: hotelBookings.filter((b) => b.status === 'completed').length,
+    cancelled: hotelBookings.filter((b) => b.status === 'cancelled').length,
+  };
+
+  // Combined stats
+  const stats = {
+    total: flightStats.total + hotelStats.total,
+    upcoming: flightStats.upcoming + hotelStats.upcoming,
+    completed: flightStats.completed + hotelStats.completed,
+    cancelled: flightStats.cancelled + hotelStats.cancelled,
+  };
+
+  if (sessionStatus === 'loading' || (loading && hotelLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -198,7 +297,7 @@ export default function BookingsPage() {
                 My Bookings
               </h1>
               <p className="text-gray-600">
-                View and manage all your flight bookings
+                View and manage all your flight and hotel bookings
               </p>
             </div>
             <Link
@@ -211,6 +310,46 @@ export default function BookingsPage() {
 
           {/* Stats Dashboard */}
           <BookingStats stats={stats} />
+
+          {/* Tabs */}
+          <div className="flex gap-2 mt-6">
+            <button
+              onClick={() => setActiveTab('flights')}
+              className={`flex-1 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+                activeTab === 'flights'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <Plane className="w-5 h-5" />
+              Flights
+              {flightStats.total > 0 && (
+                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                  activeTab === 'flights' ? 'bg-white/20' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {flightStats.total}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('hotels')}
+              className={`flex-1 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${
+                activeTab === 'hotels'
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              <Hotel className="w-5 h-5" />
+              Hotels
+              {hotelStats.total > 0 && (
+                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                  activeTab === 'hotels' ? 'bg-white/20' : 'bg-orange-100 text-orange-700'
+                }`}>
+                  {hotelStats.total}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Filters Bar */}
@@ -307,32 +446,35 @@ export default function BookingsPage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && !error && filteredBookings.length === 0 && (
-          <div className="bg-white rounded-xl shadow-md p-12 text-center">
-            <Plane className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {filters.searchQuery || filters.status !== 'all'
-                ? 'No bookings found'
-                : 'No bookings yet'}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {filters.searchQuery || filters.status !== 'all'
-                ? 'Try adjusting your filters or search query'
-                : 'Start by searching for flights and make your first booking'}
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
-            >
-              <Plane className="w-5 h-5" />
-              Search Flights
-            </Link>
-          </div>
-        )}
+        {/* FLIGHTS TAB CONTENT */}
+        {activeTab === 'flights' && (
+          <>
+            {/* Empty State */}
+            {!loading && !error && filteredBookings.length === 0 && (
+              <div className="bg-white rounded-xl shadow-md p-12 text-center">
+                <Plane className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {filters.searchQuery || filters.status !== 'all'
+                    ? 'No flight bookings found'
+                    : 'No flight bookings yet'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {filters.searchQuery || filters.status !== 'all'
+                    ? 'Try adjusting your filters or search query'
+                    : 'Start by searching for flights and make your first booking'}
+                </p>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
+                >
+                  <Plane className="w-5 h-5" />
+                  Search Flights
+                </Link>
+              </div>
+            )}
 
-        {/* Bookings List */}
-        {!loading && !error && filteredBookings.length > 0 && (
+            {/* Bookings List */}
+            {!loading && !error && filteredBookings.length > 0 && (
           <>
             <div className="space-y-4 mb-8">
               {filteredBookings.map((booking) => (
@@ -398,27 +540,204 @@ export default function BookingsPage() {
         )}
 
         {/* Loading Skeletons */}
-        {loading && (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl shadow-md p-6 animate-pulse"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        {activeTab === 'flights' && loading && (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl shadow-md p-6 animate-pulse"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
                   </div>
-                  <div className="h-8 bg-gray-200 rounded w-24"></div>
-                </div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* HOTELS TAB CONTENT */}
+        {activeTab === 'hotels' && (
+          <>
+            {/* Error State */}
+            {hotelError && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-6 mb-6 rounded-lg">
+                <div className="flex items-start">
+                  <AlertCircle className="w-6 h-6 text-red-400 mr-3 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-red-800 mb-2">
+                      Error Loading Hotel Bookings
+                    </h3>
+                    <p className="text-red-700 mb-4">{hotelError}</p>
+                    <button
+                      onClick={fetchHotelBookings}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                    >
+                      Try Again
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+
+            {/* Empty State */}
+            {!hotelLoading && !hotelError && filteredHotelBookings.length === 0 && (
+              <div className="bg-white rounded-xl shadow-md p-12 text-center">
+                <Hotel className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {filters.searchQuery || filters.status !== 'all'
+                    ? 'No hotel bookings found'
+                    : 'No hotel bookings yet'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {filters.searchQuery || filters.status !== 'all'
+                    ? 'Try adjusting your filters or search query'
+                    : 'Start by searching for hotels and make your first booking'}
+                </p>
+                <Link
+                  href="/hotels"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all"
+                >
+                  <Hotel className="w-5 h-5" />
+                  Search Hotels
+                </Link>
+              </div>
+            )}
+
+            {/* Hotel Bookings List */}
+            {!hotelLoading && !hotelError && filteredHotelBookings.length > 0 && (
+              <>
+                <div className="space-y-4 mb-8">
+                  {filteredHotelBookings.map((booking) => (
+                    <HotelBookingCard
+                      key={booking.id}
+                      booking={booking}
+                      onCancel={async (bookingId) => {
+                        try {
+                          const response = await fetch(`/api/hotels/booking/${bookingId}/cancel`, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                          });
+
+                          const data = await response.json();
+
+                          if (!response.ok) {
+                            throw new Error(data.error || 'Failed to cancel booking');
+                          }
+
+                          // Show success message with refund info
+                          let message = 'Booking cancelled successfully!';
+                          if (data.refund?.status === 'succeeded') {
+                            message += ` A refund of ${new Intl.NumberFormat('en-US', {
+                              style: 'currency',
+                              currency: data.refund.currency,
+                            }).format(data.refund.amount)} has been processed.`;
+                          }
+                          alert(message);
+
+                          // Refresh bookings list
+                          await fetchHotelBookings();
+                        } catch (error: any) {
+                          console.error('Cancellation error:', error);
+                          throw error; // Re-throw so HotelBookingCard can handle it
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalHotelPages > 1 && (
+                  <div className="bg-white rounded-xl shadow-md p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        Showing {(hotelCurrentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
+                        {Math.min(hotelCurrentPage * ITEMS_PER_PAGE, totalHotelBookings)} of{' '}
+                        {totalHotelBookings} hotel bookings
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setHotelCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={hotelCurrentPage === 1}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        {Array.from({ length: totalHotelPages }, (_, i) => i + 1)
+                          .filter(
+                            (page) =>
+                              page === 1 ||
+                              page === totalHotelPages ||
+                              (page >= hotelCurrentPage - 1 && page <= hotelCurrentPage + 1)
+                          )
+                          .map((page, index, array) => (
+                            <div key={page} className="flex items-center">
+                              {index > 0 && array[index - 1] !== page - 1 && (
+                                <span className="px-2 text-gray-400">...</span>
+                              )}
+                              <button
+                                onClick={() => setHotelCurrentPage(page)}
+                                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                                  hotelCurrentPage === page
+                                    ? 'bg-orange-600 text-white'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            </div>
+                          ))}
+                        <button
+                          onClick={() =>
+                            setHotelCurrentPage((p) => Math.min(totalHotelPages, p + 1))
+                          }
+                          disabled={hotelCurrentPage === totalHotelPages}
+                          className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Loading Skeletons */}
+            {hotelLoading && (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl shadow-md p-6 animate-pulse"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="h-8 bg-gray-200 rounded w-24"></div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-full"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
