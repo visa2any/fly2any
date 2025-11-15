@@ -6,9 +6,14 @@ import Stripe from 'stripe';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-10-29.clover',
-});
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return null;
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-10-29.clover',
+  });
+};
 
 /**
  * Cancel a hotel booking and process refund if applicable
@@ -118,27 +123,33 @@ export async function POST(
         }
 
         if (refundPercentage > 0) {
-          const totalPriceInCents = Math.round(
-            parseFloat(booking.totalPrice.toString()) * 100
-          );
-          const refundAmountInCents = Math.round(
-            (totalPriceInCents * refundPercentage) / 100
-          );
+          const stripe = getStripe();
+          if (!stripe) {
+            console.warn('⚠️ Stripe not configured - cannot process refund');
+            refundStatus = 'stripe_not_configured';
+          } else {
+            const totalPriceInCents = Math.round(
+              parseFloat(booking.totalPrice.toString()) * 100
+            );
+            const refundAmountInCents = Math.round(
+              (totalPriceInCents * refundPercentage) / 100
+            );
 
-          // Process Stripe refund
-          const refund = await stripe.refunds.create({
-            payment_intent: booking.paymentIntentId,
-            amount: refundAmountInCents,
-            reason: 'requested_by_customer',
-            metadata: {
-              bookingId: booking.id,
-              confirmationNumber: booking.confirmationNumber,
-              refundPercentage: refundPercentage.toString(),
-            },
-          });
+            // Process Stripe refund
+            const refund = await stripe.refunds.create({
+              payment_intent: booking.paymentIntentId,
+              amount: refundAmountInCents,
+              reason: 'requested_by_customer',
+              metadata: {
+                bookingId: booking.id,
+                confirmationNumber: booking.confirmationNumber,
+                refundPercentage: refundPercentage.toString(),
+              },
+            });
 
-          refundStatus = refund.status || 'pending';
-          refundAmount = refundAmountInCents / 100;
+            refundStatus = refund.status || 'pending';
+            refundAmount = refundAmountInCents / 100;
+          }
         } else {
           refundStatus = 'no_refund_due_to_policy';
         }
