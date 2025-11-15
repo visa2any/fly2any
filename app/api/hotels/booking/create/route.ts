@@ -4,8 +4,7 @@ import type { CreateBookingParams } from '@/lib/api/duffel-stays';
 import { prisma } from '@/lib/prisma';
 import { getPaymentIntent } from '@/lib/payments/stripe-hotel';
 import { sendHotelConfirmationEmail } from '@/lib/email/hotel-confirmation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/lib/auth';
 
 /**
  * Hotel Booking Creation API Route
@@ -236,9 +235,23 @@ export async function POST(request: NextRequest) {
     // STEP 3: Store booking in database
     console.log('💾 Storing booking in database...');
 
+    if (!prisma) {
+      return NextResponse.json({
+        data: booking.data,
+        meta: {
+          createdAt: new Date().toISOString(),
+          storedInDatabase: false,
+          error: 'Database unavailable',
+          paymentVerified,
+        },
+      }, {
+        status: 201,
+      });
+    }
+
     try {
       // Get current user session
-      const session = await getServerSession(authOptions);
+      const session = await auth();
       const userId = session?.user?.id || null;
 
       // Extract hotel and room data from request
@@ -268,7 +281,7 @@ export async function POST(request: NextRequest) {
           hotelCountry: hotelData.country,
           hotelPhone: hotelData.phone,
           hotelEmail: hotelData.email,
-          hotelImages: hotelData.images ? JSON.stringify(hotelData.images) : null,
+          hotelImages: hotelData.images ? JSON.stringify(hotelData.images) : undefined,
 
           // Room details
           roomId: roomData.id || 'standard',
@@ -306,7 +319,7 @@ export async function POST(request: NextRequest) {
                 lastName: g.familyName,
                 dateOfBirth: g.bornOn,
               })))
-            : null,
+            : undefined,
 
           // Special requests
           specialRequests: body.specialRequests,

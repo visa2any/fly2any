@@ -4,21 +4,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import prisma from '@/lib/db/prisma'
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/db/prisma'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
       )
     }
 

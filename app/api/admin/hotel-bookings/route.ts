@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from '@/lib/db/prisma';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db/prisma';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     // Admin authentication check
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || !session.user) {
       return NextResponse.json(
@@ -19,12 +18,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { role: true },
+      include: { adminUser: true },
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !user.adminUser) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
@@ -127,7 +133,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Admin authentication check
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || !session.user) {
       return NextResponse.json(
@@ -137,12 +143,19 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Check if user is admin
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email! },
-      select: { role: true },
+      include: { adminUser: true },
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !user.adminUser) {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }

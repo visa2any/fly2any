@@ -11,11 +11,17 @@ export async function GET(
   try {
     const hotelId = params.id;
 
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
+      );
+    }
+
     // Fetch reviews from database
     const reviews = await prisma.hotelReview.findMany({
       where: {
         hotelId: hotelId,
-        moderationStatus: 'approved', // Only show approved reviews
       },
       orderBy: {
         createdAt: 'desc',
@@ -26,19 +32,16 @@ export async function GET(
     // Calculate average rating
     const averageRating =
       reviews.length > 0
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        ? reviews.reduce((sum, review) => sum + review.overallRating, 0) / reviews.length
         : 0;
 
     return NextResponse.json({
       success: true,
       reviews: reviews.map(review => ({
         id: review.id,
-        rating: review.rating,
-        title: review.title,
-        content: review.content,
+        rating: review.overallRating,
         userName: 'Guest', // Privacy: Don't expose user details
-        verifiedStay: review.verifiedStay,
-        hotelResponse: review.hotelResponse,
+        verified: review.verified,
         createdAt: review.createdAt,
       })),
       averageRating,

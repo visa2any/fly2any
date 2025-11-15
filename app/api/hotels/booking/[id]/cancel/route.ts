@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import prisma from '@/lib/db/prisma';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db/prisma';
 import Stripe from 'stripe';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-10-29.clover',
 });
 
 /**
@@ -20,12 +19,19 @@ export async function POST(
 ) {
   try {
     // Authenticate user
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || !session.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized - Please sign in' },
         { status: 401 }
+      );
+    }
+
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database unavailable' },
+        { status: 503 }
       );
     }
 
@@ -46,10 +52,10 @@ export async function POST(
     // Verify ownership (user must own the booking or be an admin)
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { role: true },
+      include: { adminUser: true },
     });
 
-    const isAdmin = user?.role === 'ADMIN';
+    const isAdmin = !!user?.adminUser;
     const isOwner = booking.guestEmail === session.user.email;
 
     if (!isOwner && !isAdmin) {
@@ -87,11 +93,11 @@ export async function POST(
       );
     }
 
-    // Process refund if booking is refundable and has payment intent
-    let refundStatus = 'not_applicable';
+    // Process refund if booking is cancellable and has payment intent
+    let refundStatus: string = 'not_applicable';
     let refundAmount = 0;
 
-    if (booking.refundable && booking.paymentIntentId) {
+    if (booking.cancellable && booking.paymentIntentId) {
       try {
         // Calculate refund amount based on cancellation policy
         const daysUntilCheckIn = Math.ceil(
@@ -131,7 +137,7 @@ export async function POST(
             },
           });
 
-          refundStatus = refund.status;
+          refundStatus = refund.status || 'pending';
           refundAmount = refundAmountInCents / 100;
         } else {
           refundStatus = 'no_refund_due_to_policy';
