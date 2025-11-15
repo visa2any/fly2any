@@ -12,10 +12,14 @@ export async function GET(
     const hotelId = params.id;
 
     if (!prisma) {
-      return NextResponse.json(
-        { error: 'Database unavailable' },
-        { status: 503 }
-      );
+      // Database unavailable - return empty reviews gracefully
+      return NextResponse.json({
+        success: true,
+        reviews: [],
+        averageRating: 0,
+        total: 0,
+        warning: 'Database temporarily unavailable',
+      });
     }
 
     // Fetch reviews from database
@@ -48,14 +52,16 @@ export async function GET(
       total: reviews.length,
     });
   } catch (error: any) {
-    console.error('Error fetching reviews:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch reviews',
-        message: error.message,
-      },
-      { status: 500 }
-    );
+    // Graceful degradation on database errors
+    console.error('Error fetching reviews:', error.message);
+
+    // Return empty reviews instead of 500 error
+    return NextResponse.json({
+      success: true,
+      reviews: [],
+      averageRating: 0,
+      total: 0,
+      warning: 'Reviews temporarily unavailable',
+    });
   }
 }

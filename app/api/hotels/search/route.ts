@@ -35,26 +35,49 @@ const USE_AMADEUS_HOTELS = process.env.AMADEUS_API_KEY && process.env.AMADEUS_AP
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
 
-    // Validate required parameters
+    // Validate required parameters with helpful error messages
+    if (!body || Object.keys(body).length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Request body is empty',
+          hint: 'Please provide location, checkIn, checkOut, and guests parameters'
+        },
+        { status: 400 }
+      );
+    }
+
     if (!body.location) {
       return NextResponse.json(
-        { error: 'Missing required parameter: location (lat/lng or query)' },
+        {
+          success: false,
+          error: 'Missing required parameter: location',
+          hint: 'Provide either { lat, lng } coordinates or { query: "city name" }'
+        },
         { status: 400 }
       );
     }
 
     if (!body.checkIn || !body.checkOut) {
       return NextResponse.json(
-        { error: 'Missing required parameters: checkIn, checkOut' },
+        {
+          success: false,
+          error: 'Missing required parameters: checkIn and/or checkOut',
+          hint: 'Provide dates in YYYY-MM-DD format'
+        },
         { status: 400 }
       );
     }
 
     if (!body.guests?.adults) {
       return NextResponse.json(
-        { error: 'Missing required parameter: guests.adults' },
+        {
+          success: false,
+          error: 'Missing required parameter: guests.adults',
+          hint: 'Provide { guests: { adults: number } }'
+        },
         { status: 400 }
       );
     }
