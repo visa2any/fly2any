@@ -250,9 +250,6 @@ export async function processBookingForReferralPoints({
         refereeId: userId,
         status: { in: ['signed_up', 'first_booking', 'active'] },
       },
-      include: {
-        // Get referrer details
-      },
     });
 
     console.log(`📊 Found ${referralRelationships.length} referrers to reward`);
