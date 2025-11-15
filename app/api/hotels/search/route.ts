@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { liteAPI } from '@/lib/api/liteapi';
+import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams } from '@/lib/hotels/types';
+import { mapAmadeusHotelsToHotels, extractCityCode } from '@/lib/mappers/amadeus-hotel-mapper';
 
-// Feature flag: Use mock data or real API
+// Feature flag: Use mock data, Duffel, or Amadeus
 const USE_MOCK_HOTELS = process.env.USE_MOCK_HOTELS === 'true';
+const USE_AMADEUS_HOTELS = process.env.AMADEUS_API_KEY && process.env.AMADEUS_API_SECRET;
 
 /**
  * Hotel Search API Route
@@ -78,24 +81,92 @@ export async function POST(request: NextRequest) {
     if (body.amenities) searchParams.amenities = body.amenities;
     if (body.propertyTypes) searchParams.propertyTypes = body.propertyTypes;
 
-    // Generate cache key
-    const cacheKey = generateCacheKey('hotels:duffel:search', searchParams);
+    // Generate cache key based on API being used
+    const apiSource = USE_AMADEUS_HOTELS ? 'amadeus' : (USE_MOCK_HOTELS ? 'mock' : 'duffel');
+    const cacheKey = generateCacheKey(`hotels:${apiSource}:search`, searchParams);
 
     // Try to get from cache (15 minutes TTL)
     const cached = await getCached<any>(cacheKey);
     if (cached) {
-      console.log('✅ Returning cached hotel search results');
+      console.log(`✅ Returning cached hotel search results (${apiSource})`);
       // Ensure cached response has success field (for backwards compatibility)
       const cachedWithSuccess = cached.success !== undefined ? cached : { success: true, ...cached };
       return NextResponse.json(cachedWithSuccess, {
         headers: {
           'X-Cache-Status': 'HIT',
+          'X-API-Source': apiSource.toUpperCase(),
           'Cache-Control': 'public, max-age=900', // 15 minutes
         }
       });
     }
 
-    // Search hotels using Duffel Stays API (or mock)
+    // ✅ AMADEUS HOTELS API (Production-ready)
+    if (USE_AMADEUS_HOTELS) {
+      console.log('🔍 Searching hotels with Amadeus API...');
+
+      // Extract city code from location query
+      const cityCode = 'query' in searchParams.location
+        ? extractCityCode(searchParams.location.query)
+        : 'NYC'; // Default if using coordinates (Amadeus requires city code)
+
+      // Search hotels with Amadeus
+      const amadeusResults = await amadeusAPI.searchHotels({
+        cityCode,
+        checkInDate: searchParams.checkIn,
+        checkOutDate: searchParams.checkOut,
+        adults: searchParams.guests.adults,
+        roomQuantity: searchParams.rooms || 1,
+        radius: searchParams.radius || 5,
+        radiusUnit: 'KM',
+        ratings: searchParams.minRating ? [searchParams.minRating, 5] : undefined,
+      });
+
+      // Map Amadeus response to our Hotel interface
+      const hotels = mapAmadeusHotelsToHotels(amadeusResults.data || []);
+
+      // Apply additional filters (price, amenities, etc.)
+      let filteredHotels = hotels;
+
+      // Filter by price
+      if (searchParams.minPrice !== undefined || searchParams.maxPrice !== undefined) {
+        filteredHotels = filteredHotels.filter((hotel) => {
+          const lowestRate = hotel.rates[0]; // Already sorted by price
+          if (!lowestRate) return false;
+
+          const price = parseFloat(lowestRate.totalPrice.amount);
+          const meetsMin = searchParams.minPrice === undefined || price >= searchParams.minPrice;
+          const meetsMax = searchParams.maxPrice === undefined || price <= searchParams.maxPrice;
+          return meetsMin && meetsMax;
+        });
+      }
+
+      // Limit results
+      filteredHotels = filteredHotels.slice(0, searchParams.limit || 20);
+
+      const response = {
+        success: true,
+        data: filteredHotels,
+        meta: {
+          count: filteredHotels.length,
+          source: 'Amadeus Hotels API',
+        },
+      };
+
+      // Store in cache (15 minutes TTL)
+      await setCache(cacheKey, response, 900);
+
+      console.log(`✅ Found ${filteredHotels.length} hotels with Amadeus`);
+
+      return NextResponse.json(response, {
+        headers: {
+          'X-Cache-Status': 'MISS',
+          'X-API-Source': 'AMADEUS',
+          'Cache-Control': 'public, max-age=900',
+        }
+      });
+    }
+
+    // Fallback to Duffel Stays API (or mock)
     const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
     console.log(`🔍 Searching hotels with ${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API...`);
     const results = await hotelAPI.searchAccommodations(searchParams);
@@ -112,6 +183,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
+        'X-API-Source': USE_MOCK_HOTELS ? 'MOCK' : 'DUFFEL',
         'Cache-Control': 'public, max-age=900',
       }
     });

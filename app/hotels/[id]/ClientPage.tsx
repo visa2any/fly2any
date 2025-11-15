@@ -204,9 +204,17 @@ export default function HotelDetailPage() {
     );
   }
 
-  const mainImage = hotel.images && hotel.images.length > 0 ? hotel.images[0].url : null;
+  // Handle both Duffel API structure (images with .url) and mock data (photos as strings)
+  const mainImage = hotel.images && hotel.images.length > 0
+    ? (hotel.images[0].url || hotel.images[0])
+    : hotel.photos && hotel.photos.length > 0
+    ? hotel.photos[0]
+    : null;
   const lowestRate = hotel.rates && hotel.rates.length > 0 ? hotel.rates[0] : null;
-  const price = lowestRate ? parseFloat(lowestRate.totalPrice.amount) : 0;
+  // Handle both Duffel API structure (totalPrice.amount) and mock data structure (total_amount)
+  const price = lowestRate
+    ? parseFloat(lowestRate.totalPrice?.amount || lowestRate.total_amount || '0')
+    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -277,10 +285,10 @@ export default function HotelDetailPage() {
                 </div>
 
                 {/* Rating Badge */}
-                {hotel.starRating && (
+                {(hotel.starRating || hotel.star_rating) && (
                   <div className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg">
                     <Star className="w-5 h-5 fill-current" />
-                    <span className="text-xl font-bold">{hotel.starRating}</span>
+                    <span className="text-xl font-bold">{hotel.starRating || hotel.star_rating}</span>
                   </div>
                 )}
               </div>
@@ -766,7 +774,7 @@ export default function HotelDetailPage() {
                     adults: 2,
                     children: 0,
                     price: price,
-                    currency: lowestRate?.totalPrice.currency || 'USD',
+                    currency: lowestRate?.totalPrice?.currency || lowestRate?.currency || 'USD',
                     image: mainImage,
                     stars: hotel.starRating,
                   };

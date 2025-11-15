@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
+import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { isDemoHotelId, generateDemoHotelDetails } from '@/lib/utils/demo-hotels';
 
@@ -80,15 +81,19 @@ export async function GET(
       });
     }
 
-    // Fetch accommodation details from Duffel Stays API
-    console.log(`🏨 Fetching hotel details for ${accommodationId}...`);
-    const accommodation = await duffelStaysAPI.getAccommodation(accommodationId);
+    // Choose API based on USE_MOCK_HOTELS environment variable
+    const USE_MOCK_HOTELS = process.env.USE_MOCK_HOTELS === 'true';
+    const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
+
+    // Fetch accommodation details from selected API
+    console.log(`🏨 Fetching hotel details for ${accommodationId}... (${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API)`);
+    const accommodation = await hotelAPI.getAccommodation(accommodationId);
 
     const response = {
       data: accommodation.data,
       meta: {
         lastUpdated: new Date().toISOString(),
-        source: 'Duffel Stays',
+        source: USE_MOCK_HOTELS ? 'Mock Data' : 'Duffel Stays',
       },
     };
 

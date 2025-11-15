@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check, ChevronDown, ChevronUp, Users, Clock, Info, Sparkles, Wifi, Coffee, Dumbbell, Car, Shield } from 'lucide-react';
 import { dimensions, spacing, typography, colors } from '@/lib/design-system';
-import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
+import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import type { MockHotel } from '@/lib/mock-data/hotels';
 
 export interface HotelCardProps {
@@ -209,18 +209,16 @@ export function HotelCard({
 
           {/* Image - Optimized with Next.js Image */}
           <Image
-            {...getOptimizedImageProps(
-              hotel.photos[currentImageIndex],
-              `${hotel.name} - Photo ${currentImageIndex + 1}`,
-              'hotelCard',
-              {
-                priority: currentImageIndex === 0, // Priority load first image only
-                loading: currentImageIndex === 0 ? 'eager' : 'lazy',
-              }
-            )}
+            src={hotel.photos[currentImageIndex]}
+            alt={`${hotel.name} - Photo ${currentImageIndex + 1}`}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
+            priority={currentImageIndex === 0}
+            loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
+            placeholder="blur"
+            blurDataURL={getBlurDataURL(hotel.photos[currentImageIndex], 400, 300)}
+            quality={75}
           />
 
           {/* Image Navigation */}
