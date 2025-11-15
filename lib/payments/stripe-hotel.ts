@@ -5,14 +5,21 @@
 
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
-}
+// Don't throw error at module initialization to allow builds without Stripe configured
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-10-29.clover',
+      typescript: true,
+    })
+  : null
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-10-29.clover',
-  typescript: true,
-})
+// Helper to ensure Stripe is configured
+const ensureStripe = (): Stripe => {
+  if (!stripe) {
+    throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+  }
+  return stripe
+}
 
 export interface CreatePaymentIntentParams {
   amount: number // in cents (e.g., 18500 for $185.00)
@@ -43,7 +50,8 @@ export async function createHotelPaymentIntent(
   params: CreatePaymentIntentParams
 ): Promise<Stripe.PaymentIntent> {
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
+    const stripeClient = ensureStripe()
+    const paymentIntent = await stripeClient.paymentIntents.create({
       amount: params.amount,
       currency: params.currency.toLowerCase(),
       metadata: {
@@ -79,7 +87,8 @@ export async function confirmHotelPayment(
   params: ConfirmPaymentParams
 ): Promise<Stripe.PaymentIntent> {
   try {
-    const paymentIntent = await stripe.paymentIntents.confirm(params.paymentIntentId, {
+    const stripeClient = ensureStripe()
+    const paymentIntent = await stripeClient.paymentIntents.confirm(params.paymentIntentId, {
       payment_method: params.paymentMethodId,
     })
 
@@ -95,7 +104,8 @@ export async function confirmHotelPayment(
  */
 export async function getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
   try {
-    return await stripe.paymentIntents.retrieve(paymentIntentId)
+    const stripeClient = ensureStripe()
+    return await stripeClient.paymentIntents.retrieve(paymentIntentId)
   } catch (error) {
     console.error('Error retrieving payment intent:', error)
     throw new Error(`Failed to retrieve payment intent: ${(error as Error).message}`)
@@ -107,7 +117,8 @@ export async function getPaymentIntent(paymentIntentId: string): Promise<Stripe.
  */
 export async function cancelPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
   try {
-    return await stripe.paymentIntents.cancel(paymentIntentId)
+    const stripeClient = ensureStripe()
+    return await stripeClient.paymentIntents.cancel(paymentIntentId)
   } catch (error) {
     console.error('Error cancelling payment intent:', error)
     throw new Error(`Failed to cancel payment intent: ${(error as Error).message}`)
@@ -123,7 +134,8 @@ export async function refundHotelPayment(
   reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
 ): Promise<Stripe.Refund> {
   try {
-    const refund = await stripe.refunds.create({
+    const stripeClient = ensureStripe()
+    const refund = await stripeClient.refunds.create({
       payment_intent: paymentIntentId,
       amount, // If not provided, refunds the full amount
       reason: reason || 'requested_by_customer',
@@ -144,7 +156,8 @@ export async function savePaymentMethod(
   customerId: string
 ): Promise<Stripe.PaymentMethod> {
   try {
-    return await stripe.paymentMethods.attach(paymentMethodId, {
+    const stripeClient = ensureStripe()
+    return await stripeClient.paymentMethods.attach(paymentMethodId, {
       customer: customerId,
     })
   } catch (error) {
@@ -162,7 +175,8 @@ export async function createStripeCustomer(params: {
   metadata?: Record<string, string>
 }): Promise<Stripe.Customer> {
   try {
-    return await stripe.customers.create({
+    const stripeClient = ensureStripe()
+    return await stripeClient.customers.create({
       email: params.email,
       name: params.name,
       metadata: {
