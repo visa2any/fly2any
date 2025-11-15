@@ -1327,3 +1327,210 @@ model SearchSuggestion {
   @@index([type, popularity])
   @@map("search_suggestions")
 }
+
+// ==========================================
+// Hotel Booking System
+// ==========================================
+
+model HotelBooking {
+  id                 String   @id @default(cuid())
+  confirmationNumber String   @unique
+  userId             String?  // Nullable for guest bookings
+
+  // Hotel Details
+  hotelId       String
+  hotelName     String
+  hotelAddress  String?
+  hotelCity     String?
+  hotelCountry  String?
+  hotelPhone    String?
+  hotelEmail    String?
+  hotelImages   Json?
+
+  // Room Details
+  roomId          String
+  roomName        String
+  roomDescription String?  @db.Text
+  bedType         String?
+  maxGuests       Int      @default(2)
+  roomAmenities   String[]
+
+  // Booking Dates
+  checkInDate  DateTime
+  checkOutDate DateTime
+  nights       Int
+
+  // Pricing
+  pricePerNight    Decimal @db.Decimal(10, 2)
+  subtotal         Decimal @db.Decimal(10, 2)
+  taxesAndFees     Decimal @db.Decimal(10, 2)
+  totalPrice       Decimal @db.Decimal(10, 2)
+  currency         String  @default("USD")
+
+  // Guest Information (Primary Contact)
+  guestTitle       String?
+  guestFirstName   String
+  guestLastName    String
+  guestEmail       String
+  guestPhone       String
+  guestDateOfBirth DateTime?
+
+  // Additional Guests (Stored as JSON)
+  additionalGuests Json? // Array of guest objects
+
+  // Special Requests
+  specialRequests String? @db.Text
+
+  // Payment Information
+  paymentStatus       String   @default("pending") // pending, completed, failed, refunded
+  paymentIntentId     String?  @unique // Stripe payment intent ID
+  paymentMethodId     String? // Stripe payment method ID
+  paymentProvider     String   @default("stripe")
+  paidAt              DateTime?
+  refundedAt          DateTime?
+  refundAmount        Decimal? @db.Decimal(10, 2)
+  refundReason        String?
+
+  // Booking Status
+  status String @default("pending") // pending, confirmed, cancelled, completed, no_show
+
+  // Cancellation
+  cancellationPolicy String? // free, partial, non_refundable
+  cancellable        Boolean @default(true)
+  cancelledAt        DateTime?
+  cancellationReason String?
+
+  // Meal Plan
+  mealPlan         String? // room_only, breakfast, half_board, full_board, all_inclusive
+  mealPlanIncluded Boolean @default(false)
+
+  // Provider Data
+  provider         String  @default("duffel") // duffel, mock, etc.
+  providerBookingId String? // ID from Duffel or other provider
+  providerData     Json? // Raw booking data from provider
+
+  // Confirmation & Notifications
+  confirmationEmailSent Boolean   @default(false)
+  confirmationSentAt    DateTime?
+  reminderEmailSent     Boolean   @default(false)
+  reminderSentAt        DateTime?
+
+  // Metadata
+  source           String? // web, mobile, api
+  deviceType       String? // desktop, mobile, tablet
+  userAgent        String?
+  ipAddress        String?
+  notes            String?  @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Reviews
+  reviews HotelReview[]
+
+  @@index([userId])
+  @@index([guestEmail])
+  @@index([confirmationNumber])
+  @@index([status])
+  @@index([checkInDate])
+  @@index([checkOutDate])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("hotel_bookings")
+}
+
+model HotelReview {
+  id        String @id @default(cuid())
+  bookingId String
+  userId    String?
+  hotelId   String
+  hotelName String
+
+  // Overall Rating
+  overallRating Int // 1-10
+
+  // Breakdown Ratings
+  cleanliness    Int? // 1-10
+  comfort        Int? // 1-10
+  location       Int? // 1-10
+  facilities     Int? // 1-10
+  staff          Int? // 1-10
+  valueForMoney  Int? // 1-10
+
+  // Review Content
+  title   String
+  review  String  @db.Text
+  photos  String[] // URLs to uploaded photos
+
+  // Trip Details
+  travelType String? // business, leisure, family, couple, solo
+  stayDate   DateTime
+  roomType   String?
+
+  // Reviewer Info
+  reviewerName  String
+  reviewerEmail String?
+  verified      Boolean @default(false) // Verified stay
+
+  // Moderation
+  status     String   @default("pending") // pending, approved, rejected, flagged
+  moderatedAt DateTime?
+  moderatedBy String?
+  helpful    Int      @default(0) // Helpful votes count
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking HotelBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId, status])
+  @@index([userId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("hotel_reviews")
+}
+
+model HotelPriceAlert {
+  id     String @id @default(cuid())
+  userId String
+
+  // Hotel Details
+  hotelId   String
+  hotelName String
+  location  String
+
+  // Dates
+  checkInDate  DateTime
+  checkOutDate DateTime
+  nights       Int
+
+  // Price Tracking
+  currentPrice Float
+  targetPrice  Float
+  currency     String  @default("USD")
+
+  // Room Preferences
+  roomType   String?
+  guests     Int     @default(2)
+
+  // Alert Status
+  active      Boolean   @default(true)
+  triggered   Boolean   @default(false)
+  lastChecked DateTime  @default(now())
+  triggeredAt DateTime?
+
+  // Notification
+  emailNotification Boolean   @default(true)
+  lastNotifiedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, active])
+  @@index([hotelId, active])
+  @@index([active, lastChecked])
+  @@map("hotel_price_alerts")
+}
