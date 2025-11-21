@@ -10,6 +10,7 @@ import { UrgencyBanner } from '@/components/world-cup/UrgencyBanner';
 import { TrustSignals } from '@/components/world-cup/TrustSignals';
 import { FAQSection } from '@/components/world-cup/FAQSection';
 import { WORLD_CUP_MAIN_FAQS } from '@/lib/data/world-cup-faqs';
+import { HeroImageCarousel } from '@/components/world-cup/HeroImageCarousel';
 
 // Dynamically import client components
 const CountdownTimer = dynamic(() => import('@/components/world-cup/CountdownTimer'), {
@@ -89,18 +90,8 @@ export default function WorldCup2026Page() {
 
         {/* Dynamic Background Layers */}
         <div className="absolute inset-0 w-full h-full">
-          {/* Stadium Background Image - Using CSS for better SVG support */}
-          <div
-            className="absolute inset-0 w-full h-full object-cover scale-110 animate-subtle-zoom"
-            style={{
-              backgroundImage: `url('${getWorldCupAtmosphereUrl(1920, 1080)}')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }}
-            role="img"
-            aria-label="FIFA World Cup 2026 Stadium"
-          />
+          {/* Beautiful Image Carousel - Auto-rotating stadium photos */}
+          <HeroImageCarousel />
 
           {/* Vibrant Animated Gradient Overlays */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/15 to-pink-600/20 animate-gradient-shift" />

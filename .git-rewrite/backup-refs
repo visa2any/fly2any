@@ -1,0 +1,14 @@
+64f335370989e95d504554f17df744aabf9eaf18 commit	refs/heads/backup-before-cleanup
+251145e59bd02c8877692b2c8214667686955b58 commit	refs/heads/claude/check-last-git-011CUsN6S19DuosnAQfZnY4P
+8988d10fb2ab72e8c76bb924b845f93cbef37661 commit	refs/heads/main
+0d2e45f088c9d57bc2c48c59661025766f265904 commit	refs/original/refs/heads/main
+289e2ed16d4261ad925dfe7a15e034643c6cf0c1 commit	refs/remotes/origin/HEAD
+64f335370989e95d504554f17df744aabf9eaf18 commit	refs/remotes/origin/backup-before-cleanup
+41ad23efaebe32f304ef7b888077d622f8e415de commit	refs/remotes/origin/claude/analyze-chat-agent-features-011CUw8NeWJQu276W3SyXQ4Q
+c51be784038c59f61e8245610e2d0477d2faaced commit	refs/remotes/origin/claude/check-last-git-011CUsN6S19DuosnAQfZnY4P
+aa7066a438e02e463e35c4d970afba724c57612f commit	refs/remotes/origin/claude/test-chat-agent-scenarios-011CUwWQdgYq1g2RFKc5mxTT
+0791e804188f18e6641c9ff58a8743c3b1bcad81 commit	refs/remotes/origin/emergency-recovery-20251001-080308
+289e2ed16d4261ad925dfe7a15e034643c6cf0c1 commit	refs/remotes/origin/main
+e34c9ab42d49d2a0e4e71d55d775fede55d4fbbb commit	refs/remotes/origin/recovery-HH9ekmCaU-production-working
+232853bfa4ad49560bad7d87ac525d8c52c2b3fd commit	refs/stash
+067742d6786ab356a2cd929fe157d60e476d4bd0 tag	refs/tags/checkpoint-20251024-101929

@@ -1,0 +1,8 @@
+Fix TypeScript error in email-marketing route
+
+- Handle readError type safety by checking instanceof Error
+- Prevents TS18046 error for unknown type in catch block
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

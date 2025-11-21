@@ -1,0 +1,16 @@
+tree d91edaa27e17d0f99afb1496a7e5cfdad86721d0
+parent ee3edc52e82307b38e9b691f93508de93a90bc95
+author visa2any <visa2any@users.noreply.github.com> 1753103854 -0300
+committer visa2any <visa2any@users.noreply.github.com> 1753103854 -0300
+
+Fix email marketing contacts loading with robust fallbacks
+
+- Implement multi-path search for contacts-imported.json
+- Add fallback sample contacts when file not found
+- Copy contacts file to public directory for Vercel access
+- Add import_from_local action for forced reload
+- Improve error handling and logging
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
