@@ -89,14 +89,17 @@ export default function WorldCup2026Page() {
 
         {/* Dynamic Background Layers */}
         <div className="absolute inset-0 w-full h-full">
-          {/* Stadium Background Image */}
-          <Image
-            src={getWorldCupAtmosphereUrl(1920, 1080)}
-            alt="FIFA World Cup 2026 Stadium"
-            fill
-            className="object-cover scale-110 animate-subtle-zoom"
-            priority
-            quality={100}
+          {/* Stadium Background Image - Using CSS for better SVG support */}
+          <div
+            className="absolute inset-0 w-full h-full object-cover scale-110 animate-subtle-zoom"
+            style={{
+              backgroundImage: `url('${getWorldCupAtmosphereUrl(1920, 1080)}')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+            role="img"
+            aria-label="FIFA World Cup 2026 Stadium"
           />
 
           {/* Vibrant Animated Gradient Overlays */}
