@@ -93,10 +93,10 @@ export default function WorldCup2026Page() {
           {/* Beautiful Image Carousel - Auto-rotating stadium photos */}
           <HeroImageCarousel />
 
-          {/* ENHANCED: Stronger dark overlays for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-purple-900/35 to-pink-900/40 animate-gradient-shift" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/50 to-slate-950/30" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
+          {/* Vibrant Animated Gradient Overlays - LIGHT & BEAUTIFUL */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/15 to-pink-600/20 animate-gradient-shift" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-slate-900/15 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
 
           {/* Animated Soccer Ball Pattern */}
           <div className="absolute inset-0 opacity-10" style={{
@@ -142,18 +142,18 @@ export default function WorldCup2026Page() {
             <div className="lg:col-span-7 space-y-4">
 
               {/* Electric Title Treatment */}
-              <div className="space-y-3 bg-black/30 backdrop-blur-sm rounded-3xl p-6 border border-white/10">
+              <div className="space-y-3">
                 <h1 className="font-black leading-[0.85] tracking-tight">
-                  {/* FIFA - Glowing Gold with Pulse + ENHANCED READABILITY */}
+                  {/* FIFA - Glowing Gold with Pulse + Better Text Shadow */}
                   <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-8xl bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-300 bg-clip-text text-transparent drop-shadow-2xl animate-pulse"
                     style={{
-                      WebkitTextStroke: '2px rgba(255,215,0,0.5)',
-                      textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 8px 40px rgba(0,0,0,0.7), 0 0 80px rgba(251,191,36,0.8), 0 0 40px rgba(255,215,0,0.6)',
-                      filter: 'drop-shadow(0 0 30px #FFD700) drop-shadow(0 6px 15px rgba(0,0,0,0.8))',
+                      WebkitTextStroke: '2px rgba(255,215,0,0.3)',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 80px rgba(251,191,36,0.8), 0 0 40px rgba(255,215,0,0.6)',
+                      filter: 'drop-shadow(0 0 30px #FFD700) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
                     }}>
                     ⚽ FIFA ⚽
                   </span>
-                  {/* WORLD CUP - Vibrant with Energy + ENHANCED READABILITY */}
+                  {/* WORLD CUP - Vibrant with Energy + Better Text Shadow */}
                   <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black"
                     style={{
                       background: 'linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6, #60A5FA)',
@@ -162,14 +162,14 @@ export default function WorldCup2026Page() {
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
                       animation: 'gradient-shift 3s linear infinite',
-                      textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 8px 40px rgba(0,0,0,0.7), 0 0 40px rgba(147,51,234,0.5)',
-                      filter: 'drop-shadow(0 0 20px rgba(168,85,247,0.4)) drop-shadow(0 6px 15px rgba(0,0,0,0.8))',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 40px rgba(147,51,234,0.5)',
+                      filter: 'drop-shadow(0 0 20px rgba(168,85,247,0.4)) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
                     }}>
                     WORLD CUP
                   </span>
                 </h1>
 
-                {/* Year - Compact + ENHANCED READABILITY */}
+                {/* Year - Compact + Better Text Shadow */}
                 <div className="flex items-baseline gap-2 sm:gap-3">
                   {['2','0','2','6'].map((digit, i) => (
                     <div key={i} className="relative">
@@ -180,8 +180,8 @@ export default function WorldCup2026Page() {
                         'from-emerald-400 to-green-300'
                       } bg-clip-text text-transparent drop-shadow-2xl`}
                       style={{
-                        textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 8px 40px rgba(0,0,0,0.7)',
-                        filter: 'drop-shadow(0 6px 15px rgba(0,0,0,0.8))',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6)',
+                        filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
                       }}>
                         {digit}
                       </span>
@@ -190,19 +190,19 @@ export default function WorldCup2026Page() {
                 </div>
               </div>
 
-              {/* Host Countries - Compact Horizontal + ENHANCED READABILITY */}
+              {/* Host Countries - Compact Horizontal */}
               <div className="flex flex-wrap items-center gap-3">
                 {[
                   { flag: '🇺🇸', name: 'USA', from: 'from-blue-400', to: 'to-red-400' },
                   { flag: '🇨🇦', name: 'CANADA', from: 'from-red-400', to: 'to-white' },
                   { flag: '🇲🇽', name: 'MÉXICO', from: 'from-green-400', to: 'to-red-400' },
                 ].map((country, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border-2 border-white/20 rounded-lg px-4 py-2 hover:bg-black/50 transition-all duration-300 shadow-lg">
-                    <span className="text-3xl drop-shadow-lg">{country.flag}</span>
+                  <div key={i} className="flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg px-3 py-2 hover:bg-white/10 transition-all duration-300">
+                    <span className="text-3xl">{country.flag}</span>
                     <span className={`text-sm font-bold bg-gradient-to-r ${country.from} ${country.to} bg-clip-text text-transparent`}
                       style={{
-                        textShadow: '0 2px 10px rgba(0,0,0,0.9)',
-                        filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.8))',
+                        textShadow: '0 1px 4px rgba(0,0,0,0.7)',
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
                       }}>
                       {country.name}
                     </span>
@@ -210,8 +210,8 @@ export default function WorldCup2026Page() {
                 ))}
               </div>
 
-              {/* Electric Tagline + ENHANCED READABILITY */}
-              <div className="space-y-2 bg-black/30 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+              {/* Electric Tagline */}
+              <div className="space-y-2">
                 <p className="text-3xl sm:text-4xl md:text-5xl font-black animate-pulse"
                   style={{
                     background: 'linear-gradient(90deg, #FF1744, #FF6B6B, #FFD700, #00E676, #00C8FF, #FF1744)',
@@ -220,8 +220,8 @@ export default function WorldCup2026Page() {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
                     animation: 'gradient-shift 5s linear infinite',
-                    textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 8px 40px rgba(0,0,0,0.7), 0 0 60px rgba(255,23,68,0.6)',
-                    filter: 'drop-shadow(0 0 25px rgba(255,107,107,0.5)) drop-shadow(0 6px 15px rgba(0,0,0,0.8))',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 60px rgba(255,23,68,0.6)',
+                    filter: 'drop-shadow(0 0 25px rgba(255,107,107,0.5)) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
                   }}>
                   🎉 WE ARE 26 🎉
                 </p>
@@ -233,8 +233,8 @@ export default function WorldCup2026Page() {
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
                     animation: 'gradient-shift 2s linear infinite',
-                    textShadow: '0 3px 15px rgba(0,0,0,0.9), 0 6px 30px rgba(0,0,0,0.7), 0 0 30px rgba(255,215,0,0.8)',
-                    filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 30px rgba(255,215,0,0.8)',
+                    filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
                   }}>
                   ⚡ THE GREATEST SHOW ON EARTH ⚡
                 </p>
@@ -274,10 +274,10 @@ export default function WorldCup2026Page() {
                         }}>
                         {stat.number}
                       </div>
-                      {/* Label - Enhanced Readability with Strong Shadows */}
+                      {/* Label - Enhanced Readability */}
                       <div className="text-sm md:text-base font-black text-white uppercase tracking-wider leading-tight"
                         style={{
-                          textShadow: '0 2px 10px rgba(0,0,0,0.9), 0 4px 20px rgba(0,0,0,0.7)',
+                          textShadow: '0 1px 4px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)',
                         }}>
                         {stat.label}
                       </div>
