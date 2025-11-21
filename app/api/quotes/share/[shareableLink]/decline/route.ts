@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const DeclineSchema = z.object({
   reason: z.string().optional(),
@@ -81,29 +81,33 @@ export async function POST(
 
     // Send notification email to agent
     try {
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || "noreply@fly2any.com",
-        to: quote.agent.user.email,
-        subject: `Quote Declined: ${quote.quoteNumber}`,
-        html: `
-          <h2>Quote Declined</h2>
-          <p><strong>${quote.client.firstName} ${quote.client.lastName}</strong> has declined your quote for <strong>${quote.destination}</strong>.</p>
-          <p><strong>Quote Details:</strong></p>
-          <ul>
-            <li>Quote Number: ${quote.quoteNumber}</li>
-            <li>Trip: ${quote.tripName}</li>
-            <li>Total: $${quote.total.toLocaleString()}</li>
-          </ul>
-          ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
-          <p><strong>Suggested Next Steps:</strong></p>
-          <ul>
-            <li>Reach out to understand their concerns</li>
-            <li>Consider creating an alternative quote with different options</li>
-            <li>Offer to adjust the itinerary or pricing</li>
-          </ul>
-          <p><a href="${process.env.NEXTAUTH_URL}/agent/quotes/${quote.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Quote</a></p>
-        `,
-      });
+      if (resend) {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || "noreply@fly2any.com",
+          to: quote.agent.user.email,
+          subject: `Quote Declined: ${quote.quoteNumber}`,
+          html: `
+            <h2>Quote Declined</h2>
+            <p><strong>${quote.client.firstName} ${quote.client.lastName}</strong> has declined your quote for <strong>${quote.destination}</strong>.</p>
+            <p><strong>Quote Details:</strong></p>
+            <ul>
+              <li>Quote Number: ${quote.quoteNumber}</li>
+              <li>Trip: ${quote.tripName}</li>
+              <li>Total: $${quote.total.toLocaleString()}</li>
+            </ul>
+            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            <p><strong>Suggested Next Steps:</strong></p>
+            <ul>
+              <li>Reach out to understand their concerns</li>
+              <li>Consider creating an alternative quote with different options</li>
+              <li>Offer to adjust the itinerary or pricing</li>
+            </ul>
+            <p><a href="${process.env.NEXTAUTH_URL}/agent/quotes/${quote.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">View Quote</a></p>
+          `,
+        });
+      } else {
+        console.warn('[EMAIL_SKIPPED] RESEND_API_KEY not configured');
+      }
     } catch (emailError) {
       console.error("[EMAIL_SEND_ERROR]", emailError);
       // Continue anyway

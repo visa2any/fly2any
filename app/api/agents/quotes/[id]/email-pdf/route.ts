@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { sendQuotePDFEmail } from "@/lib/pdf/pdf-service";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // POST /api/agents/quotes/[id]/email-pdf - Email PDF to client
 export async function POST(
@@ -48,6 +48,10 @@ export async function POST(
     // Create email service wrapper
     const emailService = {
       send: async (emailData: any) => {
+        if (!resend) {
+          throw new Error('Email service not configured');
+        }
+
         const { data, error } = await resend.emails.send({
           from: process.env.EMAIL_FROM || "onboarding@resend.dev",
           to: emailData.to,

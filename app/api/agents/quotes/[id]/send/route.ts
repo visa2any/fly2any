@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { Resend } from "resend";
 import crypto from "crypto";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Generate shareable link token
 function generateShareableToken(): string {
@@ -211,12 +211,16 @@ export async function POST(
 
     // Send email via Resend
     try {
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || "noreply@fly2any.com",
-        to: quote.client.email,
-        subject: emailSubject,
-        html: emailHtml,
-      });
+      if (resend) {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || "noreply@fly2any.com",
+          to: quote.client.email,
+          subject: emailSubject,
+          html: emailHtml,
+        });
+      } else {
+        console.warn('[EMAIL_SKIPPED] RESEND_API_KEY not configured');
+      }
     } catch (emailError) {
       console.error("[EMAIL_SEND_ERROR]", emailError);
       // Continue anyway - quote is still marked as sent
