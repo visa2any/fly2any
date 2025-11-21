@@ -103,9 +103,9 @@ export default function WorldCup2026Page() {
           />
 
           {/* Vibrant Animated Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-purple-600/20 to-pink-600/30 animate-gradient-shift" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.3)_100%)]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/15 to-pink-600/20 animate-gradient-shift" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-900/20 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
 
           {/* Animated Soccer Ball Pattern */}
           <div className="absolute inset-0 opacity-10" style={{
