@@ -85,10 +85,21 @@ export function getTeamCelebrationUrl(teamName: string, width = 800, height = 60
 
 /**
  * Get World Cup atmosphere images
- * Using verified World Cup and soccer photos
+ * Using local high-performance images with Unsplash fallback
  */
 export function getWorldCupAtmosphereUrl(width = 1200, height = 800): string {
-  const atmosphereUrls = [
+  // Try local images first (add your own images to public/images/world-cup/)
+  const localImages = [
+    '/images/world-cup/hero-1.svg',
+    '/images/world-cup/hero-2.svg',
+    '/images/world-cup/hero-3.svg',
+    '/images/world-cup/hero-4.svg',
+    '/images/world-cup/hero-5.svg',
+    '/images/world-cup/hero-6.svg',
+  ];
+
+  // Fallback to Unsplash if local images don't exist
+  const unsplashUrls = [
     'https://images.unsplash.com/photo-1522778119026-d647f0596c20', // Stadium crowd
     'https://images.unsplash.com/photo-1574629810360-7efbbe195018', // Fan celebration
     'https://images.unsplash.com/photo-1579952363873-27f3bade9f55', // Trophy moment
@@ -96,7 +107,16 @@ export function getWorldCupAtmosphereUrl(width = 1200, height = 800): string {
     'https://images.unsplash.com/photo-1551958219-acbc608c6377', // World Cup energy
     'https://images.unsplash.com/photo-1517466787929-bc90951d0974', // Victory celebration
   ];
-  const baseUrl = atmosphereUrls[Math.floor(Math.random() * atmosphereUrls.length)];
+
+  // Use local images in production, Unsplash for development
+  const useLocal = process.env.NODE_ENV === 'production';
+
+  if (useLocal) {
+    const index = Math.floor(Date.now() / (1000 * 60 * 60)) % localImages.length;
+    return localImages[index];
+  }
+
+  const baseUrl = unsplashUrls[Math.floor(Math.random() * unsplashUrls.length)];
   return `${baseUrl}?w=${width}&h=${height}&fit=crop`;
 }
 
