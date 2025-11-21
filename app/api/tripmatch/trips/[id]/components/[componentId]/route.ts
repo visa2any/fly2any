@@ -112,7 +112,7 @@ export async function PATCH(
     const permission = await sql`
       SELECT gm.role
       FROM group_members gm
-      WHERE gm.trip_id = ${tripId} AND gm.user_id = ${userId}
+      WHERE gm.trip_group_id = ${tripId} AND gm.user_id = ${userId}
     `;
 
     if (permission.length === 0 || !['creator', 'admin'].includes(permission[0].role)) {
@@ -257,7 +257,7 @@ export async function DELETE(
     const permission = await sql`
       SELECT gm.role
       FROM group_members gm
-      WHERE gm.trip_id = ${tripId} AND gm.user_id = ${userId}
+      WHERE gm.trip_group_id = ${tripId} AND gm.user_id = ${userId}
     `;
 
     if (permission.length === 0 || !['creator', 'admin'].includes(permission[0].role)) {

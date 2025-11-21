@@ -1,0 +1,62 @@
+app/agent/bookings/page.tsx(124,23): error TS2322: Type '{ bookings: ({ commissions: { status: $Enums.CommissionStatus; id: string; platformFee: number; agentEarnings: number; }[]; client: { id: string; email: string; firstName: string; lastName: string; phone: string | null; }; quote: { ...; } | null; } & { ...; })[]; stats: { ...; }; statusCounts: {}; }' is not assignable to type '{ bookings: Booking[]; stats: { totalBookings: number; totalRevenue: number; totalDeposits: number; totalBalance: number; }; statusCounts: Record<string, number>; }'.
+  Types of property 'bookings' are incompatible.
+    Type '({ commissions: { status: CommissionStatus; id: string; platformFee: number; agentEarnings: number; }[]; client: { id: string; email: string; firstName: string; lastName: string; phone: string | null; }; quote: { ...; } | null; } & { ...; })[]' is not assignable to type 'Booking[]'.
+      Type '{ commissions: { status: CommissionStatus; id: string; platformFee: number; agentEarnings: number; }[]; client: { id: string; email: string; firstName: string; lastName: string; phone: string | null; }; quote: { ...; } | null; } & { ...; }' is not assignable to type 'Booking'.
+        Types of property 'bookingNumber' are incompatible.
+          Type 'string | null' is not assignable to type 'string'.
+            Type 'null' is not assignable to type 'string'.
+app/agent/commissions/page.tsx(175,26): error TS2322: Type '({ booking: { status: BookingStatus; id: string; destination: string; startDate: Date; paymentStatus: PaymentStatus; tripName: string; total: number; confirmationNumber: string; }; payout: { ...; } | null; } & { ...; })[]' is not assignable to type 'Commission[]'.
+  Type '{ booking: { status: BookingStatus; id: string; destination: string; startDate: Date; paymentStatus: PaymentStatus; tripName: string; total: number; confirmationNumber: string; }; payout: { ...; } | null; } & { ...; }' is not assignable to type 'Commission'.
+    Types of property 'payout' are incompatible.
+      Type '{ status: PayoutStatus; id: string; completedAt: Date | null; } | null' is not assignable to type '{ id: string; payoutNumber: string; paidAt: Date | null; } | null'.
+        Type '{ status: PayoutStatus; id: string; completedAt: Date | null; }' is missing the following properties from type '{ id: string; payoutNumber: string; paidAt: Date | null; }': payoutNumber, paidAt
+app/agent/quotes/[id]/page.tsx(72,26): error TS2322: Type '{ booking: { status: BookingStatus; id: string; createdAt: Date; updatedAt: Date; tripCompletedAt: Date | null; tripCancelled: boolean; tripCancelledAt: Date | null; ... 74 more ...; agentCommissionPaidAt: Date | null; } | null; client: { ...; }; } & { ...; }' is not assignable to type '{ id: string; tripName: string; destination: string; startDate: Date; endDate: Date; duration: number; travelers: number; adults: number; children: number; infants: number; flights: any; ... 31 more ...; booking: { ...; } | null; }'.
+  Types of property 'agentMarkupPercent' are incompatible.
+    Type 'number | null' is not assignable to type 'number'.
+      Type 'null' is not assignable to type 'number'.
+app/api/admin/affiliates/route.ts(137,22): error TS2352: Conversion of type 'UnsafeRawSql' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'UnsafeRawSql' is missing the following properties from type 'any[]': length, pop, push, concat, and 35 more.
+app/api/admin/referrals/stats/route.ts(107,7): error TS2322: Type 'any' is not assignable to type 'never'.
+app/api/admin/referrals/stats/route.ts(120,7): error TS2322: Type 'any' is not assignable to type 'never'.
+app/api/agents/integrations/products/[id]/route.ts(70,34): error TS2551: Property 'sellingPrice' does not exist on type '{ supplier: { id: string; name: string; country: string | null; createdAt: Date; updatedAt: Date; apiKey: string | null; website: string | null; category: string; commissionRate: number; ... 12 more ...; rating: number | null; }; } & { ...; }'. Did you mean 'sellPrice'?
+app/api/agents/integrations/products/[id]/route.ts(141,61): error TS2551: Property 'sellingPrice' does not exist on type '{ id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; commissionRate: number; currency: string; metadata: JsonValue; ... 13 more ...; sku: string | null; }'. Did you mean 'sellPrice'?
+app/api/agents/integrations/products/[id]/route.ts(154,9): error TS2353: Object literal may only specify known properties, and 'availableFrom' does not exist in type '(Without<AgentProductUpdateInput, AgentProductUncheckedUpdateInput> & AgentProductUncheckedUpdateInput) | (Without<...> & AgentProductUpdateInput)'.
+app/api/agents/integrations/products/[id]/route.ts(233,9): error TS2353: Object literal may only specify known properties, and 'deletedAt' does not exist in type '(Without<AgentProductUpdateInput, AgentProductUncheckedUpdateInput> & AgentProductUncheckedUpdateInput) | (Without<...> & AgentProductUpdateInput)'.
+app/api/agents/integrations/products/[id]/route.ts(247,32): error TS2339: Property 'productType' does not exist on type '{ id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; commissionRate: number; currency: string; metadata: JsonValue; ... 13 more ...; sku: string | null; }'.
+app/api/agents/integrations/products/route.ts(131,29): error TS2551: Property 'sellingPrice' does not exist on type '{ supplier: { id: string; name: string; category: string; commissionRate: number; }; } & { id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; ... 16 more ...; sku: string | null; }'. Did you mean 'sellPrice'?
+app/api/agents/integrations/products/route.ts(132,38): error TS2551: Property 'sellingPrice' does not exist on type '{ supplier: { id: string; name: string; category: string; commissionRate: number; }; } & { id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; ... 16 more ...; sku: string | null; }'. Did you mean 'sellPrice'?
+app/api/agents/integrations/products/route.ts(137,24): error TS2339: Property 'productType' does not exist on type '{ supplier: { id: string; name: string; category: string; commissionRate: number; }; } & { id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; ... 16 more ...; sku: string | null; }'.
+app/api/agents/integrations/products/route.ts(138,21): error TS2339: Property 'productType' does not exist on type '{ supplier: { id: string; name: string; category: string; commissionRate: number; }; } & { id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; ... 16 more ...; sku: string | null; }'.
+app/api/agents/integrations/products/route.ts(140,19): error TS2339: Property 'productType' does not exist on type '{ supplier: { id: string; name: string; category: string; commissionRate: number; }; } & { id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; ... 16 more ...; sku: string | null; }'.
+app/api/agents/integrations/products/route.ts(226,9): error TS2353: Object literal may only specify known properties, and 'availableFrom' does not exist in type 'Without<AgentProductCreateInput, AgentProductUncheckedCreateInput> & AgentProductUncheckedCreateInput'.
+app/api/agents/integrations/products/route.ts(244,32): error TS2339: Property 'productType' does not exist on type '{ id: string; name: string; createdAt: Date; updatedAt: Date; description: string | null; category: string; commissionRate: number; currency: string; metadata: JsonValue; ... 13 more ...; sku: string | null; }'.
+app/api/agents/payouts/request/route.ts(121,9): error TS2353: Object literal may only specify known properties, and 'payoutMethod' does not exist in type 'Without<AgentPayoutCreateInput, AgentPayoutUncheckedCreateInput> & AgentPayoutUncheckedCreateInput'.
+app/api/agents/payouts/request/route.ts(146,9): error TS2353: Object literal may only specify known properties, and 'lifetimePayouts' does not exist in type '(Without<TravelAgentUpdateInput, TravelAgentUncheckedUpdateInput> & TravelAgentUncheckedUpdateInput) | (Without<...> & TravelAgentUpdateInput)'.
+app/api/cron/precompute-routes/route.ts(221,9): error TS2353: Object literal may only specify known properties, and 'originLocationCode' does not exist in type 'FlightSearchParams'.
+app/api/tripmatch/featured/route.ts(62,9): error TS2353: Object literal may only specify known properties, and 'minBudget' does not exist in type 'TripGroupSelect<DefaultArgs>'.
+app/client/quotes/[shareableLink]/page.tsx(193,27): error TS2322: Type '{ agent: { name: string; email: string; phone: string | null; }; client: { status: $Enums.ClientStatus; totalBookings: number; id: string; email: string; firstName: string; ... 59 more ...; deletedAt: Date | null; }; ... 83 more ...; timeToDecline: number | null; }' is not assignable to type '{ id: string; shareableLink: string; status: string; }'.
+  Types of property 'shareableLink' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+lib/airports/alternative-airports-engine.ts(96,9): error TS2353: Object literal may only specify known properties, and 'searchDate' does not exist in type 'PriceHistoryWhereInput'.
+lib/airports/alternative-airports-engine.ts(108,9): error TS2353: Object literal may only specify known properties, and 'searchDate' does not exist in type 'PriceHistoryWhereInput'.
+lib/airports/alternative-airports-engine.ts(348,7): error TS2741: Property 'estimatedCostUSD' is missing in type '{ cost: number; methods: string[]; notes: string; }' but required in type '{ estimatedCostUSD: number; methods: string[]; notes: string; }'.
+lib/data/airports-all.ts(42,36): error TS2590: Expression produces a union type that is too complex to represent.
+lib/pdf/pdf-service.ts(109,64): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '{ quote: { tripName: string; destination: string; startDate: string; endDate: string; duration: number; travelers: number; adults: number; children: number; infants: number; flights: JsonValue[]; ... 24 more ...; expiresAt: string; }; client: { ...; }; agent: { ...; }; }' is not assignable to type 'ItineraryData'.
+      The types of 'quote.insurance' are incompatible between these types.
+        Type 'JsonValue' is not assignable to type 'any[]'.
+          Type 'null' is not assignable to type 'any[]'.
+lib/pdf/pdf-service.ts(110,39): error TS2345: Argument of type 'DetailedReactHTMLElement<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>' is not assignable to parameter of type 'ReactElement<DocumentProps, string | JSXElementConstructor<any>>'.
+  The types of 'props.style' are incompatible between these types.
+    Type 'CSSProperties | undefined' is not assignable to type 'Style | Style[] | undefined'.
+      Type 'CSSProperties' is not assignable to type 'Style | Style[] | undefined'.
+        Type 'Properties<string | number, string & {}>' is not assignable to type 'Style'.
+          Type 'Properties<string | number, string & {}>' is not assignable to type 'BorderShorthandStyle'.
+            Types of property 'borderStyle' are incompatible.
+              Type 'BorderStyle | undefined' is not assignable to type 'BorderStyleValue | undefined'.
+                Type '"none"' is not assignable to type 'BorderStyleValue | undefined'.
+lib/pdf/pdf-service.ts(202,23): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'BodyInit | null | undefined'.
+  Type 'Buffer<ArrayBufferLike>' is missing the following properties from type 'URLSearchParams': size, append, delete, get, and 2 more.
+lib/services/preferences.ts(69,9): error TS2741: Property 'notifications' is missing in type 'UserPreferences' but required in type '{ id: string; createdAt: Date; updatedAt: Date; notifications: JsonValue; userId: string; emailNotifications: boolean; currency: string; preferredCabinClass: string | null; ... 6 more ...; theme: string; }'.

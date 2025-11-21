@@ -61,7 +61,7 @@ export async function POST(
     const trip = await sql`
       SELECT tg.*, gm.role
       FROM trip_groups tg
-      LEFT JOIN group_members gm ON tg.id = gm.trip_id AND gm.user_id = ${userId}
+      LEFT JOIN group_members gm ON tg.id = gm.trip_group_id AND gm.user_id = ${userId}
       WHERE tg.id = ${tripId}
     `;
 

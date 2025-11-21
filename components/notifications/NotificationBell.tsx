@@ -41,13 +41,30 @@ export function NotificationBell({
 
   // Fetch notifications
   const fetchNotifications = async () => {
+    // Don't fetch if no userId
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(
-        `/api/notifications?limit=${NOTIFICATION_PREVIEW_LIMIT}&sortBy=createdAt&sortOrder=desc`
+        `/api/notifications?limit=${NOTIFICATION_PREVIEW_LIMIT}&sortBy=createdAt&sortOrder=desc`,
+        {
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch notifications');
+        // Don't throw on 401/403 - user might not be authenticated
+        if (response.status === 401 || response.status === 403) {
+          setLoading(false);
+          return;
+        }
+        throw new Error(`Failed to fetch notifications: ${response.status}`);
       }
 
       const data = await response.json();
@@ -69,8 +86,12 @@ export function NotificationBell({
       previousUnreadCount.current = data.unreadCount || 0;
       setError(null);
     } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setError('Failed to load notifications');
+      // Only log errors in development, silently fail in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching notifications:', err);
+      }
+      // Don't set error state - fail silently for better UX
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -78,15 +99,23 @@ export function NotificationBell({
 
   // Poll for new notifications
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
+    // Initial fetch
     fetchNotifications();
 
+    // Poll only when tab is visible to reduce API calls
     const interval = setInterval(() => {
-      fetchNotifications();
+      if (document.visibilityState === 'visible') {
+        fetchNotifications();
+      }
     }, NOTIFICATION_POLLING_INTERVAL);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // Close dropdown when clicking outside

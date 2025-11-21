@@ -35,6 +35,10 @@ export interface HeaderTranslations {
   explore: string;
   travelGuide: string;
   faq: string;
+  blog: string;
+  destinations: string;
+  airlines: string;
+  popularRoutes: string;
   support: string;
   signin: string;
   signup: string;
@@ -58,6 +62,10 @@ export const headerTranslations = {
     explore: 'Explore',
     travelGuide: 'Travel Guide',
     faq: 'FAQ',
+    blog: 'Travel Blog',
+    destinations: 'Destinations',
+    airlines: 'Airlines',
+    popularRoutes: 'Flight Routes',
     support: '24/7 Support',
     signin: 'Sign In',
     signup: 'Sign Up',
@@ -78,6 +86,10 @@ export const headerTranslations = {
     explore: 'Explorar',
     travelGuide: 'Guia de Viagem',
     faq: 'Perguntas',
+    blog: 'Blog de Viagem',
+    destinations: 'Destinos',
+    airlines: 'Companhias Aéreas',
+    popularRoutes: 'Rotas de Voo',
     support: 'Suporte 24/7',
     signin: 'Entrar',
     signup: 'Cadastrar',
@@ -98,6 +110,10 @@ export const headerTranslations = {
     explore: 'Explorar',
     travelGuide: 'Guía de Viaje',
     faq: 'Preguntas',
+    blog: 'Blog de Viajes',
+    destinations: 'Destinos',
+    airlines: 'Aerolíneas',
+    popularRoutes: 'Rutas de Vuelo',
     support: 'Soporte 24/7',
     signin: 'Iniciar Sesión',
     signup: 'Registrarse',
@@ -153,8 +169,10 @@ export function Header({
   const { data: session } = useSession();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [discoverDropdownOpen, setDiscoverDropdownOpen] = useState(false);
+  const [worldCupDropdownOpen, setWorldCupDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Use provided translations or defaults
   const t = translations || headerTranslations[language];
@@ -166,6 +184,11 @@ export function Header({
     mobileOnly: true, // Only auto-hide on mobile
   });
 
+  // Prevent hydration mismatch for session-dependent rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Scroll detection for enhanced header visibility (background blur effect)
   useEffect(() => {
     const handleScroll = () => {
@@ -176,7 +199,7 @@ export function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close language dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -186,11 +209,14 @@ export function Header({
       if (discoverDropdownOpen && !target.closest('.discover-dropdown')) {
         setDiscoverDropdownOpen(false);
       }
+      if (worldCupDropdownOpen && !target.closest('.worldcup-dropdown')) {
+        setWorldCupDropdownOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [langDropdownOpen, discoverDropdownOpen]);
+  }, [langDropdownOpen, discoverDropdownOpen, worldCupDropdownOpen]);
 
   // Handle language change
   const handleLanguageChange = (lang: Language) => {
@@ -222,6 +248,7 @@ export function Header({
     <>
       <header
         className={`sticky top-0 z-fixed ${className}`}
+        suppressHydrationWarning
         style={{
           background: scrolled
             ? 'rgba(255, 255, 255, 0.95)'
@@ -289,7 +316,8 @@ export function Header({
           </a>
 
           {/* Main Navigation - Premium Glassmorphism Style */}
-          <nav className="hidden lg:flex items-center space-x-1 ml-auto mr-6">
+          <nav className="hidden lg:flex items-center space-x-1 ml-auto mr-6" suppressHydrationWarning>
+
             {/* Flights - First */}
             <a
               href="/flights"
@@ -426,6 +454,28 @@ export function Header({
                   }}
                 >
                   <a
+                    href="/blog"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">✍️</span>
+                    <span className="font-semibold text-sm">{t.blog}</span>
+                  </a>
+                  <a
+                    href="/destinations/new-york"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🏙️</span>
+                    <span className="font-semibold text-sm">{t.destinations}</span>
+                  </a>
+                  <a
+                    href="/airlines/delta-air-lines"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">✈️</span>
+                    <span className="font-semibold text-sm">{t.airlines}</span>
+                  </a>
+                  <div className="border-t border-gray-200 my-1"></div>
+                  <a
                     href="/deals"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
@@ -456,12 +506,129 @@ export function Header({
                 </div>
               )}
             </div>
+
+            {/* World Cup 2026 Dropdown - Colorful with submenus */}
+            <div className="relative worldcup-dropdown">
+              <button
+                onClick={() => setWorldCupDropdownOpen(!worldCupDropdownOpen)}
+                onMouseEnter={() => setWorldCupDropdownOpen(true)}
+                className="group relative px-3 py-2.5 transition-all duration-300 font-black text-sm rounded-lg hover:bg-primary-50/30 flex items-center gap-1"
+              >
+                <span className="flex items-center gap-1">
+                  <span className="text-lg transition-transform group-hover:scale-110">
+                    ⚽
+                  </span>
+                  <span
+                    className="bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent"
+                    style={{
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    WORLD CUP 2026
+                  </span>
+                  <span className="text-base">🏆</span>
+                </span>
+                <svg
+                  className={`w-4 h-4 text-gray-600 transition-all duration-300 ${worldCupDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* World Cup Dropdown Menu */}
+              <div
+                className={`absolute right-0 mt-3 w-64 rounded-2xl overflow-hidden z-dropdown transition-all duration-300 ${
+                  worldCupDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2 pointer-events-none'
+                }`}
+                onMouseLeave={() => setWorldCupDropdownOpen(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(12px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                  {/* Main Overview */}
+                  <a
+                    href="/world-cup-2026"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200 border-b border-gray-100"
+                  >
+                    <span className="text-xl">🏆</span>
+                    <div>
+                      <span className="font-bold text-sm block">World Cup 2026</span>
+                      <span className="text-xs text-gray-500">Complete Guide</span>
+                    </div>
+                  </a>
+
+                  {/* Schedule & Matches */}
+                  <a
+                    href="/world-cup-2026/schedule"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">📅</span>
+                    <span className="font-semibold text-sm">Schedule & Matches</span>
+                  </a>
+
+                  {/* Stadiums & Venues */}
+                  <a
+                    href="/world-cup-2026/stadiums"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🏟️</span>
+                    <span className="font-semibold text-sm">Stadiums & Venues</span>
+                  </a>
+
+                  {/* Teams & Groups */}
+                  <a
+                    href="/world-cup-2026/teams"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-red-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🌍</span>
+                    <span className="font-semibold text-sm">Teams & Groups</span>
+                  </a>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-1"></div>
+
+                  {/* Travel Packages */}
+                  <a
+                    href="/world-cup-2026/packages"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🎫</span>
+                    <span className="font-semibold text-sm">Travel Packages</span>
+                  </a>
+
+                  {/* Hotels & Accommodation */}
+                  <a
+                    href="/world-cup-2026/hotels"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🏨</span>
+                    <span className="font-semibold text-sm">Hotels & Accommodation</span>
+                  </a>
+
+                  {/* Tickets Information */}
+                  <a
+                    href="/world-cup-2026/tickets"
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 text-gray-700 transition-all duration-200"
+                  >
+                    <span className="text-xl">🎟️</span>
+                    <span className="font-semibold text-sm">Tickets Information</span>
+                  </a>
+              </div>
+            </div>
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3" suppressHydrationWarning>
             {/* Notification Bell - Only for authenticated users, hidden on mobile */}
-            {session?.user && (
+            {mounted && session?.user && (
               <NotificationBell
                 userId={session.user.id}
                 className="hidden md:block"
@@ -469,7 +636,7 @@ export function Header({
             )}
 
             {/* User Menu - Only for authenticated users, hidden on mobile */}
-            {session?.user && (
+            {mounted && session?.user && (
               <div className="hidden md:block">
                 <UserMenu
                   user={session.user}
@@ -541,25 +708,20 @@ export function Header({
               )}
             </div>
 
-            {/* Auth Buttons - Premium Glassmorphism Style, hidden on mobile */}
-            {showAuth && !session?.user && (
-              <div className="hidden sm:flex items-center gap-2">
-                <button
-                  onClick={handleSignIn}
-                  className="px-5 py-2.5 text-gray-700 hover:text-primary-600 font-bold text-sm transition-all duration-300 rounded-lg hover:bg-primary-50/50"
-                >
-                  {t.signin}
-                </button>
-                <button
-                  onClick={handleSignUp}
-                  className="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                  style={{
-                    boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
-                  }}
-                >
-                  {t.signup}
-                </button>
-              </div>
+            {/* My Account Button - Unified auth entry point, hidden on mobile */}
+            {mounted && showAuth && !session?.user && (
+              <button
+                onClick={handleSignIn}
+                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                style={{
+                  boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                {t.account}
+              </button>
             )}
 
             {/* Hamburger Menu (Mobile Only) - Right aligned */}
@@ -587,7 +749,7 @@ export function Header({
       onSignIn={onSignIn}
       onSignUp={onSignUp}
       logoUrl={logoUrl}
-      userId={session?.user?.id}
+      userId={mounted ? session?.user?.id : undefined}
     />
     </>
   );

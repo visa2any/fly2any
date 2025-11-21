@@ -67,7 +67,7 @@ export async function createReferralRelationship({
 }: CreateReferralParams) {
   try {
     // Find referrer by code
-    const referrer = await prisma.user.findUnique({
+    const referrer = await prisma!.user.findUnique({
       where: { referralCode },
       select: {
         id: true,
@@ -81,7 +81,7 @@ export async function createReferralRelationship({
     }
 
     // Find referee (the new user signing up)
-    const referee = await prisma.user.findUnique({
+    const referee = await prisma!.user.findUnique({
       where: { email: refereeEmail },
     });
 
@@ -103,7 +103,7 @@ export async function createReferralRelationship({
     const refereeLevel = referrer.referralLevel + 1;
 
     // Update referee with referral info
-    await prisma.user.update({
+    await prisma!.user.update({
       where: { id: referee.id },
       data: {
         referredBy: referrer.id,
@@ -113,7 +113,7 @@ export async function createReferralRelationship({
     });
 
     // Create Level 1 relationship (direct referral)
-    await prisma.referralNetworkRelationship.create({
+    await prisma!.referralNetworkRelationship.create({
       data: {
         referrerId: referrer.id,
         refereeId: referee.id,
@@ -124,7 +124,7 @@ export async function createReferralRelationship({
     });
 
     // Update referrer's stats
-    await prisma.user.update({
+    await prisma!.user.update({
       where: { id: referrer.id },
       data: {
         directReferralsCount: { increment: 1 },
@@ -161,14 +161,14 @@ async function buildUpstreamNetwork(
   try {
     // Level 2: Grandparent referrer (if exists)
     if (grandparentReferrerId) {
-      const grandparent = await prisma.user.findUnique({
+      const grandparent = await prisma!.user.findUnique({
         where: { id: grandparentReferrerId },
         select: { id: true, referredBy: true },
       });
 
       if (grandparent) {
         // Create Level 2 relationship
-        await prisma.referralNetworkRelationship.create({
+        await prisma!.referralNetworkRelationship.create({
           data: {
             referrerId: grandparent.id,
             refereeId: newUserId,
@@ -179,7 +179,7 @@ async function buildUpstreamNetwork(
         });
 
         // Update grandparent's network size
-        await prisma.user.update({
+        await prisma!.user.update({
           where: { id: grandparent.id },
           data: { totalNetworkSize: { increment: 1 } },
         });
@@ -188,13 +188,13 @@ async function buildUpstreamNetwork(
 
         // Level 3: Great-grandparent referrer (if exists)
         if (grandparent.referredBy) {
-          const greatGrandparent = await prisma.user.findUnique({
+          const greatGrandparent = await prisma!.user.findUnique({
             where: { id: grandparent.referredBy },
           });
 
           if (greatGrandparent) {
             // Create Level 3 relationship
-            await prisma.referralNetworkRelationship.create({
+            await prisma!.referralNetworkRelationship.create({
               data: {
                 referrerId: greatGrandparent.id,
                 refereeId: newUserId,
@@ -205,7 +205,7 @@ async function buildUpstreamNetwork(
             });
 
             // Update great-grandparent's network size
-            await prisma.user.update({
+            await prisma!.user.update({
               where: { id: greatGrandparent.id },
               data: { totalNetworkSize: { increment: 1 } },
             });
@@ -245,7 +245,7 @@ export async function processBookingForReferralPoints({
     const multiplier = PRODUCT_MULTIPLIERS[productType as keyof typeof PRODUCT_MULTIPLIERS] || 1.0;
 
     // Find all people who should earn points from this booking
-    const referralRelationships = await prisma.referralNetworkRelationship.findMany({
+    const referralRelationships = await prisma!.referralNetworkRelationship.findMany({
       where: {
         refereeId: userId,
         status: { in: ['signed_up', 'first_booking', 'active'] },
@@ -270,7 +270,7 @@ export async function processBookingForReferralPoints({
       const pointsAwarded = Math.floor(basePoints * multiplier);
 
       // Create LOCKED points transaction
-      const transaction = await prisma.referralPointsTransaction.create({
+      const transaction = await prisma!.referralPointsTransaction.create({
         data: {
           bookingId,
           bookingAmount: amountUSD,
@@ -293,7 +293,7 @@ export async function processBookingForReferralPoints({
       transactions.push(transaction);
 
       // Increment LOCKED points for the earner
-      await prisma.user.update({
+      await prisma!.user.update({
         where: { id: relationship.referrerId },
         data: {
           fly2anyPointsLocked: { increment: pointsAwarded },
@@ -302,7 +302,7 @@ export async function processBookingForReferralPoints({
       });
 
       // Update relationship stats
-      await prisma.referralNetworkRelationship.update({
+      await prisma!.referralNetworkRelationship.update({
         where: { id: relationship.id },
         data: {
           totalBookings: { increment: 1 },
@@ -339,7 +339,7 @@ export async function unlockPointsForCompletedTrip(bookingId: string) {
     console.log(`🔓 Unlocking points for booking ${bookingId}...`);
 
     // Find all locked transactions for this booking
-    const transactions = await prisma.referralPointsTransaction.findMany({
+    const transactions = await prisma!.referralPointsTransaction.findMany({
       where: {
         bookingId,
         status: 'locked',
@@ -356,7 +356,7 @@ export async function unlockPointsForCompletedTrip(bookingId: string) {
     let unlockedCount = 0;
     for (const transaction of transactions) {
       // Update transaction status to unlocked
-      await prisma.referralPointsTransaction.update({
+      await prisma!.referralPointsTransaction.update({
         where: { id: transaction.id },
         data: {
           status: 'unlocked',
@@ -366,7 +366,7 @@ export async function unlockPointsForCompletedTrip(bookingId: string) {
       });
 
       // Move points from locked to available
-      await prisma.user.update({
+      await prisma!.user.update({
         where: { id: transaction.earnerId },
         data: {
           fly2anyPointsLocked: { decrement: transaction.pointsAwarded },
@@ -397,7 +397,7 @@ export async function forfeitPointsForCancelledTrip(
     console.log(`❌ Forfeiting points for ${reason} booking ${bookingId}...`);
 
     // Find all locked transactions for this booking
-    const transactions = await prisma.referralPointsTransaction.findMany({
+    const transactions = await prisma!.referralPointsTransaction.findMany({
       where: {
         bookingId,
         status: { in: ['locked', 'trip_in_progress'] },
@@ -414,7 +414,7 @@ export async function forfeitPointsForCancelledTrip(
 
     for (const transaction of transactions) {
       // Update transaction status
-      await prisma.referralPointsTransaction.update({
+      await prisma!.referralPointsTransaction.update({
         where: { id: transaction.id },
         data: {
           status: 'expired',
@@ -425,7 +425,7 @@ export async function forfeitPointsForCancelledTrip(
       });
 
       // Remove locked points (NOT available points - these were never unlocked)
-      await prisma.user.update({
+      await prisma!.user.update({
         where: { id: transaction.earnerId },
         data: {
           fly2anyPointsLocked: { decrement: transaction.pointsAwarded },
@@ -455,7 +455,7 @@ export async function forfeitPointsForCancelledTrip(
  */
 export async function getReferralNetworkTree(userId: string) {
   try {
-    const relationships = await prisma.referralNetworkRelationship.findMany({
+    const relationships = await prisma!.referralNetworkRelationship.findMany({
       where: { referrerId: userId },
       orderBy: [
         { level: 'asc' },
@@ -465,7 +465,7 @@ export async function getReferralNetworkTree(userId: string) {
 
     // Get referee details
     const refereeIds = relationships.map((r) => r.refereeId);
-    const referees = await prisma.user.findMany({
+    const referees = await prisma!.user.findMany({
       where: { id: { in: refereeIds } },
       select: {
         id: true,
@@ -509,7 +509,7 @@ export async function getReferralNetworkTree(userId: string) {
  */
 export async function getUserPointsSummary(userId: string) {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma!.user.findUnique({
       where: { id: userId },
       select: {
         fly2anyPoints: true,
@@ -527,7 +527,7 @@ export async function getUserPointsSummary(userId: string) {
     }
 
     // Get pending transactions
-    const pendingTransactions = await prisma.referralPointsTransaction.findMany({
+    const pendingTransactions = await prisma!.referralPointsTransaction.findMany({
       where: {
         earnerId: userId,
         status: { in: ['locked', 'trip_in_progress'] },
@@ -560,7 +560,7 @@ async function generateUniqueReferralCode(): Promise<string> {
   let attempts = 0;
 
   while (attempts < 10) {
-    const exists = await prisma.user.findUnique({
+    const exists = await prisma!.user.findUnique({
       where: { referralCode: code },
     });
 

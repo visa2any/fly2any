@@ -45,17 +45,17 @@ model User {
   tripMatchBonusMultiplier Float   @default(1.0) // 1.0 = 100%, 1.5 = 150% bonus
 
   // Fly2Any Rewards Points (Tiered Travel Rewards Program)
-  fly2anyPoints            Int     @default(0) // Available points (unlocked)
-  fly2anyPointsLocked      Int     @default(0) // Locked points (pending trip completion)
-  fly2anyPointsLifetime    Int     @default(0) // Total earned (all-time)
-  fly2anyPointsRedeemed    Int     @default(0) // Total spent (all-time)
+  fly2anyPoints         Int @default(0) // Available points (unlocked)
+  fly2anyPointsLocked   Int @default(0) // Locked points (pending trip completion)
+  fly2anyPointsLifetime Int @default(0) // Total earned (all-time)
+  fly2anyPointsRedeemed Int @default(0) // Total spent (all-time)
 
   // Referral Network
-  referralCode             String? @unique // User's unique referral code
-  referredBy               String? // ID of user who referred them
-  referralLevel            Int     @default(0) // Depth in referral tree (0 = top)
-  directReferralsCount     Int     @default(0) // Level 1 count
-  totalNetworkSize         Int     @default(0) // All levels combined
+  referralCode         String? @unique // User's unique referral code
+  referredBy           String? // ID of user who referred them
+  referralLevel        Int     @default(0) // Depth in referral tree (0 = top)
+  directReferralsCount Int     @default(0) // Level 1 count
+  totalNetworkSize     Int     @default(0) // All levels combined
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -75,11 +75,15 @@ model User {
   wishlistItems     WishlistItem[]
   pushSubscriptions PushSubscription[]
   adminUser         AdminUser?
-  createdTrips      TripGroup[]          @relation("TripCreator")
-  groupMemberships  GroupMember[]        @relation("GroupMemberships")
+  createdTrips      TripGroup[]        @relation("TripCreator")
+  groupMemberships  GroupMember[]      @relation("GroupMemberships")
   frequentTravelers FrequentTraveler[]
   paymentMethods    PaymentMethod[]
   travelDocuments   TravelDocument[]
+  affiliate         Affiliate?         @relation("UserAffiliate")
+  travelAgent       TravelAgent?       @relation("UserTravelAgent")
+  agentClient       AgentClient?       @relation("UserAgentClient")
+  worldCupBookings  WorldCupBooking[]
 
   @@map("users")
 }
@@ -142,6 +146,7 @@ model UserPreferences {
   priceAlertEmails   Boolean @default(true)
   dealAlerts         Boolean @default(true)
   newsletterOptIn    Boolean @default(false)
+  notifications      Json? // Advanced notification settings {email: true, push: true, sms: false, ...}
 
   // UI preferences
   currency String @default("USD")
@@ -251,7 +256,8 @@ model RecentSearch {
   returnDate String?
 
   // Metadata
-  viewedAt DateTime @default(now())
+  createdAt DateTime @default(now()) // When search was created
+  viewedAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -452,21 +458,21 @@ model WishlistItem {
 // ==========================================
 
 model FrequentTraveler {
-  id           String    @id @default(cuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Relationship to primary user
-  relationship String?   // self, spouse, child, parent, friend, colleague
+  relationship String? // self, spouse, child, parent, friend, colleague
 
   // Personal Information
-  title        String?   // Mr, Mrs, Ms, Dr, Prof
-  firstName    String
-  middleName   String?
-  lastName     String
-  dateOfBirth  DateTime
-  gender       String    // male, female, other
-  nationality  String?   // ISO country code
+  title       String? // Mr, Mrs, Ms, Dr, Prof
+  firstName   String
+  middleName  String?
+  lastName    String
+  dateOfBirth DateTime
+  gender      String // male, female, other
+  nationality String? // ISO country code
 
   // Travel Documents
   passportNumber  String?
@@ -486,14 +492,14 @@ model FrequentTraveler {
   phone String?
 
   // Preferences
-  seatPreference  String? // window, aisle, middle
-  mealPreference  String? // vegetarian, vegan, kosher, halal, etc.
-  specialNeeds    String? @db.Text // wheelchair, oxygen, etc.
+  seatPreference String? // window, aisle, middle
+  mealPreference String? // vegetarian, vegan, kosher, halal, etc.
+  specialNeeds   String? @db.Text // wheelchair, oxygen, etc.
 
   // Metadata
-  isDefault Boolean   @default(false) // Primary traveler for quick-fill
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isDefault Boolean  @default(false) // Primary traveler for quick-fill
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([userId, isDefault])
@@ -505,19 +511,19 @@ model FrequentTraveler {
 // ==========================================
 
 model PaymentMethod {
-  id       String @id @default(cuid())
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Payment Type
   type     String // card, paypal, apple_pay, google_pay, bank_account
   provider String // stripe, paypal, etc.
 
   // Card Information (for card type)
-  last4       String? // Last 4 digits
-  brand       String? // visa, mastercard, amex, discover, jcb
-  expiryMonth Int?
-  expiryYear  Int?
+  last4          String? // Last 4 digits
+  brand          String? // visa, mastercard, amex, discover, jcb
+  expiryMonth    Int?
+  expiryYear     Int?
   cardholderName String?
 
   // Billing Address
@@ -528,7 +534,7 @@ model PaymentMethod {
   paypalAccountId       String? @unique // PayPal account reference
 
   // Metadata
-  isDefault Boolean  @default(false)
+  isDefault Boolean @default(false)
   nickname  String? // e.g., "Personal Visa", "Business Amex"
 
   createdAt DateTime @default(now())
@@ -545,12 +551,12 @@ model PaymentMethod {
 // ==========================================
 
 model TravelDocument {
-  id         String @id @default(cuid())
-  userId     String
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Document Type
-  type       String // passport, visa, national_id, driver_license, known_traveler
+  type String // passport, visa, national_id, driver_license, known_traveler
 
   // Document Details
   documentNumber String
@@ -568,16 +574,16 @@ model TravelDocument {
   backImageUrl  String? // Back of document (if applicable)
 
   // Visa-specific fields
-  visaType       String? // tourist, business, student, work
+  visaType           String? // tourist, business, student, work
   destinationCountry String? // For visas
 
   // Status
   isVerified Boolean @default(false) // Admin verification
 
   // Metadata
-  notes     String?   @db.Text
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([userId, type])
@@ -649,15 +655,15 @@ model ReferralNetworkRelationship {
   // pending → signed_up → first_booking → active → churned
 
   // Important Dates
-  signupCompletedAt    DateTime?
-  firstBookingAt       DateTime?
-  lastActivityAt       DateTime?
-  createdAt            DateTime  @default(now())
+  signupCompletedAt DateTime?
+  firstBookingAt    DateTime?
+  lastActivityAt    DateTime?
+  createdAt         DateTime  @default(now())
 
   // Lifetime Value Tracking
-  totalBookings    Int     @default(0)
-  totalRevenue     Decimal @default(0) @db.Decimal(10, 2)
-  totalPointsEarned Int    @default(0) // Points this relationship generated
+  totalBookings     Int     @default(0)
+  totalRevenue      Decimal @default(0) @db.Decimal(10, 2)
+  totalPointsEarned Int     @default(0) // Points this relationship generated
 
   @@unique([referrerId, refereeId]) // Prevent duplicate relationships
   @@index([referrerId, level])
@@ -677,27 +683,27 @@ model ReferralPointsTransaction {
   productData   Json? // Flight details, hotel info, etc.
 
   // Who Earns Points
-  earnerId    String // Referrer getting points
-  customerId  String // Customer who made booking
-  level       Int // 1, 2, or 3
+  earnerId   String // Referrer getting points
+  customerId String // Customer who made booking
+  level      Int // 1, 2, or 3
 
   // Points Calculation
-  pointsRate       Int // Points per $100 (e.g., 50 for Level 1)
+  pointsRate        Int // Points per $100 (e.g., 50 for Level 1)
   productMultiplier Decimal @default(1.0) @db.Decimal(3, 2) // 1.0x, 1.2x, 1.5x, 2.0x
-  pointsCalculated Int // Total points awarded
-  pointsAwarded    Int // Actual points (after any adjustments)
+  pointsCalculated  Int // Total points awarded
+  pointsAwarded     Int // Actual points (after any adjustments)
 
   // Status Lifecycle
   status String @default("locked")
   // locked → trip_in_progress → trip_completed → unlocked → expired
 
   // Trip Tracking (CRITICAL FOR ANTI-FRAUD)
-  tripStartDate      DateTime?
-  tripEndDate        DateTime?
-  tripCompletedAt    DateTime? // When trip successfully ended
-  tripCancelled      Boolean   @default(false)
-  tripCancelledAt    DateTime?
-  tripRefunded       Boolean   @default(false)
+  tripStartDate   DateTime?
+  tripEndDate     DateTime?
+  tripCompletedAt DateTime? // When trip successfully ended
+  tripCancelled   Boolean   @default(false)
+  tripCancelledAt DateTime?
+  tripRefunded    Boolean   @default(false)
 
   // Points Unlocking
   pointsLockedAt   DateTime  @default(now())
@@ -705,9 +711,9 @@ model ReferralPointsTransaction {
   pointsExpireAt   DateTime? // Points can expire if not used
 
   // Usage
-  pointsUsed     Boolean   @default(false)
-  pointsUsedAt   DateTime?
-  pointsUsedIn   String? // Booking ID where points were redeemed
+  pointsUsed   Boolean   @default(false)
+  pointsUsedAt DateTime?
+  pointsUsedIn String? // Booking ID where points were redeemed
 
   // Metadata
   createdAt DateTime @default(now())
@@ -764,7 +770,8 @@ model TripGroup {
   id        String @id @default(cuid())
   creatorId String
   title     String
-  slug      String @unique
+  name      String? // Alias for title (for compatibility)
+  slug      String  @unique
 
   destination     String
   destinationCode String? // Airport/city code
@@ -795,13 +802,18 @@ model TripGroup {
   cancellationPolicy String?
 
   // Visibility
-  status     String @default("draft") // draft, published, full, completed, cancelled
-  visibility String @default("public") // public, private, unlisted
+  status     String  @default("draft") // draft, published, full, completed, cancelled
+  isActive   Boolean @default(true) // Whether trip is currently active
+  visibility String  @default("public") // public, private, unlisted
 
   // Tags and categories
   tags       String[]
   category   String?  @default("adventure")
   difficulty String?  @default("moderate")
+
+  // Promotions & Features (for homepage/marketing)
+  featured Boolean @default(false) // Featured trips (highlighted on homepage)
+  trending Boolean @default(false) // Trending trips (popular/high demand)
 
   // Analytics
   views        Int @default(0)
@@ -819,6 +831,7 @@ model TripGroup {
   @@index([status, visibility])
   @@index([startDate])
   @@index([destination])
+  @@index([featured, trending]) // Index for homepage queries
   @@map("trip_groups")
 }
 
@@ -1333,19 +1346,19 @@ model SearchSuggestion {
 // ==========================================
 
 model HotelBooking {
-  id                 String   @id @default(cuid())
-  confirmationNumber String   @unique
-  userId             String?  // Nullable for guest bookings
+  id                 String  @id @default(cuid())
+  confirmationNumber String  @unique
+  userId             String? // Nullable for guest bookings
 
   // Hotel Details
-  hotelId       String
-  hotelName     String
-  hotelAddress  String?
-  hotelCity     String?
-  hotelCountry  String?
-  hotelPhone    String?
-  hotelEmail    String?
-  hotelImages   Json?
+  hotelId      String
+  hotelName    String
+  hotelAddress String?
+  hotelCity    String?
+  hotelCountry String?
+  hotelPhone   String?
+  hotelEmail   String?
+  hotelImages  Json?
 
   // Room Details
   roomId          String
@@ -1361,11 +1374,11 @@ model HotelBooking {
   nights       Int
 
   // Pricing
-  pricePerNight    Decimal @db.Decimal(10, 2)
-  subtotal         Decimal @db.Decimal(10, 2)
-  taxesAndFees     Decimal @db.Decimal(10, 2)
-  totalPrice       Decimal @db.Decimal(10, 2)
-  currency         String  @default("USD")
+  pricePerNight Decimal @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(10, 2)
+  taxesAndFees  Decimal @db.Decimal(10, 2)
+  totalPrice    Decimal @db.Decimal(10, 2)
+  currency      String  @default("USD")
 
   // Guest Information (Primary Contact)
   guestTitle       String?
@@ -1382,21 +1395,21 @@ model HotelBooking {
   specialRequests String? @db.Text
 
   // Payment Information
-  paymentStatus       String   @default("pending") // pending, completed, failed, refunded
-  paymentIntentId     String?  @unique // Stripe payment intent ID
-  paymentMethodId     String? // Stripe payment method ID
-  paymentProvider     String   @default("stripe")
-  paidAt              DateTime?
-  refundedAt          DateTime?
-  refundAmount        Decimal? @db.Decimal(10, 2)
-  refundReason        String?
+  paymentStatus   String    @default("pending") // pending, completed, failed, refunded
+  paymentIntentId String?   @unique // Stripe payment intent ID
+  paymentMethodId String? // Stripe payment method ID
+  paymentProvider String    @default("stripe")
+  paidAt          DateTime?
+  refundedAt      DateTime?
+  refundAmount    Decimal?  @db.Decimal(10, 2)
+  refundReason    String?
 
   // Booking Status
   status String @default("pending") // pending, confirmed, cancelled, completed, no_show
 
   // Cancellation
   cancellationPolicy String? // free, partial, non_refundable
-  cancellable        Boolean @default(true)
+  cancellable        Boolean   @default(true)
   cancelledAt        DateTime?
   cancellationReason String?
 
@@ -1405,9 +1418,9 @@ model HotelBooking {
   mealPlanIncluded Boolean @default(false)
 
   // Provider Data
-  provider         String  @default("duffel") // duffel, mock, etc.
+  provider          String  @default("duffel") // duffel, mock, etc.
   providerBookingId String? // ID from Duffel or other provider
-  providerData     Json? // Raw booking data from provider
+  providerData      Json? // Raw booking data from provider
 
   // Confirmation & Notifications
   confirmationEmailSent Boolean   @default(false)
@@ -1416,11 +1429,11 @@ model HotelBooking {
   reminderSentAt        DateTime?
 
   // Metadata
-  source           String? // web, mobile, api
-  deviceType       String? // desktop, mobile, tablet
-  userAgent        String?
-  ipAddress        String?
-  notes            String?  @db.Text
+  source     String? // web, mobile, api
+  deviceType String? // desktop, mobile, tablet
+  userAgent  String?
+  ipAddress  String?
+  notes      String? @db.Text
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -1441,7 +1454,7 @@ model HotelBooking {
 }
 
 model HotelReview {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   bookingId String
   userId    String?
   hotelId   String
@@ -1451,17 +1464,17 @@ model HotelReview {
   overallRating Int // 1-10
 
   // Breakdown Ratings
-  cleanliness    Int? // 1-10
-  comfort        Int? // 1-10
-  location       Int? // 1-10
-  facilities     Int? // 1-10
-  staff          Int? // 1-10
-  valueForMoney  Int? // 1-10
+  cleanliness   Int? // 1-10
+  comfort       Int? // 1-10
+  location      Int? // 1-10
+  facilities    Int? // 1-10
+  staff         Int? // 1-10
+  valueForMoney Int? // 1-10
 
   // Review Content
-  title   String
-  review  String  @db.Text
-  photos  String[] // URLs to uploaded photos
+  title  String
+  review String   @db.Text
+  photos String[] // URLs to uploaded photos
 
   // Trip Details
   travelType String? // business, leisure, family, couple, solo
@@ -1474,10 +1487,10 @@ model HotelReview {
   verified      Boolean @default(false) // Verified stay
 
   // Moderation
-  status     String   @default("pending") // pending, approved, rejected, flagged
+  status      String    @default("pending") // pending, approved, rejected, flagged
   moderatedAt DateTime?
   moderatedBy String?
-  helpful    Int      @default(0) // Helpful votes count
+  helpful     Int       @default(0) // Helpful votes count
 
   // Metadata
   createdAt DateTime @default(now())
@@ -1510,11 +1523,11 @@ model HotelPriceAlert {
   // Price Tracking
   currentPrice Float
   targetPrice  Float
-  currency     String  @default("USD")
+  currency     String @default("USD")
 
   // Room Preferences
-  roomType   String?
-  guests     Int     @default(2)
+  roomType String?
+  guests   Int     @default(2)
 
   // Alert Status
   active      Boolean   @default(true)
@@ -1534,3 +1547,2039 @@ model HotelPriceAlert {
   @@index([active, lastChecked])
   @@map("hotel_price_alerts")
 }
+
+// ==========================================
+// AFFILIATE PROGRAM SYSTEM
+// ==========================================
+
+// Affiliate Partner Model (ENHANCED FOR CREATORS/INFLUENCERS)
+model Affiliate {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation("UserAffiliate", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Business Information
+  businessName String?
+  website      String?
+  taxId        String? // For 1099 reporting (US) or tax compliance
+  description  String? @db.Text
+
+  // Tier System (Based on monthly completed trips)
+  tier   String @default("starter") // starter, bronze, silver, gold, platinum
+  status String @default("pending") // pending, active, suspended, banned
+
+  // ============================================
+  // NEW: CATEGORY SYSTEM
+  // ============================================
+  category String @default("standard")
+  // Options: 'standard', 'creator', 'influencer', 'partner', 'enterprise'
+
+  // ============================================
+  // NEW: CREATOR PROFILE
+  // ============================================
+  creatorProfile Json?
+  /**
+   * Structure:
+   * {
+   * type: 'youtuber' | 'blogger' | 'influencer' | 'tiktoker' | 'podcaster' | 'deal_hunter',
+   * primaryPlatform: 'youtube' | 'instagram' | 'tiktok' | 'blog' | 'twitter' | 'podcast',
+   * platformHandle: '@username',
+   * verifiedChannelUrl: 'https://youtube.com/@channel',
+   * audienceSize: 100000,
+   * engagementRate: 4.5,
+   * demographics: {
+   * primaryCountry: 'US',
+   * ageRange: '25-34',
+   * genderSplit: { male: 45, female: 55 }
+   * },
+   * contentNiche: ['travel', 'budget', 'family'],
+   * mediaKitUrl: 'https://...',
+   * rateCard: {
+   * instagramPost: 5000,
+   * instagramStory: 2000,
+   * youtubeVideo: 10000,
+   * tiktokVideo: 3000
+   * }
+   * }
+   */
+
+  // Channel verification
+  channelVerified   Boolean   @default(false)
+  channelVerifiedAt DateTime?
+  channelVerifiedBy String? // Admin user ID
+
+  // ============================================
+  // NEW: CUSTOM COMMISSION STRUCTURE
+  // ============================================
+  customCommissionEnabled Boolean @default(false)
+
+  // Per-product commission rates (overrides tier-based rates)
+  customFlightCommission   Float? // e.g., 0.35 = 35%
+  customHotelCommission    Float?
+  customPackageCommission  Float?
+  customCarCommission      Float?
+  customActivityCommission Float?
+
+  // ============================================
+  // NEW: BONUS STRUCTURE
+  // ============================================
+
+  // Volume Bonus (extra % after X bookings per month)
+  volumeBonusEnabled   Boolean @default(false)
+  volumeBonusThreshold Int? // e.g., 20 bookings/month
+  volumeBonusRate      Float? // e.g., 0.05 = +5% extra
+
+  // Performance Bonus (extra % if conversion rate high)
+  performanceBonusEnabled Boolean @default(false)
+  performanceBonusTarget  Float? // e.g., 0.03 = 3% conversion rate
+  performanceBonusRate    Float? // e.g., 0.05 = +5% extra
+
+  // Exclusivity Bonus (extra % for not promoting competitors)
+  exclusivityBonusEnabled Boolean   @default(false)
+  exclusivityBonusRate    Float? // e.g., 0.10 = +10% extra
+  exclusivityAgreedAt     DateTime?
+  exclusivityEndsAt       DateTime?
+
+  // ============================================
+  // NEW: PREMIUM FEATURES
+  // ============================================
+
+  // Custom landing pages
+  hasCustomLandingPage  Boolean @default(false)
+  customLandingPageSlug String? @unique // e.g., 'fly2any.com/deals/travelwithdan'
+
+  // Branded short links
+  hasBrandedLinks Boolean @default(false)
+  brandedDomain   String? // e.g., 'deals.travelwithdan.com'
+
+  // API access
+  hasApiAccess      Boolean   @default(false)
+  apiKey            String?   @unique
+  apiKeyLastUsed    DateTime?
+  apiCallsThisMonth Int       @default(0)
+  apiCallsLimit     Int       @default(10000) // per month
+
+  // Dedicated account manager
+  hasDedicatedAM      Boolean @default(false)
+  accountManagerId    String? // Admin user ID
+  accountManagerEmail String?
+
+  // Priority support
+  hasPrioritySupport Boolean @default(false)
+
+  // Early deal access
+  hasEarlyDealAccess Boolean @default(false)
+
+  // Co-marketing opportunities
+  coMarketingEnabled Boolean @default(false)
+  featuredOnWebsite  Boolean @default(false)
+
+  // ============================================
+  // NEW: TRUST LEVEL & HOLD PERIOD
+  // ============================================
+
+  // Trust level affects hold period duration
+  trustLevel String @default("new")
+  // Options: 'new', 'trusted', 'verified', 'platinum'
+
+  // Successful bookings (completed, not refunded)
+  successfulBookingsCount Int @default(0)
+
+  // Failed bookings (cancelled/refunded after payout)
+  failedBookingsCount Int @default(0)
+
+  // Trust score (0-100, affects hold period)
+  trustScore Float @default(50)
+
+  // Custom hold period override (days after trip completion)
+  customHoldPeriod Int? // null = use default based on category + trust level
+
+  // ============================================
+  // NEW: CONTENT TRACKING
+  // ============================================
+
+  // Content performance tracking
+  topPerformingContent Json?
+  /**
+   * Structure:
+   * [
+   * {
+   * contentTitle: "Top 10 Cheapest Flights to Europe",
+   * contentUrl: "https://youtube.com/watch?v=...",
+   * clicks: 2547,
+   * conversions: 52,
+   * revenue: 1820,
+   * conversionRate: 2.04
+   * }
+   * ]
+   */
+
+  // Platform-specific metrics
+  platformMetrics Json?
+  /**
+   * Structure:
+   * {
+   * youtube: {
+   * subscribers: 150000,
+   * avgViews: 50000,
+   * engagementRate: 4.2
+   * },
+   * instagram: {
+   * followers: 80000,
+   * avgLikes: 3200,
+   * engagementRate: 4.0
+   * }
+   * }
+   */
+
+  // Last metrics update
+  metricsLastUpdated DateTime?
+
+  // Performance Metrics (Completed Trips Only)
+  totalClicks      Int @default(0)
+  totalReferrals   Int @default(0)
+  completedTrips   Int @default(0) // Only completed & paid trips
+  canceledBookings Int @default(0)
+  refundedBookings Int @default(0)
+
+  // Revenue Tracking
+  totalCustomerSpend     Float @default(0) // Total amount customers paid
+  totalYourProfit        Float @default(0) // Your profit from all bookings
+  totalCommissionsEarned Float @default(0) // Total earned by affiliate
+  totalCommissionsPaid   Float @default(0) // Total actually paid out
+
+  // Current Month Stats (resets monthly)
+  monthlyCompletedTrips Int      @default(0)
+  monthlyRevenue        Float    @default(0)
+  monthlyCommissions    Float    @default(0)
+  monthStatsLastReset   DateTime @default(now())
+
+  // Balance Management
+  currentBalance   Float @default(0) // Available for payout (can be negative)
+  pendingBalance   Float @default(0) // In hold period or awaiting completion
+  lifetimeEarnings Float @default(0)
+  lifetimePaid     Float @default(0)
+
+  // Payout Settings
+  minPayoutThreshold Float   @default(50)
+  payoutMethod       String  @default("paypal") // paypal, stripe, bank_transfer
+  payoutEmail        String? // For PayPal
+  payoutDetails      Json? // Encrypted bank details for wire transfer
+
+  // Tracking Identifiers
+  referralCode String @unique // Human-readable: "JOHN20"
+  trackingId   String @unique // UUID for link tracking
+
+  // Marketing Materials
+  customLandingPage String?
+  customBranding    Json? // Logo, colors, etc.
+
+  // Communication Preferences
+  emailNotifications Boolean @default(true)
+  weeklyReports      Boolean @default(true)
+  monthlyStatements  Boolean @default(true)
+
+  // Admin Notes & Review
+  adminNotes       String?   @db.Text
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  approvedAt       DateTime?
+  suspendedAt      DateTime?
+  suspensionReason String?
+  bannedAt         DateTime?
+  banReason        String?
+
+  // Relationships
+  referrals        AffiliateReferral[]
+  commissions      Commission[]
+  payouts          Payout[]
+  flatFeeCampaigns FlatFeeCampaign[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tier, status])
+  @@index([status])
+  @@index([category])
+  @@index([referralCode])
+  @@index([trackingId])
+  @@index([monthlyCompletedTrips])
+  @@index([trustLevel])
+  @@map("affiliates")
+}
+
+// Affiliate Referral Tracking Model
+model AffiliateReferral {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  // Click Tracking
+  clickId     String  @unique // Unique click identifier
+  ipAddress   String
+  userAgent   String  @db.Text
+  referrerUrl String? @db.Text
+  landingPage String  @db.Text
+
+  // UTM Parameters (for campaign tracking)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
+  // Device & Location
+  deviceType String? // mobile, tablet, desktop
+  browser    String?
+  os         String?
+  country    String?
+  city       String?
+
+  // Conversion Tracking
+  userId    String? // If user signed up
+  bookingId String? // If booking was made
+
+  // Cookie Attribution
+  cookieSet    Boolean  @default(true)
+  cookieExpiry DateTime // 30 days from click
+
+  // Conversion Timeline
+  clickedAt   DateTime  @default(now())
+  signedUpAt  DateTime?
+  bookedAt    DateTime?
+  convertedAt DateTime?
+  completedAt DateTime? // When referral was completed
+
+  // Status Flow: click → signed_up → booked → completed → canceled
+  status String @default("click") // click, signed_up, booked, completed, canceled, refunded
+
+  // Relationships
+  commission Commission?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([clickId])
+  @@index([bookingId])
+  @@index([cookieExpiry])
+  @@index([clickedAt])
+  @@map("affiliate_referrals")
+}
+
+// Commission Model (ENHANCED FOR TRIP LIFECYCLE)
+model Commission {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  // Source References
+  referralId String            @unique
+  referral   AffiliateReferral @relation(fields: [referralId], references: [id])
+  bookingId  String            @unique // Links to Booking model
+  userId     String // Customer who booked
+
+  // Product Information
+  bookingType    String // flight, hotel, car, package, tour, activity
+  productDetails Json // Store product name, destination, etc.
+
+  // Revenue Breakdown (Critical for hybrid model)
+  revenueModel      String // "commission" or "markup"
+  customerTotalPaid Float // What customer paid
+  supplierCost      Float // What you paid to supplier
+  yourGrossProfit   Float // customerTotalPaid - supplierCost
+
+  // Commission Calculation
+  affiliateTierAtBooking String // Tier when booking was made
+  commissionRate         Float // 0.15, 0.20, 0.25, 0.30, 0.35 (based on tier)
+  commissionAmount       Float // yourGrossProfit * commissionRate
+
+  // Minimum/Maximum Caps Applied
+  minPayoutApplied Boolean @default(false)
+  maxPayoutApplied Boolean @default(false)
+  cappedAmount     Float? // If capped, what was the original amount
+
+  // ============================================
+  // ENHANCED: TRIP LIFECYCLE DATES
+  // ============================================
+  bookingDate   DateTime // When customer booked
+  tripStartDate DateTime // When trip begins (departure/check-in)
+  tripEndDate   DateTime // When trip ends (return/check-out)
+
+  tripStartedAt   DateTime? // Actual start (for tracking)
+  tripCompletedAt DateTime? // Actual completion
+
+  // ============================================
+  // ENHANCED: LIFECYCLE STATUS
+  // ============================================
+  status String @default("pending")
+  /**
+   * Enhanced Status Flow:
+   * - 'pending': Booking created, waiting for trip
+   * - 'trip_in_progress': Trip started
+   * - 'trip_completed': Trip finished successfully
+   * - 'in_hold_period': Waiting for hold period to expire
+   * - 'available': Ready for payout
+   * - 'payout_requested': Included in payout request
+   * - 'payout_approved': Admin approved payout
+   * - 'paid': Money sent
+   * - 'cancelled': Booking cancelled before trip
+   * - 'reversed': Refunded after payout (clawback)
+   */
+
+  statusHistory Json? // Array of {status, timestamp, note}
+
+  // Hold Period (variable based on category + trust level)
+  holdPeriodDays   Int       @default(30)
+  holdPeriodEndsAt DateTime? // When commission becomes available
+  releasedAt       DateTime? // When commission was released from hold period
+
+  // ============================================
+  // NEW: CANCELLATION/REFUND TRACKING
+  // ============================================
+  cancelledAt  DateTime?
+  cancelReason String?   @db.Text
+
+  refundedAt   DateTime?
+  refundAmount Float?
+  refundReason String?   @db.Text
+
+  // Was this a fraud/chargeback?
+  isFraud         Boolean   @default(false)
+  fraudDetectedAt DateTime?
+  fraudNotes      String?   @db.Text
+
+  // ============================================
+  // NEW: BONUS TRACKING
+  // ============================================
+
+  // Base commission
+  baseCommissionRate   Float // e.g., 0.25 = 25%
+  baseCommissionAmount Float
+
+  // Bonuses applied
+  volumeBonusApplied Boolean @default(false)
+  volumeBonusAmount  Float   @default(0)
+
+  performanceBonusApplied Boolean @default(false)
+  performanceBonusAmount  Float   @default(0)
+
+  exclusivityBonusApplied Boolean @default(false)
+  exclusivityBonusAmount  Float   @default(0)
+
+  // Total commission (base + all bonuses)
+  totalCommissionAmount Float
+
+  // ============================================
+  // NEW: CONTENT ATTRIBUTION
+  // ============================================
+
+  // What content drove this booking?
+  contentSource String? // "youtube", "instagram", "blog", "email"
+  contentUrl    String? // URL to the video/post/article
+  contentTitle  String? // "Top 10 Cheapest Flights to Europe"
+
+  // UTM tracking
+  utmCampaign String?
+  utmSource   String?
+  utmMedium   String?
+  utmContent  String?
+
+  // Payment Tracking
+  approvedAt DateTime?
+  paidAt     DateTime?
+  payoutId   String?
+  payout     Payout?   @relation(fields: [payoutId], references: [id])
+
+  // Reversal/Refund Handling (deprecated in favor of new fields above)
+  reversed       Boolean   @default(false)
+  reversedAt     DateTime?
+  reversalReason String? // "booking_canceled", "customer_refund", "chargeback", "fraud"
+  reversalAmount Float? // Amount deducted from affiliate
+
+  // Notes
+  adminNotes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([bookingId])
+  @@index([status])
+  @@index([status, holdPeriodEndsAt])
+  @@index([tripEndDate])
+  @@index([holdPeriodEndsAt])
+  @@index([approvedAt])
+  @@map("commissions")
+}
+
+// Payout Model
+model Payout {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  // Payout Details
+  amount              Float
+  commissionsIncluded Commission[]
+  commissionCount     Int // How many commissions bundled
+
+  // Period Covered
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Payment Information
+  method        String // paypal, stripe, bank_transfer
+  paymentEmail  String? // For PayPal
+  bankDetails   Json? // Encrypted for bank transfers
+  transactionId String? // External payment processor reference
+
+  // Processing
+  status        String    @default("pending") // pending, processing, completed, failed, canceled
+  processedAt   DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?   @db.Text
+
+  // Fees (if applicable)
+  processingFee Float  @default(0)
+  netAmount     Float // amount - processingFee
+  currency      String @default("USD")
+
+  // Invoice/Receipt
+  invoiceNumber String? @unique
+  receiptUrl    String?
+
+  // Admin
+  processedBy String?
+  adminNotes  String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@index([processedAt])
+  @@map("payouts")
+}
+
+// Affiliate Activity Log (for auditing)
+model AffiliateActivityLog {
+  id          String @id @default(cuid())
+  affiliateId String
+
+  activityType String // tier_upgrade, commission_earned, payout_processed, status_change, etc.
+  description  String @db.Text
+  metadata     Json? // Additional context
+
+  performedBy String? // Admin user ID if manual action
+  ipAddress   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([affiliateId, createdAt])
+  @@index([activityType])
+  @@map("affiliate_activity_logs")
+}
+
+// ============================================
+// FLAT FEE CAMPAIGNS (For Influencers)
+// ============================================
+model FlatFeeCampaign {
+  id String @id @default(cuid())
+
+  // Relationship
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  // Campaign Details
+  campaignName String // "Bali Launch - Instagram Campaign"
+  campaignType String // "sponsored_post", "video_integration", "story_series"
+
+  // Platform & Content
+  platform     String // "instagram", "youtube", "tiktok", "blog"
+  contentType  String // "post", "story", "reel", "video", "article"
+  deliverables String @db.Text // "1 Instagram feed post + 3 stories"
+
+  // Pricing
+  flatFeeAmount Float // $5,000
+  currency      String @default("USD")
+
+  // Plus commission on any bookings?
+  includesCommission Boolean @default(true)
+  commissionRate     Float? // e.g., 0.25 = 25%
+
+  // Status tracking
+  status String @default("draft")
+  // Options: 'draft', 'proposed', 'negotiating', 'approved', 'in_progress', 'awaiting_review', 'completed', 'paid', 'cancelled'
+
+  // Timeline
+  proposedAt  DateTime?
+  approvedAt  DateTime?
+  approvedBy  String? // Admin user ID
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  // Proof of work
+  deliveryProof Json?
+  /**
+   * Structure:
+   * [
+   * {
+   * platform: "instagram",
+   * type: "post",
+   * url: "https://instagram.com/p/...",
+   * postedAt: "2025-01-15T10:30:00Z",
+   * metrics: {
+   * likes: 5420,
+   * comments: 234,
+   * saves: 891,
+   * reach: 45000
+   * }
+   * }
+   * ]
+   */
+
+  // Admin review
+  reviewedAt  DateTime?
+  reviewedBy  String? // Admin user ID
+  reviewNotes String?   @db.Text
+
+  // Payment
+  paidAt        DateTime?
+  paidBy        String? // Admin user ID
+  paymentMethod String? // "paypal", "stripe", "bank_transfer"
+  invoiceNumber String?   @unique
+
+  // Tracking
+  trackingUrl String? // Special tracking URL for this campaign
+  clicks      Int     @default(0)
+  conversions Int     @default(0)
+  revenue     Float   @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([status])
+  @@map("flat_fee_campaigns")
+}
+
+// ============================================
+// HOLD PERIOD CONFIGURATION
+// ============================================
+model HoldPeriodConfig {
+  id String @id @default(cuid())
+
+  // Which category + trust level
+  category   String // "standard", "creator", "influencer", "partner"
+  trustLevel String // "new", "trusted", "verified", "platinum"
+
+  // Hold period in days after trip completion
+  holdPeriodDays Int
+
+  // Requirements to reach this trust level
+  minSuccessfulBookings Int? // e.g., 10 successful bookings to be "trusted"
+  minTrustScore         Float? // e.g., 80/100
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, trustLevel])
+  @@map("hold_period_configs")
+}
+
+// ============================================
+// COMMISSION LIFECYCLE LOG (Audit Trail)
+// ============================================
+model CommissionLifecycleLog {
+  id String @id @default(cuid())
+
+  commissionId String
+
+  // Status change
+  fromStatus String
+  toStatus   String
+
+  // When & why
+  changedAt DateTime @default(now())
+  reason    String?  @db.Text
+  changedBy String? // Admin user ID (if manual)
+
+  // Automated or manual?
+  automated Boolean @default(true)
+
+  // Metadata
+  metadata Json?
+
+  @@index([commissionId])
+  @@index([commissionId, changedAt])
+  @@map("commission_lifecycle_logs")
+}
+
+// ==========================================
+// TRAVEL AGENT PROGRAM
+// Revolutionary B2B Platform for Travel Agents
+// ==========================================
+
+// Travel Agent Profile (Professional Agent Account)
+model TravelAgent {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation("UserTravelAgent", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Business Information
+  agencyName    String?
+  businessName  String? // Alias for agencyName
+  company       String? // Company name
+  iataNumber    String? @unique // IATA accreditation number
+  arcNumber     String? // ARC number (US)
+  licenseNumber String? // Business license
+  businessType  String? // sole_proprietor, llc, corporation, partnership
+
+  // Branding & Customization
+  logo           String? // Logo URL
+  brandColor     String? // Primary brand color (hex)
+  customDomain   String? @unique // e.g., youragency.fly2any.com or custom domain
+  emailSignature String? @db.Text // Custom email signature
+
+  // Tier System (Based on monthly volume)
+  tier   AgentTier   @default(INDEPENDENT)
+  status AgentStatus @default(PENDING)
+
+  // Admin & Testing Flags
+  isTestAccount Boolean @default(false) // True for admin-created test agents
+
+  // Commission Settings
+  defaultCommission   Float           @default(0.05) // 5% platform fee
+  commissionModel     CommissionModel @default(PERCENTAGE)
+  flightCommission    Float? // Custom flight markup %
+  hotelCommission     Float? // Custom hotel markup %
+  activityCommission  Float? // Custom activity markup %
+  transferCommission  Float? // Custom transfer markup %
+  insuranceCommission Float? // Custom insurance markup %
+  carRentalCommission Float? // Custom car rental markup %
+
+  // Business Contact Information
+  firstName   String? // Agent's first name (from user)
+  lastName    String? // Agent's last name (from user)
+  email       String? // Agent's email (from user)
+  phone       String? // Agent's phone (alias for phoneNumber)
+  website     String?
+  phoneNumber String?
+  address     String? @db.Text
+  city        String?
+  state       String?
+  country     String?
+  zipCode     String?
+  timezone    String?
+
+  // Operating Hours (JSON: {monday: {open: "09:00", close: "17:00"}, ...})
+  operatingHours Json?
+
+  // Performance Metrics
+  totalSales         Float    @default(0)
+  totalCommissions   Float    @default(0)
+  quotesSent         Int      @default(0)
+  quotesAccepted     Int      @default(0)
+  conversionRate     Float    @default(0)
+  avgDealSize        Float    @default(0)
+  clientSatisfaction Float? // 0-5 rating
+  responseTime       Int? // Average response time in minutes
+  bookingsThisMonth  Int      @default(0)
+  revenueThisMonth   Float    @default(0)
+  monthStatsResetAt  DateTime @default(now())
+
+  // Premium Features (Based on tier)
+  hasClientPortal        Boolean @default(false)
+  hasTeamManagement      Boolean @default(false)
+  hasAdvancedAnalytics   Boolean @default(false)
+  hasWhiteLabel          Boolean @default(false)
+  hasApiAccess           Boolean @default(false)
+  hasPrioritySupport     Boolean @default(false)
+  hasCustomBranding      Boolean @default(false)
+  hasSmsNotifications    Boolean @default(false)
+  hasWhatsappIntegration Boolean @default(false)
+
+  // API Access (for Enterprise tier)
+  apiKey          String?   @unique
+  apiKeyCreatedAt DateTime?
+  apiCallsLimit   Int       @default(1000)
+  apiCallsUsed    Int       @default(0)
+
+  // Limits (based on tier)
+  maxClients         Int @default(50)
+  maxActiveQuotes    Int @default(100)
+  maxTeamMembers     Int @default(1)
+  maxMonthlyBookings Int @default(999999)
+
+  // Payout Settings
+  minPayoutThreshold Float   @default(100) // Minimum $100 for payout
+  payoutMethod       String  @default("stripe") // stripe, paypal, bank_transfer
+  payoutSchedule     String  @default("monthly") // instant, weekly, monthly
+  payoutEmail        String? // For PayPal
+  stripeAccountId    String? @unique // Stripe Connect account ID
+  bankDetails        Json? // Encrypted bank details
+
+  // Balance Tracking
+  currentBalance   Float @default(0) // Available for payout
+  availableBalance Float @default(0) // Alias for currentBalance (for compatibility)
+  pendingBalance   Float @default(0) // In hold or pending completion
+  lifetimeEarnings Float @default(0)
+  lifetimePaid     Float @default(0)
+
+  // Notification Preferences
+  emailNotifications   Boolean @default(true)
+  quoteAcceptedEmail   Boolean @default(true)
+  paymentReceivedEmail Boolean @default(true)
+  clientMessageEmail   Boolean @default(true)
+  weeklyReports        Boolean @default(true)
+  monthlyStatements    Boolean @default(true)
+  smsNotifications     Boolean @default(false)
+
+  // Onboarding & Verification
+  onboardingCompleted   Boolean   @default(false)
+  onboardingStep        Int       @default(0)
+  verified              Boolean   @default(false)
+  verifiedAt            DateTime?
+  verifiedBy            String? // Admin user ID
+  verificationDocuments Json? // URLs to verification documents
+
+  // Admin Notes & Management
+  adminNotes       String?   @db.Text
+  accountManager   String? // Admin user ID
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  approvedAt       DateTime?
+  suspendedAt      DateTime?
+  suspensionReason String?   @db.Text
+  bannedAt         DateTime?
+  banReason        String?   @db.Text
+
+  // Relations
+  clients      AgentClient[]
+  quotes       AgentQuote[]
+  bookings     AgentBooking[]
+  team         AgentTeamMember[]        @relation("AgencyTeam")
+  memberOf     AgentTeamMember[]        @relation("AgentMemberships")
+  commissions  AgentCommission[]
+  payouts      AgentPayout[]
+  activityLogs AgentActivityLog[]
+  templates    AgentItineraryTemplate[]
+  suppliers    AgentSupplier[]          @relation("AgentSuppliers")
+  products     AgentProduct[]           @relation("AgentProducts")
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  @@index([tier, status])
+  @@index([status])
+  @@index([userId])
+  @@index([bookingsThisMonth])
+  @@map("travel_agents")
+}
+
+enum AgentTier {
+  INDEPENDENT // Solo agent - 5% platform fee
+  PROFESSIONAL // $10K+/month - 3% platform fee
+  AGENCY_PARTNER // $50K+/month - 2% platform fee
+  WHITE_LABEL // $100K+/month - 1.5% platform fee + $499/month
+}
+
+enum AgentStatus {
+  PENDING // Application pending
+  ACTIVE // Approved and active
+  SUSPENDED // Temporarily disabled
+  INACTIVE // Closed account
+  BANNED // Permanently banned
+}
+
+enum CommissionModel {
+  PERCENTAGE // % markup on cost
+  FLAT_FEE // Fixed fee per booking
+  HYBRID // Percentage + flat fee
+  CUSTOM // Custom per client
+}
+
+// Agent's Clients (CRM System)
+model AgentClient {
+  id      String      @id @default(cuid())
+  agentId String
+  agent   TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId  String?     @unique // If client has a user account
+  user    User?       @relation("UserAgentClient", fields: [userId], references: [id])
+
+  // Client Information
+  firstName String
+  lastName  String
+  email     String
+  phone     String?
+  company   String? // For corporate clients
+
+  // Personal Details
+  dateOfBirth       DateTime?
+  anniversary       DateTime? // For special offers
+  preferredLanguage String?   @default("en")
+  nationality       String? // ISO country code
+
+  // Address
+  address String? @db.Text
+  city    String?
+  state   String?
+  country String?
+  zipCode String?
+
+  // Travel Profile
+  cabinClass          String? // economy, premium, business, first
+  preferredAirlines   String[] // ['AA', 'UA', 'DL']
+  homeAirport         String? // JFK
+  seatPreference      String? // window, aisle
+  mealPreference      String? // vegetarian, vegan, kosher, halal, etc
+  specialNeeds        String?  @db.Text // wheelchair, oxygen, etc
+  dietaryRestrictions String[]
+
+  // Loyalty Programs (JSON: {airline: {program: "AA Advantage", number: "12345"}})
+  frequentFlyerPrograms Json?
+  hotelLoyaltyPrograms  Json?
+  carRentalPrograms     Json?
+
+  // Travel Documents
+  passportNumber      String?
+  passportExpiry      DateTime?
+  passportCountry     String? // Issuing country
+  visas               Json? // Array of visa details
+  tsaPrecheck         Boolean   @default(false)
+  globalEntry         Boolean   @default(false)
+  knownTravelerNumber String?
+  redressNumber       String?
+
+  // Preferences
+  budgetRange          String? // budget, moderate, luxury, ultra_luxury
+  tripTypes            String[] // beach, adventure, luxury, family, business, romance
+  favoriteDestinations String[]
+  travelStyle          String? // luxury, budget, adventure, relaxation, culture
+
+  // Communication Preferences
+  preferredChannel  String? // email, sms, whatsapp, phone
+  bestTimeToContact String? // morning, afternoon, evening
+  doNotDisturb      Boolean @default(false)
+
+  // Segmentation & Tags
+  segment  ClientSegment @default(STANDARD)
+  tags     String[] // vip, honeymoon, repeat, corporate, etc
+  vipLevel Int           @default(0) // 0-5
+  priority String        @default("normal") // low, normal, high, urgent
+
+  // Relationship Tracking
+  source          String? // referral, website, social, advertisement, event
+  referredBy      String? // Another client's ID
+  lifetimeValue   Float     @default(0)
+  totalBookings   Int       @default(0)
+  totalSpent      Float     @default(0)
+  avgBookingValue Float     @default(0)
+  lastBookingDate DateTime?
+  nextBookingDate DateTime? // Predicted or scheduled
+  lastContactDate DateTime?
+
+  // Client Status
+  status          ClientStatus @default(ACTIVE)
+  isVip           Boolean      @default(false)
+  blacklisted     Boolean      @default(false)
+  blacklistReason String?      @db.Text
+
+  // Notes & History
+  notes            String? @db.Text
+  internalNotes    String? @db.Text // Not visible to client
+  communicationLog Json? // Array of communication history
+
+  // Relations
+  quotes      AgentQuote[]
+  bookings    AgentBooking[]
+  clientNotes AgentClientNote[]
+  documents   AgentClientDocument[]
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@unique([agentId, email])
+  @@index([agentId])
+  @@index([agentId, segment])
+  @@index([email])
+  @@index([status])
+  @@map("agent_clients")
+}
+
+enum ClientSegment {
+  STANDARD // Regular traveler
+  VIP // High spender
+  HONEYMOON // Honeymoon specialist
+  FAMILY // Family traveler
+  BUSINESS // Business traveler
+  GROUP_ORGANIZER // Group trip organizer
+  CORPORATE // Corporate account
+  LUXURY // Luxury traveler
+}
+
+enum ClientStatus {
+  ACTIVE // Active client
+  INACTIVE // No recent activity
+  ARCHIVED // Archived
+  LOST // Lost to competitor
+  DO_NOT_CONTACT // Requested no contact
+}
+
+// Agent Quote (Multi-Product Quote Builder)
+model AgentQuote {
+  id          String      @id @default(cuid())
+  quoteNumber String      @unique // QT-2025-001234
+  agentId     String
+  agent       TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      AgentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Trip Overview
+  tripName    String // "Paris Honeymoon", "Family Disney Vacation"
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  duration    Int // Days
+  travelers   Int
+  adults      Int      @default(1)
+  children    Int      @default(0)
+  infants     Int      @default(0)
+
+  // Quote Components (Flexible JSON Storage)
+  flights     Json[] // [{ from, to, airline, flight, date, time, class, price, ... }]
+  hotels      Json[] // [{ name, location, checkIn, checkOut, nights, roomType, price, ... }]
+  activities  Json[] // [{ name, description, date, duration, price, ... }]
+  transfers   Json[] // [{ type, from, to, date, time, vehicle, price, ... }]
+  carRentals  Json[] // [{ company, carType, pickUp, dropOff, days, price, ... }]
+  insurance   Json? // { provider, plan, coverage, price, ... }
+  customItems Json[] // [{ name, description, category, price, ... }]
+
+  // Pricing Breakdown
+  flightsCost     Float @default(0)
+  hotelsCost      Float @default(0)
+  activitiesCost  Float @default(0)
+  transfersCost   Float @default(0)
+  carRentalsCost  Float @default(0)
+  insuranceCost   Float @default(0)
+  customItemsCost Float @default(0)
+
+  subtotal           Float
+  agentMarkup        Float // Your commission/markup
+  agentMarkupPercent Float? // Percentage if applicable
+  taxes              Float  @default(0)
+  fees               Float  @default(0)
+  discount           Float  @default(0) // Discount applied
+  total              Float
+
+  currency String @default("USD")
+
+  // Commission Display Settings
+  showCommissionToClient Boolean @default(false)
+  commissionLabel        String? // "Service Fee", "Planning Fee", "Consultation Fee"
+  hideMarkupBreakdown    Boolean @default(true)
+
+  // Quote Versions (for alternatives - Economy vs Business vs First)
+  version       Int     @default(1)
+  versionName   String? // "Economy Package", "Business Class Package", "First Class Luxury"
+  parentQuoteId String? // If this is an alternative version
+  isAlternative Boolean @default(false)
+
+  // Quote Lifecycle
+  status        QuoteStatus @default(DRAFT)
+  expiresAt     DateTime
+  sentAt        DateTime?
+  viewedAt      DateTime?
+  viewCount     Int         @default(0)
+  lastViewedAt  DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  declineReason String?     @db.Text
+
+  // Client Interaction
+  clientFeedback       String? @db.Text // Client's comments/requests
+  modificationRequests String? @db.Text
+  agentNotes           String? @db.Text // Internal notes
+  notes                String? @db.Text // Alias for agentNotes (for compatibility)
+  sharedWithClient     Boolean @default(false)
+
+  // Itinerary Details
+  itineraryTemplate  String? // Template ID or name
+  itineraryContent   Json? // Day-by-day itinerary
+  customNotes        String?  @db.Text // Custom notes for itinerary
+  inclusions         String[] // What's included
+  exclusions         String[] // What's not included
+  importantInfo      String?  @db.Text
+  termsAndConditions String?  @db.Text
+
+  // Documents & Sharing
+  pdfUrl         String? // Generated PDF URL
+  shareableLink  String?   @unique // Public shareable link
+  linkPassword   String? // Optional password protection
+  linkExpiresAt  DateTime?
+  emailSentCount Int       @default(0)
+  smsSentCount   Int       @default(0)
+
+  // Conversion Tracking
+  convertedToBooking Boolean       @default(false)
+  bookingId          String?       @unique
+  booking            AgentBooking?
+  convertedAt        DateTime?
+
+  // Collaboration
+  sharedWithTeam Boolean @default(false)
+  assignedTo     String? // Team member ID
+
+  // Payment Terms (if accepted)
+  depositRequired     Boolean   @default(false)
+  depositAmount       Float?
+  depositDueDate      DateTime?
+  finalPaymentDueDate DateTime?
+
+  // Analytics
+  timeToView    Int? // Minutes from sent to first view
+  timeToAccept  Int? // Minutes from sent to acceptance
+  timeToDecline Int? // Minutes from sent to decline
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@index([agentId, status])
+  @@index([clientId, status])
+  @@index([quoteNumber])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("agent_quotes")
+}
+
+enum QuoteStatus {
+  DRAFT // Agent is building
+  SENT // Sent to client
+  VIEWED // Client opened it
+  MODIFIED // Client requested changes
+  ACCEPTED // Client accepted
+  EXPIRED // Past expiration date
+  DECLINED // Client declined
+  CONVERTED // Became a booking
+  CANCELLED // Cancelled by agent
+  ARCHIVED // Archived
+}
+
+// Agent Booking (Confirmed Trips)
+model AgentBooking {
+  id                 String      @id @default(cuid())
+  confirmationNumber String      @unique // BK-2025-001234
+  bookingNumber      String?     // Alias for confirmationNumber
+  bookingReference   String?     // External reference
+  agentId            String
+  agent              TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  clientId           String
+  client             AgentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  quoteId            String?     @unique
+  quote              AgentQuote? @relation(fields: [quoteId], references: [id])
+
+  // Trip Details
+  tripName    String
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  duration    Int
+  travelers   Int
+  adults      Int
+  children    Int
+  infants     Int
+
+  // Booking Components (Same structure as Quote)
+  flights     Json[]
+  hotels      Json[]
+  activities  Json[]
+  transfers   Json[]
+  carRentals  Json[]
+  insurance   Json?
+  customItems Json[]
+
+  // Pricing
+  subtotal    Float
+  agentMarkup Float
+  taxes       Float
+  fees        Float
+  discount    Float
+  total       Float
+  totalPrice  Float? // Alias for total (for compatibility)
+  commission  Float   @default(0) // Agent commission amount
+  currency    String  @default("USD")
+
+  // Payment Tracking
+  paymentStatus   PaymentStatus @default(PENDING)
+  depositAmount   Float         @default(0)
+  depositPaid     Boolean       @default(false)
+  depositPaidAt   DateTime?
+  depositDueDate  DateTime?
+  balanceDue      Float
+  balancePaid     Boolean       @default(false)
+  balancePaidAt   DateTime?
+  finalPaymentDue DateTime?
+  totalPaid       Float         @default(0)
+
+  // Payment Processing
+  paymentProvider      String? // stripe, paypal, etc
+  stripePaymentId      String?
+  paypalTransactionId  String?
+  paymentMethod        String? // card, bank_transfer, check, wire
+  paymentMethodDetails Json? // Card last 4, etc
+
+  // Supplier Confirmations
+  flightConfirmations    Json? // Array of flight confirmation numbers
+  hotelConfirmations     Json? // Array of hotel confirmation numbers
+  activityConfirmations  Json?
+  transferConfirmations  Json?
+  carRentalConfirmations Json?
+
+  // Booking Status
+  status BookingStatus @default(PENDING)
+
+  // Trip Tracking
+  tripStarted        Boolean   @default(false)
+  tripStartedAt      DateTime?
+  tripCompleted      Boolean   @default(false)
+  tripCompletedAt    DateTime?
+  tripCancelled      Boolean   @default(false)
+  tripCancelledAt    DateTime?
+  cancellationReason String?   @db.Text
+
+  // Documents
+  invoiceUrl            String?
+  itineraryUrl          String?
+  voucherUrls           Json? // Array of voucher URLs
+  confirmationEmailSent Boolean @default(false)
+  remindersSent         Int     @default(0)
+
+  // Customer Service
+  supportTickets     Json? // Array of support ticket IDs
+  issuesReported     Int     @default(0)
+  issuesResolved     Int     @default(0)
+  clientSatisfaction Float? // 0-5 rating
+  reviewReceived     Boolean @default(false)
+  review             String? @db.Text
+  reviewRating       Int? // 1-5
+
+  // Commission & Payout
+  agentCommissionPaid   Boolean   @default(false)
+  agentCommissionPaidAt DateTime?
+  holdPeriodEndsAt      DateTime?
+
+  // Relations
+  commissions     AgentCommission[]
+  clientDocuments AgentClientDocument[]
+
+  // Metadata
+  source     String? // web, mobile, api, phone
+  deviceType String?
+  ipAddress  String?
+  notes      String? @db.Text
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@index([agentId, status])
+  @@index([clientId, status])
+  @@index([confirmationNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([tripCompleted])
+  @@map("agent_bookings")
+}
+
+enum BookingStatus {
+  PENDING // Awaiting payment/confirmation
+  CONFIRMED // Fully confirmed
+  PARTIALLY_PAID // Deposit paid
+  FULLY_PAID // Paid in full
+  IN_PROGRESS // Trip happening now
+  COMPLETED // Trip finished
+  CANCELLED // Cancelled
+  REFUNDED // Refunded
+  NO_SHOW // Customer no-show
+}
+
+enum PaymentStatus {
+  PENDING // No payment yet
+  DEPOSIT_PAID // Deposit received
+  FULLY_PAID // Paid in full
+  PARTIALLY_REFUNDED // Partially refunded
+  REFUNDED // Fully refunded
+  FAILED // Payment failed
+  DISPUTED // Chargeback/dispute
+}
+
+// Agent Commission Tracking
+model AgentCommission {
+  id        String       @id @default(cuid())
+  agentId   String
+  agent     TravelAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  bookingId String
+  booking   AgentBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // Revenue Breakdown
+  bookingTotal       Float // Total booking value
+  supplierCost       Float // Cost paid to suppliers
+  grossProfit        Float // bookingTotal - supplierCost
+  platformFee        Float // Platform's fee
+  platformFeePercent Float // e.g., 0.05 = 5%
+  agentEarnings      Float // What agent keeps
+
+  // Commission Calculation
+  commissionRate   Float // Agent's markup rate
+  commissionAmount Float // Agent's commission before platform fee
+  bonusAmount      Float @default(0)
+  totalEarnings    Float // Final amount to agent
+
+  // Product Breakdown (by component)
+  flightCommission   Float @default(0)
+  hotelCommission    Float @default(0)
+  activityCommission Float @default(0)
+  transferCommission Float @default(0)
+  otherCommission    Float @default(0)
+
+  // Lifecycle Status
+  status CommissionStatus @default(PENDING)
+
+  // Important Dates
+  bookingDate   DateTime
+  tripStartDate DateTime
+  tripEndDate   DateTime
+  holdUntil     DateTime? // When commission becomes available
+  availableAt   DateTime? // When can be paid out
+  releasedAt    DateTime? // When commission was released from hold
+  paidAt        DateTime?
+
+  // Payout Reference
+  payoutId String?
+  payout   AgentPayout? @relation(fields: [payoutId], references: [id])
+
+  // Cancellation/Refund Tracking
+  cancelled      Boolean   @default(false)
+  cancelledAt    DateTime?
+  refunded       Boolean   @default(false)
+  refundedAt     DateTime?
+  refundAmount   Float     @default(0)
+  clawback       Boolean   @default(false) // If paid but later refunded
+  clawbackAmount Float     @default(0)
+
+  // Metadata
+  notes String? @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, status])
+  @@index([bookingId])
+  @@index([status])
+  @@index([holdUntil])
+  @@index([availableAt])
+  @@map("agent_commissions")
+}
+
+enum CommissionStatus {
+  PENDING // Booking made, trip not started
+  TRIP_IN_PROGRESS // Trip happening
+  IN_HOLD_PERIOD // Trip completed, in hold period
+  AVAILABLE // Ready to be paid
+  PAID // Commission paid
+  CANCELLED // Booking cancelled
+  REFUNDED // Booking refunded
+}
+
+// Agent Payout Management
+model AgentPayout {
+  id           String      @id @default(cuid())
+  payoutNumber String?     @unique // PO-2025-001234
+  agentId      String
+  agent        TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  // Payout Details
+  amount              Float
+  commissionsIncluded AgentCommission[]
+  commissionCount     Int // Number of commissions in this payout
+
+  // Period Covered
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Payment Information
+  method           String // stripe, paypal, bank_transfer, check
+  payoutEmail      String? // For PayPal
+  stripeTransferId String? // Stripe payout ID
+  paypalBatchId    String? // PayPal batch payout ID
+  bankTransferRef  String? // Bank transfer reference
+  checkNumber      String? // Check number
+
+  // Processing
+  status        PayoutStatus @default(PENDING)
+  requestedAt   DateTime     @default(now())
+  processedAt   DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?      @db.Text
+
+  // Fees & Net Amount
+  processingFee Float  @default(0)
+  netAmount     Float // amount - processingFee
+  currency      String @default("USD")
+
+  // Invoice/Receipt
+  invoiceNumber  String? @unique // INV-2025-001234
+  receiptUrl     String?
+  taxDocumentUrl String? // 1099 for US agents
+
+  // Admin Management
+  processedBy String? // Admin user ID
+  approvedBy  String? // Admin user ID
+  approvedAt  DateTime?
+  adminNotes  String?   @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, status])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@index([requestedAt])
+  @@map("agent_payouts")
+}
+
+enum PayoutStatus {
+  PENDING // Requested, awaiting approval
+  APPROVED // Approved by admin
+  PROCESSING // Being processed
+  COMPLETED // Successfully paid
+  FAILED // Payment failed
+  CANCELLED // Cancelled by agent or admin
+}
+
+// Team/Agency Management
+model AgentTeamMember {
+  id       String      @id @default(cuid())
+  agencyId String
+  agency   TravelAgent @relation("AgencyTeam", fields: [agencyId], references: [id], onDelete: Cascade)
+  agentId  String
+  agent    TravelAgent @relation("AgentMemberships", fields: [agentId], references: [id], onDelete: Cascade)
+
+  // Role & Permissions
+  role        TeamRole @default(AGENT)
+  permissions Json? // Custom permissions
+
+  // Commission Split
+  commissionSplit Float   @default(0.70) // Agent gets 70%, agency gets 30%
+  overrideRate    Boolean @default(false)
+  customRate      Float? // Custom commission rate for this agent
+
+  // Access Control
+  canManageClients  Boolean @default(true)
+  canCreateQuotes   Boolean @default(true)
+  canAcceptBookings Boolean @default(true)
+  canViewReports    Boolean @default(false)
+  canManageTeam     Boolean @default(false)
+
+  // Status
+  active        Boolean   @default(true)
+  invitedAt     DateTime  @default(now())
+  joinedAt      DateTime?
+  suspendedAt   DateTime?
+  removedAt     DateTime?
+  removalReason String?   @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([agencyId, agentId])
+  @@index([agencyId, active])
+  @@index([agentId])
+  @@map("agent_team_members")
+}
+
+enum TeamRole {
+  OWNER // Agency owner (full access)
+  MANAGER // Can manage team and view all data
+  AGENT // Regular agent
+  VIEWER // Read-only access
+}
+
+// Client Notes & Communication Log
+model AgentClientNote {
+  id        String      @id @default(cuid())
+  clientId  String
+  client    AgentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  agentId   String // Who created the note
+  quoteId   String? // Related quote
+  bookingId String? // Related booking
+
+  // Note Content
+  note        String  @db.Text
+  noteType    String  @default("general") // general, call, email, meeting, follow_up, issue
+  isImportant Boolean @default(false)
+  isPinned    Boolean @default(false)
+
+  // Communication Details
+  contactMethod String? // phone, email, sms, whatsapp, in_person
+  duration      Int? // Minutes (for calls/meetings)
+  outcome       String? // successful, unsuccessful, callback_required, etc
+
+  // Follow-up
+  requiresFollowUp  Boolean   @default(false)
+  followUpDate      DateTime?
+  followUpCompleted Boolean   @default(false)
+
+  // Attachments
+  attachments Json? // Array of file URLs
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId, createdAt])
+  @@index([agentId])
+  @@index([requiresFollowUp, followUpDate])
+  @@map("agent_client_notes")
+}
+
+// Client Document Storage
+model AgentClientDocument {
+  id         String        @id @default(cuid())
+  clientId   String
+  client     AgentClient   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  bookingId  String?
+  booking    AgentBooking? @relation(fields: [bookingId], references: [id])
+  uploadedBy String // Agent user ID
+
+  // Document Details
+  documentType String // passport, visa, invoice, itinerary, voucher, contract, etc
+  fileName     String
+  fileUrl      String // Secure storage URL
+  fileSize     Int // Bytes
+  mimeType     String
+
+  // Document Info
+  title       String?
+  description String?   @db.Text
+  expiryDate  DateTime? // For passports, visas, etc
+
+  // Access Control
+  sharedWithClient Boolean @default(false)
+  isConfidential   Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@index([clientId])
+  @@index([bookingId])
+  @@index([documentType])
+  @@map("agent_client_documents")
+}
+
+// Custom Itinerary Templates
+model AgentItineraryTemplate {
+  id      String      @id @default(cuid())
+  agentId String
+  agent   TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  // Template Details
+  name        String
+  description String? @db.Text
+  category    String? // honeymoon, family, luxury, adventure, business
+
+  // Design
+  design      String  @default("modern_minimalist") // Design template name
+  brandColor  String? // Hex color
+  logoUrl     String? // Custom logo
+  headerImage String? // Header image URL
+
+  // Content Sections (JSON structure defining sections)
+  sections Json
+
+  // Usage
+  isDefault  Boolean   @default(false)
+  isPublic   Boolean   @default(false)
+  usageCount Int       @default(0)
+  lastUsed   DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([category])
+  @@map("agent_itinerary_templates")
+}
+
+// Agent Supplier Management
+model AgentSupplier {
+  id      String      @id @default(cuid())
+  agentId String
+  agent   TravelAgent @relation("AgentSuppliers", fields: [agentId], references: [id], onDelete: Cascade)
+
+  // Supplier Details
+  name         String
+  category     String  @default("other") // flights, hotels, activities, transfers, insurance, car_rentals, other
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+
+  // Business Information
+  website     String?
+  address     String? @db.Text
+  city        String?
+  country     String?
+  apiEndpoint String?
+  apiKey      String?
+
+  // Terms
+  commissionRate Float   @default(0.10) // 10% default commission
+  paymentTerms   String? // e.g., "Net 30", "Net 60"
+
+  // Status
+  isPreferred Boolean @default(false)
+  isActive    Boolean @default(true)
+  rating      Float? // 0-5 rating
+
+  // Metadata
+  notes    String? @db.Text
+  metadata Json?
+
+  // Relations
+  products AgentProduct[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@map("agent_suppliers")
+}
+
+// Agent Product Catalog
+model AgentProduct {
+  id         String        @id @default(cuid())
+  agentId    String
+  agent      TravelAgent   @relation("AgentProducts", fields: [agentId], references: [id], onDelete: Cascade)
+  supplierId String
+  supplier   AgentSupplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  // Product Details
+  name        String
+  description String? @db.Text
+  category    String  @default("other") // same as supplier categories
+  type        String  @default("service") // service, package, add-on, upgrade
+
+  // Pricing
+  costPrice      Float  @default(0) // What agent pays supplier
+  sellPrice      Float  @default(0) // What agent charges client
+  currency       String @default("USD")
+  commissionRate Float  @default(0.10) // Markup percentage
+
+  // Availability
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+  stock      Int? // For physical products or limited availability
+  minOrder   Int?    @default(1)
+  maxOrder   Int?
+
+  // Media
+  imageUrl String?
+
+  // External IDs
+  externalId String? // Supplier's product ID
+  sku        String? // Stock keeping unit
+
+  // Metadata
+  tags     String[]
+  metadata Json?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([supplierId])
+  @@index([isActive])
+  @@map("agent_products")
+}
+
+// Activity Log for Audit Trail
+model AgentActivityLog {
+  id      String      @id @default(cuid())
+  agentId String
+  agent   TravelAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  // Activity Details
+  activityType String // quote_created, booking_confirmed, payout_requested, client_added, etc
+  description  String  @db.Text
+  entityType   String? // quote, booking, client, payout
+  entityId     String? // ID of related entity
+  metadata     Json? // Additional context
+
+  // Context
+  ipAddress String?
+  userAgent String?
+  location  String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([agentId, createdAt])
+  @@index([activityType])
+  @@index([entityType, entityId])
+  @@map("agent_activity_logs")
+}
+// ============================================
+// FIFA WORLD CUP 2026 MODELS
+// ============================================
+
+// World Cup Teams (32 qualified nations)
+model WorldCupTeam {
+  id              String   @id @default(cuid())
+
+  // Team Identity
+  name            String   @unique // "Brazil"
+  shortName       String   // "BRA"
+  fifaCode        String   @unique // "BRA"
+
+  // Visual Identity
+  flagEmoji       String   // "🇧🇷"
+  primaryColor    String   // "#009C3B" (Brazil green)
+  secondaryColor  String   // "#FFDF00" (Brazil yellow)
+  accentColor     String?  // Additional color
+  flagUrl         String   // URL to flag image
+  logoUrl         String?  // Team crest/logo
+
+  // Team Info
+  fifaRanking     Int?
+  confederation   String   // "CONMEBOL", "UEFA", "CONCACAF", etc
+  group           String?  // "Group A", "Group B", etc (assigned later)
+  headCoach       String?
+  captain         String?
+  starPlayers     Json?    // Array of key players
+
+  // Stats & History
+  worldCupWins    Int      @default(0)
+  worldCupApps    Int      @default(0) // Appearances
+  bestFinish      String?  // "Champions", "Runners-up", "Semi-finals"
+  description     String?  @db.Text
+
+  // SEO & Content
+  slug            String   @unique // "brazil"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  content         String?  @db.Text // Rich content about team
+
+  // Relations
+  homeMatches     WorldCupMatch[] @relation("HomeTeam")
+  awayMatches     WorldCupMatch[] @relation("AwayTeam")
+  bookings        WorldCupBooking[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([group])
+  @@index([confederation])
+  @@map("world_cup_teams")
+}
+
+// World Cup Stadiums (16 venues)
+model WorldCupStadium {
+  id              String   @id @default(cuid())
+
+  // Stadium Identity
+  name            String   @unique // "SoFi Stadium"
+  nickname        String?  // "The Crown Jewel"
+
+  // Location
+  city            String   // "Los Angeles"
+  state           String?  // "California"
+  country         String   // "USA", "Canada", "Mexico"
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  timezone        String   // "America/Los_Angeles"
+
+  // Stadium Info
+  capacity        Int      // 70000
+  opened          Int?     // Year opened
+  surface         String?  // "Grass", "Artificial"
+  roofType        String?  // "Retractable", "Open", "Closed"
+
+  // Visuals
+  imageUrl        String?  // Main stadium image
+  images          Json?    // Array of image URLs
+  seatingChart    String?  // URL to seating diagram
+  virtualTour     String?  // URL to 360° tour
+
+  // Travel Info
+  nearestAirport  String?  // "LAX"
+  airportDistance Float?   // km
+  publicTransit   String?  @db.Text
+  parkingInfo     String?  @db.Text
+
+  // Area Info
+  nearbyHotels    Json?    // Array of hotel areas
+  restaurants     Json?    // Nearby dining
+  attractions     Json?    // Things to do
+
+  // City Colors (for theming)
+  cityPrimaryColor    String?  // LA = purple/gold
+  citySecondaryColor  String?
+
+  // SEO & Content
+  slug            String   @unique // "sofi-stadium"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  description     String?  @db.Text
+  travelGuide     String?  @db.Text
+
+  // Relations
+  matches         WorldCupMatch[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([city])
+  @@index([country])
+  @@map("world_cup_stadiums")
+}
+
+// World Cup Matches (104 total matches)
+model WorldCupMatch {
+  id              String   @id @default(cuid())
+
+  // Match Identity
+  matchNumber     Int      @unique // 1-104
+  fifaMatchId     String?  @unique
+
+  // Teams (optional until group draw)
+  homeTeamId      String?
+  homeTeam        WorldCupTeam? @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId      String?
+  awayTeam        WorldCupTeam? @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  // Venue
+  stadiumId       String
+  stadium         WorldCupStadium @relation(fields: [stadiumId], references: [id])
+
+  // Schedule
+  matchDate       DateTime
+  matchTime       String   // "20:00"
+  localTime       String   // "8:00 PM ET"
+
+  // Match Details
+  stage           MatchStage // GROUP_STAGE, ROUND_16, etc
+  groupName       String?  // "Group A" (for group stage)
+  roundName       String   // "Opening Match", "Final", etc
+
+  // Match Status
+  status          MatchStatus @default(SCHEDULED)
+  homeScore       Int?
+  awayScore       Int?
+  penalties       Json?    // Penalty shootout info
+
+  // Ticket Info
+  ticketsAvailable Boolean  @default(true)
+  ticketPriceMin  Float?   // Minimum ticket price
+  ticketPriceMax  Float?   // Maximum ticket price
+  ticketProviders Json?    // Array of ticket sources
+
+  // Visuals
+  matchPosterUrl  String?  // Custom match artwork
+  broadcastInfo   Json?    // TV channels, streaming
+
+  // SEO & Content
+  slug            String   @unique // "opening-match-mexico-vs-tbd"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  preview         String?  @db.Text // Match preview content
+  recap           String?  @db.Text // Post-match recap
+
+  // Relations
+  bookings        WorldCupBooking[]
+  tickets         WorldCupTicket[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([matchDate])
+  @@index([stadiumId])
+  @@index([stage])
+  @@index([slug])
+  @@map("world_cup_matches")
+}
+
+enum MatchStage {
+  GROUP_STAGE
+  ROUND_16
+  QUARTER_FINAL
+  SEMI_FINAL
+  THIRD_PLACE
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  HALFTIME
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+// World Cup Tickets (from various providers)
+model WorldCupTicket {
+  id              String   @id @default(cuid())
+
+  // Ticket Source
+  provider        String   // "Vivid Seats", "Ticketmaster", "SeatGeek"
+  providerTicketId String  // External ticket ID
+
+  // Match
+  matchId         String
+  match           WorldCupMatch @relation(fields: [matchId], references: [id])
+
+  // Seat Details
+  section         String
+  row             String?
+  seatNumber      String?
+  quantity        Int      @default(1)
+  seatType        String?  // "Standard", "Premium", "VIP", "Suite"
+
+  // Pricing
+  faceValue       Float?   // Original ticket price
+  wholesalePrice  Float    // What we pay provider
+  retailPrice     Float    // What customer pays
+  markup          Float    // Our profit
+  currency        String   @default("USD")
+
+  // Availability
+  available       Boolean  @default(true)
+  reserved        Boolean  @default(false)
+  reservedUntil   DateTime?
+  sold            Boolean  @default(false)
+
+  // Features
+  features        Json?    // ["Parking", "Club Access", etc]
+  seatView        String?  // URL to seat view image
+
+  // Relations
+  booking         WorldCupBooking? @relation(fields: [bookingId], references: [id])
+  bookingId       String?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([matchId, available])
+  @@index([provider])
+  @@index([retailPrice])
+  @@map("world_cup_tickets")
+}
+
+// World Cup Package/Booking
+model WorldCupBooking {
+  id              String   @id @default(cuid())
+
+  // User
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  // Package Details
+  packageType     String   // "SINGLE_MATCH", "MULTI_MATCH", "FOLLOW_TEAM", "CUSTOM"
+  packageName     String   // "Brazil Group Stage Package"
+
+  // Matches
+  matchId         String?  // Primary match (for single-match bookings)
+  match           WorldCupMatch? @relation(fields: [matchId], references: [id])
+  teamId          String?  // If "follow team" package
+  team            WorldCupTeam? @relation(fields: [teamId], references: [id])
+
+  // Components
+  tickets         WorldCupTicket[]
+  flightBooking   Json?    // Flight details from existing system
+  hotelBooking    Json?    // Hotel details from existing system
+  carRental       Json?    // Car rental details
+  experiences     Json?    // Tours, activities
+
+  // Pricing
+  ticketsTotal    Float    @default(0)
+  flightsTotal    Float    @default(0)
+  hotelsTotal     Float    @default(0)
+  carsTotal       Float    @default(0)
+  experiencesTotal Float   @default(0)
+  subtotal        Float
+  taxes           Float    @default(0)
+  fees            Float    @default(0)
+  total           Float
+  currency        String   @default("USD")
+
+  // Payment
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, REFUNDED
+  paymentMethod   String?
+  stripePaymentId String?
+  paidAt          DateTime?
+
+  // Status
+  status          String   @default("CONFIRMED") // PENDING, CONFIRMED, CANCELLED
+  confirmationNumber String @unique
+
+  // Delivery
+  ticketsDelivered Boolean @default(false)
+  deliveryMethod  String?  // "EMAIL", "MOBILE", "MAIL"
+  deliveredAt     DateTime?
+
+  // Customer Info
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  cancelledAt     DateTime?
+
+  @@index([userId])
+  @@index([matchId])
+  @@index([teamId])
+  @@index([status])
+  @@index([confirmationNumber])
+  @@map("world_cup_bookings")
+}
+
+// Add relation to User model (you'll need to add this to existing User model)
+// model User {
+//   ...existing fields...
+//   worldCupBookings WorldCupBooking[]
+// }

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma!.user.findUnique({
       where: { email: session.user.email! },
       include: { adminUser: true },
     });
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Calculate revenue statistics
-    const allBookings = await prisma.hotelBooking.findMany({
+    const allBookings = await prisma!.hotelBooking.findMany({
       where: {
         status: { in: ['confirmed', 'completed'] },
         paymentStatus: 'succeeded',
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Status breakdown
-    const statusCounts = await prisma.hotelBooking.groupBy({
+    const statusCounts = await prisma!.hotelBooking.groupBy({
       by: ['status'],
       _count: true,
     });
@@ -150,7 +150,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma!.user.findUnique({
       where: { email: session.user.email! },
       include: { adminUser: true },
     });
@@ -173,7 +173,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update booking
-    const updatedBooking = await prisma.hotelBooking.update({
+    const updatedBooking = await prisma!.hotelBooking.update({
       where: { id: bookingId },
       data: {
         ...(status && { status }),

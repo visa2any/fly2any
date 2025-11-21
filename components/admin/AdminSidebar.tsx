@@ -19,7 +19,11 @@ import {
   Brain,
   TrendingUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Award,
+  Gift,
+  DollarSign,
+  Search
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -69,6 +73,11 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       icon: Brain
     },
     {
+      label: 'SEO Monitoring',
+      href: '/admin/seo-monitoring',
+      icon: Search
+    },
+    {
       label: 'Users',
       href: '/admin/users',
       icon: Users,
@@ -78,6 +87,24 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'Bookings',
       href: '/admin/bookings',
       icon: Briefcase
+    },
+    {
+      label: 'Affiliates',
+      href: '/admin/affiliates',
+      icon: Award,
+      roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'Payouts',
+      href: '/admin/payouts',
+      icon: DollarSign,
+      roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'Refer & Earn',
+      href: '/admin/referrals',
+      icon: Gift,
+      roles: ['super_admin', 'admin']
     },
     {
       label: 'Performance',

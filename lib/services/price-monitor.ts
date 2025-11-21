@@ -55,7 +55,7 @@ export async function monitorAllActiveAlerts(triggeredBy: 'cron' | 'manual' = 'c
   try {
     const prisma = getPrismaClient();
     // Fetch all active alerts that haven't been triggered
-    const activeAlerts = await prisma.priceAlert.findMany({
+    const activeAlerts = await prisma!.priceAlert.findMany({
       where: {
         active: true,
         triggered: false,
@@ -165,7 +165,7 @@ export async function checkSingleAlert(alertId: string): Promise<{
   try {
     const prisma = getPrismaClient();
     // Fetch alert with user info
-    const alert = await prisma.priceAlert.findUnique({
+    const alert = await prisma!.priceAlert.findUnique({
       where: { id: alertId },
       include: {
         user: {
@@ -204,7 +204,7 @@ export async function checkSingleAlert(alertId: string): Promise<{
 
     if (!priceResult.success || !priceResult.currentPrice) {
       // Update lastChecked even on failure
-      await prisma.priceAlert.update({
+      await prisma!.priceAlert.update({
         where: { id: alertId },
         data: { lastChecked: new Date() },
       });
@@ -236,7 +236,7 @@ export async function checkSingleAlert(alertId: string): Promise<{
       console.log(`[Price Monitor] Price alert triggered! ${alert.origin} → ${alert.destination}: ${alert.currency} ${currentPrice} (target: ${alert.targetPrice})`);
 
       // Update alert as triggered
-      await prisma.priceAlert.update({
+      await prisma!.priceAlert.update({
         where: { id: alertId },
         data: {
           triggered: true,
@@ -264,7 +264,7 @@ export async function checkSingleAlert(alertId: string): Promise<{
       return { success: true, triggered: true, currentPrice };
     } else {
       // Price hasn't reached target, just update the current price
-      await prisma.priceAlert.update({
+      await prisma!.priceAlert.update({
         where: { id: alertId },
         data: {
           currentPrice: currentPrice,
@@ -389,7 +389,7 @@ export async function notifyUserPriceAlert(
 async function logExecution(summary: MonitoringSummary, triggeredBy: 'cron' | 'manual'): Promise<void> {
   try {
     const prisma = getPrismaClient();
-    await prisma.priceMonitorLog.create({
+    await prisma!.priceMonitorLog.create({
       data: {
         executionTime: new Date(),
         alertsChecked: summary.totalChecked,
@@ -424,7 +424,7 @@ export async function getMonitoringStats(): Promise<{
   try {
     const prisma = getPrismaClient();
     // Get total active alerts
-    const totalActiveAlerts = await prisma.priceAlert.count({
+    const totalActiveAlerts = await prisma!.priceAlert.count({
       where: {
         active: true,
         triggered: false,
@@ -432,12 +432,12 @@ export async function getMonitoringStats(): Promise<{
     });
 
     // Get last execution log
-    const lastLog = await prisma.priceMonitorLog.findFirst({
+    const lastLog = await prisma!.priceMonitorLog.findFirst({
       orderBy: { executionTime: 'desc' },
     });
 
     // Calculate success rate from last 10 runs
-    const recentLogs = await prisma.priceMonitorLog.findMany({
+    const recentLogs = await prisma!.priceMonitorLog.findMany({
       take: 10,
       orderBy: { executionTime: 'desc' },
     });
@@ -448,7 +448,7 @@ export async function getMonitoringStats(): Promise<{
 
     // Count recent errors (last 24 hours)
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentErrorLogs = await prisma.priceMonitorLog.findMany({
+    const recentErrorLogs = await prisma!.priceMonitorLog.findMany({
       where: {
         executionTime: { gte: oneDayAgo },
         alertsFailed: { gt: 0 },

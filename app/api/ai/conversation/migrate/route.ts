@@ -40,19 +40,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the actual user ID from database with timeout
-    const user = await Promise.race([
-      prisma.user.findUnique({
-        where: { email: session.user.email },
-        select: { id: true },
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database timeout')), 3000)
-      ),
-    ]) as { id: string } | null;
+    let user: { id: string } | null = null;
+
+    try {
+      user = await Promise.race([
+        prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: { id: true },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database timeout')), 3000)
+        ),
+      ]) as { id: string } | null;
+    } catch (dbError) {
+      // Database timeout or connection error - return 503 instead of 404
+      console.warn('[Migration] Database unavailable during user lookup:', dbError);
+      return NextResponse.json(
+        {
+          error: 'Database temporarily unavailable',
+          message: 'Conversation saved to localStorage only',
+        },
+        { status: 503 }
+      );
+    }
 
     if (!user) {
+      // User truly doesn't exist in database (not a timeout issue)
+      console.warn('[Migration] User not found in database:', session.user.email);
       return NextResponse.json(
-        { error: 'User not found' },
+        {
+          error: 'User not found in database',
+          message: 'Please complete registration first',
+        },
         { status: 404 }
       );
     }

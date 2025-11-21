@@ -485,7 +485,7 @@ async function tripsHandler(request: NextRequest) {
         tg.*,
         COUNT(DISTINCT gm.id) as member_count
       FROM trip_groups tg
-      LEFT JOIN group_members gm ON tg.id = gm.trip_id AND gm.status IN ('confirmed', 'paid')
+      LEFT JOIN group_members gm ON tg.id = gm."tripGroupId" AND gm.status IN ('confirmed', 'paid')
       WHERE tg.status IN ('published', 'booking_open')
         AND tg.visibility = 'public'
         ${category ? sql`AND tg.category = ${category}` : sql``}
@@ -495,7 +495,7 @@ async function tripsHandler(request: NextRequest) {
       ORDER BY
         tg.featured DESC,
         tg.trending DESC,
-        tg.created_at DESC
+        tg."createdAt" DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
@@ -697,7 +697,7 @@ export async function POST(request: NextRequest) {
     // Auto-add creator as first member
     await sql`
       INSERT INTO group_members (
-        trip_id,
+        trip_group_id,
         user_id,
         role,
         status,

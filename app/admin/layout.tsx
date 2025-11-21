@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { getPrismaClient } from '@/lib/prisma'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
+import { autoInitializeAdmin } from '@/lib/admin/auto-init'
 
 const prisma = getPrismaClient()
 
@@ -18,6 +19,15 @@ export default async function AdminLayout({
     redirect('/auth/signin?callbackUrl=/admin')
   }
 
+  // Auto-initialize admin if none exists (DEV ONLY)
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      await autoInitializeAdmin()
+    } catch (error) {
+      console.error('Auto-init admin failed:', error)
+    }
+  }
+
   // Check if user is admin
   let adminUser = null
   try {
@@ -29,9 +39,34 @@ export default async function AdminLayout({
     console.error('Error checking admin status:', error)
   }
 
-  // If not admin, redirect to home
+  // If not admin, check if current user can be made admin
   if (!adminUser) {
-    redirect('/?error=admin_access_required')
+    // In development, if no admins exist, make current user admin
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const adminCount = await prisma.adminUser.count()
+
+        if (adminCount === 0) {
+          // Make first user super admin
+          adminUser = await prisma.adminUser.create({
+            data: {
+              userId: session.user.id,
+              role: 'super_admin',
+            },
+            include: { user: true }
+          })
+
+          console.log(`✅ Made first user admin: ${session.user.email}`)
+        } else {
+          redirect('/?error=admin_access_required')
+        }
+      } catch (error) {
+        console.error('Error auto-creating admin:', error)
+        redirect('/?error=admin_access_required')
+      }
+    } else {
+      redirect('/?error=admin_access_required')
+    }
   }
 
   return (

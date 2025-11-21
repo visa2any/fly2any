@@ -45,7 +45,7 @@ export interface PriceTrendData {
 export async function recordPriceHistory(params: PriceHistoryParams): Promise<PriceHistoryRecord> {
   try {
     const prisma = getPrismaClient();
-    const record = await prisma.priceHistory.create({
+    const record = await prisma!.priceHistory.create({
       data: {
         origin: params.origin,
         destination: params.destination,
@@ -86,7 +86,7 @@ export async function getPriceHistory(params: {
 
   try {
     const prisma = getPrismaClient();
-    const history = await prisma.priceHistory.findMany({
+    const history = await prisma!.priceHistory.findMany({
       where: {
         origin: params.origin,
         destination: params.destination,
@@ -194,7 +194,7 @@ export async function getRouteStatistics(params: {
     const prisma = getPrismaClient();
     const results = await Promise.all(
       params.routes.map(async route => {
-        const history = await prisma.priceHistory.findMany({
+        const history = await prisma!.priceHistory.findMany({
           where: {
             origin: route.origin,
             destination: route.destination,
@@ -251,7 +251,7 @@ export async function cleanupOldHistory(daysToKeep: number = 90): Promise<number
 
   try {
     const prisma = getPrismaClient();
-    const result = await prisma.priceHistory.deleteMany({
+    const result = await prisma!.priceHistory.deleteMany({
       where: {
         timestamp: { lt: cutoffDate },
       },
@@ -290,7 +290,7 @@ export async function getHistorySummary(): Promise<{
     ]);
 
     // Get unique routes
-    const uniqueRoutes = await prisma.priceHistory.groupBy({
+    const uniqueRoutes = await prisma!.priceHistory.groupBy({
       by: ['origin', 'destination', 'departDate'],
     });
 

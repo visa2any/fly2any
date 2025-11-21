@@ -1,135 +1,118 @@
 /**
- * Create Admin User Script
+ * Direct Admin Creation Script
  *
- * Usage:
- * npx tsx scripts/create-admin.ts <email> <role>
- *
- * Examples:
- * npx tsx scripts/create-admin.ts admin@fly2any.com super_admin
- * npx tsx scripts/create-admin.ts manager@fly2any.com admin
- * npx tsx scripts/create-admin.ts support@fly2any.com moderator
+ * Run this script directly to create an admin user in the database
+ * Usage: npx tsx scripts/create-admin.ts
  */
 
-import { getPrismaClient } from '../lib/prisma'
+import { PrismaClient } from '@prisma/client';
 
-const prisma = getPrismaClient()
+const prisma = new PrismaClient();
 
-async function createAdminUser(email: string, role: string) {
-  console.log('🔍 Creating admin user...')
-  console.log(`Email: ${email}`)
-  console.log(`Role: ${role}`)
-
-  // Validate role
-  const validRoles = ['super_admin', 'admin', 'moderator']
-  if (!validRoles.includes(role)) {
-    console.error(`❌ Invalid role. Must be one of: ${validRoles.join(', ')}`)
-    process.exit(1)
-  }
-
+async function createAdmin() {
   try {
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email }
-    })
+    console.log('🔧 Starting admin creation...');
 
-    if (!user) {
-      console.error(`❌ User with email ${email} not found.`)
-      console.log('\n💡 Make sure the user has signed up first at /auth/signin')
-      process.exit(1)
+    // Admin credentials
+    const ADMIN_EMAIL = 'admin@fly2any.com';
+    const ADMIN_PASSWORD = 'admin123';
+    const ADMIN_NAME = 'Admin User';
+
+    // Import bcrypt
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
+    console.log('✅ Password hashed');
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email: ADMIN_EMAIL },
+    });
+
+    if (user) {
+      console.log(`✅ User already exists: ${ADMIN_EMAIL}`);
+    } else {
+      // Create user
+      user = await prisma.user.create({
+        data: {
+          email: ADMIN_EMAIL,
+          name: ADMIN_NAME,
+          password: hashedPassword,
+          emailVerified: new Date(),
+        },
+      });
+      console.log(`✅ Created user: ${ADMIN_EMAIL}`);
     }
 
-    // Check if already admin
+    // Check if admin role exists
     const existingAdmin = await prisma.adminUser.findUnique({
-      where: { userId: user.id }
-    })
+      where: { userId: user.id },
+    });
 
     if (existingAdmin) {
-      console.log(`⚠️  User is already an admin with role: ${existingAdmin.role}`)
-      console.log('Updating role...')
-
-      const updated = await prisma.adminUser.update({
-        where: { userId: user.id },
-        data: {
-          role,
-          updatedAt: new Date()
-        }
-      })
-
-      console.log(`✅ Admin user updated!`)
-      console.log(`   User ID: ${user.id}`)
-      console.log(`   Email: ${user.email}`)
-      console.log(`   Role: ${updated.role}`)
-      console.log(`\n🎉 ${user.name || user.email} can now access /admin`)
-    } else {
-      // Create new admin user
-      const adminUser = await prisma.adminUser.create({
-        data: {
-          userId: user.id,
-          role
-          // permissions: undefined means use default role permissions
-        }
-      })
-
-      console.log(`✅ Admin user created successfully!`)
-      console.log(`   User ID: ${user.id}`)
-      console.log(`   Email: ${user.email}`)
-      console.log(`   Name: ${user.name || 'Not set'}`)
-      console.log(`   Role: ${adminUser.role}`)
-      console.log(`\n🎉 ${user.name || user.email} can now access /admin`)
+      console.log('✅ Admin role already exists');
+      console.log('=========================================');
+      console.log('✅ USE THESE CREDENTIALS:');
+      console.log('=========================================');
+      console.log(`Email:    ${ADMIN_EMAIL}`);
+      console.log(`Password: ${ADMIN_PASSWORD}`);
+      console.log('=========================================');
+      return;
     }
 
-    // Log audit trail
-    console.log('\n📊 Creating audit log entry...')
-    await prisma.auditLog.create({
+    // Create admin role
+    await prisma.adminUser.create({
       data: {
         userId: user.id,
-        userEmail: user.email!,
-        userRole: role,
-        action: existingAdmin ? 'update' : 'create',
-        resource: 'admin_user',
-        resourceId: user.id,
-        changes: {
-          role,
-          createdBy: 'setup-script',
-          timestamp: new Date().toISOString()
+        role: 'super_admin',
+      },
+    });
+
+    console.log('✅ Created admin role');
+
+    // Create user preferences if don't exist
+    const existingPreferences = await prisma.userPreferences.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!existingPreferences) {
+      await prisma.userPreferences.create({
+        data: {
+          userId: user.id,
+          currency: 'USD',
+          language: 'en',
+          notifications: {
+            email: true,
+            push: false,
+            sms: false,
+          },
         },
-        ipAddress: 'localhost',
-        userAgent: 'CLI Script',
-        requestId: `script-${Date.now()}`,
-        success: true
-      }
-    })
+      });
+      console.log('✅ Created user preferences');
+    }
 
-    console.log('✅ Audit log created')
+    console.log('');
+    console.log('=========================================');
+    console.log('✅ ADMIN CREATED SUCCESSFULLY!');
+    console.log('=========================================');
+    console.log(`Email:    ${ADMIN_EMAIL}`);
+    console.log(`Password: ${ADMIN_PASSWORD}`);
+    console.log('=========================================');
+    console.log('');
+    console.log('Next steps:');
+    console.log('1. Go to http://localhost:3000/auth/signin');
+    console.log(`2. Sign in with: ${ADMIN_EMAIL}`);
+    console.log(`3. Password: ${ADMIN_PASSWORD}`);
+    console.log('4. Access /admin/affiliates');
+    console.log('=========================================');
 
-  } catch (error) {
-    console.error('❌ Error creating admin user:', error)
-    throw error
+  } catch (error: any) {
+    console.error('❌ Error creating admin:', error.message);
+    console.error('Full error:', error);
+    process.exit(1);
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
-// Parse command line arguments
-const [,, email, role = 'admin'] = process.argv
-
-if (!email) {
-  console.error('❌ Email is required')
-  console.log('\nUsage:')
-  console.log('  npx tsx scripts/create-admin.ts <email> [role]')
-  console.log('\nRoles: super_admin, admin, moderator')
-  console.log('\nExamples:')
-  console.log('  npx tsx scripts/create-admin.ts admin@fly2any.com super_admin')
-  console.log('  npx tsx scripts/create-admin.ts manager@fly2any.com admin')
-  process.exit(1)
-}
-
-createAdminUser(email, role)
-  .then(() => {
-    console.log('\n✨ Done!')
-    process.exit(0)
-  })
-  .catch((error) => {
-    console.error('\n💥 Failed:', error.message)
-    process.exit(1)
-  })
+createAdmin();

@@ -427,4 +427,111 @@
       scroll-behavior: auto;
     }
   }
+
+  /* ==========================================
+     WORLD CUP PAGE LAYOUT (SCOPED)
+     Only applies to World Cup 2026 page
+     ========================================== */
+  /* Basic overflow prevention - safe for all pages */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  /* World Cup page specific styles - scoped to avoid affecting other pages */
+  /* Only apply aggressive full-width styles to World Cup page */
+  body:has([data-page="world-cup-2026"]) section {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* World Cup hero section - scoped to avoid breaking other pages */
+  body:has([data-page="world-cup-2026"]) section:first-of-type {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  body:has([data-page="world-cup-2026"]) section:first-of-type > div {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+
+  /* ==========================================
+     FIFA WORLD CUP 2026 - DYNAMIC ANIMATIONS
+     Celebration, energy, and excitement
+     ========================================== */
+
+  @keyframes subtle-zoom {
+    0%, 100% { transform: scale(1.1); }
+    50% { transform: scale(1.15); }
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+      opacity: 0.4;
+    }
+    25% {
+      transform: translateY(-20px) translateX(10px) rotate(90deg);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateY(-40px) translateX(-10px) rotate(180deg);
+      opacity: 0.3;
+    }
+    75% {
+      transform: translateY(-20px) translateX(15px) rotate(270deg);
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes beam {
+    0% {
+      opacity: 0.1;
+      transform: translateY(-100%);
+    }
+    50% {
+      opacity: 0.3;
+      transform: translateY(0%);
+    }
+    100% {
+      opacity: 0.1;
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes slide {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 60px 60px;
+    }
+  }
+
+  .animate-subtle-zoom {
+    animation: subtle-zoom 20s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 10s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .animate-float {
+    animation: float var(--duration, 15s) ease-in-out infinite;
+  }
+
+  .animate-beam {
+    animation: beam 6s ease-in-out infinite;
+  }
 }

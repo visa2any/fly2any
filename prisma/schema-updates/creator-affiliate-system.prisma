@@ -1,0 +1,409 @@
+// ============================================
+// CREATOR/INFLUENCER AFFILIATE SYSTEM
+// Complete Schema Update
+// ============================================
+
+// Enhanced Affiliate Model
+model Affiliate {
+  // ... (keep all existing fields)
+
+  // ============================================
+  // NEW: CATEGORY SYSTEM
+  // ============================================
+  category String @default("standard")
+  // Options: 'standard', 'creator', 'influencer', 'partner', 'enterprise'
+
+  // ============================================
+  // NEW: CREATOR PROFILE
+  // ============================================
+  creatorProfile Json?
+  /* Structure:
+  {
+    type: 'youtuber' | 'blogger' | 'influencer' | 'tiktoker' | 'podcaster' | 'deal_hunter',
+    primaryPlatform: 'youtube' | 'instagram' | 'tiktok' | 'blog' | 'twitter' | 'podcast',
+    platformHandle: '@username',
+    verifiedChannelUrl: 'https://youtube.com/@channel',
+    audienceSize: 100000,
+    engagementRate: 4.5, // percentage
+    demographics: {
+      primaryCountry: 'US',
+      ageRange: '25-34',
+      genderSplit: { male: 45, female: 55 }
+    },
+    contentNiche: ['travel', 'budget', 'family'],
+    mediaKitUrl: 'https://...',
+    rateCard: {
+      instagramPost: 5000,
+      instagramStory: 2000,
+      youtubeVideo: 10000,
+      tiktokVideo: 3000
+    }
+  }
+  */
+
+  // Channel verification
+  channelVerified Boolean @default(false)
+  channelVerifiedAt DateTime?
+  channelVerifiedBy String? // Admin user ID
+
+  // ============================================
+  // NEW: CUSTOM COMMISSION STRUCTURE
+  // ============================================
+  customCommissionEnabled Boolean @default(false)
+
+  // Per-product commission rates (overrides tier-based rates)
+  customFlightCommission    Float? // e.g., 0.35 = 35%
+  customHotelCommission     Float?
+  customPackageCommission   Float?
+  customCarCommission       Float?
+  customActivityCommission  Float?
+
+  // ============================================
+  // NEW: BONUS STRUCTURE
+  // ============================================
+
+  // Volume Bonus (extra % after X bookings per month)
+  volumeBonusEnabled    Boolean @default(false)
+  volumeBonusThreshold  Int? // e.g., 20 bookings/month
+  volumeBonusRate       Float? // e.g., 0.05 = +5% extra
+
+  // Performance Bonus (extra % if conversion rate high)
+  performanceBonusEnabled Boolean @default(false)
+  performanceBonusTarget  Float? // e.g., 0.03 = 3% conversion rate
+  performanceBonusRate    Float? // e.g., 0.05 = +5% extra
+
+  // Exclusivity Bonus (extra % for not promoting competitors)
+  exclusivityBonusEnabled Boolean @default(false)
+  exclusivityBonusRate    Float? // e.g., 0.10 = +10% extra
+  exclusivityAgreedAt     DateTime?
+  exclusivityEndsAt       DateTime?
+
+  // ============================================
+  // NEW: PREMIUM FEATURES
+  // ============================================
+
+  // Custom landing pages
+  hasCustomLandingPage Boolean @default(false)
+  customLandingPageSlug String? @unique // e.g., 'fly2any.com/deals/travelwithdan'
+
+  // Branded short links
+  hasBrandedLinks Boolean @default(false)
+  brandedDomain   String? // e.g., 'deals.travelwithdan.com' (CNAME to fly2any.com)
+
+  // API access
+  hasApiAccess Boolean @default(false)
+  apiKey       String? @unique
+  apiKeyLastUsed DateTime?
+  apiCallsThisMonth Int @default(0)
+  apiCallsLimit     Int @default(10000) // per month
+
+  // Dedicated account manager
+  hasDedicatedAM Boolean @default(false)
+  accountManagerId String? // Admin user ID
+  accountManagerEmail String?
+
+  // Priority support
+  hasPrioritySupport Boolean @default(false)
+
+  // Early deal access (get notified of deals before public)
+  hasEarlyDealAccess Boolean @default(false)
+
+  // Co-marketing opportunities
+  coMarketingEnabled Boolean @default(false)
+  featuredOnWebsite Boolean @default(false)
+
+  // ============================================
+  // NEW: HOLD PERIOD & TRUST LEVEL
+  // ============================================
+
+  // Trust level affects hold period duration
+  trustLevel String @default("new")
+  // Options: 'new', 'trusted', 'verified', 'platinum'
+
+  // Successful bookings (completed, not refunded)
+  successfulBookingsCount Int @default(0)
+
+  // Failed bookings (cancelled/refunded after payout)
+  failedBookingsCount Int @default(0)
+
+  // Trust score (0-100, affects hold period)
+  trustScore Float @default(50)
+
+  // Custom hold period override (days after trip completion)
+  customHoldPeriod Int? // null = use default based on category + trust level
+
+  // ============================================
+  // NEW: FLAT FEE CAMPAIGNS
+  // ============================================
+  flatFeeCampaigns FlatFeeCampaign[]
+
+  // ============================================
+  // NEW: TRACKING & ANALYTICS
+  // ============================================
+
+  // Content performance tracking
+  topPerformingContent Json?
+  /* Structure:
+  [
+    {
+      contentTitle: "Top 10 Cheapest Flights to Europe",
+      contentUrl: "https://youtube.com/watch?v=...",
+      clicks: 2547,
+      conversions: 52,
+      revenue: 1820,
+      conversionRate: 2.04
+    }
+  ]
+  */
+
+  // Platform-specific metrics
+  platformMetrics Json?
+  /* Structure:
+  {
+    youtube: {
+      subscribers: 150000,
+      avgViews: 50000,
+      engagementRate: 4.2
+    },
+    instagram: {
+      followers: 80000,
+      avgLikes: 3200,
+      engagementRate: 4.0
+    }
+  }
+  */
+
+  // Last metrics update
+  metricsLastUpdated DateTime?
+}
+
+// ============================================
+// NEW: FLAT FEE CAMPAIGNS
+// ============================================
+model FlatFeeCampaign {
+  id String @id @default(cuid())
+
+  // Relationship
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  // Campaign Details
+  campaignName String // "Bali Launch - Instagram Campaign"
+  campaignType String // "sponsored_post", "video_integration", "story_series"
+
+  // Platform & Content
+  platform     String // "instagram", "youtube", "tiktok", "blog"
+  contentType  String // "post", "story", "reel", "video", "article"
+  deliverables String @db.Text // "1 Instagram feed post + 3 stories"
+
+  // Pricing
+  flatFeeAmount Float // $5,000
+  currency      String @default("USD")
+
+  // Plus commission on any bookings?
+  includesCommission Boolean @default(true)
+  commissionRate     Float? // e.g., 0.25 = 25%
+
+  // Status tracking
+  status String @default("draft")
+  // Options: 'draft', 'proposed', 'negotiating', 'approved', 'in_progress', 'awaiting_review', 'completed', 'paid', 'cancelled'
+
+  // Timeline
+  proposedAt  DateTime?
+  approvedAt  DateTime?
+  approvedBy  String? // Admin user ID
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  // Proof of work
+  deliveryProof Json?
+  /* Structure:
+  [
+    {
+      platform: "instagram",
+      type: "post",
+      url: "https://instagram.com/p/...",
+      postedAt: "2025-01-15T10:30:00Z",
+      metrics: {
+        likes: 5420,
+        comments: 234,
+        saves: 891,
+        reach: 45000
+      }
+    }
+  ]
+  */
+
+  // Admin review
+  reviewedAt DateTime?
+  reviewedBy String? // Admin user ID
+  reviewNotes String? @db.Text
+
+  // Payment
+  paidAt DateTime?
+  paidBy String? // Admin user ID
+  paymentMethod String? // "paypal", "stripe", "bank_transfer"
+  invoiceNumber String? @unique
+
+  // Tracking
+  trackingUrl String? // Special tracking URL for this campaign
+  clicks      Int @default(0)
+  conversions Int @default(0)
+  revenue     Float @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([status])
+  @@map("flat_fee_campaigns")
+}
+
+// ============================================
+// ENHANCED COMMISSION MODEL
+// ============================================
+model Commission {
+  // ... (keep all existing fields)
+
+  // ============================================
+  // NEW: ENHANCED STATUS TRACKING
+  // ============================================
+
+  // More granular status
+  status String @default("pending")
+  /* Options:
+    - 'pending': Booking created, waiting for trip
+    - 'trip_in_progress': Trip started
+    - 'trip_completed': Trip finished successfully
+    - 'in_hold_period': Waiting for hold period to expire
+    - 'available': Ready for payout
+    - 'payout_requested': Included in payout request
+    - 'payout_approved': Admin approved payout
+    - 'paid': Money sent
+    - 'cancelled': Booking cancelled before trip
+    - 'reversed': Refunded after payout (clawback)
+  */
+
+  // ============================================
+  // NEW: TRIP LIFECYCLE DATES
+  // ============================================
+
+  tripStartDate DateTime // When trip begins
+  tripEndDate   DateTime // When trip ends
+
+  tripStartedAt   DateTime? // Actual start (for tracking)
+  tripCompletedAt DateTime? // Actual completion
+
+  // Hold period
+  holdPeriodDays Int @default(30) // Days to wait after trip completion
+  holdPeriodEndsAt DateTime? // When commission becomes available
+
+  // ============================================
+  // NEW: CANCELLATION/REFUND TRACKING
+  // ============================================
+
+  cancelledAt DateTime?
+  cancelReason String? @db.Text
+
+  refundedAt DateTime?
+  refundAmount Float?
+  refundReason String? @db.Text
+
+  // Was this a fraud/chargeback?
+  isFraud Boolean @default(false)
+  fraudDetectedAt DateTime?
+  fraudNotes String? @db.Text
+
+  // ============================================
+  // NEW: BONUS TRACKING
+  // ============================================
+
+  // Base commission
+  baseCommissionRate Float // e.g., 0.25 = 25%
+  baseCommissionAmount Float
+
+  // Bonuses applied
+  volumeBonusApplied Boolean @default(false)
+  volumeBonusAmount Float @default(0)
+
+  performanceBonusApplied Boolean @default(false)
+  performanceBonusAmount Float @default(0)
+
+  exclusivityBonusApplied Boolean @default(false)
+  exclusivityBonusAmount Float @default(0)
+
+  // Total commission (base + all bonuses)
+  totalCommissionAmount Float
+
+  // ============================================
+  // NEW: CONTENT ATTRIBUTION
+  // ============================================
+
+  // What content drove this booking?
+  contentSource String? // "youtube", "instagram", "blog", "email"
+  contentUrl    String? // URL to the video/post/article
+  contentTitle  String? // "Top 10 Cheapest Flights to Europe"
+
+  // UTM tracking
+  utmCampaign String?
+  utmSource   String?
+  utmMedium   String?
+  utmContent  String?
+
+  @@index([status, holdPeriodEndsAt])
+  @@index([tripEndDate])
+}
+
+// ============================================
+// NEW: HOLD PERIOD CONFIGURATION
+// ============================================
+model HoldPeriodConfig {
+  id String @id @default(cuid())
+
+  // Which category + trust level
+  category   String // "standard", "creator", "influencer", "partner"
+  trustLevel String // "new", "trusted", "verified", "platinum"
+
+  // Hold period in days after trip completion
+  holdPeriodDays Int
+
+  // Requirements to reach this trust level
+  minSuccessfulBookings Int? // e.g., 10 successful bookings to be "trusted"
+  minTrustScore         Float? // e.g., 80/100
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([category, trustLevel])
+  @@map("hold_period_configs")
+}
+
+// ============================================
+// NEW: COMMISSION LIFECYCLE LOG
+// ============================================
+model CommissionLifecycleLog {
+  id String @id @default(cuid())
+
+  commissionId String
+
+  // Status change
+  fromStatus String
+  toStatus   String
+
+  // When & why
+  changedAt DateTime @default(now())
+  reason    String? @db.Text
+  changedBy String? // Admin user ID (if manual)
+
+  // Automated or manual?
+  automated Boolean @default(true)
+
+  // Metadata
+  metadata Json?
+
+  @@index([commissionId])
+  @@map("commission_lifecycle_logs")
+}

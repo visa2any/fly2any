@@ -198,7 +198,7 @@ export default function AIAnalyticsDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('7d');
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const fetchAnalytics = async () => {
     try {
@@ -256,7 +256,7 @@ export default function AIAnalyticsDashboard() {
               AI Assistant Analytics
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Last updated: {lastRefresh.toLocaleTimeString()} · {data?.demoMode ? 'Demo Mode' : 'Live Data'}
+              Last updated: {lastRefresh?.toLocaleTimeString() || 'Never'} · {data?.demoMode ? 'Demo Mode' : 'Live Data'}
             </p>
           </div>
 

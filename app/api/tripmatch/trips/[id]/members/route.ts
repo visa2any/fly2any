@@ -50,7 +50,7 @@ export async function GET(
         tmp.avg_rating
       FROM group_members gm
       LEFT JOIN tripmatch_user_profiles tmp ON gm.user_id = tmp.user_id
-      WHERE gm.trip_id = ${tripId}
+      WHERE gm.trip_group_id = ${tripId}
         ${statusFilter ? sql`AND gm.status = ${statusFilter}` : sql``}
         ${roleFilter ? sql`AND gm.role = ${roleFilter}` : sql``}
       ORDER BY
@@ -157,7 +157,7 @@ export async function POST(
     const tripData = await sql`
       SELECT tg.*, gm.role as inviter_role
       FROM trip_groups tg
-      LEFT JOIN group_members gm ON tg.id = gm.trip_id AND gm.user_id = ${inviterId}
+      LEFT JOIN group_members gm ON tg.id = gm.trip_group_id AND gm.user_id = ${inviterId}
       WHERE tg.id = ${tripId}
     `;
 

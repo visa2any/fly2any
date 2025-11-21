@@ -35,6 +35,7 @@ import { normalizePrice } from '@/lib/flights/types';
 import CrossSellWidget from '@/components/flights/CrossSellWidget';
 import CheapestDates from '@/components/flights/CheapestDates';
 import FlightInspiration from '@/components/flights/FlightInspiration';
+import { WorldCupCrossSell } from '@/components/world-cup/WorldCupCrossSell';
 import { layout, DESIGN_RULES } from '@/lib/design-system';
 import PriceCalendarMatrix from '@/components/flights/PriceCalendarMatrix';
 import AlternativeAirports from '@/components/flights/AlternativeAirports';
@@ -1711,6 +1712,25 @@ function FlightResultsContent() {
           lang={lang}
         />
       </div>
+
+      {/* World Cup 2026 Cross-Promotion Banner */}
+      {(() => {
+        const worldCupCities = ['LAX', 'EWR', 'JFK', 'LGA', 'DFW', 'ATL', 'MIA', 'MEX', 'MTY', 'YVR', 'SEA', 'SFO', 'SJC', 'BOS', 'PHL', 'IAH', 'KCI', 'YYZ', 'GDL'];
+        const isWorldCupDestination = worldCupCities.some(code =>
+          searchData.to.toUpperCase().includes(code) || searchData.from.toUpperCase().includes(code)
+        );
+
+        return (
+          <div className="mx-auto px-3 md:px-6" style={{ maxWidth: layout.container.maxWidth }}>
+            <WorldCupCrossSell
+              lang={lang}
+              location="flight_results"
+              isRelevant={isWorldCupDestination}
+              compact={!isWorldCupDestination}
+            />
+          </div>
+        );
+      })()}
 
       {/* Main Content Area - 3 COLUMN LAYOUT (Priceline-style) with max-width container */}
       <div

@@ -403,8 +403,14 @@ export function RecentlyViewedSection({ lang = 'en' }: RecentlyViewedSectionProp
     window.open(`/flights/results?${params.toString()}`, '_blank');
   };
 
-  if (recentlyViewed.length === 0) {
-    return null; // Don't show section if no items
+  // Don't show section if no items AND component is mounted (to prevent hydration errors)
+  if (recentlyViewed.length === 0 && mounted) {
+    return null;
+  }
+
+  // During SSR or initial mount, show nothing without causing hydration mismatch
+  if (!mounted) {
+    return null;
   }
 
   return (

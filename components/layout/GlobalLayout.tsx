@@ -90,25 +90,19 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const pathname = usePathname();
   const [language, setLanguage] = useState<Language>('en');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  // Check if current route is admin area
+  // Check if current route uses dedicated layout (admin or agent portal)
   const isAdminRoute = pathname?.startsWith('/admin');
+  const isAgentRoute = pathname?.startsWith('/agent');
 
-  // Fix hydration error: Mark as mounted first
+  // Load saved language preference on client-side only
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Load language from localStorage on mount (client-side only)
-  useEffect(() => {
-    if (!mounted) return; // Skip on server-side
-
+    // Load language immediately on client-side
     const savedLanguage = localStorage.getItem('fly2any_language');
     if (savedLanguage && ['en', 'pt', 'es'].includes(savedLanguage)) {
       setLanguage(savedLanguage as Language);
     }
-  }, [mounted]);
+  }, []);
 
   // Save language to localStorage when it changes
   const handleLanguageChange = (lang: Language) => {
@@ -121,8 +115,8 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
     setMobileDrawerOpen(true);
   };
 
-  // Admin routes use their own dedicated layout
-  if (isAdminRoute) {
+  // Admin and Agent routes use their own dedicated layouts - bypass global layout
+  if (isAdminRoute || isAgentRoute) {
     return <>{children}</>;
   }
 
@@ -143,6 +137,11 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         tabIndex={-1}
         style={{
           // Ensure content doesn't get hidden behind bottom bar
+          // CRITICAL: Ensure full width for all pages
+          width: '100%',
+          maxWidth: '100vw',
+          margin: 0,
+          padding: 0,
           // 64px + safe-area-inset-bottom on mobile, 0 on desktop
           paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
         }}
@@ -159,7 +158,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         onMoreClick={handleMoreClick}
       />
 
-      {/* Mobile Navigation Drawer (triggered from "More" tab) */}
+      {/* Mobile Navigation Drawer */}
       <NavigationDrawer
         isOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
@@ -169,7 +168,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         userId={session?.user?.id}
       />
 
-      {/* AI Travel Assistant - Available on all pages */}
+      {/* AI Travel Assistant */}
       <AITravelAssistant language={language} />
     </>
   );

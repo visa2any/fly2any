@@ -351,6 +351,29 @@ export function Footer({
                   {content.blog}
                 </a>
               </li>
+              <li>
+                <a href="/airlines/delta-air-lines" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  {language === 'en' ? 'Airlines' : language === 'pt' ? 'Companhias Aéreas' : 'Aerolíneas'}
+                </a>
+              </li>
+              <li>
+                <a href="/affiliate" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                  <span className="text-yellow-400 text-xs">⭐</span>
+                  {language === 'en' ? 'Affiliate Program' : language === 'pt' ? 'Programa de Afiliados' : 'Programa de Afiliados'}
+                </a>
+              </li>
+              <li>
+                <a href="/refer" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                  <span className="text-green-400 text-xs">🎁</span>
+                  {language === 'en' ? 'Refer & Earn' : language === 'pt' ? 'Indique e Ganhe' : 'Recomienda y Gana'}
+                </a>
+              </li>
+              <li>
+                <a href="/tripmatch" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                  <span className="text-blue-400 text-xs">✈️</span>
+                  {language === 'en' ? 'TripMatch' : language === 'pt' ? 'TripMatch' : 'TripMatch'}
+                </a>
+              </li>
             </ul>
           </div>
 

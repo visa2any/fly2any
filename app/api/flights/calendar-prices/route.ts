@@ -15,6 +15,12 @@ interface DatePrice {
   approximate: boolean; // Indicates if this is from crowdsourced approximation
   cached: boolean;
   cachedAt?: string;
+  confidence: {
+    score: number; // 0-100
+    level: 'high' | 'medium' | 'low' | 'none';
+    factors: string[]; // Explanation of what affected the score
+    ageHours?: number; // Age of cached data in hours
+  };
 }
 
 interface PriceCalendarData {
@@ -30,6 +36,13 @@ interface PriceCalendarData {
     cached: number;
     approximate: number;
     percentage: number;
+  };
+  confidence: {
+    average: number; // Average confidence score across all dates
+    high: number; // Count of high-confidence dates
+    medium: number; // Count of medium-confidence dates
+    low: number; // Count of low-confidence dates
+    none: number; // Count of no-confidence dates
   };
 }
 
@@ -67,6 +80,120 @@ function extractAirportCode(value: string | null): string {
 function isWeekend(date: Date): boolean {
   const day = date.getDay();
   return day === 0 || day === 6;
+}
+
+/**
+ * Calculate confidence score for a cached price
+ *
+ * Factors considered:
+ * - Age of cache: Fresher = higher confidence
+ * - Data source: Actual search > Approximate
+ * - Route popularity: Popular routes have more stable prices
+ * - Seasonality: Prices near holidays are less predictable
+ *
+ * @returns Confidence object with score (0-100), level, and explanation
+ */
+function calculatePriceConfidence(
+  cachedPrice: any | null,
+  dateStr: string,
+  routeKey: string
+): { score: number; level: 'high' | 'medium' | 'low' | 'none'; factors: string[]; ageHours?: number } {
+  if (!cachedPrice) {
+    return {
+      score: 0,
+      level: 'none',
+      factors: ['No cached data available'],
+    };
+  }
+
+  let score = 100; // Start with perfect score
+  const factors: string[] = [];
+
+  // Factor 1: Age of cached data (most important)
+  let ageHours = 0;
+  if (cachedPrice.timestamp) {
+    const cachedAt = new Date(cachedPrice.timestamp);
+    const now = new Date();
+    ageHours = (now.getTime() - cachedAt.getTime()) / (1000 * 60 * 60);
+
+    if (ageHours < 6) {
+      // Very fresh - excellent
+      factors.push('Very recent data (<6h)');
+      score += 0; // No penalty
+    } else if (ageHours < 24) {
+      // Fresh - good
+      factors.push('Recent data (<24h)');
+      score -= 5;
+    } else if (ageHours < 72) {
+      // 1-3 days old - okay
+      factors.push('Data from last 3 days');
+      score -= 15;
+    } else if (ageHours < 168) {
+      // 3-7 days old - getting stale
+      factors.push('Data from last week');
+      score -= 25;
+    } else {
+      // > 7 days - very stale
+      factors.push('Data older than 1 week');
+      score -= 40;
+    }
+  }
+
+  // Factor 2: Approximate vs actual data
+  if (cachedPrice.approximate) {
+    factors.push('Approximate price (interpolated)');
+    score -= 15;
+  } else {
+    factors.push('Actual search result');
+    score += 5; // Bonus for real data
+  }
+
+  // Factor 3: Check if date is far in future (less reliable)
+  const targetDate = new Date(dateStr);
+  const daysUntilFlight = Math.ceil((targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+  if (daysUntilFlight > 180) {
+    // > 6 months out - airlines haven't finalized pricing
+    factors.push('Far-future date (6+ months)');
+    score -= 20;
+  } else if (daysUntilFlight > 90) {
+    // 3-6 months out - pricing may change
+    factors.push('Future date (3-6 months)');
+    score -= 10;
+  } else if (daysUntilFlight < 14) {
+    // < 2 weeks - prices change rapidly
+    factors.push('Near-term date (<2 weeks)');
+    score -= 10;
+  }
+
+  // Factor 4: Weekend vs weekday (weekends fluctuate more)
+  const targetDateObj = new Date(dateStr);
+  if (isWeekend(targetDateObj) && ageHours > 48) {
+    factors.push('Weekend date (prices vary)');
+    score -= 5;
+  }
+
+  // Ensure score is within bounds
+  score = Math.max(0, Math.min(100, score));
+
+  // Determine confidence level
+  let level: 'high' | 'medium' | 'low' | 'none';
+  if (score >= 80) {
+    level = 'high';
+  } else if (score >= 60) {
+    level = 'medium';
+  } else if (score >= 40) {
+    level = 'low';
+  } else {
+    level = 'none';
+  }
+
+  return {
+    score: Math.round(score),
+    level,
+    factors,
+    ageHours: Math.round(ageHours * 10) / 10,
+  };
 }
 
 /**
@@ -181,6 +308,9 @@ export async function GET(request: NextRequest) {
 
       const cachedPrice = await getCached<any>(priceCacheKey);
 
+      // Calculate confidence score
+      const confidence = calculatePriceConfidence(cachedPrice, dateStr, routeKey);
+
       if (cachedPrice && cachedPrice.price) {
         const price = parseFloat(cachedPrice.price);
         prices.push(price);
@@ -199,6 +329,7 @@ export async function GET(request: NextRequest) {
           approximate: cachedPrice.approximate || false,
           cached: true,
           cachedAt: cachedPrice.timestamp,
+          confidence,
         });
       } else {
         // No cached price available
@@ -210,6 +341,7 @@ export async function GET(request: NextRequest) {
           isCheapest: false,
           approximate: false,
           cached: false,
+          confidence,
         });
       }
     }
@@ -243,6 +375,20 @@ export async function GET(request: NextRequest) {
       percentage: cachedCount > 0 ? (cachedCount / totalDays * 100) : 0,
     };
 
+    // Calculate confidence statistics
+    const confidenceScores = dates.map(d => d.confidence.score);
+    const averageConfidence = confidenceScores.length > 0
+      ? confidenceScores.reduce((sum, s) => sum + s, 0) / confidenceScores.length
+      : 0;
+
+    const confidenceStats = {
+      average: Math.round(averageConfidence),
+      high: dates.filter(d => d.confidence.level === 'high').length,
+      medium: dates.filter(d => d.confidence.level === 'medium').length,
+      low: dates.filter(d => d.confidence.level === 'low').length,
+      none: dates.filter(d => d.confidence.level === 'none').length,
+    };
+
     const response: PriceCalendarData = {
       dates,
       cheapestDate,
@@ -252,6 +398,7 @@ export async function GET(request: NextRequest) {
       currency: 'USD',
       route: routeKey,
       coverage,
+      confidence: confidenceStats,
     };
 
     const duration = Date.now() - startTime;
@@ -262,6 +409,7 @@ export async function GET(request: NextRequest) {
       coverage: `${cachedCount}/${totalDays} (${coverage.percentage.toFixed(1)}%)`,
       approximate: approximateCount,
       cheapest: cheapestDate ? `$${minPrice} on ${cheapestDate}` : 'N/A',
+      confidence: `${confidenceStats.average}/100 avg (H:${confidenceStats.high} M:${confidenceStats.medium} L:${confidenceStats.low})`,
       duration: `${duration}ms`,
     });
 
@@ -272,6 +420,8 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
         'X-Calendar-Coverage': `${coverage.percentage.toFixed(1)}%`,
         'X-Calendar-Cached': cachedCount.toString(),
+        'X-Calendar-Confidence': `${confidenceStats.average}`,
+        'X-Calendar-High-Confidence': `${confidenceStats.high}`,
         'X-Response-Time': `${duration}ms`,
       },
     });

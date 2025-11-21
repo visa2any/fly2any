@@ -12,6 +12,7 @@ import { DestinationsSectionEnhanced } from '@/components/home/DestinationsSecti
 import { FlashDealsSectionEnhanced } from '@/components/home/FlashDealsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { TripMatchPreviewSection } from '@/components/home/TripMatchPreviewSection';
+import { WorldCupHeroSectionEnhanced } from '@/components/world-cup/WorldCupHeroSectionEnhanced';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
 import { CreditCard, Plane, Hotel, Car, Shield, HeadphonesIcon } from 'lucide-react';
@@ -271,9 +272,13 @@ export default function NewHomePage() {
   const [mounted, setMounted] = useState(false);
   const t = content[lang];
 
-  // Trigger initial animation on mount
+  // Trigger initial animation on mount with delay to prevent hydration issues
   useEffect(() => {
-    setMounted(true);
+    // Add small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 50);
+    return () => clearTimeout(timer);
   }, []);
 
   // Restart letter animation every 12 seconds
@@ -321,23 +326,19 @@ export default function NewHomePage() {
               key={`title-${animationKey}`}
               className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide"
             >
-              {mounted ? (
-                t.sectionTitle.split('').map((char, index) => (
-                  <span
-                    key={index}
-                    className="letter-elastic"
-                    style={{
-                      animationDelay: `${index * 0.038}s`,
-                      display: 'inline-block',
-                      minWidth: char === ' ' ? '0.3em' : 'auto',
-                    }}
-                  >
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                ))
-              ) : (
-                <span style={{ opacity: 0 }}>{t.sectionTitle}</span>
-              )}
+              {t.sectionTitle.split('').map((char, index) => (
+                <span
+                  key={index}
+                  className="letter-elastic"
+                  style={{
+                    animationDelay: `${index * 0.038}s`,
+                    display: 'inline-block',
+                    minWidth: char === ' ' ? '0.3em' : 'auto',
+                  }}
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
             </h1>
 
             {/* Separator */}
@@ -351,23 +352,19 @@ export default function NewHomePage() {
                 letterSpacing: '-0.01em',
               }}
             >
-              {mounted ? (
-                t.subtitle.split('').map((char, index) => (
-                  <span
-                    key={index}
-                    className="letter-elastic"
-                    style={{
-                      animationDelay: `${2.0 + (index * 0.028)}s`,
-                      display: 'inline-block',
-                      minWidth: char === ' ' ? '0.3em' : 'auto',
-                    }}
-                  >
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                ))
-              ) : (
-                <span style={{ opacity: 0 }}>{t.subtitle}</span>
-              )}
+              {t.subtitle.split('').map((char, index) => (
+                <span
+                  key={index}
+                  className="letter-elastic"
+                  style={{
+                    animationDelay: `${2.0 + (index * 0.028)}s`,
+                    display: 'inline-block',
+                    minWidth: char === ' ' ? '0.3em' : 'auto',
+                  }}
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
             </p>
           </div>
           </div> {/* Close responsive padding wrapper */}
@@ -634,6 +631,40 @@ export default function NewHomePage() {
       {/* MOBILE OPTIMIZED: Ultra-compact spacing for maximum content visibility */}
       <div className="mt-2 sm:mt-3 md:mt-6">
         <TripMatchPreviewSection />
+      </div>
+
+      {/* ============================================
+          FIFA WORLD CUP 2026 - Prominent Hero Section
+          STRATEGIC: High-visibility placement for major event
+          ============================================ */}
+      <div className="mt-2 sm:mt-3 md:mt-6 px-4 sm:px-6">
+        {/* Section Header - Consistent with other sections */}
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-1">
+                <span
+                  className="bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent"
+                  style={{
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  {lang === 'en' && '⚽ FIFA World Cup 2026'}
+                  {lang === 'pt' && '⚽ Copa do Mundo FIFA 2026'}
+                  {lang === 'es' && '⚽ Copa Mundial FIFA 2026'}
+                </span>
+              </h2>
+              <p className="text-sm text-gray-600">
+                {lang === 'en' && 'Book your complete travel package for the biggest football celebration in history'}
+                {lang === 'pt' && 'Reserve seu pacote completo de viagem para a maior celebração do futebol da história'}
+                {lang === 'es' && 'Reserva tu paquete completo de viaje para la mayor celebración del fútbol de la historia'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <WorldCupHeroSectionEnhanced lang={lang} />
       </div>
 
       {/* ============================================

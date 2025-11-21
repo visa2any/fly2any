@@ -1,6 +1,27 @@
 /**
+ * @deprecated This file is deprecated and will be removed in a future version.
+ *
+ * Please use '@/lib/data/airports-complete' instead which provides:
+ * - 950+ airports across all 7 continents (vs 331 here)
+ * - Comprehensive coverage: Asia, Middle East, Africa, Oceania, Europe, Americas
+ * - Additional metadata: ICAO codes, coordinates, timezones, metro groupings
+ * - Better type definitions and search keywords
+ * - Consistent emoji and flag emojis
+ *
+ * Migration guide:
+ * 1. Change import: import { AIRPORTS } from '@/lib/data/airports-complete'
+ * 2. Update interface: The Airport type now includes more fields (see airports-complete.ts)
+ * 3. Use helper functions: Import from '@/lib/data/airport-helpers' for search/filter utilities
+ *
+ * Legacy file maintained for backward compatibility only.
+ * Last updated: 2025-01-19
+ */
+
+/**
  * Common airport codes with their city/location names
  * This is a curated list of major airports worldwide
+ *
+ * @deprecated - Use @/lib/data/airports-complete instead
  */
 
 export interface Airport {

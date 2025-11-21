@@ -7,14 +7,19 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Check if DATABASE_URL is configured before creating Prisma client
-const isDatabaseConfigured = !!process.env.DATABASE_URL;
+// Check if DATABASE_URL or POSTGRES_URL is configured before creating Prisma client
+const isDatabaseConfigured = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
 
 // Only create PrismaClient if DATABASE_URL is configured
 export const prisma = isDatabaseConfigured
   ? (globalForPrisma.prisma ??
     new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+        },
+      },
     }))
   : null;
 

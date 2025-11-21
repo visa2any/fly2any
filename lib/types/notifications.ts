@@ -208,7 +208,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   digestFrequency: 'never',
 };
 
-export const NOTIFICATION_POLLING_INTERVAL = 30000; // 30 seconds
+export const NOTIFICATION_POLLING_INTERVAL = 60000; // 60 seconds (reduced frequency for performance)
 export const NOTIFICATION_PREVIEW_LIMIT = 5;
 export const NOTIFICATION_PAGE_SIZE = 20;
 

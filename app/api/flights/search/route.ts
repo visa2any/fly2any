@@ -666,54 +666,59 @@ export async function POST(request: NextRequest) {
     if (useMultiDate && departureDates.length > 1) {
       console.log(`🗓️ Multi-date search: ${departureDates.length} departure dates x ${returnDates.length || 1} return dates`);
 
-      // Search each origin-destination-date combination
-      for (const originCode of originCodes) {
-        for (const destinationCode of destinationCodes) {
-          for (const specificDepartureDate of departureDates) {
+      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
+      const searchPromises = originCodes.flatMap(originCode =>
+        destinationCodes.flatMap(destinationCode =>
+          departureDates.flatMap(specificDepartureDate => {
             // If return dates are specified, iterate through them
             if (returnDates.length > 0) {
-              for (const specificReturnDate of returnDates) {
-                try {
-                  console.log(`  Searching: ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}`);
-
-                  const apiResponse = await searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate);
-                  const flights: FlightOffer[] = apiResponse.data || [];
-                  allFlights.push(...flights);
-
-                  // Store dictionaries from last successful response
-                  if (apiResponse.dictionaries) {
-                    dictionaries = apiResponse.dictionaries;
-                  }
-
-                  console.log(`    Found: ${flights.length} flights`);
-                } catch (error) {
-                  console.error(`    Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}:`, error);
-                  // Continue with other combinations even if one fails
-                }
-              }
+              return returnDates.map(specificReturnDate => {
+                console.log(`  Queuing: ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}`);
+                return searchSingleRoute(originCode, destinationCode, specificDepartureDate, specificReturnDate)
+                  .then(apiResponse => {
+                    const flights: FlightOffer[] = apiResponse.data || [];
+                    console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
+                    return { flights, dictionaries: apiResponse.dictionaries };
+                  })
+                  .catch(error => {
+                    console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate} returning ${specificReturnDate}:`, error?.message);
+                    return { flights: [], dictionaries: {} };
+                  });
+              });
             } else {
               // One-way flight - no return date
-              try {
-                console.log(`  Searching: ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
-
-                const apiResponse = await searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined);
-                const flights: FlightOffer[] = apiResponse.data || [];
-                allFlights.push(...flights);
-
-                // Store dictionaries from last successful response
-                if (apiResponse.dictionaries) {
-                  dictionaries = apiResponse.dictionaries;
-                }
-
-                console.log(`    Found: ${flights.length} flights`);
-              } catch (error) {
-                console.error(`    Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate}:`, error);
-                // Continue with other combinations even if one fails
-              }
+              console.log(`  Queuing: ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
+              return [searchSingleRoute(originCode, destinationCode, specificDepartureDate, undefined)
+                .then(apiResponse => {
+                  const flights: FlightOffer[] = apiResponse.data || [];
+                  console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${specificDepartureDate}`);
+                  return { flights, dictionaries: apiResponse.dictionaries };
+                })
+                .catch(error => {
+                  console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${specificDepartureDate}:`, error?.message);
+                  return { flights: [], dictionaries: {} };
+                })];
             }
-          }
+          })
+        )
+      );
+
+      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      const startTime = Date.now();
+
+      // Execute all searches in parallel
+      const results = await Promise.all(searchPromises);
+
+      const parallelTime = Date.now() - startTime;
+      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+
+      // Aggregate results
+      results.forEach(result => {
+        allFlights.push(...result.flights);
+        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
+          dictionaries = result.dictionaries;
         }
-      }
+      });
 
       // Deduplicate results
       console.log(`Total flights before dedup: ${allFlights.length}`);
@@ -725,35 +730,47 @@ export async function POST(request: NextRequest) {
       // Generate date range
       const flexDates = generateFlexibleDateRange(departureDate, departureFlex);
 
-      // Search each origin-destination-date combination
-      for (const originCode of originCodes) {
-        for (const destinationCode of destinationCodes) {
-          for (const flexDate of flexDates) {
-            try {
-              // Calculate return date if trip duration specified
-              const flexReturnDate = (tripDuration && body.returnDate)
-                ? calculateReturnDate(flexDate, tripDuration)
-                : body.returnDate;
+      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
+      const searchPromises = originCodes.flatMap(originCode =>
+        destinationCodes.flatMap(destinationCode =>
+          flexDates.map(flexDate => {
+            // Calculate return date if trip duration specified
+            const flexReturnDate = (tripDuration && body.returnDate)
+              ? calculateReturnDate(flexDate, tripDuration)
+              : body.returnDate;
 
-              console.log(`  Searching: ${originCode} → ${destinationCode} on ${flexDate}${flexReturnDate ? ` returning ${flexReturnDate}` : ''}`);
+            console.log(`  Queuing: ${originCode} → ${destinationCode} on ${flexDate}${flexReturnDate ? ` returning ${flexReturnDate}` : ''}`);
 
-              const apiResponse = await searchSingleRoute(originCode, destinationCode, flexDate, flexReturnDate);
-              const flights: FlightOffer[] = apiResponse.data || [];
-              allFlights.push(...flights);
+            return searchSingleRoute(originCode, destinationCode, flexDate, flexReturnDate)
+              .then(apiResponse => {
+                const flights: FlightOffer[] = apiResponse.data || [];
+                console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode} on ${flexDate}`);
+                return { flights, dictionaries: apiResponse.dictionaries };
+              })
+              .catch(error => {
+                console.error(`    ❌ Error searching ${originCode} → ${destinationCode} on ${flexDate}:`, error?.message);
+                return { flights: [], dictionaries: {} };
+              });
+          })
+        )
+      );
 
-              // Store dictionaries from last successful response
-              if (apiResponse.dictionaries) {
-                dictionaries = apiResponse.dictionaries;
-              }
+      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      const startTime = Date.now();
 
-              console.log(`    Found: ${flights.length} flights`);
-            } catch (error) {
-              console.error(`    Error searching ${originCode} → ${destinationCode} on ${flexDate}:`, error);
-              // Continue with other combinations even if one fails
-            }
-          }
+      // Execute all searches in parallel
+      const results = await Promise.all(searchPromises);
+
+      const parallelTime = Date.now() - startTime;
+      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+
+      // Aggregate results
+      results.forEach(result => {
+        allFlights.push(...result.flights);
+        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
+          dictionaries = result.dictionaries;
         }
-      }
+      });
 
       // Deduplicate results
       console.log(`Total flights before dedup: ${allFlights.length}`);
@@ -761,27 +778,41 @@ export async function POST(request: NextRequest) {
       console.log(`Total flights after dedup: ${allFlights.length}`);
     } else {
       // Standard search with multiple airports (no flexible dates)
-      for (const originCode of originCodes) {
-        for (const destinationCode of destinationCodes) {
-          try {
-            console.log(`  Searching: ${originCode} → ${destinationCode}`);
 
-            const apiResponse = await searchSingleRoute(originCode, destinationCode, departureDate, body.returnDate);
-            const flights: FlightOffer[] = apiResponse.data || [];
-            allFlights.push(...flights);
+      // ⚡ PERFORMANCE: Parallelize all searches using Promise.all
+      const searchPromises = originCodes.flatMap(originCode =>
+        destinationCodes.map(destinationCode => {
+          console.log(`  Queuing: ${originCode} → ${destinationCode}`);
 
-            // Store dictionaries from last successful response
-            if (apiResponse.dictionaries) {
-              dictionaries = apiResponse.dictionaries;
-            }
+          return searchSingleRoute(originCode, destinationCode, departureDate, body.returnDate)
+            .then(apiResponse => {
+              const flights: FlightOffer[] = apiResponse.data || [];
+              console.log(`    ✅ Found: ${flights.length} flights for ${originCode} → ${destinationCode}`);
+              return { flights, dictionaries: apiResponse.dictionaries };
+            })
+            .catch(error => {
+              console.error(`    ❌ Error searching ${originCode} → ${destinationCode}:`, error?.message);
+              return { flights: [], dictionaries: {} };
+            });
+        })
+      );
 
-            console.log(`    Found: ${flights.length} flights`);
-          } catch (error) {
-            console.error(`    Error searching ${originCode} → ${destinationCode}:`, error);
-            // Continue with other combinations even if one fails
-          }
+      console.log(`⚡ Executing ${searchPromises.length} searches IN PARALLEL...`);
+      const startTime = Date.now();
+
+      // Execute all searches in parallel
+      const results = await Promise.all(searchPromises);
+
+      const parallelTime = Date.now() - startTime;
+      console.log(`⚡ Parallel search completed in ${parallelTime}ms (avg ${Math.round(parallelTime / searchPromises.length)}ms per route)`);
+
+      // Aggregate results
+      results.forEach(result => {
+        allFlights.push(...result.flights);
+        if (result.dictionaries && Object.keys(result.dictionaries).length > 0) {
+          dictionaries = result.dictionaries;
         }
-      }
+      });
 
       // Deduplicate results
       if (totalCombinations > 1) {

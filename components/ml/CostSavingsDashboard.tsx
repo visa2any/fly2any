@@ -289,7 +289,7 @@ export const CostSavingsDashboard: React.FC<CostSavingsDashboardProps> = ({
   const [analytics, setAnalytics] = useState<MLAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>(period);
 
   const fetchAnalytics = async () => {
@@ -374,7 +374,7 @@ export const CostSavingsDashboard: React.FC<CostSavingsDashboardProps> = ({
             ML Cost Savings Dashboard
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Last updated: {lastRefresh.toLocaleTimeString()} · {analytics.overview.totalSearches.toLocaleString()} searches analyzed
+            Last updated: {lastRefresh?.toLocaleTimeString() || 'Never'} · {analytics.overview.totalSearches.toLocaleString()} searches analyzed
           </p>
         </div>
 

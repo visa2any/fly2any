@@ -274,6 +274,14 @@ export function NavigationDrawer({
                 <span className="text-2xl">🛡️</span>
                 <span className="text-base">{translations.travelInsurance}</span>
               </a>
+              <a
+                href="/world-cup-2026"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 rounded-xl transition-all duration-200 font-black shadow-lg"
+              >
+                <span className="text-2xl animate-pulse">⚽</span>
+                <span className="text-base">WORLD CUP 2026 🏆</span>
+              </a>
             </nav>
 
             {/* Divider */}

@@ -3,9 +3,15 @@
  * Team 2 - Notification & Communication
  *
  * Handles all notification-related business logic
+ *
+ * PERFORMANCE OPTIMIZATIONS:
+ * - Redis caching with 5-minute TTL
+ * - Parallel database queries
+ * - Optimized query patterns
  */
 
 import { getPrismaClient } from '@/lib/prisma';
+import redis, { isRedisEnabled } from '@/lib/cache/redis';
 import {
   Notification,
   NotificationType,
@@ -18,6 +24,8 @@ import {
   NOTIFICATION_PAGE_SIZE,
 } from '@/lib/types/notifications';
 
+const CACHE_TTL = 300; // 5 minutes
+
 // ==================== Notification Creation ====================
 
 /**
@@ -28,7 +36,7 @@ export async function createNotification(
 ): Promise<Notification> {
   try {
     const prisma = getPrismaClient();
-    const notification = await prisma.notification.create({
+    const notification = await prisma!.notification.create({
       data: {
         userId: data.userId,
         type: data.type,
@@ -63,7 +71,7 @@ export async function createBulkNotifications(
 ): Promise<Notification[]> {
   try {
     const prisma = getPrismaClient();
-    const created = await prisma.notification.createMany({
+    const created = await prisma!.notification.createMany({
       data: notifications.map(n => ({
         userId: n.userId,
         type: n.type,
@@ -87,6 +95,7 @@ export async function createBulkNotifications(
 
 /**
  * Get notifications for a user with filters and pagination
+ * PERFORMANCE OPTIMIZATION: Redis caching + parallel queries
  */
 export async function getNotifications(
   userId: string,
@@ -129,23 +138,61 @@ export async function getNotifications(
       }
     }
 
-    // Get total count
-    const total = await prisma.notification.count({ where });
+    // Generate cache key from parameters
+    const cacheKey = `notifications:${userId}:${JSON.stringify({ page, limit, filters, sortBy, sortOrder })}`;
 
-    // Get unread count
-    const unreadCount = await prisma.notification.count({
-      where: { userId, read: false },
-    });
+    // STEP 1: Check Redis cache first
+    if (isRedisEnabled() && redis) {
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+          try {
+            // Attempt to parse and validate cached data
+            const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
 
-    // Get notifications
-    const notifications = await prisma.notification.findMany({
-      where,
-      orderBy: { [sortBy]: sortOrder },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+            // Validate structure - must have notifications array and metadata
+            if (
+              parsed &&
+              typeof parsed === 'object' &&
+              Array.isArray(parsed.notifications) &&
+              typeof parsed.total === 'number' &&
+              typeof parsed.unreadCount === 'number'
+            ) {
+              console.log('✅ Notifications: Cache HIT');
+              return parsed;
+            } else {
+              // Invalid structure but don't delete - will be overwritten
+              console.log('⚠️  Notifications: Invalid cache structure, will refresh');
+            }
+          } catch (parseError) {
+            // Invalid JSON but don't delete - will be overwritten
+            console.log('⚠️  Notifications: Cache parse error, will refresh');
+          }
+        } else {
+          console.log('⚠️  Notifications: Cache MISS');
+        }
+      } catch (cacheError) {
+        console.error('⚠️  Redis cache read error:', cacheError);
+        // Continue to database query on cache error - don't delete cache
+      }
+    }
 
-    return {
+    // STEP 2: Run all 3 database queries IN PARALLEL (not sequential!)
+    // This reduces query time from 3x sequential to 1x parallel
+    const [total, unreadCount, notifications] = await Promise.all([
+      prisma.notification.count({ where }),
+      prisma.notification.count({
+        where: { userId, read: false },
+      }),
+      prisma.notification.findMany({
+        where,
+        orderBy: { [sortBy]: sortOrder },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    const result = {
       notifications: notifications.map(n => ({
         ...n,
         type: n.type as NotificationType,
@@ -160,6 +207,19 @@ export async function getNotifications(
       limit,
       unreadCount,
     };
+
+    // STEP 3: Cache the result (if Redis enabled)
+    if (isRedisEnabled() && redis) {
+      try {
+        await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(result));
+        console.log('✅ Notifications: Cached for', CACHE_TTL, 'seconds');
+      } catch (cacheError) {
+        console.error('Redis cache write error:', cacheError);
+        // Non-critical error, continue
+      }
+    }
+
+    return result;
   } catch (error) {
     console.error('Error getting notifications:', error);
     throw new Error('Failed to get notifications');
@@ -175,7 +235,7 @@ export async function getNotificationById(
 ): Promise<Notification | null> {
   try {
     const prisma = getPrismaClient();
-    const notification = await prisma.notification.findFirst({
+    const notification = await prisma!.notification.findFirst({
       where: {
         id: notificationId,
         userId,
@@ -207,7 +267,7 @@ export async function getNotificationById(
 export async function getUnreadCount(userId: string): Promise<number> {
   try {
     const prisma = getPrismaClient();
-    const count = await prisma.notification.count({
+    const count = await prisma!.notification.count({
       where: {
         userId,
         read: false,
@@ -290,7 +350,7 @@ export async function markAsRead(
 ): Promise<Notification> {
   try {
     const prisma = getPrismaClient();
-    const notification = await prisma.notification.update({
+    const notification = await prisma!.notification.update({
       where: {
         id: notificationId,
         userId,
@@ -322,7 +382,7 @@ export async function markAsRead(
 export async function markAllAsRead(userId: string): Promise<number> {
   try {
     const prisma = getPrismaClient();
-    const result = await prisma.notification.updateMany({
+    const result = await prisma!.notification.updateMany({
       where: {
         userId,
         read: false,
@@ -349,7 +409,7 @@ export async function markAsUnread(
 ): Promise<Notification> {
   try {
     const prisma = getPrismaClient();
-    const notification = await prisma.notification.update({
+    const notification = await prisma!.notification.update({
       where: {
         id: notificationId,
         userId,
@@ -386,7 +446,7 @@ export async function deleteNotification(
 ): Promise<void> {
   try {
     const prisma = getPrismaClient();
-    await prisma.notification.delete({
+    await prisma!.notification.delete({
       where: {
         id: notificationId,
         userId,
@@ -404,7 +464,7 @@ export async function deleteNotification(
 export async function deleteAllRead(userId: string): Promise<number> {
   try {
     const prisma = getPrismaClient();
-    const result = await prisma.notification.deleteMany({
+    const result = await prisma!.notification.deleteMany({
       where: {
         userId,
         read: true,
@@ -424,7 +484,7 @@ export async function deleteAllRead(userId: string): Promise<number> {
 export async function deleteAllNotifications(userId: string): Promise<number> {
   try {
     const prisma = getPrismaClient();
-    const result = await prisma.notification.deleteMany({
+    const result = await prisma!.notification.deleteMany({
       where: { userId },
     });
 

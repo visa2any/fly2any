@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { X, ChevronDown, MapPin, PlaneTakeoff, PlaneLanding } from 'lucide-react';
+import { AIRPORTS as AIRPORTS_DATA } from '@/lib/data/airports-complete';
 
 export interface Airport {
   code: string;
@@ -20,71 +21,37 @@ interface MultiAirportSelectorProps {
   lang?: 'en' | 'pt' | 'es';
 }
 
-// Popular airports database
-const AIRPORTS: Airport[] = [
-  // NYC Metro
-  { code: 'JFK', name: 'John F. Kennedy Intl', city: 'New York', country: 'USA', emoji: '🗽' },
-  { code: 'EWR', name: 'Newark Liberty Intl', city: 'Newark', country: 'USA', emoji: '🗽' },
-  { code: 'LGA', name: 'LaGuardia', city: 'New York', country: 'USA', emoji: '🗽' },
+// Convert comprehensive airport data to component format
+const AIRPORTS: Airport[] = AIRPORTS_DATA.map(airport => ({
+  code: airport.code,
+  name: airport.name,
+  city: airport.city,
+  country: airport.country,
+  emoji: airport.emoji,
+}));
 
-  // LA Metro
-  { code: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'USA', emoji: '🌴' },
-  { code: 'SNA', name: 'John Wayne Airport', city: 'Orange County', country: 'USA', emoji: '🌴' },
-  { code: 'ONT', name: 'Ontario Intl', city: 'Ontario', country: 'USA', emoji: '🌴' },
-  { code: 'BUR', name: 'Bob Hope Airport', city: 'Burbank', country: 'USA', emoji: '🌴' },
-  { code: 'LGB', name: 'Long Beach Airport', city: 'Long Beach', country: 'USA', emoji: '🌴' },
+// Metro area groupings - Auto-generated from airports with metro field
+const METRO_AREAS: Record<string, { name: string; codes: string[]; icon: string }> = {};
 
-  // London Metro
-  { code: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { code: 'LGW', name: 'London Gatwick', city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { code: 'STN', name: 'London Stansted', city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { code: 'LTN', name: 'London Luton', city: 'London', country: 'UK', emoji: '🇬🇧' },
-  { code: 'LCY', name: 'London City', city: 'London', country: 'UK', emoji: '🇬🇧' },
+// Build metro areas from airport data
+const metroMap = new Map<string, { codes: string[]; icon: string; cityName: string }>();
+AIRPORTS_DATA.forEach(airport => {
+  if (airport.metro) {
+    if (!metroMap.has(airport.metro)) {
+      metroMap.set(airport.metro, { codes: [], icon: airport.emoji, cityName: airport.city });
+    }
+    metroMap.get(airport.metro)!.codes.push(airport.code);
+  }
+});
 
-  // São Paulo Metro
-  { code: 'GRU', name: 'São Paulo/Guarulhos Intl', city: 'São Paulo', country: 'Brazil', emoji: '🇧🇷' },
-  { code: 'CGH', name: 'Congonhas Airport', city: 'São Paulo', country: 'Brazil', emoji: '🇧🇷' },
-  { code: 'VCP', name: 'Viracopos Intl', city: 'Campinas', country: 'Brazil', emoji: '🇧🇷' },
-
-  // Tokyo Metro
-  { code: 'NRT', name: 'Narita Intl', city: 'Tokyo', country: 'Japan', emoji: '🗾' },
-  { code: 'HND', name: 'Tokyo Haneda', city: 'Tokyo', country: 'Japan', emoji: '🗾' },
-
-  // Paris Metro
-  { code: 'CDG', name: 'Charles de Gaulle', city: 'Paris', country: 'France', emoji: '🗼' },
-  { code: 'ORY', name: 'Paris Orly', city: 'Paris', country: 'France', emoji: '🗼' },
-
-  // Other Major Hubs
-  { code: 'DXB', name: 'Dubai Intl', city: 'Dubai', country: 'UAE', emoji: '🏙️' },
-  { code: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore', emoji: '🇸🇬' },
-  { code: 'MIA', name: 'Miami Intl', city: 'Miami', country: 'USA', emoji: '🏖️' },
-  { code: 'SFO', name: 'San Francisco Intl', city: 'San Francisco', country: 'USA', emoji: '🌉' },
-  { code: 'ORD', name: 'O\'Hare Intl', city: 'Chicago', country: 'USA', emoji: '🏙️' },
-  { code: 'YYZ', name: 'Toronto Pearson', city: 'Toronto', country: 'Canada', emoji: '🇨🇦' },
-  { code: 'BCN', name: 'Barcelona-El Prat', city: 'Barcelona', country: 'Spain', emoji: '🇪🇸' },
-  { code: 'FCO', name: 'Fiumicino', city: 'Rome', country: 'Italy', emoji: '🏛️' },
-  { code: 'FRA', name: 'Frankfurt Airport', city: 'Frankfurt', country: 'Germany', emoji: '🇩🇪' },
-  { code: 'AMS', name: 'Amsterdam Schiphol', city: 'Amsterdam', country: 'Netherlands', emoji: '🇳🇱' },
-  { code: 'MAD', name: 'Madrid-Barajas', city: 'Madrid', country: 'Spain', emoji: '🇪🇸' },
-  { code: 'SYD', name: 'Kingsford Smith', city: 'Sydney', country: 'Australia', emoji: '🦘' },
-  { code: 'GIG', name: 'Rio de Janeiro/Galeão Intl', city: 'Rio de Janeiro', country: 'Brazil', emoji: '🏖️' },
-  { code: 'EZE', name: 'Ministro Pistarini Intl', city: 'Buenos Aires', country: 'Argentina', emoji: '🥩' },
-  { code: 'BOG', name: 'El Dorado Intl', city: 'Bogotá', country: 'Colombia', emoji: '☕' },
-  { code: 'LIM', name: 'Jorge Chávez Intl', city: 'Lima', country: 'Peru', emoji: '🦙' },
-  { code: 'SCL', name: 'Arturo Merino Benítez Intl', city: 'Santiago', country: 'Chile', emoji: '🏔️' },
-  { code: 'MEX', name: 'Mexico City Intl', city: 'Mexico City', country: 'Mexico', emoji: '🌮' },
-  { code: 'CUN', name: 'Cancún Intl', city: 'Cancún', country: 'Mexico', emoji: '🏝️' },
-];
-
-// Metro area groupings
-const METRO_AREAS: Record<string, { name: string; codes: string[]; icon: string }> = {
-  NYC: { name: 'All NYC Airports', codes: ['JFK', 'EWR', 'LGA'], icon: '🗽' },
-  LA: { name: 'All LA Airports', codes: ['LAX', 'SNA', 'ONT', 'BUR', 'LGB'], icon: '🌴' },
-  LON: { name: 'All London Airports', codes: ['LHR', 'LGW', 'STN', 'LTN', 'LCY'], icon: '🇬🇧' },
-  SAO: { name: 'All São Paulo Airports', codes: ['GRU', 'CGH', 'VCP'], icon: '🇧🇷' },
-  TYO: { name: 'All Tokyo Airports', codes: ['NRT', 'HND'], icon: '🗾' },
-  PAR: { name: 'All Paris Airports', codes: ['CDG', 'ORY'], icon: '🗼' },
-};
+// Convert map to METRO_AREAS format
+metroMap.forEach((data, metroCode) => {
+  METRO_AREAS[metroCode] = {
+    name: `All ${data.cityName} Airports`,
+    codes: data.codes,
+    icon: data.icon,
+  };
+});
 
 export default function MultiAirportSelector({
   value = [],

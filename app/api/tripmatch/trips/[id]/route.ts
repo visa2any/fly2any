@@ -511,7 +511,7 @@ export async function GET(
         tmp.*
       FROM group_members gm
       LEFT JOIN tripmatch_user_profiles tmp ON gm.user_id = tmp.user_id
-      WHERE gm.trip_id = ${tripId}
+      WHERE gm.trip_group_id = ${tripId}
       ORDER BY
         CASE gm.role
           WHEN 'creator' THEN 1

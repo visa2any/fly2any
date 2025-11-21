@@ -151,7 +151,7 @@ function MiniSparkline({ data, name }: { data: MetricData[]; name: string }) {
 export default function PerformanceDashboard() {
   const [metrics, setMetrics] = useState<Record<string, MetricData[]>>({});
   const [latest, setLatest] = useState<Record<string, MetricData>>({});
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const metricDescriptions = {
@@ -244,7 +244,7 @@ export default function PerformanceDashboard() {
             </div>
           </div>
           <div className="text-sm text-gray-500">
-            Last updated: {lastUpdate.toLocaleTimeString()}
+            Last updated: {lastUpdate?.toLocaleTimeString() || 'Never'}
           </div>
         </div>
 

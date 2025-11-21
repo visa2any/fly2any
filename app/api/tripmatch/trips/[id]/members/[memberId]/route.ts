@@ -39,7 +39,7 @@ export async function GET(
         tmp.avg_rating
       FROM group_members gm
       LEFT JOIN tripmatch_user_profiles tmp ON gm.user_id = tmp.user_id
-      WHERE gm.id = ${memberId} AND gm.trip_id = ${tripId}
+      WHERE gm.id = ${memberId} AND gm.trip_group_id = ${tripId}
     `;
 
     if (result.length === 0) {
@@ -130,8 +130,8 @@ export async function PATCH(
     const memberData = await sql`
       SELECT gm.*, tg.max_members, tg.title as trip_title, tg.creator_id
       FROM group_members gm
-      JOIN trip_groups tg ON gm.trip_id = tg.id
-      WHERE gm.id = ${memberId} AND gm.trip_id = ${tripId}
+      JOIN trip_groups tg ON gm.trip_group_id = tg.id
+      WHERE gm.id = ${memberId} AND gm.trip_group_id = ${tripId}
     `;
 
     if (memberData.length === 0) {
@@ -337,8 +337,8 @@ export async function DELETE(
     const memberData = await sql`
       SELECT gm.*, tg.creator_id
       FROM group_members gm
-      JOIN trip_groups tg ON gm.trip_id = tg.id
-      WHERE gm.id = ${memberId} AND gm.trip_id = ${tripId}
+      JOIN trip_groups tg ON gm.trip_group_id = tg.id
+      WHERE gm.id = ${memberId} AND gm.trip_group_id = ${tripId}
     `;
 
     if (memberData.length === 0) {

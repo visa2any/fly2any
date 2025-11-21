@@ -156,7 +156,7 @@ export async function safeTransaction<T>(
   operations: ((tx: any) => Promise<T>)[]
 ): Promise<T[]> {
   try {
-    return await prisma.$transaction(
+    return await prisma!.$transaction(
       operations.map((op) => op(prisma)),
       {
         maxWait: 5000, // 5 seconds max wait
@@ -194,7 +194,7 @@ export function hasAccess(userId: string, resourceUserId: string): boolean {
  *
  * @example
  * const where = buildAccessControlWhere(userId, { status: 'active' });
- * const bookings = await prisma.booking.findMany({ where });
+ * const bookings = await prisma!.booking.findMany({ where });
  */
 export function buildAccessControlWhere(
   userId: string,
@@ -333,7 +333,7 @@ export async function logDatabaseOperation(
   resourceId: string
 ): Promise<void> {
   try {
-    await prisma.auditLog.create({
+    await prisma!.auditLog.create({
       data: {
         operation,
         userId,

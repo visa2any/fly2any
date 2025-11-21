@@ -19,6 +19,7 @@ export type UserPreferences = {
   priceAlertEmails: boolean;
   dealAlerts: boolean;
   newsletterOptIn: boolean;
+  notifications: any; // JsonValue - Advanced notification settings
 
   // UI preferences
   currency: string;
@@ -60,7 +61,7 @@ class PreferencesService {
 
     try {
       // Try to find existing preferences
-      let preferences = await prisma.userPreferences.findUnique({
+      let preferences = await prisma!.userPreferences.findUnique({
         where: { userId },
       });
 
@@ -89,7 +90,7 @@ class PreferencesService {
 
     try {
       // Verify user exists before creating preferences
-      const user = await prisma.user.findUnique({
+      const user = await prisma!.user.findUnique({
         where: { id: userId },
         select: { id: true },
       });
@@ -98,7 +99,7 @@ class PreferencesService {
         throw new Error(`User with ID ${userId} does not exist`);
       }
 
-      const preferences = await prisma.userPreferences.create({
+      const preferences = await prisma!.userPreferences.create({
         data: {
           userId,
           // Travel preferences
@@ -111,6 +112,7 @@ class PreferencesService {
           priceAlertEmails: initialData?.priceAlertEmails ?? true,
           dealAlerts: initialData?.dealAlerts ?? true,
           newsletterOptIn: initialData?.newsletterOptIn ?? false,
+          notifications: undefined, // Advanced notification settings (JSON)
 
           // UI preferences (defaults from schema)
           currency: initialData?.currency ?? 'USD',
@@ -148,7 +150,7 @@ class PreferencesService {
         }
       });
 
-      const preferences = await prisma.userPreferences.update({
+      const preferences = await prisma!.userPreferences.update({
         where: { userId },
         data: updateData,
       });
@@ -169,7 +171,7 @@ class PreferencesService {
     }
 
     try {
-      await prisma.userPreferences.delete({
+      await prisma!.userPreferences.delete({
         where: { userId },
       });
     } catch (error) {
@@ -187,7 +189,7 @@ class PreferencesService {
     }
 
     try {
-      const count = await prisma.userPreferences.count({
+      const count = await prisma!.userPreferences.count({
         where: { userId },
       });
 

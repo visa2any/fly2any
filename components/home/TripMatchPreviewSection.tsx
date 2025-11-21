@@ -386,6 +386,9 @@ export function TripMatchPreviewSection() {
     error?: string;
   }
 
+  // PERFORMANCE OPTIMIZATION: Use optimized featured API with Redis caching
+  // This endpoint has server-side Redis cache (15min) + client-side cache (5min)
+  // Result: Extremely fast loads with minimal database queries
   const {
     data: apiData,
     loading,
@@ -395,38 +398,41 @@ export function TripMatchPreviewSection() {
     cacheAgeFormatted,
     refresh,
   } = useClientCache<TripMatchResponse>(
-    '/api/tripmatch/trips?trending=true&limit=6',
+    '/api/tripmatch/featured',
     {
-      ttl: 300, // 5 minutes (user-generated content changes frequently)
+      ttl: 300, // 5 minutes client-side cache
     }
   );
 
   // Transform API data to component format
   const trips = useMemo(() => {
-    if (!apiData?.data || apiData.data.length === 0) {
+    // Handle both response formats: direct array or wrapped in data object
+    const rawTrips = Array.isArray(apiData) ? apiData : (apiData?.data || []);
+
+    if (rawTrips.length === 0) {
       console.log('⚠️  TripMatch: No trips found, using fallback data');
       return FALLBACK_TRIPS;
     }
 
-    return apiData.data.map((trip: any) => ({
+    return rawTrips.map((trip: any) => ({
       id: trip.id,
-      title: trip.title,
+      title: trip.name || trip.title, // API uses 'name' field
       destination: trip.destination,
-      coverImageUrl: trip.coverImageUrl || trip.cover_image_url,
-      category: formatCategory(trip.category),
+      coverImageUrl: trip.coverImage || trip.coverImageUrl || trip.cover_image_url,
+      category: formatCategory(trip.category || 'Adventure'), // Default category
       dates: formatDateRange(trip.startDate || trip.start_date, trip.endDate || trip.end_date),
-      members: trip.currentMembers || trip.current_members || 0,
+      members: trip.currentMembers || trip.current_members || trip.members?.length || 0,
       maxMembers: trip.maxMembers || trip.max_members || 12,
-      pricePerPerson: trip.estimatedPricePerPerson || trip.estimated_price_per_person || 0,
-      creatorCredits: calculateCreatorCredits(trip.currentMembers || trip.current_members || 0),
-      trending: trip.trending,
-      featured: trip.featured,
-      memberAvatars: generateAvatars(trip.currentMembers || trip.current_members || 0),
+      pricePerPerson: trip.minBudget || trip.estimatedPricePerPerson || trip.estimated_price_per_person || 0,
+      creatorCredits: calculateCreatorCredits(trip.currentMembers || trip.current_members || trip.members?.length || 0),
+      trending: trip.trending || false,
+      featured: trip.featured || false,
+      memberAvatars: generateAvatars(trip.currentMembers || trip.current_members || trip.members?.length || 0),
     }));
   }, [apiData]);
 
   const error = fetchError ? fetchError.message : null;
-  const usingFallback = !apiData?.data || apiData.data.length === 0;
+  const usingFallback = (Array.isArray(apiData) ? apiData : (apiData?.data || [])).length === 0;
 
   return (
     <section className="py-2 sm:py-2.5 md:py-3 animate-fadeIn" style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 16px' }}>

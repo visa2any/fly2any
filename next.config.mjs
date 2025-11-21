@@ -29,7 +29,7 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@/components'], // Tree-shake icons and components
   },
 
-  // Webpack configuration (Phase 8 - Quick Win 1D)
+  // Webpack configuration (Phase 8 - Quick Win 1D + Performance Optimization)
   webpack: (config, { dev, isServer }) => {
     // Mobile build: Ignore API routes (they're server-side only)
     // Mobile apps call the production web API instead

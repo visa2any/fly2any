@@ -89,8 +89,8 @@ export function useConversationSync() {
           recordSuccess();
         }
       } catch (error) {
-        // Session check failed - continue without auth
-        console.debug('[ConversationSync] Session check unavailable:', error instanceof Error ? error.message : 'Unknown error');
+        // Session check failed - continue without auth (this is expected on cold start)
+        // Silently fail - circuit breaker will prevent excessive retries
         recordFailure();
       }
     };
@@ -180,10 +180,22 @@ export function useDatabaseSync(
   isAuthenticated: boolean
 ) {
   const lastSyncRef = useRef<number>(0);
-  const SYNC_INTERVAL = 30000; // 30 seconds
+  const conversationRef = useRef<ConversationState | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const SYNC_INTERVAL = 60000; // 60 seconds (increased from 30s for performance)
+
+  // Update conversation ref without triggering re-render
+  useEffect(() => {
+    conversationRef.current = conversation;
+  }, [conversation]);
 
   useEffect(() => {
-    if (!isAuthenticated || !conversation) {
+    if (!isAuthenticated) {
+      // Clear interval if user logs out
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
       return;
     }
 
@@ -193,9 +205,15 @@ export function useDatabaseSync(
     }
 
     const syncToDatabase = async () => {
+      const currentConversation = conversationRef.current;
+
+      if (!currentConversation || currentConversation.messages.length === 0) {
+        return;
+      }
+
       const now = Date.now();
 
-      // Throttle syncs to every 30 seconds
+      // Throttle syncs to every 60 seconds
       if (now - lastSyncRef.current < SYNC_INTERVAL) {
         return;
       }
@@ -208,7 +226,7 @@ export function useDatabaseSync(
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(conversation),
+            body: JSON.stringify(currentConversation),
           },
           3000 // 3 second timeout
         );
@@ -216,19 +234,29 @@ export function useDatabaseSync(
         lastSyncRef.current = now;
         recordSuccess();
       } catch (error) {
-        console.warn('[ConversationSync] Failed to sync conversation (using localStorage):', 
+        console.warn('[ConversationSync] Failed to sync conversation (using localStorage):',
           error instanceof Error ? error.message : 'Unknown error');
         recordFailure();
         // Fail silently - localStorage is still working
       }
     };
 
-    // Sync on mount
-    syncToDatabase();
+    // Only sync if we haven't synced recently
+    const timeSinceLastSync = Date.now() - lastSyncRef.current;
+    if (timeSinceLastSync >= SYNC_INTERVAL) {
+      syncToDatabase();
+    }
 
-    // Set up periodic sync
-    const interval = setInterval(syncToDatabase, SYNC_INTERVAL);
+    // Set up periodic sync only once
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(syncToDatabase, SYNC_INTERVAL);
+    }
 
-    return () => clearInterval(interval);
-  }, [conversation, isAuthenticated]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isAuthenticated]); // Only depend on isAuthenticated, not conversation
 }

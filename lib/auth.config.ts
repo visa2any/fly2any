@@ -47,7 +47,7 @@ export const authConfig = {
           throw new Error('Database not configured');
         }
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma!.user.findUnique({
           where: { email: credentials.email as string },
         });
 
@@ -91,13 +91,13 @@ export const authConfig = {
         }
 
         try {
-          const existingUser = await prisma.user.findUnique({
+          const existingUser = await prisma!.user.findUnique({
             where: { email: user.email! },
           });
 
           if (!existingUser) {
             // Create user preferences for new users
-            await prisma.user.create({
+            await prisma!.user.create({
               data: {
                 email: user.email!,
                 name: user.name,
@@ -133,7 +133,7 @@ export const authConfig = {
         if (prisma) {
           try {
             // Use updateMany to avoid throwing errors if user doesn't exist
-            await prisma.user.updateMany({
+            await prisma!.user.updateMany({
               where: { id: token.sub! },
               data: { lastLoginAt: new Date() },
             });

@@ -28,7 +28,7 @@ export async function requireAdmin(request: NextRequest): Promise<AdminContext |
   }
 
   // Check if user is admin
-  const adminUser = await prisma.adminUser.findUnique({
+  const adminUser = await prisma!.adminUser.findUnique({
     where: { userId: session.user.id }
   })
 
@@ -91,7 +91,7 @@ export async function logAdminAction(
     const userAgent = request.headers.get('user-agent')
     const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
 
-    await prisma.auditLog.create({
+    await prisma!.auditLog.create({
       data: {
         userId: context.userId,
         userEmail: context.userEmail,

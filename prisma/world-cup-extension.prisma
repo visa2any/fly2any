@@ -1,0 +1,329 @@
+// ============================================
+// FIFA WORLD CUP 2026 MODELS
+// ============================================
+
+// World Cup Teams (32 qualified nations)
+model WorldCupTeam {
+  id              String   @id @default(cuid())
+
+  // Team Identity
+  name            String   @unique // "Brazil"
+  shortName       String   // "BRA"
+  fifaCode        String   @unique // "BRA"
+
+  // Visual Identity
+  flagEmoji       String   // "🇧🇷"
+  primaryColor    String   // "#009C3B" (Brazil green)
+  secondaryColor  String   // "#FFDF00" (Brazil yellow)
+  accentColor     String?  // Additional color
+  flagUrl         String   // URL to flag image
+  logoUrl         String?  // Team crest/logo
+
+  // Team Info
+  fifaRanking     Int?
+  confeder ation  String   // "CONMEBOL", "UEFA", "CONCACAF", etc
+  group           String?  // "Group A", "Group B", etc (assigned later)
+  headCoach       String?
+  captain         String?
+  starPlayers     Json?    // Array of key players
+
+  // Stats & History
+  worldCupWins    Int      @default(0)
+  worldCupApps    Int      @default(0) // Appearances
+  bestFinish      String?  // "Champions", "Runners-up", "Semi-finals"
+  description     String?  @db.Text
+
+  // SEO & Content
+  slug            String   @unique // "brazil"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  content         String?  @db.Text // Rich content about team
+
+  // Relations
+  homeMatches     WorldCupMatch[] @relation("HomeTeam")
+  awayMatches     WorldCupMatch[] @relation("AwayTeam")
+  bookings        WorldCupBooking[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([group])
+  @@index([confederation])
+  @@map("world_cup_teams")
+}
+
+// World Cup Stadiums (16 venues)
+model WorldCupStadium {
+  id              String   @id @default(cuid())
+
+  // Stadium Identity
+  name            String   @unique // "SoFi Stadium"
+  nickname        String?  // "The Crown Jewel"
+
+  // Location
+  city            String   // "Los Angeles"
+  state           String?  // "California"
+  country         String   // "USA", "Canada", "Mexico"
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  timezone        String   // "America/Los_Angeles"
+
+  // Stadium Info
+  capacity        Int      // 70000
+  opened          Int?     // Year opened
+  surface         String?  // "Grass", "Artificial"
+  roofType        String?  // "Retractable", "Open", "Closed"
+
+  // Visuals
+  imageUrl        String?  // Main stadium image
+  images          Json?    // Array of image URLs
+  seatingChart    String?  // URL to seating diagram
+  virtualTour     String?  // URL to 360° tour
+
+  // Travel Info
+  nearestAirport  String?  // "LAX"
+  airportDistance Float?   // km
+  publicTransit   String?  @db.Text
+  parkingInfo     String?  @db.Text
+
+  // Area Info
+  nearbyHotels    Json?    // Array of hotel areas
+  restaurants     Json?    // Nearby dining
+  attractions     Json?    // Things to do
+
+  // City Colors (for theming)
+  cityPrimaryColor    String?  // LA = purple/gold
+  citySecondaryColor  String?
+
+  // SEO & Content
+  slug            String   @unique // "sofi-stadium"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  description     String?  @db.Text
+  travelGuide     String?  @db.Text
+
+  // Relations
+  matches         WorldCupMatch[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([city])
+  @@index([country])
+  @@map("world_cup_stadiums")
+}
+
+// World Cup Matches (104 total matches)
+model WorldCupMatch {
+  id              String   @id @default(cuid())
+
+  // Match Identity
+  matchNumber     Int      @unique // 1-104
+  fifaMatchId     String?  @unique
+
+  // Teams (optional until group draw)
+  homeTeamId      String?
+  homeTeam        WorldCupTeam? @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId      String?
+  awayTeam        WorldCupTeam? @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  // Venue
+  stadiumId       String
+  stadium         WorldCupStadium @relation(fields: [stadiumId], references: [id])
+
+  // Schedule
+  matchDate       DateTime
+  matchTime       String   // "20:00"
+  localTime       String   // "8:00 PM ET"
+
+  // Match Details
+  stage           MatchStage // GROUP_STAGE, ROUND_16, etc
+  groupName       String?  // "Group A" (for group stage)
+  roundName       String   // "Opening Match", "Final", etc
+
+  // Match Status
+  status          MatchStatus @default(SCHEDULED)
+  homeScore       Int?
+  awayScore       Int?
+  penalties       Json?    // Penalty shootout info
+
+  // Ticket Info
+  ticketsAvailable Boolean  @default(true)
+  ticketPriceMin  Float?   // Minimum ticket price
+  ticketPriceMax  Float?   // Maximum ticket price
+  ticketProviders Json?    // Array of ticket sources
+
+  // Visuals
+  matchPosterUrl  String?  // Custom match artwork
+  broadcastInfo   Json?    // TV channels, streaming
+
+  // SEO & Content
+  slug            String   @unique // "opening-match-mexico-vs-tbd"
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  preview         String?  @db.Text // Match preview content
+  recap           String?  @db.Text // Post-match recap
+
+  // Relations
+  bookings        WorldCupBooking[]
+  tickets         WorldCupTicket[]
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([matchDate])
+  @@index([stadiumId])
+  @@index([stage])
+  @@index([slug])
+  @@map("world_cup_matches")
+}
+
+enum MatchStage {
+  GROUP_STAGE
+  ROUND_16
+  QUARTER_FINAL
+  SEMI_FINAL
+  THIRD_PLACE
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  HALFTIME
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+// World Cup Tickets (from various providers)
+model WorldCupTicket {
+  id              String   @id @default(cuid())
+
+  // Ticket Source
+  provider        String   // "Vivid Seats", "Ticketmaster", "SeatGeek"
+  providerTicketId String  // External ticket ID
+
+  // Match
+  matchId         String
+  match           WorldCupMatch @relation(fields: [matchId], references: [id])
+
+  // Seat Details
+  section         String
+  row             String?
+  seatNumber      String?
+  quantity        Int      @default(1)
+  seatType        String?  // "Standard", "Premium", "VIP", "Suite"
+
+  // Pricing
+  faceValue       Float?   // Original ticket price
+  wholesalePrice  Float    // What we pay provider
+  retailPrice     Float    // What customer pays
+  markup          Float    // Our profit
+  currency        String   @default("USD")
+
+  // Availability
+  available       Boolean  @default(true)
+  reserved        Boolean  @default(false)
+  reservedUntil   DateTime?
+  sold            Boolean  @default(false)
+
+  // Features
+  features        Json?    // ["Parking", "Club Access", etc]
+  seatView        String?  // URL to seat view image
+
+  // Relations
+  booking         WorldCupBooking? @relation(fields: [bookingId], references: [id])
+  bookingId       String?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([matchId, available])
+  @@index([provider])
+  @@index([retailPrice])
+  @@map("world_cup_tickets")
+}
+
+// World Cup Package/Booking
+model WorldCupBooking {
+  id              String   @id @default(cuid())
+
+  // User
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  // Package Details
+  packageType     String   // "SINGLE_MATCH", "MULTI_MATCH", "FOLLOW_TEAM", "CUSTOM"
+  packageName     String   // "Brazil Group Stage Package"
+
+  // Matches
+  matchId         String?  // Primary match (for single-match bookings)
+  match           WorldCupMatch? @relation(fields: [matchId], references: [id])
+  teamId          String?  // If "follow team" package
+  team            WorldCupTeam? @relation(fields: [teamId], references: [id])
+
+  // Components
+  tickets         WorldCupTicket[]
+  flightBooking   Json?    // Flight details from existing system
+  hotelBooking    Json?    // Hotel details from existing system
+  carRental       Json?    // Car rental details
+  experiences     Json?    // Tours, activities
+
+  // Pricing
+  ticketsTotal    Float    @default(0)
+  flightsTotal    Float    @default(0)
+  hotelsTotal     Float    @default(0)
+  carsTotal       Float    @default(0)
+  experiencesTotal Float   @default(0)
+  subtotal        Float
+  taxes           Float    @default(0)
+  fees            Float    @default(0)
+  total           Float
+  currency        String   @default("USD")
+
+  // Payment
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, REFUNDED
+  paymentMethod   String?
+  stripePaymentId String?
+  paidAt          DateTime?
+
+  // Status
+  status          String   @default("CONFIRMED") // PENDING, CONFIRMED, CANCELLED
+  confirmationNumber String @unique
+
+  // Delivery
+  ticketsDelivered Boolean @default(false)
+  deliveryMethod  String?  // "EMAIL", "MOBILE", "MAIL"
+  deliveredAt     DateTime?
+
+  // Customer Info
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  cancelledAt     DateTime?
+
+  @@index([userId])
+  @@index([matchId])
+  @@index([teamId])
+  @@index([status])
+  @@index([confirmationNumber])
+  @@map("world_cup_bookings")
+}
+
+// Add relation to User model (you'll need to add this to existing User model)
+// model User {
+//   ...existing fields...
+//   worldCupBookings WorldCupBooking[]
+// }
