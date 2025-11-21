@@ -18,7 +18,13 @@ export function UrgencyBanner({ type = 'countdown', message, className = '' }: U
     minutes: 0,
   });
 
-  const [viewersCount] = useState(() => Math.floor(Math.random() * 150) + 50);
+  // Initialize viewersCount only on client to prevent hydration mismatch
+  const [viewersCount, setViewersCount] = useState(0);
+
+  useEffect(() => {
+    // Generate random count only on client-side
+    setViewersCount(Math.floor(Math.random() * 150) + 50);
+  }, []);
 
   useEffect(() => {
     if (type !== 'countdown') return;
@@ -76,8 +82,8 @@ export function UrgencyBanner({ type = 'countdown', message, className = '' }: U
       <div className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 ${className}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-4 flex-wrap">
           <UsersIcon className="w-6 h-6" />
-          <span className="font-bold text-lg">
-            {viewersCount} people are viewing this page right now
+          <span className="font-bold text-lg" suppressHydrationWarning>
+            {hasMounted && viewersCount > 0 ? `${viewersCount} people are viewing this page right now` : 'People are viewing this page right now'}
           </span>
           <span className="text-sm opacity-90">
             • 12,847 bookings this week

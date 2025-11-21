@@ -7,6 +7,7 @@ import { getWorldCupAtmosphereUrl, getStadiumHeroUrl } from '@/lib/utils/stadium
 import { worldCupMainMetadata, getWorldCupEventSchema } from '@/lib/seo/metadata';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { UrgencyBanner } from '@/components/world-cup/UrgencyBanner';
+import { CombinedUrgencyBanner } from '@/components/world-cup/CombinedUrgencyBanner';
 import { TrustSignals } from '@/components/world-cup/TrustSignals';
 import { FAQSection } from '@/components/world-cup/FAQSection';
 import { WORLD_CUP_MAIN_FAQS } from '@/lib/data/world-cup-faqs';
@@ -81,9 +82,8 @@ export default function WorldCup2026Page() {
 
       <div className="min-h-screen w-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" data-page="world-cup-2026">
 
-      {/* Urgency Banner - Top */}
-      <UrgencyBanner type="countdown" />
-      <UrgencyBanner type="price-increase" className="mt-0" />
+      {/* ULTRA-COMPACT Single Line Urgency Banner */}
+      <CombinedUrgencyBanner />
 
       {/* WORLD-CLASS HERO SECTION - Electric Atmosphere */}
       <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
@@ -93,43 +93,7 @@ export default function WorldCup2026Page() {
           {/* Beautiful Image Carousel - Auto-rotating stadium photos */}
           <HeroImageCarousel />
 
-          {/* Vibrant Animated Gradient Overlays - LIGHT & BEAUTIFUL */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/15 to-pink-600/20 animate-gradient-shift" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-slate-900/15 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.2)_100%)]" />
-
-          {/* Animated Soccer Ball Pattern */}
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='25' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M30,5 L30,15 M30,45 L30,55 M5,30 L15,30 M45,30 L55,30' stroke='white' stroke-width='2'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px',
-            animation: 'slide 20s linear infinite',
-          }} />
-
-          {/* Confetti Dots for Celebration */}
-          <div className="absolute inset-0">
-            {[...Array(30)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full opacity-40 animate-float"
-                style={{
-                  width: `${Math.random() * 8 + 4}px`,
-                  height: `${Math.random() * 8 + 4}px`,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  background: ['#FFD700', '#00C8FF', '#FF4F00', '#00E676', '#FF1744'][i % 5],
-                  animationDelay: `${Math.random() * 5}s`,
-                  animationDuration: `${Math.random() * 10 + 10}s`,
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Energy Beams */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 left-1/4 w-1 h-full bg-gradient-to-b from-transparent via-blue-400 to-transparent animate-beam" />
-            <div className="absolute top-0 right-1/4 w-1 h-full bg-gradient-to-b from-transparent via-purple-400 to-transparent animate-beam" style={{ animationDelay: '2s' }} />
-            <div className="absolute top-0 left-2/3 w-1 h-full bg-gradient-to-b from-transparent via-pink-400 to-transparent animate-beam" style={{ animationDelay: '4s' }} />
-          </div>
+          {/* ZERO OVERLAYS - 100% CLEAN PHOTOS */}
         </div>
 
         {/* Main Content Container - Ultra Compact */}
@@ -141,68 +105,94 @@ export default function WorldCup2026Page() {
             {/* LEFT: Brand & Identity - 7 columns */}
             <div className="lg:col-span-7 space-y-4">
 
-              {/* Electric Title Treatment */}
-              <div className="space-y-3">
+              {/* FULL FIFA 2026 COLOR EXPLOSION - ALL TYPOGRAPHY IN OFFICIAL COLORS */}
+              <div className="space-y-6">
                 <h1 className="font-black leading-[0.85] tracking-tight">
-                  {/* FIFA - Glowing Gold with Pulse + Better Text Shadow */}
-                  <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-8xl bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-300 bg-clip-text text-transparent drop-shadow-2xl animate-pulse"
+                  {/* FIFA - RED TO GOLD GRADIENT (Official FIFA Colors) */}
+                  <span className="block text-7xl sm:text-8xl md:text-9xl lg:text-9xl font-black"
                     style={{
-                      WebkitTextStroke: '2px rgba(255,215,0,0.3)',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 80px rgba(251,191,36,0.8), 0 0 40px rgba(255,215,0,0.6)',
-                      filter: 'drop-shadow(0 0 30px #FFD700) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
-                    }}>
-                    ⚽ FIFA ⚽
-                  </span>
-                  {/* WORLD CUP - Vibrant with Energy + Better Text Shadow */}
-                  <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black"
-                    style={{
-                      background: 'linear-gradient(90deg, #60A5FA, #A78BFA, #F472B6, #60A5FA)',
-                      backgroundSize: '200% 100%',
+                      background: 'linear-gradient(135deg, #E61D25 0%, #FF6B35 50%, #FFD700 100%)',
+                      backgroundSize: '200% 200%',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
-                      animation: 'gradient-shift 3s linear infinite',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 40px rgba(147,51,234,0.5)',
-                      filter: 'drop-shadow(0 0 20px rgba(168,85,247,0.4)) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
+                      animation: 'gradient-shift 6s ease-in-out infinite',
+                      WebkitTextStroke: '3px rgba(255,255,255,0.9)',
+                      filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8)) drop-shadow(0 2px 6px rgba(0,0,0,0.7)) drop-shadow(0 4px 10px rgba(0,0,0,0.6))',
+                      letterSpacing: '0.02em',
+                    }}>
+                    FIFA
+                  </span>
+
+                  {/* WORLD CUP - VIBRANT RAINBOW GRADIENT (All 4 FIFA Colors) */}
+                  <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-8xl font-black"
+                    style={{
+                      background: 'linear-gradient(90deg, #FF2020 0%, #4040FF 33%, #20FF20 66%, #FFD700 100%)',
+                      backgroundSize: '300% 100%',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      animation: 'gradient-shift 8s ease-in-out infinite',
+                      WebkitTextStroke: '5px rgba(255,255,255,1)',
+                      filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8)) drop-shadow(0 2px 6px rgba(0,0,0,0.7)) drop-shadow(0 4px 10px rgba(0,0,0,0.6))',
+                      letterSpacing: '0.02em',
                     }}>
                     WORLD CUP
                   </span>
                 </h1>
 
-                {/* Year - Compact + Better Text Shadow */}
-                <div className="flex items-baseline gap-2 sm:gap-3">
-                  {['2','0','2','6'].map((digit, i) => (
-                    <div key={i} className="relative">
-                      <span className={`block text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-br ${
-                        i === 0 ? 'from-blue-400 to-cyan-300' :
-                        i === 1 ? 'from-amber-400 to-yellow-300' :
-                        i === 2 ? 'from-rose-400 to-pink-300' :
-                        'from-emerald-400 to-green-300'
-                      } bg-clip-text text-transparent drop-shadow-2xl`}
-                      style={{
-                        textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6)',
-                        filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
-                      }}>
+                {/* 2026 - BLUE TO GOLD GRADIENT (FIFA Official Blues + Gold) */}
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span className="text-4xl animate-bounce" style={{ animationDuration: '2s', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>⚽</span>
+                  <div className="flex items-baseline gap-3">
+                    {['2','0','2','6'].map((digit, i) => (
+                      <span key={i} className="text-7xl sm:text-8xl md:text-9xl lg:text-9xl font-black"
+                        style={{
+                          background: `linear-gradient(135deg, #2A398D ${i * 10}%, #4040FF ${30 + i * 10}%, #5566FF ${60 + i * 10}%, #FFD700 ${90 + i * 5}%)`,
+                          backgroundSize: '200% 200%',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          animation: 'gradient-shift 7s ease-in-out infinite',
+                          WebkitTextStroke: '2px rgba(255,255,255,0.8)',
+                          filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8)) drop-shadow(0 2px 6px rgba(0,0,0,0.7)) drop-shadow(0 4px 10px rgba(0,0,0,0.6))',
+                          animationDelay: `${i * 0.2}s`,
+                        }}>
                         {digit}
                       </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <span className="text-4xl animate-bounce" style={{ animationDuration: '2s', animationDelay: '0.3s', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>⚽</span>
                 </div>
+
+                {/* Tagline - GOLD GRADIENT (FIFA Championship Gold) */}
+                <p className="text-3xl sm:text-4xl md:text-4xl font-black uppercase tracking-wide"
+                  style={{
+                    background: 'linear-gradient(90deg, #FFD700 0%, #FFF 50%, #FFD700 100%)',
+                    backgroundSize: '200% 100%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'gradient-shift 5s ease-in-out infinite',
+                    WebkitTextStroke: '1px rgba(255,255,255,0.5)',
+                    filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.8)) drop-shadow(0 4px 10px rgba(0,0,0,0.7)) drop-shadow(0 0 8px rgba(255,215,0,0.3))',
+                  }}>
+                  The Greatest Show on Earth
+                </p>
               </div>
 
-              {/* Host Countries - Compact Horizontal */}
-              <div className="flex flex-wrap items-center gap-3">
+              {/* Host Countries - TIGHT Shadows */}
+              <div className="flex flex-wrap items-center gap-4 mt-8">
                 {[
-                  { flag: '🇺🇸', name: 'USA', from: 'from-blue-400', to: 'to-red-400' },
-                  { flag: '🇨🇦', name: 'CANADA', from: 'from-red-400', to: 'to-white' },
-                  { flag: '🇲🇽', name: 'MÉXICO', from: 'from-green-400', to: 'to-red-400' },
+                  { flag: '🇺🇸', name: 'USA' },
+                  { flag: '🇨🇦', name: 'CANADA' },
+                  { flag: '🇲🇽', name: 'MÉXICO' },
                 ].map((country, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg px-3 py-2 hover:bg-white/10 transition-all duration-300">
-                    <span className="text-3xl">{country.flag}</span>
-                    <span className={`text-sm font-bold bg-gradient-to-r ${country.from} ${country.to} bg-clip-text text-transparent`}
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-3xl" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' }}>{country.flag}</span>
+                    <span className="text-xl font-black tracking-wide text-white"
                       style={{
-                        textShadow: '0 1px 4px rgba(0,0,0,0.7)',
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                        textShadow: '0 0 2px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.25)',
                       }}>
                       {country.name}
                     </span>
@@ -210,33 +200,13 @@ export default function WorldCup2026Page() {
                 ))}
               </div>
 
-              {/* Electric Tagline */}
-              <div className="space-y-2">
-                <p className="text-3xl sm:text-4xl md:text-5xl font-black animate-pulse"
+              {/* Event Info - TIGHT Shadows */}
+              <div className="mt-8">
+                <p className="text-xl sm:text-2xl font-black text-white"
                   style={{
-                    background: 'linear-gradient(90deg, #FF1744, #FF6B6B, #FFD700, #00E676, #00C8FF, #FF1744)',
-                    backgroundSize: '300% 100%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    animation: 'gradient-shift 5s linear infinite',
-                    textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 60px rgba(255,23,68,0.6)',
-                    filter: 'drop-shadow(0 0 25px rgba(255,107,107,0.5)) drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
+                    textShadow: '0 0 2px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3), 0 0 4px rgba(255,215,0,0.15)',
                   }}>
-                  🎉 WE ARE 26 🎉
-                </p>
-                <p className="text-lg sm:text-xl font-black"
-                  style={{
-                    background: 'linear-gradient(90deg, #FFD700, #FFF, #FFD700)',
-                    backgroundSize: '200% 100%',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    animation: 'gradient-shift 2s linear infinite',
-                    textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.6), 0 0 30px rgba(255,215,0,0.8)',
-                    filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.6))',
-                  }}>
-                  ⚡ THE GREATEST SHOW ON EARTH ⚡
+                  June 11 - July 19, 2026 • 48 Teams • 104 Matches • 16 Cities
                 </p>
               </div>
             </div>
@@ -244,40 +214,41 @@ export default function WorldCup2026Page() {
             {/* RIGHT: Stats & Actions - 5 columns */}
             <div className="lg:col-span-5 space-y-5">
 
-              {/* Premium Stats Grid - Enhanced Readability & Hierarchy */}
-              <div className="grid grid-cols-2 gap-4 md:gap-5">
+              {/* FIFA 2026 Stats Grid - TIGHT Shadows */}
+              <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: '⚽', number: '48', label: 'TEAMS', gradient: 'from-emerald-500 to-teal-400', shadow: 'rgba(16,185,129,0.5)' },
-                  { icon: '🏟️', number: '104', label: 'MATCHES', gradient: 'from-blue-500 to-cyan-400', shadow: 'rgba(59,130,246,0.5)' },
-                  { icon: '🌎', number: '16', label: 'CITIES', gradient: 'from-purple-500 to-fuchsia-400', shadow: 'rgba(168,85,247,0.5)' },
-                  { icon: '📅', number: '39', label: 'DAYS', gradient: 'from-pink-500 to-rose-400', shadow: 'rgba(236,72,153,0.5)' },
+                  { icon: '⚽', number: '48', label: 'TEAMS', color: '#44DD44' },
+                  { icon: '🏟️', number: '104', label: 'MATCHES', color: '#5566FF' },
+                  { icon: '🌎', number: '16', label: 'CITIES', color: '#FF4444' },
+                  { icon: '📅', number: '39', label: 'DAYS', color: '#FFD700' },
                 ].map((stat, i) => (
-                  <div key={i} className="group relative transform hover:scale-105 transition-all duration-300">
-                    {/* Animated Glow */}
-                    <div
-                      className={`absolute -inset-1 bg-gradient-to-br ${stat.gradient} opacity-30 group-hover:opacity-50 blur-xl transition-all duration-300 rounded-2xl animate-pulse`}
+                  <div key={i} className="relative group">
+                    {/* Subtle External Glow - Tight Spread */}
+                    <div className="absolute -inset-1 opacity-15 group-hover:opacity-25 blur-sm rounded-2xl transition-all"
                       style={{
-                        boxShadow: `0 0 40px ${stat.shadow}, 0 0 80px ${stat.shadow}`,
+                        background: stat.color,
+                        boxShadow: `0 0 3px ${stat.color}`,
                       }}
                     />
-                    {/* Card Content - Enhanced Spacing & Hierarchy */}
-                    <div className="relative bg-white/10 backdrop-blur-2xl border-2 border-white/30 rounded-2xl p-5 md:p-6 hover:bg-white/20 transition-all duration-300 flex flex-col items-center text-center min-h-[140px] md:min-h-[160px] justify-center"
+                    {/* Clean Card - Light Background */}
+                    <div className="relative border-2 border-white/25 rounded-2xl p-6 hover:border-white/35 hover:scale-105 transition-all duration-300 flex flex-col items-center text-center"
                       style={{
-                        boxShadow: `inset 0 0 20px rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.3)`,
+                        background: 'rgba(0,0,0,0.15)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2), 0 0 2px rgba(0,0,0,0.15)',
                       }}>
-                      {/* Icon - Top Level */}
-                      <div className="text-4xl md:text-5xl mb-3 animate-bounce" style={{ animationDuration: '2s' }}>{stat.icon}</div>
-                      {/* Number - Primary Focus */}
-                      <div className={`text-4xl md:text-5xl lg:text-6xl font-black mb-2 bg-gradient-to-br ${stat.gradient} bg-clip-text text-transparent leading-none`}
+                      <div className="text-4xl mb-3">{stat.icon}</div>
+                      <div className="text-5xl md:text-6xl font-black mb-2"
                         style={{
-                          filter: `drop-shadow(0 0 10px ${stat.shadow})`,
+                          color: '#FFFFFF',
+                          textShadow: '0 0 2px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.25)',
+                          WebkitTextStroke: '2px rgba(255,255,255,0.15)',
                         }}>
                         {stat.number}
                       </div>
-                      {/* Label - Enhanced Readability */}
-                      <div className="text-sm md:text-base font-black text-white uppercase tracking-wider leading-tight"
+                      <div className="text-sm font-black uppercase tracking-wider"
                         style={{
-                          textShadow: '0 1px 4px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.5)',
+                          color: '#FFFFFF',
+                          textShadow: '0 1px 2px rgba(0,0,0,0.2)',
                         }}>
                         {stat.label}
                       </div>
@@ -286,45 +257,39 @@ export default function WorldCup2026Page() {
                 ))}
               </div>
 
-              {/* ELECTRIC CTA Buttons - Enhanced Spacing */}
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                {/* Schedule Button */}
+              {/* CTA Buttons - FIFA 2026 Colors, Clean & Energetic */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Schedule Button - FIFA RED */}
                 <Link
                   href="/world-cup-2026/schedule"
-                  className="group relative overflow-hidden rounded-xl transform hover:scale-105 transition-all duration-300"
+                  className="group relative overflow-hidden rounded-xl transition-all duration-300 hover:scale-105"
                   style={{
-                    boxShadow: '0 0 30px rgba(251,191,36,0.4), 0 10px 40px rgba(0,0,0,0.3)',
+                    background: 'linear-gradient(135deg, #E61D25, #C41519)',
+                    boxShadow: '0 8px 25px rgba(230,29,37,0.4), 0 3px 10px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 animate-gradient-shift" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 animate-pulse" style={{
-                    background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%)',
-                  }} />
-                  <div className="relative px-4 py-3 md:py-3.5 flex items-center justify-center gap-2">
-                    <span className="text-xl md:text-2xl animate-bounce" style={{ animationDuration: '1.5s' }}>🎟️</span>
-                    <span className="text-sm md:text-base font-black text-slate-900 whitespace-nowrap drop-shadow-lg">Schedule</span>
-                    <span className="text-lg md:text-xl font-black group-hover:translate-x-1 transition-transform">→</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="relative px-4 py-4 flex items-center justify-center gap-2">
+                    <span className="text-2xl">📅</span>
+                    <span className="text-base font-black text-white tracking-wide">Schedule</span>
+                    <span className="text-lg font-black text-white group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </Link>
 
-                {/* Teams Button */}
+                {/* Teams Button - FIFA BLUE */}
                 <Link
                   href="/world-cup-2026/teams"
-                  className="group relative overflow-hidden rounded-xl transform hover:scale-105 transition-all duration-300"
+                  className="group relative overflow-hidden rounded-xl transition-all duration-300 hover:scale-105"
                   style={{
-                    boxShadow: '0 0 30px rgba(139,92,246,0.4), 0 10px 40px rgba(0,0,0,0.3)',
+                    background: 'linear-gradient(135deg, #2A398D, #1E2A66)',
+                    boxShadow: '0 8px 25px rgba(42,57,141,0.4), 0 3px 10px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-fuchsia-500 animate-gradient-shift" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute inset-0 animate-pulse" style={{
-                    background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                  }} />
-                  <div className="relative px-4 py-3 md:py-3.5 flex items-center justify-center gap-2">
-                    <span className="text-xl md:text-2xl animate-bounce" style={{ animationDuration: '1.5s', animationDelay: '0.2s' }}>⚽</span>
-                    <span className="text-sm md:text-base font-black text-white whitespace-nowrap drop-shadow-lg">Teams</span>
-                    <span className="text-lg md:text-xl font-black text-white group-hover:translate-x-1 transition-transform">→</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 group-hover:translate-x-full transition-transform duration-700" />
+                  <div className="relative px-4 py-4 flex items-center justify-center gap-2">
+                    <span className="text-2xl">⚽</span>
+                    <span className="text-base font-black text-white tracking-wide">Teams</span>
+                    <span className="text-lg font-black text-white group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </Link>
               </div>
@@ -332,8 +297,6 @@ export default function WorldCup2026Page() {
           </div>
         </div>
 
-        {/* Subtle Bottom Fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-950 to-transparent" />
       </section>
 
       {/* COUNTDOWN SECTION - Premium Design */}
