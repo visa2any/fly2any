@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect } from 'react';
 import { zIndex } from '@/lib/design-system';
-import type { Language, HeaderTranslations } from '@/components/layout/Header';
-import { languages } from '@/components/layout/Header';
+import type { Language, HeaderTranslations } from '@/lib/i18n/types';
+import { languages } from '@/lib/i18n/types';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface NavigationDrawerProps {

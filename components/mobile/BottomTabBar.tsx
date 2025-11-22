@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { zIndex } from '@/lib/design-system';
-import type { HeaderTranslations } from '@/components/layout/Header';
+import type { HeaderTranslations } from '@/lib/i18n/types';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 interface BottomTabBarProps {
