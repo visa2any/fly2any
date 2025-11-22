@@ -1,14 +1,36 @@
 /**
- * Edge-compatible middleware for NextAuth
+ * Edge-compatible middleware for NextAuth & i18n
  *
  * CRITICAL: This file runs in Edge Runtime
  * - Uses edge-compatible auth from lib/auth-edge.ts
+ * - Handles language cookie management
  * - NO Prisma imports (causes bundle size bloat)
  * - NO bcryptjs imports (Node.js only)
  * - NO database lookups (edge runtime limitation)
  */
 import { authEdge } from '@/lib/auth-edge';
 import { NextResponse } from 'next/server';
+
+// Supported languages
+const locales = ['en', 'pt', 'es'] as const;
+type Locale = (typeof locales)[number];
+const defaultLocale: Locale = 'en';
+
+/**
+ * Detect browser language from Accept-Language header
+ */
+function detectBrowserLanguage(acceptLanguage: string | null): Locale {
+  if (!acceptLanguage) return defaultLocale;
+  const languages = acceptLanguage
+    .split(',')
+    .map(lang => lang.split(';')[0].trim().split('-')[0].toLowerCase());
+  for (const lang of languages) {
+    if (locales.includes(lang as Locale)) {
+      return lang as Locale;
+    }
+  }
+  return defaultLocale;
+}
 
 export default authEdge((req) => {
   const { nextUrl } = req;
@@ -35,6 +57,35 @@ export default authEdge((req) => {
   // Create response with performance and security headers
   const response = NextResponse.next();
 
+  // LANGUAGE COOKIE MANAGEMENT
+  const languageCookie = req.cookies.get('fly2any_language');
+
+  if (!languageCookie) {
+    // Auto-detect language from browser on first visit
+    const acceptLanguage = req.headers.get('accept-language');
+    const detectedLanguage = detectBrowserLanguage(acceptLanguage);
+
+    // Set language cookie (1 year expiry, accessible across all paths)
+    response.cookies.set('fly2any_language', detectedLanguage, {
+      path: '/',
+      maxAge: 31536000, // 1 year in seconds
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  } else {
+    // Validate existing cookie value
+    const currentLang = languageCookie.value;
+    if (!locales.includes(currentLang as Locale)) {
+      // Invalid language, reset to default
+      response.cookies.set('fly2any_language', defaultLocale, {
+        path: '/',
+        maxAge: 31536000,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      });
+    }
+  }
+
   // Performance headers
   response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -56,5 +107,5 @@ export default authEdge((req) => {
 });
 
 export const config = {
-  matcher: ['/account/:path*', '/auth/:path*'],
+  matcher: ['/account/:path*', '/auth/:path*', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
