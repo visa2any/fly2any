@@ -9,7 +9,8 @@ import { Footer } from './Footer';
 import { BottomTabBar } from '@/components/mobile/BottomTabBar';
 import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 import { AITravelAssistant } from '@/components/ai/AITravelAssistant';
-import { headerTranslations } from './Header';
+import { useLanguage } from '@/lib/i18n/client';
+import { useTranslations } from 'next-intl';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
@@ -88,27 +89,41 @@ const footerContent = {
 function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const [language, setLanguage] = useState<Language>('en');
+  const { language, setLanguage } = useLanguage(); // Use centralized i18n hook
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Get translations using next-intl
+  const tHeader = useTranslations('Header');
+
+  // Create adapter object for components not yet migrated
+  const headerTranslationsAdapter = {
+    flights: tHeader('flights'),
+    hotels: tHeader('hotels'),
+    cars: tHeader('cars'),
+    tours: tHeader('tours'),
+    activities: tHeader('activities'),
+    packages: tHeader('packages'),
+    travelInsurance: tHeader('travelInsurance'),
+    deals: tHeader('deals'),
+    discover: tHeader('discover'),
+    explore: tHeader('explore'),
+    travelGuide: tHeader('travelGuide'),
+    faq: tHeader('faq'),
+    blog: tHeader('blog'),
+    destinations: tHeader('destinations'),
+    airlines: tHeader('airlines'),
+    popularRoutes: tHeader('popularRoutes'),
+    support: tHeader('support'),
+    signin: tHeader('signin'),
+    signup: tHeader('signup'),
+    wishlist: tHeader('wishlist'),
+    notifications: tHeader('notifications'),
+    account: tHeader('account'),
+  };
 
   // Check if current route uses dedicated layout (admin or agent portal)
   const isAdminRoute = pathname?.startsWith('/admin');
   const isAgentRoute = pathname?.startsWith('/agent');
-
-  // Load saved language preference on client-side only
-  useEffect(() => {
-    // Load language immediately on client-side
-    const savedLanguage = localStorage.getItem('fly2any_language');
-    if (savedLanguage && ['en', 'pt', 'es'].includes(savedLanguage)) {
-      setLanguage(savedLanguage as Language);
-    }
-  }, []);
-
-  // Save language to localStorage when it changes
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('fly2any_language', lang);
-  };
 
   // Handle "More" tab click from bottom bar
   const handleMoreClick = () => {
@@ -123,12 +138,8 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
   // Standard platform layout for all other pages
   return (
     <>
-      {/* Global Header */}
-      <Header
-        language={language}
-        onLanguageChange={handleLanguageChange}
-        showAuth={true}
-      />
+      {/* Global Header - now manages language internally */}
+      <Header showAuth={true} />
 
       {/* Main Content - Add padding-bottom for mobile bottom bar */}
       <main
@@ -154,7 +165,7 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
 
       {/* Mobile Bottom Tab Bar */}
       <BottomTabBar
-        translations={headerTranslations[language]}
+        translations={headerTranslationsAdapter}
         onMoreClick={handleMoreClick}
       />
 
@@ -163,8 +174,8 @@ function GlobalLayoutInner({ children }: GlobalLayoutProps) {
         isOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
         language={language}
-        onLanguageChange={handleLanguageChange}
-        translations={headerTranslations[language]}
+        onLanguageChange={setLanguage}
+        translations={headerTranslationsAdapter}
         userId={session?.user?.id}
       />
 
