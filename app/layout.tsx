@@ -15,6 +15,7 @@ import {
   getSoftwareApplicationSchema,
   getTravelAgencySchema,
 } from "@/lib/seo/metadata";
+import { I18nProvider } from "@/lib/i18n/provider";
 
 // Optimized font loading with display swap for better FCP
 const inter = Inter({
@@ -109,28 +110,30 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <ErrorBoundary
-          variant="full-page"
-          context="root-layout"
-          showDetails={process.env.NODE_ENV === 'development'}
-        >
-          <GlobalLayout>
-            {children}
-          </GlobalLayout>
-          <Toaster
-            position="bottom-right"
-            reverseOrder={false}
-            gutter={8}
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'transparent',
-                padding: 0,
-                boxShadow: 'none',
-              },
-            }}
-          />
-        </ErrorBoundary>
+        <I18nProvider>
+          <ErrorBoundary
+            variant="full-page"
+            context="root-layout"
+            showDetails={process.env.NODE_ENV === 'development'}
+          >
+            <GlobalLayout>
+              {children}
+            </GlobalLayout>
+            <Toaster
+              position="bottom-right"
+              reverseOrder={false}
+              gutter={8}
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'transparent',
+                  padding: 0,
+                  boxShadow: 'none',
+                },
+              }}
+            />
+          </ErrorBoundary>
+        </I18nProvider>
         {/* Web Vitals Performance Monitoring */}
         <WebVitalsReporter />
         {/* PWA Features */}

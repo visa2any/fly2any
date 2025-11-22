@@ -23,6 +23,26 @@
     "notifications": "Notificações",
     "account": "Minha Conta"
   },
+  "Home": {
+    "underConstruction": "Em Construção",
+    "title": "Fly2Any Travel",
+    "subtitle": "Seus Especialistas em Viagens",
+    "description": "Estamos preparando uma experiência incrível para você! Nossa nova plataforma de viagens está sendo desenvolvida com as mais modernas tecnologias para oferecer o melhor serviço.",
+    "flights": "Voos",
+    "flightsDesc": "Melhores preços e rotas pelo mundo",
+    "hotels": "Hotéis & Pacotes",
+    "hotelsDesc": "Hospedagem e pacotes completos",
+    "carRentals": "Aluguel de Carros",
+    "carRentalsDesc": "Veículos para cada jornada",
+    "tours": "Tours & Atividades",
+    "toursDesc": "Experiências únicas pelo mundo",
+    "insurance": "Seguro Viagem",
+    "insuranceDesc": "Viaje com tranquilidade",
+    "contactTitle": "Enquanto isso, entre em contato:",
+    "whatsappButton": "WhatsApp",
+    "techFooter": "Tecnologia de ponta em desenvolvimento | Em breve disponível",
+    "footer": "© 2025 Fly2Any Travel - Baseado nos EUA"
+  },
   "SearchBar": {
     "from": "De",
     "to": "Para",

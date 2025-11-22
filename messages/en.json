@@ -23,6 +23,26 @@
     "notifications": "Notifications",
     "account": "My Account"
   },
+  "Home": {
+    "underConstruction": "Under Construction",
+    "title": "Fly2Any Travel",
+    "subtitle": "Your Travel Experts",
+    "description": "We are preparing an amazing experience for you! Our new travel platform is being developed with the latest technologies to offer the best service.",
+    "flights": "Flights",
+    "flightsDesc": "Best prices and routes worldwide",
+    "hotels": "Hotels & Packages",
+    "hotelsDesc": "Accommodation and complete packages",
+    "carRentals": "Car Rentals",
+    "carRentalsDesc": "Vehicles for every journey",
+    "tours": "Tours & Activities",
+    "toursDesc": "Unique experiences worldwide",
+    "insurance": "Travel Insurance",
+    "insuranceDesc": "Travel with peace of mind",
+    "contactTitle": "Meanwhile, get in touch:",
+    "whatsappButton": "WhatsApp",
+    "techFooter": "Cutting-edge technology in development | Coming soon",
+    "footer": "© 2025 Fly2Any Travel - Based in USA"
+  },
   "SearchBar": {
     "from": "From",
     "to": "To",

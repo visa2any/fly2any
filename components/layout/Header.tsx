@@ -10,8 +10,10 @@ import { NavigationDrawer } from '@/components/mobile/NavigationDrawer';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { UserMenu } from './UserMenu';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
-// Language type
+// Language type (kept for backward compatibility)
 export type Language = 'en' | 'pt' | 'es';
 
 // Language configuration
@@ -21,113 +23,10 @@ export const languages = {
   es: { name: 'Español', flag: '🇪🇸', code: 'ES' },
 } as const;
 
-// Translation content type
-export interface HeaderTranslations {
-  flights: string;
-  hotels: string;
-  cars: string;
-  tours: string;
-  activities: string;
-  packages: string;
-  travelInsurance: string;
-  deals: string;
-  discover: string;
-  explore: string;
-  travelGuide: string;
-  faq: string;
-  blog: string;
-  destinations: string;
-  airlines: string;
-  popularRoutes: string;
-  support: string;
-  signin: string;
-  signup: string;
-  wishlist: string;
-  notifications: string;
-  account: string;
-}
-
-// Default translations
-export const headerTranslations = {
-  en: {
-    flights: 'Flights',
-    hotels: 'Hotels',
-    cars: 'Cars',
-    tours: 'Tours',
-    activities: 'Activities',
-    packages: 'Packages',
-    travelInsurance: 'Insurance',
-    deals: 'Deals',
-    discover: 'Discover',
-    explore: 'Explore',
-    travelGuide: 'Travel Guide',
-    faq: 'FAQ',
-    blog: 'Travel Blog',
-    destinations: 'Destinations',
-    airlines: 'Airlines',
-    popularRoutes: 'Flight Routes',
-    support: '24/7 Support',
-    signin: 'Sign In',
-    signup: 'Sign Up',
-    wishlist: 'Wishlist',
-    notifications: 'Notifications',
-    account: 'My Account',
-  },
-  pt: {
-    flights: 'Voos',
-    hotels: 'Hotéis',
-    cars: 'Carros',
-    tours: 'Passeios',
-    activities: 'Atividades',
-    packages: 'Pacotes',
-    travelInsurance: 'Seguro',
-    deals: 'Ofertas',
-    discover: 'Descobrir',
-    explore: 'Explorar',
-    travelGuide: 'Guia de Viagem',
-    faq: 'Perguntas',
-    blog: 'Blog de Viagem',
-    destinations: 'Destinos',
-    airlines: 'Companhias Aéreas',
-    popularRoutes: 'Rotas de Voo',
-    support: 'Suporte 24/7',
-    signin: 'Entrar',
-    signup: 'Cadastrar',
-    wishlist: 'Lista de Desejos',
-    notifications: 'Notificações',
-    account: 'Minha Conta',
-  },
-  es: {
-    flights: 'Vuelos',
-    hotels: 'Hoteles',
-    cars: 'Autos',
-    tours: 'Tours',
-    activities: 'Actividades',
-    packages: 'Paquetes',
-    travelInsurance: 'Seguro',
-    deals: 'Ofertas',
-    discover: 'Descubrir',
-    explore: 'Explorar',
-    travelGuide: 'Guía de Viaje',
-    faq: 'Preguntas',
-    blog: 'Blog de Viajes',
-    destinations: 'Destinos',
-    airlines: 'Aerolíneas',
-    popularRoutes: 'Rutas de Vuelo',
-    support: 'Soporte 24/7',
-    signin: 'Iniciar Sesión',
-    signup: 'Registrarse',
-    wishlist: 'Lista de Deseos',
-    notifications: 'Notificaciones',
-    account: 'Mi Cuenta',
-  },
-} as const;
-
-// Component props
+// Component props (language and onLanguageChange now optional - managed internally via hooks)
 export interface HeaderProps {
-  language?: Language;
-  onLanguageChange?: (lang: Language) => void;
-  translations?: HeaderTranslations;
+  language?: Language; // Deprecated - kept for backward compatibility
+  onLanguageChange?: (lang: Language) => void; // Deprecated - kept for backward compatibility
   className?: string;
   showAuth?: boolean;
   logoUrl?: string;
@@ -156,9 +55,6 @@ export interface HeaderProps {
  * ```
  */
 export function Header({
-  language = 'en',
-  onLanguageChange,
-  translations,
   className = '',
   showAuth = true,
   logoUrl = '/fly2any-logo.png',
@@ -174,8 +70,9 @@ export function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Use provided translations or defaults
-  const t = translations || headerTranslations[language];
+  // Use next-intl for translations
+  const t = useTranslations('Header');
+  const { language, setLanguage } = useLanguage();
 
   // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.1)
   const { scrollDirection, isAtTop } = useScrollDirection({
@@ -221,7 +118,7 @@ export function Header({
   // Handle language change
   const handleLanguageChange = (lang: Language) => {
     setLangDropdownOpen(false);
-    onLanguageChange?.(lang);
+    setLanguage(lang); // Use next-intl language management
   };
 
   // Handle sign in
@@ -327,7 +224,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   ✈️
                 </span>
-                {t.flights}
+                {t('flights')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -341,7 +238,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🏨
                 </span>
-                {t.hotels}
+                {t('hotels')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -355,7 +252,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🚗
                 </span>
-                {t.cars}
+                {t('cars')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -369,7 +266,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🎯
                 </span>
-                {t.tours}
+                {t('tours')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -383,7 +280,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🎪
                 </span>
-                {t.activities}
+                {t('activities')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -397,7 +294,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🎁
                 </span>
-                {t.packages}
+                {t('packages')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -411,7 +308,7 @@ export function Header({
                 <span className="text-lg transition-transform group-hover:scale-110">
                   🛡️
                 </span>
-                {t.travelInsurance}
+                {t('travelInsurance')}
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -427,7 +324,7 @@ export function Header({
                   <span className="text-lg transition-transform group-hover:scale-110">
                     🗺️
                   </span>
-                  {t.discover}
+                  {t('discover')}
                 </span>
                 <svg
                   className={`w-4 h-4 transition-all duration-300 ${discoverDropdownOpen ? 'rotate-180' : ''}`}
@@ -458,21 +355,21 @@ export function Header({
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">✍️</span>
-                    <span className="font-semibold text-sm">{t.blog}</span>
+                    <span className="font-semibold text-sm">{t('blog')}</span>
                   </a>
                   <a
                     href="/destinations/new-york"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">🏙️</span>
-                    <span className="font-semibold text-sm">{t.destinations}</span>
+                    <span className="font-semibold text-sm">{t('destinations')}</span>
                   </a>
                   <a
                     href="/airlines/delta-air-lines"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">✈️</span>
-                    <span className="font-semibold text-sm">{t.airlines}</span>
+                    <span className="font-semibold text-sm">{t('airlines')}</span>
                   </a>
                   <div className="border-t border-gray-200 my-1"></div>
                   <a
@@ -480,28 +377,28 @@ export function Header({
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">🔥</span>
-                    <span className="font-semibold text-sm">{t.deals}</span>
+                    <span className="font-semibold text-sm">{t('deals')}</span>
                   </a>
                   <a
                     href="/explore"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">🌍</span>
-                    <span className="font-semibold text-sm">{t.explore}</span>
+                    <span className="font-semibold text-sm">{t('explore')}</span>
                   </a>
                   <a
                     href="/travel-guide"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">📚</span>
-                    <span className="font-semibold text-sm">{t.travelGuide}</span>
+                    <span className="font-semibold text-sm">{t('travelGuide')}</span>
                   </a>
                   <a
                     href="/faq"
                     className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
                   >
                     <span className="text-xl">❓</span>
-                    <span className="font-semibold text-sm">{t.faq}</span>
+                    <span className="font-semibold text-sm">{t('faq')}</span>
                   </a>
                 </div>
               )}
@@ -720,7 +617,7 @@ export function Header({
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {t.account}
+                {t('account')}
               </button>
             )}
 
