@@ -74,6 +74,14 @@ export function Header({
   const t = useTranslations('Header');
   const { language, setLanguage } = useLanguage();
 
+  // Create adapter for components not yet migrated
+  const userMenuTranslations = {
+    account: t('account'),
+    wishlist: t('wishlist'),
+    notifications: t('notifications'),
+    signin: t('signin'),
+  };
+
   // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.1)
   const { scrollDirection, isAtTop } = useScrollDirection({
     threshold: 50,
@@ -537,7 +545,7 @@ export function Header({
               <div className="hidden md:block">
                 <UserMenu
                   user={session.user}
-                  translations={t}
+                  translations={userMenuTranslations}
                 />
               </div>
             )}
