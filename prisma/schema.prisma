@@ -81,9 +81,10 @@ model User {
   paymentMethods    PaymentMethod[]
   travelDocuments   TravelDocument[]
   affiliate         Affiliate?         @relation("UserAffiliate")
-  travelAgent       TravelAgent?       @relation("UserTravelAgent")
-  agentClient       AgentClient?       @relation("UserAgentClient")
+  travelAgent       TravelAgent?          @relation("UserTravelAgent")
+  agentClient       AgentClient?          @relation("UserAgentClient")
   worldCupBookings  WorldCupBooking[]
+  tripMatchProfile  TripMatchUserProfile? @relation("TripMatchProfile")
 
   @@map("users")
 }
@@ -864,6 +865,265 @@ model GroupMember {
   @@index([userId])
   @@index([status])
   @@map("group_members")
+}
+
+// ==========================================
+// TripMatch Social Network Features
+// ==========================================
+
+// TripMatch User Profiles (Extended social profiles)
+model TripMatchUserProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Profile Info
+  displayName  String?
+  bio          String?   @db.Text
+  avatarUrl    String?
+  coverImageUrl String?
+
+  // Travel Preferences
+  travelStyle       String[] // adventurer, luxury, budget, cultural, party, wellness
+  interests         String[] // hiking, photography, food, nightlife, etc.
+  languagesSpoken   String[]
+  ageRange          String? // 18-24, 25-34, 35-44, 45-54, 55+
+  gender            String? // male, female, non-binary, prefer-not-to-say
+
+  // Location
+  locationCity    String?
+  locationCountry String?
+
+  // Verification & Trust
+  emailVerified      Boolean @default(false)
+  phoneVerified      Boolean @default(false)
+  idVerified         Boolean @default(false)
+  safetyScore        Int     @default(0) // 0-100
+  verificationLevel  Int     @default(0) // 0 = none, 1 = email, 2 = phone, 3 = ID
+
+  // Social Stats
+  tripsCreated       Int @default(0)
+  tripsJoined        Int @default(0)
+  tripsCompleted     Int @default(0)
+  totalCompanionsMet Int @default(0)
+
+  // Ratings
+  avgRating    Float @default(0) // 0-5
+  totalReviews Int   @default(0)
+
+  // Matching Algorithm Data
+  personalityVector Float[] // ML vector for matching
+
+  // Settings
+  settings Json? // Notification prefs, privacy settings, etc.
+
+  // Relations
+  user               User              @relation("TripMatchProfile", fields: [userId], references: [id], onDelete: Cascade)
+  posts              TripPost[]
+  postReactions      PostReaction[]
+  postComments       PostComment[]
+  messages           TripMessage[]
+  reviewsGiven       TripReview[]      @relation("ReviewsGiven")
+  reviewsReceived    TripReview[]      @relation("ReviewsReceived")
+  connectionsFrom    UserConnection[]  @relation("ConnectionFrom")
+  connectionsTo      UserConnection[]  @relation("ConnectionTo")
+  matchesFrom        TravelerMatch[]   @relation("MatchFrom")
+  matchesTo          TravelerMatch[]   @relation("MatchTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([locationCountry])
+  @@index([verificationLevel])
+  @@map("tripmatch_user_profiles")
+}
+
+// Trip Posts (Photos, updates, memories)
+model TripPost {
+  id     String @id @default(cuid())
+  tripId String
+  userId String
+
+  // Content
+  content   String? @db.Text
+  mediaUrls String[] // Array of image/video URLs
+  mediaType String?  // photo, video, mixed
+
+  // Location
+  location    String?
+  locationLat Float?
+  locationLng Float?
+
+  // Engagement
+  reactionsCount Int @default(0)
+  commentsCount  Int @default(0)
+
+  // Visibility
+  visibility String @default("group") // group, public
+  postType   String @default("update") // update, photo, memory, announcement
+
+  // Relations
+  profile   TripMatchUserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  reactions PostReaction[]
+  comments  PostComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId, createdAt])
+  @@index([userId])
+  @@index([visibility])
+  @@map("trip_posts")
+}
+
+// Post Reactions (Like, Love, Wow, Haha, Fire)
+model PostReaction {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+
+  reactionType String // like, love, wow, haha, fire
+
+  // Relations
+  post    TripPost             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile TripMatchUserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId]) // User can only react once per post
+  @@index([postId])
+  @@index([userId])
+  @@map("post_reactions")
+}
+
+// Post Comments
+model PostComment {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+
+  content String @db.Text
+
+  // Relations
+  post    TripPost             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile TripMatchUserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@map("post_comments")
+}
+
+// Trip Messages (Group Chat)
+model TripMessage {
+  id     String @id @default(cuid())
+  tripId String
+  userId String
+
+  message     String  @db.Text
+  messageType String  @default("text") // text, image, system
+  attachments String[] // Array of attachment URLs
+
+  // System Messages
+  isSystemMessage Boolean @default(false)
+  systemEvent     String? // member_joined, member_left, trip_updated, etc.
+
+  // Read Receipts
+  readBy String[] // Array of userIds who have read this message
+
+  // Relations
+  profile TripMatchUserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([tripId, createdAt])
+  @@index([userId])
+  @@map("trip_messages")
+}
+
+// Trip Reviews (Post-trip ratings)
+model TripReview {
+  id             String @id @default(cuid())
+  tripId         String
+  reviewerId     String // User giving the review
+  reviewedUserId String // User being reviewed
+
+  // Ratings
+  overallRating        Int // 1-5
+  communicationRating  Int? // 1-5
+  reliabilityRating    Int? // 1-5
+  friendlinessRating   Int? // 1-5
+
+  // Review Content
+  reviewText String? @db.Text
+  isPublic   Boolean @default(true)
+
+  // Relations
+  reviewer       TripMatchUserProfile @relation("ReviewsGiven", fields: [reviewerId], references: [userId], onDelete: Cascade)
+  reviewedUser   TripMatchUserProfile @relation("ReviewsReceived", fields: [reviewedUserId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tripId, reviewerId, reviewedUserId]) // One review per user per trip
+  @@index([tripId])
+  @@index([reviewerId])
+  @@index([reviewedUserId])
+  @@map("trip_reviews")
+}
+
+// User Connections (Follow/Friend system)
+model UserConnection {
+  id         String @id @default(cuid())
+  fromUserId String // User who initiated connection
+  toUserId   String // User being connected to
+
+  status String @default("pending") // pending, accepted, declined, blocked
+
+  // Relations
+  fromUser TripMatchUserProfile @relation("ConnectionFrom", fields: [fromUserId], references: [userId], onDelete: Cascade)
+  toUser   TripMatchUserProfile @relation("ConnectionTo", fields: [toUserId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId, status])
+  @@index([toUserId, status])
+  @@map("user_connections")
+}
+
+// Traveler Matching (Find compatible travel buddies)
+model TravelerMatch {
+  id         String @id @default(cuid())
+  fromUserId String // User seeing the match
+  toUserId   String // Suggested match
+
+  // Match Score
+  matchScore       Float   @default(0) // 0-100 compatibility score
+  matchReasons     String[] // Common interests, similar travel style, etc.
+
+  // User Action
+  action           String? // liked, passed, blocked
+  actionTaken      Boolean @default(false)
+
+  // Match Data (snapshot at time of match)
+  matchMetadata    Json? // Stores why they matched
+
+  // Relations
+  fromUser TripMatchUserProfile @relation("MatchFrom", fields: [fromUserId], references: [userId], onDelete: Cascade)
+  toUser   TripMatchUserProfile @relation("MatchTo", fields: [toUserId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId, actionTaken])
+  @@index([toUserId])
+  @@index([matchScore])
+  @@map("traveler_matches")
 }
 
 // ==========================================

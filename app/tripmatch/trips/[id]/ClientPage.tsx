@@ -24,8 +24,13 @@ import {
   Sparkles,
   Copy,
   ExternalLink,
+  MessageCircle,
+  FileText,
+  Star,
 } from 'lucide-react';
 import UrgencyIndicators from '@/components/tripmatch/UrgencyIndicators';
+import TripChat from '@/components/tripmatch/TripChat';
+import TripFeed from '@/components/tripmatch/TripFeed';
 
 interface TripComponent {
   id: string;
@@ -121,6 +126,7 @@ export default function TripDetailPage() {
   const [inviteCode, setInviteCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'feed' | 'chat' | 'members'>('overview');
 
   useEffect(() => {
     fetchTripDetails();
@@ -325,133 +331,229 @@ export default function TripDetailPage() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'overview'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-white/70 hover:bg-white/10'
+            }`}
+          >
+            <FileText className="w-5 h-5" />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('feed')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'feed'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-white/70 hover:bg-white/10'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            Feed
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'chat'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-white/70 hover:bg-white/10'
+            }`}
+          >
+            <MessageCircle className="w-5 h-5" />
+            Chat
+          </button>
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'members'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-white/70 hover:bg-white/10'
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            Members ({trip?.currentMembers || 0})
+          </button>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Details */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-            >
-              <h2 className="text-2xl font-bold text-white mb-4">About This Trip</h2>
-              <p className="text-white/80 leading-relaxed">{trip.description}</p>
+          {/* Left Column: Content */}
+          <div className="lg:col-span-2">
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="space-y-8">
+                {/* Description */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+                >
+                  <h2 className="text-2xl font-bold text-white mb-4">About This Trip</h2>
+                  <p className="text-white/80 leading-relaxed">{trip.description}</p>
 
-              {trip.tags && trip.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {trip.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-purple-500/20 text-purple-300 text-sm rounded-full border border-purple-500/30"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </motion.div>
+                  {trip.tags && trip.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {trip.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-purple-500/20 text-purple-300 text-sm rounded-full border border-purple-500/30"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
 
-            {/* Components */}
-            {trip.components && trip.components.length > 0 && (
+                {/* Components */}
+                {trip.components && trip.components.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+                  >
+                    <h2 className="text-2xl font-bold text-white mb-4">Included Components</h2>
+                    <div className="space-y-3">
+                      {trip.components.map((component) => {
+                        const Icon = COMPONENT_ICONS[component.type] || Clock;
+                        return (
+                          <div
+                            key={component.id}
+                            className="bg-white/5 rounded-xl p-4 flex items-start gap-4 border border-white/10 hover:bg-white/10 transition-colors"
+                          >
+                            <div className="p-3 bg-purple-500/20 rounded-lg">
+                              <Icon className="w-6 h-6 text-purple-300" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h3 className="font-bold text-white">{component.title}</h3>
+                                  <p className="text-sm text-white/60 capitalize">{component.type}</p>
+                                  {component.location && (
+                                    <p className="text-sm text-white/60 flex items-center gap-1 mt-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {component.location}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-white">
+                                    ${Math.floor(component.basePricePerPerson)}
+                                    <span className="text-sm font-normal text-white/60">/person</span>
+                                  </p>
+                                  {component.isRequired && (
+                                    <span className="text-xs text-green-400 flex items-center gap-1 justify-end mt-1">
+                                      <Check className="w-3 h-3" />
+                                      Required
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Rules */}
+                {trip.rules && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
+                  >
+                    <h2 className="text-2xl font-bold text-white mb-4">Trip Rules & Guidelines</h2>
+                    <p className="text-white/80 leading-relaxed">{trip.rules}</p>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* Feed Tab */}
+            {activeTab === 'feed' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
               >
-                <h2 className="text-2xl font-bold text-white mb-4">Included Components</h2>
-                <div className="space-y-3">
-                  {trip.components.map((component) => {
-                    const Icon = COMPONENT_ICONS[component.type] || Clock;
-                    return (
-                      <div
-                        key={component.id}
-                        className="bg-white/5 rounded-xl p-4 flex items-start gap-4 border border-white/10 hover:bg-white/10 transition-colors"
-                      >
-                        <div className="p-3 bg-purple-500/20 rounded-lg">
-                          <Icon className="w-6 h-6 text-purple-300" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h3 className="font-bold text-white">{component.title}</h3>
-                              <p className="text-sm text-white/60 capitalize">{component.type}</p>
-                              {component.location && (
-                                <p className="text-sm text-white/60 flex items-center gap-1 mt-1">
-                                  <MapPin className="w-3 h-3" />
-                                  {component.location}
-                                </p>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-white">
-                                ${Math.floor(component.basePricePerPerson)}
-                                <span className="text-sm font-normal text-white/60">/person</span>
-                              </p>
-                              {component.isRequired && (
-                                <span className="text-xs text-green-400 flex items-center gap-1 justify-end mt-1">
-                                  <Check className="w-3 h-3" />
-                                  Required
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <TripFeed tripId={params.id as string} />
               </motion.div>
             )}
 
-            {/* Members */}
-            {trip.members && trip.members.length > 0 && (
+            {/* Chat Tab */}
+            {activeTab === 'chat' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                className="h-[700px]"
+              >
+                <TripChat tripId={params.id as string} />
+              </motion.div>
+            )}
+
+            {/* Members Tab */}
+            {activeTab === 'members' && trip.members && trip.members.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
               >
-                <h2 className="text-2xl font-bold text-white mb-4">
+                <h2 className="text-2xl font-bold text-white mb-6">
                   Trip Members ({trip.currentMembers}/{trip.maxMembers})
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {trip.members.map((member) => (
                     <div
                       key={member.id}
-                      className="bg-white/5 rounded-xl p-4 flex items-center gap-3 border border-white/10"
+                      className="bg-white/5 rounded-xl p-4 flex items-center gap-4 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/tripmatch/profiles/${member.userId}`)}
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-xl">
                         {member.userName?.charAt(0) || '?'}
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-white">{member.userName || 'Unknown'}</p>
-                          {member.role === 'creator' && <Crown className="w-4 h-4 text-yellow-400" />}
-                          {member.role === 'admin' && <Shield className="w-4 h-4 text-purple-400" />}
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-white text-lg">{member.userName || 'Unknown'}</p>
+                          {member.role === 'creator' && <Crown className="w-5 h-5 text-yellow-400" />}
+                          {member.role === 'admin' && <Shield className="w-5 h-5 text-purple-400" />}
                         </div>
-                        <p className="text-xs text-white/60 capitalize">{member.role}</p>
+                        <p className="text-sm text-white/60 capitalize mb-1">{member.role}</p>
                         {member.profile?.tripsCompleted && (
-                          <p className="text-xs text-white/60">
+                          <p className="text-sm text-white/60 flex items-center gap-1">
+                            <Compass className="w-4 h-4" />
                             {member.profile.tripsCompleted} trips completed
+                          </p>
+                        )}
+                        {member.profile?.avgRating && (
+                          <p className="text-sm text-white/60 flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            {member.profile.avgRating.toFixed(1)} rating
                           </p>
                         )}
                       </div>
                       <div>
                         {member.status === 'confirmed' && (
-                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                          <span className="px-3 py-1 bg-green-500/20 text-green-400 text-sm rounded-full font-semibold">
                             Confirmed
                           </span>
                         )}
                         {member.status === 'invited' && (
-                          <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                          <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-sm rounded-full font-semibold">
                             Invited
                           </span>
                         )}
                         {member.status === 'paid' && (
-                          <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded-full">
+                          <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-sm rounded-full font-semibold">
                             Paid
                           </span>
                         )}
@@ -459,19 +561,6 @@ export default function TripDetailPage() {
                     </div>
                   ))}
                 </div>
-              </motion.div>
-            )}
-
-            {/* Rules */}
-            {trip.rules && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10"
-              >
-                <h2 className="text-2xl font-bold text-white mb-4">Trip Rules & Guidelines</h2>
-                <p className="text-white/80 leading-relaxed">{trip.rules}</p>
               </motion.div>
             )}
           </div>
