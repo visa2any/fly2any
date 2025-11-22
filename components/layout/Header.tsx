@@ -649,8 +649,8 @@ export function Header({
       isOpen={mobileMenuOpen}
       onClose={() => setMobileMenuOpen(false)}
       language={language}
-      onLanguageChange={onLanguageChange || (() => {})}
-      translations={t}
+      onLanguageChange={setLanguage}
+      translations={userMenuTranslations}
       onSignIn={onSignIn}
       onSignUp={onSignUp}
       logoUrl={logoUrl}
