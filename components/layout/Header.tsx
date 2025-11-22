@@ -74,12 +74,38 @@ export function Header({
   const t = useTranslations('Header');
   const { language, setLanguage } = useLanguage();
 
-  // Create adapter for components not yet migrated
+  // Create adapter for UserMenu component
   const userMenuTranslations = {
     account: t('account'),
     wishlist: t('wishlist'),
     notifications: t('notifications'),
     signin: t('signin'),
+  };
+
+  // Create full adapter for NavigationDrawer and other components
+  const headerTranslationsAdapter = {
+    flights: t('flights'),
+    hotels: t('hotels'),
+    cars: t('cars'),
+    tours: t('tours'),
+    activities: t('activities'),
+    packages: t('packages'),
+    travelInsurance: t('travelInsurance'),
+    deals: t('deals'),
+    discover: t('discover'),
+    explore: t('explore'),
+    travelGuide: t('travelGuide'),
+    faq: t('faq'),
+    blog: t('blog'),
+    destinations: t('destinations'),
+    airlines: t('airlines'),
+    popularRoutes: t('popularRoutes'),
+    support: t('support'),
+    signin: t('signin'),
+    signup: t('signup'),
+    wishlist: t('wishlist'),
+    notifications: t('notifications'),
+    account: t('account'),
   };
 
   // Scroll direction detection for auto-hide behavior (Phase 8 Track 2A.1)
@@ -650,7 +676,7 @@ export function Header({
       onClose={() => setMobileMenuOpen(false)}
       language={language}
       onLanguageChange={setLanguage}
-      translations={userMenuTranslations}
+      translations={headerTranslationsAdapter}
       onSignIn={onSignIn}
       onSignUp={onSignUp}
       logoUrl={logoUrl}
