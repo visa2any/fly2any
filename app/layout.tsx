@@ -15,7 +15,8 @@ import {
   getSoftwareApplicationSchema,
   getTravelAgencySchema,
 } from "@/lib/seo/metadata";
-import { I18nProvider } from "@/lib/i18n/provider";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 
 // Optimized font loading with display swap for better FCP
 const inter = Inter({
@@ -78,7 +79,7 @@ export const viewport = {
   themeColor: "#2563eb",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -90,6 +91,10 @@ export default function RootLayout({
     getSoftwareApplicationSchema(),
     getTravelAgencySchema(),
   ];
+
+  // Load messages server-side for SSR/static generation
+  // Default to English for static generation, client will switch based on cookie/preference
+  const messages = await getMessages({ locale: 'en' });
 
   return (
     <html lang="en" className={inter.variable}>
@@ -110,7 +115,7 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
-        <I18nProvider>
+        <NextIntlClientProvider locale="en" messages={messages}>
           <ErrorBoundary
             variant="full-page"
             context="root-layout"
@@ -133,7 +138,7 @@ export default function RootLayout({
               }}
             />
           </ErrorBoundary>
-        </I18nProvider>
+        </NextIntlClientProvider>
         {/* Web Vitals Performance Monitoring */}
         <WebVitalsReporter />
         {/* PWA Features */}
