@@ -15,6 +15,8 @@ import {
   Luggage, CreditCard, Award, Globe, Shield, ChevronRight,
   Sparkles, TrendingUp, Clock, DollarSign, AlertCircle, Calendar
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -144,71 +146,11 @@ const baseFaqs = [
   { q: 'Are connecting flights risky?', a: 'Leave 60-90 min domestic, 2-3 hours international. Book same ticket for protection. Airlines responsible if connection missed.' },
 ];
 
-const content = {
-  en: {
-    pageTitle: 'Find Your Perfect Flight',
-    sectionTitle: 'Search, Compare & Book Flights with Confidence',
-    subtitle: 'AI-powered search across 500+ airlines for the best deals',
-    cabinClassTitle: '✈️ Flight Classes & Cabin Types',
-    cabinClassSubtitle: 'Choose the perfect cabin for your journey',
-    cabinClasses: baseCabinClasses,
-    alliancesTitle: '🌐 Airlines by Alliance',
-    alliancesSubtitle: 'Maximize your loyalty benefits and global network',
-    alliances: baseAlliances,
-    featuresTitle: '💼 Flight Features & Services',
-    featuresSubtitle: 'What to expect on modern flights',
-    features: baseFlightFeatures,
-    tipsTitle: '🎯 Expert Flight Booking Tips',
-    tipsSubtitle: 'Save money and get the best experience',
-    tips: baseBookingTips,
-    faqTitle: '❓ Flight Booking FAQ',
-    faqs: baseFaqs,
-  },
-  pt: {
-    pageTitle: 'Encontre Seu Voo Perfeito',
-    sectionTitle: 'Busque, Compare e Reserve Voos com Confiança',
-    subtitle: 'Busca com IA em 500+ companhias aéreas para as melhores ofertas',
-    cabinClassTitle: '✈️ Classes e Tipos de Cabine',
-    cabinClassSubtitle: 'Escolha a cabine perfeita para sua viagem',
-    cabinClasses: baseCabinClasses,
-    alliancesTitle: '🌐 Companhias por Aliança',
-    alliancesSubtitle: 'Maximize benefícios de fidelidade e rede global',
-    alliances: baseAlliances,
-    featuresTitle: '💼 Recursos e Serviços de Voo',
-    featuresSubtitle: 'O que esperar em voos modernos',
-    features: baseFlightFeatures,
-    tipsTitle: '🎯 Dicas de Reserva',
-    tipsSubtitle: 'Economize e tenha a melhor experiência',
-    tips: baseBookingTips,
-    faqTitle: '❓ Perguntas Frequentes',
-    faqs: baseFaqs,
-  },
-  es: {
-    pageTitle: 'Encuentra Tu Vuelo Perfecto',
-    sectionTitle: 'Busca, Compara y Reserva Vuelos con Confianza',
-    subtitle: 'Búsqueda con IA en 500+ aerolíneas para las mejores ofertas',
-    cabinClassTitle: '✈️ Clases y Tipos de Cabina',
-    cabinClassSubtitle: 'Elige la cabina perfecta para tu viaje',
-    cabinClasses: baseCabinClasses,
-    alliancesTitle: '🌐 Aerolíneas por Alianza',
-    alliancesSubtitle: 'Maximiza beneficios de lealtad y red global',
-    alliances: baseAlliances,
-    featuresTitle: '💼 Características y Servicios',
-    featuresSubtitle: 'Qué esperar en vuelos modernos',
-    features: baseFlightFeatures,
-    tipsTitle: '🎯 Consejos de Reserva',
-    tipsSubtitle: 'Ahorra y ten la mejor experiencia',
-    tips: baseBookingTips,
-    faqTitle: '❓ Preguntas Frecuentes',
-    faqs: baseFaqs,
-  },
-};
-
 export default function FlightsPage() {
-  const [lang, setLang] = useState<Language>('en');
+  const t = useTranslations('FlightsPage');
+  const { language: lang, setLanguage: setLang } = useLanguage();
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang];
 
   useEffect(() => {
     setMounted(true);
@@ -241,21 +183,21 @@ export default function FlightsPage() {
             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <div className="overflow-x-auto md:overflow-visible scrollbar-hide" style={{ width: '100%' }}>
                 <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide" style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
-                  {mounted ? t.sectionTitle.split('').map((char, index) => (
+                  {mounted ? t('sectionTitle').split('').map((char, index) => (
                     <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                       {char === ' ' ? '\u00A0' : char}
                     </span>
-                  )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
+                  )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
                 </h1>
               </div>
               <span className="hidden md:inline-block text-blue-400 text-2xl font-bold mx-1">•</span>
               <div className="overflow-x-auto md:overflow-visible scrollbar-hide" style={{ width: '100%' }}>
                 <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal" style={{ display: 'inline-block', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>
-                  {mounted ? t.subtitle.split('').map((char, index) => (
+                  {mounted ? t('subtitle').split('').map((char, index) => (
                     <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                       {char === ' ' ? '\u00A0' : char}
                     </span>
-                  )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
+                  )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
                 </p>
               </div>
             </div>
@@ -321,11 +263,11 @@ export default function FlightsPage() {
       <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.cabinClassTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.cabinClassSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('cabinClassTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('cabinClassSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.cabinClasses.map((cabin, idx) => {
+            {baseCabinClasses.map((cabin, idx) => {
               const IconComponent = cabin.icon;
               return (
                 <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-blue-400 group cursor-pointer h-[320px]">
@@ -365,11 +307,11 @@ export default function FlightsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.alliancesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.alliancesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('alliancesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('alliancesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.alliances.map((alliance, idx) => (
+            {baseAlliances.map((alliance, idx) => (
               <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer">
                 <div className="text-5xl mb-3 text-center">{alliance.logo}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{alliance.name}</h3>
@@ -393,11 +335,11 @@ export default function FlightsPage() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.featuresTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.featuresSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('featuresTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('featuresSubtitle')}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
-            {t.features.map((feature, idx) => {
+            {baseFlightFeatures.map((feature, idx) => {
               const IconComponent = feature.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-blue-300 group cursor-pointer text-center">
@@ -417,11 +359,11 @@ export default function FlightsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.tipsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('tipsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tipsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.tips.map((tip, idx) => {
+            {baseBookingTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-blue-200">
@@ -450,11 +392,11 @@ export default function FlightsPage() {
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t.faqTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about booking flights with Fly2Any</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('faqIntro')}</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.faqs.map((faq, idx) => (
+            {baseFaqs.map((faq, idx) => (
               <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group">
                 <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
                   <span className="flex-1 text-base md:text-lg">{faq.q}</span>
@@ -465,10 +407,10 @@ export default function FlightsPage() {
             ))}
           </div>
           <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Still have questions?</p>
+            <p className="text-gray-600 mb-4">{t('stillHaveQuestions')}</p>
             <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
               <Shield className="w-5 h-5" />
-              Contact Our Support Team
+              {t('contactSupport')}
             </a>
           </div>
         </MaxWidthContainer>

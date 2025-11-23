@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
@@ -135,150 +136,6 @@ function lookupAirportByCode(code: string): Airport | null {
   return popularAirports.find(airport => airport.code === upperCode) || null;
 }
 
-const content = {
-  en: {
-    // Service tabs
-    flights: 'Flights',
-    hotels: 'Hotels',
-    cars: 'Car Rentals',
-    tours: 'Tours',
-    activities: 'Activities',
-    packages: 'Packages',
-    insurance: 'Insurance',
-
-    from: 'From',
-    to: 'To',
-    depart: 'Depart',
-    return: 'Return',
-    travelers: 'Travelers',
-    class: 'Class',
-    search: 'Search Flights',
-    searchHotels: 'Search Hotels',
-    searchCars: 'Search Cars',
-    searchTours: 'Search Tours',
-    searchActivities: 'Search Activities',
-    searchPackages: 'Search Packages',
-    searchInsurance: 'Get Quote',
-    searching: 'Searching...',
-    oneWay: 'One-way',
-    roundTrip: 'Round-trip',
-    adults: 'Adults',
-    children: 'Children',
-    infants: 'Infants',
-    economy: 'Economy',
-    premium: 'Premium Economy',
-    business: 'Business',
-    first: 'First Class',
-    done: 'Done',
-    guest: 'Guest',
-    guests: 'Guests',
-    age18: '18+ years',
-    age2to17: '2-17 years',
-    ageUnder2: 'Under 2 years',
-    directOnly: 'Direct flights only',
-    errors: {
-      originRequired: 'Please select origin',
-      destinationRequired: 'Please select destination',
-      departureDateRequired: 'Please select departure date',
-      sameAirports: 'Origin and destination must be different',
-    },
-  },
-  pt: {
-    // Service tabs
-    flights: 'Voos',
-    hotels: 'Hotéis',
-    cars: 'Aluguel de Carros',
-    tours: 'Passeios',
-    activities: 'Atividades',
-    packages: 'Pacotes',
-    insurance: 'Seguro',
-
-    from: 'De',
-    to: 'Para',
-    depart: 'Ida',
-    return: 'Volta',
-    travelers: 'Viajantes',
-    class: 'Classe',
-    search: 'Buscar Voos',
-    searchHotels: 'Buscar Hotéis',
-    searchCars: 'Buscar Carros',
-    searchTours: 'Buscar Passeios',
-    searchActivities: 'Buscar Atividades',
-    searchPackages: 'Buscar Pacotes',
-    searchInsurance: 'Obter Cotação',
-    searching: 'Buscando...',
-    oneWay: 'Só ida',
-    roundTrip: 'Ida e volta',
-    adults: 'Adultos',
-    children: 'Crianças',
-    infants: 'Bebês',
-    economy: 'Econômica',
-    premium: 'Econômica Premium',
-    business: 'Executiva',
-    first: 'Primeira Classe',
-    done: 'Pronto',
-    guest: 'Passageiro',
-    guests: 'Passageiros',
-    age18: '18+ anos',
-    age2to17: '2-17 anos',
-    ageUnder2: 'Menos de 2 anos',
-    directOnly: 'Apenas voos diretos',
-    errors: {
-      originRequired: 'Selecione a origem',
-      destinationRequired: 'Selecione o destino',
-      departureDateRequired: 'Selecione a data de ida',
-      sameAirports: 'Origem e destino devem ser diferentes',
-    },
-  },
-  es: {
-    // Service tabs
-    flights: 'Vuelos',
-    hotels: 'Hoteles',
-    cars: 'Alquiler de Autos',
-    tours: 'Tours',
-    activities: 'Actividades',
-    packages: 'Paquetes',
-    insurance: 'Seguro',
-
-    from: 'Desde',
-    to: 'Hasta',
-    depart: 'Salida',
-    return: 'Regreso',
-    travelers: 'Viajeros',
-    class: 'Clase',
-    search: 'Buscar Vuelos',
-    searchHotels: 'Buscar Hoteles',
-    searchCars: 'Buscar Autos',
-    searchTours: 'Buscar Tours',
-    searchActivities: 'Buscar Actividades',
-    searchPackages: 'Buscar Paquetes',
-    searchInsurance: 'Obtener Cotización',
-    searching: 'Buscando...',
-    oneWay: 'Solo ida',
-    roundTrip: 'Ida y vuelta',
-    adults: 'Adultos',
-    children: 'Niños',
-    infants: 'Bebés',
-    economy: 'Económica',
-    premium: 'Económica Premium',
-    business: 'Ejecutiva',
-    first: 'Primera Clase',
-    done: 'Listo',
-    guest: 'Pasajero',
-    guests: 'Pasajeros',
-    age18: '18+ años',
-    age2to17: '2-17 años',
-    ageUnder2: 'Menos de 2 años',
-    directOnly: 'Solo vuelos directos',
-    errors: {
-      originRequired: 'Seleccione origen',
-      destinationRequired: 'Seleccione destino',
-      departureDateRequired: 'Seleccione fecha de salida',
-      sameAirports: 'Origen y destino deben ser diferentes',
-    },
-  },
-};
-
 export default function EnhancedSearchBar({
   origin: initialOrigin = '',
   destination: initialDestination = '',
@@ -289,7 +146,7 @@ export default function EnhancedSearchBar({
   lang = 'en',
   defaultService = 'flights',
 }: EnhancedSearchBarProps) {
-  const t = content[lang];
+  const t = useTranslations('FlightSearch');
   const router = useRouter();
 
   // Parse comma-separated airport codes into arrays
@@ -755,29 +612,29 @@ export default function EnhancedSearchBar({
     const newErrors: { [key: string]: string } = {};
 
     if (!origin || origin.length === 0) {
-      newErrors.origin = t.errors.originRequired;
+      newErrors.origin = t('errors.originRequired');
     }
 
     if (!destination || destination.length === 0) {
-      newErrors.destination = t.errors.destinationRequired;
+      newErrors.destination = t('errors.destinationRequired');
     }
 
     // Check if any origin code matches any destination code
     if (origin && destination && origin.length > 0 && destination.length > 0) {
       const hasOverlap = origin.some(code => destination.includes(code));
       if (hasOverlap) {
-        newErrors.destination = t.errors.sameAirports;
+        newErrors.destination = t('errors.sameAirports');
       }
     }
 
     // Departure date validation
     if (useFlexibleDates) {
       if (!departureDates || departureDates.length === 0) {
-        newErrors.departureDate = t.errors.departureDateRequired;
+        newErrors.departureDate = t('errors.departureDateRequired');
       }
     } else {
       if (!departureDate) {
-        newErrors.departureDate = t.errors.departureDateRequired;
+        newErrors.departureDate = t('errors.departureDateRequired');
       }
     }
 
@@ -982,7 +839,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Plane size={18} className={serviceType === 'flights' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.flights}</span>
+            <span className="text-xs sm:text-sm">{t('flights')}</span>
             {serviceType === 'flights' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -999,7 +856,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Hotel size={18} className={serviceType === 'hotels' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.hotels}</span>
+            <span className="text-xs sm:text-sm">{t('hotels')}</span>
             {serviceType === 'hotels' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1016,7 +873,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.cars}</span>
+            <span className="text-xs sm:text-sm">{t('cars')}</span>
             {serviceType === 'cars' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1033,7 +890,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Map size={18} className={serviceType === 'tours' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.tours}</span>
+            <span className="text-xs sm:text-sm">{t('tours')}</span>
             {serviceType === 'tours' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1050,7 +907,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Activity size={18} className={serviceType === 'activities' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.activities}</span>
+            <span className="text-xs sm:text-sm">{t('activities')}</span>
             {serviceType === 'activities' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1067,7 +924,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Package size={18} className={serviceType === 'packages' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.packages}</span>
+            <span className="text-xs sm:text-sm">{t('packages')}</span>
             {serviceType === 'packages' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1084,7 +941,7 @@ export default function EnhancedSearchBar({
             }`}
           >
             <Shield size={18} className={serviceType === 'insurance' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t.insurance}</span>
+            <span className="text-xs sm:text-sm">{t('insurance')}</span>
             {serviceType === 'insurance' && (
               <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
             )}
@@ -1338,7 +1195,7 @@ export default function EnhancedSearchBar({
             >
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <span className="block pl-7 text-sm font-medium text-gray-900 pr-7">
-                {totalPassengers}, {t[cabinClass]}
+                {totalPassengers}, {t(cabinClass as any)}
               </span>
               <ChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${showPassengerDropdown ? 'rotate-180' : ''}`} size={16} />
             </button>
@@ -1351,8 +1208,8 @@ export default function EnhancedSearchBar({
                 {/* Adults */}
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="font-semibold text-gray-900 text-xs">{t.adults}</div>
-                    <div className="text-gray-500 text-[10px]">{t.age18}</div>
+                    <div className="font-semibold text-gray-900 text-xs">{t('adults')}</div>
+                    <div className="text-gray-500 text-[10px]">{t('age18')}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1387,8 +1244,8 @@ export default function EnhancedSearchBar({
                 {/* Children */}
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="font-semibold text-gray-900 text-xs">{t.children}</div>
-                    <div className="text-gray-500 text-[10px]">{t.age2to17}</div>
+                    <div className="font-semibold text-gray-900 text-xs">{t('children')}</div>
+                    <div className="text-gray-500 text-[10px]">{t('age2to17')}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1423,8 +1280,8 @@ export default function EnhancedSearchBar({
                 {/* Infants */}
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="font-semibold text-gray-900 text-xs">{t.infants}</div>
-                    <div className="text-gray-500 text-[10px]">{t.ageUnder2}</div>
+                    <div className="font-semibold text-gray-900 text-xs">{t('infants')}</div>
+                    <div className="text-gray-500 text-[10px]">{t('ageUnder2')}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1483,7 +1340,7 @@ export default function EnhancedSearchBar({
                         {cls === 'business' && '💼'}
                         {cls === 'first' && '👑'}
                         {' '}
-                        {t[cls]}
+                        {t(cls as any)}
                       </button>
                     ))}
                   </div>
@@ -1494,7 +1351,7 @@ export default function EnhancedSearchBar({
                   onClick={() => setShowPassengerDropdown(false)}
                   className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
                 >
-                  {t.done}
+                  {t('done')}
                 </button>
               </div>
             )}
@@ -1515,10 +1372,10 @@ export default function EnhancedSearchBar({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>{t.searching}</span>
+                  <span>{t('searching')}</span>
                 </>
               ) : (
-                <span>{t.search}</span>
+                <span>{t('search')}</span>
               )}
             </button>
           </div>
@@ -2038,7 +1895,7 @@ export default function EnhancedSearchBar({
                     <span>Searching...</span>
                   </>
                 ) : (
-                  <span>{t.searchCars}</span>
+                  <span>{t('searchCars')}</span>
                 )}
               </button>
             </div>
@@ -2177,7 +2034,7 @@ export default function EnhancedSearchBar({
                     <span>Searching...</span>
                   </>
                 ) : (
-                  <span>{t.searchTours}</span>
+                  <span>{t('searchTours')}</span>
                 )}
               </button>
             </div>
@@ -2322,7 +2179,7 @@ export default function EnhancedSearchBar({
                     <span>Searching...</span>
                   </>
                 ) : (
-                  <span>{t.searchActivities}</span>
+                  <span>{t('searchActivities')}</span>
                 )}
               </button>
             </div>
@@ -2419,7 +2276,7 @@ export default function EnhancedSearchBar({
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Search</label>
               <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
-                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t.searchPackages}</span>)}
+                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Searching...</span></>) : (<span>{t('searchPackages')}</span>)}
               </button>
             </div>
           </div>
@@ -2484,7 +2341,7 @@ export default function EnhancedSearchBar({
             <div className="flex-shrink-0">
               <label className="block text-xs font-medium text-gray-700 mb-2 opacity-0">Quote</label>
               <button type="button" onClick={handleSearch} disabled={isLoading} className="py-4 px-10 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap text-base">
-                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t.searchInsurance}</span>)}
+                {isLoading ? (<><svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Loading...</span></>) : (<span>{t('searchInsurance')}</span>)}
               </button>
             </div>
           </div>
@@ -2595,7 +2452,7 @@ export default function EnhancedSearchBar({
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {t.roundTrip}
+              {t('roundTrip')}
             </button>
             <button
               type="button"
@@ -2609,14 +2466,14 @@ export default function EnhancedSearchBar({
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              {t.oneWay}
+              {t('oneWay')}
             </button>
           </div>
 
           {/* Airports */}
           <div className="space-y-3">
             <MultiAirportSelector
-              label={t.from}
+              label={t('from')}
               placeholder="Select airports"
               value={origin}
               onChange={handleOriginChange}
@@ -2624,7 +2481,7 @@ export default function EnhancedSearchBar({
               lang={lang}
             />
             <MultiAirportSelector
-              label={t.to}
+              label={t('to')}
               placeholder="Select airports"
               value={destination}
               onChange={handleDestinationChange}
@@ -2638,7 +2495,7 @@ export default function EnhancedSearchBar({
             {/* Depart Date with Inline Flex */}
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                {t.depart}
+                {t('depart')}
               </label>
               <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -2654,7 +2511,7 @@ export default function EnhancedSearchBar({
             {tripType === 'roundtrip' && (
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                  {t.return}
+                  {t('return')}
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -2681,7 +2538,7 @@ export default function EnhancedSearchBar({
               className="w-full flex items-center gap-2 pl-8 pr-3 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-xs font-semibold text-gray-900"
             >
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-              <span className="flex-1 text-left">{totalPassengers}, {t[cabinClass]}</span>
+              <span className="flex-1 text-left">{totalPassengers}, {t(cabinClass as any)}</span>
               <ChevronDown className="text-gray-400" size={12} />
             </button>
           </div>
@@ -2695,7 +2552,7 @@ export default function EnhancedSearchBar({
               className="w-4 h-4 rounded border-gray-300 text-[#0087FF] focus:ring-[#0087FF] cursor-pointer"
             />
             <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
-              {t.directOnly}
+              {t('directOnly')}
             </span>
           </label>
 
@@ -2711,10 +2568,10 @@ export default function EnhancedSearchBar({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>{t.searching}</span>
+                <span>{t('searching')}</span>
               </>
             ) : (
-              <span>{t.search}</span>
+              <span>{t('search')}</span>
             )}
           </button>
           </>
