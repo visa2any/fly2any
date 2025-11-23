@@ -12,6 +12,8 @@ import {
   Calendar, AlertCircle, ChevronRight, CheckCircle, Building2, Globe,
   CreditCard, FileCheck, Key, Sparkles, Briefcase, UtensilsCrossed, Star
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -262,89 +264,12 @@ const baseFaqs = [
   { q: 'Are there hidden fees I should know about?', a: 'Common fees: Airport surcharge ($10-30), additional driver ($10-15/day), GPS ($15/day), under-25 fee ($25/day), one-way fee ($50-500), fuel charges ($8-12/gallon if not full).' },
 ];
 
-const content = {
-  en: {
-    pageTitle: 'Rent Your Perfect Car',
-    sectionTitle: 'Find & Book Car Rentals with Ease',
-    subtitle: 'Compare 500+ rental companies worldwide for the best deals',
-    vehicleTypesTitle: '🚗 Vehicle Types & Categories',
-    vehicleTypesSubtitle: 'Choose the perfect car for your journey',
-    vehicleTypes: baseVehicleTypes,
-    companiesTitle: '🏢 Top Car Rental Companies',
-    companiesSubtitle: 'Trusted brands with worldwide coverage',
-    companies: baseRentalCompanies,
-    insuranceTitle: '🛡️ Insurance & Protection Options',
-    insuranceSubtitle: 'Understand your coverage options and save money',
-    insurance: baseInsuranceOptions,
-    locationsTitle: '📍 Rental Locations & Pickup Options',
-    locationsSubtitle: 'Where to pick up your rental car',
-    locations: basePopularLocations,
-    fuelPoliciesTitle: '⛽ Fuel Policies Explained',
-    fuelPoliciesSubtitle: 'Understand fuel options to avoid surprise charges',
-    fuelPolicies: baseFuelPolicies,
-    tipsTitle: '💡 Expert Car Rental Tips',
-    tipsSubtitle: 'Save money and avoid common pitfalls',
-    tips: baseTips,
-    faqTitle: '❓ Car Rental FAQ',
-    faqs: baseFaqs,
-  },
-  pt: {
-    pageTitle: 'Alugue Seu Carro Perfeito',
-    sectionTitle: 'Encontre e Reserve Aluguel de Carros com Facilidade',
-    subtitle: 'Compare +500 locadoras em todo o mundo para as melhores ofertas',
-    vehicleTypesTitle: '🚗 Tipos e Categorias de Veículos',
-    vehicleTypesSubtitle: 'Escolha o carro perfeito para sua viagem',
-    vehicleTypes: baseVehicleTypes,
-    companiesTitle: '🏢 Principais Locadoras',
-    companiesSubtitle: 'Marcas confiáveis com cobertura mundial',
-    companies: baseRentalCompanies,
-    insuranceTitle: '🛡️ Opções de Seguro',
-    insuranceSubtitle: 'Entenda suas opções e economize',
-    insurance: baseInsuranceOptions,
-    locationsTitle: '📍 Locais de Retirada',
-    locationsSubtitle: 'Onde retirar seu carro alugado',
-    locations: basePopularLocations,
-    fuelPoliciesTitle: '⛽ Políticas de Combustível',
-    fuelPoliciesSubtitle: 'Entenda as opções para evitar cobranças surpresa',
-    fuelPolicies: baseFuelPolicies,
-    tipsTitle: '💡 Dicas de Aluguel',
-    tipsSubtitle: 'Economize e evite armadilhas comuns',
-    tips: baseTips,
-    faqTitle: '❓ Perguntas Frequentes',
-    faqs: baseFaqs,
-  },
-  es: {
-    pageTitle: 'Alquila Tu Coche Perfecto',
-    sectionTitle: 'Encuentra y Reserva Alquiler de Coches Fácilmente',
-    subtitle: 'Compara +500 empresas de alquiler en todo el mundo',
-    vehicleTypesTitle: '🚗 Tipos y Categorías de Vehículos',
-    vehicleTypesSubtitle: 'Elige el coche perfecto para tu viaje',
-    vehicleTypes: baseVehicleTypes,
-    companiesTitle: '🏢 Principales Empresas de Alquiler',
-    companiesSubtitle: 'Marcas confiables con cobertura mundial',
-    companies: baseRentalCompanies,
-    insuranceTitle: '🛡️ Opciones de Seguro',
-    insuranceSubtitle: 'Comprende tus opciones y ahorra',
-    insurance: baseInsuranceOptions,
-    locationsTitle: '📍 Ubicaciones de Recogida',
-    locationsSubtitle: 'Dónde recoger tu coche de alquiler',
-    locations: basePopularLocations,
-    fuelPoliciesTitle: '⛽ Políticas de Combustible',
-    fuelPoliciesSubtitle: 'Comprende las opciones para evitar cargos sorpresa',
-    fuelPolicies: baseFuelPolicies,
-    tipsTitle: '💡 Consejos de Alquiler',
-    tipsSubtitle: 'Ahorra y evita trampas comunes',
-    tips: baseTips,
-    faqTitle: '❓ Preguntas Frecuentes',
-    faqs: baseFaqs,
-  },
-};
 
 export default function CarsPage() {
-  const [lang, setLang] = useState<Language>('en');
+  const t = useTranslations('CarsPage');
+  const { language: lang, setLanguage: setLang } = useLanguage();
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang];
 
   useEffect(() => {
     setMounted(true);
@@ -376,19 +301,19 @@ export default function CarsPage() {
           <div className="px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                {mounted ? t('sectionTitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
               </h1>
               <span className="hidden md:inline-block text-teal-400 text-2xl font-bold mx-1">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }}>
-                {mounted ? t.subtitle.split('').map((char, index) => (
+                {mounted ? t('subtitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
               </p>
             </div>
           </div>
@@ -436,11 +361,11 @@ export default function CarsPage() {
       <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.vehicleTypesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.vehicleTypesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('vehicleTypesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('vehicleTypesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.vehicleTypes.map((vehicle, idx) => {
+            {baseVehicleTypes.map((vehicle, idx) => {
               const IconComponent = vehicle.icon;
               return (
                 <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-teal-400 group cursor-pointer h-[300px]">
@@ -481,11 +406,11 @@ export default function CarsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.companiesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.companiesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('companiesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('companiesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
-            {t.companies.map((company, idx) => (
+            {baseRentalCompanies.map((company, idx) => (
               <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-teal-300 group cursor-pointer text-center">
                 <div className="text-5xl mb-3">{company.logo}</div>
                 <h3 className="text-base font-bold text-gray-900 mb-1">{company.name}</h3>
@@ -512,11 +437,11 @@ export default function CarsPage() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.insuranceTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.insuranceSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('insuranceTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('insuranceSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.insurance.map((ins, idx) => {
+            {baseInsuranceOptions.map((ins, idx) => {
               const IconComponent = ins.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-blue-200 hover:border-blue-400 group cursor-pointer">
@@ -540,11 +465,11 @@ export default function CarsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.locationsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.locationsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('locationsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('locationsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.locations.map((loc, idx) => {
+            {basePopularLocations.map((loc, idx) => {
               const IconComponent = loc.icon;
               return (
                 <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-teal-300 group cursor-pointer">
@@ -568,11 +493,11 @@ export default function CarsPage() {
       <div className="bg-gradient-to-br from-teal-50 to-emerald-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.fuelPoliciesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.fuelPoliciesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('fuelPoliciesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('fuelPoliciesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.fuelPolicies.map((fuel, idx) => {
+            {baseFuelPolicies.map((fuel, idx) => {
               const IconComponent = fuel.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-gray-200 hover:border-teal-400 group cursor-pointer">
@@ -595,11 +520,11 @@ export default function CarsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.tipsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('tipsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tipsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.tips.map((tip, idx) => {
+            {baseTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-teal-200">
@@ -628,11 +553,11 @@ export default function CarsPage() {
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t.faqTitle}</h2>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about renting cars with Fly2Any</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.faqs.map((faq, idx) => (
+            {baseFaqs.map((faq, idx) => (
               <details key={idx} className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-teal-300 group">
                 <summary className="font-bold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-3">
                   <span className="flex-1 text-base md:text-lg">{faq.q}</span>

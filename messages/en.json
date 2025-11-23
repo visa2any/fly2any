@@ -619,5 +619,23 @@
     "faqIntro": "Everything you need to know about booking hotels with Fly2Any",
     "stillHaveQuestions": "Still have questions?",
     "contactSupport": "Contact Our Support Team"
+  },
+  "CarsPage": {
+    "pageTitle": "Rent Your Perfect Car",
+    "sectionTitle": "Find & Book Car Rentals with Ease",
+    "subtitle": "Compare 500+ rental companies worldwide for the best deals",
+    "vehicleTypesTitle": "🚗 Vehicle Types & Categories",
+    "vehicleTypesSubtitle": "Choose the perfect car for your journey",
+    "companiesTitle": "🏢 Top Car Rental Companies",
+    "companiesSubtitle": "Trusted brands with worldwide coverage",
+    "insuranceTitle": "🛡️ Insurance & Protection Options",
+    "insuranceSubtitle": "Understand your coverage options and save money",
+    "locationsTitle": "📍 Rental Locations & Pickup Options",
+    "locationsSubtitle": "Where to pick up your rental car",
+    "fuelPoliciesTitle": "⛽ Fuel Policies Explained",
+    "fuelPoliciesSubtitle": "Understand fuel options to avoid surprise charges",
+    "tipsTitle": "💡 Expert Car Rental Tips",
+    "tipsSubtitle": "Save money and avoid common pitfalls",
+    "faqTitle": "❓ Car Rental FAQ"
   }
 }

@@ -619,5 +619,23 @@
     "faqIntro": "Todo lo que necesitas saber sobre reservar hoteles con Fly2Any",
     "stillHaveQuestions": "¿Aún tienes preguntas?",
     "contactSupport": "Contacta a Nuestro Equipo de Soporte"
+  },
+  "CarsPage": {
+    "pageTitle": "Alquila Tu Coche Perfecto",
+    "sectionTitle": "Encuentra y Reserva Alquiler de Coches Fácilmente",
+    "subtitle": "Compara +500 empresas de alquiler en todo el mundo",
+    "vehicleTypesTitle": "🚗 Tipos y Categorías de Vehículos",
+    "vehicleTypesSubtitle": "Elige el coche perfecto para tu viaje",
+    "companiesTitle": "🏢 Principales Empresas de Alquiler",
+    "companiesSubtitle": "Marcas confiables con cobertura mundial",
+    "insuranceTitle": "🛡️ Opciones de Seguro",
+    "insuranceSubtitle": "Comprende tus opciones y ahorra",
+    "locationsTitle": "📍 Ubicaciones de Recogida",
+    "locationsSubtitle": "Dónde recoger tu coche de alquiler",
+    "fuelPoliciesTitle": "⛽ Políticas de Combustible",
+    "fuelPoliciesSubtitle": "Comprende las opciones para evitar cargos sorpresa",
+    "tipsTitle": "💡 Consejos de Alquiler",
+    "tipsSubtitle": "Ahorra y evita trampas comunes",
+    "faqTitle": "❓ Preguntas Frecuentes"
   }
 }
