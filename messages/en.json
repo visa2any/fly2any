@@ -582,5 +582,21 @@
     "faqIntro": "Everything you need to know about booking flights with Fly2Any",
     "stillHaveQuestions": "Still have questions?",
     "contactSupport": "Contact Our Support Team"
+  },
+  "FlightResults": {
+    "modifySearch": "Modify Search",
+    "showPriceInsights": "Show Price Insights",
+    "hidePriceInsights": "Hide Price Insights",
+    "searching": "Searching for the best flights...",
+    "noResults": "No flights found",
+    "noResultsDesc": "We couldn't find any flights matching your search criteria. Try adjusting your filters or search parameters.",
+    "error": "Error loading flights",
+    "errorDesc": "We encountered an issue while searching for flights. Please try again.",
+    "retry": "Retry Search",
+    "loadMore": "Load More Flights",
+    "loading": "Loading...",
+    "loadingMore": "Loading more flights...",
+    "allResultsLoaded": "All {total} flights loaded",
+    "showingResults": "Showing {count} of {total} flights"
   }
 }

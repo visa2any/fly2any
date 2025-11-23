@@ -582,5 +582,21 @@
     "faqIntro": "Todo lo que necesitas saber sobre reservar vuelos con Fly2Any",
     "stillHaveQuestions": "¿Aún tienes preguntas?",
     "contactSupport": "Contacta a Nuestro Equipo de Soporte"
+  },
+  "FlightResults": {
+    "modifySearch": "Modificar Búsqueda",
+    "showPriceInsights": "Mostrar Insights de Precio",
+    "hidePriceInsights": "Ocultar Insights de Precio",
+    "searching": "Buscando los mejores vuelos...",
+    "noResults": "No se encontraron vuelos",
+    "noResultsDesc": "No pudimos encontrar vuelos que coincidan con sus criterios de búsqueda. Intente ajustar sus filtros o parámetros de búsqueda.",
+    "error": "Error al cargar vuelos",
+    "errorDesc": "Encontramos un problema al buscar vuelos. Por favor, inténtelo de nuevo.",
+    "retry": "Reintentar Búsqueda",
+    "loadMore": "Cargar Más Vuelos",
+    "loading": "Cargando...",
+    "loadingMore": "Cargando más vuelos...",
+    "allResultsLoaded": "Todos los {total} vuelos cargados",
+    "showingResults": "Mostrando {count} de {total} vuelos"
   }
 }

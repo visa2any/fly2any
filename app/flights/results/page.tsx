@@ -49,6 +49,8 @@ import { abTestManager } from '@/lib/ab-testing/test-manager';
 import { analyticsTracker } from '@/lib/ab-testing/analytics-tracker';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -75,60 +77,6 @@ interface ScoredFlight extends FlightOffer {
   averageCO2?: number; // Average CO2 emissions for this route in kg
 }
 
-// ===========================
-// TRANSLATIONS
-// ===========================
-
-const translations = {
-  en: {
-    modifySearch: 'Modify Search',
-    showPriceInsights: 'Show Price Insights',
-    hidePriceInsights: 'Hide Price Insights',
-    searching: 'Searching for the best flights...',
-    noResults: 'No flights found',
-    noResultsDesc: 'We couldn\'t find any flights matching your search criteria. Try adjusting your filters or search parameters.',
-    error: 'Error loading flights',
-    errorDesc: 'We encountered an issue while searching for flights. Please try again.',
-    retry: 'Retry Search',
-    loadMore: 'Load More Flights',
-    loading: 'Loading...',
-    showingResults: 'Showing {count} of {total} flights',
-    loadingMore: 'Loading more flights...',
-    allResultsLoaded: 'All {total} flights loaded',
-  },
-  pt: {
-    modifySearch: 'Modificar Busca',
-    showPriceInsights: 'Mostrar Insights de Preço',
-    hidePriceInsights: 'Ocultar Insights de Preço',
-    searching: 'Procurando os melhores voos...',
-    noResults: 'Nenhum voo encontrado',
-    noResultsDesc: 'Não encontramos voos que correspondam aos seus critérios de busca. Tente ajustar seus filtros ou parâmetros de busca.',
-    error: 'Erro ao carregar voos',
-    errorDesc: 'Encontramos um problema ao procurar voos. Por favor, tente novamente.',
-    retry: 'Tentar Novamente',
-    loadMore: 'Carregar Mais Voos',
-    loading: 'Carregando...',
-    showingResults: 'Mostrando {count} de {total} voos',
-    loadingMore: 'Carregando mais voos...',
-    allResultsLoaded: 'Todos os {total} voos carregados',
-  },
-  es: {
-    modifySearch: 'Modificar Búsqueda',
-    showPriceInsights: 'Mostrar Insights de Precio',
-    hidePriceInsights: 'Ocultar Insights de Precio',
-    searching: 'Buscando los mejores vuelos...',
-    noResults: 'No se encontraron vuelos',
-    noResultsDesc: 'No pudimos encontrar vuelos que coincidan con sus criterios de búsqueda. Intente ajustar sus filtros o parámetros de búsqueda.',
-    error: 'Error al cargar vuelos',
-    errorDesc: 'Encontramos un problema al buscar vuelos. Por favor, inténtelo de nuevo.',
-    retry: 'Reintentar Búsqueda',
-    loadMore: 'Cargar Más Vuelos',
-    loading: 'Cargando...',
-    showingResults: 'Mostrando {count} de {total} vuelos',
-    loadingMore: 'Cargando más vuelos...',
-    allResultsLoaded: 'Todos los {total} vuelos cargados',
-  },
-};
 
 // ===========================
 // UTILITY FUNCTIONS
@@ -532,8 +480,8 @@ function FlightResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
-  const [lang] = useState<'en' | 'pt' | 'es'>('en');
-  const t = translations[lang];
+  const t = useTranslations('FlightResults');
+  const { language: lang, setLanguage: setLang } = useLanguage();
 
   // State
   const [flights, setFlights] = useState<ScoredFlight[]>([]);
@@ -1583,17 +1531,17 @@ function FlightResultsContent() {
             <AlertCircle className="w-10 h-10 text-error" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {t.error}
+            {t('error')}
           </h2>
           <p className="text-gray-600 mb-6">
-            {t.errorDesc}
+            {t('errorDesc')}
           </p>
           <button
             onClick={handleRetry}
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             <RefreshCcw className="w-5 h-5" />
-            {t.retry}
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -1628,16 +1576,16 @@ function FlightResultsContent() {
               </svg>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              {t.noResults}
+              {t('noResults')}
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              {t.noResultsDesc}
+              {t('noResultsDesc')}
             </p>
             <button
               onClick={handleModifySearch}
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
-              {t.modifySearch}
+              {t('modifySearch')}
             </button>
           </div>
         </div>
@@ -1862,7 +1810,7 @@ function FlightResultsContent() {
                 className="mt-6 md:mt-8 text-center"
                 role="status"
                 aria-live="polite"
-                aria-label={t.loadingMore}
+                aria-label={t('loadingMore')}
               >
                 <div className="flex flex-col items-center justify-center py-6 space-y-3">
                   <div className="flex items-center gap-2">
@@ -1871,7 +1819,7 @@ function FlightResultsContent() {
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                   </div>
                   <p className="text-sm text-gray-600 font-medium">
-                    {t.loadingMore}
+                    {t('loadingMore')}
                   </p>
                 </div>
               </div>
@@ -1885,7 +1833,7 @@ function FlightResultsContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span className="text-sm font-medium">
-                    {t.allResultsLoaded.replace('{total}', sortedFlights.length.toString())}
+                    {t('allResultsLoaded', { total: sortedFlights.length })}
                   </span>
                 </div>
               </div>
