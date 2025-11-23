@@ -598,5 +598,26 @@
     "loadingMore": "Cargando más vuelos...",
     "allResultsLoaded": "Todos los {total} vuelos cargados",
     "showingResults": "Mostrando {count} de {total} vuelos"
+  },
+  "HotelsPage": {
+    "pageTitle": "Encuentra Tu Hotel Perfecto",
+    "sectionTitle": "Descubre Hoteles Increíbles en Todo el Mundo",
+    "subtitle": "Búsqueda inteligente en +1M hoteles con tarifas exclusivas y reserva instantánea",
+    "starRatingTitle": "⭐ Hoteles por Clasificación",
+    "starRatingSubtitle": "Encuentra el alojamiento perfecto para tu presupuesto",
+    "propertyTypesTitle": "🏨 Tipos de Propiedad",
+    "propertyTypesSubtitle": "Elige el estilo perfecto para tu viaje",
+    "dealsTitle": "🎁 Ofertas por Categoría",
+    "dealsSubtitle": "Ofertas limitadas y descuentos exclusivos",
+    "amenitiesTitle": "🎯 Explorador de Comodidades",
+    "amenitiesSubtitle": "Filtra hoteles por comodidades esenciales",
+    "chainsTitle": "🏅 Principales Cadenas de Hoteles",
+    "chainsSubtitle": "Reserva directamente y gana puntos de fidelidad",
+    "tipsTitle": "💡 Consejos de Reserva",
+    "tipsSubtitle": "Ahorra y ten la mejor experiencia",
+    "faqTitle": "❓ Preguntas Frecuentes",
+    "faqIntro": "Todo lo que necesitas saber sobre reservar hoteles con Fly2Any",
+    "stillHaveQuestions": "¿Aún tienes preguntas?",
+    "contactSupport": "Contacta a Nuestro Equipo de Soporte"
   }
 }

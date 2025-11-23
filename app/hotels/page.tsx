@@ -14,6 +14,8 @@ import {
   Sparkles, TrendingUp, Clock, MapPin, Shield, Award, ChevronRight,
   Gem, Hotel, Castle, Building, Heart, Users, Bed, Calendar
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -225,89 +227,11 @@ const baseFaqs = [
   { q: 'What about parking fees?', a: 'City hotels charge $20-60/day for parking. Suburban/resort hotels often offer free parking. Always verify before booking.' },
 ];
 
-const content = {
-  en: {
-    pageTitle: 'Find Your Perfect Hotel',
-    sectionTitle: 'Discover Amazing Hotels Worldwide',
-    subtitle: 'Smart search across 1M+ hotels with exclusive rates and instant booking',
-    starRatingTitle: '⭐ Hotels by Star Rating',
-    starRatingSubtitle: 'Find the perfect accommodation for your budget and style',
-    starCategories: baseStarCategories,
-    propertyTypesTitle: '🏨 Hotel Property Types',
-    propertyTypesSubtitle: 'Choose the perfect accommodation style for your trip',
-    propertyTypes: basePropertyTypes,
-    dealsTitle: '🎁 Hotel Deals by Category',
-    dealsSubtitle: 'Limited-time offers and exclusive discounts',
-    dealCategories: baseDealCategories,
-    amenitiesTitle: '🎯 Hotel Amenities Explorer',
-    amenitiesSubtitle: 'Filter hotels by your must-have amenities',
-    amenities: baseAmenities,
-    chainsTitle: '🏅 Top Hotel Chains',
-    chainsSubtitle: 'Book directly with leading brands and earn loyalty points',
-    chains: baseChains,
-    tipsTitle: '💡 Expert Hotel Booking Tips',
-    tipsSubtitle: 'Save money and get the best experience',
-    tips: baseTips,
-    faqTitle: '❓ Hotel Booking FAQ',
-    faqs: baseFaqs,
-  },
-  pt: {
-    pageTitle: 'Encontre Seu Hotel Perfeito',
-    sectionTitle: 'Descubra Hotéis Incríveis pelo Mundo',
-    subtitle: 'Busca inteligente em +1M hotéis com tarifas exclusivas e reserva instantânea',
-    starRatingTitle: '⭐ Hotéis por Classificação',
-    starRatingSubtitle: 'Encontre a acomodação perfeita para seu orçamento',
-    starCategories: baseStarCategories,
-    propertyTypesTitle: '🏨 Tipos de Propriedade',
-    propertyTypesSubtitle: 'Escolha o estilo perfeito para sua viagem',
-    propertyTypes: basePropertyTypes,
-    dealsTitle: '🎁 Ofertas por Categoria',
-    dealsSubtitle: 'Ofertas limitadas e descontos exclusivos',
-    dealCategories: baseDealCategories,
-    amenitiesTitle: '🎯 Explorador de Comodidades',
-    amenitiesSubtitle: 'Filtre hotéis por comodidades essenciais',
-    amenities: baseAmenities,
-    chainsTitle: '🏅 Principais Redes de Hotéis',
-    chainsSubtitle: 'Reserve diretamente e ganhe pontos de fidelidade',
-    chains: baseChains,
-    tipsTitle: '💡 Dicas de Reserva',
-    tipsSubtitle: 'Economize e tenha a melhor experiência',
-    tips: baseTips,
-    faqTitle: '❓ Perguntas Frequentes',
-    faqs: baseFaqs,
-  },
-  es: {
-    pageTitle: 'Encuentra Tu Hotel Perfecto',
-    sectionTitle: 'Descubre Hoteles Increíbles en Todo el Mundo',
-    subtitle: 'Búsqueda inteligente en +1M hoteles con tarifas exclusivas y reserva instantánea',
-    starRatingTitle: '⭐ Hoteles por Clasificación',
-    starRatingSubtitle: 'Encuentra el alojamiento perfecto para tu presupuesto',
-    starCategories: baseStarCategories,
-    propertyTypesTitle: '🏨 Tipos de Propiedad',
-    propertyTypesSubtitle: 'Elige el estilo perfecto para tu viaje',
-    propertyTypes: basePropertyTypes,
-    dealsTitle: '🎁 Ofertas por Categoría',
-    dealsSubtitle: 'Ofertas limitadas y descuentos exclusivos',
-    dealCategories: baseDealCategories,
-    amenitiesTitle: '🎯 Explorador de Comodidades',
-    amenitiesSubtitle: 'Filtra hoteles por comodidades esenciales',
-    amenities: baseAmenities,
-    chainsTitle: '🏅 Principales Cadenas de Hoteles',
-    chainsSubtitle: 'Reserva directamente y gana puntos de fidelidad',
-    chains: baseChains,
-    tipsTitle: '💡 Consejos de Reserva',
-    tipsSubtitle: 'Ahorra y ten la mejor experiencia',
-    tips: baseTips,
-    faqTitle: '❓ Preguntas Frecuentes',
-    faqs: baseFaqs,
-  },
-};
-
 export default function HotelsPage() {
-  const [lang, setLang] = useState<Language>('en');
+  const t = useTranslations('HotelsPage');
+  const { language: lang, setLanguage: setLang } = useLanguage();
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang];
 
   useEffect(() => {
     setMounted(true);
@@ -339,19 +263,19 @@ export default function HotelsPage() {
           <div className="px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {mounted ? t.sectionTitle.split('').map((char, index) => (
+                {mounted ? t('sectionTitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
               </h1>
               <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }}>
-                {mounted ? t.subtitle.split('').map((char, index) => (
+                {mounted ? t('subtitle').split('').map((char, index) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
               </p>
             </div>
           </div>
@@ -399,11 +323,11 @@ export default function HotelsPage() {
       <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.starRatingTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.starRatingSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('starRatingTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('starRatingSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.starCategories.map((cat, idx) => {
+            {baseStarCategories.map((cat, idx) => {
               const IconComponent = cat.icon;
               return (
                 <div key={idx} className="relative rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-200 hover:border-orange-400 group cursor-pointer h-[320px]">
@@ -454,11 +378,11 @@ export default function HotelsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.propertyTypesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.propertyTypesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('propertyTypesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('propertyTypesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.propertyTypes.map((prop, idx) => {
+            {basePropertyTypes.map((prop, idx) => {
               const IconComponent = prop.icon;
               return (
                 <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-6 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer">
@@ -482,11 +406,11 @@ export default function HotelsPage() {
       <div className="bg-gradient-to-br from-orange-50 to-amber-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.dealsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.dealsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('dealsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('dealsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.dealCategories.map((deal, idx) => {
+            {baseDealCategories.map((deal, idx) => {
               const IconComponent = deal.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all border-2 border-orange-200 hover:border-orange-400 group cursor-pointer overflow-hidden relative">
@@ -508,11 +432,11 @@ export default function HotelsPage() {
       <div className="bg-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.amenitiesTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.amenitiesSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('amenitiesTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('amenitiesSubtitle')}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
-            {t.amenities.map((amenity, idx) => {
+            {baseAmenities.map((amenity, idx) => {
               const IconComponent = amenity.icon;
               return (
                 <div key={idx} className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer text-center">
@@ -532,11 +456,11 @@ export default function HotelsPage() {
       <div className="bg-gradient-to-br from-gray-50 to-white py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.chainsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.chainsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('chainsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('chainsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
-            {t.chains.map((chain, idx) => (
+            {baseChains.map((chain, idx) => (
               <div key={idx} className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-orange-300 group cursor-pointer text-center">
                 <div className="text-4xl mb-2">{chain.logo}</div>
                 <h4 className="text-sm font-bold text-gray-900 mb-1">{chain.name}</h4>
@@ -557,11 +481,11 @@ export default function HotelsPage() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t.tipsTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t.tipsSubtitle}</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2">{t('tipsTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tipsSubtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.tips.map((tip, idx) => {
+            {baseTips.map((tip, idx) => {
               const IconComponent = tip.icon;
               return (
                 <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-blue-200">
@@ -590,13 +514,13 @@ export default function HotelsPage() {
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-6 sm:py-8 md:py-12">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="mb-6 sm:mb-8 px-4 md:px-0">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t.faqTitle}</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about booking hotels with Fly2Any</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">{t('faqTitle')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('faqIntro')}</p>
           </div>
 
           {/* 2-Column Grid on Desktop, Single Column on Mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-6 px-2 md:px-0">
-            {t.faqs.map((faq, idx) => (
+            {baseFaqs.map((faq, idx) => (
               <details
                 key={idx}
                 className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-blue-300 group"
@@ -612,13 +536,13 @@ export default function HotelsPage() {
 
           {/* CTA for More Questions */}
           <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Still have questions?</p>
+            <p className="text-gray-600 mb-4">{t('stillHaveQuestions')}</p>
             <a
               href="mailto:support@fly2any.com"
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg"
             >
               <Shield className="w-5 h-5" />
-              Contact Our Support Team
+              {t('contactSupport')}
             </a>
           </div>
         </MaxWidthContainer>
