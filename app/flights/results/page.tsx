@@ -1671,7 +1671,7 @@ function FlightResultsContent() {
         if (!isWorldCupDestination) return null;
 
         return (
-          <div className="mx-auto px-3 md:px-6" style={{ maxWidth: layout.container.maxWidth }}>
+          <div className="mx-auto px-3 md:px-6 mb-3" style={{ maxWidth: layout.container.maxWidth }}>
             <WorldCupCrossSell
               lang={lang}
               location="flight_results"
