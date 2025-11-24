@@ -152,26 +152,27 @@ export default function MultiAirportSelector({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left group"
+        className="w-full relative px-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left group min-h-[56px] flex items-center"
       >
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-[#0087FF] transition-colors" size={20} />
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-[#0087FF] transition-colors flex-shrink-0" size={20} />
 
-        <div className="pl-8 pr-6">
+        <div className="pl-8 pr-6 py-3 w-full overflow-hidden">
           {selectedAirports.length === 0 ? (
-            <span className="text-gray-400 text-base">{placeholder}</span>
+            <span className="text-gray-400 text-base block truncate">{placeholder}</span>
           ) : (
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 overflow-hidden">
               {selectedAirports.slice(0, maxDisplay).map((airport) => (
                 <span
                   key={airport.code}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-sm font-semibold"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md text-sm font-semibold flex-shrink-0 max-w-[200px]"
                 >
-                  {airport.emoji} {airport.city} ({airport.code})
+                  <span className="text-xs">{airport.emoji}</span>
+                  <span className="truncate">{airport.code}</span>
                 </span>
               ))}
               {selectedAirports.length > maxDisplay && (
-                <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-sm font-semibold">
-                  +{selectedAirports.length - maxDisplay} more
+                <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-sm font-semibold flex-shrink-0">
+                  +{selectedAirports.length - maxDisplay}
                 </span>
               )}
             </div>
@@ -179,7 +180,7 @@ export default function MultiAirportSelector({
         </div>
 
         <ChevronDown
-          className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
           size={16}
         />
       </button>

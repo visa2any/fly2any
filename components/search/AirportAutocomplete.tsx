@@ -280,7 +280,7 @@ export function AirportAutocomplete({
   // Size-based styles
   const sizeStyles = {
     small: {
-      input: 'h-[36px] text-sm',
+      input: 'min-h-[36px] max-h-[36px] h-[36px] text-sm',
       padding: icon ? 'pl-9 pr-3 py-1.5' : 'pl-3 pr-3 py-1.5',
       iconSize: 'w-3.5 h-3.5',
       iconLeft: 'left-2.5',
@@ -288,7 +288,7 @@ export function AirportAutocomplete({
       textSize: 'text-xs',
     },
     medium: {
-      input: 'h-[42px] text-sm',
+      input: 'min-h-[42px] max-h-[42px] h-[42px] text-sm',
       padding: icon ? 'pl-10 pr-3 py-2' : 'pl-3 pr-3 py-2',
       iconSize: 'w-4 h-4',
       iconLeft: 'left-3',
@@ -296,8 +296,8 @@ export function AirportAutocomplete({
       textSize: 'text-sm',
     },
     large: {
-      input: 'h-[56px] text-lg',
-      padding: icon ? 'pl-12 pr-4 py-4' : 'pl-4 pr-4 py-4',
+      input: 'min-h-[56px] max-h-[56px] h-[56px] text-base',
+      padding: icon ? 'pl-12 pr-4 py-3' : 'pl-4 pr-4 py-3',
       iconSize: 'w-5 h-5',
       iconLeft: 'left-4',
       emojiBox: 'w-10 h-10 text-2xl',
@@ -356,7 +356,7 @@ export function AirportAutocomplete({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`w-full ${styles.size.input} ${styles.size.padding} ${styles.variant.input} outline-none transition-all font-semibold text-gray-900 placeholder:text-gray-400`}
+          className={`w-full ${styles.size.input} ${styles.size.padding} ${styles.variant.input} outline-none transition-all font-semibold text-gray-900 placeholder:text-gray-400 overflow-hidden text-ellipsis`}
         />
       </div>
 
@@ -411,10 +411,12 @@ export function AirportAutocomplete({
                     {airport.emoji}
                   </div>
                   <div className="flex-1 text-left min-w-0">
-                    <div className={`${styles.size.textSize} font-semibold truncate`}>
-                      <span className={index === highlightedIndex ? 'text-primary-600' : 'text-primary-600'}>
+                    <div className={`${styles.size.textSize} font-semibold flex items-center gap-1 overflow-hidden`}>
+                      <span className={`flex-shrink-0 ${index === highlightedIndex ? 'text-primary-600' : 'text-primary-600'}`}>
                         {airport.code}
-                      </span> - {airport.city}
+                      </span>
+                      <span className="flex-shrink-0 text-gray-400">-</span>
+                      <span className="truncate text-gray-700">{airport.city}</span>
                     </div>
                     <div className="text-xs text-gray-500 truncate">
                       {airport.name}, {airport.country}

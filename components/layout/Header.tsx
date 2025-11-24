@@ -200,8 +200,8 @@ export function Header({
           willChange: 'transform',
         }}
       >
-        <MaxWidthContainer noPadding style={{ padding: '0 12px md:0 24px' }}>
-          <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+        <MaxWidthContainer noPadding className="px-3 md:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
             {/* Logo with Enhanced Visibility - Left aligned, smaller on mobile */}
             <a href="/" className="flex items-center group flex-shrink-0">
             <div
@@ -247,12 +247,12 @@ export function Header({
           </a>
 
           {/* Main Navigation - Premium Glassmorphism Style */}
-          <nav className="hidden lg:flex items-center space-x-1 ml-auto mr-6" suppressHydrationWarning>
+          <nav className="hidden lg:flex items-center space-x-0.5 xl:space-x-1 ml-auto mr-3 xl:mr-6" suppressHydrationWarning>
 
             {/* Flights - First */}
             <a
               href="/flights"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform group-hover:scale-110">
@@ -266,7 +266,7 @@ export function Header({
             {/* Hotels */}
             <a
               href="/hotels"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
               <span className="flex items-center gap-1.5">
                 <span className="text-lg transition-transform group-hover:scale-110">
@@ -280,10 +280,10 @@ export function Header({
             {/* Cars */}
             <a
               href="/cars"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                   🚗
                 </span>
                 {t('cars')}
@@ -294,10 +294,10 @@ export function Header({
             {/* Tours */}
             <a
               href="/tours"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                   🎯
                 </span>
                 {t('tours')}
@@ -308,10 +308,10 @@ export function Header({
             {/* Activities */}
             <a
               href="/activities"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                   🎪
                 </span>
                 {t('activities')}
@@ -322,10 +322,10 @@ export function Header({
             {/* Packages */}
             <a
               href="/packages"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                   🎁
                 </span>
                 {t('packages')}
@@ -336,13 +336,14 @@ export function Header({
             {/* Travel Insurance */}
             <a
               href="/travel-insurance"
-              className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="text-lg transition-transform group-hover:scale-110">
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                   🛡️
                 </span>
-                {t('travelInsurance')}
+                <span className="hidden 2xl:inline">{t('travelInsurance')}</span>
+                <span className="2xl:hidden">Insurance</span>
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
@@ -352,16 +353,16 @@ export function Header({
               <button
                 onClick={() => setDiscoverDropdownOpen(!discoverDropdownOpen)}
                 onMouseEnter={() => setDiscoverDropdownOpen(true)}
-                className="group relative px-3 py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-sm rounded-lg hover:bg-primary-50/50 flex items-center gap-1.5"
+                className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50 flex items-center gap-1 xl:gap-1.5"
               >
-                <span className="flex items-center gap-1.5">
-                  <span className="text-lg transition-transform group-hover:scale-110">
+                <span className="flex items-center gap-1 xl:gap-1.5">
+                  <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
                     🗺️
                   </span>
                   {t('discover')}
                 </span>
                 <svg
-                  className={`w-4 h-4 transition-all duration-300 ${discoverDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`w-3 xl:w-4 h-3 xl:h-4 transition-all duration-300 ${discoverDropdownOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -443,25 +444,26 @@ export function Header({
               <button
                 onClick={() => setWorldCupDropdownOpen(!worldCupDropdownOpen)}
                 onMouseEnter={() => setWorldCupDropdownOpen(true)}
-                className="group relative px-3 py-2.5 transition-all duration-300 font-black text-sm rounded-lg hover:bg-primary-50/30 flex items-center gap-1"
+                className="group relative px-2 xl:px-3 py-2 xl:py-2.5 transition-all duration-300 font-black text-[10px] xl:text-xs 2xl:text-sm rounded-lg hover:bg-primary-50/30 flex items-center gap-0.5 xl:gap-1"
               >
-                <span className="flex items-center gap-1">
-                  <span className="text-lg transition-transform group-hover:scale-110">
+                <span className="flex items-center gap-0.5 xl:gap-1">
+                  <span className="text-sm xl:text-base 2xl:text-lg transition-transform group-hover:scale-110">
                     ⚽
                   </span>
                   <span
-                    className="bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent"
+                    className="bg-gradient-to-r from-blue-600 via-red-500 to-yellow-500 bg-clip-text text-transparent whitespace-nowrap"
                     style={{
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}
                   >
-                    WORLD CUP 2026
+                    <span className="hidden 2xl:inline">WORLD CUP 2026</span>
+                    <span className="2xl:hidden">WC 2026</span>
                   </span>
-                  <span className="text-base">🏆</span>
+                  <span className="text-xs xl:text-sm 2xl:text-base">🏆</span>
                 </span>
                 <svg
-                  className={`w-4 h-4 text-gray-600 transition-all duration-300 ${worldCupDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`w-3 xl:w-4 h-3 xl:h-4 text-gray-600 transition-all duration-300 ${worldCupDropdownOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -557,7 +559,7 @@ export function Header({
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3" suppressHydrationWarning>
+          <div className="flex items-center gap-1.5 sm:gap-2 xl:gap-3" suppressHydrationWarning>
             {/* Notification Bell - Only for authenticated users, hidden on mobile */}
             {mounted && session?.user && (
               <NotificationBell
@@ -580,19 +582,19 @@ export function Header({
             <div className="relative language-dropdown hidden sm:block">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="group flex items-center gap-1.5 px-3 py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
+                className="group flex items-center gap-1 xl:gap-1.5 px-2 xl:px-3 py-1.5 xl:py-2 text-gray-700 transition-all duration-300 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
                 style={{
-                  minWidth: '68px',
+                  minWidth: '58px',
                 }}
               >
-                <span className="text-base transition-transform group-hover:scale-110">
+                <span className="text-sm xl:text-base transition-transform group-hover:scale-110">
                   {languages[language].flag}
                 </span>
-                <span className="font-semibold text-xs uppercase tracking-wider text-gray-600 group-hover:text-primary-600">
+                <span className="font-semibold text-[10px] xl:text-xs uppercase tracking-wider text-gray-600 group-hover:text-primary-600">
                   {languages[language].code}
                 </span>
                 <svg
-                  className={`w-3 h-3 text-gray-400 transition-all duration-200 ${langDropdownOpen ? 'rotate-180 text-primary-600' : 'group-hover:text-primary-600'}`}
+                  className={`w-2.5 xl:w-3 h-2.5 xl:h-3 text-gray-400 transition-all duration-200 ${langDropdownOpen ? 'rotate-180 text-primary-600' : 'group-hover:text-primary-600'}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -643,15 +645,16 @@ export function Header({
             {mounted && showAuth && !session?.user && (
               <button
                 onClick={handleSignIn}
-                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                className="hidden sm:flex items-center gap-1.5 xl:gap-2 px-3 xl:px-5 py-2 xl:py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white hover:from-primary-700 hover:to-primary-600 font-bold text-xs xl:text-sm rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg whitespace-nowrap"
                 style={{
                   boxShadow: '0 2px 8px rgba(30, 64, 175, 0.2)',
                 }}
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 xl:w-4 h-3.5 xl:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {t('account')}
+                <span className="hidden lg:inline">{t('account')}</span>
+                <span className="lg:hidden">Sign In</span>
               </button>
             )}
 

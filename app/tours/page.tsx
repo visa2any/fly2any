@@ -12,397 +12,38 @@ import {
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
-const content = {
-  en: {
-    // Compact Hero Section
-    sectionTitle: 'Discover Amazing Tours & Unforgettable Experiences',
-    subtitle: 'Explore the world with expert local guides and authentic adventures',
+// Base data arrays (language-agnostic - icons, colors, images)
+const tourTypeImages = [
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
+  'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+  'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80',
+  'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+  'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80'
+];
 
-    // Sections
-    tourTypes: 'Tour Types & Categories',
-    popularDestinations: 'Popular Tour Destinations',
-    tourDurations: 'Tour Duration Options',
-    whatsIncluded: "What's Included in Tours",
-    topOperators: 'Top Tour Operators',
-    bookingTips: 'Expert Booking Tips',
-    faq: 'Tours FAQ',
+const destinationImages = [
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
+  'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80',
+  'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80',
+  'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
+  'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80',
+  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80'
+];
 
-    // Tour Types
-    tourTypesData: [
-      {
-        type: 'City Tours',
-        description: 'Explore urban landmarks, culture, and history with local guides',
-        priceRange: '$30-$80',
-        duration: '2-8 hours',
-        features: ['Walking Tours', 'Bus Tours', 'Bike Tours', 'Private Options'],
-        examples: 'NYC Walking Tour, Paris City Highlights, Tokyo Street Food',
-        bestFor: 'First-time visitors, culture enthusiasts',
-        image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80'
-      },
-      {
-        type: 'Adventure Tours',
-        description: 'Thrilling outdoor activities and adrenaline-pumping experiences',
-        priceRange: '$80-$250',
-        duration: '4 hours - 3 days',
-        features: ['Hiking', 'Zip-lining', 'Rafting', 'Rock Climbing'],
-        examples: 'Grand Canyon Hiking, Costa Rica Zip-line, Patagonia Trekking',
-        bestFor: 'Adventure seekers, outdoor enthusiasts',
-        image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80'
-      },
-      {
-        type: 'Food & Wine Tours',
-        description: 'Taste local cuisine, wine, and culinary traditions',
-        priceRange: '$60-$180',
-        duration: '3-6 hours',
-        features: ['Food Tastings', 'Winery Visits', 'Cooking Classes', 'Market Tours'],
-        examples: 'Tuscany Wine Tour, Tokyo Food Walk, Barcelona Tapas Experience',
-        bestFor: 'Foodies, wine lovers, culinary explorers',
-        image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80'
-      },
-      {
-        type: 'Cultural Tours',
-        description: 'Immerse in local traditions, art, and heritage sites',
-        priceRange: '$40-$120',
-        duration: '3-8 hours',
-        features: ['Museums', 'Historical Sites', 'Art Galleries', 'Local Crafts'],
-        examples: 'Rome Ancient Tour, Kyoto Temples, Marrakech Medina Walk',
-        bestFor: 'History buffs, culture enthusiasts',
-        image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80'
-      },
-      {
-        type: 'Nature & Wildlife',
-        description: 'Discover natural wonders and observe wildlife in their habitat',
-        priceRange: '$90-$300',
-        duration: '4 hours - 5 days',
-        features: ['Safari', 'Bird Watching', 'Whale Watching', 'Eco Tours'],
-        examples: 'African Safari, Amazon Jungle Tour, Galapagos Wildlife',
-        bestFor: 'Nature lovers, photographers, families',
-        image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80'
-      },
-      {
-        type: 'Multi-Day Tours',
-        description: 'Extended journeys combining multiple destinations and activities',
-        priceRange: '$200-$500/day',
-        duration: '2-14 days',
-        features: ['Accommodations', 'Meals Included', 'Transportation', 'Multiple Sites'],
-        examples: 'Iceland Ring Road, Peru Machu Picchu Trek, European Grand Tour',
-        bestFor: 'Deep explorers, vacation planners',
-        image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80'
-      }
-    ],
+const destinationRatings = [4.8, 4.9, 4.7, 4.6, 4.8, 4.7];
+const operatorRatings = [4.7, 4.8, 4.9, 4.8, 4.9, 4.7];
 
-    // Popular Destinations
-    destinationsTitle: 'Explore Top Tour Destinations',
-    destinationsData: [
-      {
-        destination: 'Paris, France',
-        tours: '2,500+ tours',
-        rating: 4.8,
-        topExperiences: ['Eiffel Tower Skip-the-Line', 'Louvre Museum Tour', 'Versailles Day Trip', 'Seine River Cruise'],
-        priceFrom: '$35',
-        image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80'
-      },
-      {
-        destination: 'Tokyo, Japan',
-        tours: '1,800+ tours',
-        rating: 4.9,
-        topExperiences: ['Mt. Fuji Day Trip', 'Tsukiji Fish Market', 'Shibuya Food Tour', 'Samurai Experience'],
-        priceFrom: '$45',
-        image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80'
-      },
-      {
-        destination: 'Rome, Italy',
-        tours: '2,200+ tours',
-        rating: 4.7,
-        topExperiences: ['Colosseum Skip-the-Line', 'Vatican Museums Tour', 'Pasta Cooking Class', 'Pompeii Day Trip'],
-        priceFrom: '$40',
-        image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80'
-      },
-      {
-        destination: 'New York City, USA',
-        tours: '3,000+ tours',
-        rating: 4.6,
-        topExperiences: ['Statue of Liberty Tour', 'Broadway Behind-the-Scenes', 'Food Tour Brooklyn', 'Central Park Bike Tour'],
-        priceFrom: '$30',
-        image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80'
-      },
-      {
-        destination: 'Barcelona, Spain',
-        tours: '1,500+ tours',
-        rating: 4.8,
-        topExperiences: ['Sagrada Familia Tour', 'Tapas Walking Tour', 'Park Güell Visit', 'Montserrat Day Trip'],
-        priceFrom: '$38',
-        image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80'
-      },
-      {
-        destination: 'Dubai, UAE',
-        tours: '1,200+ tours',
-        rating: 4.7,
-        topExperiences: ['Desert Safari', 'Burj Khalifa Tour', 'Dubai Marina Cruise', 'Abu Dhabi Day Trip'],
-        priceFrom: '$50',
-        image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80'
-      }
-    ],
-
-    // Duration Options
-    durationsData: [
-      {
-        duration: 'Half-Day Tours',
-        time: '2-4 hours',
-        description: 'Perfect for quick explorations and fitting multiple activities in one day',
-        examples: 'Morning city walk, afternoon food tour, sunset boat cruise',
-        priceRange: '$30-$80',
-        bestFor: 'Tight schedules, sampler experiences'
-      },
-      {
-        duration: 'Full-Day Tours',
-        time: '6-10 hours',
-        description: 'Comprehensive experiences with meals and multiple stops included',
-        examples: 'Day trip to nearby city, full museum tour with lunch, wine region visit',
-        priceRange: '$80-$200',
-        bestFor: 'Deep dives, immersive experiences'
-      },
-      {
-        duration: 'Multi-Day Tours',
-        time: '2-14 days',
-        description: 'Extended journeys with accommodations, meals, and transportation',
-        examples: 'Week-long safari, European tour package, trekking expedition',
-        priceRange: '$200-$500/day',
-        bestFor: 'Complete vacations, bucket list trips'
-      }
-    ],
-
-    // What's Included
-    includedData: [
-      {
-        feature: 'Expert Guide',
-        description: 'Professional, knowledgeable guides fluent in multiple languages',
-        icon: Users,
-        included: 'Always Included'
-      },
-      {
-        feature: 'Transportation',
-        description: 'Comfortable vehicles, public transit tickets, or bike rentals',
-        icon: MapPin,
-        included: 'Usually Included'
-      },
-      {
-        feature: 'Entrance Fees',
-        description: 'Skip-the-line access to museums, monuments, and attractions',
-        icon: CheckCircle,
-        included: 'Often Included'
-      },
-      {
-        feature: 'Meals & Drinks',
-        description: 'Lunch, snacks, water, or food tastings depending on tour type',
-        icon: Utensils,
-        included: 'Varies by Tour'
-      }
-    ],
-
-    // Top Operators
-    operatorsData: [
-      {
-        name: 'Viator',
-        rating: 4.7,
-        tours: '300,000+ tours',
-        destinations: '2,700+ destinations',
-        specialty: 'Largest selection worldwide',
-        cancellation: 'Free up to 24 hours'
-      },
-      {
-        name: 'GetYourGuide',
-        rating: 4.8,
-        tours: '200,000+ tours',
-        destinations: '11,000+ destinations',
-        specialty: 'Mobile tickets & instant booking',
-        cancellation: 'Flexible cancellation'
-      },
-      {
-        name: 'Intrepid Travel',
-        rating: 4.9,
-        tours: '1,000+ tours',
-        destinations: '120+ countries',
-        specialty: 'Small group adventures',
-        cancellation: 'Varies by tour'
-      },
-      {
-        name: 'G Adventures',
-        rating: 4.8,
-        tours: '750+ tours',
-        destinations: '100+ countries',
-        specialty: 'Sustainable travel',
-        cancellation: 'Flexible policies'
-      },
-      {
-        name: 'Context Travel',
-        rating: 4.9,
-        tours: '500+ tours',
-        destinations: '60+ cities',
-        specialty: 'Expert-led walking tours',
-        cancellation: 'Free up to 72 hours'
-      },
-      {
-        name: 'Airbnb Experiences',
-        rating: 4.7,
-        tours: '40,000+ experiences',
-        destinations: 'Worldwide',
-        specialty: 'Local hosts & unique activities',
-        cancellation: 'Free up to 24 hours'
-      }
-    ],
-
-    // Booking Tips
-    tipsData: [
-      {
-        title: 'Book Early for Popular Tours',
-        description: 'Famous attractions like Vatican Museums or Machu Picchu fill up weeks in advance. Book 2-4 weeks ahead.',
-        icon: Calendar
-      },
-      {
-        title: 'Check Cancellation Policies',
-        description: 'Look for tours with free cancellation up to 24-48 hours before. Weather or schedule changes happen.',
-        icon: Shield
-      },
-      {
-        title: 'Read Recent Reviews',
-        description: 'Focus on reviews from the last 3-6 months. Tour quality, guides, and routes can change over time.',
-        icon: Star
-      },
-      {
-        title: 'Consider Small Group Tours',
-        description: 'Groups of 8-15 people offer better interaction with guides and more personalized experiences.',
-        icon: Users
-      },
-      {
-        title: 'Check What\'s Included',
-        description: 'Verify if entrance fees, meals, transportation, and gratuities are included to avoid surprises.',
-        icon: CheckCircle
-      },
-      {
-        title: 'Book Skip-the-Line Tickets',
-        description: 'Save hours at popular attractions. Skip-the-line access is worth the extra $10-20 in most cases.',
-        icon: Zap
-      }
-    ],
-
-    // FAQ
-    faqData: [
-      {
-        question: 'What is the cancellation policy for tours?',
-        answer: 'Most tours offer free cancellation if you cancel 24-48 hours before the start time. Some popular tours may have stricter policies (72 hours). Always check the specific tour\'s cancellation terms before booking. Refunds are typically processed within 5-7 business days.'
-      },
-      {
-        question: 'Are tour guides tipped? How much should I tip?',
-        answer: 'Tipping is customary in most countries and not included in the tour price. Standard tips are 10-20% of the tour cost or $5-10 per person for half-day tours, $10-20 for full-day tours. For exceptional service, you can tip more. Some operators include a tip suggestion in their confirmation email.'
-      },
-      {
-        question: 'What happens if the weather is bad?',
-        answer: 'Most outdoor tours operate rain or shine, though extreme weather (storms, heavy snow) may lead to cancellations. Tour operators will notify you in advance and offer a full refund or alternative date. Indoor tours are rarely affected. Check the weather forecast and dress appropriately.'
-      },
-      {
-        question: 'Can I join a tour if I have mobility issues?',
-        answer: 'Many tours offer wheelchair accessibility or modified routes for guests with mobility limitations. Check the tour description for "wheelchair accessible" or "mobility friendly" labels. Contact the operator directly to discuss your specific needs before booking.'
-      },
-      {
-        question: 'Are meals included in tour prices?',
-        answer: 'It depends on the tour type. Food tours include tastings and meals. Full-day tours often include lunch. Half-day tours typically don\'t include meals. Always check "What\'s Included" section in the tour description. Bring snacks and water if unsure.'
-      },
-      {
-        question: 'How do I find my tour guide on the day of the tour?',
-        answer: 'Your confirmation email will have meeting point details (address, landmark) and guide identification (holding a sign, wearing specific clothing). Arrive 10-15 minutes early. Many tours provide a phone number to call if you can\'t find the guide. Use Google Maps to navigate to the meeting point.'
-      }
-    ]
-  },
-  pt: {
-    sectionTitle: 'Descubra Tours Incríveis e Experiências Inesquecíveis',
-    subtitle: 'Explore o mundo com guias locais especializados e aventuras autênticas',
-
-    tourTypes: 'Tipos e Categorias de Tours',
-    popularDestinations: 'Destinos de Tours Populares',
-    tourDurations: 'Opções de Duração de Tours',
-    whatsIncluded: 'O Que Está Incluído nos Tours',
-    topOperators: 'Principais Operadoras de Tours',
-    bookingTips: 'Dicas de Reserva',
-    faq: 'Perguntas Frequentes sobre Tours',
-
-    tourTypesData: [
-      {
-        type: 'Tours pela Cidade',
-        description: 'Explore marcos urbanos, cultura e história com guias locais',
-        priceRange: '$30-$80',
-        duration: '2-8 horas',
-        features: ['Tours a Pé', 'Tours de Ônibus', 'Tours de Bicicleta', 'Opções Privadas'],
-        examples: 'Tour a Pé em NYC, Destaques de Paris, Comida de Rua em Tóquio',
-        bestFor: 'Visitantes de primeira viagem, entusiastas da cultura'
-      },
-      {
-        type: 'Tours de Aventura',
-        description: 'Atividades ao ar livre emocionantes e experiências cheias de adrenalina',
-        priceRange: '$80-$250',
-        duration: '4 horas - 3 dias',
-        features: ['Caminhadas', 'Tirolesa', 'Rafting', 'Escalada'],
-        examples: 'Trilha no Grand Canyon, Tirolesa na Costa Rica, Trekking na Patagônia',
-        bestFor: 'Aventureiros, entusiastas do ar livre'
-      },
-      {
-        type: 'Tours Gastronômicos',
-        description: 'Prove culinária local, vinhos e tradições culinárias',
-        priceRange: '$60-$180',
-        duration: '3-6 horas',
-        features: ['Degustações', 'Visitas a Vinícolas', 'Aulas de Culinária', 'Tours em Mercados'],
-        examples: 'Tour de Vinho na Toscana, Caminhada Gastronômica em Tóquio, Tapas em Barcelona',
-        bestFor: 'Amantes da gastronomia, apreciadores de vinho'
-      },
-      {
-        type: 'Tours Culturais',
-        description: 'Mergulhe em tradições locais, arte e sítios históricos',
-        priceRange: '$40-$120',
-        duration: '3-8 horas',
-        features: ['Museus', 'Sítios Históricos', 'Galerias de Arte', 'Artesanato Local'],
-        examples: 'Tour Antiga Roma, Templos de Kyoto, Caminhada na Medina de Marrakech',
-        bestFor: 'Aficionados por história, entusiastas da cultura'
-      },
-      {
-        type: 'Natureza e Vida Selvagem',
-        description: 'Descubra maravilhas naturais e observe animais em seu habitat',
-        priceRange: '$90-$300',
-        duration: '4 horas - 5 dias',
-        features: ['Safari', 'Observação de Aves', 'Observação de Baleias', 'Eco Tours'],
-        examples: 'Safari Africano, Tour na Amazônia, Vida Selvagem em Galápagos',
-        bestFor: 'Amantes da natureza, fotógrafos, famílias'
-      },
-      {
-        type: 'Tours de Vários Dias',
-        description: 'Jornadas prolongadas combinando múltiplos destinos e atividades',
-        priceRange: '$200-$500/dia',
-        duration: '2-14 dias',
-        features: ['Acomodações', 'Refeições Incluídas', 'Transporte', 'Múltiplos Locais'],
-        examples: 'Estrada em Anel da Islândia, Trilha Machu Picchu no Peru, Grand Tour Europeu',
-        bestFor: 'Exploradores profundos, planejadores de férias'
-      }
-    ]
-  },
-  es: {
-    sectionTitle: 'Descubre Tours Increíbles y Experiencias Inolvidables',
-    subtitle: 'Explora el mundo con guías locales expertos y aventuras auténticas',
-
-    tourTypes: 'Tipos y Categorías de Tours',
-    popularDestinations: 'Destinos de Tours Populares',
-    tourDurations: 'Opciones de Duración de Tours',
-    whatsIncluded: 'Qué Está Incluido en los Tours',
-    topOperators: 'Principales Operadores de Tours',
-    bookingTips: 'Consejos de Reserva',
-    faq: 'Preguntas Frecuentes sobre Tours'
-  }
-};
+const tourPriceRanges = ['$30-$80', '$80-$250', '$60-$180', '$40-$120', '$90-$300', '$200-$500/day'];
 
 export default function ToursPage() {
-  const [lang, setLang] = useState<Language>('en');
-  const t = content[lang] as any;
+  const t = useTranslations('ToursPage');
+  const { language: lang, setLanguage: setLang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-white">
@@ -423,11 +64,11 @@ export default function ToursPage() {
           <div className="px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
               <h1 className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {t.sectionTitle}
+                {t('sectionTitle')}
               </h1>
               <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
               <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '0.01em' }}>
-                {t.subtitle}
+                {t('subtitle')}
               </p>
             </div>
           </div>
@@ -468,13 +109,35 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Map className="w-7 h-7 text-orange-600" />
-              {t.tourTypes}
+              {t('tourTypes')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Choose from diverse tour experiences tailored to your interests</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tourTypesSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
-            {((t as any).tourTypesData || []).map((tour: any, index: number) => {
+            {[
+              { key: 'cityTours', icon: Mountain },
+              { key: 'adventure', icon: Utensils },
+              { key: 'foodWine', icon: Landmark },
+              { key: 'cultural', icon: TreePine },
+              { key: 'natureWildlife', icon: Camera },
+              { key: 'multiDay', icon: Globe }
+            ].map((tourType, index) => {
+              const tour = {
+                type: t(`tourTypes_${tourType.key}`),
+                description: t(`tourTypes_${tourType.key}_desc`),
+                priceRange: tourPriceRanges[index],
+                duration: t(`tourTypes_${tourType.key}_duration`),
+                features: [
+                  t(`tourTypes_${tourType.key}_feature1`),
+                  t(`tourTypes_${tourType.key}_feature2`),
+                  t(`tourTypes_${tourType.key}_feature3`),
+                  t(`tourTypes_${tourType.key}_feature4`)
+                ],
+                examples: t(`tourTypes_${tourType.key}_examples`),
+                bestFor: t(`tourTypes_${tourType.key}_bestFor`),
+                image: tourTypeImages[index]
+              };
               const icons = [Mountain, Utensils, Landmark, TreePine, Camera, Globe];
               const IconComponent = icons[index % icons.length];
               const colors = [
@@ -570,13 +233,27 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Globe className="w-7 h-7 text-orange-600" />
-              {t.popularDestinations}
+              {t('popularDestinations')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Discover tours in the world's most exciting destinations</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('destinationsSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
-            {((t as any).destinationsData || []).map((dest: any, index: number) => (
+            {['paris', 'tokyo', 'rome', 'nyc', 'barcelona', 'dubai'].map((destKey, index) => {
+              const dest = {
+                destination: t(`dest_${destKey}`),
+                tours: t(`dest_${destKey}_tours`),
+                rating: destinationRatings[index],
+                topExperiences: [
+                  t(`dest_${destKey}_exp1`),
+                  t(`dest_${destKey}_exp2`),
+                  t(`dest_${destKey}_exp3`),
+                  t(`dest_${destKey}_exp4`)
+                ],
+                priceFrom: t(`dest_${destKey}_priceFrom`),
+                image: destinationImages[index]
+              };
+              return (
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
@@ -596,10 +273,10 @@ export default function ToursPage() {
 
                 <div className="p-5">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{dest.destination}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{dest.tours} available</p>
+                  <p className="text-sm text-gray-600 mb-3">{dest.tours} {t('toursAvailable')}</p>
 
                   <div className="space-y-2 mb-4">
-                    <p className="text-xs font-semibold text-gray-700">Top Experiences:</p>
+                    <p className="text-xs font-semibold text-gray-700">{t('topExperiences')}</p>
                     {dest.topExperiences.slice(0, 3).map((exp: string, i: number) => (
                       <div key={i} className="flex items-start gap-2">
                         <ChevronRight className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -610,16 +287,17 @@ export default function ToursPage() {
 
                   <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500">Tours from</p>
+                      <p className="text-xs text-gray-500">{t('toursFrom')}</p>
                       <p className="text-xl font-bold text-orange-600">{dest.priceFrom}</p>
                     </div>
                     <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-semibold">
-                      Explore Tours
+                      {t('exploreTours')}
                     </button>
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </MaxWidthContainer>
       </section>
@@ -630,13 +308,22 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Clock className="w-7 h-7 text-orange-600" />
-              {t.tourDurations}
+              {t('tourDurations')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Choose the perfect tour duration for your schedule</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('durationsSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 max-w-6xl mx-auto">
-            {((t as any).durationsData || []).map((duration: any, index: number) => (
+            {['halfDay', 'fullDay', 'multiDay'].map((durationKey, index) => {
+              const duration = {
+                duration: t(`duration_${durationKey}`),
+                time: t(`duration_${durationKey}_time`),
+                description: t(`duration_${durationKey}_desc`),
+                examples: t(`duration_${durationKey}_examples`),
+                priceRange: t(`duration_${durationKey}_priceRange`),
+                bestFor: t(`duration_${durationKey}_bestFor`)
+              };
+              return (
               <div
                 key={index}
                 className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border-2 border-orange-200 hover:border-orange-400 transition-all hover:shadow-lg"
@@ -650,13 +337,13 @@ export default function ToursPage() {
                 <p className="text-sm text-gray-600 mb-4">{duration.description}</p>
 
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Examples:</p>
+                  <p className="text-xs font-semibold text-gray-700 mb-2">{t('examples')}</p>
                   <p className="text-sm text-gray-600">{duration.examples}</p>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-orange-200">
                   <div>
-                    <p className="text-xs text-gray-500">Price Range</p>
+                    <p className="text-xs text-gray-500">{t('priceRange')}</p>
                     <p className="text-lg font-bold text-gray-900">{duration.priceRange}</p>
                   </div>
                   <div className="text-xs text-gray-500 text-right">
@@ -664,7 +351,8 @@ export default function ToursPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </MaxWidthContainer>
       </section>
@@ -675,14 +363,24 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <CheckCircle className="w-7 h-7 text-orange-600" />
-              {t.whatsIncluded}
+              {t('whatsIncluded')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Know what to expect before you book</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('includedSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 max-w-6xl mx-auto">
-            {((t as any).includedData || []).map((item: any, index: number) => {
-              const IconComponent = item.icon;
+            {[
+              { key: 'guide', icon: Users },
+              { key: 'transport', icon: MapPin },
+              { key: 'entrance', icon: CheckCircle },
+              { key: 'meals', icon: Utensils }
+            ].map((itemType, index) => {
+              const item = {
+                feature: t(`included_${itemType.key}`),
+                description: t(`included_${itemType.key}_desc`),
+                included: t(`included_${itemType.key}_status`)
+              };
+              const IconComponent = itemType.icon;
               return (
                 <div
                   key={index}
@@ -711,13 +409,22 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Award className="w-7 h-7 text-orange-600" />
-              {t.topOperators}
+              {t('topOperators')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Book with confidence from trusted tour providers</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('operatorsSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
-            {((t as any).operatorsData || []).map((operator: any, index: number) => (
+            {['viator', 'getyourguide', 'intrepid', 'gadventures', 'context', 'airbnb'].map((operatorKey, index) => {
+              const operator = {
+                name: t(`operator_${operatorKey}`),
+                rating: operatorRatings[index],
+                tours: t(`operator_${operatorKey}_tours`),
+                destinations: t(`operator_${operatorKey}_destinations`),
+                specialty: t(`operator_${operatorKey}_specialty`),
+                cancellation: t(`operator_${operatorKey}_cancellation`)
+              };
+              return (
               <div
                 key={index}
                 className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-orange-400 hover:shadow-lg transition-all"
@@ -750,10 +457,11 @@ export default function ToursPage() {
                 </div>
 
                 <button className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg hover:from-orange-700 hover:to-amber-700 transition-all font-semibold">
-                  View Tours
+                  {t('viewTours')}
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
         </MaxWidthContainer>
       </section>
@@ -764,14 +472,25 @@ export default function ToursPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Zap className="w-7 h-7 text-orange-600" />
-              {t.bookingTips}
+              {t('bookingTips')}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Save money and enhance your experience with insider knowledge</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('tipsSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 max-w-6xl mx-auto">
-            {((t as any).tipsData || []).map((tip: any, index: number) => {
-              const IconComponent = tip.icon;
+            {[
+              { key: 'bookEarly', icon: Calendar },
+              { key: 'cancellation', icon: Shield },
+              { key: 'reviews', icon: Star },
+              { key: 'smallGroup', icon: Users },
+              { key: 'checkIncluded', icon: CheckCircle },
+              { key: 'skipLine', icon: Zap }
+            ].map((tipType, index) => {
+              const tip = {
+                title: t(`tip_${tipType.key}`),
+                description: t(`tip_${tipType.key}_desc`)
+              };
+              const IconComponent = tipType.icon;
               return (
                 <div
                   key={index}
@@ -794,12 +513,24 @@ export default function ToursPage() {
       <section className="py-6 sm:py-8 md:py-12 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50">
         <MaxWidthContainer className="px-0 md:px-6" noPadding={true}>
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">❓ Tours FAQ</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600">Everything you need to know about booking tours with Fly2Any</p>
+            <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">❓ {t('faq')}</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">{t('faqSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 px-2 md:px-0 gap-2 sm:gap-3 md:gap-6">
-            {((t as any).faqData || []).map((faq: any, index: number) => (
+            {[
+              'cancellation',
+              'tipping',
+              'weather',
+              'mobility',
+              'meals',
+              'meetingPoint'
+            ].map((faqKey, index) => {
+              const faq = {
+                question: t(`faq_${faqKey}_q`),
+                answer: t(`faq_${faqKey}_a`)
+              };
+              return (
               <details
                 key={index}
                 className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-orange-300 group"
@@ -810,14 +541,15 @@ export default function ToursPage() {
                 </summary>
                 <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.answer}</p>
               </details>
-            ))}
+            );
+            })}
           </div>
 
           <div className="mt-6 sm:mt-8 text-center px-4 md:px-0">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">Still have questions?</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-4">{t('stillQuestions')}</p>
             <a href="mailto:support@fly2any.com" className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-md hover:shadow-lg">
               <Shield className="w-5 h-5" />
-              Contact Our Support Team
+              {t('contactSupport')}
             </a>
           </div>
         </MaxWidthContainer>

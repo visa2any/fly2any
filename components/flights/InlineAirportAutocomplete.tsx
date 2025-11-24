@@ -169,7 +169,7 @@ export function InlineAirportAutocomplete({
           placeholder={placeholder}
           maxLength={3}
           className={`
-            w-full h-[56px] pl-11 pr-10
+            w-full min-h-[56px] max-h-[56px] h-[56px] pl-11 pr-10
             text-base font-medium
             border border-gray-200 rounded-lg
             transition-all duration-200
@@ -179,8 +179,9 @@ export function InlineAirportAutocomplete({
             }
             outline-none
             uppercase
+            overflow-hidden
           `}
-          style={{ textTransform: 'uppercase' }}
+          style={{ textTransform: 'uppercase', lineHeight: '56px' }}
         />
 
         {inputValue && !disabled && (

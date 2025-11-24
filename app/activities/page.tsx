@@ -6,344 +6,46 @@ import {
   Activity, Sparkles, Palette, Music, Waves, Mountain,
   Users, Clock, Calendar, Star, Shield, MapPin,
   ChevronRight, CheckCircle, Award, Zap, Globe,
-  Heart, Compass, Bike, TreePine, Camera, Utensils
+  Heart, Compass, Bike, TreePine, Camera, Utensils,
+  Package, Car, TrendingUp
 } from 'lucide-react';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '@/lib/i18n/client';
 
 type Language = 'en' | 'pt' | 'es';
 
-const content = {
-  en: {
-    // Compact Hero Section
-    sectionTitle: 'Discover Exciting Activities & Unique Experiences',
-    subtitle: 'From adventure sports to cultural workshops, create unforgettable memories',
 
-    // Sections
-    activityTypes: 'Activity Types & Categories',
-    popularDestinations: 'Top Destinations for Activities',
-    activityDurations: 'Activity Duration Options',
-    whatsIncluded: "What's Included in Activities",
-    topProviders: 'Top Activity Providers',
-    bookingTips: 'Expert Booking Tips',
-    faq: 'Activities FAQ',
+// Base data arrays (language-agnostic)
+const activityTypeImages = [
+  'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
+  'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+  'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80',
+  'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80',
+  'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&q=80',
+  'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&q=80'
+];
 
-    // Activity Types
-    activityTypesData: [
-      {
-        type: 'Adventure Sports',
-        description: 'Adrenaline-pumping activities from skydiving to bungee jumping',
-        priceRange: '$50-$300',
-        duration: '2-6 hours',
-        features: ['Skydiving', 'Bungee Jump', 'Paragliding', 'White Water Rafting'],
-        examples: 'Dubai Skydive, Queenstown Bungee, Swiss Paragliding',
-        bestFor: 'Thrill-seekers, adventure enthusiasts',
-        image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80'
-      },
-      {
-        type: 'Water Activities',
-        description: 'Explore oceans, lakes, and rivers with exciting water sports',
-        priceRange: '$40-$200',
-        duration: '1-4 hours',
-        features: ['Scuba Diving', 'Surfing', 'Kayaking', 'Jet Skiing'],
-        examples: 'Bali Surf Lessons, Maldives Diving, Hawaii Snorkeling',
-        bestFor: 'Water lovers, marine life enthusiasts',
-        image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80'
-      },
-      {
-        type: 'Cultural Workshops',
-        description: 'Learn local crafts, cooking, and traditional arts from experts',
-        priceRange: '$30-$150',
-        duration: '2-5 hours',
-        features: ['Cooking Classes', 'Pottery', 'Painting', 'Dance Lessons'],
-        examples: 'Thai Cooking Class, Japanese Pottery, Flamenco Dance',
-        bestFor: 'Culture enthusiasts, creative learners',
-        image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80'
-      },
-      {
-        type: 'Outdoor Adventures',
-        description: 'Hiking, camping, and nature exploration activities',
-        priceRange: '$25-$180',
-        duration: '3 hours - 2 days',
-        features: ['Hiking Tours', 'Rock Climbing', 'Camping', 'Zip-lining'],
-        examples: 'Grand Canyon Hike, Alps Climbing, Costa Rica Zip-line',
-        bestFor: 'Nature lovers, outdoor enthusiasts',
-        image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80'
-      },
-      {
-        type: 'Wellness & Spa',
-        description: 'Relaxation activities including yoga, meditation, and spa treatments',
-        priceRange: '$40-$250',
-        duration: '1-8 hours',
-        features: ['Yoga Classes', 'Spa Treatments', 'Meditation', 'Hot Springs'],
-        examples: 'Bali Yoga Retreat, Iceland Hot Springs, Thai Massage',
-        bestFor: 'Wellness seekers, relaxation lovers',
-        image: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&q=80'
-      },
-      {
-        type: 'Entertainment & Shows',
-        description: 'Live performances, concerts, and cultural entertainment',
-        priceRange: '$35-$200',
-        duration: '1-3 hours',
-        features: ['Theater Shows', 'Concerts', 'Cabaret', 'Dinner Shows'],
-        examples: 'Broadway Shows, Moulin Rouge, Cirque du Soleil',
-        bestFor: 'Entertainment lovers, night life enthusiasts',
-        image: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&q=80'
-      }
-    ],
+const destinationImages = [
+  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
+  'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80',
+  'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80',
+  'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&q=80',
+  'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
+  'https://images.unsplash.com/photo-1621956474307-48f39639007d?w=800&q=80'
+];
 
-    // Popular Destinations
-    destinationsData: [
-      {
-        destination: 'Dubai, UAE',
-        activities: '1,500+ activities',
-        rating: 4.8,
-        topExperiences: ['Desert Safari', 'Skydiving', 'Burj Khalifa', 'Water Parks'],
-        priceFrom: '$45',
-        image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80'
-      },
-      {
-        destination: 'Bali, Indonesia',
-        activities: '2,000+ activities',
-        rating: 4.9,
-        topExperiences: ['Surf Lessons', 'Temple Tours', 'Yoga Retreats', 'Cooking Classes'],
-        priceFrom: '$25',
-        image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80'
-      },
-      {
-        destination: 'Barcelona, Spain',
-        activities: '1,200+ activities',
-        rating: 4.7,
-        topExperiences: ['Tapas Tour', 'Sailing', 'Flamenco Show', 'Beach Activities'],
-        priceFrom: '$35',
-        image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&q=80'
-      },
-      {
-        destination: 'Queenstown, New Zealand',
-        activities: '800+ activities',
-        rating: 4.9,
-        topExperiences: ['Bungee Jumping', 'Skiing', 'Jet Boating', 'Hiking'],
-        priceFrom: '$60',
-        image: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=800&q=80'
-      },
-      {
-        destination: 'Paris, France',
-        activities: '1,800+ activities',
-        rating: 4.6,
-        topExperiences: ['Cooking Classes', 'Wine Tasting', 'Art Workshops', 'Seine Cruise'],
-        priceFrom: '$40',
-        image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80'
-      },
-      {
-        destination: 'Costa Rica',
-        activities: '900+ activities',
-        rating: 4.8,
-        topExperiences: ['Zip-lining', 'Wildlife Tours', 'Surfing', 'Volcano Tours'],
-        priceFrom: '$50',
-        image: 'https://images.unsplash.com/photo-1621956474307-48f39639007d?w=800&q=80'
-      }
-    ],
-
-    // Duration Options
-    durationsData: [
-      {
-        duration: 'Quick Activities',
-        time: '1-2 hours',
-        description: 'Short experiences perfect for filling gaps in your itinerary',
-        examples: 'City bike rental, cooking demo, quick spa treatment',
-        priceRange: '$20-$60',
-        bestFor: 'Time-limited travelers, sampling experiences'
-      },
-      {
-        duration: 'Half-Day Activities',
-        time: '3-5 hours',
-        description: 'Morning or afternoon experiences with guided instruction',
-        examples: 'Cooking class, surf lesson, art workshop, city tour',
-        priceRange: '$40-$120',
-        bestFor: 'Balanced schedules, learning experiences'
-      },
-      {
-        duration: 'Full-Day Adventures',
-        time: '6-10 hours',
-        description: 'Complete immersive experiences with meals and equipment included',
-        examples: 'Desert safari, diving expedition, hiking trip, multi-activity package',
-        priceRange: '$80-$250',
-        bestFor: 'Deep immersion, special occasions'
-      }
-    ],
-
-    // What's Included
-    includedData: [
-      {
-        feature: 'Expert Instruction',
-        description: 'Certified instructors and guides for safe, enjoyable experiences',
-        icon: Users,
-        included: 'Always Included'
-      },
-      {
-        feature: 'Equipment & Gear',
-        description: 'All necessary equipment, safety gear, and materials provided',
-        icon: Shield,
-        included: 'Usually Included'
-      },
-      {
-        feature: 'Transportation',
-        description: 'Hotel pickup, drop-off, or meeting point instructions',
-        icon: MapPin,
-        included: 'Often Included'
-      },
-      {
-        feature: 'Photos & Videos',
-        description: 'Professional photos or videos of your experience',
-        icon: Camera,
-        included: 'Sometimes Included'
-      }
-    ],
-
-    // Top Providers
-    providersData: [
-      {
-        name: 'Viator',
-        rating: 4.7,
-        activities: '300,000+ activities',
-        destinations: 'Worldwide',
-        specialty: 'Largest selection globally',
-        cancellation: 'Free up to 24 hours'
-      },
-      {
-        name: 'GetYourGuide',
-        rating: 4.8,
-        activities: '200,000+ activities',
-        destinations: '11,000+ destinations',
-        specialty: 'Instant booking & mobile tickets',
-        cancellation: 'Flexible cancellation'
-      },
-      {
-        name: 'Klook',
-        rating: 4.7,
-        activities: '400,000+ activities',
-        destinations: '1,000+ destinations',
-        specialty: 'Asia Pacific specialist',
-        cancellation: 'Free cancellation available'
-      },
-      {
-        name: 'Airbnb Experiences',
-        rating: 4.6,
-        activities: '40,000+ experiences',
-        destinations: 'Worldwide',
-        specialty: 'Unique local hosted activities',
-        cancellation: 'Free up to 24 hours'
-      },
-      {
-        name: 'TripAdvisor',
-        rating: 4.5,
-        activities: '150,000+ activities',
-        destinations: 'Worldwide',
-        specialty: 'Verified reviews & ratings',
-        cancellation: 'Varies by provider'
-      },
-      {
-        name: 'Headout',
-        rating: 4.7,
-        activities: '25,000+ activities',
-        destinations: '60+ cities',
-        specialty: 'Last-minute bookings',
-        cancellation: 'Free up to 48 hours'
-      }
-    ],
-
-    // Booking Tips
-    tipsData: [
-      {
-        title: 'Book Adventure Activities Early',
-        description: 'Popular activities like skydiving and bungee jumping fill up fast, especially during peak season. Book 1-2 weeks ahead.',
-        icon: Calendar
-      },
-      {
-        title: 'Check Weather Requirements',
-        description: 'Many outdoor activities are weather-dependent. Understand cancellation policies for bad weather conditions.',
-        icon: Shield
-      },
-      {
-        title: 'Verify Age & Health Requirements',
-        description: 'Adventure activities often have age, weight, or health restrictions. Check requirements before booking to avoid disappointment.',
-        icon: CheckCircle
-      },
-      {
-        title: 'Compare Group vs Private Options',
-        description: 'Group activities are cheaper but private sessions offer personalized attention. Weigh cost vs. experience quality.',
-        icon: Users
-      },
-      {
-        title: 'Read Safety Records',
-        description: 'For adventure activities, check the operator\'s safety record and certifications. Don\'t compromise on safety for price.',
-        icon: Award
-      },
-      {
-        title: 'Book Packages for Better Value',
-        description: 'Multi-activity packages often save 20-30% compared to booking separately. Great for families and groups.',
-        icon: Zap
-      }
-    ],
-
-    // FAQ
-    faqData: [
-      {
-        question: 'What should I wear for adventure activities?',
-        answer: 'Wear comfortable, weather-appropriate clothing and closed-toe shoes. Most operators provide specialized gear like helmets and harnesses. Avoid loose jewelry and tie back long hair. Check your confirmation email for specific dress code requirements.'
-      },
-      {
-        question: 'Are activities suitable for children?',
-        answer: 'Many activities have age and height restrictions for safety. Family-friendly activities are clearly marked. Check the age requirements before booking. Some operators offer modified versions for younger children. Always supervise children during activities.'
-      },
-      {
-        question: 'What happens if I need to cancel?',
-        answer: 'Cancellation policies vary by provider and activity type. Most offer free cancellation 24-48 hours before the activity. Adventure activities may have stricter policies. Weather cancellations usually result in full refunds or rescheduling options. Check specific terms before booking.'
-      },
-      {
-        question: 'Do I need travel insurance for activities?',
-        answer: 'We strongly recommend travel insurance that covers adventure activities. Standard policies may exclude high-risk activities like skydiving or scuba diving. Read your policy carefully and consider activity-specific coverage for peace of mind.'
-      },
-      {
-        question: 'How far in advance should I book?',
-        answer: 'Popular activities in peak season should be booked 1-2 weeks ahead. Specialized activities (hot air balloons, helicopter tours) may require more advance notice. Last-minute bookings are possible but may have limited availability or higher prices.'
-      },
-      {
-        question: 'Are photos and videos included?',
-        answer: 'Photo inclusion varies by activity and provider. Adventure activities often offer professional photos/videos for an additional fee ($20-50). Some experiences include basic photos for free. Check "What\'s Included" section or contact the provider directly.'
-      }
-    ]
-  },
-  pt: {
-    sectionTitle: 'Descubra Atividades Emocionantes e Experiências Únicas',
-    subtitle: 'De esportes radicais a workshops culturais, crie memórias inesquecíveis',
-    activityTypes: 'Tipos e Categorias de Atividades',
-    popularDestinations: 'Principais Destinos para Atividades',
-    activityDurations: 'Opções de Duração de Atividades',
-    whatsIncluded: 'O Que Está Incluído nas Atividades',
-    topProviders: 'Principais Provedores de Atividades',
-    bookingTips: 'Dicas de Reserva',
-    faq: 'Perguntas Frequentes sobre Atividades'
-  },
-  es: {
-    sectionTitle: 'Descubre Actividades Emocionantes y Experiencias Únicas',
-    subtitle: 'Desde deportes de aventura hasta talleres culturales, crea recuerdos inolvidables',
-    activityTypes: 'Tipos y Categorías de Actividades',
-    popularDestinations: 'Principales Destinos para Actividades',
-    activityDurations: 'Opciones de Duración de Actividades',
-    whatsIncluded: 'Qué Está Incluido en las Actividades',
-    topProviders: 'Principales Proveedores de Actividades',
-    bookingTips: 'Consejos de Reserva',
-    faq: 'Preguntas Frecuentes sobre Actividades'
-  }
-};
+const destinationRatings = [4.8, 4.9, 4.7, 4.9, 4.6, 4.8];
+const providerRatings = [4.7, 4.8, 4.7, 4.8, 4.6, 4.7];
+const activityPriceRanges = ['$50-$300', '$40-$200', '$30-$150', '$25-$180', '$40-$250', '$35-$200'];
 
 export default function ActivitiesPage() {
-  const [lang, setLang] = useState<Language>('en');
+  const t = useTranslations('ActivitiesPage');
+  const { language: lang, setLanguage: setLang } = useLanguage();
   const [animationKey, setAnimationKey] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const t = content[lang] as any;
 
   useEffect(() => {
     setMounted(true);
@@ -375,19 +77,19 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-6">
             <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
               <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {mounted ? t.sectionTitle.split('').map((char: string, index: number) => (
+                {mounted ? t('sectionTitle').split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.sectionTitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
               </h1>
               <span className="hidden md:inline-block text-purple-400 text-2xl font-bold mx-1">•</span>
               <p key={`subtitle-${animationKey}`} className="hero-subtitle text-xs sm:text-sm md:text-lg whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {mounted ? t.subtitle.split('').map((char: string, index: number) => (
+                {mounted ? t('subtitle').split('').map((char: string, index: number) => (
                   <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
                     {char === ' ' ? '\u00A0' : char}
                   </span>
-                )) : <span style={{ opacity: 0 }}>{t.subtitle}</span>}
+                )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
               </p>
             </div>
           </div>
@@ -433,13 +135,35 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Activity className="w-7 h-7 text-purple-600" />
-              {t.activityTypes}
+              {t('activityTypes')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Explore diverse activities tailored to every interest and skill level</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {(Array.isArray((t as any).activityTypesData) ? (t as any).activityTypesData : content.en.activityTypesData).map((activity: any, index: number) => {
+            {[
+              { key: 'adventureSports', icon: Sparkles },
+              { key: 'waterActivities', icon: Waves },
+              { key: 'culturalWorkshops', icon: Palette },
+              { key: 'outdoorAdventures', icon: Mountain },
+              { key: 'wellnessSpa', icon: Heart },
+              { key: 'entertainmentShows', icon: Music }
+            ].map((activityType, index) => {
+              const activity = {
+                type: t(`activityType_${activityType.key}`),
+                description: t(`activityType_${activityType.key}_desc`),
+                priceRange: activityPriceRanges[index],
+                duration: t(`activityType_${activityType.key}_duration`),
+                features: [
+                  t(`activityType_${activityType.key}_feature1`),
+                  t(`activityType_${activityType.key}_feature2`),
+                  t(`activityType_${activityType.key}_feature3`),
+                  t(`activityType_${activityType.key}_feature4`)
+                ],
+                examples: t(`activityType_${activityType.key}_examples`),
+                bestFor: t(`activityType_${activityType.key}_bestFor`),
+                image: activityTypeImages[index]
+              };
               const icons = [Sparkles, Waves, Palette, Mountain, Heart, Music];
               const IconComponent = icons[index % icons.length];
               const colors = [
@@ -535,13 +259,27 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Globe className="w-7 h-7 text-purple-600" />
-              {t.popularDestinations}
+              {t('popularDestinations')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Discover activities in the world's most exciting destinations</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {(Array.isArray((t as any).destinationsData) ? (t as any).destinationsData : content.en.destinationsData).map((dest: any, index: number) => (
+            {['dubai', 'bali', 'barcelona', 'queenstown', 'paris', 'costarica'].map((destKey, index) => {
+              const dest = {
+                destination: t(`dest_${destKey}`),
+                activities: t(`dest_${destKey}_activities`),
+                rating: destinationRatings[index],
+                topExperiences: [
+                  t(`dest_${destKey}_exp1`),
+                  t(`dest_${destKey}_exp2`),
+                  t(`dest_${destKey}_exp3`),
+                  t(`dest_${destKey}_exp4`)
+                ],
+                priceFrom: t(`dest_${destKey}_priceFrom`),
+                image: destinationImages[index]
+              };
+              return (
               <div
                 key={index}
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer"
@@ -584,7 +322,8 @@ export default function ActivitiesPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </MaxWidthContainer>
       </section>
@@ -595,13 +334,22 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Clock className="w-7 h-7 text-purple-600" />
-              {t.activityDurations}
+              {t('activityDurations')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Choose the perfect activity duration for your schedule</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto">
-            {(Array.isArray((t as any).durationsData) ? (t as any).durationsData : content.en.durationsData).map((duration: any, index: number) => (
+            {['quick', 'halfDay', 'fullDay'].map((durationKey, index) => {
+              const duration = {
+                duration: t(`duration_${durationKey}`),
+                time: t(`duration_${durationKey}_time`),
+                description: t(`duration_${durationKey}_desc`),
+                examples: t(`duration_${durationKey}_examples`),
+                priceRange: t(`duration_${durationKey}_priceRange`),
+                bestFor: t(`duration_${durationKey}_bestFor`)
+              };
+              return (
               <div
                 key={index}
                 className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-200 hover:border-purple-400 transition-all hover:shadow-lg"
@@ -629,7 +377,7 @@ export default function ActivitiesPage() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </MaxWidthContainer>
       </section>
@@ -640,14 +388,24 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <CheckCircle className="w-7 h-7 text-purple-600" />
-              {t.whatsIncluded}
+              {t('whatsIncluded')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Know what to expect before you book</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-            {(Array.isArray((t as any).includedData) ? (t as any).includedData : content.en.includedData).map((item: any, index: number) => {
-              const IconComponent = item.icon;
+            {[
+              { key: 'expertGuides', icon: Users },
+              { key: 'equipment', icon: Package },
+              { key: 'transportation', icon: Car },
+              { key: 'insurance', icon: Shield }
+            ].map((itemType, index) => {
+              const item = {
+                feature: t(`included_${itemType.key}`),
+                description: t(`included_${itemType.key}_desc`),
+                included: t(`included_${itemType.key}_included`)
+              };
+              const IconComponent = itemType.icon;
               return (
                 <div
                   key={index}
@@ -676,13 +434,22 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Award className="w-7 h-7 text-purple-600" />
-              {t.topProviders}
+              {t('topProviders')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Book with confidence from trusted activity providers</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {(Array.isArray((t as any).providersData) ? (t as any).providersData : content.en.providersData).map((provider: any, index: number) => (
+            {['viator', 'getyourguide', 'klook', 'airbnb', 'tripadvisor', 'expedia'].map((providerKey, index) => {
+              const provider = {
+                name: t(`provider_${providerKey}`),
+                rating: providerRatings[index],
+                activities: t(`provider_${providerKey}_activities`),
+                destinations: t(`provider_${providerKey}_destinations`),
+                specialty: t(`provider_${providerKey}_specialty`),
+                cancellation: t(`provider_${providerKey}_cancellation`)
+              };
+              return (
               <div
                 key={index}
                 className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all"
@@ -718,7 +485,7 @@ export default function ActivitiesPage() {
                   View Activities
                 </button>
               </div>
-            ))}
+            )})}
           </div>
         </MaxWidthContainer>
       </section>
@@ -729,14 +496,25 @@ export default function ActivitiesPage() {
           <div className="px-4 md:px-0 mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
               <Zap className="w-7 h-7 text-purple-600" />
-              {t.bookingTips}
+              {t('bookingTips')}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600">Save money and enhance your experience with insider knowledge</p>
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {(Array.isArray((t as any).tipsData) ? (t as any).tipsData : content.en.tipsData).map((tip: any, index: number) => {
-              const IconComponent = tip.icon;
+            {[
+              { key: 'bookEarly', icon: Clock },
+              { key: 'compareProviders', icon: TrendingUp },
+              { key: 'weatherCheck', icon: Calendar },
+              { key: 'groupDiscounts', icon: Users },
+              { key: 'readReviews', icon: Star },
+              { key: 'flexibleCancellation', icon: Shield }
+            ].map((tipType, index) => {
+              const tip = {
+                title: t(`tip_${tipType.key}`),
+                description: t(`tip_${tipType.key}_desc`)
+              };
+              const IconComponent = tipType.icon;
               return (
                 <div
                   key={index}
@@ -764,7 +542,12 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid px-2 md:px-0 gap-2 sm:gap-3 md:gap-6 grid-cols-1 lg:grid-cols-2">
-            {(Array.isArray((t as any).faqData) ? (t as any).faqData : content.en.faqData).map((faq: any, index: number) => (
+            {['whatAre', 'howBook', 'cancellation', 'bestTime', 'accessibility', 'groupBookings'].map((faqKey, index) => {
+              const faq = {
+                question: t(`faq_${faqKey}_q`),
+                answer: t(`faq_${faqKey}_a`)
+              };
+              return (
               <details
                 key={index}
                 className="bg-white rounded-xl p-5 md:p-6 hover:shadow-lg transition-all border border-gray-200 hover:border-purple-300 group"
@@ -775,7 +558,7 @@ export default function ActivitiesPage() {
                 </summary>
                 <p className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">{faq.answer}</p>
               </details>
-            ))}
+            )})}
           </div>
 
           <div className="px-4 md:px-0 mt-6 sm:mt-8 text-center">
