@@ -100,75 +100,80 @@ export function WorldCupCrossSell({
     );
   }
 
-  // Full version (more prominent when relevant)
+  // Compact, streamlined version for flight results page
   return (
-    <div className="relative bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 text-white rounded-xl shadow-2xl overflow-hidden mb-6">
-      {/* Animated Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
+    <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 text-white rounded-lg shadow-lg overflow-hidden mb-4">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 20px 20px, white 2px, transparent 0)',
-          backgroundSize: '40px 40px',
+          backgroundImage: 'radial-gradient(circle at 15px 15px, white 1px, transparent 0)',
+          backgroundSize: '30px 30px',
         }}></div>
       </div>
 
       {/* Dismiss Button */}
       <button
         onClick={handleDismiss}
-        className="absolute top-3 right-3 text-white/60 hover:text-white transition-colors z-10"
+        className="absolute top-2 right-2 text-white/60 hover:text-white transition-colors z-10"
         aria-label="Dismiss"
       >
-        <XMarkIcon className="w-6 h-6" />
+        <XMarkIcon className="w-4 h-4" />
       </button>
 
-      <div className="relative z-10 p-6">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20 mb-4">
-          <span className="text-xl animate-pulse">🏆</span>
-          <span className="font-black text-xs tracking-wide">{t.badge}</span>
-        </div>
+      <div className="relative z-10 p-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          {/* Left: Content - Compact single column */}
+          <div className="flex-1 space-y-1.5">
+            {/* Badge + Title - Single line on desktop */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/20">
+                <span className="text-base">🏆</span>
+                <span className="font-bold text-xs tracking-wide">{t.badge}</span>
+              </div>
+              <h3 className="text-base md:text-lg font-bold leading-tight">
+                {isRelevant ? t.titleRelevant : t.title}
+              </h3>
+            </div>
 
-        <div className="grid md:grid-cols-2 gap-6 items-center">
-          {/* Left Column - Content */}
-          <div className="space-y-3">
-            <h3 className="text-2xl md:text-3xl font-black leading-tight">
-              {isRelevant ? t.titleRelevant : t.title}
-            </h3>
-            <p className="text-base text-white/90 font-medium">
+            {/* Description - Compact */}
+            <p className="text-xs md:text-sm text-white/90 leading-snug">
               {isRelevant ? t.descriptionRelevant : t.description}
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <div className="flex items-center gap-2 text-sm font-semibold bg-green-500/20 px-3 py-1.5 rounded-full">
-                <SparklesIcon className="w-4 h-4 text-yellow-400" />
+
+            {/* Savings + Dates - Horizontal compact layout */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex items-center gap-1.5 text-xs font-semibold bg-green-500/25 px-2 py-0.5 rounded-full">
+                <SparklesIcon className="w-3 h-3 text-yellow-300" />
                 <span>{t.savings}</span>
               </div>
-              <div className="text-xs text-white/70 font-medium">
+              <div className="text-xs text-white/80 font-medium">
                 {t.cities}
               </div>
             </div>
           </div>
 
-          {/* Right Column - CTA */}
-          <div className="flex flex-col items-center md:items-end gap-3">
+          {/* Right: CTA - Compact button */}
+          <div className="flex flex-col items-start md:items-end gap-1.5">
             <Link
               href="/world-cup-2026/packages"
               onClick={handleCTAClick}
-              className="w-full md:w-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-lg font-black text-lg hover:from-yellow-300 hover:to-orange-400 transition-all transform hover:scale-105 shadow-2xl flex items-center justify-center gap-2"
+              className="w-full md:w-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-4 py-2.5 rounded-lg font-bold text-sm hover:from-yellow-300 hover:to-orange-400 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
-              <TrophyIcon className="w-6 h-6" />
+              <TrophyIcon className="w-4 h-4" />
               {isRelevant ? t.ctaRelevant : t.cta}
             </Link>
 
-            <div className="flex items-center gap-2 text-xs text-white/70">
-              <span className="text-green-400 font-bold">✓</span>
+            <div className="flex items-center gap-1.5 text-xs text-white/75">
+              <span className="text-green-300 font-bold text-sm">✓</span>
               <span>Flights + Hotels + Tickets</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Accent Line */}
+      {/* Thin Accent Line */}
       {isRelevant && (
-        <div className="h-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 animate-pulse"></div>
+        <div className="h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500"></div>
       )}
     </div>
   );

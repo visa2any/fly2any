@@ -37,6 +37,7 @@ import CheapestDates from '@/components/flights/CheapestDates';
 import FlightInspiration from '@/components/flights/FlightInspiration';
 import { WorldCupCrossSell } from '@/components/world-cup/WorldCupCrossSell';
 import { layout, DESIGN_RULES } from '@/lib/design-system';
+import { isWorldCupHostCity } from '@/lib/world-cup/constants';
 import PriceCalendarMatrix from '@/components/flights/PriceCalendarMatrix';
 import AlternativeAirports from '@/components/flights/AlternativeAirports';
 import { batchCalculateDealScores } from '@/lib/flights/dealScore';
@@ -1661,20 +1662,21 @@ function FlightResultsContent() {
         />
       </div>
 
-      {/* World Cup 2026 Cross-Promotion Banner */}
+      {/* World Cup 2026 Cross-Promotion Banner - Only shows for destination cities hosting matches */}
       {(() => {
-        const worldCupCities = ['LAX', 'EWR', 'JFK', 'LGA', 'DFW', 'ATL', 'MIA', 'MEX', 'MTY', 'YVR', 'SEA', 'SFO', 'SJC', 'BOS', 'PHL', 'IAH', 'KCI', 'YYZ', 'GDL'];
-        const isWorldCupDestination = worldCupCities.some(code =>
-          searchData.to.toUpperCase().includes(code) || searchData.from.toUpperCase().includes(code)
-        );
+        // Check if destination (TO) is a World Cup host city
+        const isWorldCupDestination = isWorldCupHostCity(searchData.to);
+
+        // Only show banner if traveling TO a World Cup host city
+        if (!isWorldCupDestination) return null;
 
         return (
           <div className="mx-auto px-3 md:px-6" style={{ maxWidth: layout.container.maxWidth }}>
             <WorldCupCrossSell
               lang={lang}
               location="flight_results"
-              isRelevant={isWorldCupDestination}
-              compact={!isWorldCupDestination}
+              isRelevant={true}
+              compact={false}
             />
           </div>
         );
