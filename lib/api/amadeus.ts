@@ -85,6 +85,28 @@ class AmadeusAPI {
   }
 
   /**
+   * Check if Amadeus API is in production mode
+   * Returns false if in test mode (which returns synthetic/fake prices)
+   */
+  isProductionMode(): boolean {
+    return this.environment === 'production';
+  }
+
+  /**
+   * Check if Amadeus API is in test mode (returns fake prices)
+   */
+  isTestMode(): boolean {
+    return this.environment !== 'production';
+  }
+
+  /**
+   * Get the current environment
+   */
+  getEnvironment(): string {
+    return this.environment;
+  }
+
+  /**
    * Helper: Format error for clean logging (avoid dumping huge objects)
    */
   private formatError(error: any): any {

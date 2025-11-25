@@ -420,13 +420,22 @@ export async function POST(request: NextRequest) {
 
       console.log(`  🤖 Smart API Selection: ${apiSelection.strategy} (${(apiSelection.confidence * 100).toFixed(0)}% confidence) - ${apiSelection.reason}`);
 
+      // 🚫 CRITICAL: Skip Amadeus API when in TEST mode (returns fake/synthetic prices)
+      // Only use real Duffel prices until Amadeus production key is obtained
+      if (amadeusAPI.isTestMode()) {
+        console.log('  ⚠️  AMADEUS TEST MODE DETECTED - Skipping Amadeus (fake prices)');
+        console.log('  ✅ Using Duffel LIVE API only for real market prices');
+        apiSelection = { strategy: 'duffel', confidence: 1.0, reason: 'Amadeus in test mode - using Duffel only', estimatedSavings: 0 };
+      }
+
       // 🎯 OPTIMIZATION: For far-future dates or important routes, always query both APIs to maximize results
+      // BUT: Only if Amadeus is in production mode (don't use fake test prices!)
       const daysToDeparture = Math.ceil((new Date(dateToSearch).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       const isFarFuture = daysToDeparture > 180; // More than 6 months out
       const isMajorRoute = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(origin) &&
                           ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'LHR', 'CDG'].includes(destination);
 
-      if ((isFarFuture || isMajorRoute) && apiSelection.strategy !== 'both') {
+      if ((isFarFuture || isMajorRoute) && apiSelection.strategy !== 'both' && amadeusAPI.isProductionMode()) {
         console.log(`  ✨ Overriding to BOTH APIs: ${isFarFuture ? 'Far-future date' : 'Major route'} - maximizing flight options`);
         apiSelection = { strategy: 'both', confidence: 0.9, reason: 'Auto-override for maximum results', estimatedSavings: 0 };
       }
@@ -923,21 +932,29 @@ export async function POST(request: NextRequest) {
         const mixedDuffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
 
         // Run one-way searches in parallel (outbound + return)
+        // Skip Amadeus if in test mode (fake prices)
+        const useAmadeus = amadeusAPI.isProductionMode();
+        if (!useAmadeus) {
+          console.log('   ⚠️  AMADEUS TEST MODE - Skipping for mixed-carrier search');
+        }
+
         const [outboundResult, returnResult] = await Promise.allSettled([
           // Outbound one-way search
           Promise.all([
-            amadeusAPI.searchFlights({
-              origin,
-              destination,
-              departureDate: depDate,
-              adults: body.adults || 1,
-              children: body.children,
-              infants: body.infants,
-              travelClass: travelClass,
-              nonStop: body.nonStop === true ? true : undefined,
-              currencyCode: body.currencyCode || 'USD',
-              max: 30,
-            }),
+            useAmadeus
+              ? amadeusAPI.searchFlights({
+                  origin,
+                  destination,
+                  departureDate: depDate,
+                  adults: body.adults || 1,
+                  children: body.children,
+                  infants: body.infants,
+                  travelClass: travelClass,
+                  nonStop: body.nonStop === true ? true : undefined,
+                  currencyCode: body.currencyCode || 'USD',
+                  max: 30,
+                })
+              : Promise.resolve({ data: [] }),
             duffelAPI.isAvailable()
               ? duffelAPI.searchFlights({
                   origin,
@@ -955,18 +972,20 @@ export async function POST(request: NextRequest) {
 
           // Return one-way search (swap origin/destination)
           Promise.all([
-            amadeusAPI.searchFlights({
-              origin: destination,
-              destination: origin,
-              departureDate: retDate,
-              adults: body.adults || 1,
-              children: body.children,
-              infants: body.infants,
-              travelClass: travelClass,
-              nonStop: body.nonStop === true ? true : undefined,
-              currencyCode: body.currencyCode || 'USD',
-              max: 30,
-            }),
+            useAmadeus
+              ? amadeusAPI.searchFlights({
+                  origin: destination,
+                  destination: origin,
+                  departureDate: retDate,
+                  adults: body.adults || 1,
+                  children: body.children,
+                  infants: body.infants,
+                  travelClass: travelClass,
+                  nonStop: body.nonStop === true ? true : undefined,
+                  currencyCode: body.currencyCode || 'USD',
+                  max: 30,
+                })
+              : Promise.resolve({ data: [] }),
             duffelAPI.isAvailable()
               ? duffelAPI.searchFlights({
                   origin: destination,
