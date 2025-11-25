@@ -65,30 +65,54 @@ export async function POST(request: NextRequest) {
     console.log('Starting cache clear operation...');
 
     const results: Record<string, number> = {};
-    const patterns = [
-      'flight:search:*',      // Flight search results
-      'calendar-price:*',     // Calendar prices
-      'smart:flight:*',       // Smart flight cache
-      'api:selection:*',      // API selection history
-      'approx-price:*',       // Approximate prices
-      'route:*',              // Route data
-    ];
 
-    // Clear each pattern
-    for (const pattern of patterns) {
-      try {
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-          const deleted = await redis.del(...keys);
-          results[pattern] = deleted;
-          console.log(`Cleared ${deleted} keys matching: ${pattern}`);
-        } else {
-          results[pattern] = 0;
-          console.log(`No keys found matching: ${pattern}`);
+    // Use FLUSHDB to completely clear all cached data (nuclear option)
+    try {
+      // First, try to list and delete all keys
+      const allKeys = await redis.keys('*');
+      console.log(`Found ${allKeys.length} total keys in Redis`);
+
+      if (allKeys.length > 0) {
+        // Delete in batches of 100 to avoid issues
+        let totalDeleted = 0;
+        for (let i = 0; i < allKeys.length; i += 100) {
+          const batch = allKeys.slice(i, i + 100);
+          const deleted = await redis.del(...batch);
+          totalDeleted += deleted;
         }
-      } catch (error) {
-        console.error(`Error clearing pattern ${pattern}:`, error);
-        results[pattern] = -1; // Error indicator
+        results['ALL_KEYS'] = totalDeleted;
+        console.log(`Cleared ${totalDeleted} keys total`);
+      } else {
+        results['ALL_KEYS'] = 0;
+        console.log('No keys found in Redis');
+      }
+    } catch (error) {
+      console.error('Error clearing all keys:', error);
+      results['ALL_KEYS'] = -1;
+
+      // Fallback: try individual patterns
+      const patterns = [
+        'flight:search:*',
+        'calendar-price:*',
+        'smart:flight:*',
+        'api:selection:*',
+        'approx-price:*',
+        'route:*',
+      ];
+
+      for (const pattern of patterns) {
+        try {
+          const keys = await redis.keys(pattern);
+          if (keys.length > 0) {
+            const deleted = await redis.del(...keys);
+            results[pattern] = deleted;
+            console.log(`Cleared ${deleted} keys matching: ${pattern}`);
+          } else {
+            results[pattern] = 0;
+          }
+        } catch (err) {
+          results[pattern] = -1;
+        }
       }
     }
 
