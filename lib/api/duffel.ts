@@ -261,6 +261,16 @@ class DuffelAPI {
         console.log('\n💼 ===================================================================\n');
       }
 
+      // ⚠️ CRITICAL: Check if Duffel is returning TEST mode data
+      const isTestMode = offers.length > 0 && offers[0].live_mode === false;
+      if (isTestMode) {
+        console.warn('\n⚠️ ========================================');
+        console.warn('⚠️  DUFFEL IS RETURNING TEST MODE DATA!');
+        console.warn('⚠️  Prices are NOT real market prices!');
+        console.warn('⚠️  live_mode: false in API response');
+        console.warn('⚠️ ========================================\n');
+      }
+
       // Convert Duffel offers to our standard format
       const standardizedOffers = offers.map((offer: any) => this.convertDuffelOffer(offer));
 
@@ -275,6 +285,8 @@ class DuffelAPI {
           count: limitedOffers.length,
           source: 'Duffel',
           offerRequestId: offerRequest.data.id,
+          isTestMode: isTestMode,
+          liveMode: !isTestMode,
         },
       };
     } catch (error: any) {
