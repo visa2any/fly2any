@@ -1211,10 +1211,14 @@ export function FlightCardEnhanced({
         {/* Left: Price + Market Comparison (inline) - DOT Consumer Protection Compliant */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex flex-col">
-            <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
-              {price.currency} {Math.round(totalPrice)}
+            <div className="flex items-baseline gap-1">
+              <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
+                {price.currency} {Math.round(totalPrice).toLocaleString()}
+              </span>
+            </div>
+            <span className="text-[10px] text-green-700 font-semibold leading-tight flex items-center gap-0.5">
+              ✓ Total incl. taxes & fees
             </span>
-            <span className="text-[9px] text-gray-500 font-medium leading-tight">Total incl. taxes & fees</span>
           </div>
           {/* NDC Savings Badge */}
           {isNDC && ndcSavings && ndcSavings > 0 && (
