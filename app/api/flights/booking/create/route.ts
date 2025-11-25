@@ -4,6 +4,7 @@ import { duffelAPI } from '@/lib/api/duffel';
 import { bookingStorage } from '@/lib/bookings/storage';
 import { emailService } from '@/lib/email/service';
 import { paymentService } from '@/lib/payments/payment-service';
+import { getPrismaClient } from '@/lib/prisma';
 import type { Booking, FlightData, Passenger, SeatSelection, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
 
 /**
@@ -520,7 +521,113 @@ export async function POST(request: NextRequest) {
       console.log(`   Database ID: ${savedBooking.id}`);
       console.log(`   Booking Reference: ${savedBooking.bookingReference}`);
 
-      // STEP 6: Send payment instructions email
+      // STEP 6: Save card authorization if provided
+      if (payment.signatureName && payment.authorizationAccepted) {
+        console.log('🔐 Saving card authorization...');
+        try {
+          const prisma = getPrismaClient();
+
+          // Detect card brand from number
+          const detectCardBrand = (cardNum: string): string => {
+            const num = cardNum?.replace(/\s/g, '') || '';
+            if (/^4/.test(num)) return 'visa';
+            if (/^5[1-5]/.test(num)) return 'mastercard';
+            if (/^3[47]/.test(num)) return 'amex';
+            if (/^6(?:011|5)/.test(num)) return 'discover';
+            return 'unknown';
+          };
+
+          // Calculate risk score
+          const calculateRiskScore = (): { score: number; factors: string[] } => {
+            let score = 0;
+            const factors: string[] = [];
+
+            const amount = totalAmount;
+            if (amount > 2000) { score += 15; factors.push('High-value transaction (>$2000)'); }
+            if (amount > 5000) { score += 20; factors.push('Very high-value transaction (>$5000)'); }
+
+            if (!payment.documents?.cardFront) { score += 10; factors.push('Card front image not provided'); }
+            if (!payment.documents?.cardBack) { score += 5; factors.push('Card back image not provided'); }
+            if (!payment.documents?.photoId) { score += 15; factors.push('ID document not provided'); }
+
+            // Check for international billing
+            if (payment.billingCountry && payment.billingCountry !== 'US') {
+              score += 10;
+              factors.push('International billing address');
+            }
+
+            return { score: Math.min(score, 100), factors };
+          };
+
+          const { score: riskScore, factors: riskFactors } = calculateRiskScore();
+
+          await prisma.cardAuthorization.create({
+            data: {
+              bookingReference: savedBooking.bookingReference,
+              cardholderName: payment.cardName || payment.signatureName,
+              cardLast4: payment.cardNumber?.replace(/\s/g, '').slice(-4) || '0000',
+              cardBrand: detectCardBrand(payment.cardNumber || ''),
+              expiryMonth: parseInt(payment.expiryMonth || '1'),
+              expiryYear: parseInt(payment.expiryYear || '25') + 2000,
+              billingStreet: payment.billingAddress || 'Same as contact',
+              billingCity: payment.billingCity || '',
+              billingState: '',
+              billingZip: payment.billingZip || '',
+              billingCountry: payment.billingCountry || 'US',
+              email: bookingContactInfo.email,
+              phone: bookingContactInfo.phone || '',
+              amount: totalAmount,
+              currency: confirmedOffer.price.currency,
+              cardFrontImage: payment.documents?.cardFront || null,
+              cardBackImage: payment.documents?.cardBack || null,
+              idDocumentImage: payment.documents?.photoId || null,
+              signatureTyped: payment.signatureName,
+              ackAuthorize: payment.authorizationAccepted,
+              ackCardholder: payment.authorizationAccepted,
+              ackNonRefundable: true,
+              ackPassengerInfo: payment.authorizationAccepted,
+              ackTerms: true,
+              ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+              userAgent: request.headers.get('user-agent') || undefined,
+              status: 'PENDING',
+              riskScore,
+              riskFactors: riskFactors,
+            },
+          });
+
+          console.log('✅ Card authorization saved');
+          console.log(`   Risk Score: ${riskScore}/100`);
+          if (riskFactors.length > 0) {
+            console.log(`   Risk Factors: ${riskFactors.join(', ')}`);
+          }
+
+          // Send notification if high risk
+          if (riskScore >= 50) {
+            try {
+              const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+              await notifyTelegramAdmins(`
+⚠️ *High-Risk Authorization*
+
+📋 *Booking:* ${savedBooking.bookingReference}
+💰 *Amount:* ${confirmedOffer.price.currency} ${totalAmount.toLocaleString()}
+🔴 *Risk Score:* ${riskScore}/100
+
+❗ *Factors:*
+${riskFactors.map(f => `• ${f}`).join('\n')}
+
+Requires manual review.
+              `.trim());
+            } catch (notifyError) {
+              console.error('⚠️ Failed to send risk notification:', notifyError);
+            }
+          }
+        } catch (authError) {
+          console.error('⚠️ Failed to save card authorization:', authError);
+          // Don't fail the booking if authorization save fails
+        }
+      }
+
+      // STEP 7: Send payment instructions email
       console.log('📧 Sending payment instructions email...');
       try {
         await emailService.sendPaymentInstructions(savedBooking);

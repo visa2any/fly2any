@@ -49,12 +49,22 @@ export default function PremiumDatePicker({
   prices,
   loadingPrices = false
 }: PremiumDatePickerProps) {
+  // Helper to parse date string without timezone conversion
+  // "2024-12-03" should create Dec 3 in LOCAL timezone, not UTC
+  const parseDateString = (dateStr: string | null | undefined): Date | null => {
+    if (!dateStr) return null;
+    // Parse YYYY-MM-DD format and create date in local timezone
+    const [year, month, day] = dateStr.split('-').map(Number);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+    return new Date(year, month - 1, day); // month is 0-indexed
+  };
+
   const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
   const [selectedDeparture, setSelectedDeparture] = useState<Date | null>(
-    value ? new Date(value) : null
+    parseDateString(value)
   );
   const [selectedReturn, setSelectedReturn] = useState<Date | null>(
-    returnValue ? new Date(returnValue) : null
+    parseDateString(returnValue)
   );
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
@@ -70,19 +80,11 @@ export default function PremiumDatePicker({
 
   // Sync state with props when they change
   useEffect(() => {
-    if (value) {
-      setSelectedDeparture(new Date(value));
-    } else {
-      setSelectedDeparture(null);
-    }
+    setSelectedDeparture(parseDateString(value));
   }, [value]);
 
   useEffect(() => {
-    if (returnValue) {
-      setSelectedReturn(new Date(returnValue));
-    } else {
-      setSelectedReturn(null);
-    }
+    setSelectedReturn(parseDateString(returnValue));
   }, [returnValue]);
 
   // Calculate position relative to anchor element - ALWAYS BELOW
@@ -212,7 +214,12 @@ export default function PremiumDatePicker({
   };
 
   const formatDateString = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    // Use local date components to avoid timezone conversion issues
+    // toISOString() converts to UTC which causes off-by-one errors for users in negative UTC timezones
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const getDaysInMonth = (date: Date): CalendarDay[] => {

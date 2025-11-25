@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { CreditCard, Lock, Apple, ChevronDown, ChevronUp, Check, MapPin, Home, User, Calendar, Shield, Wallet } from 'lucide-react';
+import { CreditCard, Lock, Apple, ChevronDown, ChevronUp, Check, MapPin, Home, User, Calendar, Shield, Wallet, PenLine } from 'lucide-react';
+import { CompactDocumentUpload } from './CompactDocumentUpload';
 
 interface PaymentData {
   method: 'card';
@@ -15,6 +16,14 @@ interface PaymentData {
   billingZip?: string;
   billingCountry?: string;
   saveCard?: boolean;
+  // Authorization fields
+  signatureName?: string;
+  authorizationAccepted?: boolean;
+  documents?: {
+    cardFront: string | null;
+    cardBack: string | null;
+    photoId: string | null;
+  };
 }
 
 interface DOTCompliance {
@@ -40,6 +49,8 @@ interface ReviewAndPayProps {
   isProcessing?: boolean;
   requiresDOTCompliance?: boolean;
   formId?: string;
+  isReturningCustomer?: boolean; // Skip document verification for returning customers
+  customerEmail?: string; // Used to check returning customer status
 }
 
 export function ReviewAndPay({
@@ -50,6 +61,8 @@ export function ReviewAndPay({
   isProcessing = false,
   requiresDOTCompliance = false,
   formId,
+  isReturningCustomer = false,
+  customerEmail,
 }: ReviewAndPayProps) {
   const [paymentMethod] = useState<'card'>('card');
   const [expandedSection, setExpandedSection] = useState<'flight' | 'payment' | null>('payment');
@@ -66,6 +79,23 @@ export function ReviewAndPay({
   const [billingCountry, setBillingCountry] = useState('US');
   const [saveCard, setSaveCard] = useState(false);
   const [sameAsContact, setSameAsContact] = useState(true);
+
+  // Authorization state
+  const [signatureName, setSignatureName] = useState('');
+  const [authorizationAccepted, setAuthorizationAccepted] = useState(false);
+  const [documents, setDocuments] = useState<{
+    cardFront: string | null;
+    cardBack: string | null;
+    photoId: string | null;
+  }>({
+    cardFront: null,
+    cardBack: null,
+    photoId: null,
+  });
+
+  // Check if documents are complete (all 3 uploaded or returning customer)
+  const documentsComplete = isReturningCustomer ||
+    (documents.cardFront && documents.cardBack && documents.photoId);
 
   // DOT Compliance checkboxes
   const [dotCompliance, setDotCompliance] = useState<DOTCompliance>({
@@ -87,6 +117,23 @@ export function ReviewAndPay({
       return;
     }
 
+    // Validate authorization
+    if (!signatureName.trim()) {
+      alert('Please type your full name to authorize this payment.');
+      return;
+    }
+
+    if (!authorizationAccepted) {
+      alert('Please accept the payment authorization to continue.');
+      return;
+    }
+
+    // Validate documents (required for new customers)
+    if (!isReturningCustomer && !documentsComplete) {
+      alert('Please upload all verification documents (Card Front, Card Back, and Photo ID) to continue.');
+      return;
+    }
+
     const paymentData: PaymentData = {
       method: paymentMethod,
       cardNumber,
@@ -99,6 +146,10 @@ export function ReviewAndPay({
       billingZip,
       billingCountry,
       saveCard,
+      // Authorization data
+      signatureName,
+      authorizationAccepted,
+      documents: isReturningCustomer ? undefined : documents,
     };
 
     onSubmit(paymentData);
@@ -338,6 +389,66 @@ export function ReviewAndPay({
                 </span>
               </label>
             </div>
+        </div>
+      </div>
+
+      {/* Payment Authorization Section */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+        <div className="p-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+          <div className="flex items-center gap-2">
+            <PenLine className="w-5 h-5" />
+            <h3 className="text-base font-bold">Payment Authorization</h3>
+          </div>
+          <p className="text-xs mt-1 opacity-90">
+            Required to process your booking securely
+          </p>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Signature Input */}
+          <div>
+            <label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5 mb-1.5">
+              <PenLine className="w-3.5 h-3.5 text-primary-500" />
+              Type your full name to sign *
+            </label>
+            <input
+              type="text"
+              value={signatureName}
+              onChange={(e) => setSignatureName(e.target.value.toUpperCase())}
+              placeholder="JOHN SMITH"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium tracking-wide"
+              required
+            />
+            <p className="text-[10px] text-gray-500 mt-1">
+              This serves as your electronic signature authorizing this transaction
+            </p>
+          </div>
+
+          {/* Document Upload */}
+          <CompactDocumentUpload
+            onDocumentsChange={setDocuments}
+            required={!isReturningCustomer}
+            isReturningCustomer={isReturningCustomer}
+          />
+
+          {/* Authorization Checkbox */}
+          <div className="pt-3 border-t border-gray-200">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={authorizationAccepted}
+                onChange={(e) => setAuthorizationAccepted(e.target.checked)}
+                className="mt-0.5 w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500"
+                required
+              />
+              <span className="text-xs text-gray-700 leading-relaxed">
+                I, <strong className="text-gray-900">{signatureName || '[Your Name]'}</strong>, authorize
+                Fly2Any Travel to charge <strong className="text-primary-600">{currency} {totalPrice.toFixed(2)}</strong> to
+                my credit card. I confirm that I am the cardholder (or authorized to use this card), all
+                passenger information is accurate, and I accept the fare rules and cancellation policy.
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 

@@ -185,6 +185,7 @@ export default function EnhancedSearchBar({
   // DEFAULT TO ROUND-TRIP for home page
   const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
   const [directFlights, setDirectFlights] = useState(false);
+  const [includeSeparateTickets, setIncludeSeparateTickets] = useState(true); // "Hacker Fares" - default ON for best prices
   const [openMultiDatePicker, setOpenMultiDatePicker] = useState<'departure' | 'return' | null>(null); // Track which multi-date picker is open
 
   // Independent nonstop filters for outbound and return flights
@@ -493,7 +494,11 @@ export default function EnhancedSearchBar({
 
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
+    // Parse YYYY-MM-DD format and create date in local timezone to avoid off-by-one errors
+    // new Date("2024-12-03") interprets as UTC midnight, causing wrong date in negative UTC timezones
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return '';
+    const date = new Date(year, month - 1, day); // month is 0-indexed
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -708,6 +713,13 @@ export default function EnhancedSearchBar({
     // Check if multi-city (one-way with additional flights)
     const isMultiCity = tripType === 'oneway' && additionalFlights.length > 0;
 
+    // Determine if we should request nonstop flights from the API
+    // For round-trip: only if BOTH fromNonstop AND toNonstop are enabled
+    // For one-way: if fromNonstop is enabled
+    const shouldRequestNonstopFromAPI = tripType === 'roundtrip'
+      ? (fromNonstop && toNonstop)
+      : fromNonstop;
+
     const params = new URLSearchParams({
       from: origin.join(','),  // Join multiple codes with comma
       to: destination.join(','),  // Join multiple codes with comma
@@ -720,9 +732,14 @@ export default function EnhancedSearchBar({
       infants: passengers.infants.toString(),
       class: cabinClass,
       direct: directFlights.toString(),
+      // API-level nonstop filter - tells Amadeus/Duffel to only return nonstop flights
+      nonStop: shouldRequestNonstopFromAPI.toString(),
+      // Client-side nonstop filters - for additional fine-grained filtering
       fromNonstop: fromNonstop.toString(),
       toNonstop: (tripType === 'roundtrip' && toNonstop).toString(),
-      multiCity: isMultiCity.toString()
+      multiCity: isMultiCity.toString(),
+      // Mixed-carrier "Hacker Fares" - combine different airlines for cheaper prices
+      includeSeparateTickets: (tripType === 'roundtrip' && includeSeparateTickets).toString(),
     });
 
     // Add multi-city flight data if present
@@ -2555,6 +2572,22 @@ export default function EnhancedSearchBar({
               {t('directOnly')}
             </span>
           </label>
+
+          {/* Separate Tickets / Hacker Fares Checkbox - Only for round trips */}
+          {tripType === 'roundtrip' && (
+            <label className="flex items-center gap-2 cursor-pointer group" title="Find cheaper fares by combining different airlines">
+              <input
+                type="checkbox"
+                checked={includeSeparateTickets}
+                onChange={(e) => setIncludeSeparateTickets(e.target.checked)}
+                className="w-4 h-4 rounded border-orange-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+              />
+              <span className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors flex items-center gap-1">
+                <span className="hidden sm:inline">Include</span> Separate Tickets
+                <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded">SAVE</span>
+              </span>
+            </label>
+          )}
 
           {/* Search Button */}
           <button

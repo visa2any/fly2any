@@ -260,19 +260,37 @@ async function processBatch(alerts: any[], prisma: any): Promise<{
   return { processed, triggered, errors };
 }
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes
+
+/**
+ * Verify Vercel cron or manual authentication
+ */
+function isAuthorized(request: NextRequest): boolean {
+  // Method 1: Vercel cron (automatic) - sends x-vercel-cron: "1"
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  if (isVercelCron) return true;
+
+  // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  const isManualAuth = !!(cronSecret && authHeader === `Bearer ${cronSecret}`);
+
+  return isManualAuth;
+}
+
 /**
  * GET /api/cron/check-price-alerts
  * Cron job endpoint to check all active price alerts
+ *
+ * Schedule: Every 4 hours (0 [star]/4 [star] [star] [star])
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
-  // Verify cron secret for security
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error('❌ Unauthorized cron request');
+  // Verify authentication (Vercel cron or manual)
+  if (!isAuthorized(request)) {
+    console.error('❌ Unauthorized cron request for price alerts');
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }

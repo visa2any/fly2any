@@ -76,8 +76,8 @@ class AmadeusAPI {
       }
     }
 
-    // Valid credentials must be at least 20 characters
-    if (this.apiKey.length < 20 || this.apiSecret.length < 20) {
+    // Valid credentials must be at least 10 characters (Amadeus test keys can be shorter)
+    if (this.apiKey.length < 10 || this.apiSecret.length < 10) {
       return false;
     }
 

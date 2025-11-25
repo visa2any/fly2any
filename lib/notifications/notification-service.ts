@@ -1,11 +1,18 @@
 /**
  * Notification Service
  * Handles all customer and admin notifications for booking events
+ *
+ * Enhanced with:
+ * - Telegram Bot notifications (FREE) for admin alerts
+ * - SSE (Server-Sent Events) for real-time updates (FREE)
+ * - In-app notifications stored in database
  */
 
 import { Resend } from 'resend';
 import type { Booking } from '@/lib/bookings/types';
 import type { DuffelOrder } from '@/lib/webhooks/event-handlers';
+import { getPrismaClient } from '@/lib/prisma';
+import type { BookingNotificationPayload } from './types';
 
 // Initialize Resend with API key from environment variables
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -15,6 +22,342 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@fly2any.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';
+
+// Telegram Configuration (FREE)
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_ADMIN_CHAT_IDS = process.env.TELEGRAM_ADMIN_CHAT_IDS?.split(',').filter(Boolean) || [];
+
+// ==========================================
+// SSE (Server-Sent Events) Infrastructure
+// ==========================================
+
+interface SSEClient {
+  id: string;
+  type: 'admin' | 'customer';
+  userId?: string;
+  bookingReference?: string;
+  controller: ReadableStreamDefaultController;
+  connectedAt: Date;
+}
+
+// Global SSE client registry
+const sseClients: Map<string, SSEClient> = new Map();
+
+/**
+ * Register a new SSE client connection
+ */
+export function registerSSEClient(
+  clientId: string,
+  type: 'admin' | 'customer',
+  controller: ReadableStreamDefaultController,
+  userId?: string,
+  bookingReference?: string
+): void {
+  sseClients.set(clientId, {
+    id: clientId,
+    type,
+    userId,
+    bookingReference,
+    controller,
+    connectedAt: new Date(),
+  });
+  console.log(`📡 SSE client connected: ${clientId} (${type}) - Total: ${sseClients.size}`);
+}
+
+/**
+ * Unregister an SSE client
+ */
+export function unregisterSSEClient(clientId: string): void {
+  sseClients.delete(clientId);
+  console.log(`📡 SSE client disconnected: ${clientId} - Total: ${sseClients.size}`);
+}
+
+/**
+ * Broadcast event to SSE clients
+ */
+export function broadcastSSE(
+  targetType: 'admin' | 'customer' | 'all',
+  eventName: string,
+  data: any,
+  targetUserId?: string,
+  targetBookingRef?: string
+): void {
+  const encoder = new TextEncoder();
+  const eventId = `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const message = `id: ${eventId}\nevent: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`;
+
+  let sentCount = 0;
+
+  sseClients.forEach((client, clientId) => {
+    try {
+      // Determine if this client should receive the event
+      const shouldReceive =
+        targetType === 'all' ||
+        client.type === targetType ||
+        (targetUserId && client.userId === targetUserId) ||
+        (targetBookingRef && client.bookingReference === targetBookingRef);
+
+      if (shouldReceive) {
+        client.controller.enqueue(encoder.encode(message));
+        sentCount++;
+      }
+    } catch (error) {
+      console.error(`❌ SSE broadcast error for ${clientId}:`, error);
+      sseClients.delete(clientId); // Remove dead connection
+    }
+  });
+
+  if (sentCount > 0) {
+    console.log(`📡 SSE broadcast: ${eventName} to ${sentCount} clients`);
+  }
+}
+
+/**
+ * Get SSE connection stats
+ */
+export function getSSEStats(): { admin: number; customer: number; total: number } {
+  let admin = 0, customer = 0;
+  sseClients.forEach(client => {
+    if (client.type === 'admin') admin++;
+    else customer++;
+  });
+  return { admin, customer, total: sseClients.size };
+}
+
+// ==========================================
+// Telegram Bot Integration (FREE)
+// ==========================================
+
+/**
+ * Send message to Telegram
+ */
+async function sendTelegramMessage(chatId: string, message: string): Promise<boolean> {
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn('⚠️ Telegram bot token not configured - skipping');
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true,
+        }),
+      }
+    );
+
+    const result = await response.json();
+    if (!result.ok) {
+      console.error('❌ Telegram error:', result.description);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Telegram send failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Notify all admin Telegram chats
+ */
+export async function notifyTelegramAdmins(message: string): Promise<void> {
+  if (TELEGRAM_ADMIN_CHAT_IDS.length === 0) {
+    console.warn('⚠️ No Telegram admin chat IDs configured');
+    return;
+  }
+
+  const results = await Promise.allSettled(
+    TELEGRAM_ADMIN_CHAT_IDS.map(chatId => sendTelegramMessage(chatId.trim(), message))
+  );
+
+  const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
+  console.log(`📱 Telegram notifications sent: ${successful}/${TELEGRAM_ADMIN_CHAT_IDS.length}`);
+}
+
+/**
+ * Format booking for Telegram message
+ */
+function formatTelegramBookingAlert(payload: BookingNotificationPayload, alertType: 'new' | 'ticketed'): string {
+  const statusEmoji = {
+    pending_ticketing: '🟡',
+    ticketed: '✅',
+    confirmed: '🟢',
+    cancelled: '❌',
+  }[payload.status] || '📋';
+
+  const header = alertType === 'new'
+    ? '🎫 <b>NEW BOOKING ALERT</b>'
+    : '✈️ <b>TICKET ISSUED</b>';
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+
+  return `
+${header}
+
+${statusEmoji} <b>Status:</b> ${payload.status.replace(/_/g, ' ').toUpperCase()}
+📋 <b>Reference:</b> <code>${payload.bookingReference}</code>
+
+👤 <b>Customer:</b> ${payload.customerName}
+📧 <b>Email:</b> ${payload.customerEmail}
+${payload.customerPhone ? `📞 <b>Phone:</b> ${payload.customerPhone}` : ''}
+
+✈️ <b>Route:</b> ${payload.route}
+📅 <b>Date:</b> ${payload.departureDate}
+👥 <b>Passengers:</b> ${payload.passengerCount}
+
+💰 <b>Total:</b> ${payload.currency} ${payload.totalAmount.toLocaleString()}
+${payload.eticketNumbers?.length ? `\n🎫 <b>E-Tickets:</b> ${payload.eticketNumbers.join(', ')}` : ''}
+${payload.airlineRecordLocator ? `✈️ <b>PNR:</b> ${payload.airlineRecordLocator}` : ''}
+
+🔗 <a href="${baseUrl}/admin/bookings/${payload.bookingId}">View in Dashboard</a>
+`.trim();
+}
+
+// ==========================================
+// Enhanced Notification Methods
+// ==========================================
+
+/**
+ * Notify admin of new booking (Telegram + SSE + Email + Database)
+ */
+export async function notifyNewBooking(payload: BookingNotificationPayload): Promise<void> {
+  console.log(`📤 Sending new booking notifications: ${payload.bookingReference}`);
+
+  // 1. Telegram notification (instant mobile alert)
+  const telegramMessage = formatTelegramBookingAlert(payload, 'new');
+  await notifyTelegramAdmins(telegramMessage);
+
+  // 2. SSE broadcast (real-time dashboard update)
+  broadcastSSE('admin', 'booking_created', {
+    type: 'booking_created',
+    bookingReference: payload.bookingReference,
+    timestamp: new Date().toISOString(),
+    payload,
+  });
+
+  // 3. Store in-app notification for admins
+  try {
+    const prisma = getPrismaClient();
+    const admins = await prisma.adminUser.findMany({ select: { userId: true } });
+
+    if (admins.length > 0) {
+      await prisma.notification.createMany({
+        data: admins.map(admin => ({
+          userId: admin.userId,
+          type: 'booking',
+          title: `🎫 New Booking: ${payload.bookingReference}`,
+          message: `${payload.customerName} - ${payload.route} on ${payload.departureDate}`,
+          priority: 'high',
+          actionUrl: `/admin/bookings/${payload.bookingId}`,
+          metadata: payload as unknown as Record<string, any>,
+        })),
+      });
+      console.log(`✅ Created ${admins.length} admin notifications`);
+    }
+  } catch (error) {
+    console.error('❌ Error creating admin notifications:', error);
+  }
+
+  // 4. Admin email notification
+  await sendAdminAlert({
+    type: 'new_booking',
+    bookingReference: payload.bookingReference,
+    customer: payload.customerName,
+    route: payload.route,
+    amount: payload.totalAmount,
+    currency: payload.currency,
+    timestamp: new Date().toISOString(),
+    priority: 'high',
+  });
+
+  console.log(`✅ All new booking notifications sent: ${payload.bookingReference}`);
+}
+
+/**
+ * Notify customer when ticket is issued (SSE + Email + Database)
+ */
+export async function notifyTicketIssued(payload: BookingNotificationPayload): Promise<void> {
+  console.log(`📤 Sending ticket issued notifications: ${payload.bookingReference}`);
+
+  // 1. Telegram notification to admins
+  const telegramMessage = formatTelegramBookingAlert(payload, 'ticketed');
+  await notifyTelegramAdmins(telegramMessage);
+
+  // 2. SSE broadcast to customer chat widget
+  broadcastSSE('customer', 'booking_ticketed', {
+    type: 'booking_ticketed',
+    bookingReference: payload.bookingReference,
+    status: 'ticketed',
+    eticketNumbers: payload.eticketNumbers,
+    airlineRecordLocator: payload.airlineRecordLocator,
+    timestamp: new Date().toISOString(),
+  }, undefined, payload.bookingReference);
+
+  // 3. SSE broadcast to admin dashboard
+  broadcastSSE('admin', 'booking_ticketed', {
+    type: 'booking_ticketed',
+    bookingReference: payload.bookingReference,
+    ticketedBy: payload.ticketedBy,
+    timestamp: new Date().toISOString(),
+  });
+
+  // 4. Customer in-app notification
+  if (payload.customerEmail) {
+    try {
+      const prisma = getPrismaClient();
+      const user = await prisma.user.findUnique({
+        where: { email: payload.customerEmail },
+        select: { id: true },
+      });
+
+      if (user) {
+        await prisma.notification.create({
+          data: {
+            userId: user.id,
+            type: 'booking',
+            title: `✈️ E-Ticket Ready: ${payload.bookingReference}`,
+            message: `Your flight to ${payload.route.split('→')[1]?.trim() || 'destination'} is confirmed! PNR: ${payload.airlineRecordLocator}`,
+            priority: 'high',
+            actionUrl: `/my-trips/${payload.bookingReference}`,
+            metadata: payload as unknown as Record<string, any>,
+          },
+        });
+        console.log(`✅ Customer notification created for: ${payload.customerEmail}`);
+      }
+    } catch (error) {
+      console.error('❌ Error creating customer notification:', error);
+    }
+  }
+
+  console.log(`✅ All ticket issued notifications sent: ${payload.bookingReference}`);
+}
+
+/**
+ * Broadcast booking status change via SSE
+ */
+export function notifyBookingStatusChange(
+  bookingReference: string,
+  oldStatus: string,
+  newStatus: string,
+  metadata?: Record<string, any>
+): void {
+  broadcastSSE('all', 'booking_status_changed', {
+    type: 'booking_status_changed',
+    bookingReference,
+    oldStatus,
+    newStatus,
+    timestamp: new Date().toISOString(),
+    metadata,
+  });
+}
 
 /**
  * Email Templates
@@ -675,6 +1018,7 @@ ${COMPANY_NAME} Admin System
 }
 
 export const notificationService = {
+  // Email notifications
   sendOrderCreatedEmail,
   sendOrderFailedEmail,
   sendPaymentSuccessEmail,
@@ -682,4 +1026,13 @@ export const notificationService = {
   sendScheduleChangeEmail,
   sendCancellationConfirmedEmail,
   sendAdminAlert,
+  // Real-time notifications (Telegram + SSE + DB)
+  notifyNewBooking,
+  notifyTicketIssued,
+  notifyBookingStatusChange,
+  // SSE management
+  registerSSEClient,
+  unregisterSSEClient,
+  broadcastSSE,
+  getSSEStats,
 };

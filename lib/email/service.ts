@@ -513,8 +513,206 @@ export async function sendPriceAlertEmail(
   }
 }
 
+/**
+ * E-Ticket Confirmation Email
+ * Sent after ticket is issued (manual ticketing workflow)
+ */
+function getTicketedConfirmationEmail(booking: Booking) {
+  const subject = `🎫 Your E-Ticket - ${booking.bookingReference}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">✈️ ${COMPANY_NAME}</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 18px;">🎫 Your E-Ticket is Ready!</p>
+  </div>
+
+  <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+    <div style="background: #d1fae5; border: 2px solid #10b981; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px;">
+      <h2 style="color: #065f46; margin: 0 0 10px 0;">🎉 Your Ticket Has Been Issued!</h2>
+      <p style="color: #047857; margin: 0; font-size: 16px;">You're all set for your flight. Here are your travel documents.</p>
+    </div>
+
+    <p>Dear ${booking.passengers[0].firstName},</p>
+
+    <p>Great news! Your ticket has been issued and you're ready to travel. Please save this email and keep the information below handy for check-in.</p>
+
+    <!-- Ticket Information -->
+    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #86efac;">
+      <h3 style="margin-top: 0; color: #166534; text-align: center;">Your E-Ticket Details</h3>
+
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 12px 0; font-weight: bold; color: #166534;">Airline Confirmation (PNR):</td>
+          <td style="padding: 12px 0; text-align: right; font-family: monospace; font-size: 24px; color: #166534; font-weight: bold;">${booking.airlineRecordLocator || 'N/A'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px 0; font-weight: bold; color: #166534;">Booking Reference:</td>
+          <td style="padding: 12px 0; text-align: right; font-family: monospace; font-size: 18px; color: #166534;">${booking.bookingReference}</td>
+        </tr>
+      </table>
+
+      ${booking.eticketNumbers && booking.eticketNumbers.length > 0 ? `
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #bbf7d0;">
+          <p style="margin: 0 0 10px 0; font-weight: bold; color: #166534;">E-Ticket Numbers:</p>
+          ${booking.passengers.map((p, idx) => `
+            <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 4px; display: flex; justify-content: space-between;">
+              <span style="color: #374151;">${p.firstName} ${p.lastName}</span>
+              <span style="font-family: monospace; color: #166534; font-weight: bold;">${booking.eticketNumbers?.[idx] || 'N/A'}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Flight Details -->
+    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #1f2937;">Flight Itinerary</h3>
+
+      ${booking.flight.segments.map((segment, idx) => `
+        <div style="border-left: 4px solid #059669; padding-left: 15px; margin: 15px 0;">
+          <p style="margin: 5px 0; color: #6b7280; font-size: 12px;">Flight ${idx + 1}</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+            <div>
+              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.departure.iataCode}</p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.departure.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+            <div style="text-align: center; flex: 1; padding: 0 15px;">
+              <p style="margin: 0; color: #9ca3af;">✈️</p>
+              <p style="margin: 0; font-size: 12px; color: #6b7280;">${segment.carrierCode}${segment.flightNumber}</p>
+            </div>
+            <div style="text-align: right;">
+              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #1f2937;">${segment.arrival.iataCode}</p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">${new Date(segment.arrival.at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+          </div>
+          <p style="margin: 5px 0; font-size: 13px; color: #6b7280;">${new Date(segment.departure.at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+      `).join('')}
+
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border-top: 2px solid #d1d5db; padding-top: 15px;">
+        <tr>
+          <td style="padding: 8px 0;"><strong>Passengers:</strong></td>
+          <td style="padding: 8px 0; text-align: right;">${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0;"><strong>Class:</strong></td>
+          <td style="padding: 8px 0; text-align: right; text-transform: capitalize;">${booking.flight.segments[0].class}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+      <h3 style="margin-top: 0; color: #1e40af;">📋 Check-in Reminders</h3>
+      <ul style="margin: 10px 0; padding-left: 20px; color: #1e3a8a;">
+        <li style="margin: 5px 0;">Online check-in opens 24-48 hours before departure</li>
+        <li style="margin: 5px 0;">Use your PNR <strong style="font-family: monospace;">${booking.airlineRecordLocator}</strong> on the airline's website</li>
+        <li style="margin: 5px 0;">Arrive at the airport at least 2 hours before departure (3 hours for international)</li>
+        <li style="margin: 5px 0;">Bring a valid photo ID and passport (for international flights)</li>
+      </ul>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+    <p style="color: #6b7280; font-size: 14px;">Need to make changes or have questions? Contact our support team:</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="mailto:${SUPPORT_EMAIL}" style="display: inline-block; background: #059669; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Support</a>
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px; text-align: center;">Have a great flight! ✈️</p>
+
+    <p style="color: #9ca3af; font-size: 12px; text-align: center; margin-top: 30px;">
+      This email was sent by ${COMPANY_NAME}<br>
+      Booking Reference: ${booking.bookingReference} | PNR: ${booking.airlineRecordLocator || 'N/A'}
+    </p>
+  </div>
+</body>
+</html>
+  `;
+
+  const text = `
+Your E-Ticket - ${booking.bookingReference}
+
+Dear ${booking.passengers[0].firstName},
+
+Great news! Your ticket has been issued and you're ready to travel.
+
+E-TICKET DETAILS:
+Airline Confirmation (PNR): ${booking.airlineRecordLocator || 'N/A'}
+Booking Reference: ${booking.bookingReference}
+
+E-TICKET NUMBERS:
+${booking.passengers.map((p, idx) => `${p.firstName} ${p.lastName}: ${booking.eticketNumbers?.[idx] || 'N/A'}`).join('\n')}
+
+FLIGHT DETAILS:
+${booking.flight.segments.map((seg, idx) => `
+Flight ${idx + 1}:
+${seg.departure.iataCode} → ${seg.arrival.iataCode}
+${new Date(seg.departure.at).toLocaleString()} - ${new Date(seg.arrival.at).toLocaleString()}
+${seg.carrierCode}${seg.flightNumber}
+`).join('\n')}
+
+PASSENGERS: ${booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
+
+CHECK-IN REMINDERS:
+- Online check-in opens 24-48 hours before departure
+- Use your PNR ${booking.airlineRecordLocator} on the airline's website
+- Arrive at the airport at least 2 hours before departure (3 hours for international)
+- Bring a valid photo ID and passport (for international flights)
+
+Need help? Contact us at ${SUPPORT_EMAIL}
+
+Have a great flight!
+${COMPANY_NAME} Team
+  `;
+
+  return { subject, html, text };
+}
+
+export async function sendTicketedConfirmationEmail(booking: Booking): Promise<boolean> {
+  try {
+    const { subject, html, text } = getTicketedConfirmationEmail(booking);
+
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.warn('⚠️  RESEND_API_KEY not configured. Email will be logged to console.');
+      console.log('📧 Sending e-ticket confirmation email...');
+      console.log(`   To: ${booking.contactInfo.email}`);
+      console.log(`   Subject: ${subject}`);
+      console.log(`   PNR: ${booking.airlineRecordLocator}`);
+      console.log('✅ E-ticket confirmation email sent (logged to console)');
+      return true;
+    }
+
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: booking.contactInfo.email,
+      subject,
+      html,
+      text,
+    });
+
+    console.log('✅ E-ticket confirmation email sent successfully');
+    console.log(`   To: ${booking.contactInfo.email}`);
+    console.log(`   Email ID: ${result.data?.id}`);
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending e-ticket confirmation email:', error);
+    return false;
+  }
+}
+
 export const emailService = {
   sendPaymentInstructions: sendPaymentInstructionsEmail,
   sendBookingConfirmation: sendBookingConfirmationEmail,
   sendPriceAlert: sendPriceAlertEmail,
+  sendTicketedConfirmation: sendTicketedConfirmationEmail,
 };

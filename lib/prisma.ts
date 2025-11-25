@@ -10,6 +10,41 @@ const globalForPrisma = globalThis as unknown as {
 // Check if DATABASE_URL or POSTGRES_URL is configured before creating Prisma client
 const isDatabaseConfigured = !!(process.env.DATABASE_URL || process.env.POSTGRES_URL);
 
+/**
+ * Get the database URL with proper connection pooling settings for serverless
+ * Neon/Vercel PostgreSQL require specific connection settings
+ */
+function getDatabaseUrl(): string | undefined {
+  const baseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+  if (!baseUrl) return undefined;
+
+  // Parse and enhance the URL with pooling settings if not already present
+  try {
+    const url = new URL(baseUrl);
+
+    // Add connection pooling parameters for Neon serverless
+    if (!url.searchParams.has('connection_limit')) {
+      url.searchParams.set('connection_limit', '10');
+    }
+    if (!url.searchParams.has('pool_timeout')) {
+      url.searchParams.set('pool_timeout', '30');
+    }
+    // Prevent idle connections from being closed prematurely
+    if (!url.searchParams.has('idle_in_transaction_session_timeout')) {
+      url.searchParams.set('idle_in_transaction_session_timeout', '60000');
+    }
+    // Keep connections alive
+    if (!url.searchParams.has('connect_timeout')) {
+      url.searchParams.set('connect_timeout', '30');
+    }
+
+    return url.toString();
+  } catch {
+    // If URL parsing fails, return original
+    return baseUrl;
+  }
+}
+
 // Only create PrismaClient if DATABASE_URL is configured
 export const prisma = isDatabaseConfigured
   ? (globalForPrisma.prisma ??
@@ -17,7 +52,7 @@ export const prisma = isDatabaseConfigured
       log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
       datasources: {
         db: {
-          url: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+          url: getDatabaseUrl(),
         },
       },
     }))

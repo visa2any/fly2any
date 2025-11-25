@@ -3,7 +3,7 @@
  * Comprehensive type definitions for the booking system
  */
 
-export type BookingStatus = 'confirmed' | 'pending' | 'cancelled' | 'completed';
+export type BookingStatus = 'confirmed' | 'pending' | 'pending_ticketing' | 'ticketed' | 'cancelled' | 'completed';
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 export type PaymentMethod = 'credit_card' | 'debit_card' | 'paypal' | 'bank_transfer';
 export type PassengerType = 'adult' | 'child' | 'infant';
@@ -152,6 +152,22 @@ export interface Booking {
   amadeusBookingId?: string; // Amadeus-specific order ID
   duffelOrderId?: string; // Duffel-specific order ID
   duffelBookingReference?: string; // Duffel-specific booking reference (may differ from main reference)
+
+  // Manual Ticketing / Consolidator Fields
+  ticketingStatus?: 'pending_ticketing' | 'ticketed' | 'failed' | 'voided'; // Manual ticketing workflow status
+  eticketNumbers?: string[]; // Array of e-ticket numbers (one per passenger)
+  airlineRecordLocator?: string; // Airline PNR / Confirmation Code (e.g., "ABC123")
+  consolidatorReference?: string; // Your consolidator's reference number
+  consolidatorName?: string; // Name of consolidator used (e.g., "SkyBird", "Mondee")
+  ticketedAt?: string; // ISO datetime - when ticket was issued
+  ticketedBy?: string; // Admin user who ticketed it
+  ticketingNotes?: string; // Internal notes about ticketing
+
+  // Pricing for Manual Workflow
+  consolidatorPrice?: number; // What you paid the consolidator (net cost)
+  customerPrice?: number; // What customer paid you
+  markup?: number; // Your profit margin
+
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
   cancelledAt?: string; // ISO datetime

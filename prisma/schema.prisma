@@ -3838,8 +3838,83 @@ model WorldCupBooking {
   @@map("world_cup_bookings")
 }
 
-// Add relation to User model (you'll need to add this to existing User model)
-// model User {
-//   ...existing fields...
-//   worldCupBookings WorldCupBooking[]
-// }
+// ==========================================
+// Credit Card Authorization System
+// For Manual Payment Processing & Chargeback Protection
+// ==========================================
+
+model CardAuthorization {
+  id                String   @id @default(cuid())
+  bookingReference  String   @unique // FLY-XXXXXX
+
+  // Cardholder Information
+  cardholderName    String
+  cardLast4         String   // Last 4 digits only
+  cardBrand         String   // visa, mastercard, amex, discover
+  expiryMonth       Int
+  expiryYear        Int
+
+  // Billing Address
+  billingStreet     String
+  billingCity       String
+  billingState      String
+  billingZip        String
+  billingCountry    String
+
+  // Contact
+  email             String
+  phone             String
+
+  // Transaction Details
+  amount            Float
+  currency          String   @default("USD")
+
+  // Document Uploads (secure URLs)
+  cardFrontImage    String?  // URL to encrypted card front image
+  cardBackImage     String?  // URL to encrypted card back image
+  idDocumentImage   String?  // URL to ID document image
+
+  // Digital Signature
+  signatureImage    String?  // Base64 or URL of signature
+  signatureTyped    String   // Typed full name
+
+  // Acknowledgments (must all be true)
+  ackAuthorize      Boolean  @default(false)
+  ackCardholder     Boolean  @default(false)
+  ackNonRefundable  Boolean  @default(false)
+  ackPassengerInfo  Boolean  @default(false)
+  ackTerms          Boolean  @default(false)
+
+  // Device & Security Info
+  ipAddress         String
+  userAgent         String?
+  deviceFingerprint String?
+
+  // Verification Status
+  status            CardAuthStatus @default(PENDING)
+  verifiedAt        DateTime?
+  verifiedBy        String?  // Admin user ID
+  rejectionReason   String?
+
+  // Risk Assessment
+  riskScore         Int?     // 0-100, higher = more risk
+  riskFactors       Json?    // Array of risk factors detected
+
+  // Timestamps
+  submittedAt       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([bookingReference])
+  @@index([status])
+  @@index([email])
+  @@index([submittedAt])
+  @@map("card_authorizations")
+}
+
+enum CardAuthStatus {
+  PENDING      // Awaiting admin review
+  VERIFIED     // Approved by admin
+  REJECTED     // Rejected (fraud suspected)
+  EXPIRED      // Not processed in time
+}

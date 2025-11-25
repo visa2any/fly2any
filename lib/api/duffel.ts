@@ -21,6 +21,7 @@ interface DuffelSearchParams {
   infants?: number;
   cabinClass?: 'economy' | 'premium_economy' | 'business' | 'first';
   maxResults?: number;
+  nonStop?: boolean; // If true, only return nonstop/direct flights
 }
 
 class DuffelAPI {
@@ -139,19 +140,28 @@ class DuffelAPI {
         first: 'first',
       };
 
-      // Create offer request
-      const offerRequest = await this.client.offerRequests.create({
+      // Create offer request with Duffel SDK
+      // Note: Using type assertion to work around Duffel SDK type definitions
+      const offerRequestParams: any = {
         slices,
         passengers,
         cabin_class: cabinClassMap[params.cabinClass || 'economy'],
         return_offers: true,
-        max_connections: 2, // Allow up to 2 connections
-      });
+      };
 
-      console.log(`✅ Duffel returned offer request ID: ${offerRequest.data.id}`);
+      // Add max_connections filter for nonstop flights
+      // max_connections: 0 means only nonstop/direct flights
+      if (params.nonStop === true) {
+        offerRequestParams.max_connections = 0;
+        console.log('✈️  Duffel: Filtering for nonstop flights only (max_connections: 0)');
+      }
+
+      const offerRequest = await this.client.offerRequests.create(offerRequestParams);
+
+      console.log(`✅ Duffel offer request created: ${offerRequest.data.id}`);
 
       // Wait for offers to be ready (Duffel processes asynchronously)
-      let offers = offerRequest.data.offers || [];
+      let offers = (offerRequest.data as any).offers || [];
       let attempts = 0;
       const maxAttempts = 5;
 
@@ -162,7 +172,7 @@ class DuffelAPI {
         // Fetch the offer request again
         const updated = await this.client.offerRequests.get(offerRequest.data.id);
 
-        offers = updated.data.offers || [];
+        offers = (updated.data as any).offers || [];
         attempts++;
       }
 
@@ -255,14 +265,63 @@ class DuffelAPI {
         },
       };
     } catch (error: any) {
-      console.error('❌ Duffel API error:', error.message);
+      // Enhanced error logging for debugging Duffel API issues
+      const errorDetails = {
+        message: error.message || 'Unknown error',
+        name: error.name,
+        code: error.code,
+        status: error.status || error.response?.status,
+        statusCode: error.statusCode,
+        type: error.type,
+        // Duffel SDK specific error properties
+        errors: error.errors || error.response?.data?.errors,
+        meta: error.meta,
+      };
+
+      console.error('❌ Duffel API error:', errorDetails.message);
+      console.error('   Error type:', errorDetails.name);
+
+      // Check for specific Duffel error types
+      if (error.errors && Array.isArray(error.errors)) {
+        console.error('   Duffel errors:');
+        error.errors.forEach((e: any, i: number) => {
+          console.error(`     [${i + 1}] ${e.code || 'N/A'}: ${e.title || e.message || 'No details'}`);
+          if (e.documentation_url) {
+            console.error(`         Docs: ${e.documentation_url}`);
+          }
+        });
+      }
+
+      // Check for rate limiting
+      if (error.status === 429 || error.statusCode === 429) {
+        console.error('   ⚠️  Rate limited! Consider adding retry logic.');
+      }
+
+      // Check for authentication issues
+      if (error.status === 401 || error.statusCode === 401) {
+        console.error('   ⚠️  Authentication failed. Check DUFFEL_ACCESS_TOKEN.');
+      }
+
+      // Check for network issues
+      if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+        console.error('   ⚠️  Network error. Check internet connection.');
+      }
+
+      console.error('   Request params:', {
+        origin: params.origin,
+        destination: params.destination,
+        departureDate: params.departureDate,
+        returnDate: params.returnDate,
+      });
 
       // Return empty results on error
       return {
         data: [],
         meta: {
           count: 0,
-          error: error.message,
+          error: errorDetails.message,
+          errorCode: errorDetails.code || errorDetails.status,
+          errorType: errorDetails.name,
         },
       };
     }
@@ -683,12 +742,19 @@ class DuffelAPI {
    * This creates a confirmed booking with Duffel and returns the order details.
    * Payment is processed separately via your payment gateway.
    *
+   * SAFETY: This method is disabled by default. Set DUFFEL_ENABLE_ORDERS=true to enable.
+   *
    * @param offerRequest - The Duffel offer to book
    * @param passengers - Array of passenger details
    * @param payments - Payment information
    * @returns Order object with booking confirmation
    */
   async createOrder(offerRequest: any, passengers: any[], payments?: any[]) {
+    // SAFETY GUARD: Prevent accidental order creation in read-only mode
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      throw new Error('ORDER_CREATION_DISABLED: Order creation is disabled. Set DUFFEL_ENABLE_ORDERS=true to enable bookings.');
+    }
+
     if (!this.isInitialized) {
       throw new Error('Duffel API not initialized - check DUFFEL_ACCESS_TOKEN');
     }
@@ -871,7 +937,7 @@ class DuffelAPI {
    * Creates a hold order that reserves seats without immediate payment.
    * The hold typically expires after 24-48 hours depending on the airline.
    *
-   * SAFETY: Now includes pre-validation and post-creation verification
+   * SAFETY: This method is disabled by default. Set DUFFEL_ENABLE_ORDERS=true to enable.
    *
    * @param offerRequest - The Duffel offer to hold
    * @param passengers - Array of passenger details
@@ -879,6 +945,11 @@ class DuffelAPI {
    * @returns Order object with hold confirmation and pricing
    */
   async createHoldOrder(offerRequest: any, passengers: any[], holdDurationHours?: number) {
+    // SAFETY GUARD: Prevent accidental hold creation in read-only mode
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      throw new Error('ORDER_CREATION_DISABLED: Hold creation is disabled. Set DUFFEL_ENABLE_ORDERS=true to enable bookings.');
+    }
+
     if (!this.isInitialized) {
       throw new Error('Duffel API not initialized - check DUFFEL_ACCESS_TOKEN');
     }

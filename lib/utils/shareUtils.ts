@@ -712,9 +712,10 @@ export function extractShareData(flight: FlightOffer): ShareData {
     arrivalTime: formatTime(outbound.segments[outbound.segments.length - 1].arrival.at),
     price,
     currency,
-    originalPrice: (flight as any).priceVsMarket ? price * 1.25 : undefined,
-    savings: (flight as any).priceVsMarket ? price * 0.25 : undefined,
-    savingsPercent: (flight as any).priceVsMarket ? Math.round(Math.abs((flight as any).priceVsMarket)) : undefined,
+    // REMOVED: Fake originalPrice calculation - real flight data should not have artificial markup
+    // originalPrice: (flight as any).priceVsMarket ? price * 1.25 : undefined,
+    // savings: (flight as any).priceVsMarket ? price * 0.25 : undefined,
+    // savingsPercent: (flight as any).priceVsMarket ? Math.round(Math.abs((flight as any).priceVsMarket)) : undefined,
     dealScore: (flight as any).dealScore,
     dealTier: (flight as any).dealTier,
     airline: primaryAirline,

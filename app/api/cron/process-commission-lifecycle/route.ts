@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { processCommissionLifecycle } from '@/lib/services/commissionLifecycleService'
 
+export const dynamic = 'force-dynamic'
+export const maxDuration = 300 // 5 minutes
+
+/**
+ * Verify Vercel cron or manual authentication
+ */
+function isAuthorized(request: NextRequest): boolean {
+  // Method 1: Vercel cron (automatic) - sends x-vercel-cron: "1"
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1'
+  if (isVercelCron) return true
+
+  // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
+  const authHeader = request.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  const isManualAuth = !!(cronSecret && authHeader === `Bearer ${cronSecret}`)
+
+  return isManualAuth
+}
+
 /**
  * Cron Job: Process Commission Lifecycle
  *
@@ -11,24 +30,13 @@ import { processCommissionLifecycle } from '@/lib/services/commissionLifecycleSe
  * 2. Complete trips (trip_in_progress → trip_completed → in_hold_period)
  * 3. Release commissions (in_hold_period → available)
  *
- * Protected by CRON_SECRET environment variable
+ * Schedule: Every hour (0 * * * *)
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET
-
-    if (!cronSecret) {
-      console.error('❌ CRON_SECRET not configured')
-      return NextResponse.json(
-        { error: 'Cron job not configured' },
-        { status: 500 }
-      )
-    }
-
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      console.warn('⚠️  Unauthorized cron request')
+    // Verify authentication (Vercel cron or manual)
+    if (!isAuthorized(request)) {
+      console.warn('⚠️ Unauthorized cron request for commission lifecycle')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

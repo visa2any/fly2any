@@ -321,19 +321,36 @@ async function processBatch(routes: PopularRoute[], batchNumber: number): Promis
   return { successful, failed, cached };
 }
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes
+
+/**
+ * Verify Vercel cron or manual authentication
+ */
+function isAuthorized(request: NextRequest): boolean {
+  // Method 1: Vercel cron (automatic) - sends x-vercel-cron: "1"
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  if (isVercelCron) return true;
+
+  // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  const isManualAuth = !!(cronSecret && authHeader === `Bearer ${cronSecret}`);
+
+  return isManualAuth;
+}
+
 /**
  * Main cron handler
+ * Schedule: Every 6 hours
  */
 export async function GET(request: NextRequest) {
   console.log('\n🚀 Starting popular routes pre-computation...');
   console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
 
-  // Security: Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.log('❌ Unauthorized: Invalid CRON_SECRET');
+  // Verify authentication (Vercel cron or manual)
+  if (!isAuthorized(request)) {
+    console.log('❌ Unauthorized: Invalid authentication');
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }

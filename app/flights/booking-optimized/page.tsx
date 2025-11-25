@@ -120,6 +120,7 @@ function BookingPageContent() {
 
   // Step 3: Review & Pay
   const [paymentData, setPaymentData] = useState<any>(null);
+  const [isReturningCustomer, setIsReturningCustomer] = useState(false);
 
   // Seat map modal
   const [seatMapOpen, setSeatMapOpen] = useState(false);
@@ -674,8 +675,23 @@ function BookingPageContent() {
     );
   };
 
-  const handlePassengersUpdate = (updatedPassengers: PassengerData[]) => {
+  const handlePassengersUpdate = async (updatedPassengers: PassengerData[]) => {
     setPassengers(updatedPassengers);
+
+    // Check if first passenger has email and check returning customer status
+    const firstPassengerEmail = updatedPassengers[0]?.email;
+    if (firstPassengerEmail && firstPassengerEmail.includes('@')) {
+      try {
+        const response = await fetch(`/api/customer/returning-status?email=${encodeURIComponent(firstPassengerEmail)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsReturningCustomer(data.isReturning || false);
+        }
+      } catch (error) {
+        // Silently fail - assume not returning customer
+        setIsReturningCustomer(false);
+      }
+    }
   };
 
   const handleViewSeatMap = async () => {
@@ -1134,6 +1150,8 @@ function BookingPageContent() {
                   isProcessing={isProcessing}
                   requiresDOTCompliance={selectedFareId === 'basic'}
                   formId="payment-form"
+                  isReturningCustomer={isReturningCustomer}
+                  customerEmail={passengers[0]?.email}
                 />
               </div>
             )}

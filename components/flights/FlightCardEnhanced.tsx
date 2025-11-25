@@ -29,6 +29,8 @@ import FareUpgradePanel from './FareUpgradePanel';
 import { ParsedFareRules } from '@/lib/utils/fareRuleParsers';
 import OvernightLayoverBadge from './OvernightLayoverBadge';
 import { getBestLayoverOpportunity } from '@/lib/utils/layoverDetector';
+import { SeparateTicketsBadge } from './SeparateTicketsBadge';
+import type { MixedCarrierFare } from '@/lib/flights/mixed-carrier-combiner';
 
 interface Segment {
   departure: {
@@ -115,6 +117,9 @@ export interface EnhancedFlightCardProps {
   // A/B Testing
   urgencyVariant?: 'control' | 'variant_a' | 'variant_b';
   sessionId?: string;
+  // Mixed-carrier "Hacker Fares" (Separate Tickets)
+  isSeparateTickets?: boolean;
+  separateTicketDetails?: MixedCarrierFare;
 }
 
 export function FlightCardEnhanced({
@@ -161,6 +166,9 @@ export function FlightCardEnhanced({
   // A/B Testing
   urgencyVariant = 'variant_a',
   sessionId,
+  // Mixed-carrier "Hacker Fares"
+  isSeparateTickets = false,
+  separateTicketDetails,
 }: EnhancedFlightCardProps) {
   // Early return if itineraries is missing or empty
   if (!itineraries || !Array.isArray(itineraries) || itineraries.length === 0) {
@@ -327,10 +335,11 @@ export function FlightCardEnhanced({
     return fareType.charAt(0).toUpperCase() + fareType.slice(1).toLowerCase();
   };
 
-  // Calculate savings
-  const averagePrice = totalPrice * 1.25;
-  const savings = averagePrice - totalPrice;
-  const savingsPercentage = ((savings / averagePrice) * 100).toFixed(0);
+  // REMOVED: Fake savings calculation (no longer artificially inflating prices)
+  // Real flight data should not have fake discounts
+  // const averagePrice = totalPrice * 1.25;
+  // const savings = averagePrice - totalPrice;
+  // const savingsPercentage = ((savings / averagePrice) * 100).toFixed(0);
 
   // NEW: Parse amenities from Amadeus API with cabin-based fallback and minimum standards
   const getMealType = (amenities: any[], cabin: string): string => {
@@ -740,6 +749,15 @@ export function FlightCardEnhanced({
               <Sparkles className="w-3 h-3" />
               NDC Exclusive
             </span>
+          )}
+
+          {/* Separate Tickets (Hacker Fare) Badge */}
+          {isSeparateTickets && (
+            <SeparateTicketsBadge
+              mixedFare={separateTicketDetails}
+              compact={true}
+              lang={lang}
+            />
           )}
 
           {/* Fare Type + Cabin Class Badge - Combined */}
@@ -1190,11 +1208,14 @@ export function FlightCardEnhanced({
 
       {/* ULTRA-COMPACT FOOTER - 32px height */}
       <div className="flex items-center justify-between gap-3 px-3 py-1.5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100" style={{ minHeight: dimensions.card.footer }}>
-        {/* Left: Price + Market Comparison (inline) */}
+        {/* Left: Price + Market Comparison (inline) - DOT Consumer Protection Compliant */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
-            {price.currency} {Math.round(totalPrice)}
-          </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-gray-900" style={{ fontSize: typography.card.price.size, lineHeight: '1' }}>
+              {price.currency} {Math.round(totalPrice)}
+            </span>
+            <span className="text-[9px] text-gray-500 font-medium leading-tight">Total incl. taxes & fees</span>
+          </div>
           {/* NDC Savings Badge */}
           {isNDC && ndcSavings && ndcSavings > 0 && (
             <span className="px-2 py-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-full flex items-center gap-1" style={{ fontSize: typography.card.meta.size }}>
@@ -1212,16 +1233,7 @@ export function FlightCardEnhanced({
               {priceVsMarket > 0 ? '+' : ''}{Math.round(priceVsMarket)}% vs market
             </span>
           )}
-          {!priceVsMarket && savings > 0 && !isNDC && (
-            <>
-              <span className="text-gray-400 line-through" style={{ fontSize: typography.card.meta.size }}>
-                ${Math.round(averagePrice)}
-              </span>
-              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 font-bold rounded" style={{ fontSize: typography.card.meta.size }}>
-                {savingsPercentage}% OFF
-              </span>
-            </>
-          )}
+          {/* REMOVED: Fake discount display - real prices should not show artificial markups */}
         </div>
 
         {/* Center: Baggage Icons (Google Flights 2025 Standard) */}
@@ -1299,11 +1311,20 @@ export function FlightCardEnhanced({
       {/* EXPANDED DETAILS - Collapsible (Ultra-Compact) */}
       {isExpanded && (
         <div className="px-3 py-1.5 border-t border-gray-200 space-y-1.5 bg-gray-50 animate-slideDown">
+          {/* SEPARATE TICKETS WARNING - Show at top if this is a mixed-carrier fare */}
+          {isSeparateTickets && separateTicketDetails && (
+            <SeparateTicketsBadge
+              mixedFare={separateTicketDetails}
+              showWarnings={true}
+              lang={lang}
+            />
+          )}
+
           {/* PRICE BREAKDOWN - Clearer Separation of Required vs Optional */}
           <div className="grid grid-cols-1 gap-2">
-            {/* TruePrice Breakdown - Full Width */}
+            {/* TruePrice Breakdown - Full Width - DOT Consumer Protection Compliant */}
             <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Price Breakdown</h4>
+              <h4 className="font-semibold text-xs text-blue-900 mb-1.5">Complete Price Breakdown (All-In Pricing)</h4>
               <div className="space-y-0.5 text-xs">
                 {/* REQUIRED FEES */}
                 <div className="flex justify-between">
@@ -1315,9 +1336,12 @@ export function FlightCardEnhanced({
                   <span className="font-semibold text-gray-900">{price.currency} {Math.round(fees)}</span>
                 </div>
 
-                {/* TOTAL - Required fees only */}
+                {/* TOTAL - All mandatory charges (DOT Compliant All-In Price) */}
                 <div className="pt-1.5 mt-1 border-t-2 border-blue-300 flex justify-between font-bold text-sm">
-                  <span className="text-blue-900">TOTAL</span>
+                  <span className="text-blue-900 flex items-center gap-1">
+                    TOTAL PRICE
+                    <span className="text-[9px] font-normal text-blue-700">(incl. all taxes & fees)</span>
+                  </span>
                   <span className="text-blue-900">{price.currency} {Math.round(totalPrice)}</span>
                 </div>
 

@@ -17,17 +17,45 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes
 
 /**
+ * Verify Vercel cron or manual authentication
+ */
+function isAuthorized(request: NextRequest): boolean {
+  // Method 1: Vercel cron (automatic) - sends x-vercel-cron: "1"
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  if (isVercelCron) return true;
+
+  // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  const isManualAuth = !!(cronSecret && authHeader === `Bearer ${cronSecret}`);
+
+  return isManualAuth;
+}
+
+/**
+ * GET /api/cron/process-affiliate-commissions
+ * Vercel cron uses GET by default
+ */
+export async function GET(request: NextRequest) {
+  return handleCronJob(request);
+}
+
+/**
  * POST /api/cron/process-affiliate-commissions
- *
- * Protected by CRON_SECRET environment variable
+ * Support manual triggers via POST
  */
 export async function POST(request: NextRequest) {
-  try {
-    // Verify cron secret
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+  return handleCronJob(request);
+}
 
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+/**
+ * Main cron job handler
+ */
+async function handleCronJob(request: NextRequest) {
+  try {
+    // Verify authentication (Vercel cron or manual)
+    if (!isAuthorized(request)) {
+      console.warn('⚠️ Unauthorized cron request for affiliate commissions');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

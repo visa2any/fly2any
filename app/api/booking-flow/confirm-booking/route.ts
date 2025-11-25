@@ -4,13 +4,25 @@ import { createBooking } from '@/lib/services/booking-flow-service';
 import { processBookingForReferralPoints } from '@/lib/services/referralNetworkService';
 import { auth } from '@/lib/auth';
 import { getPrismaClient } from '@/lib/prisma';
+import { bookingStorage } from '@/lib/bookings/storage';
+import { notifyNewBooking } from '@/lib/notifications/notification-service';
+import type { Booking, FlightSegment, Passenger, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
+import type { BookingNotificationPayload } from '@/lib/notifications/types';
 
 /**
  * Confirm Booking - Final Step in E2E Booking Flow
  *
- * 1. Confirms payment with Stripe
- * 2. Creates actual booking with Duffel
- * 3. Returns booking reference and confirmation details
+ * NEW FLOW (Manual Ticketing Model):
+ * 1. Saves booking to OUR database with status "pending_ticketing"
+ * 2. DOES NOT create Duffel order (saves API fees)
+ * 3. DOES NOT charge payment (admin will charge via consolidator)
+ * 4. Returns our booking reference for customer tracking
+ *
+ * Admin will:
+ * - See booking in dashboard
+ * - Book manually via consolidator
+ * - Enter e-ticket and PNR
+ * - Mark as ticketed
  *
  * POST /api/booking-flow/confirm-booking
  *
@@ -29,21 +41,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { paymentIntentId, bookingState, passengers } = body;
 
-    console.log('🎫 [Booking Flow] Confirming booking...');
+    console.log('🎫 [Booking Flow] Processing booking request...');
     console.log(`   Payment Intent ID: ${paymentIntentId}`);
     console.log(`   Passengers: ${passengers?.length || 0}`);
 
     // Validation
-    if (!paymentIntentId) {
-      return NextResponse.json(
-        {
-          error: 'INVALID_PAYMENT_INTENT',
-          message: 'Payment intent ID is required',
-        },
-        { status: 400 }
-      );
-    }
-
     if (!bookingState || !bookingState.selectedFlight) {
       return NextResponse.json(
         {
@@ -64,215 +66,204 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // STEP 1: Confirm payment with Stripe (if not mock)
-    let paymentConfirmed = false;
-    let paymentDetails = null;
+    // Get contact info from first passenger
+    const primaryPassenger = passengers[0];
+    const contactInfo: ContactInfo = {
+      email: primaryPassenger.email || '',
+      phone: primaryPassenger.phone || '',
+    };
 
-    if (!paymentIntentId.startsWith('pi_mock_')) {
-      if (!paymentService.isStripeAvailable()) {
-        return NextResponse.json(
-          {
-            error: 'SERVICE_UNAVAILABLE',
-            message: 'Payment service is currently unavailable',
-          },
-          { status: 503 }
-        );
-      }
+    // Transform booking state flight to our FlightData format
+    const selectedFlight = bookingState.selectedFlight;
+    const flightType: 'one-way' | 'round-trip' = bookingState.returnFlight ? 'round-trip' : 'one-way';
+    const flightData = {
+      id: selectedFlight.offerId || selectedFlight.id || `flight_${Date.now()}`,
+      type: flightType,
+      segments: [{
+        id: `seg_${Date.now()}`,
+        departure: {
+          iataCode: selectedFlight.departure?.airportCode || '',
+          terminal: selectedFlight.departure?.terminal,
+          at: selectedFlight.departure?.time || new Date().toISOString(),
+        },
+        arrival: {
+          iataCode: selectedFlight.arrival?.airportCode || '',
+          terminal: selectedFlight.arrival?.terminal,
+          at: selectedFlight.arrival?.time || new Date().toISOString(),
+        },
+        carrierCode: selectedFlight.flightNumber?.split(' ')[0] || selectedFlight.airline?.substring(0, 2) || 'XX',
+        flightNumber: selectedFlight.flightNumber?.split(' ')[1] || selectedFlight.flightNumber || '000',
+        aircraft: selectedFlight.aircraft,
+        duration: selectedFlight.duration || 'PT0H0M',
+        class: (selectedFlight.cabinClass || 'economy') as 'economy' | 'premium_economy' | 'business' | 'first',
+      }] as FlightSegment[],
+      price: {
+        total: bookingState.pricing?.total || selectedFlight.price || 0,
+        base: bookingState.pricing?.base || selectedFlight.price || 0,
+        taxes: bookingState.pricing?.taxes || 0,
+        fees: bookingState.pricing?.fees || 0,
+        currency: bookingState.pricing?.currency || selectedFlight.currency || 'USD',
+      },
+      validatingAirlineCodes: [selectedFlight.flightNumber?.split(' ')[0] || 'XX'],
+    };
 
-      console.log('💳 Confirming payment with Stripe...');
+    // Transform passengers to our format
+    const transformedPassengers: Passenger[] = passengers.map((p: any, index: number) => ({
+      id: p.id || `pax_${index + 1}`,
+      type: (p.type || 'adult') as 'adult' | 'child' | 'infant',
+      title: (p.title || 'Mr') as 'Mr' | 'Ms' | 'Mrs' | 'Dr',
+      firstName: p.firstName || '',
+      lastName: p.lastName || '',
+      dateOfBirth: p.dateOfBirth || '',
+      nationality: p.nationality || 'US',
+      passportNumber: p.passportNumber,
+      passportExpiry: p.passportExpiryDate,
+      email: p.email,
+      phone: p.phone,
+      frequentFlyerAirline: p.frequentFlyerAirline,
+      frequentFlyerNumber: p.frequentFlyerNumber,
+    }));
 
-      try {
-        const payment = await paymentService.confirmPayment(paymentIntentId);
+    // Payment info - SAVED but NOT CHARGED (admin will charge via consolidator)
+    const paymentInfo: PaymentInfo = {
+      method: 'credit_card',
+      status: 'pending', // NOT charged yet
+      paymentIntentId: paymentIntentId || undefined,
+      amount: bookingState.pricing?.total || selectedFlight.price || 0,
+      currency: bookingState.pricing?.currency || selectedFlight.currency || 'USD',
+      // Card details will be retrieved from Stripe if needed
+    };
 
-        console.log(`   Payment Status: ${payment.status}`);
+    // Note: Card details will be displayed from Stripe dashboard if needed
+    // We save the paymentIntentId for reference
 
-        if (payment.status !== 'succeeded') {
-          console.warn(`⚠️  Payment not successful: ${payment.status}`);
-
-          return NextResponse.json(
-            {
-              success: false,
-              paymentStatus: payment.status,
-              message:
-                payment.status === 'requires_action'
-                  ? 'Payment requires additional authentication'
-                  : payment.status === 'processing'
-                  ? 'Payment is still being processed'
-                  : 'Payment was not successful',
-            },
-            { status: 200 }
-          );
-        }
-
-        paymentConfirmed = true;
-        paymentDetails = payment;
-        console.log('✅ Payment confirmed successfully');
-      } catch (paymentError: any) {
-        console.error('❌ Payment confirmation error:', paymentError);
-        return NextResponse.json(
-          {
-            error: 'PAYMENT_CONFIRMATION_FAILED',
-            message: 'Failed to confirm payment',
-            details: paymentError.message,
-          },
-          { status: 500 }
-        );
-      }
-    } else {
-      console.log('🧪 Mock payment - skipping Stripe confirmation');
-      paymentConfirmed = true;
-    }
-
-    // STEP 2: Create booking with Duffel
-    console.log('🎫 Creating booking with Duffel...');
+    // Create booking in OUR database with status "pending_ticketing"
+    console.log('💾 Saving booking to database (pending_ticketing)...');
 
     try {
-      // Transform passengers to Duffel format
-      const duffelPassengers = passengers.map((p: any, index: number) => ({
-        id: p.id || `passenger_${index}`,
-        type: 'passenger',
-        given_name: p.firstName?.toUpperCase() || '',
-        family_name: p.lastName?.toUpperCase() || '',
-        born_on: p.dateOfBirth || '1990-01-01',
-        email: p.email || '',
-        phone_number: p.phone || '',
-        gender: p.gender === 'male' ? 'm' : 'f',
-        title: p.title || 'mr',
-        ...(p.passportNumber && {
-          identity_documents: [
-            {
-              type: 'passport',
-              unique_identifier: p.passportNumber,
-              expires_on: p.passportExpiryDate || '',
-              issuing_country_code: p.nationality || 'US',
-            },
-          ],
-        }),
-      }));
+      const booking = await bookingStorage.create({
+        status: 'pending_ticketing', // NEW: Waiting for manual ticketing
+        userId: undefined, // Will be set if user is logged in
+        contactInfo,
+        flight: flightData,
+        passengers: transformedPassengers,
+        seats: bookingState.selectedSeats || [],
+        payment: paymentInfo,
+        specialRequests: bookingState.specialRequests,
+        notes: `Duffel Offer ID: ${selectedFlight.offerId || 'N/A'}`,
+        refundPolicy: {
+          refundable: true,
+          cancellationFee: 150,
+        },
+        // Manual ticketing fields - to be filled by admin
+        ticketingStatus: 'pending_ticketing',
+        customerPrice: bookingState.pricing?.total || selectedFlight.price || 0,
+        // These will be filled by admin after manual booking:
+        // eticketNumbers: [],
+        // airlineRecordLocator: '',
+        // consolidatorReference: '',
+        // consolidatorName: '',
+        // consolidatorPrice: 0,
+        // markup: 0,
+      });
 
-      // Payment method for Duffel (using balance for now since payment already confirmed)
-      const paymentMethod = {
-        type: 'balance',
-        currency: bookingState.pricing?.currency || 'USD',
-        amount: bookingState.pricing?.total?.toString() || '0',
-      };
-
-      const booking = await createBooking(
-        bookingState,
-        duffelPassengers,
-        paymentMethod
-      );
-
-      console.log('✅ Booking created successfully');
+      console.log('✅ Booking saved successfully');
       console.log(`   Booking Reference: ${booking.bookingReference}`);
+      console.log(`   Status: pending_ticketing (awaiting manual booking)`);
 
-      // STEP 3: Save booking to database & process referral points
+      // Process referral points (async, don't block response)
       try {
         const session = await auth();
         const prisma = getPrismaClient();
 
         if (session?.user?.email) {
-          // Get user
           const user = await prisma.user.findUnique({
             where: { email: session.user.email },
             select: { id: true },
           });
 
           if (user) {
-            // Extract trip dates from bookingState
-            const flight = bookingState.selectedFlight;
-            const departureDate = flight?.departure?.time
-              ? new Date(flight.departure.time)
-              : new Date();
-            const arrivalDate = flight?.arrival?.time
-              ? new Date(flight.arrival.time)
-              : new Date(departureDate.getTime() + 24 * 60 * 60 * 1000); // +1 day default
+            // Update booking with user ID
+            await bookingStorage.update(booking.id, { userId: user.id });
 
-            // Determine product type
-            let productType = 'flight';
-            if (bookingState.pricing?.total && bookingState.pricing.total > 1000) {
-              productType = 'flight_international'; // Assume international if > $1000
-            }
+            const departureDate = new Date(flightData.segments[0].departure.at);
+            const arrivalDate = new Date(flightData.segments[flightData.segments.length - 1].arrival.at);
 
-            // Process referral points (async, don't block response)
             processBookingForReferralPoints({
               bookingId: booking.bookingReference,
               userId: user.id,
               amount: bookingState.pricing?.total || 0,
               currency: bookingState.pricing?.currency || 'USD',
-              productType,
+              productType: bookingState.pricing?.total > 1000 ? 'flight_international' : 'flight',
               tripStartDate: departureDate,
               tripEndDate: arrivalDate,
               productData: {
-                flightNumber: flight?.flightNumber,
-                airline: flight?.airline,
-                route: `${flight?.departure?.airportCode} → ${flight?.arrival?.airportCode}`,
+                flightNumber: selectedFlight.flightNumber,
+                airline: selectedFlight.airline,
+                route: `${selectedFlight.departure?.airportCode} → ${selectedFlight.arrival?.airportCode}`,
               },
             }).catch((err) => {
               console.error('⚠️ Failed to process referral points:', err);
-              // Don't fail booking if referral points fail
             });
-
-            console.log('✅ Referral points processing initiated');
           }
         }
       } catch (referralError) {
         console.error('⚠️ Error processing referral points:', referralError);
-        // Don't fail booking if referral points fail
       }
 
-      // STEP 4: Return success response
+      // Send notifications to admin (Telegram + SSE + Email + Database)
+      const route = `${selectedFlight.departure?.airportCode || ''} → ${selectedFlight.arrival?.airportCode || ''}`;
+      const departureDate = selectedFlight.departure?.time
+        ? new Date(selectedFlight.departure.time).toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          })
+        : 'N/A';
+
+      const notificationPayload: BookingNotificationPayload = {
+        bookingId: booking.id,
+        bookingReference: booking.bookingReference,
+        status: 'pending_ticketing',
+        customerName: `${primaryPassenger.firstName || ''} ${primaryPassenger.lastName || ''}`.trim() || 'Customer',
+        customerEmail: contactInfo.email,
+        customerPhone: contactInfo.phone,
+        route,
+        departureDate,
+        totalAmount: paymentInfo.amount,
+        currency: paymentInfo.currency,
+        passengerCount: transformedPassengers.length,
+      };
+
+      // Fire and forget - don't block response
+      notifyNewBooking(notificationPayload).catch((err) => {
+        console.error('⚠️ Failed to send booking notifications:', err);
+      });
+
+      console.log('📤 New booking notification dispatched');
+
+      // Return success response
       return NextResponse.json(
         {
           success: true,
           booking: {
             bookingReference: booking.bookingReference,
-            pnr: booking.bookingReference, // PNR is same as booking reference
-            confirmationEmail: booking.confirmationEmail,
+            pnr: 'Processing...', // Will be added after manual ticketing
+            confirmationEmail: contactInfo.email,
+            status: 'pending_ticketing',
           },
-          payment: paymentDetails
-            ? {
-                paymentIntentId: paymentDetails.paymentIntentId,
-                status: paymentDetails.status,
-                amount: paymentDetails.amount,
-                currency: paymentDetails.currency,
-                cardLast4: paymentDetails.last4,
-                cardBrand: paymentDetails.brand,
-              }
-            : undefined,
-          message: 'Booking confirmed successfully!',
+          message: 'Your booking request has been received! You will receive your e-ticket confirmation shortly.',
         },
         { status: 201 }
       );
 
-    } catch (bookingError: any) {
-      console.error('❌ Booking creation error:', bookingError);
-
-      // Payment succeeded but booking failed - critical situation
-      if (paymentConfirmed) {
-        console.error('🚨 CRITICAL: Payment confirmed but booking failed!');
-        console.error('   Payment Intent ID:', paymentIntentId);
-        console.error('   Action Required: Manual booking creation or refund');
-
-        return NextResponse.json(
-          {
-            error: 'BOOKING_CREATION_FAILED',
-            message:
-              'Payment was processed but booking creation failed. Our team will contact you shortly.',
-            criticalError: true,
-            paymentIntentId,
-            details: bookingError.message,
-          },
-          { status: 500 }
-        );
-      }
-
-      // Payment not confirmed, booking failed - safe to return error
+    } catch (dbError: any) {
+      console.error('❌ Database error:', dbError);
       return NextResponse.json(
         {
-          error: 'BOOKING_CREATION_FAILED',
-          message: 'Failed to create booking',
-          details: bookingError.message,
+          error: 'BOOKING_SAVE_FAILED',
+          message: 'Failed to save booking. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? dbError.message : undefined,
         },
         { status: 500 }
       );
@@ -284,7 +275,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'BOOKING_CONFIRMATION_FAILED',
-        message: error.message || 'Failed to confirm booking',
+        message: error.message || 'Failed to process booking',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }

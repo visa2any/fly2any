@@ -23,7 +23,9 @@ import {
   Award,
   Gift,
   DollarSign,
-  Search
+  Search,
+  CreditCard,
+  PiggyBank,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -89,6 +91,11 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       icon: Briefcase
     },
     {
+      label: 'Authorizations',
+      href: '/admin/authorizations',
+      icon: CreditCard
+    },
+    {
       label: 'Affiliates',
       href: '/admin/affiliates',
       icon: Award,
@@ -115,6 +122,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'Monitoring',
       href: '/admin/monitoring',
       icon: Activity
+    },
+    {
+      label: 'Cost Savings',
+      href: '/admin/cost-savings',
+      icon: PiggyBank,
+      roles: ['super_admin', 'admin']
     },
     {
       label: 'Webhooks',

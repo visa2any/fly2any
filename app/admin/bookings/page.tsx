@@ -19,10 +19,12 @@ import {
   Download,
   ArrowUpDown,
   MapPin,
+  Ticket,
+  FileCheck,
 } from 'lucide-react';
 import type { BookingSummary } from '@/lib/bookings/types';
 
-type StatusFilter = 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed';
+type StatusFilter = 'all' | 'pending' | 'pending_ticketing' | 'confirmed' | 'ticketed' | 'cancelled' | 'completed';
 
 interface HotelBooking {
   id: string;
@@ -169,10 +171,12 @@ export default function AdminBookingsPage() {
   const flightStats = {
     total: bookings.length,
     pending: bookings.filter(b => b.status === 'pending').length,
+    pendingTicketing: bookings.filter(b => b.status === 'pending_ticketing').length,
+    ticketed: bookings.filter(b => b.status === 'ticketed').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     cancelled: bookings.filter(b => b.status === 'cancelled').length,
     revenue: bookings
-      .filter(b => b.status === 'confirmed')
+      .filter(b => b.status === 'confirmed' || b.status === 'ticketed')
       .reduce((sum, b) => sum + b.totalAmount, 0),
   };
 
@@ -180,24 +184,37 @@ export default function AdminBookingsPage() {
   const stats = activeTab === 'flights' ? flightStats : hotelStats;
 
   const getStatusBadge = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      pending_ticketing: 'bg-orange-100 text-orange-800 border-orange-300',
+      ticketed: 'bg-emerald-100 text-emerald-800 border-emerald-300',
       confirmed: 'bg-green-100 text-green-800 border-green-300',
       cancelled: 'bg-red-100 text-red-800 border-red-300',
       completed: 'bg-blue-100 text-blue-800 border-blue-300',
     };
 
-    const icons = {
+    const icons: Record<string, React.ReactNode> = {
       pending: <Clock className="w-3 h-3" />,
+      pending_ticketing: <Ticket className="w-3 h-3" />,
+      ticketed: <FileCheck className="w-3 h-3" />,
       confirmed: <CheckCircle2 className="w-3 h-3" />,
       cancelled: <XCircle className="w-3 h-3" />,
       completed: <CheckCircle2 className="w-3 h-3" />,
     };
 
+    const labels: Record<string, string> = {
+      pending: 'Pending',
+      pending_ticketing: 'Needs Ticketing',
+      ticketed: 'Ticketed',
+      confirmed: 'Confirmed',
+      cancelled: 'Cancelled',
+      completed: 'Completed',
+    };
+
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border ${styles[status as keyof typeof styles]}`}>
-        {icons[status as keyof typeof icons]}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border ${styles[status] || styles.pending}`}>
+        {icons[status] || icons.pending}
+        {labels[status] || status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
@@ -242,7 +259,7 @@ export default function AdminBookingsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-blue-600" />
@@ -251,6 +268,21 @@ export default function AdminBookingsPage() {
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
           </div>
 
+          {/* Prominent Pending Ticketing Card - Only for Flights */}
+          {activeTab === 'flights' && flightStats.pendingTicketing > 0 && (
+            <div
+              className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-400 shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setStatusFilter('pending_ticketing')}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Ticket className="w-4 h-4 text-orange-600" />
+                <p className="text-xs font-bold text-orange-800">NEEDS TICKETING</p>
+              </div>
+              <p className="text-2xl font-bold text-orange-700">{flightStats.pendingTicketing}</p>
+              <p className="text-xs text-orange-600 mt-1">Click to view</p>
+            </div>
+          )}
+
           <div className="bg-white rounded-lg border border-yellow-200 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-yellow-600" />
@@ -258,6 +290,16 @@ export default function AdminBookingsPage() {
             </div>
             <p className="text-2xl font-bold text-yellow-700">{stats.pending}</p>
           </div>
+
+          {activeTab === 'flights' && (
+            <div className="bg-white rounded-lg border border-emerald-200 shadow-sm p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileCheck className="w-4 h-4 text-emerald-600" />
+                <p className="text-xs font-semibold text-gray-600">Ticketed</p>
+              </div>
+              <p className="text-2xl font-bold text-emerald-700">{flightStats.ticketed}</p>
+            </div>
+          )}
 
           <div className="bg-white rounded-lg border border-green-200 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -345,10 +387,16 @@ export default function AdminBookingsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  statusFilter === 'pending_ticketing'
+                    ? 'border-orange-400 bg-orange-50 text-orange-800 font-semibold'
+                    : 'border-gray-300'
+                }`}
               >
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
+                <option value="pending_ticketing">Needs Ticketing</option>
+                <option value="pending">Pending Payment</option>
+                <option value="ticketed">Ticketed</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="cancelled">Cancelled</option>
                 <option value="completed">Completed</option>
@@ -478,13 +526,24 @@ export default function AdminBookingsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link
-                          href={`/admin/bookings/${booking.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
-                        >
-                          <Eye className="w-3 h-3" />
-                          View
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          {booking.status === 'pending_ticketing' && (
+                            <Link
+                              href={`/admin/bookings/${booking.id}?action=ticket`}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                            >
+                              <Ticket className="w-3 h-3" />
+                              Ticket
+                            </Link>
+                          )}
+                          <Link
+                            href={`/admin/bookings/${booking.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                          >
+                            <Eye className="w-3 h-3" />
+                            View
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))

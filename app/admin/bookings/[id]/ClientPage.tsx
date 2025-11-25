@@ -2,7 +2,7 @@
 
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -21,20 +21,45 @@ import {
   Download,
   Send,
   CheckCheck,
+  Ticket,
+  FileCheck,
+  Building2,
+  Save,
+  Loader2,
 } from 'lucide-react';
 import type { Booking } from '@/lib/bookings/types';
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
 
+  // Ticketing form state
+  const [showTicketingForm, setShowTicketingForm] = useState(false);
+  const [savingTicketing, setSavingTicketing] = useState(false);
+  const [ticketingData, setTicketingData] = useState({
+    eticketNumbers: [''],
+    airlineRecordLocator: '',
+    consolidatorName: '',
+    consolidatorReference: '',
+    consolidatorPrice: '',
+    ticketingNotes: '',
+  });
+
   useEffect(() => {
     fetchBooking();
   }, [params.id]);
+
+  // Auto-open ticketing form if action=ticket in URL
+  useEffect(() => {
+    if (searchParams.get('action') === 'ticket' && booking?.status === 'pending_ticketing') {
+      setShowTicketingForm(true);
+    }
+  }, [searchParams, booking?.status]);
 
   const fetchBooking = async () => {
     try {
@@ -119,6 +144,79 @@ export default function AdminBookingDetailPage() {
     }
   };
 
+  // Initialize ticketing data when booking is loaded
+  useEffect(() => {
+    if (booking) {
+      setTicketingData({
+        eticketNumbers: booking.eticketNumbers?.length
+          ? booking.eticketNumbers
+          : booking.passengers.map(() => ''),
+        airlineRecordLocator: booking.airlineRecordLocator || '',
+        consolidatorName: booking.consolidatorName || '',
+        consolidatorReference: booking.consolidatorReference || '',
+        consolidatorPrice: booking.consolidatorPrice?.toString() || '',
+        ticketingNotes: booking.ticketingNotes || '',
+      });
+    }
+  }, [booking]);
+
+  const handleTicketingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!booking) return;
+
+    // Validate required fields
+    const hasValidEtickets = ticketingData.eticketNumbers.some(t => t.trim() !== '');
+    if (!hasValidEtickets) {
+      alert('Please enter at least one e-ticket number');
+      return;
+    }
+
+    if (!ticketingData.airlineRecordLocator.trim()) {
+      alert('Please enter the Airline Record Locator (PNR)');
+      return;
+    }
+
+    try {
+      setSavingTicketing(true);
+
+      const response = await fetch(`/api/admin/bookings/${booking.id}/ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eticketNumbers: ticketingData.eticketNumbers.filter(t => t.trim() !== ''),
+          airlineRecordLocator: ticketingData.airlineRecordLocator.trim(),
+          consolidatorName: ticketingData.consolidatorName.trim() || undefined,
+          consolidatorReference: ticketingData.consolidatorReference.trim() || undefined,
+          consolidatorPrice: ticketingData.consolidatorPrice
+            ? parseFloat(ticketingData.consolidatorPrice)
+            : undefined,
+          ticketingNotes: ticketingData.ticketingNotes.trim() || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save ticketing info');
+      }
+
+      alert('Ticketing information saved successfully! Booking is now ticketed.');
+      setShowTicketingForm(false);
+      fetchBooking(); // Refresh booking data
+    } catch (error: any) {
+      console.error('Error saving ticketing info:', error);
+      alert('Error saving ticketing info: ' + error.message);
+    } finally {
+      setSavingTicketing(false);
+    }
+  };
+
+  const updateEticketNumber = (index: number, value: string) => {
+    setTicketingData(prev => ({
+      ...prev,
+      eticketNumbers: prev.eticketNumbers.map((t, i) => (i === index ? value : t)),
+    }));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center">
@@ -150,24 +248,37 @@ export default function AdminBookingDetailPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      pending_ticketing: 'bg-orange-100 text-orange-800 border-orange-300',
+      ticketed: 'bg-emerald-100 text-emerald-800 border-emerald-300',
       confirmed: 'bg-green-100 text-green-800 border-green-300',
       cancelled: 'bg-red-100 text-red-800 border-red-300',
       completed: 'bg-blue-100 text-blue-800 border-blue-300',
     };
 
-    const icons = {
+    const icons: Record<string, React.ReactNode> = {
       pending: <Clock className="w-4 h-4" />,
+      pending_ticketing: <Ticket className="w-4 h-4" />,
+      ticketed: <FileCheck className="w-4 h-4" />,
       confirmed: <CheckCircle2 className="w-4 h-4" />,
       cancelled: <XCircle className="w-4 h-4" />,
       completed: <CheckCircle2 className="w-4 h-4" />,
     };
 
+    const labels: Record<string, string> = {
+      pending: 'Pending',
+      pending_ticketing: 'Needs Ticketing',
+      ticketed: 'Ticketed',
+      confirmed: 'Confirmed',
+      cancelled: 'Cancelled',
+      completed: 'Completed',
+    };
+
     return (
-      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${styles[status as keyof typeof styles]}`}>
-        {icons[status as keyof typeof icons]}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${styles[status] || styles.pending}`}>
+        {icons[status] || icons.pending}
+        {labels[status] || status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
@@ -212,6 +323,17 @@ export default function AdminBookingDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Issue Ticket Button - Only for pending_ticketing */}
+            {booking.status === 'pending_ticketing' && (
+              <button
+                onClick={() => setShowTicketingForm(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-lg transition-colors shadow-lg"
+              >
+                <Ticket className="w-5 h-5" />
+                Issue Ticket
+              </button>
+            )}
+
             {booking.status === 'pending' && booking.payment.status === 'pending' && (
               <button
                 onClick={handleConfirmPayment}
@@ -251,6 +373,230 @@ export default function AdminBookingDetailPage() {
             </button>
           </div>
         </div>
+
+        {/* Ticketing Form Modal */}
+        {showTicketingForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 rounded-t-xl">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Ticket className="w-6 h-6" />
+                  Issue Ticket - {booking.bookingReference}
+                </h2>
+                <p className="text-orange-100 text-sm mt-1">
+                  Enter the ticketing information from your consolidator
+                </p>
+              </div>
+
+              <form onSubmit={handleTicketingSubmit} className="p-6 space-y-6">
+                {/* E-Ticket Numbers */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    E-Ticket Numbers <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Enter 13-digit e-ticket number for each passenger
+                  </p>
+                  <div className="space-y-2">
+                    {booking.passengers.map((passenger, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600 w-40 truncate">
+                          {passenger.firstName} {passenger.lastName}
+                        </span>
+                        <input
+                          type="text"
+                          value={ticketingData.eticketNumbers[idx] || ''}
+                          onChange={(e) => updateEticketNumber(idx, e.target.value)}
+                          placeholder="e.g., 0012345678901"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
+                          maxLength={14}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Airline Record Locator (PNR) */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Airline Record Locator (PNR) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={ticketingData.airlineRecordLocator}
+                    onChange={(e) => setTicketingData(prev => ({ ...prev, airlineRecordLocator: e.target.value.toUpperCase() }))}
+                    placeholder="e.g., ABC123"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono text-lg uppercase"
+                    maxLength={10}
+                  />
+                </div>
+
+                {/* Consolidator Information */}
+                <div className="border-t pt-6">
+                  <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Consolidator Information (Optional)
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Consolidator Name</label>
+                      <input
+                        type="text"
+                        value={ticketingData.consolidatorName}
+                        onChange={(e) => setTicketingData(prev => ({ ...prev, consolidatorName: e.target.value }))}
+                        placeholder="e.g., SkyBird, Mondee"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Consolidator Reference</label>
+                      <input
+                        type="text"
+                        value={ticketingData.consolidatorReference}
+                        onChange={(e) => setTicketingData(prev => ({ ...prev, consolidatorReference: e.target.value }))}
+                        placeholder="Your consolidator's ref #"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm text-gray-600 mb-1">Consolidator Cost (Net Price)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={ticketingData.consolidatorPrice}
+                        onChange={(e) => setTicketingData(prev => ({ ...prev, consolidatorPrice: e.target.value }))}
+                        placeholder="0.00"
+                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    </div>
+                    {ticketingData.consolidatorPrice && booking.customerPrice && (
+                      <p className="text-sm text-green-600 mt-2">
+                        Your margin: ${(booking.customerPrice - parseFloat(ticketingData.consolidatorPrice)).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Ticketing Notes */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Internal Notes</label>
+                  <textarea
+                    value={ticketingData.ticketingNotes}
+                    onChange={(e) => setTicketingData(prev => ({ ...prev, ticketingNotes: e.target.value }))}
+                    placeholder="Any notes about this ticketing (internal only)"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowTicketingForm(false)}
+                    className="px-4 py-2 text-gray-700 font-semibold hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingTicketing}
+                    className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors"
+                  >
+                    {savingTicketing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save & Mark Ticketed
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Ticketing Information Banner - Show for ticketed bookings */}
+        {booking.status === 'ticketed' && booking.eticketNumbers && booking.eticketNumbers.length > 0 && (
+          <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-emerald-100 rounded-full p-3">
+                <FileCheck className="w-8 h-8 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-emerald-800 mb-2">Ticket Issued</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-emerald-600 font-semibold mb-1">Airline PNR</p>
+                    <p className="text-2xl font-mono font-bold text-emerald-800">{booking.airlineRecordLocator}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-emerald-600 font-semibold mb-1">E-Tickets</p>
+                    <div className="space-y-1">
+                      {booking.eticketNumbers.map((ticket, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">{booking.passengers[idx]?.firstName}:</span>
+                          <span className="font-mono text-sm font-semibold text-emerald-800">{ticket}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {booking.ticketedAt && (
+                  <p className="text-xs text-emerald-600 mt-3">
+                    Ticketed on {new Date(booking.ticketedAt).toLocaleString()}
+                    {booking.ticketedBy && ` by ${booking.ticketedBy}`}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pending Ticketing Alert */}
+        {booking.status === 'pending_ticketing' && (
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-orange-100 rounded-full p-3 animate-pulse">
+                <Ticket className="w-8 h-8 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-orange-800 mb-2">Awaiting Manual Ticketing</h3>
+                <p className="text-sm text-orange-700 mb-3">
+                  This booking has been received and is waiting to be ticketed via your consolidator.
+                  Click "Issue Ticket" above to enter the e-ticket and PNR information.
+                </p>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-orange-600">Customer Price:</span>
+                    <span className="ml-2 font-bold text-orange-800">
+                      {booking.payment.currency} {booking.customerPrice?.toFixed(2) || booking.payment.amount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-orange-600">Duffel Offer ID:</span>
+                    <span className="ml-2 font-mono text-xs text-orange-800">
+                      {booking.notes?.includes('Duffel Offer ID:')
+                        ? booking.notes.split('Duffel Offer ID:')[1]?.trim()
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}

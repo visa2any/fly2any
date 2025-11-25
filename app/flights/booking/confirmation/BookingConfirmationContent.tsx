@@ -734,6 +734,88 @@ export default function BookingConfirmationContent() {
           </p>
         </div>
 
+        {/* E-Ticket Information - Show when ticketed */}
+        {bookingData && bookingData.status === 'ticketed' && bookingData.airlineRecordLocator && (
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-2xl p-6 shadow-lg">
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-bold">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  E-Ticket Issued
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="text-center bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-xs text-emerald-600 font-semibold mb-1 uppercase tracking-wider">
+                    Airline Confirmation (PNR)
+                  </p>
+                  <p className="text-4xl font-mono font-bold text-emerald-800 tracking-widest">
+                    {bookingData.airlineRecordLocator}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Use this code for online check-in
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl p-4 shadow-sm">
+                  <p className="text-xs text-emerald-600 font-semibold mb-2 uppercase tracking-wider">
+                    E-Ticket Numbers
+                  </p>
+                  <div className="space-y-2">
+                    {bookingData.eticketNumbers && bookingData.eticketNumbers.map((ticket: string, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-600">
+                          {bookingData.passengers[idx]?.firstName} {bookingData.passengers[idx]?.lastName}
+                        </span>
+                        <span className="font-mono text-sm font-semibold text-emerald-800">
+                          {ticket}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-emerald-600 mt-4">
+                Your e-ticket has been issued. Please save this information for check-in.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Pending Ticketing Notice - Show when pending_ticketing */}
+        {bookingData && bookingData.status === 'pending_ticketing' && (
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-6 shadow-lg">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-bold mb-4">
+                  <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Processing Your Booking
+                </div>
+
+                <h3 className="text-lg font-bold text-amber-800 mb-2">
+                  Your E-Ticket is Being Issued
+                </h3>
+                <p className="text-amber-700 text-sm max-w-md mx-auto">
+                  We're finalizing your booking with the airline. You'll receive your e-ticket and PNR confirmation via email within 2-4 hours.
+                </p>
+
+                <div className="mt-4 flex items-center justify-center gap-2 text-amber-600 text-sm">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Check your email for updates
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8 no-print">
           <div className="relative">

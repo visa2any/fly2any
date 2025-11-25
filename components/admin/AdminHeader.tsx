@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  Bell,
   Search,
   Settings,
   LogOut,
   User,
   Shield
 } from 'lucide-react'
+import NotificationCenter from './NotificationCenter'
 
 interface AdminHeaderProps {
   user: {
@@ -60,12 +60,9 @@ export default function AdminHeader({ user, adminRole }: AdminHeaderProps) {
           </div>
 
           {/* Right side actions - Compact */}
-          <div className="flex items-center space-x-2">
-            {/* Notifications */}
-            <button className="relative p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 bg-red-500 rounded-full"></span>
-            </button>
+          <div className="flex items-center space-x-3">
+            {/* Real-Time Notification Center */}
+            <NotificationCenter />
 
             {/* Settings */}
             <Link

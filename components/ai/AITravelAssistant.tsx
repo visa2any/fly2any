@@ -818,7 +818,140 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
         await sendAIResponseWithTyping(errorContent, consultant, queryText, undefined, 'service-request');
       }
-    } else if (!isFlightQuery && !isHotelQuery) {
+    }
+
+    // HANDLE BOOKING STATUS QUERIES
+    const isBookingQuery = detectBookingStatusIntent(queryText);
+    const bookingRef = extractBookingReference(queryText);
+
+    if (isBookingQuery || bookingRef) {
+      const davidPark = getConsultant('payment-billing');
+
+      // If no booking reference found, ask for it
+      if (!bookingRef) {
+        const askForRefMessage = language === 'en'
+          ? "I'd be happy to check your booking status! 💳 Could you please provide your booking reference? It looks like FLY2A-XXXXXX (you can find it in your confirmation email)."
+          : language === 'pt'
+          ? "Ficarei feliz em verificar o status da sua reserva! 💳 Poderia me fornecer sua referência de reserva? Ela se parece com FLY2A-XXXXXX (você pode encontrá-la no seu e-mail de confirmação)."
+          : "¡Estaré encantado de verificar el estado de tu reserva! 💳 ¿Podrías proporcionarme tu referencia de reserva? Se ve como FLY2A-XXXXXX (la puedes encontrar en tu correo de confirmación).";
+
+        await sendAIResponseWithTyping(askForRefMessage, davidPark, queryText, undefined, 'booking-management');
+        return;
+      }
+
+      // Look up the booking
+      const lookupInitMessage = language === 'en'
+        ? `Let me check the status of booking ${bookingRef} for you... 🔍`
+        : language === 'pt'
+        ? `Deixe-me verificar o status da reserva ${bookingRef} para você... 🔍`
+        : `Déjame verificar el estado de la reserva ${bookingRef} para ti... 🔍`;
+
+      await sendAIResponseWithTyping(lookupInitMessage, davidPark, queryText, {
+        isSearching: true
+      }, 'booking-management');
+
+      try {
+        const response = await fetch('/api/ai/booking-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingReference: bookingRef })
+        });
+
+        const data = await response.json();
+        setMessages(prev => prev.filter(m => !m.isSearching));
+
+        if (data.success && data.booking) {
+          const booking = data.booking;
+          const summary = data.summary;
+
+          // Build comprehensive status response
+          let statusResponse = language === 'en'
+            ? `${summary.headline}\n\n` +
+              `${summary.details.join('\n')}\n\n`
+            : language === 'pt'
+            ? `${summary.headline}\n\n` +
+              `${summary.details.join('\n')}\n\n`
+            : `${summary.headline}\n\n` +
+              `${summary.details.join('\n')}\n\n`;
+
+          // Add ticketing info if available
+          if (summary.ticketing && summary.ticketing.pnr) {
+            statusResponse += language === 'en'
+              ? `🎫 **E-Ticket Info:**\n` +
+                `✈️ Airline PNR: **${summary.ticketing.pnr}**\n` +
+                (summary.ticketing.etickets?.length > 0
+                  ? `📄 E-Tickets: ${summary.ticketing.etickets.join(', ')}\n`
+                  : '')
+              : language === 'pt'
+              ? `🎫 **Info do E-Ticket:**\n` +
+                `✈️ PNR da Companhia: **${summary.ticketing.pnr}**\n` +
+                (summary.ticketing.etickets?.length > 0
+                  ? `📄 E-Tickets: ${summary.ticketing.etickets.join(', ')}\n`
+                  : '')
+              : `🎫 **Info del E-Ticket:**\n` +
+                `✈️ PNR de la Aerolínea: **${summary.ticketing.pnr}**\n` +
+                (summary.ticketing.etickets?.length > 0
+                  ? `📄 E-Tickets: ${summary.ticketing.etickets.join(', ')}\n`
+                  : '');
+          }
+
+          // Add next steps
+          if (summary.nextSteps?.length > 0) {
+            statusResponse += '\n' + (language === 'en' ? '📋 **Next Steps:**\n' : language === 'pt' ? '📋 **Próximos Passos:**\n' : '📋 **Próximos Pasos:**\n');
+            statusResponse += summary.nextSteps.map((step: string) => `• ${step}`).join('\n');
+          }
+
+          await sendAIResponseWithTyping(statusResponse, davidPark, queryText, undefined, 'booking-management');
+
+          // Follow-up offer
+          const followUpMessage = language === 'en'
+            ? "\nIs there anything else I can help you with regarding your booking? I can help with modifications, questions about payment, or anything else! 💳"
+            : language === 'pt'
+            ? "\nPosso ajudá-lo com algo mais sobre sua reserva? Posso ajudar com modificações, perguntas sobre pagamento ou qualquer outra coisa! 💳"
+            : "\n¿Puedo ayudarte con algo más sobre tu reserva? ¡Puedo ayudar con modificaciones, preguntas sobre el pago o cualquier otra cosa! 💳";
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await sendAIResponseWithTyping(followUpMessage, davidPark, queryText, undefined, 'question');
+
+        } else {
+          // Booking not found
+          const notFoundMessage = language === 'en'
+            ? `I couldn't find a booking with reference **${bookingRef}**. 😔\n\n` +
+              `Please double-check:\n` +
+              `• The reference is correct (format: FLY2A-XXXXXX)\n` +
+              `• You can find it in your confirmation email\n\n` +
+              `Would you like me to search with a different reference, or can I help you with something else?`
+            : language === 'pt'
+            ? `Não consegui encontrar uma reserva com a referência **${bookingRef}**. 😔\n\n` +
+              `Por favor, verifique:\n` +
+              `• Se a referência está correta (formato: FLY2A-XXXXXX)\n` +
+              `• Você pode encontrá-la no seu e-mail de confirmação\n\n` +
+              `Gostaria que eu pesquisasse com outra referência, ou posso ajudá-lo com algo mais?`
+            : `No pude encontrar una reserva con la referencia **${bookingRef}**. 😔\n\n` +
+              `Por favor, verifica:\n` +
+              `• Que la referencia sea correcta (formato: FLY2A-XXXXXX)\n` +
+              `• La puedes encontrar en tu correo de confirmación\n\n` +
+              `¿Te gustaría que busque con otra referencia, o puedo ayudarte con algo más?`;
+
+          await sendAIResponseWithTyping(notFoundMessage, davidPark, queryText, undefined, 'booking-management');
+        }
+      } catch (error) {
+        console.error('Booking lookup error:', error);
+        setMessages(prev => prev.filter(m => !m.isSearching));
+
+        const errorContent = language === 'en'
+          ? "I encountered an error looking up your booking. Please try again or contact our support team."
+          : language === 'pt'
+          ? "Encontrei um erro ao pesquisar sua reserva. Tente novamente ou entre em contato com nossa equipe de suporte."
+          : "Encontré un error al buscar tu reserva. Por favor, inténtalo de nuevo o contacta con nuestro equipo de soporte.";
+
+        await sendAIResponseWithTyping(errorContent, davidPark, queryText, undefined, 'service-request');
+      }
+
+      return; // Exit after handling booking query
+    }
+
+    if (!isFlightQuery && !isHotelQuery) {
       // SERVICE REQUEST OR GENERAL INQUIRY
       // Use conversational response if available, otherwise fall back to service response
       let responseContent: string;
@@ -2068,6 +2201,45 @@ function detectHotelSearchIntent(userMessage: string): boolean {
 }
 
 /**
+ * Detect if user is asking about booking status
+ */
+function detectBookingStatusIntent(userMessage: string): boolean {
+  const msg = userMessage.toLowerCase();
+
+  // Direct booking reference pattern (FLY2A-XXXXXX)
+  const hasBookingRef = /fly2a-[a-z0-9]{6}/i.test(userMessage);
+  if (hasBookingRef) return true;
+
+  // Status inquiry keywords
+  const statusKeywords = [
+    'status', 'where is my', 'check my', 'track my',
+    'booking status', 'reservation status', 'order status',
+    'my booking', 'my reservation', 'my order',
+    'what happened to', 'update on', 'any update'
+  ];
+
+  // Booking reference keywords
+  const bookingKeywords = [
+    'booking', 'reservation', 'confirmation', 'reference',
+    'reserva', 'confirmación', 'referência'
+  ];
+
+  const hasStatusKeyword = statusKeywords.some(kw => msg.includes(kw));
+  const hasBookingKeyword = bookingKeywords.some(kw => msg.includes(kw));
+
+  return hasStatusKeyword || (hasBookingKeyword && msg.length < 100);
+}
+
+/**
+ * Extract booking reference from user message
+ */
+function extractBookingReference(userMessage: string): string | null {
+  // Match FLY2A-XXXXXX pattern
+  const refMatch = userMessage.match(/fly2a-[a-z0-9]{6}/i);
+  return refMatch ? refMatch[0].toUpperCase() : null;
+}
+
+/**
  * Extract search context from user message for handoff
  * Parses key information (locations, dates, guests) to pass to new agent
  */
@@ -2132,6 +2304,13 @@ function extractSearchContext(userMessage: string, team: string): any {
  */
 function determineConsultantTeam(userMessage: string): TeamType {
   const msg = userMessage.toLowerCase();
+
+  // Booking status queries → David Park (Payment & Billing)
+  if (msg.includes('booking') || msg.includes('reservation') || msg.includes('reserva') ||
+      msg.includes('status') || msg.includes('where is my') || msg.includes('track') ||
+      msg.includes('fly2a-') || /fly2a-[a-z0-9]{6}/i.test(userMessage)) {
+    return 'payment-billing';
+  }
 
   if (msg.includes('flight') || msg.includes('voo') || msg.includes('vuelo') ||
       msg.includes('ticket') || msg.includes('airline') || msg.includes('airport')) {

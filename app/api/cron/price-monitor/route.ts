@@ -2,16 +2,36 @@
  * Cron Job Handler for Price Monitoring
  *
  * This endpoint is called by Vercel Cron (or external cron service)
- * to automatically check price alerts every 6 hours.
+ * to automatically check price alerts.
  *
- * Authentication: Requires CRON_SECRET token in Authorization header
- * Schedule: Every 6 hours (cron: 0 star-slash-6 star star star)
+ * Authentication: Vercel cron header or CRON_SECRET Bearer token
+ * Schedule: Every 4 hours
  *
  * @route GET /api/cron/price-monitor
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { monitorAllActiveAlerts } from '@/lib/services/price-monitor';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes
+
+/**
+ * Verify Vercel cron or manual authentication
+ */
+function isAuthorized(request: NextRequest): boolean {
+  // Method 1: Vercel cron (automatic) - sends x-vercel-cron: "1"
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  if (isVercelCron) return true;
+
+  // Method 2: Manual trigger - uses Authorization: Bearer <CRON_SECRET>
+  const authHeader = request.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET;
+  const token = authHeader?.replace('Bearer ', '');
+  const isManualAuth = !!(cronSecret && token === cronSecret);
+
+  return isManualAuth;
+}
 
 /**
  * GET /api/cron/price-monitor
@@ -21,23 +41,9 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Verify authentication token
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (!cronSecret) {
-      console.error('[Cron] CRON_SECRET not configured');
-      return NextResponse.json(
-        { error: 'Cron job not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Check for Bearer token or direct secret
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (token !== cronSecret) {
-      console.error('[Cron] Invalid authentication token');
+    // Verify authentication (Vercel cron or manual)
+    if (!isAuthorized(request)) {
+      console.error('[Cron] Unauthorized price-monitor request');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

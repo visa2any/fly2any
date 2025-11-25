@@ -558,11 +558,10 @@ export const FlightCard: React.FC<FlightCardProps> = ({
               <span className="text-sm md:text-base text-gray-500">.{(parseFloat(price.total) % 1).toFixed(2).split('.')[1]}</span>
             </div>
 
-            {price.fees && (
-              <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
-                Includes taxes & fees
-              </div>
-            )}
+            {/* DOT Consumer Protection: Always show total price includes taxes/fees */}
+            <div className="text-[10px] md:text-xs text-gray-500 mt-0.5">
+              Total incl. all taxes & fees
+            </div>
           </div>
 
           {/* Action Buttons - MOBILE: Compact, side-by-side for space */}
