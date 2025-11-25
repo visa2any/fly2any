@@ -245,6 +245,19 @@ class DuffelAPI {
         console.log(`   Tax (from API): ${taxAmount > 0 ? taxAmount.toFixed(2) : 'NOT PROVIDED'} ${firstOffer.total_currency}`);
         console.log(`   Tax (calculated): ${calculatedTax.toFixed(2)} ${firstOffer.total_currency}`);
         console.log(`   Tax Percentage: ${totalAmount > 0 ? ((calculatedTax / totalAmount) * 100).toFixed(1) : 'N/A'}%`);
+
+        // ⚠️ PRICE SANITY CHECK: Flag unusually low international prices
+        const isInternational = firstOffer.slices?.length === 2 ||
+          (firstOffer.slices?.[0]?.origin?.iata_country_code !== firstOffer.slices?.[0]?.destination?.iata_country_code);
+        if (isInternational && totalAmount < 300 && firstOffer.total_currency === 'USD') {
+          console.log('\n⚠️  PRICE WARNING: International roundtrip price seems unusually low!');
+          console.log(`   Expected: $500-2000+ for international roundtrip`);
+          console.log(`   Actual: $${totalAmount.toFixed(2)}`);
+          console.log(`   This may be: Test mode pricing, Basic economy, or Special promotion`);
+          console.log(`   Token type: ${process.env.DUFFEL_ACCESS_TOKEN?.substring(0, 12)}...`);
+        }
+
+        console.log(`\n🔐 Duffel Mode: ${firstOffer.live_mode ? 'LIVE (Real Prices)' : 'TEST (Demo Prices)'}`);
         console.log('\n💼 ===================================================================\n');
       }
 
