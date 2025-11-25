@@ -23,6 +23,14 @@
     {
       "path": "/api/cron/precompute-routes",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/price-monitor",
+      "schedule": "15 */4 * * *"
+    },
+    {
+      "path": "/api/cron/scheduled-tasks",
+      "schedule": "0 3 * * *"
     }
   ]
 }
