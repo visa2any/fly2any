@@ -23,10 +23,17 @@ function getSeasonalMultiplier(date: Date): SeasonalTTLConfig {
   const month = date.getMonth(); // 0-11
   const day = date.getDate();
 
-  // 🎄 Holiday Season (Nov 15 - Jan 10) - Prices volatile
+  // 🎄 December - MAXIMUM 10 MINUTES (prices extremely volatile)
+  if (month === 11) {
+    return {
+      baseMultiplier: 0.15, // ~10 min max (600s / 3600s base = 0.167)
+      reason: 'December - extreme price volatility (10 min max)'
+    };
+  }
+
+  // 🎄 Holiday Season (Nov 15-30, Jan 1-10) - Prices volatile
   if (
     (month === 10 && day >= 15) || // Nov 15-30
-    month === 11 || // December
     (month === 0 && day <= 10) // Jan 1-10
   ) {
     return {
