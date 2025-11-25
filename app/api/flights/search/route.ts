@@ -297,8 +297,14 @@ export async function POST(request: NextRequest) {
       includeSeparateTickets: includeSeparateTickets || undefined,
     });
 
-    // Try to get from cache
-    const cached = await getCached<any>(cacheKey);
+    // Check for cache bypass (for debugging price issues)
+    const bypassCache = body.noCache === true || body.forceRefresh === true;
+    if (bypassCache) {
+      console.log('⚠️ CACHE BYPASS requested - fetching fresh prices');
+    }
+
+    // Try to get from cache (unless bypassed)
+    const cached = !bypassCache ? await getCached<any>(cacheKey) : null;
     if (cached) {
       console.log('Cache HIT:', cacheKey);
 
@@ -496,6 +502,24 @@ export async function POST(request: NextRequest) {
       }
 
       console.log(`    Amadeus: ${amadeusFlights.length} flights (${amadeusTime}ms), Duffel: ${duffelFlights.length} flights (${duffelTime}ms)`);
+
+      // 🔍 PRICE VALIDATION LOGGING - Debug price issues
+      if (duffelFlights.length > 0) {
+        const firstDuffel = duffelFlights[0] as FlightOffer;
+        console.log('\n💰 ========== PRICE VALIDATION ==========');
+        console.log(`   Route: ${origin} → ${destination}`);
+        console.log(`   First Duffel flight price:`);
+        console.log(`     - price.total: ${firstDuffel.price?.total} (type: ${typeof firstDuffel.price?.total})`);
+        console.log(`     - price.base: ${firstDuffel.price?.base} (type: ${typeof firstDuffel.price?.base})`);
+        console.log(`     - price.currency: ${firstDuffel.price?.currency}`);
+        console.log(`     - price.grandTotal: ${(firstDuffel.price as any)?.grandTotal}`);
+        const parsedTotal = parseFloat(String(firstDuffel.price?.total || '0'));
+        console.log(`     - Parsed as number: ${parsedTotal}`);
+        if (parsedTotal < 500) {
+          console.warn(`   ⚠️  WARNING: Price $${parsedTotal} seems too low for this route!`);
+        }
+        console.log('💰 ==========================================\n');
+      }
 
       // Enhanced logging for limited results
       const totalFlights = amadeusFlights.length + duffelFlights.length;
