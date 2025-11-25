@@ -30,7 +30,8 @@ class DuffelAPI {
   private static initWarningLogged = false;
 
   constructor() {
-    const token = process.env.DUFFEL_ACCESS_TOKEN;
+    // IMPORTANT: Trim token to remove any newlines/whitespace that break HTTP headers
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
 
     // Check if token is actually configured (not placeholder)
     this.isInitialized = this.hasValidCredentials(token);
@@ -504,7 +505,8 @@ class DuffelAPI {
       throw new Error('Duffel API not initialized - check DUFFEL_ACCESS_TOKEN');
     }
 
-    const token = process.env.DUFFEL_ACCESS_TOKEN;
+    // IMPORTANT: Trim token to remove any newlines/whitespace that break HTTP headers
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
     if (!token) {
       throw new Error('DUFFEL_ACCESS_TOKEN not configured');
     }
