@@ -74,3 +74,4 @@ build-final.log
 .env.vercel
 *.backup
 *.backup2
+.env.production.check

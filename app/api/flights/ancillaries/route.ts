@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelAPI } from '@/lib/api/duffel';
+import { applyMarkup, ANCILLARY_MARKUP, getMarkupSummary } from '@/lib/config/ancillary-markup';
 
 /**
  * POST /api/flights/ancillaries
- * Get all available ancillary services for a flight
  *
- * This endpoint returns:
- * - Real-time baggage pricing from Duffel API (for Duffel flights)
- * - Baggage allowances from fare details (for Amadeus flights)
- * - Mock data for other services (simplified for stability)
+ * PRODUCTION-READY: Returns ONLY real ancillary services from Duffel API
+ * WITH MARKUP APPLIED:
+ * - Baggage: 25% markup
+ * - CFAR: 29% markup
+ * - Seats: 25% markup
+ *
+ * Available services via Duffel NDC:
+ * - Baggage: Real airline pricing + markup ✅
+ * - Seats: Via separate seat map API + markup ✅
+ * - CFAR (Cancel For Any Reason): When available + markup ✅
  */
 export async function POST(request: NextRequest) {
   try {
@@ -23,123 +29,204 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🎁 ========================================');
-    console.log(`🎁 FETCHING ANCILLARIES FOR FLIGHT: ${flightOffer.id}`);
-    console.log(`🎁 Flight Source: ${flightOffer.source || 'GDS'}`);
-    console.log(`🎁 Flight Price: ${flightOffer.price.currency} ${flightOffer.price.total}`);
+    console.log('🎁 FETCHING REAL ANCILLARIES (Production Mode)');
+    console.log(`🎁 Flight ID: ${flightOffer.id}`);
+    console.log(`🎁 Flight Source: ${flightOffer.source || 'Unknown'}`);
+    console.log(`🎁 Flight Price: ${flightOffer.price?.currency} ${flightOffer.price?.total}`);
+    console.log(`🎁 Markup Config: Baggage ${ANCILLARY_MARKUP.baggage.percentage * 100}%, CFAR ${ANCILLARY_MARKUP.cfar.percentage * 100}%, Seats ${ANCILLARY_MARKUP.seats.percentage * 100}%`);
     console.log('🎁 ========================================');
 
-    // Fetch baggage options (real or mock)
-    const baggageOptions = await fetchBaggageOptions(flightOffer);
-    const hasRealBaggage = baggageOptions.some((opt: any) => opt.isReal || opt.metadata?.isReal);
-
-    console.log('📊 ANCILLARY DATA SOURCES:');
-    console.log(`   🧳 Baggage: ${hasRealBaggage ? '✅ REAL AIRLINE DATA' : '⚠️  MOCK/ESTIMATED DATA'}`);
-    console.log(`   💺 Seats: ⚠️  MOCK DATA (Interactive seat maps available separately)`);
-    console.log(`   🍽️  Meals: ⚠️  MOCK DATA (requires airline API integration)`);
-    console.log(`   📡 WiFi: ⚠️  MOCK DATA (not available in test APIs)`);
-    console.log(`   🛡️  Insurance: ⚠️  MOCK DATA (requires 3rd party integration)`);
-    console.log(`   🎯 Lounge: ⚠️  MOCK DATA (requires airport API integration)`);
-    console.log(`   ⚡ Priority: ⚠️  MOCK DATA (requires airline API integration)`);
-
-    // Simplified response - using mock data structure
-    const response = {
+    // Initialize response structure with ONLY real services
+    const response: any = {
       success: true,
       data: {
-        // Seat selection (mock data for now)
+        baggage: { hasRealData: false, options: [] },
+        cfar: { hasRealData: false, available: false, options: [] },
         seats: {
           hasRealData: false,
-          options: [
-            {
-              id: 'aisle',
-              name: 'Aisle Seat',
-              description: 'Easy access',
-              price: 15,
-              currency: flightOffer.price.currency,
-              isReal: false,
-            },
-            {
-              id: 'window',
-              name: 'Window Seat',
-              description: 'Great views',
-              price: 15,
-              currency: flightOffer.price.currency,
-              isReal: false,
-            },
-            {
-              id: 'extra-legroom',
-              name: 'Extra Legroom',
-              description: '35" pitch',
-              price: 45,
-              currency: flightOffer.price.currency,
-              isReal: false,
-            },
-          ],
-          priceRange: { min: 15, max: 45 },
-        },
-
-        // Baggage (fetch real data from Duffel if available, otherwise use extracted/mock data)
-        baggage: {
-          hasRealData: hasRealBaggage,
-          options: baggageOptions,
-        },
-
-        // Meals (mock - not available in Amadeus test API)
-        meals: {
-          hasRealData: false,
-          options: getMockMeals(flightOffer),
-        },
-
-        // WiFi (mock - not available in Amadeus test API)
-        wifi: {
-          hasRealData: false,
-          options: getMockWifi(flightOffer),
-        },
-
-        // Travel Insurance (mock - requires 3rd party integration)
-        insurance: {
-          hasRealData: false,
-          options: getMockInsurance(flightOffer),
-        },
-
-        // Lounge Access (mock)
-        lounge: {
-          hasRealData: false,
-          options: getMockLounge(flightOffer),
-        },
-
-        // Priority Services (mock)
-        priority: {
-          hasRealData: false,
-          options: getMockPriority(flightOffer),
+          note: 'Use /api/flights/seat-map for interactive seat selection with real pricing',
+          options: []
         },
       },
       meta: {
-        totalServices: 12,
-        availability: {
-          seats: 'mock',
-          baggage: hasRealBaggage ? 'real' : 'mock',
-          meals: 'mock',
-          wifi: 'mock',
-          lounge: 'mock',
-          insurance: 'mock',
-          priority: 'mock',
-        },
-        note: hasRealBaggage
-          ? 'Real-time baggage pricing from Duffel API. Other services using mock data.'
-          : 'Using mock data for stability. Real data integration coming soon.',
+        source: flightOffer.source || 'Unknown',
+        offerId: flightOffer.id,
+        isProduction: true,
+        realDataOnly: true,
+        markupApplied: true,
+        markupRates: getMarkupSummary(),
+        note: 'Real airline data with markup applied.',
       },
     };
 
+    // Track total profit potential
+    let totalProfitPotential = 0;
+
+    // For Duffel flights - fetch ALL real services
+    if (flightOffer.source === 'Duffel' && duffelAPI.isAvailable() && flightOffer.id) {
+      console.log('✈️  Duffel flight detected - fetching real services...');
+
+      try {
+        // Use the new production-ready method that uses return_available_services=true
+        const servicesResult = await duffelAPI.getAllAvailableServices(flightOffer.id);
+
+        if (servicesResult.success) {
+          // Baggage with 25% markup
+          if (servicesResult.data.baggage.length > 0) {
+            response.data.baggage = {
+              hasRealData: true,
+              options: servicesResult.data.baggage.map((bag: any) => {
+                const netPrice = parseFloat(bag.price.amount);
+                const markup = applyMarkup(netPrice, 'baggage');
+                totalProfitPotential += markup.markupAmount;
+
+                return {
+                  id: bag.id,
+                  name: bag.name,
+                  description: bag.description,
+                  price: markup.customerPrice, // Customer sees this (with markup)
+                  netPrice: markup.netPrice,   // For internal tracking
+                  currency: bag.price.currency,
+                  weight: bag.weight,
+                  quantity: bag.quantity,
+                  isReal: true,
+                  segmentIds: bag.segmentIds,
+                  passengerIds: bag.passengerIds,
+                  metadata: {
+                    type: bag.type,
+                    duffelServiceId: bag.id,
+                    isReal: true,
+                    perPassenger: true,
+                    markupApplied: true,
+                    markupPercentage: markup.markupPercentage,
+                  },
+                };
+              }),
+            };
+            console.log(`✅ Baggage: ${servicesResult.data.baggage.length} options (+25% markup)`);
+          } else {
+            console.log('ℹ️  Baggage: Not available for this airline/route');
+          }
+
+          // CFAR (Cancel For Any Reason) with 29% markup
+          if (servicesResult.data.cfar.length > 0) {
+            response.data.cfar = {
+              hasRealData: true,
+              available: true,
+              options: servicesResult.data.cfar.map((cfar: any) => {
+                const netPrice = parseFloat(cfar.price.amount);
+                const markup = applyMarkup(netPrice, 'cfar');
+                totalProfitPotential += markup.markupAmount;
+
+                return {
+                  id: cfar.id,
+                  name: cfar.name,
+                  description: cfar.description,
+                  price: markup.customerPrice, // Customer sees this (with markup)
+                  netPrice: markup.netPrice,   // For internal tracking
+                  currency: cfar.price.currency,
+                  refundPercentage: cfar.refundPercentage,
+                  terms: cfar.terms,
+                  isReal: true,
+                  segmentIds: cfar.segmentIds,
+                  passengerIds: cfar.passengerIds,
+                  metadata: {
+                    type: 'cancel_for_any_reason',
+                    duffelServiceId: cfar.id,
+                    isReal: true,
+                    markupApplied: true,
+                    markupPercentage: markup.markupPercentage,
+                  },
+                };
+              }),
+            };
+            console.log(`✅ CFAR: ${servicesResult.data.cfar.length} options (+29% markup)`);
+          } else {
+            console.log('ℹ️  CFAR: Not available for this airline/route');
+          }
+
+          // Seats info with 25% markup (basic - full seat maps via separate endpoint)
+          if (servicesResult.data.seats.length > 0) {
+            response.data.seats = {
+              hasRealData: true,
+              note: 'Use /api/flights/seat-map for full interactive seat selection',
+              options: servicesResult.data.seats.map((seat: any) => {
+                const netPrice = parseFloat(seat.price?.amount || '0');
+                const markup = applyMarkup(netPrice, 'seats');
+
+                return {
+                  ...seat,
+                  price: markup.customerPrice,
+                  netPrice: markup.netPrice,
+                  metadata: {
+                    ...seat.metadata,
+                    markupApplied: true,
+                    markupPercentage: markup.markupPercentage,
+                  },
+                };
+              }),
+            };
+            console.log(`✅ Seats: ${servicesResult.data.seats.length} options (+25% markup via seat-map API)`);
+          }
+
+          response.meta.servicesFound = {
+            baggage: servicesResult.data.baggage.length,
+            cfar: servicesResult.data.cfar.length,
+            seats: servicesResult.data.seats.length,
+          };
+        } else {
+          console.warn('⚠️  Failed to fetch Duffel services:', servicesResult.error);
+          response.meta.error = servicesResult.error;
+        }
+      } catch (error: any) {
+        console.error('❌ Error fetching Duffel services:', error.message);
+        response.meta.error = error.message;
+      }
+    } else if (flightOffer.source !== 'Duffel') {
+      // Non-Duffel flights (Amadeus) - waiting for production API
+      console.log('ℹ️  Non-Duffel flight - ancillary services require Amadeus production API');
+      response.meta.note = 'Amadeus ancillary services require production API access. Currently only Duffel flights have real ancillary data.';
+
+      // Try to extract included baggage from fare details
+      const fareDetails = flightOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+      const includedBags = fareDetails?.includedCheckedBags?.quantity || 0;
+
+      if (includedBags > 0) {
+        response.meta.includedBaggage = {
+          quantity: includedBags,
+          note: `${includedBags} checked bag(s) included in fare`,
+        };
+      }
+    } else {
+      console.log('⚠️  Duffel API not available');
+      response.meta.note = 'Duffel API not configured. Set DUFFEL_ACCESS_TOKEN to enable real ancillary services.';
+    }
+
+    // Calculate totals
+    const totalBaggageOptions = response.data.baggage.options?.length || 0;
+    const totalCFAROptions = response.data.cfar.options?.length || 0;
+    const totalSeatOptions = response.data.seats.options?.length || 0;
+
+    response.meta.totalRealServices = totalBaggageOptions + totalCFAROptions + totalSeatOptions;
+    response.meta.potentialProfit = Math.round(totalProfitPotential * 100) / 100;
+    response.meta.availability = {
+      baggage: totalBaggageOptions > 0 ? 'real_with_markup' : 'not_available',
+      cfar: totalCFAROptions > 0 ? 'real_with_markup' : 'not_available',
+      seats: 'via_seat_map_api_with_markup',
+      meals: 'not_available_via_ndc',
+      wifi: 'not_available_via_ndc',
+      insurance: 'requires_third_party',
+      lounge: 'requires_separate_integration',
+      priority: 'not_available_via_ndc',
+    };
+
     console.log('✅ ========================================');
-    console.log('✅ ANCILLARY SERVICES RESPONSE READY');
-    console.log(`✅ Total Services: ${response.meta.totalServices}`);
-    console.log(`✅ Baggage Options: ${baggageOptions.length} (${hasRealBaggage ? 'Real airline data' : 'Mock/estimated'})`);
-    console.log(`✅ Seat Options: ${response.data.seats.options.length} (Mock - use seat map for real data)`);
-    console.log(`✅ Meal Options: ${response.data.meals.options.length} (Mock)`);
-    console.log(`✅ WiFi Options: ${response.data.wifi.options.length} (Mock)`);
-    console.log(`✅ Insurance Options: ${response.data.insurance.options.length} (Mock)`);
-    console.log(`✅ Lounge Options: ${response.data.lounge.options.length} (Mock)`);
-    console.log(`✅ Priority Options: ${response.data.priority.options.length} (Mock)`);
+    console.log('✅ ANCILLARY RESPONSE (Production + Markup)');
+    console.log(`✅ Total Real Services: ${response.meta.totalRealServices}`);
+    console.log(`✅ Baggage: ${totalBaggageOptions} options (+25%)`);
+    console.log(`✅ CFAR: ${totalCFAROptions > 0 ? 'Available (+29%)' : 'Not available'}`);
+    console.log(`✅ Seats: Via seat map API (+25%)`);
+    console.log(`💰 Potential Profit: $${response.meta.potentialProfit}`);
     console.log('✅ ========================================');
 
     return NextResponse.json(response, {
@@ -150,7 +237,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('❌ Error fetching ancillaries:', error);
+    console.error('❌ Error in ancillaries API:', error);
 
     return NextResponse.json(
       {
@@ -161,286 +248,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Fetch baggage options - Real data from Duffel API if available, otherwise extracted/mock
- */
-async function fetchBaggageOptions(flightOffer: any) {
-  // Try fetching real baggage data from Duffel API for Duffel flights
-  if (flightOffer.source === 'Duffel' && duffelAPI.isAvailable() && flightOffer.id) {
-    try {
-      console.log('🧳 ========================================');
-      console.log('🧳 FETCHING REAL BAGGAGE FROM DUFFEL API');
-      console.log(`🧳 Offer ID: ${flightOffer.id}`);
-      const baggageResult = await duffelAPI.getBaggageOptions(flightOffer.id);
-
-      if (baggageResult.success && baggageResult.data && baggageResult.data.length > 0) {
-        console.log(`✅ SUCCESS: Found ${baggageResult.data.length} real baggage options from Duffel`);
-        baggageResult.data.forEach((bag: any, idx: number) => {
-          console.log(`   ${idx + 1}. ${bag.name} - ${bag.price.currency} ${bag.price.amount} (${bag.type})`);
-        });
-        console.log('🧳 ========================================');
-
-        // Transform to UI format
-        return baggageResult.data.map((baggage: any) => ({
-          id: baggage.id,
-          name: baggage.name,
-          description: baggage.description,
-          price: parseFloat(baggage.price.amount),
-          currency: baggage.price.currency,
-          isReal: true,
-          weight: baggage.weight,
-          quantity: baggage.quantity,
-          metadata: {
-            type: baggage.type,
-            isReal: true,
-            duffelServiceId: baggage.id,
-            perPassenger: true,
-            perSegment: baggage.segmentIds && baggage.segmentIds.length > 0,
-          },
-        }));
-      } else {
-        console.warn('⚠️  Duffel API returned no baggage data');
-        console.log('🧳 ========================================');
-      }
-    } catch (error: any) {
-      console.warn('⚠️  FAILED to fetch Duffel baggage, falling back to extracted/mock data');
-      console.warn(`   Error: ${error.message}`);
-      console.log('🧳 ========================================');
-    }
-  }
-
-  // Fallback to extracted baggage from fare details or mock data
-  console.log('🧳 Falling back to Amadeus fare details extraction...');
-  return extractBaggageOptions(flightOffer);
-}
-
-/**
- * Extract baggage options from fare details with REAL pricing when available
- */
-function extractBaggageOptions(flightOffer: any) {
-  const fareDetails = flightOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-  const includedBags = fareDetails?.includedCheckedBags?.quantity || 0;
-
-  // Find baggage amenities with real pricing
-  const baggageAmenities = fareDetails?.amenities?.filter(
-    (a: any) => a.amenityType === 'BAGGAGE' && a.isChargeable
-  ) || [];
-
-  console.log('🧳 ========================================');
-  console.log('🧳 EXTRACTING BAGGAGE FROM AMADEUS FARE DETAILS');
-  console.log(`🧳 Included checked bags: ${includedBags}`);
-  console.log(`🧳 Baggage amenities found in fare details: ${baggageAmenities.length}`);
-
-  const options = [];
-  const currency = flightOffer.price.currency;
-
-  // REAL DATA: Extract from amenities with actual prices
-  if (baggageAmenities.length > 0) {
-    console.log('✅ FOUND REAL BAGGAGE AMENITIES IN FARE:');
-    baggageAmenities.forEach((amenity: any, index: number) => {
-      const description = amenity.description || 'Checked baggage';
-      const price = amenity.price ? parseFloat(amenity.price) : (35 + index * 10);
-
-      console.log(`   ${index + 1}. ${description} - ${currency} ${price} ${amenity.price ? '✅ (Real price)' : '⚠️  (Estimated)'}`);
-
-      options.push({
-        id: `bag${index + 1}`,
-        name: `Checked Bag ${index + 1}`,
-        description: `${description} ✅`,
-        price: price,
-        currency: currency,
-        isReal: !!amenity.price,
-        metadata: {
-          type: 'checked',
-          isReal: !!amenity.price,
-          source: 'amadeus_amenities',
-        },
-      });
-    });
-    console.log(`✅ Extracted ${options.length} baggage options from Amadeus amenities`);
-    console.log('🧳 ========================================');
-  }
-
-  // FALLBACK: If no amenities, add standard options
-  if (options.length === 0) {
-    console.log('⚠️  NO BAGGAGE AMENITIES FOUND IN FARE DETAILS');
-    console.log('⚠️  Using standard estimated pricing:');
-
-    // Add first checked bag if not included
-    if (includedBags === 0) {
-      console.log(`   - Checked Bag 1: ${currency} 35 (Estimated)`);
-      options.push({
-        id: 'bag1',
-        name: 'Checked Bag 1',
-        description: 'Up to 23kg',
-        price: 35,
-        currency: currency,
-        isReal: false,
-        metadata: {
-          type: 'checked',
-          isReal: false,
-          source: 'estimated',
-        },
-      });
-    }
-
-    // Add second checked bag
-    console.log(`   - Checked Bag 2: ${currency} 45 (Estimated)`);
-    options.push({
-      id: 'bag2',
-      name: 'Checked Bag 2',
-      description: 'Up to 23kg',
-      price: 45,
-      currency: currency,
-      isReal: false,
-      metadata: {
-        type: 'checked',
-        isReal: false,
-        source: 'estimated',
-      },
-    });
-
-    // Add extra bag
-    console.log(`   - Extra Bag: ${currency} 65 (Estimated)`);
-    options.push({
-      id: 'bag3',
-      name: 'Extra Bag',
-      description: 'Up to 23kg',
-      price: 65,
-      currency: currency,
-      isReal: false,
-      metadata: {
-        type: 'checked',
-        isReal: false,
-        source: 'estimated',
-      },
-    });
-
-    console.log(`⚠️  Generated ${options.length} estimated baggage options`);
-    console.log('🧳 ========================================');
-  }
-
-  return options;
-}
-
-/**
- * Mock meals (not available in test API)
- */
-function getMockMeals(flightOffer: any) {
-  return [
-    {
-      id: 'standard-meal',
-      name: 'Standard Meal',
-      description: 'Hot meal + beverage',
-      price: 12,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-    {
-      id: 'premium-meal',
-      name: 'Premium Meal',
-      description: 'Upgraded dining',
-      price: 18,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-  ];
-}
-
-/**
- * Mock WiFi (not available in test API)
- */
-function getMockWifi(flightOffer: any) {
-  return [
-    {
-      id: 'wifi-basic',
-      name: 'In-flight WiFi',
-      description: 'Stay connected',
-      price: 12,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-  ];
-}
-
-/**
- * Mock insurance (requires 3rd party integration)
- */
-function getMockInsurance(flightOffer: any) {
-  const basePrice = parseFloat(flightOffer.price.total);
-
-  return [
-    {
-      id: 'basic-ins',
-      name: 'Basic Protection',
-      description: 'Trip cancellation + medical',
-      price: Math.round(basePrice * 0.05),
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-    {
-      id: 'standard-ins',
-      name: 'Standard Coverage',
-      description: 'Cancel for any reason + medical ($50k) + baggage',
-      price: Math.round(basePrice * 0.08),
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-    {
-      id: 'premium-ins',
-      name: 'Premium Coverage',
-      description: 'All benefits + emergency evacuation',
-      price: Math.round(basePrice * 0.12),
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-  ];
-}
-
-/**
- * Mock lounge access
- */
-function getMockLounge(flightOffer: any) {
-  // Extract airport codes from itinerary
-  const departureAirport =
-    flightOffer.itineraries?.[0]?.segments?.[0]?.departure?.iataCode || 'Airport';
-
-  return [
-    {
-      id: 'lounge',
-      name: `Airport Lounge (${departureAirport})`,
-      description: 'Relax before your flight',
-      price: 45,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-  ];
-}
-
-/**
- * Mock priority services
- */
-function getMockPriority(flightOffer: any) {
-  return [
-    {
-      id: 'priority',
-      name: 'Priority Boarding',
-      description: 'Board first',
-      price: 15,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-    {
-      id: 'fast-track',
-      name: 'Fast Track Security',
-      description: 'Skip the line',
-      price: 25,
-      currency: flightOffer.price.currency,
-      isReal: false,
-    },
-  ];
 }
 
 export const runtime = 'nodejs';

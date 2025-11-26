@@ -3918,3 +3918,285 @@ enum CardAuthStatus {
   REJECTED     // Rejected (fraud suspected)
   EXPIRED      // Not processed in time
 }
+
+// ==========================================
+// AIRLINE CONSOLIDATOR COMMISSION SYSTEM
+// Hybrid Routing Engine: Consolidator vs Duffel
+// Decision: If commission > $5 → Consolidator; else → Duffel
+// ==========================================
+
+// Airline commission contracts from consolidator (Downtown Travel)
+model AirlineContract {
+  id            String   @id @default(cuid())
+  airlineCode   String   // IATA code: "AA", "BA", "LH"
+  airlineName   String
+  allianceCode  String?  // "oneworld", "star_alliance", "skyteam"
+  ticketStock   String?  // e.g., "001" for AA, "125" for BA
+
+  // Contract validity
+  validFrom     DateTime
+  validTo       DateTime
+  isActive      Boolean  @default(true)
+
+  // Tour codes for commission claims
+  tourCode      String?
+  ticketDesignator String?
+
+  // Channel restrictions
+  gdsAllowed    Boolean  @default(true)
+  ndcAllowed    Boolean  @default(true)
+  ndcDirectAllowed Boolean @default(false)
+
+  // Notes
+  notes         String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  routes        AirlineCommissionRoute[]
+
+  @@unique([airlineCode, validFrom])
+  @@index([airlineCode])
+  @@index([isActive])
+  @@index([validFrom, validTo])
+  @@map("airline_contracts")
+}
+
+// Route-specific commission rules
+model AirlineCommissionRoute {
+  id              String   @id @default(cuid())
+  contractId      String
+  contract        AirlineContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Origin patterns
+  originType      AirlineRouteType @default(ANY)
+  originCodes     String[]  // ["JFK", "EWR"] or ["US"] or ["NORTH_AMERICA"]
+  originExclusions String[] // Airports/cities to exclude
+
+  // Destination patterns
+  destinationType AirlineRouteType @default(ANY)
+  destinationCodes String[]
+  destinationExclusions String[]
+
+  // Direction
+  bidirectional   Boolean  @default(true)
+
+  // Operator requirements
+  operatingCarrierRequired Boolean @default(false) // Must be airline-operated
+  marketingCarrierRequired Boolean @default(false) // Must be airline-marketed
+
+  // Interline rules
+  interlineAllowed Boolean @default(true)
+  interlineCommissionReduction Float? // e.g., -3 percentage points
+
+  // Validity (can override contract)
+  validFrom       DateTime?
+  validTo         DateTime?
+
+  // Tour code override
+  tourCodeOverride String?
+
+  // Priority for matching (higher = checked first)
+  priority        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  fareClasses     AirlineCommissionFareClass[]
+
+  @@index([contractId])
+  @@index([originCodes])
+  @@index([destinationCodes])
+  @@map("airline_commission_routes")
+}
+
+// Commission rates by fare class
+model AirlineCommissionFareClass {
+  id              String   @id @default(cuid())
+  routeId         String
+  route           AirlineCommissionRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  // Fare class matching
+  bookingCodes    String[] // ["F", "A", "J"] or ["Y", "B", "H", "K"]
+  cabinClass      CabinClass
+  fareFamily      String?  // "flex", "semi_flex", "basic", "light"
+
+  // Commission rates by season (percentage)
+  defaultPct      Float    // Used when no season specified
+  lowSeasonPct    Float?
+  shoulderSeasonPct Float?
+  highSeasonPct   Float?
+  peakSeasonPct   Float?
+
+  // Season date ranges (MM-DD format)
+  lowSeasonDates    Json?  // [{start: "01-01", end: "03-31"}, ...]
+  shoulderSeasonDates Json?
+  highSeasonDates   Json?
+  peakSeasonDates   Json?
+
+  // Blackout dates (0% commission)
+  blackoutDates   Json?    // [{start: "2025-05-26", end: "2025-06-03"}, ...]
+
+  // Special rules
+  infantCommission Boolean @default(false) // Infant fares commissionable?
+  childCommission  Boolean @default(true)  // Child fares commissionable?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([routeId])
+  @@index([cabinClass])
+  @@map("airline_commission_fare_classes")
+}
+
+// Exclusion rules (apply to all or specific airlines)
+model AirlineCommissionExclusion {
+  id              String   @id @default(cuid())
+  airlineCode     String?  // null = applies to ALL airlines
+
+  exclusionType   AirlineExclusionType
+  description     String
+
+  // Fare basis code rules
+  fareBasisRule   String?  // e.g., "7th_char_B" for Basic Economy
+  fareBasisPattern String? // Regex pattern
+
+  // Booking code rules
+  excludedBookingCodes String[] // e.g., ["G", "W"] for non-commissionable
+
+  // Fare family rules
+  excludedFareFamilies String[] // e.g., ["BASIC", "LIGHT", "QP", "SL"]
+
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([airlineCode])
+  @@index([exclusionType])
+  @@index([isActive])
+  @@map("airline_commission_exclusions")
+}
+
+// Geographic market definitions (for complex routing logic)
+model GeographicMarket {
+  id          String   @id @default(cuid())
+  marketCode  String   @unique // "AJB", "QASA", "LAC", "EMEAI"
+  marketName  String   // "Asia-Japan Business", "Latin America & Caribbean"
+
+  // Countries included
+  countryCodes String[] // ISO country codes
+
+  // Regions included
+  regions     String[]  // ["NORTH_AMERICA", "WESTERN_EUROPE"]
+
+  // Airport exceptions
+  includedAirports String[] // Specific airports to include
+  excludedAirports String[] // Specific airports to exclude
+
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("geographic_markets")
+}
+
+// LCC airlines (Duffel-only, no consolidator support)
+model LCCAirline {
+  id          String   @id @default(cuid())
+  airlineCode String   @unique // "NK", "F9", "G4", "WN"
+  airlineName String
+  notes       String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lcc_airlines")
+}
+
+// Routing decision audit log
+model RoutingDecision {
+  id              String   @id @default(cuid())
+
+  // Search context
+  searchId        String?  // Reference to search session
+  offerId         String   // Duffel or GDS offer ID
+
+  // Flight details
+  airlineCode     String
+  origin          String
+  destination     String
+  departureDate   DateTime
+  cabinClass      CabinClass
+  fareClass       String?
+  fareBasisCode   String?
+
+  // Pricing
+  baseFare        Float
+  totalFare       Float
+  currency        String   @default("USD")
+
+  // Commission calculation
+  commissionPct   Float?
+  commissionAmount Float?
+  isExcluded      Boolean  @default(false)
+  exclusionReason String?
+
+  // Routing decision
+  routingChannel  RoutingChannel
+  estimatedProfit Float
+  decisionReason  String   // "high_commission", "lcc_airline", "basic_economy", etc.
+
+  // Comparison data
+  duffelProfit    Float?   // Profit if booked via Duffel
+  consolidatorProfit Float? // Profit if booked via Consolidator
+
+  // Was booking completed?
+  bookingId       String?  // Reference to booking if completed
+  wasBooked       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@index([airlineCode])
+  @@index([routingChannel])
+  @@index([createdAt])
+  @@index([searchId])
+  @@map("routing_decisions")
+}
+
+// Enums for airline commission system
+enum AirlineRouteType {
+  ANY           // Any origin/destination
+  AIRPORT       // Specific airport codes
+  CITY          // City codes
+  COUNTRY       // Country codes
+  REGION        // Geographic regions
+  MARKET        // Custom market definitions
+}
+
+enum CabinClass {
+  FIRST
+  BUSINESS
+  PREMIUM_ECONOMY
+  ECONOMY
+}
+
+enum AirlineExclusionType {
+  BASIC_ECONOMY      // 7th char = B
+  LIGHT_FARE         // Light/Basic fare families
+  GROUP_FARE         // 10+ passengers
+  NET_FARE           // Net/negotiated rates
+  CORPORATE_FARE     // Corporate contracted rates
+  MILITARY_FARE      // Military/government
+  INFANT_FARE        // INF fare type
+  WEB_FARE           // Web-only fares
+  PROMO_FARE         // Special promotions
+  NON_REVENUE        // Staff/industry fares
+}
+
+enum RoutingChannel {
+  DUFFEL         // Book via Duffel API
+  CONSOLIDATOR   // Book via Downtown Travel GDS
+}

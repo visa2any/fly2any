@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bookingStorage, calculateRefund, canModifyBooking } from '@/lib/bookings/storage';
 import type { Booking, BookingStatus, BookingSearchParams, APIResponse, CancellationResult } from '@/lib/bookings/types';
+import { getFlightRoutingDecision, type BookingRouteResult } from '@/lib/routing';
 
 /**
  * GET /api/bookings
@@ -160,6 +161,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
+    // 🎯 ROUTING DECISION: Determine which booking channel to use
+    // Look up cached routing decision from search session
+    const routingSessionId = body.routingSessionId || body._routingSessionId;
+    const flightId = flight.id || flight.offerId;
+    let routingDecision: BookingRouteResult | null = null;
+    let bookingChannel: 'DUFFEL' | 'CONSOLIDATOR' = 'DUFFEL'; // Default
+
+    if (routingSessionId && flightId) {
+      routingDecision = await getFlightRoutingDecision(routingSessionId, flightId);
+      bookingChannel = routingDecision.channel;
+      console.log(`[Booking] Routing decision for ${flightId}: ${bookingChannel} (${routingDecision.reason})`);
+    } else {
+      console.log('[Booking] No routing session - defaulting to DUFFEL');
+    }
+
     // Create booking using storage layer
     const bookingData = {
       status: 'confirmed' as BookingStatus,
@@ -176,13 +192,38 @@ export async function POST(request: NextRequest) {
       specialRequests,
       notes,
       refundPolicy,
+      // 🎯 Store routing channel for tracking/accounting
+      routingChannel: bookingChannel,
+      routingInfo: routingDecision?.routing ? {
+        channel: routingDecision.channel,
+        commissionPct: routingDecision.routing.commissionPct,
+        commissionAmount: routingDecision.routing.commissionAmount,
+        estimatedProfit: routingDecision.routing.estimatedProfit,
+        tourCode: routingDecision.routing.tourCode,
+        decisionReason: routingDecision.reason,
+      } : null,
     };
 
     const newBooking = await bookingStorage.create(bookingData);
 
+    // 🎯 CHANNEL-SPECIFIC BOOKING FLOW
+    // Route to appropriate booking system based on routing decision
+    if (bookingChannel === 'CONSOLIDATOR') {
+      // TODO: Create GDS booking with tour code
+      // 1. Create PNR in GDS (Amadeus/Sabre)
+      // 2. Apply tour code for commission tracking
+      // 3. Issue ticket on consolidator stock
+      console.log(`[Booking] Creating CONSOLIDATOR booking with tour code: ${routingDecision?.routing?.tourCode}`);
+    } else {
+      // TODO: Create Duffel order
+      // 1. Call Duffel order creation API
+      // 2. Process payment through Duffel
+      console.log('[Booking] Creating DUFFEL booking');
+    }
+
     // In production, this would also:
     // 1. Process payment via Stripe/PayPal
-    // 2. Create booking in Amadeus
+    // 2. Create booking in Amadeus/Duffel (based on routing)
     // 3. Send confirmation email
     // 4. Generate e-tickets
 

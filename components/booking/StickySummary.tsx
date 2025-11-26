@@ -160,15 +160,21 @@ export function StickySummary({
           </span>
         </div>
 
-        {/* Taxes & Fees */}
+        {/* Taxes & Fees - Show "Included" if 0 (DOT-compliant all-in pricing) */}
         <div className="flex justify-between items-center mb-1.5">
           <div className="flex items-center gap-2">
             <Receipt className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
             <span className="text-xs text-gray-700">Taxes & Fees</span>
           </div>
-          <span className="text-xs font-semibold text-gray-900">
-            {currency} {taxesAndFees.toFixed(2)}
-          </span>
+          {taxesAndFees > 0 ? (
+            <span className="text-xs font-semibold text-gray-900">
+              {currency} {taxesAndFees.toFixed(2)}
+            </span>
+          ) : (
+            <span className="text-xs font-semibold text-green-600">
+              ✓ Included in fare
+            </span>
+          )}
         </div>
 
         {/* Total */}

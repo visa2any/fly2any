@@ -26,6 +26,7 @@ import {
   Search,
   CreditCard,
   PiggyBank,
+  GitBranch,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -73,6 +74,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'AI Analytics',
       href: '/admin/ai-analytics',
       icon: Brain
+    },
+    {
+      label: 'Routing Engine',
+      href: '/admin/routing',
+      icon: GitBranch,
+      roles: ['super_admin', 'admin']
     },
     {
       label: 'SEO Monitoring',

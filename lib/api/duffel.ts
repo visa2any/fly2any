@@ -1,5 +1,6 @@
 import { Duffel } from '@duffel/api';
 import axios from 'axios';
+import { applyMarkup } from '@/lib/config/ancillary-markup';
 
 /**
  * Duffel API Client
@@ -601,7 +602,7 @@ class DuffelAPI {
       });
 
       console.log(`✅ SUCCESS: Parsed ${standardizedSeatMaps.length} seat map(s) with REAL airline data`);
-      console.log(`   💰 Seat pricing: REAL from airline API`);
+      console.log(`   💰 Seat pricing: REAL from airline API + 25% markup`);
       console.log(`   🪑 Seat availability: REAL-TIME from airline`);
       console.log('🪑 ========================================');
 
@@ -611,6 +612,8 @@ class DuffelAPI {
           hasRealData: true,
           source: 'Duffel',
           count: standardizedSeatMaps.length,
+          markupApplied: true,
+          markupPercentage: 25,
         },
       };
     } catch (error: any) {
@@ -660,16 +663,31 @@ class DuffelAPI {
               }
 
               // Convert Duffel seat to Amadeus-like format
+              // Apply 25% markup to seat prices
               const seat = {
                 number: element.designator, // e.g., "12A"
                 column: element.designator?.match(/[A-Z]+/)?.[0] || '',
-                travelerPricing: element.available_services?.map((service: any) => ({
-                  seatAvailabilityStatus: element.available_services.length > 0 ? 'AVAILABLE' : 'BLOCKED',
-                  price: service.total_amount ? {
-                    total: service.total_amount,
-                    currency: service.total_currency,
-                  } : null,
-                })) || [{
+                travelerPricing: element.available_services?.map((service: any) => {
+                  // Apply 25% markup to seat prices
+                  if (service.total_amount) {
+                    const netPrice = parseFloat(service.total_amount);
+                    const markup = applyMarkup(netPrice, 'seats');
+                    return {
+                      seatAvailabilityStatus: element.available_services.length > 0 ? 'AVAILABLE' : 'BLOCKED',
+                      price: {
+                        total: markup.customerPrice.toFixed(2), // Customer price with markup
+                        currency: service.total_currency,
+                        netPrice: markup.netPrice, // Internal tracking
+                        markupApplied: true,
+                        markupPercentage: markup.markupPercentage,
+                      },
+                    };
+                  }
+                  return {
+                    seatAvailabilityStatus: element.available_services.length > 0 ? 'AVAILABLE' : 'BLOCKED',
+                    price: null,
+                  };
+                }) || [{
                   seatAvailabilityStatus: 'BLOCKED',
                   price: null,
                 }],
@@ -1338,94 +1356,241 @@ class DuffelAPI {
   }
 
   /**
-   * Get Baggage Options from Duffel Offer
+   * Get ALL Available Services from Duffel Offer
    *
-   * Extracts available baggage services from a Duffel offer's available_services.
-   * Returns standardized baggage options with pricing per segment and per passenger.
+   * PRODUCTION-READY: Uses direct HTTP with return_available_services=true
+   * to fetch ALL real services from Duffel (baggage, seats, CFAR).
    *
    * @param offerId - The Duffel offer ID
-   * @returns Standardized baggage options with pricing
+   * @returns All available services with proper categorization
    */
-  async getBaggageOptions(offerId: string) {
+  async getAllAvailableServices(offerId: string) {
     if (!this.isInitialized) {
-      console.warn('Duffel API not initialized - returning empty baggage options');
+      console.warn('Duffel API not initialized - returning empty services');
       return {
         success: false,
-        data: [],
+        data: { baggage: [], cfar: [], seats: [] },
         error: 'Duffel API not initialized',
       };
     }
 
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) {
+      return {
+        success: false,
+        data: { baggage: [], cfar: [], seats: [] },
+        error: 'DUFFEL_ACCESS_TOKEN not configured',
+      };
+    }
+
     try {
-      console.log(`Fetching baggage options for Duffel offer: ${offerId}`);
+      console.log('🎁 ========================================');
+      console.log(`🎁 FETCHING ALL AVAILABLE SERVICES (Production)`);
+      console.log(`🎁 Offer ID: ${offerId}`);
+      console.log(`🎁 Using: return_available_services=true`);
 
-      // Fetch the offer details
-      const offer = await this.client.offers.get(offerId);
-
-      if (!offer.data) {
-        throw new Error('Offer not found');
-      }
-
-      const availableServices = offer.data.available_services || [];
-
-      // Filter for baggage services
-      const baggageServices = availableServices.filter(
-        (service: any) => service.type === 'baggage'
+      // CRITICAL: Use direct HTTP with return_available_services=true
+      // The SDK's offers.get() does NOT include available_services by default!
+      const response = await axios.get(
+        `https://api.duffel.com/air/offers/${offerId}`,
+        {
+          params: { return_available_services: true },
+          headers: {
+            'Accept-Encoding': 'gzip',
+            'Accept': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+          timeout: 30000,
+        }
       );
 
-      console.log(`Found ${baggageServices.length} baggage services`);
+      const offer = response.data?.data;
+      if (!offer) {
+        throw new Error('Offer not found in response');
+      }
 
-      // Transform to standardized format
-      const baggageOptions = baggageServices.map((service: any) => {
-        const metadata = service.metadata || {};
-        const weight = metadata.maximum_weight_kg || metadata.weight_kg || 23;
-        const type = metadata.type || 'checked'; // 'checked' or 'carry_on'
+      const availableServices = offer.available_services || [];
+      console.log(`✅ Found ${availableServices.length} total available services`);
 
-        return {
-          id: service.id,
-          type: type, // 'checked' or 'carry_on'
-          name: metadata.title || `Checked Bag (${weight}kg)`,
-          description: metadata.description || `Baggage up to ${weight}kg`,
-          weight: {
-            value: weight,
-            unit: 'kg',
-          },
-          price: {
-            amount: service.total_amount,
-            currency: service.total_currency,
-          },
-          quantity: {
-            min: metadata.minimum_quantity || 0,
-            max: metadata.maximum_quantity || 5,
-          },
-          segmentIds: service.segment_ids || [], // Which segments this applies to
-          passengerIds: service.passenger_ids || [], // Which passengers this applies to
-          metadata: {
-            duffelServiceId: service.id,
-            maximumLength: metadata.maximum_length_cm,
-            maximumWidth: metadata.maximum_width_cm,
-            maximumHeight: metadata.maximum_height_cm,
-          },
-        };
-      });
+      // Categorize services by type
+      const baggage: any[] = [];
+      const cfar: any[] = [];
+      const seats: any[] = [];
+
+      for (const service of availableServices) {
+        if (service.type === 'baggage') {
+          const metadata = service.metadata || {};
+          const weight = metadata.maximum_weight_kg || metadata.weight_kg || 23;
+
+          baggage.push({
+            id: service.id,
+            type: metadata.type || 'checked',
+            name: metadata.title || `Checked Bag (${weight}kg)`,
+            description: metadata.description || `Baggage up to ${weight}kg`,
+            weight: { value: weight, unit: 'kg' },
+            price: {
+              amount: service.total_amount,
+              currency: service.total_currency,
+            },
+            quantity: {
+              min: metadata.minimum_quantity || 0,
+              max: metadata.maximum_quantity || 5,
+            },
+            segmentIds: service.segment_ids || [],
+            passengerIds: service.passenger_ids || [],
+            isReal: true,
+            metadata: {
+              duffelServiceId: service.id,
+              maximumLength: metadata.maximum_length_cm,
+              maximumWidth: metadata.maximum_width_cm,
+              maximumHeight: metadata.maximum_height_cm,
+            },
+          });
+        } else if (service.type === 'cancel_for_any_reason') {
+          // CFAR - Cancel For Any Reason protection
+          const metadata = service.metadata || {};
+          cfar.push({
+            id: service.id,
+            type: 'cancel_for_any_reason',
+            name: 'Cancel For Any Reason',
+            description: metadata.description || 'Cancel your flight for any reason and receive a partial refund (typically 75-80%)',
+            price: {
+              amount: service.total_amount,
+              currency: service.total_currency,
+            },
+            refundPercentage: metadata.refund_percentage || 80,
+            terms: metadata.terms || 'Refund available up to 24 hours before departure',
+            segmentIds: service.segment_ids || [],
+            passengerIds: service.passenger_ids || [],
+            isReal: true,
+            metadata: {
+              duffelServiceId: service.id,
+              ...metadata,
+            },
+          });
+        } else if (service.type === 'seat') {
+          // Seat services (basic info - full seat maps from /seat_maps endpoint)
+          seats.push({
+            id: service.id,
+            type: 'seat',
+            designator: service.metadata?.designator,
+            name: service.metadata?.name || 'Seat Selection',
+            price: {
+              amount: service.total_amount,
+              currency: service.total_currency,
+            },
+            segmentIds: service.segment_ids || [],
+            passengerIds: service.passenger_ids || [],
+            isReal: true,
+          });
+        }
+      }
+
+      console.log(`   🧳 Baggage services: ${baggage.length}`);
+      console.log(`   🛡️  CFAR services: ${cfar.length}`);
+      console.log(`   💺 Seat services: ${seats.length}`);
+      console.log('🎁 ========================================');
 
       return {
         success: true,
-        data: baggageOptions,
+        data: {
+          baggage,
+          cfar,
+          seats,
+        },
         meta: {
-          offerId: offerId,
-          totalServices: baggageOptions.length,
-          currency: baggageOptions[0]?.price.currency || 'USD',
+          offerId,
+          totalServices: availableServices.length,
+          hasBaggage: baggage.length > 0,
+          hasCFAR: cfar.length > 0,
+          hasSeats: seats.length > 0,
+          currency: offer.total_currency,
+          isRealData: true,
         },
       };
     } catch (error: any) {
-      console.error('Error fetching Duffel baggage options:', error.message);
+      console.error('❌ Error fetching Duffel available services:', error.message);
+
+      if (axios.isAxiosError(error)) {
+        console.error('   HTTP Status:', error.response?.status);
+        console.error('   Response:', error.response?.data);
+      }
+
+      return {
+        success: false,
+        data: { baggage: [], cfar: [], seats: [] },
+        error: error.message || 'Failed to fetch available services',
+      };
+    }
+  }
+
+  /**
+   * Get Baggage Options from Duffel Offer
+   *
+   * PRODUCTION-READY: Uses getAllAvailableServices with return_available_services=true
+   *
+   * @param offerId - The Duffel offer ID
+   * @returns Standardized baggage options with REAL pricing
+   */
+  async getBaggageOptions(offerId: string) {
+    const result = await this.getAllAvailableServices(offerId);
+
+    if (!result.success) {
       return {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch baggage options',
+        error: result.error,
       };
     }
+
+    return {
+      success: true,
+      data: result.data.baggage,
+      meta: {
+        offerId,
+        totalServices: result.data.baggage.length,
+        currency: result.meta?.currency || 'USD',
+        isRealData: true,
+      },
+    };
+  }
+
+  /**
+   * Get Cancel For Any Reason (CFAR) Options
+   *
+   * CFAR allows customers to cancel for ANY reason and get partial refund (75-80%)
+   * This is a high-value upsell that Duffel provides for some airlines.
+   *
+   * @param offerId - The Duffel offer ID
+   * @returns CFAR options with pricing
+   */
+  async getCFAROptions(offerId: string) {
+    const result = await this.getAllAvailableServices(offerId);
+
+    if (!result.success) {
+      return {
+        success: false,
+        data: [],
+        available: false,
+        error: result.error,
+      };
+    }
+
+    const hasCFAR = result.data.cfar.length > 0;
+
+    return {
+      success: true,
+      data: result.data.cfar,
+      available: hasCFAR,
+      meta: {
+        offerId,
+        message: hasCFAR
+          ? 'Cancel For Any Reason protection is available for this flight'
+          : 'CFAR not available for this airline/route',
+        isRealData: true,
+      },
+    };
   }
 
   /**

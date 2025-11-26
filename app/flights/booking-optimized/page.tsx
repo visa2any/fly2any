@@ -896,6 +896,7 @@ function BookingPageContent() {
     if (!flightData) return { farePrice: 0, addOns: [], taxesAndFees: 0 };
 
     const selectedFare = fareOptions.find(f => f.id === selectedFareId);
+    // IMPORTANT: farePrice from API ALREADY includes all taxes and fees (DOT-compliant all-in pricing)
     const farePrice = selectedFare?.price || parseFloat(flightData.price.total);
 
     const addOns: { label: string; amount: number; subtext?: string }[] = [];
@@ -922,8 +923,12 @@ function BookingPageContent() {
       });
     });
 
-    const subtotal = farePrice + addOns.reduce((sum, item) => sum + item.amount, 0);
-    const taxesAndFees = subtotal * 0.14; // 14% taxes & fees
+    // CRITICAL FIX: DO NOT add additional taxes on top of fare price!
+    // The farePrice from Duffel/Amadeus API already includes all taxes and fees.
+    // Adding 14% was causing DOUBLE-TAXATION (showing $1000 flight as $1140).
+    // Only add-ons need tax calculation (if applicable)
+    const addOnsSubtotal = addOns.reduce((sum, item) => sum + item.amount, 0);
+    const taxesAndFees = 0; // Taxes already included in farePrice
 
     return { farePrice, addOns, taxesAndFees };
   };

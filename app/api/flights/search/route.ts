@@ -37,6 +37,32 @@ import {
 } from '@/lib/flights/mixed-carrier-combiner';
 import { normalizePrice } from '@/lib/flights/types';
 
+// Hybrid Routing Engine - Consolidator vs Duffel optimization
+import {
+  getRoutingEngine,
+  duffelOfferToSegments,
+  extractDuffelBaseFare,
+  type EnrichedFlightOffer,
+  type FlightSegment as RoutingFlightSegment,
+} from '@/lib/routing';
+import type { CabinClass, RoutingChannel } from '@prisma/client';
+
+// Routing info added to each flight
+interface FlightRoutingInfo {
+  channel: RoutingChannel;
+  estimatedProfit: number;
+  commissionPct: number;
+  commissionAmount: number;
+  isExcluded: boolean;
+  exclusionReason?: string;
+  decisionReason: string;
+}
+
+// Extended scored flight with routing
+interface ScoredFlightWithRouting extends ScoredFlight {
+  routing?: FlightRoutingInfo;
+}
+
 /**
  * Generate date range for flexible dates
  */
@@ -95,6 +121,161 @@ function deduplicateFlights(flights: FlightOffer[]): FlightOffer[] {
   }
 
   return Array.from(flightMap.values());
+}
+
+/**
+ * Convert FlightOffer segments to routing engine format
+ */
+function flightOfferToRoutingSegments(flight: FlightOffer | ScoredFlight): RoutingFlightSegment[] {
+  const segments: RoutingFlightSegment[] = [];
+
+  for (const itinerary of flight.itineraries || []) {
+    for (const seg of itinerary.segments || []) {
+      // Get cabin class from traveler pricing if available
+      let cabinClass: CabinClass = 'ECONOMY';
+      let fareClass: string | undefined;
+      let fareBasisCode: string | undefined;
+
+      const travelerPricing = flight.travelerPricings?.[0];
+      if (travelerPricing?.fareDetailsBySegment) {
+        const fareDetails = travelerPricing.fareDetailsBySegment.find(
+          (fd: any) => fd.segmentId === seg.number || fd.segmentId === `${seg.carrierCode}${seg.number}`
+        ) || travelerPricing.fareDetailsBySegment[0];
+
+        if (fareDetails) {
+          cabinClass = (fareDetails.cabin as CabinClass) || 'ECONOMY';
+          fareClass = fareDetails.class;
+          fareBasisCode = fareDetails.fareBasis;
+        }
+      }
+
+      segments.push({
+        airlineCode: seg.carrierCode,
+        origin: seg.departure.iataCode,
+        destination: seg.arrival.iataCode,
+        departureDate: new Date(seg.departure.at),
+        cabinClass,
+        fareClass,
+        fareBasisCode,
+        operatingCarrier: seg.operating?.carrierCode,
+        marketingCarrier: seg.carrierCode,
+      });
+    }
+  }
+
+  return segments;
+}
+
+/**
+ * Extract base fare from flight offer
+ * Base fare = total - taxes
+ */
+function extractBaseFare(flight: FlightOffer | ScoredFlight): number {
+  const total = parseFloat(String(flight.price?.total || '0'));
+
+  // Try to get base from traveler pricing first (more accurate)
+  if (flight.travelerPricings?.length) {
+    const baseTotal = flight.travelerPricings.reduce((sum, tp) => {
+      return sum + parseFloat(String(tp.price?.base || '0'));
+    }, 0);
+    if (baseTotal > 0) return baseTotal;
+  }
+
+  // Fall back to price.base
+  const base = parseFloat(String(flight.price?.base || '0'));
+  if (base > 0) return base;
+
+  // Estimate base as ~85% of total if no base available
+  return total * 0.85;
+}
+
+/**
+ * Enrich flights with routing channel information
+ * Determines CONSOLIDATOR vs DUFFEL for each flight
+ */
+async function enrichFlightsWithRouting(
+  flights: ScoredFlight[],
+  searchId?: string
+): Promise<ScoredFlightWithRouting[]> {
+  if (!flights.length) return flights;
+
+  const engine = getRoutingEngine({ searchId, logDecisions: true });
+  const enrichedFlights: ScoredFlightWithRouting[] = [];
+
+  // Process in batches to avoid overwhelming the database
+  const BATCH_SIZE = 20;
+  for (let i = 0; i < flights.length; i += BATCH_SIZE) {
+    const batch = flights.slice(i, i + BATCH_SIZE);
+
+    const batchResults = await Promise.all(
+      batch.map(async (flight) => {
+        try {
+          const segments = flightOfferToRoutingSegments(flight);
+          const baseFare = extractBaseFare(flight);
+          const totalFare = parseFloat(String(flight.price?.total || '0'));
+
+          // Skip if no segments or invalid fare
+          if (!segments.length || totalFare <= 0) {
+            return { ...flight, routing: undefined };
+          }
+
+          const enriched = await engine.enrichOffer(
+            flight.id,
+            (flight.source?.toLowerCase() as 'duffel' | 'amadeus' | 'consolidator') || 'amadeus',
+            flight,
+            segments,
+            baseFare,
+            totalFare,
+            flight.price?.currency || 'USD'
+          );
+
+          return {
+            ...flight,
+            routing: {
+              channel: enriched.routing.channel,
+              estimatedProfit: enriched.routing.estimatedProfit,
+              commissionPct: enriched.routing.commissionPct,
+              commissionAmount: enriched.routing.commissionAmount,
+              isExcluded: enriched.routing.isExcluded,
+              exclusionReason: enriched.routing.exclusionReason,
+              decisionReason: enriched.routing.decisionReason,
+            } as FlightRoutingInfo,
+          };
+        } catch (err) {
+          console.error(`[Routing] Failed to enrich flight ${flight.id}:`, err);
+          return { ...flight, routing: undefined };
+        }
+      })
+    );
+
+    enrichedFlights.push(...batchResults);
+  }
+
+  return enrichedFlights;
+}
+
+/**
+ * Get routing summary statistics
+ */
+function getRoutingSummary(flights: ScoredFlightWithRouting[]): {
+  total: number;
+  consolidator: number;
+  duffel: number;
+  totalEstimatedProfit: number;
+  avgProfit: number;
+} {
+  const withRouting = flights.filter(f => f.routing);
+  const consolidator = withRouting.filter(f => f.routing?.channel === 'CONSOLIDATOR');
+  const duffel = withRouting.filter(f => f.routing?.channel === 'DUFFEL');
+  const totalProfit = withRouting.reduce((sum, f) => sum + (f.routing?.estimatedProfit || 0), 0);
+
+  return {
+    total: withRouting.length,
+    consolidator: consolidator.length,
+    duffel: duffel.length,
+    totalEstimatedProfit: Math.round(totalProfit * 100) / 100,
+    avgProfit: withRouting.length ? Math.round((totalProfit / withRouting.length) * 100) / 100 : 0,
+  };
 }
 
 /**
@@ -923,9 +1104,17 @@ export async function POST(request: NextRequest) {
       badges: getFlightBadges(flight, scoredFlights)
     }));
 
+    // 🎯 Hybrid Routing: Enrich flights with CONSOLIDATOR vs DUFFEL routing decisions
+    // This determines the optimal booking channel for each flight based on commission analysis
+    const searchSessionId = `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const routedFlights = await enrichFlightsWithRouting(scoredFlights, searchSessionId);
+    const routingSummary = getRoutingSummary(routedFlights);
+
+    console.log(`  🎯 Routing Summary: ${routingSummary.consolidator} Consolidator, ${routingSummary.duffel} Duffel, $${routingSummary.totalEstimatedProfit} total profit`);
+
     // Sort flights by requested criteria (default: best)
     const sortBy = (body.sortBy as 'best' | 'cheapest' | 'fastest' | 'overall') || 'best';
-    const sortedFlights = sortFlights(scoredFlights, sortBy);
+    const sortedFlights = sortFlights(routedFlights as ScoredFlight[], sortBy);
 
     // 🧠 ML: Get optimal cache TTL based on route characteristics
     const cachePrediction = await smartCachePredictor.predictOptimalTTL(
@@ -950,11 +1139,31 @@ export async function POST(request: NextRequest) {
         : 'Try adjusting your travel dates or check nearby airports for more options.'
     } : undefined;
 
-    // Build response with metadata
+    // 🔒 INTERNAL: Store routing data separately (NOT sent to customer)
+    // This data is used by booking flow to route to correct channel
+    const internalRoutingData = {
+      sessionId: searchSessionId,
+      summary: routingSummary,
+      // Map of flightId -> routing info for booking flow lookup
+      flightRouting: Object.fromEntries(
+        routedFlights
+          .filter(f => f.routing)
+          .map(f => [f.id, f.routing])
+      ),
+    };
+
+    // Strip internal routing data from flights before sending to customer
+    // Customer sees same prices - they don't need to know which channel we use
+    const customerFlights = sortedFlights.map(flight => {
+      const { routing, ...customerFlight } = flight as ScoredFlightWithRouting;
+      return customerFlight;
+    });
+
+    // Build response with metadata (customer-facing - NO routing data)
     const response = {
-      flights: sortedFlights,
+      flights: customerFlights,
       metadata: {
-        total: sortedFlights.length,
+        total: customerFlights.length,
         searchParams: flightSearchParams,
         sortedBy: sortBy,
         dictionaries: dictionaries,
@@ -978,8 +1187,15 @@ export async function POST(request: NextRequest) {
           cacheConfidence: cachePrediction.confidence,
           cacheReason: cachePrediction.reason,
         },
+        // 🔒 Routing info stored internally, NOT exposed to customer
+        _routingSessionId: searchSessionId, // Only session ID for booking lookup
       }
     };
+
+    // 🔒 Cache internal routing data separately for booking flow
+    // When customer clicks "Book", we look up which channel to use
+    const routingCacheKey = `routing:${searchSessionId}`;
+    await setCache(routingCacheKey, internalRoutingData, 3600); // 1 hour TTL
 
     // Store in cache with ML-optimized TTL (convert minutes to seconds)
     const cacheTTLSeconds = cachePrediction.recommendedTTL * 60;
