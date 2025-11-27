@@ -341,9 +341,27 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
     fetchHotels();
   }, [activeFilter]);
 
-  // Memoize click handler to prevent recreating on every render
-  const handleHotelClick = useCallback((hotelId: string) => {
-    window.open(`/hotels/${hotelId}`, '_blank');
+  // Memoize click handler with default search context
+  const handleHotelClick = useCallback((hotelId: string, hotel?: any) => {
+    // Default dates: 2 weeks from now, 3-night stay
+    const checkIn = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const checkOut = new Date(Date.now() + 17 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const adults = 2;
+
+    // Build URL with search context
+    const params = new URLSearchParams({
+      checkIn,
+      checkOut,
+      adults: adults.toString(),
+      children: '0',
+    });
+
+    // Add rate ID if available from hotel data
+    if (hotel?.rates?.[0]?.id) {
+      params.set('rateId', hotel.rates[0].id);
+    }
+
+    window.open(`/hotels/${hotelId}?${params.toString()}`, '_blank');
   }, []);
 
   return (
@@ -355,7 +373,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
           <p className="text-sm text-gray-600">{t.subtitle}</p>
         </div>
         <button
-          onClick={() => window.open('/hotels/search', '_blank')}
+          onClick={() => window.open('/hotels', '_blank')}
           className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
         >
           {t.viewAll} →
@@ -410,7 +428,7 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
                 isHovered={hoveredId === hotel.id}
                 onMouseEnter={() => setHoveredId(hotel.id)}
                 onMouseLeave={() => setHoveredId(null)}
-                onClick={() => handleHotelClick(hotel.id)}
+                onClick={() => handleHotelClick(hotel.id, hotel)}
                 t={t}
               />
             ))}

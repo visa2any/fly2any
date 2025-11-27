@@ -1,39 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { amadeusAPI } from '@/lib/api/amadeus';
+import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache/helpers';
 
-// Mark this route as dynamic (it uses request params)
 export const dynamic = 'force-dynamic';
 
-// Helper function to extract airport/city code from various formats
+// City code to coordinates mapping
+const CITY_CODE_COORDINATES: Record<string, { lat: number; lng: number; country: string }> = {
+  // US Cities
+  'NYC': { lat: 40.7128, lng: -74.0060, country: 'US' },
+  'LAX': { lat: 34.0522, lng: -118.2437, country: 'US' },
+  'CHI': { lat: 41.8781, lng: -87.6298, country: 'US' },
+  'MIA': { lat: 25.7617, lng: -80.1918, country: 'US' },
+  'SFO': { lat: 37.7749, lng: -122.4194, country: 'US' },
+  'LAS': { lat: 36.1699, lng: -115.1398, country: 'US' },
+  'SEA': { lat: 47.6062, lng: -122.3321, country: 'US' },
+  'BOS': { lat: 42.3601, lng: -71.0589, country: 'US' },
+  'DEN': { lat: 39.7392, lng: -104.9903, country: 'US' },
+  'ATL': { lat: 33.7490, lng: -84.3880, country: 'US' },
+  'MCO': { lat: 28.5383, lng: -81.3792, country: 'US' },
+  'IAH': { lat: 29.7604, lng: -95.3698, country: 'US' },
+  'DFW': { lat: 32.7767, lng: -96.7970, country: 'US' },
+  'PHX': { lat: 33.4484, lng: -112.0740, country: 'US' },
+  'SAN': { lat: 32.7157, lng: -117.1611, country: 'US' },
+  'DCA': { lat: 38.9072, lng: -77.0369, country: 'US' },
+  'JFK': { lat: 40.6413, lng: -73.7781, country: 'US' },
+  'EWR': { lat: 40.6895, lng: -74.1745, country: 'US' },
+  // International
+  'LON': { lat: 51.5074, lng: -0.1278, country: 'GB' },
+  'LHR': { lat: 51.4700, lng: -0.4543, country: 'GB' },
+  'PAR': { lat: 48.8566, lng: 2.3522, country: 'FR' },
+  'CDG': { lat: 49.0097, lng: 2.5479, country: 'FR' },
+  'ROM': { lat: 41.9028, lng: 12.4964, country: 'IT' },
+  'FCO': { lat: 41.8003, lng: 12.2389, country: 'IT' },
+  'BCN': { lat: 41.3851, lng: 2.1734, country: 'ES' },
+  'TYO': { lat: 35.6762, lng: 139.6503, country: 'JP' },
+  'NRT': { lat: 35.7720, lng: 140.3929, country: 'JP' },
+  'DXB': { lat: 25.2048, lng: 55.2708, country: 'AE' },
+  'SIN': { lat: 1.3521, lng: 103.8198, country: 'SG' },
+  'HKG': { lat: 22.3193, lng: 114.1694, country: 'HK' },
+  'SYD': { lat: -33.8688, lng: 151.2093, country: 'AU' },
+  'CUN': { lat: 21.1619, lng: -86.8515, country: 'MX' },
+  'YYZ': { lat: 43.6532, lng: -79.3832, country: 'CA' },
+  'AMS': { lat: 52.3676, lng: 4.9041, country: 'NL' },
+  'BER': { lat: 52.5200, lng: 13.4050, country: 'DE' },
+  'MAD': { lat: 40.4168, lng: -3.7038, country: 'ES' },
+  'LIS': { lat: 38.7223, lng: -9.1393, country: 'PT' },
+  'BKK': { lat: 13.7563, lng: 100.5018, country: 'TH' },
+  'DPS': { lat: -8.3405, lng: 115.0920, country: 'ID' },
+};
+
 function extractCityCode(value: string | null): string {
   if (!value) return '';
-
   const trimmed = value.trim();
 
-  // Handle comma-separated codes (extract first code only)
   if (trimmed.includes(',')) {
     const firstCode = trimmed.split(',')[0].trim();
-    return extractCityCode(firstCode); // Recursively process first code
+    return extractCityCode(firstCode);
   }
 
-  // If already a 3-letter code, return as-is
   if (/^[A-Z]{3}$/i.test(trimmed)) {
     return trimmed.toUpperCase();
   }
 
-  // Extract code from formats like "London (LHR)" or "LHR - London"
   const codeMatch = trimmed.match(/\(([A-Z]{3})\)|^([A-Z]{3})\s*-/i);
   if (codeMatch) {
     return (codeMatch[1] || codeMatch[2]).toUpperCase();
   }
 
-  // Return original if no pattern matches
   return trimmed.toUpperCase();
 }
 
 export async function GET(request: NextRequest) {
-  // Declare variables outside try-catch so they're accessible in error handling
   let cityCode: string | null = null;
   let checkInDate: string | null = null;
   let checkOutDate: string | null = null;
@@ -49,6 +86,7 @@ export async function GET(request: NextRequest) {
       cityCodeParam,
       extractedCityCode: cityCode
     });
+
     checkInDate = searchParams.get('checkInDate');
     checkOutDate = searchParams.get('checkOutDate');
     const adults = searchParams.get('adults');
@@ -60,18 +98,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate city code is exactly 3 letters
     if (cityCode.length !== 3) {
       return NextResponse.json(
         {
           error: 'Invalid city code format',
-          details: `City code "${cityCode}" (${cityCode.length} chars) must be exactly 3 letters. Examples: LON, NYC, PAR`
+          details: `City code "${cityCode}" must be exactly 3 letters. Examples: LON, NYC, PAR`
         },
         { status: 400 }
       );
     }
 
-    // Validate date format
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(checkInDate)) {
       return NextResponse.json(
@@ -87,7 +123,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate check-in date is not in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const checkIn = new Date(checkInDate);
@@ -100,7 +135,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate check-out date is after check-in date
     const checkOut = new Date(checkOutDate);
     checkOut.setHours(0, 0, 0, 0);
 
@@ -108,124 +142,127 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Check-out date must be after check-in date',
-          details: {
-            checkInDate,
-            checkOutDate,
-            message: 'Check-out date must be chronologically after check-in date'
-          }
+          details: { checkInDate, checkOutDate }
         },
         { status: 400 }
       );
     }
 
-    // Generate cache key
-    cacheKey = generateCacheKey('hotels', {
+    cacheKey = generateCacheKey('hotels:liteapi', {
       cityCode,
       checkInDate,
       checkOutDate,
       adults,
     });
 
-    // Try cache first
     const cached = await getCached<any>(cacheKey);
     if (cached) {
-      return NextResponse.json(cached);
-    }
-
-    // Call Amadeus API
-    const result = await amadeusAPI.searchHotels({
-      cityCode,
-      checkInDate,
-      checkOutDate,
-      adults: parseInt(adults),
-      roomQuantity: 1,
-    });
-
-    // Cache for 30 minutes
-    await setCache(cacheKey, result, 1800);
-
-    return NextResponse.json(result);
-  } catch (error: any) {
-    console.error('Error in hotels API:', error);
-
-    // Handle specific error cases
-    const errorResponse = error.response?.data;
-    const statusCode = error.response?.status;
-
-    // 404: No hotels found - return empty array with helpful message
-    const isNotFound = statusCode === 404 ||
-                      errorResponse?.errors?.some((e: any) =>
-                        e.code === 1797 ||
-                        e.title === 'NOT FOUND' ||
-                        e.detail?.includes('No results found')
-                      );
-
-    if (isNotFound) {
-      const emptyResponse = {
-        data: [],
-        meta: {
-          count: 0,
-          message: `No hotels found in ${cityCode} for ${checkInDate} to ${checkOutDate}. Try different dates or location.`
+      console.log('✅ Returning cached hotel results (LiteAPI)');
+      return NextResponse.json(cached, {
+        headers: {
+          'X-Cache-Status': 'HIT',
+          'X-API-Source': 'LITEAPI',
         }
-      };
-
-      // Cache empty result briefly (5 minutes)
-      await setCache(cacheKey, emptyResponse, 300);
-
-      return NextResponse.json(emptyResponse, { status: 200 });
+      });
     }
 
-    // 400: Bad request - return with details
-    if (statusCode === 400) {
+    // Get coordinates from city code
+    const coords = CITY_CODE_COORDINATES[cityCode];
+    if (!coords) {
       return NextResponse.json(
         {
-          error: 'Bad request',
-          details: errorResponse || error.message
+          error: 'Unknown city code',
+          details: `City code "${cityCode}" not found. Supported codes: ${Object.keys(CITY_CODE_COORDINATES).join(', ')}`
         },
         { status: 400 }
       );
     }
 
-    // 429: Rate limit exceeded
-    if (statusCode === 429) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          message: 'Too many requests. Please try again later.'
-        },
-        { status: 429 }
-      );
-    }
+    console.log('🔍 Searching hotels with LiteAPI...', { cityCode, coords });
 
-    // 401/403: Authentication/Authorization errors
-    if (statusCode === 401 || statusCode === 403) {
-      return NextResponse.json(
-        {
-          error: 'Service temporarily unavailable',
-          message: 'Authentication error with hotel provider'
-        },
-        { status: 503 }
-      );
-    }
+    // Search hotels using LiteAPI
+    const results = await liteAPI.searchHotelsWithRates({
+      latitude: coords.lat,
+      longitude: coords.lng,
+      checkinDate: checkInDate,
+      checkoutDate: checkOutDate,
+      adults: parseInt(adults),
+      currency: 'USD',
+      guestNationality: 'US',
+      limit: 30,
+    });
 
-    // 500+: Server errors
-    if (statusCode >= 500) {
-      return NextResponse.json(
-        {
-          error: 'Service temporarily unavailable',
-          message: 'Hotel provider is experiencing issues. Please try again later.'
-        },
-        { status: 503 }
-      );
-    }
-
-    // For other errors, return 500
-    return NextResponse.json(
-      {
-        error: error.message || 'Failed to search hotels',
-        details: process.env.NODE_ENV === 'development' ? errorResponse : undefined
+    // Map to expected format
+    const mappedHotels = results.hotels.map(hotel => ({
+      hotelId: hotel.id,
+      name: hotel.name,
+      description: hotel.description,
+      address: {
+        lines: [hotel.address],
+        cityName: hotel.city,
+        countryCode: hotel.country,
       },
-      { status: 500 }
-    );
+      geoCode: {
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+      },
+      rating: hotel.stars?.toString() || '0',
+      reviewScore: hotel.rating,
+      reviewCount: hotel.reviewCount,
+      media: hotel.image ? [{ uri: hotel.image }] : [],
+      offers: hotel.rooms?.map(room => ({
+        id: room.offerId,
+        room: {
+          type: room.name,
+          description: { text: room.boardName },
+        },
+        price: {
+          total: room.price.toString(),
+          currency: room.currency,
+        },
+        policies: {
+          cancellation: { description: { text: room.refundable ? 'Free cancellation' : 'Non-refundable' } },
+        },
+      })) || [],
+      lowestPrice: hotel.lowestPrice,
+      currency: hotel.currency,
+      source: 'liteapi',
+    }));
+
+    const response = {
+      data: mappedHotels,
+      meta: {
+        count: mappedHotels.length,
+        source: 'LiteAPI',
+        message: mappedHotels.length === 0
+          ? `No hotels found in ${cityCode} for ${checkInDate} to ${checkOutDate}. Try different dates.`
+          : undefined,
+      }
+    };
+
+    // Cache for 30 minutes
+    await setCache(cacheKey, response, 1800);
+
+    console.log(`✅ Found ${mappedHotels.length} hotels with LiteAPI`);
+
+    return NextResponse.json(response, {
+      headers: {
+        'X-Cache-Status': 'MISS',
+        'X-API-Source': 'LITEAPI',
+      }
+    });
+  } catch (error: any) {
+    console.error('❌ Error in hotels API:', error);
+
+    // Return empty result on error
+    const emptyResponse = {
+      data: [],
+      meta: {
+        count: 0,
+        message: `Error searching hotels: ${error.message}`,
+      }
+    };
+
+    return NextResponse.json(emptyResponse, { status: 200 });
   }
 }

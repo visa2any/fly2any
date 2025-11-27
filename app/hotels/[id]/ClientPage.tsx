@@ -4,6 +4,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
+import { HotelReviews } from '@/components/hotels/HotelReviews';
+import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
+import { HotelTrustBadges } from '@/components/hotels/HotelTrustBadges';
 import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, X, Filter, ArrowUpDown } from 'lucide-react';
 
 export default function HotelDetailPage() {
@@ -555,128 +558,19 @@ export default function HotelDetailPage() {
               </div>
             )}
 
-            {/* Reviews Section */}
+            {/* Enhanced Reviews Section */}
             <div className="bg-white rounded-lg p-6 mt-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Guest Reviews</h2>
-                {reviewCount > 0 && (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < Math.floor(averageRating)
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-2xl font-bold text-gray-900">
-                        {averageRating.toFixed(1)}
-                      </span>
-                    </div>
-                    <span className="text-gray-600">
-                      Based on {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <HotelReviews
+                hotelId={hotelId}
+                hotelName={hotel?.name}
+                showSummary={true}
+                maxReviews={10}
+              />
+            </div>
 
-              {reviewsLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading reviews...</p>
-                </div>
-              ) : reviews.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                  <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No reviews yet
-                  </h3>
-                  <p className="text-gray-600">
-                    Be the first to review this hotel after your stay
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {reviews.slice(0, 5).map((review: any, index: number) => (
-                    <div
-                      key={review.id || index}
-                      className="pb-6 border-b border-gray-200 last:border-0"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                              <User className="w-5 h-5 text-primary-600" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-gray-900">
-                                {review.userName || 'Guest'}
-                              </p>
-                              {review.verifiedStay && (
-                                <p className="text-xs text-green-600 flex items-center gap-1">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  Verified Stay
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < review.rating
-                                    ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-500 mt-1">
-                            {new Date(review.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                      </div>
-
-                      {review.title && (
-                        <h4 className="font-semibold text-gray-900 mb-2">
-                          {review.title}
-                        </h4>
-                      )}
-
-                      <p className="text-gray-700 text-sm leading-relaxed">
-                        {review.content}
-                      </p>
-
-                      {review.hotelResponse && (
-                        <div className="mt-4 ml-4 pl-4 border-l-2 border-primary-200 bg-primary-50 p-4 rounded-r-lg">
-                          <p className="text-xs font-semibold text-primary-800 mb-2">
-                            Response from Hotel
-                          </p>
-                          <p className="text-sm text-gray-700">{review.hotelResponse}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {reviews.length > 5 && (
-                    <button className="w-full py-3 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold rounded-lg transition-colors">
-                      View All {reviewCount} Reviews
-                    </button>
-                  )}
-                </div>
-              )}
+            {/* Trust Badges Section */}
+            <div className="mt-6">
+              <HotelTrustBadges variant="full" />
             </div>
           </div>
 
@@ -701,6 +595,16 @@ export default function HotelDetailPage() {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Urgency Signals */}
+              <div className="mb-6 pb-6 border-b border-gray-200">
+                <HotelUrgencySignals
+                  hotelId={hotelId}
+                  hotelName={hotel?.name}
+                  basePrice={price}
+                  variant="detail"
+                />
               </div>
 
               {/* Quick Info */}

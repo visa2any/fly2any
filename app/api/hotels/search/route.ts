@@ -1,43 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { duffelStaysAPI } from '@/lib/api/duffel-stays';
-import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { liteAPI } from '@/lib/api/liteapi';
-import { amadeusAPI } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams } from '@/lib/hotels/types';
-import { mapAmadeusHotelsToHotels, extractCityCode } from '@/lib/mappers/amadeus-hotel-mapper';
 
-// Feature flag: Use mock data, Duffel, or Amadeus
-const USE_MOCK_HOTELS = process.env.USE_MOCK_HOTELS === 'true';
-const USE_AMADEUS_HOTELS = process.env.AMADEUS_API_KEY && process.env.AMADEUS_API_SECRET;
+// City name to coordinates mapping for popular destinations
+const CITY_COORDINATES: Record<string, { lat: number; lng: number; country: string }> = {
+  'new york': { lat: 40.7128, lng: -74.0060, country: 'US' },
+  'nyc': { lat: 40.7128, lng: -74.0060, country: 'US' },
+  'los angeles': { lat: 34.0522, lng: -118.2437, country: 'US' },
+  'la': { lat: 34.0522, lng: -118.2437, country: 'US' },
+  'chicago': { lat: 41.8781, lng: -87.6298, country: 'US' },
+  'miami': { lat: 25.7617, lng: -80.1918, country: 'US' },
+  'san francisco': { lat: 37.7749, lng: -122.4194, country: 'US' },
+  'sf': { lat: 37.7749, lng: -122.4194, country: 'US' },
+  'las vegas': { lat: 36.1699, lng: -115.1398, country: 'US' },
+  'vegas': { lat: 36.1699, lng: -115.1398, country: 'US' },
+  'seattle': { lat: 47.6062, lng: -122.3321, country: 'US' },
+  'boston': { lat: 42.3601, lng: -71.0589, country: 'US' },
+  'denver': { lat: 39.7392, lng: -104.9903, country: 'US' },
+  'atlanta': { lat: 33.7490, lng: -84.3880, country: 'US' },
+  'orlando': { lat: 28.5383, lng: -81.3792, country: 'US' },
+  'houston': { lat: 29.7604, lng: -95.3698, country: 'US' },
+  'dallas': { lat: 32.7767, lng: -96.7970, country: 'US' },
+  'phoenix': { lat: 33.4484, lng: -112.0740, country: 'US' },
+  'san diego': { lat: 32.7157, lng: -117.1611, country: 'US' },
+  'washington': { lat: 38.9072, lng: -77.0369, country: 'US' },
+  'dc': { lat: 38.9072, lng: -77.0369, country: 'US' },
+  // International
+  'london': { lat: 51.5074, lng: -0.1278, country: 'GB' },
+  'paris': { lat: 48.8566, lng: 2.3522, country: 'FR' },
+  'rome': { lat: 41.9028, lng: 12.4964, country: 'IT' },
+  'barcelona': { lat: 41.3851, lng: 2.1734, country: 'ES' },
+  'tokyo': { lat: 35.6762, lng: 139.6503, country: 'JP' },
+  'dubai': { lat: 25.2048, lng: 55.2708, country: 'AE' },
+  'singapore': { lat: 1.3521, lng: 103.8198, country: 'SG' },
+  'hong kong': { lat: 22.3193, lng: 114.1694, country: 'HK' },
+  'sydney': { lat: -33.8688, lng: 151.2093, country: 'AU' },
+  'cancun': { lat: 21.1619, lng: -86.8515, country: 'MX' },
+  'toronto': { lat: 43.6532, lng: -79.3832, country: 'CA' },
+  'amsterdam': { lat: 52.3676, lng: 4.9041, country: 'NL' },
+  'berlin': { lat: 52.5200, lng: 13.4050, country: 'DE' },
+  'madrid': { lat: 40.4168, lng: -3.7038, country: 'ES' },
+  'lisbon': { lat: 38.7223, lng: -9.1393, country: 'PT' },
+  'bangkok': { lat: 13.7563, lng: 100.5018, country: 'TH' },
+  'bali': { lat: -8.3405, lng: 115.0920, country: 'ID' },
+};
+
+/**
+ * Get coordinates from city query
+ */
+function getCityCoordinates(query: string): { lat: number; lng: number; country: string } | null {
+  const normalized = query.toLowerCase().trim();
+
+  // Direct match
+  if (CITY_COORDINATES[normalized]) {
+    return CITY_COORDINATES[normalized];
+  }
+
+  // Partial match
+  for (const [city, coords] of Object.entries(CITY_COORDINATES)) {
+    if (normalized.includes(city) || city.includes(normalized)) {
+      return coords;
+    }
+  }
+
+  return null;
+}
 
 /**
  * Hotel Search API Route
  *
  * POST /api/hotels/search
  *
- * Search for hotels using Duffel Stays API (1.5M+ properties worldwide).
+ * Search for hotels using LiteAPI (primary).
  * Supports both coordinate-based and query-based location search.
  *
  * Features:
  * - Location search (coordinates or city name)
  * - Date range filtering
- * - Guest count (adults + children with ages)
- * - Radius filtering
+ * - Guest count (adults + children)
  * - Price range filtering
- * - Star rating filtering
- * - Amenity filtering
- * - Property type filtering
- * - Pagination support
  * - Response caching (15 minutes)
  *
- * Revenue: Commission-based (~$150 per booking)
+ * Revenue: Commission-based (~$30-50 per booking)
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
 
-    // Validate required parameters with helpful error messages
+    // Validate required parameters
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json(
         {
@@ -91,8 +142,8 @@ export async function POST(request: NextRequest) {
         adults: body.guests.adults,
         children: body.guests.children || [],
       },
-      radius: body.radius || 5, // Default 5km
-      limit: body.limit || 20, // Default 20 results
+      radius: body.radius || 5,
+      limit: body.limit || 30,
       currency: body.currency || 'USD',
     };
 
@@ -101,112 +152,137 @@ export async function POST(request: NextRequest) {
     if (body.maxRating !== undefined) searchParams.maxRating = body.maxRating;
     if (body.minPrice !== undefined) searchParams.minPrice = body.minPrice;
     if (body.maxPrice !== undefined) searchParams.maxPrice = body.maxPrice;
-    if (body.amenities) searchParams.amenities = body.amenities;
-    if (body.propertyTypes) searchParams.propertyTypes = body.propertyTypes;
 
-    // Generate cache key based on API being used
-    const apiSource = USE_AMADEUS_HOTELS ? 'amadeus' : (USE_MOCK_HOTELS ? 'mock' : 'duffel');
-    const cacheKey = generateCacheKey(`hotels:${apiSource}:search`, searchParams);
+    // Generate cache key
+    const cacheKey = generateCacheKey('hotels:liteapi:search', searchParams);
 
     // Try to get from cache (15 minutes TTL)
     const cached = await getCached<any>(cacheKey);
     if (cached) {
-      console.log(`✅ Returning cached hotel search results (${apiSource})`);
-      // Ensure cached response has success field (for backwards compatibility)
-      const cachedWithSuccess = cached.success !== undefined ? cached : { success: true, ...cached };
-      return NextResponse.json(cachedWithSuccess, {
+      console.log('✅ Returning cached hotel search results (LiteAPI)');
+      return NextResponse.json(cached, {
         headers: {
           'X-Cache-Status': 'HIT',
-          'X-API-Source': apiSource.toUpperCase(),
-          'Cache-Control': 'public, max-age=900', // 15 minutes
-        }
-      });
-    }
-
-    // ✅ AMADEUS HOTELS API (Production-ready)
-    if (USE_AMADEUS_HOTELS) {
-      console.log('🔍 Searching hotels with Amadeus API...');
-
-      // Extract city code from location query
-      const cityCode = 'query' in searchParams.location
-        ? extractCityCode(searchParams.location.query)
-        : 'NYC'; // Default if using coordinates (Amadeus requires city code)
-
-      // Search hotels with Amadeus
-      const amadeusResults = await amadeusAPI.searchHotels({
-        cityCode,
-        checkInDate: searchParams.checkIn,
-        checkOutDate: searchParams.checkOut,
-        adults: searchParams.guests.adults,
-        roomQuantity: searchParams.rooms || 1,
-        radius: searchParams.radius || 5,
-        radiusUnit: 'KM',
-        ratings: searchParams.minRating ? [searchParams.minRating, 5] : undefined,
-      });
-
-      // Map Amadeus response to our Hotel interface
-      const hotels = mapAmadeusHotelsToHotels(amadeusResults.data || []);
-
-      // Apply additional filters (price, amenities, etc.)
-      let filteredHotels = hotels;
-
-      // Filter by price
-      if (searchParams.minPrice !== undefined || searchParams.maxPrice !== undefined) {
-        filteredHotels = filteredHotels.filter((hotel) => {
-          const lowestRate = hotel.rates[0]; // Already sorted by price
-          if (!lowestRate) return false;
-
-          const price = parseFloat(lowestRate.totalPrice.amount);
-          const meetsMin = searchParams.minPrice === undefined || price >= searchParams.minPrice;
-          const meetsMax = searchParams.maxPrice === undefined || price <= searchParams.maxPrice;
-          return meetsMin && meetsMax;
-        });
-      }
-
-      // Limit results
-      filteredHotels = filteredHotels.slice(0, searchParams.limit || 20);
-
-      const response = {
-        success: true,
-        data: filteredHotels,
-        meta: {
-          count: filteredHotels.length,
-          source: 'Amadeus Hotels API',
-        },
-      };
-
-      // Store in cache (15 minutes TTL)
-      await setCache(cacheKey, response, 900);
-
-      console.log(`✅ Found ${filteredHotels.length} hotels with Amadeus`);
-
-      return NextResponse.json(response, {
-        headers: {
-          'X-Cache-Status': 'MISS',
-          'X-API-Source': 'AMADEUS',
+          'X-API-Source': 'LITEAPI',
           'Cache-Control': 'public, max-age=900',
         }
       });
     }
 
-    // Fallback to Duffel Stays API (or mock)
-    const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
-    console.log(`🔍 Searching hotels with ${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API...`);
-    const results = await hotelAPI.searchAccommodations(searchParams);
+    // Determine location coordinates
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    let countryCode: string | undefined;
 
-    // Format response with success field for client compatibility
+    const location = searchParams.location as { lat?: number; lng?: number; query?: string };
+    if (location.lat !== undefined && location.lng !== undefined) {
+      latitude = location.lat;
+      longitude = location.lng;
+    } else if (location.query) {
+      const cityCoords = getCityCoordinates(location.query);
+      if (cityCoords) {
+        latitude = cityCoords.lat;
+        longitude = cityCoords.lng;
+        countryCode = cityCoords.country;
+      }
+    }
+
+    if (!latitude || !longitude) {
+      // Default to New York if we can't determine location
+      latitude = 40.7128;
+      longitude = -74.0060;
+      console.log('⚠️ Could not determine location, defaulting to New York');
+    }
+
+    console.log('🔍 Searching hotels with LiteAPI...', { latitude, longitude, countryCode });
+
+    // Search hotels using LiteAPI
+    const results = await liteAPI.searchHotelsWithRates({
+      latitude,
+      longitude,
+      checkinDate: searchParams.checkIn,
+      checkoutDate: searchParams.checkOut,
+      adults: searchParams.guests.adults,
+      children: Array.isArray(searchParams.guests.children) ? searchParams.guests.children.length : 0,
+      currency: searchParams.currency || 'USD',
+      guestNationality: 'US',
+      limit: searchParams.limit,
+    });
+
+    // Apply additional filters
+    let filteredHotels = results.hotels;
+
+    // Filter by price
+    if (searchParams.minPrice !== undefined || searchParams.maxPrice !== undefined) {
+      filteredHotels = filteredHotels.filter((hotel) => {
+        const price = hotel.lowestPrice;
+        if (!price) return false;
+        const meetsMin = searchParams.minPrice === undefined || price >= searchParams.minPrice;
+        const meetsMax = searchParams.maxPrice === undefined || price <= searchParams.maxPrice;
+        return meetsMin && meetsMax;
+      });
+    }
+
+    // Filter by rating
+    if (searchParams.minRating !== undefined) {
+      filteredHotels = filteredHotels.filter((hotel) => hotel.stars >= (searchParams.minRating || 0));
+    }
+
+    // Map to expected format
+    const mappedHotels = filteredHotels.map(hotel => ({
+      id: hotel.id,
+      name: hotel.name,
+      description: hotel.description,
+      location: {
+        address: hotel.address,
+        city: hotel.city,
+        country: hotel.country,
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+      },
+      rating: hotel.stars,
+      reviewScore: hotel.rating,
+      reviewCount: hotel.reviewCount,
+      images: hotel.image ? [{ url: hotel.image, alt: hotel.name }] : [],
+      thumbnail: hotel.thumbnail,
+      amenities: [],
+      rates: hotel.rooms?.map(room => ({
+        id: room.rateId,
+        roomType: room.name,
+        boardType: room.boardName,
+        totalPrice: {
+          amount: room.price.toString(),
+          currency: room.currency,
+        },
+        refundable: room.refundable,
+        maxOccupancy: room.maxOccupancy,
+        offerId: room.offerId,
+      })) || [],
+      lowestPrice: hotel.lowestPrice ? {
+        amount: hotel.lowestPrice.toString(),
+        currency: hotel.currency,
+      } : undefined,
+      source: 'liteapi',
+    }));
+
     const response = {
       success: true,
-      ...results,
+      data: mappedHotels,
+      meta: {
+        count: mappedHotels.length,
+        source: 'LiteAPI',
+      },
     };
 
     // Store in cache (15 minutes TTL)
     await setCache(cacheKey, response, 900);
 
+    console.log(`✅ Found ${mappedHotels.length} hotels with LiteAPI`);
+
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'X-API-Source': USE_MOCK_HOTELS ? 'MOCK' : 'DUFFEL',
+        'X-API-Source': 'LITEAPI',
         'Cache-Control': 'public, max-age=900',
       }
     });
@@ -224,16 +300,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET endpoint for backward compatibility and URL-based searches
- * Query parameters:
- * - Duffel format: query, lat, lng, checkIn, checkOut, adults, children
- * - Legacy format: cityCode, checkinDate, checkoutDate, adults, children
+ * GET endpoint for URL-based searches
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
-    // Check if this is a Duffel-style request (query parameter)
     const query = searchParams.get('query');
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
@@ -241,126 +313,146 @@ export async function GET(request: NextRequest) {
     const checkOut = searchParams.get('checkOut');
     const adults = searchParams.get('adults');
 
-    // If we have Duffel-style parameters, use Duffel API
-    if ((query || (lat && lng)) && checkIn && checkOut && adults) {
-      // Build location object
-      const location: any = lat && lng
-        ? { latitude: parseFloat(lat), longitude: parseFloat(lng) }
-        : { query };
-
-      // Build search parameters for Duffel
-      const duffelSearchParams: HotelSearchParams = {
-        location,
-        checkIn,
-        checkOut,
-        guests: {
-          adults: parseInt(adults),
-          children: searchParams.get('children') ? Array(parseInt(searchParams.get('children')!)).fill(10) : [],
-        },
-        radius: searchParams.get('radius') ? parseInt(searchParams.get('radius')!) : 10,
-        limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
-        currency: searchParams.get('currency') || 'USD',
-      };
-
-      // Generate cache key
-      const cacheKey = generateCacheKey('hotels:duffel:search', duffelSearchParams);
-
-      // Try to get from cache (15 minutes TTL)
-      const cached = await getCached<any>(cacheKey);
-      if (cached) {
-        console.log('✅ Returning cached hotel search results (Duffel)');
-        // Ensure cached response has success field (for backwards compatibility)
-        const cachedWithSuccess = cached.success !== undefined ? cached : { success: true, ...cached };
-        return NextResponse.json(cachedWithSuccess, {
-          headers: {
-            'X-Cache-Status': 'HIT',
-            'Cache-Control': 'public, max-age=900',
-          }
-        });
-      }
-
-      // Search hotels using Duffel Stays API (or mock)
-      const hotelAPI = USE_MOCK_HOTELS ? mockDuffelStaysAPI : duffelStaysAPI;
-      console.log(`🔍 Searching hotels with ${USE_MOCK_HOTELS ? 'MOCK' : 'Duffel Stays'} API (GET)...`, duffelSearchParams);
-      const results = await hotelAPI.searchAccommodations(duffelSearchParams);
-
-      // Format response with success field for client compatibility
-      const response = {
-        success: true,
-        ...results,
-      };
-
-      // Store in cache (15 minutes TTL)
-      await setCache(cacheKey, response, 900);
-
-      return NextResponse.json(response, {
-        headers: {
-          'X-Cache-Status': 'MISS',
-          'Cache-Control': 'public, max-age=900',
-        }
-      });
-    }
-
-    // Legacy LiteAPI format
-    const cityCode = searchParams.get('cityCode');
-    const checkinDate = searchParams.get('checkinDate');
-    const checkoutDate = searchParams.get('checkoutDate');
-
-    if (!cityCode || !checkinDate || !checkoutDate || !adults) {
+    if (!(query || (lat && lng)) || !checkIn || !checkOut || !adults) {
       return NextResponse.json(
-        { error: 'Missing required parameters: query/cityCode, checkIn/checkinDate, checkOut/checkoutDate, adults' },
+        {
+          success: false,
+          error: 'Missing required parameters',
+          hint: 'Provide query or lat/lng, checkIn, checkOut, and adults'
+        },
         { status: 400 }
       );
     }
 
-    // Build search parameters for LiteAPI (legacy)
-    const hotelSearchParams = {
-      cityCode,
-      checkinDate,
-      checkoutDate,
-      adults: parseInt(adults),
-      children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : undefined,
-      currency: searchParams.get('currency') || 'USD',
-      guestNationality: searchParams.get('guestNationality') || 'US',
-    };
+    // Determine coordinates
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+
+    if (lat && lng) {
+      latitude = parseFloat(lat);
+      longitude = parseFloat(lng);
+    } else if (query) {
+      const cityCoords = getCityCoordinates(query);
+      if (cityCoords) {
+        latitude = cityCoords.lat;
+        longitude = cityCoords.lng;
+      }
+    }
+
+    if (!latitude || !longitude) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Could not determine location',
+          hint: 'Provide valid coordinates or a recognized city name'
+        },
+        { status: 400 }
+      );
+    }
 
     // Generate cache key
-    const cacheKey = generateCacheKey('hotels:liteapi:search', hotelSearchParams);
+    const cacheKey = generateCacheKey('hotels:liteapi:search:get', {
+      latitude,
+      longitude,
+      checkIn,
+      checkOut,
+      adults,
+    });
 
-    // Try to get from cache
+    // Try cache first
     const cached = await getCached<any>(cacheKey);
     if (cached) {
+      console.log('✅ Returning cached hotel search results (GET)');
       return NextResponse.json(cached, {
         headers: {
           'X-Cache-Status': 'HIT',
+          'X-API-Source': 'LITEAPI',
           'Cache-Control': 'public, max-age=900',
         }
       });
     }
 
-    // Search hotels using LiteAPI (legacy)
-    const results = await liteAPI.searchHotels(hotelSearchParams);
+    console.log('🔍 Searching hotels with LiteAPI (GET)...', { latitude, longitude });
 
-    // Store in cache (15 minutes TTL)
-    await setCache(cacheKey, results, 900);
+    // Search hotels
+    const results = await liteAPI.searchHotelsWithRates({
+      latitude,
+      longitude,
+      checkinDate: checkIn,
+      checkoutDate: checkOut,
+      adults: parseInt(adults),
+      children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0,
+      currency: searchParams.get('currency') || 'USD',
+      guestNationality: 'US',
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 30,
+    });
 
-    return NextResponse.json(results, {
+    // Map to expected format
+    const mappedHotels = results.hotels.map(hotel => ({
+      id: hotel.id,
+      name: hotel.name,
+      description: hotel.description,
+      location: {
+        address: hotel.address,
+        city: hotel.city,
+        country: hotel.country,
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+      },
+      rating: hotel.stars,
+      reviewScore: hotel.rating,
+      reviewCount: hotel.reviewCount,
+      images: hotel.image ? [{ url: hotel.image, alt: hotel.name }] : [],
+      thumbnail: hotel.thumbnail,
+      amenities: [],
+      rates: hotel.rooms?.map(room => ({
+        id: room.rateId,
+        roomType: room.name,
+        boardType: room.boardName,
+        totalPrice: {
+          amount: room.price.toString(),
+          currency: room.currency,
+        },
+        refundable: room.refundable,
+        maxOccupancy: room.maxOccupancy,
+        offerId: room.offerId,
+      })) || [],
+      lowestPrice: hotel.lowestPrice ? {
+        amount: hotel.lowestPrice.toString(),
+        currency: hotel.currency,
+      } : undefined,
+      source: 'liteapi',
+    }));
+
+    const response = {
+      success: true,
+      data: mappedHotels,
+      meta: {
+        count: mappedHotels.length,
+        source: 'LiteAPI',
+      },
+    };
+
+    // Cache for 15 minutes
+    await setCache(cacheKey, response, 900);
+
+    console.log(`✅ Found ${mappedHotels.length} hotels with LiteAPI (GET)`);
+
+    return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
+        'X-API-Source': 'LITEAPI',
         'Cache-Control': 'public, max-age=900',
       }
     });
   } catch (error: any) {
-    console.error('Hotel search error:', error);
+    console.error('❌ Hotel search error (GET):', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to search hotels'
+        error: error.message || 'Failed to search hotels',
       },
       { status: 500 }
     );
   }
 }
-
-// Note: Using Node.js runtime (not edge) because Duffel SDK requires Node.js APIs (URL constructor, etc.)
-// export const runtime = 'edge';
