@@ -14,6 +14,7 @@ interface CitySuggestion {
   location: { lat: number; lng: number };
   type: 'city' | 'landmark' | 'airport' | 'neighborhood';
   aliases?: string[];
+  placeId?: string; // LiteAPI place ID for direct hotel lookup
 }
 
 const CITY_DATABASE: CitySuggestion[] = [
@@ -249,71 +250,132 @@ function searchCities(query: string): CitySuggestion[] {
   return results.slice(0, 10).map(r => r.city);
 }
 
+// Popular/trending destinations for when user first focuses input
+const POPULAR_DESTINATIONS: CitySuggestion[] = [
+  CITY_DATABASE.find(c => c.id === 'nyc')!,
+  CITY_DATABASE.find(c => c.id === 'lon')!,
+  CITY_DATABASE.find(c => c.id === 'par')!,
+  CITY_DATABASE.find(c => c.id === 'dxb')!,
+  CITY_DATABASE.find(c => c.id === 'tyo')!,
+  CITY_DATABASE.find(c => c.id === 'lax')!,
+  CITY_DATABASE.find(c => c.id === 'bcn')!,
+  CITY_DATABASE.find(c => c.id === 'sin')!,
+  CITY_DATABASE.find(c => c.id === 'rom')!,
+  CITY_DATABASE.find(c => c.id === 'mia')!,
+].filter(Boolean);
+
 /**
  * Hotel Location Suggestions API Route
  *
  * GET /api/hotels/suggestions?query=Paris
+ * GET /api/hotels/suggestions?popular=true (returns trending destinations)
+ *
+ * Uses a hybrid approach:
+ * 1. LiteAPI Places search for global coverage (200K+ locations)
+ * 2. Local database fallback for instant results
+ * 3. Smart merging and deduplication
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query');
+    const popular = searchParams.get('popular');
 
-    if (!query) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required parameter: query' },
-        { status: 400 }
-      );
+    // Return popular destinations when no query
+    if (popular === 'true' || (!query && !popular)) {
+      return NextResponse.json({
+        success: true,
+        data: POPULAR_DESTINATIONS,
+        meta: {
+          count: POPULAR_DESTINATIONS.length,
+          source: 'popular',
+        },
+      }, {
+        headers: {
+          'Cache-Control': 'public, max-age=86400', // 24 hours for popular
+        }
+      });
     }
 
-    if (query.length < 2) {
-      return NextResponse.json(
-        { success: false, error: 'Query must be at least 2 characters' },
-        { status: 400 }
-      );
+    if (!query || query.length < 2) {
+      return NextResponse.json({
+        success: true,
+        data: POPULAR_DESTINATIONS,
+        meta: {
+          count: POPULAR_DESTINATIONS.length,
+          source: 'popular',
+        },
+      });
     }
 
     // Generate cache key
-    const cacheKey = generateCacheKey('hotels:suggestions', { query: query.toLowerCase() });
+    const cacheKey = generateCacheKey('hotels:suggestions:v2', { query: query.toLowerCase() });
 
-    // Try to get from cache (1 hour TTL)
+    // Try to get from cache (30 min TTL for dynamic results)
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       console.log(`✅ Returning cached suggestions for "${query}"`);
       return NextResponse.json(cached, {
         headers: {
           'X-Cache-Status': 'HIT',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'public, max-age=1800',
         }
       });
     }
 
-    // Search for matching cities
     console.log(`🔍 Searching suggestions for "${query}"...`);
-    const suggestions = searchCities(query);
+
+    // Parallel search: LiteAPI + local database
+    const [liteApiResults, localResults] = await Promise.all([
+      searchLiteApiPlaces(query),
+      Promise.resolve(searchCities(query)),
+    ]);
+
+    // Merge results with smart deduplication
+    const merged = mergeResults(liteApiResults, localResults);
 
     const response = {
       success: true,
-      data: suggestions,
+      data: merged,
       meta: {
-        count: suggestions.length,
+        count: merged.length,
         query,
+        sources: {
+          liteapi: liteApiResults.length,
+          local: localResults.length,
+        },
       },
     };
 
-    // Store in cache (1 hour TTL)
-    await setCache(cacheKey, response, 3600);
+    // Store in cache (30 min TTL)
+    await setCache(cacheKey, response, 1800);
 
-    console.log(`✅ Found ${suggestions.length} suggestions for "${query}"`);
+    console.log(`✅ Found ${merged.length} suggestions for "${query}" (LiteAPI: ${liteApiResults.length}, Local: ${localResults.length})`);
 
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=1800',
       }
     });
   } catch (error: any) {
     console.error('❌ Hotel suggestions error:', error);
+
+    // Fallback to local search on any error
+    const query = request.nextUrl.searchParams.get('query');
+    if (query && query.length >= 2) {
+      const fallback = searchCities(query);
+      return NextResponse.json({
+        success: true,
+        data: fallback,
+        meta: {
+          count: fallback.length,
+          query,
+          source: 'fallback',
+        },
+      });
+    }
+
     return NextResponse.json(
       {
         success: false,
@@ -322,4 +384,89 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Search LiteAPI Places endpoint for global coverage
+ */
+async function searchLiteApiPlaces(query: string): Promise<CitySuggestion[]> {
+  try {
+    // Dynamic import to avoid circular dependency
+    const { liteAPI } = await import('@/lib/api/liteapi');
+    const { data } = await liteAPI.searchPlaces(query);
+
+    if (!data || data.length === 0) return [];
+
+    // Convert LiteAPI places to our format
+    return data.map((place, index) => ({
+      id: `liteapi-${place.placeId || index}`,
+      name: place.textForSearch || place.cityName || '',
+      city: place.cityName || place.textForSearch || '',
+      country: place.countryName || '',
+      location: {
+        lat: place.latitude || 0,
+        lng: place.longitude || 0,
+      },
+      type: mapPlaceType(place.type),
+      placeId: place.placeId,
+    })).filter(p => p.name && (p.location.lat !== 0 || p.location.lng !== 0));
+  } catch (error) {
+    console.error('LiteAPI places search failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Map LiteAPI place types to our types
+ */
+function mapPlaceType(type: string): 'city' | 'landmark' | 'airport' | 'neighborhood' {
+  const lowerType = (type || '').toLowerCase();
+  if (lowerType.includes('city') || lowerType.includes('town')) return 'city';
+  if (lowerType.includes('airport')) return 'airport';
+  if (lowerType.includes('neighborhood') || lowerType.includes('district')) return 'neighborhood';
+  if (lowerType.includes('landmark') || lowerType.includes('poi')) return 'landmark';
+  return 'city';
+}
+
+/**
+ * Merge results from multiple sources with deduplication
+ */
+function mergeResults(liteApiResults: CitySuggestion[], localResults: CitySuggestion[]): CitySuggestion[] {
+  const seen = new Set<string>();
+  const merged: CitySuggestion[] = [];
+
+  // Helper to create a unique key for deduplication
+  const getKey = (item: CitySuggestion) => {
+    return `${item.name.toLowerCase()}-${item.city.toLowerCase()}-${item.country.toLowerCase()}`.replace(/\s+/g, '');
+  };
+
+  // Add local results first (they have verified coordinates)
+  for (const item of localResults) {
+    const key = getKey(item);
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+
+  // Add LiteAPI results that aren't duplicates
+  for (const item of liteApiResults) {
+    const key = getKey(item);
+    if (!seen.has(key) && item.location.lat !== 0) {
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+
+  // Sort: cities first, then by name length (shorter = more relevant)
+  merged.sort((a, b) => {
+    // Prioritize cities over other types
+    if (a.type === 'city' && b.type !== 'city') return -1;
+    if (b.type === 'city' && a.type !== 'city') return 1;
+
+    // Then sort by name length (shorter names usually more relevant)
+    return a.name.length - b.name.length;
+  });
+
+  return merged.slice(0, 15);
 }

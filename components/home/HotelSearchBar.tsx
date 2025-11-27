@@ -1,13 +1,33 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Users, Search, X, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HotelSearchBarProps {
   lang?: 'en' | 'pt' | 'es';
 }
+
+interface LocationSuggestion {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  location: { lat: number; lng: number };
+  type: 'city' | 'landmark' | 'airport' | 'neighborhood';
+  placeId?: string;
+}
+
+// Get icon for location type
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case 'airport': return <Plane className="w-5 h-5 text-blue-600" />;
+    case 'landmark': return <Landmark className="w-5 h-5 text-amber-600" />;
+    case 'neighborhood': return <Building2 className="w-5 h-5 text-green-600" />;
+    default: return <MapPin className="w-5 h-5 text-orange-600" />;
+  }
+};
 
 const translations = {
   en: {
@@ -78,12 +98,15 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   // UI State
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
   const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<LocationSuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const destinationRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Set default dates (tomorrow and day after) - client-side only to prevent hydration errors
   useEffect(() => {
@@ -98,21 +121,39 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     setCheckOut(dayAfter.toISOString().split('T')[0]);
   }, []);
 
+  // Fetch popular destinations on mount
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        const response = await fetch('/api/hotels/suggestions?popular=true');
+        const data = await response.json();
+        if (data.success && data.data) {
+          setPopularDestinations(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching popular destinations:', error);
+      }
+    };
+    fetchPopular();
+  }, []);
+
   // Fetch suggestions from API
   useEffect(() => {
     if (destinationQuery.length < 2) {
       setSuggestions([]);
+      setSelectedIndex(-1);
       return;
     }
 
     const fetchSuggestions = async () => {
       setLoadingSuggestions(true);
+      setSelectedIndex(-1);
       try {
         const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(destinationQuery)}`);
         const data = await response.json();
 
         if (data.success && data.data) {
-          setSuggestions(data.data.slice(0, 6));
+          setSuggestions(data.data.slice(0, 8));
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -121,7 +162,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       }
     };
 
-    const debounce = setTimeout(fetchSuggestions, 300);
+    const debounce = setTimeout(fetchSuggestions, 200); // Faster debounce for better UX
     return () => clearTimeout(debounce);
   }, [destinationQuery]);
 
@@ -140,12 +181,40 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectLocation = (city: any, name: string) => {
-    setDestination(name);
-    setDestinationQuery(name);
-    setSelectedLocation({ lat: city.lat, lng: city.lng });
+  const handleSelectLocation = useCallback((suggestion: LocationSuggestion) => {
+    setDestination(suggestion.name);
+    setDestinationQuery(suggestion.name);
+    setSelectedLocation({ lat: suggestion.location.lat, lng: suggestion.location.lng });
     setShowDestinationDropdown(false);
-  };
+    setSelectedIndex(-1);
+  }, []);
+
+  // Keyboard navigation for suggestions
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    const items = suggestions.length > 0 ? suggestions : popularDestinations;
+    if (!showDestinationDropdown || items.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev + 1) % items.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => (prev - 1 + items.length) % items.length);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < items.length) {
+          handleSelectLocation(items[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowDestinationDropdown(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  }, [showDestinationDropdown, suggestions, popularDestinations, selectedIndex, handleSelectLocation]);
 
   const handleSearch = async () => {
     if (!destination || !checkIn || !checkOut) {
@@ -193,6 +262,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           </label>
           <div className="relative">
             <input
+              ref={inputRef}
               type="text"
               value={destinationQuery}
               onChange={(e) => {
@@ -200,7 +270,9 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 setShowDestinationDropdown(true);
               }}
               onFocus={() => setShowDestinationDropdown(true)}
+              onKeyDown={handleKeyDown}
               placeholder="New York, Paris, London..."
+              autoComplete="off"
               className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
             />
             {loadingSuggestions && (
@@ -227,31 +299,62 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border-2 border-gray-100 overflow-hidden"
+                className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border-2 border-gray-100 overflow-hidden max-h-[400px] overflow-y-auto"
               >
                 {/* Suggestions from API */}
                 {suggestions.length > 0 && (
                   <div className="py-2">
+                    <div className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Destinations
+                    </div>
                     {suggestions.map((suggestion, idx) => (
                       <button
-                        key={idx}
-                        onClick={() => handleSelectLocation(suggestion.location, suggestion.name)}
-                        className="w-full px-4 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 text-left"
+                        key={suggestion.id || idx}
+                        onClick={() => handleSelectLocation(suggestion)}
+                        className={`w-full px-4 py-3 transition-colors flex items-center gap-3 text-left ${
+                          selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
+                        }`}
                       >
-                        <MapPin className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                        <div>
-                          <div className="font-semibold text-gray-900">{suggestion.name}</div>
-                          <div className="text-sm text-gray-600">
-                            {suggestion.city}, {suggestion.country}
+                        {getTypeIcon(suggestion.type)}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 truncate">{suggestion.name}</div>
+                          <div className="text-sm text-gray-500 truncate">
+                            {suggestion.city !== suggestion.name ? `${suggestion.city}, ` : ''}{suggestion.country}
                           </div>
+                        </div>
+                        <span className="text-xs text-gray-400 capitalize flex-shrink-0">{suggestion.type}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Popular Destinations */}
+                {suggestions.length === 0 && !loadingSuggestions && popularDestinations.length > 0 && (
+                  <div className="py-2">
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+                      <Star className="w-3 h-3" />
+                      {t.popularDestinations}
+                    </div>
+                    {popularDestinations.map((dest, idx) => (
+                      <button
+                        key={dest.id || idx}
+                        onClick={() => handleSelectLocation(dest)}
+                        className={`w-full px-4 py-3 transition-colors flex items-center gap-3 text-left ${
+                          selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        {getTypeIcon(dest.type)}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900">{dest.name}</div>
+                          <div className="text-sm text-gray-500">{dest.country}</div>
                         </div>
                       </button>
                     ))}
                   </div>
                 )}
 
-                {/* Popular Cities */}
-                {suggestions.length === 0 && !loadingSuggestions && (
+                {/* Fallback Popular Cities */}
+                {suggestions.length === 0 && !loadingSuggestions && popularDestinations.length === 0 && (
                   <div className="py-2">
                     <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                       {t.popularDestinations}
@@ -259,8 +362,17 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                     {POPULAR_CITIES.map((city, idx) => (
                       <button
                         key={idx}
-                        onClick={() => handleSelectLocation(city, city.name)}
-                        className="w-full px-4 py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 text-left"
+                        onClick={() => handleSelectLocation({
+                          id: `popular-${idx}`,
+                          name: city.name,
+                          city: city.name,
+                          country: '',
+                          location: { lat: city.lat, lng: city.lng },
+                          type: 'city'
+                        })}
+                        className={`w-full px-4 py-3 transition-colors flex items-center gap-3 text-left ${
+                          selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
+                        }`}
                       >
                         <span className="text-2xl">{city.emoji}</span>
                         <span className="font-semibold text-gray-900">{city.name}</span>

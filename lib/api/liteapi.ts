@@ -516,6 +516,127 @@ class LiteAPI {
   }
 
   /**
+   * Search places for autocomplete suggestions
+   * Returns cities, neighborhoods, landmarks, and points of interest
+   */
+  async searchPlaces(query: string): Promise<{
+    data: Array<{
+      textForSearch: string;
+      placeId: string;
+      type: string;
+      countryCode: string;
+      countryName: string;
+      cityName?: string;
+      stateCode?: string;
+      latitude?: number;
+      longitude?: number;
+    }>;
+  }> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/places`, {
+        params: {
+          textForSearch: query,
+          limit: 15,
+        },
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+
+      console.log(`✅ LiteAPI: Found ${response.data.data?.length || 0} places for "${query}"`);
+      return { data: response.data.data || [] };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error searching places:', axiosError.response?.data || axiosError.message);
+      // Return empty on error rather than throwing to allow fallback
+      return { data: [] };
+    }
+  }
+
+  /**
+   * Get IATA codes for airport lookups
+   */
+  async getIataCodes(query: string): Promise<{
+    data: Array<{
+      iataCode: string;
+      city: string;
+      country: string;
+      countryCode: string;
+      latitude?: number;
+      longitude?: number;
+    }>;
+  }> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/iatacodes`, {
+        params: {
+          keyword: query,
+          limit: 10,
+        },
+        headers: this.getHeaders(),
+        timeout: 8000,
+      });
+
+      return { data: response.data.data || [] };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error getting IATA codes:', axiosError.response?.data || axiosError.message);
+      return { data: [] };
+    }
+  }
+
+  /**
+   * Get all cities for a country (for building local cache)
+   */
+  async getCitiesByCountry(countryCode: string, limit = 100): Promise<{
+    data: Array<{
+      city: string;
+      cityCode?: string;
+      countryCode: string;
+      latitude?: number;
+      longitude?: number;
+    }>;
+  }> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/cities`, {
+        params: {
+          countryCode,
+          limit,
+        },
+        headers: this.getHeaders(),
+        timeout: 15000,
+      });
+
+      return { data: response.data.data || [] };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error getting cities:', axiosError.response?.data || axiosError.message);
+      return { data: [] };
+    }
+  }
+
+  /**
+   * Get all countries
+   */
+  async getCountries(): Promise<{
+    data: Array<{
+      countryCode: string;
+      countryName: string;
+    }>;
+  }> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/countries`, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+
+      return { data: response.data.data || [] };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error getting countries:', axiosError.response?.data || axiosError.message);
+      return { data: [] };
+    }
+  }
+
+  /**
    * Strip HTML tags from description
    */
   private stripHtml(html: string): string {
