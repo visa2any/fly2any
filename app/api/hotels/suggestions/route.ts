@@ -350,22 +350,27 @@ async function searchLiteApiPlaces(query: string): Promise<{ results: CitySugges
       // Intelligently assign emoji based on context
       const emoji = assignEmojiByContext({ name, city, country, type });
 
+      // Derive countryCode and flag from country name (basic mapping)
+      const countryCode = deriveCountryCode(country);
+      const flag = countryCode ? countryCodeToFlag(countryCode) : '🌍';
+      const continent = deriveContinent(country);
+
       return {
         id: `liteapi-${place.placeId || index}`,
         name,
         city,
         country,
+        countryCode,
+        continent,
         location: {
           lat: place.latitude || 0,
           lng: place.longitude || 0,
         },
-        latitude: place.latitude || 0,
-        longitude: place.longitude || 0,
         type,
-        placeId: place.placeId,
-        emoji, // Add intelligently assigned emoji
-      };
-    }).filter((p: any) => p.name) as CitySuggestion[];
+        emoji,
+        flag,
+      } as CitySuggestion;
+    }).filter((p: any) => p.name);
 
     return { results, intent };
   } catch (error) {
@@ -501,6 +506,97 @@ function assignEmojiByContext(place: { name: string; city?: string; country?: st
   }
 
   return undefined; // No emoji assigned
+}
+
+/**
+ * Derive ISO country code from country name
+ * Basic mapping for common countries
+ */
+function deriveCountryCode(country: string): string {
+  const countryMap: Record<string, string> = {
+    'united states': 'US',
+    'usa': 'US',
+    'us': 'US',
+    'canada': 'CA',
+    'mexico': 'MX',
+    'france': 'FR',
+    'italy': 'IT',
+    'spain': 'ES',
+    'germany': 'DE',
+    'united kingdom': 'GB',
+    'uk': 'GB',
+    'england': 'GB',
+    'netherlands': 'NL',
+    'switzerland': 'CH',
+    'austria': 'AT',
+    'greece': 'GR',
+    'portugal': 'PT',
+    'brazil': 'BR',
+    'argentina': 'AR',
+    'japan': 'JP',
+    'china': 'CN',
+    'india': 'IN',
+    'australia': 'AU',
+    'new zealand': 'NZ',
+    'thailand': 'TH',
+    'singapore': 'SG',
+    'uae': 'AE',
+    'dubai': 'AE',
+    'israel': 'IL',
+    'egypt': 'EG',
+    'morocco': 'MA',
+    'south africa': 'ZA',
+  };
+
+  const normalized = country.toLowerCase().trim();
+  return countryMap[normalized] || 'XX'; // XX for unknown
+}
+
+/**
+ * Convert country code to flag emoji
+ */
+function countryCodeToFlag(countryCode: string): string {
+  if (countryCode === 'XX') return '🌍';
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+/**
+ * Derive continent from country name
+ */
+function deriveContinent(country: string): 'North America' | 'South America' | 'Europe' | 'Asia' | 'Africa' | 'Oceania' | 'Middle East' | 'Caribbean' {
+  const normalized = country.toLowerCase().trim();
+
+  // North America
+  if (['united states', 'usa', 'us', 'canada', 'mexico'].includes(normalized)) return 'North America';
+
+  // South America
+  if (['brazil', 'argentina', 'chile', 'colombia', 'peru', 'venezuela'].includes(normalized)) return 'South America';
+
+  // Europe
+  if (['france', 'italy', 'spain', 'germany', 'united kingdom', 'uk', 'england', 'netherlands',
+       'switzerland', 'austria', 'greece', 'portugal', 'poland', 'sweden', 'norway'].includes(normalized)) return 'Europe';
+
+  // Asia
+  if (['japan', 'china', 'india', 'thailand', 'singapore', 'south korea', 'vietnam', 'indonesia',
+       'malaysia', 'philippines'].includes(normalized)) return 'Asia';
+
+  // Middle East
+  if (['uae', 'dubai', 'israel', 'jordan', 'saudi arabia', 'qatar', 'bahrain', 'kuwait'].includes(normalized)) return 'Middle East';
+
+  // Africa
+  if (['egypt', 'morocco', 'south africa', 'kenya', 'tanzania', 'tunisia'].includes(normalized)) return 'Africa';
+
+  // Oceania
+  if (['australia', 'new zealand', 'fiji'].includes(normalized)) return 'Oceania';
+
+  // Caribbean
+  if (['jamaica', 'bahamas', 'barbados', 'trinidad'].includes(normalized)) return 'Caribbean';
+
+  return 'North America'; // Default fallback
 }
 
 /**
