@@ -97,7 +97,7 @@ export default async function RootLayout({
   const messages = await getMessages({ locale: 'en' });
 
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://assets.duffel.com" />
@@ -110,7 +110,7 @@ export default async function RootLayout({
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         {/* Skip to main content link for accessibility */}
         <a href="#main-content" className="skip-link">
           Skip to main content

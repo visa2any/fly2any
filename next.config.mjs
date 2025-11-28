@@ -121,6 +121,16 @@ const nextConfig = {
       // Hotel images (common CDNs)
       {
         protocol: 'https',
+        hostname: 'static.cupid.travel',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'snaphotelapi.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'pix*.agoda.net',
       },
       {
