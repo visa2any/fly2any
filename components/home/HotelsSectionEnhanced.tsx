@@ -458,3 +458,6 @@ export function HotelsSectionEnhanced({ lang = 'en' }: HotelsSectionEnhancedProp
     </section>
   );
 }
+
+// Default export for better compatibility
+export default HotelsSectionEnhanced;

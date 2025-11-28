@@ -13,6 +13,8 @@ import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
+import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { CollapsibleSearchBar } from '@/components/mobile/CollapsibleSearchBar';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -305,6 +307,9 @@ function HotelResultsContent() {
   // Mobile filter sheet state
   const [mobileFilterSheetOpen, setMobileFilterSheetOpen] = useState(false);
 
+  // Search bar collapsed state (for mobile)
+  const [searchBarCollapsed, setSearchBarCollapsed] = useState(true);
+
   // Filters state
   const [filters, setFilters] = useState<HotelFiltersType>({
     priceRange: [0, 1000],
@@ -440,18 +445,26 @@ function HotelResultsContent() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-28 h-28 mx-auto mb-8">
-            <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
-            <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
-              <Hotel className="w-10 h-10 text-orange-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+        {/* Search Bar - VISIBLE during loading */}
+        <EnhancedSearchBar
+          lang={lang}
+          defaultService="hotels"
+        />
+
+        <div className="flex items-center justify-center pt-20">
+          <div className="text-center">
+            <div className="relative w-28 h-28 mx-auto mb-8">
+              <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
+              <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
+                <Hotel className="w-10 h-10 text-orange-600" />
+              </div>
             </div>
+            <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.searching}</h2>
+            <p className="text-lg text-slate-600 font-medium leading-relaxed">Finding the perfect stay in {searchData.destination}</p>
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">{searchData.checkIn} - {searchData.checkOut} · {nights} {nights === 1 ? 'night' : 'nights'}</p>
           </div>
-          <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.searching}</h2>
-          <p className="text-lg text-slate-600 font-medium leading-relaxed">Finding the perfect stay in {searchData.destination}</p>
-          <p className="text-sm text-slate-500 mt-2 leading-relaxed">{searchData.checkIn} - {searchData.checkOut} · {nights} {nights === 1 ? 'night' : 'nights'}</p>
         </div>
       </div>
     );
@@ -460,20 +473,27 @@ function HotelResultsContent() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border-2 border-red-100/70 p-10 text-center">
-          <div className="w-24 h-24 bg-red-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-12 h-12 text-red-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+        <EnhancedSearchBar
+          lang={lang}
+          defaultService="hotels"
+        />
+
+        <div className="flex items-center justify-center p-4 pt-20">
+          <div className="max-w-md w-full bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border-2 border-red-100/70 p-10 text-center">
+            <div className="w-24 h-24 bg-red-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-12 h-12 text-red-600" />
+            </div>
+            <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.error}</h2>
+            <p className="text-base text-slate-600 mb-8 leading-relaxed">{error}</p>
+            <button
+              onClick={() => fetchHotels()}
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+            >
+              <RefreshCcw className="w-5 h-5" />
+              {t.retry}
+            </button>
           </div>
-          <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.error}</h2>
-          <p className="text-base text-slate-600 mb-8 leading-relaxed">{error}</p>
-          <button
-            onClick={() => fetchHotels()}
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
-          >
-            <RefreshCcw className="w-5 h-5" />
-            {t.retry}
-          </button>
         </div>
       </div>
     );
@@ -483,6 +503,11 @@ function HotelResultsContent() {
   if (hotels.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+        <EnhancedSearchBar
+          lang={lang}
+          defaultService="hotels"
+        />
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 p-12">
             <div className="w-24 h-24 bg-slate-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -511,30 +536,36 @@ function HotelResultsContent() {
 
       <ScrollProgress />
 
-      {/* Sticky Search Bar */}
-      <div
-        className={`sticky top-0 z-50 bg-slate-50/95 backdrop-blur-lg border-b border-slate-200/80 shadow-sm transition-all duration-300 ${
-          shouldMinimize ? 'md:py-0' : ''
-        }`}
+      {/* Search Bar - Collapsible for mobile, always visible for desktop (Flight-style pattern) */}
+      <CollapsibleSearchBar
+        searchSummary={{
+          origin: '', // Hotels don't have origin/destination like flights
+          destination: searchData.destination,
+          departDate: searchData.checkIn ? new Date(searchData.checkIn) : null,
+          returnDate: searchData.checkOut ? new Date(searchData.checkOut) : null,
+          passengers: {
+            adults: searchData.adults,
+            children: searchData.children,
+            infants: 0,
+          },
+          tripType: 'roundtrip', // Hotel stays are conceptually like roundtrips
+        }}
+        defaultCollapsed={searchBarCollapsed}
+        onCollapseChange={setSearchBarCollapsed}
+        mobileOnly={true}
       >
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 24px' }}>
-          <div className={`flex items-center justify-between transition-all duration-300 ${shouldMinimize ? 'py-2 md:py-3' : 'py-3.5 md:py-4'}`}>
-            <div className="flex-1 min-w-0">
-              <h1 className={`font-semibold text-slate-900 tracking-tight leading-tight transition-all duration-300 ${shouldMinimize ? 'text-lg md:text-2xl' : 'text-2xl'}`}>
-                Hotels in {searchData.destination}
-              </h1>
-              <p className={`text-sm text-slate-600 leading-relaxed tracking-normal transition-all duration-300 ${shouldMinimize ? 'mt-0 md:mt-1 text-xs md:text-sm' : 'mt-1'}`}>
-                {searchData.checkIn} - {searchData.checkOut} · {searchData.adults} adults · {searchData.rooms} room{searchData.rooms > 1 ? 's' : ''} · {nights} night{nights > 1 ? 's' : ''}
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/home-new')}
-              className={`text-sm font-semibold text-orange-600 hover:text-orange-700 transition-all px-4 rounded-lg hover:bg-orange-50/80 flex-shrink-0 ${shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'}`}
-            >
-              {t.modifySearch}
-            </button>
-          </div>
-        </div>
+        <EnhancedSearchBar
+          lang={lang}
+          defaultService="hotels"
+        />
+      </CollapsibleSearchBar>
+
+      {/* Desktop: Show full search bar (CollapsibleSearchBar is mobile-only) */}
+      <div className="hidden md:block">
+        <EnhancedSearchBar
+          lang={lang}
+          defaultService="hotels"
+        />
       </div>
 
       {/* Main Content */}

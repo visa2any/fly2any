@@ -1630,36 +1630,137 @@ export default function EnhancedSearchBar({
                 </p>
               )}
 
-              {/* Suggestions Dropdown */}
+              {/* Enhanced Suggestions Dropdown - World-Class Design */}
               {showHotelSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-br from-white via-blue-50/30 to-white border-2 border-blue-100 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto backdrop-blur-xl"
+                     style={{
+                       boxShadow: '0 20px 60px -15px rgba(0, 135, 255, 0.3), 0 10px 30px -10px rgba(0, 0, 0, 0.1)'
+                     }}>
                   {isLoadingHotelSuggestions ? (
-                    <div className="p-4 text-center text-gray-500 text-sm">Loading...</div>
+                    <div className="p-6 flex flex-col items-center justify-center gap-3">
+                      <div className="relative w-12 h-12">
+                        <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
+                        <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                      </div>
+                      <p className="text-sm font-medium text-gray-600">Finding destinations...</p>
+                    </div>
                   ) : hotelSuggestions.length > 0 ? (
                     <div className="py-2">
-                      {hotelSuggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleHotelSuggestionSelect(suggestion)}
-                          className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-start gap-3"
-                        >
-                          <Building2 size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 text-sm truncate">
-                              {suggestion.name}
+                      {hotelSuggestions.map((suggestion, index) => {
+                        // Category badge colors
+                        const getCategoryColor = (category: string) => {
+                          const colors: Record<string, string> = {
+                            'Beach': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+                            'City': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                            'Mountain': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                            'Historic': 'bg-amber-100 text-amber-700 border-amber-200',
+                            'Luxury': 'bg-purple-100 text-purple-700 border-purple-200',
+                            'Romantic': 'bg-pink-100 text-pink-700 border-pink-200',
+                            'Adventure': 'bg-orange-100 text-orange-700 border-orange-200',
+                            'Cultural': 'bg-violet-100 text-violet-700 border-violet-200',
+                          };
+                          return colors[category] || 'bg-gray-100 text-gray-700 border-gray-200';
+                        };
+
+                        // Popularity stars
+                        const renderStars = (popularity: number = 0) => {
+                          const fullStars = Math.floor(popularity / 2);
+                          const hasHalfStar = popularity % 2 >= 1;
+                          return (
+                            <div className="flex items-center gap-0.5">
+                              {[...Array(fullStars)].map((_, i) => (
+                                <span key={i} className="text-yellow-400 text-xs">★</span>
+                              ))}
+                              {hasHalfStar && <span className="text-yellow-400 text-xs">⯨</span>}
+                              {[...Array(5 - fullStars - (hasHalfStar ? 1 : 0))].map((_, i) => (
+                                <span key={`empty-${i}`} className="text-gray-300 text-xs">★</span>
+                              ))}
                             </div>
-                            {(suggestion.city || suggestion.country) && (
-                              <div className="text-xs text-gray-500 truncate">
-                                {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
+                          );
+                        };
+
+                        return (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleHotelSuggestionSelect(suggestion)}
+                            className="group w-full px-4 py-4 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 flex items-center gap-4 border-b border-gray-100 last:border-b-0 hover:scale-[1.01] active:scale-[0.99]"
+                            style={{
+                              transformOrigin: 'center'
+                            }}
+                          >
+                            {/* Emoji/Flag - Large & Prominent */}
+                            <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 group-hover:from-blue-100 group-hover:to-cyan-100 transition-all duration-300 group-hover:scale-110"
+                                 style={{
+                                   boxShadow: '0 4px 12px rgba(0, 135, 255, 0.1)'
+                                 }}>
+                              <div className="text-4xl leading-none">
+                                {suggestion.emoji || '🏙️'}
                               </div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              {/* City Name & Flag */}
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-bold text-gray-900 text-base group-hover:text-blue-600 transition-colors truncate">
+                                  {suggestion.name}
+                                </h3>
+                                {suggestion.flag && (
+                                  <span className="text-xl flex-shrink-0">{suggestion.flag}</span>
+                                )}
+                              </div>
+
+                              {/* Location & Type */}
+                              {(suggestion.city || suggestion.country) && (
+                                <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                                  <MapPin size={12} className="text-gray-400 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
+                                  </span>
+                                  {suggestion.continent && (
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[10px] font-medium">
+                                      {suggestion.continent}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Categories & Popularity */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {/* Categories (max 2 shown) */}
+                                {suggestion.categories?.slice(0, 2).map((category: string, i: number) => (
+                                  <span key={i}
+                                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${getCategoryColor(category)}`}>
+                                    {category}
+                                  </span>
+                                ))}
+
+                                {/* Popularity Stars */}
+                                {suggestion.popularity && suggestion.popularity >= 8 && (
+                                  <div className="flex items-center gap-1 ml-auto">
+                                    {renderStars(suggestion.popularity)}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Hover Arrow Indicator */}
+                            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
+                              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
+                    <div className="p-8 text-center">
+                      <div className="text-4xl mb-3">🔍</div>
+                      <p className="text-sm font-medium text-gray-600">No destinations found</p>
+                      <p className="text-xs text-gray-400 mt-1">Try a different search term</p>
+                    </div>
                   )}
                 </div>
               )}
