@@ -448,14 +448,16 @@ export async function POST(request: NextRequest) {
       } else {
         // If duplicate, keep the one with better price
         const existing = seenHotels.get(key);
-        const existingPrice = existing.lowestPricePerNight || existing.lowestPrice || Infinity;
-        const newPrice = hotel.lowestPricePerNight || hotel.lowestPrice || Infinity;
+        if (existing) {
+          const existingPrice = existing.lowestPricePerNight || existing.lowestPrice || Infinity;
+          const newPrice = hotel.lowestPricePerNight || hotel.lowestPrice || Infinity;
 
-        if (newPrice < existingPrice) {
-          const index = deduplicatedHotels.indexOf(existing);
-          if (index > -1) {
-            deduplicatedHotels[index] = hotel;
-            seenHotels.set(key, hotel);
+          if (newPrice < existingPrice) {
+            const index = deduplicatedHotels.indexOf(existing);
+            if (index > -1) {
+              deduplicatedHotels[index] = hotel;
+              seenHotels.set(key, hotel);
+            }
           }
         }
       }
