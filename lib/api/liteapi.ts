@@ -1,20 +1,7 @@
 // LiteAPI Integration for Hotel Search
 // Two-step flow: 1) Get hotel list with static data, 2) Get rates for those hotels
 import axios, { AxiosError } from 'axios';
-
-interface HotelSearchParams {
-  latitude?: number;
-  longitude?: number;
-  countryCode?: string;
-  cityName?: string;
-  checkinDate: string;
-  checkoutDate: string;
-  adults: number;
-  children?: number;
-  currency?: string;
-  guestNationality?: string;
-  limit?: number;
-}
+import { HotelSearchParams } from '@/lib/hotels/types';
 
 interface HotelDetailsParams {
   hotelId: string;
@@ -521,6 +508,16 @@ class LiteAPI {
     meta: { count: number; source: string };
   }> {
     try {
+      // Handle parameter variations
+      const checkIn = params.checkIn || params.checkinDate;
+      const checkOut = params.checkOut || params.checkoutDate;
+      const adults = params.adults || params.guests?.adults || 2;
+      const children = params.children || (Array.isArray(params.guests?.children) ? params.guests.children.length : 0);
+
+      if (!checkIn || !checkOut) {
+        throw new Error('Check-in and check-out dates are required');
+      }
+
       // Step 1: Get hotel static data
       const locationParams: Parameters<typeof this.getHotelsByLocation>[0] = {
         limit: params.limit || 30,
@@ -561,9 +558,9 @@ class LiteAPI {
       // Step 2: Get rates for those hotels
       const ratesData = await this.getHotelRates({
         hotelIds: activeHotelIds,
-        checkin: params.checkinDate,
-        checkout: params.checkoutDate,
-        occupancies: [{ adults: params.adults, children: params.children ? [params.children] : undefined }],
+        checkin: checkIn,
+        checkout: checkOut,
+        occupancies: [{ adults, children: children ? [children] : undefined }],
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
       });
