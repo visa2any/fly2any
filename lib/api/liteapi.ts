@@ -705,7 +705,12 @@ class LiteAPI {
         hotelIds: activeHotelIds,
         checkin: checkIn,
         checkout: checkOut,
-        occupancies: [{ adults, children: children ? [children] : undefined }],
+        occupancies: [{
+          adults,
+          // CRITICAL FIX: LiteAPI expects children as array of ages, not count
+          // If children count is provided but no ages, use default age of 10 for all
+          ...(children > 0 && { children: Array(children).fill(10) })
+        }],
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
       });
