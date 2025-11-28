@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star } from 'lucide-react';
+import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface HotelSearchBarProps {
@@ -104,6 +104,18 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
+  // Advanced Filters State
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [hotelChains, setHotelChains] = useState<Array<{ chainId: number; name: string; code?: string }>>([]);
+  const [hotelTypes, setHotelTypes] = useState<Array<{ typeId: number; name: string }>>([]);
+  const [facilities, setFacilities] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedChains, setSelectedChains] = useState<number[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
+  const [selectedStarRating, setSelectedStarRating] = useState<number[]>([]);
+  const [selectedAmenities, setSelectedAmenities] = useState<number[]>([]);
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+
   const destinationRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -135,6 +147,39 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       }
     };
     fetchPopular();
+  }, []);
+
+  // Fetch advanced filter data (chains, types, facilities)
+  useEffect(() => {
+    const fetchAdvancedFiltersData = async () => {
+      try {
+        // Fetch all filter data in parallel
+        const [chainsRes, typesRes, facilitiesRes] = await Promise.all([
+          fetch('/api/hotels/chains'),
+          fetch('/api/hotels/types'),
+          fetch('/api/hotels/facilities'),
+        ]);
+
+        const [chainsData, typesData, facilitiesData] = await Promise.all([
+          chainsRes.json(),
+          typesRes.json(),
+          facilitiesRes.json(),
+        ]);
+
+        if (chainsData.success && chainsData.data) {
+          setHotelChains(chainsData.data);
+        }
+        if (typesData.success && typesData.data) {
+          setHotelTypes(typesData.data);
+        }
+        if (facilitiesData.success && facilitiesData.data) {
+          setFacilities(facilitiesData.data);
+        }
+      } catch (error) {
+        console.error('Error fetching advanced filter data:', error);
+      }
+    };
+    fetchAdvancedFiltersData();
   }, []);
 
   // Fetch suggestions from API
@@ -226,26 +271,56 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
 
     setIsSearching(true);
 
-    // Build search query
-    const query = new URLSearchParams({
+    // Build search query with advanced filters
+    const queryParams: Record<string, string> = {
       destination: destination,
       checkIn: checkIn,
       checkOut: checkOut,
       adults: adults.toString(),
       children: children.toString(),
       rooms: rooms.toString(),
-      ...(selectedLocation && {
-        lat: selectedLocation.lat.toString(),
-        lng: selectedLocation.lng.toString(),
-      }),
-    });
+    };
+
+    // Add location coordinates if available
+    if (selectedLocation) {
+      queryParams.lat = selectedLocation.lat.toString();
+      queryParams.lng = selectedLocation.lng.toString();
+    }
+
+    // Add advanced filters if any are selected
+    if (selectedChains.length > 0) {
+      queryParams.chains = selectedChains.join(',');
+    }
+    if (selectedTypes.length > 0) {
+      queryParams.types = selectedTypes.join(',');
+    }
+    if (selectedStarRating.length > 0) {
+      queryParams.stars = selectedStarRating.join(',');
+    }
+    if (selectedAmenities.length > 0) {
+      queryParams.amenities = selectedAmenities.join(',');
+    }
+    if (minPrice) {
+      queryParams.minPrice = minPrice;
+    }
+    if (maxPrice) {
+      queryParams.maxPrice = maxPrice;
+    }
+
+    const query = new URLSearchParams(queryParams);
 
     // Navigate to results page
     router.push(`/hotels/results?${query.toString()}`);
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gray-100 p-6 md:p-8">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSearch();
+      }}
+      className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gray-100 p-6 md:p-8"
+    >
       {/* Title */}
       <div className="mb-6">
         <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
@@ -513,7 +588,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         {/* Search Button */}
         <div className="flex items-end">
           <button
-            onClick={handleSearch}
+            type="submit"
             disabled={isSearching}
             className="w-full py-4 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 hover:from-orange-700 hover:via-red-700 hover:to-pink-700 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-400 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
@@ -531,6 +606,227 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           </button>
         </div>
       </div>
-    </div>
+
+      {/* Advanced Filters Toggle */}
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => {
+            console.log('Advanced Filters clicked! Current state:', showAdvancedFilters);
+            setShowAdvancedFilters(!showAdvancedFilters);
+            console.log('Advanced Filters new state will be:', !showAdvancedFilters);
+          }}
+          className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-orange-600 transition-colors"
+        >
+          <Filter className="w-4 h-4" />
+          <span>Advanced Filters</span>
+          {showAdvancedFilters ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+          {(selectedChains.length > 0 || selectedTypes.length > 0 || selectedStarRating.length > 0 || selectedAmenities.length > 0 || minPrice || maxPrice) && (
+            <span className="ml-1 px-2 py-0.5 bg-orange-100 text-orange-600 rounded-full text-xs font-bold">
+              {[
+                selectedChains.length,
+                selectedTypes.length,
+                selectedStarRating.length,
+                selectedAmenities.length,
+                minPrice ? 1 : 0,
+                maxPrice ? 1 : 0
+              ].reduce((a, b) => a + b, 0)} active
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Advanced Filters Panel */}
+      <AnimatePresence>
+        {showAdvancedFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 p-6 bg-gray-50 rounded-2xl border-2 border-gray-100 space-y-6">
+              {/* Star Rating */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <Star className="w-4 h-4 inline mr-1" />
+                  Star Rating
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[5, 4, 3, 2, 1].map((stars) => (
+                    <button
+                      key={stars}
+                      onClick={() => {
+                        if (selectedStarRating.includes(stars)) {
+                          setSelectedStarRating(selectedStarRating.filter(s => s !== stars));
+                        } else {
+                          setSelectedStarRating([...selectedStarRating, stars]);
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-lg border-2 font-semibold transition-all ${
+                        selectedStarRating.includes(stars)
+                          ? 'bg-orange-600 text-white border-orange-600'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                      }`}
+                    >
+                      {stars} ⭐
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  <DollarSign className="w-4 h-4 inline mr-1" />
+                  Price Range (per night)
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <input
+                      type="number"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      placeholder="Min price"
+                      className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      placeholder="Max price"
+                      className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Popular Amenities */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Popular Amenities
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { id: 1, name: 'WiFi', icon: Wifi },
+                    { id: 2, name: 'Parking', icon: Car },
+                    { id: 3, name: 'Gym', icon: Dumbbell },
+                    { id: 4, name: 'Restaurant', icon: UtensilsCrossed },
+                  ].map((amenity) => {
+                    const Icon = amenity.icon;
+                    return (
+                      <button
+                        key={amenity.id}
+                        onClick={() => {
+                          if (selectedAmenities.includes(amenity.id)) {
+                            setSelectedAmenities(selectedAmenities.filter(a => a !== amenity.id));
+                          } else {
+                            setSelectedAmenities([...selectedAmenities, amenity.id]);
+                          }
+                        }}
+                        className={`px-4 py-3 rounded-lg border-2 font-medium transition-all flex items-center gap-2 justify-center ${
+                          selectedAmenities.includes(amenity.id)
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {amenity.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Hotel Chains (if available) */}
+              {hotelChains.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    <Building2 className="w-4 h-4 inline mr-1" />
+                    Hotel Chains
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                    {hotelChains.slice(0, 12).map((chain) => (
+                      <button
+                        key={chain.chainId}
+                        onClick={() => {
+                          if (selectedChains.includes(chain.chainId)) {
+                            setSelectedChains(selectedChains.filter(c => c !== chain.chainId));
+                          } else {
+                            setSelectedChains([...selectedChains, chain.chainId]);
+                          }
+                        }}
+                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all text-left ${
+                          selectedChains.includes(chain.chainId)
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                        }`}
+                      >
+                        {chain.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hotel Types (if available) */}
+              {hotelTypes.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Property Type
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {hotelTypes.slice(0, 8).map((type) => (
+                      <button
+                        key={type.typeId}
+                        onClick={() => {
+                          if (selectedTypes.includes(type.typeId)) {
+                            setSelectedTypes(selectedTypes.filter(t => t !== type.typeId));
+                          } else {
+                            setSelectedTypes([...selectedTypes, type.typeId]);
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                          selectedTypes.includes(type.typeId)
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-orange-300'
+                        }`}
+                      >
+                        {type.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Clear Filters Button */}
+              {(selectedChains.length > 0 || selectedTypes.length > 0 || selectedStarRating.length > 0 || selectedAmenities.length > 0 || minPrice || maxPrice) && (
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedChains([]);
+                      setSelectedTypes([]);
+                      setSelectedStarRating([]);
+                      setSelectedAmenities([]);
+                      setMinPrice('');
+                      setMaxPrice('');
+                    }}
+                    className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-colors"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </form>
   );
 }

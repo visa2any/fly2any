@@ -189,6 +189,17 @@ const CITY_DATABASE: CitySuggestion[] = [
 ];
 
 /**
+ * Add latitude/longitude at root level for EnhancedSearchBar compatibility
+ */
+function normalizeForFrontend(item: any): CitySuggestion {
+  return {
+    ...item,
+    latitude: item.location?.lat || item.latitude || 0,
+    longitude: item.location?.lng || item.longitude || 0,
+  };
+}
+
+/**
  * Search cities with fuzzy matching
  */
 function searchCities(query: string): CitySuggestion[] {
@@ -283,11 +294,12 @@ export async function GET(request: NextRequest) {
 
     // Return popular destinations when no query
     if (popular === 'true' || (!query && !popular)) {
+      const normalizedPopular = POPULAR_DESTINATIONS.map(normalizeForFrontend);
       return NextResponse.json({
         success: true,
-        data: POPULAR_DESTINATIONS,
+        data: normalizedPopular,
         meta: {
-          count: POPULAR_DESTINATIONS.length,
+          count: normalizedPopular.length,
           source: 'popular',
         },
       }, {
@@ -298,11 +310,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!query || query.length < 2) {
+      const normalizedPopular = POPULAR_DESTINATIONS.map(normalizeForFrontend);
       return NextResponse.json({
         success: true,
-        data: POPULAR_DESTINATIONS,
+        data: normalizedPopular,
         meta: {
-          count: POPULAR_DESTINATIONS.length,
+          count: normalizedPopular.length,
           source: 'popular',
         },
       });
@@ -334,11 +347,14 @@ export async function GET(request: NextRequest) {
     // Merge results with smart deduplication
     const merged = mergeResults(liteApiResults, localResults);
 
+    // Normalize all results for frontend compatibility
+    const normalizedMerged = merged.map(normalizeForFrontend);
+
     const response = {
       success: true,
-      data: merged,
+      data: normalizedMerged,
       meta: {
-        count: merged.length,
+        count: normalizedMerged.length,
         query,
         sources: {
           liteapi: liteApiResults.length,
@@ -364,7 +380,7 @@ export async function GET(request: NextRequest) {
     // Fallback to local search on any error
     const query = request.nextUrl.searchParams.get('query');
     if (query && query.length >= 2) {
-      const fallback = searchCities(query);
+      const fallback = searchCities(query).map(normalizeForFrontend);
       return NextResponse.json({
         success: true,
         data: fallback,
@@ -397,19 +413,32 @@ async function searchLiteApiPlaces(query: string): Promise<CitySuggestion[]> {
 
     if (!data || data.length === 0) return [];
 
-    // Convert LiteAPI places to our format
-    return data.map((place, index) => ({
-      id: `liteapi-${place.placeId || index}`,
-      name: place.textForSearch || place.cityName || '',
-      city: place.cityName || place.textForSearch || '',
-      country: place.countryName || '',
-      location: {
-        lat: place.latitude || 0,
-        lng: place.longitude || 0,
-      },
-      type: mapPlaceType(place.type),
-      placeId: place.placeId,
-    })).filter(p => p.name && (p.location.lat !== 0 || p.location.lng !== 0));
+    // Log what we're receiving from LiteAPI
+    console.log('📍 LiteAPI places response sample:', JSON.stringify(data.slice(0, 2)));
+
+    // LiteAPI returns: { placeId, displayName, formattedAddress, types: [] }
+    // Convert to our format - map displayName to name, extract country from formattedAddress
+    return data.map((place: any, index: number) => {
+      const name = place.displayName || place.textForSearch || place.cityName || '';
+      const addressParts = (place.formattedAddress || '').split(',').map((s: string) => s.trim());
+      const country = addressParts[addressParts.length - 1] || place.countryName || '';
+      const city = addressParts[0] || name;
+
+      return {
+        id: `liteapi-${place.placeId || index}`,
+        name,
+        city,
+        country,
+        location: {
+          lat: place.latitude || 0,
+          lng: place.longitude || 0,
+        },
+        latitude: place.latitude || 0,
+        longitude: place.longitude || 0,
+        type: mapPlaceType(place.types?.[0] || place.type || 'city'),
+        placeId: place.placeId,
+      };
+    }).filter((p: any) => p.name) as CitySuggestion[];
   } catch (error) {
     console.error('LiteAPI places search failed:', error);
     return [];
@@ -450,9 +479,10 @@ function mergeResults(liteApiResults: CitySuggestion[], localResults: CitySugges
   }
 
   // Add LiteAPI results that aren't duplicates
+  // Note: LiteAPI places may not have coordinates - they can still be used via placeId
   for (const item of liteApiResults) {
     const key = getKey(item);
-    if (!seen.has(key) && item.location.lat !== 0) {
+    if (!seen.has(key)) {
       seen.add(key);
       merged.push(item);
     }

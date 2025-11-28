@@ -111,7 +111,7 @@ function HotelBookingContent() {
       try {
         const hotelId = searchParams.get('hotelId');
         if (!hotelId) {
-          router.push('/hotels/search');
+          router.push('/hotels');
           return;
         }
 
@@ -121,7 +121,10 @@ function HotelBookingContent() {
           const data = JSON.parse(cachedHotel);
           setHotelData(data);
           loadRoomOptions(data);
-          initializeGuests(data.guests.adults, data.guests.children);
+          // Defensive check for guests object structure
+          const cachedAdults = data.guests?.adults || parseInt(searchParams.get('adults') || '2');
+          const cachedChildren = data.guests?.children || parseInt(searchParams.get('children') || '0');
+          initializeGuests(cachedAdults, cachedChildren);
           setLoading(false);
           return;
         }
@@ -137,7 +140,7 @@ function HotelBookingContent() {
         const currency = searchParams.get('currency') || 'USD';
 
         if (!hotelName || !checkIn || !checkOut) {
-          router.push('/hotels/search');
+          router.push('/hotels');
           return;
         }
 
@@ -166,7 +169,7 @@ function HotelBookingContent() {
         setLoading(false);
       } catch (error) {
         console.error('Error loading hotel data:', error);
-        router.push('/hotels/search');
+        router.push('/hotels');
       }
     };
 
@@ -198,6 +201,11 @@ function HotelBookingContent() {
 
   const loadRoomOptions = (bookingData: HotelBookingData) => {
     // Mock room options - In production, this would be an API call
+    // Ensure basePrice is valid (fallback to $100 if missing/zero)
+    const validBasePrice = bookingData.basePrice && bookingData.basePrice > 0
+      ? bookingData.basePrice
+      : 100;
+
     const mockRooms: RoomOption[] = [
       {
         id: 'standard-queen',
@@ -206,7 +214,7 @@ function HotelBookingContent() {
         bedType: 'Queen Bed',
         maxGuests: 2,
         amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom'],
-        price: bookingData.basePrice * 0.9,
+        price: validBasePrice * 0.9,
         currency: bookingData.currency,
         refundable: false,
         breakfastIncluded: false,
@@ -218,7 +226,7 @@ function HotelBookingContent() {
         bedType: 'King Bed',
         maxGuests: 2,
         amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom', 'Mini Bar', 'City View'],
-        price: bookingData.basePrice,
+        price: validBasePrice,
         currency: bookingData.currency,
         refundable: true,
         breakfastIncluded: true,
@@ -231,7 +239,7 @@ function HotelBookingContent() {
         bedType: 'King Bed + Sofa Bed',
         maxGuests: 4,
         amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom', 'Mini Bar', 'City View', 'Living Area', 'Coffee Maker'],
-        price: bookingData.basePrice * 1.4,
+        price: validBasePrice * 1.4,
         currency: bookingData.currency,
         refundable: true,
         breakfastIncluded: true,
@@ -448,15 +456,19 @@ function HotelBookingContent() {
   const getTotalPrice = () => {
     if (!hotelData) return 0;
     const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
-    return selectedRoom ? selectedRoom.price * hotelData.nights : 0;
+    if (!selectedRoom || !selectedRoom.price || selectedRoom.price <= 0) return 0;
+    const nights = Math.max(1, hotelData.nights || 1); // Ensure at least 1 night
+    return selectedRoom.price * nights;
   };
 
   const getTaxesAndFees = () => {
-    return getTotalPrice() * 0.12; // 12% taxes and fees
+    const totalPrice = getTotalPrice();
+    return totalPrice > 0 ? totalPrice * 0.12 : 0; // 12% taxes and fees
   };
 
   const getGrandTotal = () => {
-    return getTotalPrice() + getTaxesAndFees();
+    const total = getTotalPrice() + getTaxesAndFees();
+    return total > 0 ? total : 0;
   };
 
   // ===========================
@@ -585,7 +597,7 @@ function HotelBookingContent() {
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-primary-600">
-                              {room.currency} {room.price}
+                              {room.currency} {(room.price || 0).toFixed(2)}
                             </p>
                             <p className="text-xs text-gray-600">per night</p>
                           </div>
@@ -909,16 +921,16 @@ function HotelBookingContent() {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">
-                    {selectedRoom?.currency} {selectedRoom?.price} x {hotelData.nights} nights
+                    {selectedRoom?.currency || 'USD'} {(selectedRoom?.price || 0).toFixed(2)} x {Math.max(1, hotelData.nights || 1)} {hotelData.nights === 1 ? 'night' : 'nights'}
                   </span>
                   <span className="font-semibold text-gray-900">
-                    {selectedRoom?.currency} {getTotalPrice().toFixed(2)}
+                    {selectedRoom?.currency || 'USD'} {(getTotalPrice() || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Taxes & Fees</span>
                   <span className="font-semibold text-gray-900">
-                    {selectedRoom?.currency} {getTaxesAndFees().toFixed(2)}
+                    {selectedRoom?.currency || 'USD'} {(getTaxesAndFees() || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -928,7 +940,7 @@ function HotelBookingContent() {
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-lg text-gray-900">Total</span>
                   <span className="font-bold text-2xl text-primary-600">
-                    {selectedRoom?.currency} {getGrandTotal().toFixed(2)}
+                    {selectedRoom?.currency || 'USD'} {(getGrandTotal() || 0).toFixed(2)}
                   </span>
                 </div>
               </div>

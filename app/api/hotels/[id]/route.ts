@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
+import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { isDemoHotelId, generateDemoHotelDetails } from '@/lib/utils/demo-hotels';
+
+/**
+ * Check if hotel ID is from LiteAPI (starts with 'lp' prefix)
+ */
+function isLiteAPIHotelId(hotelId: string): boolean {
+  return hotelId.startsWith('lp') || hotelId.length <= 10;
+}
 
 /**
  * Hotel Details API Route
@@ -66,6 +74,181 @@ export async function GET(
       }
     }
 
+    // Check if this is a LiteAPI hotel
+    if (isLiteAPIHotelId(accommodationId)) {
+      console.log(`🏨 [LITEAPI] Fetching hotel details for ${accommodationId}`);
+
+      // Get query params for rates (optional)
+      const searchParams = request.nextUrl.searchParams;
+      const checkIn = searchParams.get('checkIn');
+      const checkOut = searchParams.get('checkOut');
+      const adults = parseInt(searchParams.get('adults') || '2', 10);
+
+      // Generate cache key for LiteAPI (include dates if provided)
+      const cacheKey = generateCacheKey('hotels:liteapi:details', {
+        id: accommodationId,
+        checkIn: checkIn || 'none',
+        checkOut: checkOut || 'none',
+      });
+
+      // Try to get from cache (30 minutes TTL)
+      const cached = await getCached<any>(cacheKey);
+      if (cached) {
+        console.log(`✅ Returning cached LiteAPI hotel details for ${accommodationId}`);
+        return NextResponse.json(cached, {
+          headers: {
+            'X-Cache-Status': 'HIT',
+            'X-API-Source': 'LITEAPI',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      }
+
+      try {
+        const hotelDetails = await liteAPI.getHotelDetails({ hotelId: accommodationId });
+
+        if (!hotelDetails) {
+          return NextResponse.json(
+            { error: 'Hotel not found' },
+            { status: 404 }
+          );
+        }
+
+        // Build images array from LiteAPI response
+        const images: Array<{ url: string; caption?: string }> = [];
+        if (hotelDetails.main_photo) {
+          images.push({ url: hotelDetails.main_photo, caption: hotelDetails.name });
+        }
+        if (hotelDetails.thumbnail && hotelDetails.thumbnail !== hotelDetails.main_photo) {
+          images.push({ url: hotelDetails.thumbnail, caption: `${hotelDetails.name} thumbnail` });
+        }
+
+        // Map facility IDs to amenity names (common facility mappings)
+        const facilityMap: Record<number, string> = {
+          1: 'wifi', 2: 'parking', 3: 'pool', 4: 'gym', 5: 'restaurant',
+          6: 'bar', 7: 'spa', 8: 'room_service', 9: 'air_conditioning',
+          10: 'laundry', 11: 'concierge', 12: 'business_center',
+        };
+        const amenities = (hotelDetails.facilityIds || [])
+          .map((id: number) => facilityMap[id])
+          .filter(Boolean);
+
+        // Strip HTML tags from description
+        const stripHtml = (html: string): string => {
+          return html
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        };
+
+        // Format response to match expected structure for ClientPage
+        const formattedResponse = {
+          data: {
+            id: hotelDetails.id || accommodationId,
+            name: hotelDetails.name,
+            description: stripHtml(hotelDetails.hotelDescription || ''),
+            address: {
+              street: hotelDetails.address || '',
+              city: hotelDetails.city || '',
+              country: hotelDetails.country || '',
+              lat: hotelDetails.latitude,
+              lng: hotelDetails.longitude,
+            },
+            location: {
+              lat: hotelDetails.latitude,
+              lng: hotelDetails.longitude,
+            },
+            starRating: hotelDetails.stars || 0,
+            star_rating: hotelDetails.stars || 0, // Alternate format
+            reviewRating: hotelDetails.rating || 0,
+            reviewCount: hotelDetails.reviewCount || 0,
+            images: images,
+            photos: images.map(img => img.url), // Alternate format
+            amenities: amenities,
+            facilities: hotelDetails.facilityIds || [],
+            checkInTime: hotelDetails.checkInTime || '15:00',
+            checkOutTime: hotelDetails.checkOutTime || '11:00',
+            chain: hotelDetails.chain,
+            source: 'LiteAPI',
+            // Room rates - fetch if dates provided
+            rates: [] as any[],
+          },
+          meta: {
+            lastUpdated: new Date().toISOString(),
+            source: 'LiteAPI',
+          },
+        };
+
+        // Fetch rates if check-in/check-out dates provided
+        if (checkIn && checkOut) {
+          try {
+            console.log(`🏨 [LITEAPI] Fetching rates for ${accommodationId} (${checkIn} - ${checkOut})`);
+            const ratesData = await liteAPI.getHotelRates({
+              hotelIds: [accommodationId],
+              checkin: checkIn,
+              checkout: checkOut,
+              occupancies: [{ adults }],
+              currency: 'USD',
+              guestNationality: 'US',
+            });
+
+            // Transform rates to match expected format
+            if (ratesData && ratesData.length > 0) {
+              const hotelRates = ratesData[0];
+              const rates: any[] = [];
+
+              for (const roomType of hotelRates.roomTypes || []) {
+                for (const rate of roomType.rates || []) {
+                  const price = rate.retailRate?.total?.[0]?.amount || 0;
+                  const currency = rate.retailRate?.total?.[0]?.currency || 'USD';
+
+                  rates.push({
+                    id: rate.rateId,
+                    offerId: roomType.offerId,
+                    roomName: rate.name,
+                    name: rate.name,
+                    bedType: rate.boardName || 'Standard Bed',
+                    maxGuests: rate.maxOccupancy || 2,
+                    totalPrice: {
+                      amount: String(price),
+                      currency: currency,
+                    },
+                    refundable: rate.cancellationPolicies?.refundableTag === 'RFN',
+                    breakfastIncluded: rate.boardType === 'BB' || rate.boardName?.toLowerCase().includes('breakfast'),
+                    amenities: [],
+                  });
+                }
+              }
+
+              formattedResponse.data.rates = rates;
+              console.log(`✅ [LITEAPI] Found ${rates.length} room rates`);
+            }
+          } catch (ratesError) {
+            console.error('⚠️ [LITEAPI] Failed to fetch rates:', ratesError);
+            // Continue without rates - basic info is still useful
+          }
+        }
+
+        // Store in cache (30 minutes TTL)
+        await setCache(cacheKey, formattedResponse, 1800);
+
+        return NextResponse.json(formattedResponse, {
+          headers: {
+            'X-Cache-Status': 'MISS',
+            'X-API-Source': 'LITEAPI',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      } catch (error: any) {
+        console.error('❌ LiteAPI hotel details error:', error);
+        return NextResponse.json(
+          { error: error.message || 'Failed to fetch hotel details from LiteAPI' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Fallback to Duffel Stays API for non-LiteAPI hotels
     // Generate cache key
     const cacheKey = generateCacheKey('hotels:duffel:details', { id: accommodationId });
 

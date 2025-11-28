@@ -572,6 +572,169 @@ export interface CommissionRecord {
 }
 
 // ============================================================================
+// LITEAPI HOTEL TYPES (Production)
+// ============================================================================
+
+export interface LiteAPIHotelRate {
+  id: string;
+  roomType: string;
+  boardType: string;
+  totalPrice: {
+    amount: string;
+    currency: string;
+  };
+  refundable: boolean;
+  maxOccupancy: number;
+  offerId: string;
+}
+
+export interface LiteAPIHotel {
+  id: string;
+  name: string;
+  description?: string;
+  location: {
+    address: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+  };
+  rating: number; // star rating (1-5)
+  reviewScore: number; // guest review score (0-10)
+  reviewCount: number;
+  images: Array<{ url: string; alt: string }>;
+  thumbnail?: string;
+  amenities: string[];
+  rates: LiteAPIHotelRate[];
+  lowestPrice?: {
+    amount: string;
+    currency: string;
+  };
+  lowestPricePerNight?: number; // Per-night price (lowestPrice is TOTAL for entire stay)
+  source: 'liteapi';
+}
+
+// ============================================================================
+// LITEAPI ENHANCED TYPES
+// ============================================================================
+
+export interface LiteAPIReviewSentiment {
+  overallScore: number;
+  totalReviews: number;
+  categories: {
+    cleanliness?: { score: number; mentions: number };
+    service?: { score: number; mentions: number };
+    location?: { score: number; mentions: number };
+    roomQuality?: { score: number; mentions: number };
+    amenities?: { score: number; mentions: number };
+    valueForMoney?: { score: number; mentions: number };
+    foodAndBeverage?: { score: number; mentions: number };
+    overallExperience?: { score: number; mentions: number };
+  };
+  pros?: string[];
+  cons?: string[];
+}
+
+export interface LiteAPIHotelReview {
+  id: string;
+  hotelId: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  author: {
+    name?: string;
+    countryCode?: string;
+  };
+  date: string;
+  helpfulCount?: number;
+}
+
+export interface LiteAPIEnhancedHotelDetails {
+  id: string;
+  name: string;
+  description?: string;
+  address: string;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  stars: number;
+  rating: number;
+  reviewCount: number;
+  checkinCheckoutTimes?: {
+    checkin: string;
+    checkout: string;
+  };
+  hotelImportantInformation?: string[];
+  hotelFacilities?: string[];
+  facilities?: Array<{
+    id: number;
+    name: string;
+    category?: string;
+  }>;
+}
+
+export interface LiteAPIPlaceSearchResult {
+  textForSearch: string;
+  placeId: string;
+  type: 'city' | 'country' | 'landmark' | 'neighborhood' | 'poi';
+  countryCode: string;
+  countryName: string;
+  cityName?: string;
+  stateCode?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface LiteAPIPrebookResponse {
+  prebookId: string;
+  hotelId: string;
+  offerId: string;
+  status: 'confirmed' | 'pending' | 'failed';
+  price: {
+    amount: number;
+    currency: string;
+  };
+  expiresAt: string;
+  hotelConfirmationCode?: string;
+}
+
+export interface LiteAPIBookingResponse {
+  bookingId: string;
+  reference: string;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  hotelId: string;
+  hotelName: string;
+  checkIn: string;
+  checkOut: string;
+  guest: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  price: {
+    amount: number;
+    currency: string;
+    breakdown?: {
+      baseAmount: number;
+      taxesAmount: number;
+      feesAmount?: number;
+    };
+  };
+  cancellationPolicy?: {
+    refundable: boolean;
+    deadlines?: Array<{
+      date: string;
+      time: string;
+      penaltyAmount: number;
+    }>;
+  };
+  confirmationCode?: string;
+  hotelConfirmationCode?: string;
+  createdAt: string;
+}
+
+// ============================================================================
 // ANALYTICS TYPES
 // ============================================================================
 
