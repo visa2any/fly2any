@@ -375,6 +375,12 @@ export async function POST(request: NextRequest) {
     // 2. Hotelbeds Search (Secondary - Wholesale rates)
     const hotelbedsPromise = (async () => {
       try {
+        // DISABLED IN PRODUCTION - Hotelbeds is for testing only
+        if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
+          console.log('🚫 Hotelbeds disabled in production environment');
+          return { hotels: [], processTime: 0 };
+        }
+
         // Check if Hotelbeds is configured
         if (!process.env.HOTELBEDS_API_KEY || !process.env.HOTELBEDS_SECRET) {
           console.log('ℹ️ Hotelbeds not configured, skipping');
@@ -679,8 +685,8 @@ export async function GET(request: NextRequest) {
     const results = await liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
-      checkinDate: checkIn,
-      checkoutDate: checkOut,
+      checkIn,
+      checkOut,
       adults: parseInt(adults),
       children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0,
       currency: searchParams.get('currency') || 'USD',

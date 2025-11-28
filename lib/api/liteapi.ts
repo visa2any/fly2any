@@ -649,11 +649,11 @@ class LiteAPI {
   }> {
     try {
       // Calculate number of nights from check-in/check-out dates
-      const checkinDate = new Date(params.checkinDate);
-      const checkoutDate = new Date(params.checkoutDate);
+      const checkinDate = new Date(params.checkIn);
+      const checkoutDate = new Date(params.checkOut);
       const nights = Math.max(1, Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-      console.log(`📅 LiteAPI: Calculated ${nights} nights (${params.checkinDate} to ${params.checkoutDate})`);
+      console.log(`📅 LiteAPI: Calculated ${nights} nights (${params.checkIn} to ${params.checkOut})`);
 
       // Step 1: Get hotel static data
       // INCREASED LIMIT: Get up to 200 hotels to maximize availability options
