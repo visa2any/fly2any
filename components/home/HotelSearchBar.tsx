@@ -15,8 +15,9 @@ interface LocationSuggestion {
   city: string;
   country: string;
   location: { lat: number; lng: number };
-  type: 'city' | 'landmark' | 'airport' | 'neighborhood';
+  type: 'city' | 'landmark' | 'airport' | 'neighborhood' | 'poi';
   placeId?: string;
+  emoji?: string; // Visual icon for enhanced display
 }
 
 // Get icon for location type
@@ -24,6 +25,7 @@ const getTypeIcon = (type: string) => {
   switch (type) {
     case 'airport': return <Plane className="w-5 h-5 text-blue-600" />;
     case 'landmark': return <Landmark className="w-5 h-5 text-amber-600" />;
+    case 'poi': return <Star className="w-5 h-5 text-purple-600" />;
     case 'neighborhood': return <Building2 className="w-5 h-5 text-green-600" />;
     default: return <MapPin className="w-5 h-5 text-orange-600" />;
   }
@@ -390,14 +392,32 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                           selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
                         }`}
                       >
-                        {getTypeIcon(suggestion.type)}
+                        {/* Emoji Display - Large and Prominent */}
+                        {suggestion.emoji && (
+                          <span className="text-3xl flex-shrink-0" aria-hidden="true">
+                            {suggestion.emoji}
+                          </span>
+                        )}
+
+                        {/* Type Icon - Small, only if no emoji */}
+                        {!suggestion.emoji && getTypeIcon(suggestion.type)}
+
+                        {/* Location Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 truncate">{suggestion.name}</div>
-                          <div className="text-sm text-gray-500 truncate">
+                          <div className="font-semibold text-gray-900 truncate flex items-center gap-2">
+                            {suggestion.name}
+                          </div>
+                          <div className="text-sm text-gray-500 truncate flex items-center gap-1">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
                             {suggestion.city !== suggestion.name ? `${suggestion.city}, ` : ''}{suggestion.country}
                           </div>
                         </div>
-                        <span className="text-xs text-gray-400 capitalize flex-shrink-0">{suggestion.type}</span>
+
+                        {/* Type Badge */}
+                        <span className="text-xs text-gray-400 capitalize flex-shrink-0 flex items-center gap-1">
+                          {!suggestion.emoji && <span>•</span>}
+                          {suggestion.type}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -418,10 +438,23 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                           selectedIndex === idx ? 'bg-orange-50' : 'hover:bg-gray-50'
                         }`}
                       >
-                        {getTypeIcon(dest.type)}
+                        {/* Emoji Display - Large and Prominent */}
+                        {dest.emoji && (
+                          <span className="text-3xl flex-shrink-0" aria-hidden="true">
+                            {dest.emoji}
+                          </span>
+                        )}
+
+                        {/* Type Icon - Small, only if no emoji */}
+                        {!dest.emoji && getTypeIcon(dest.type)}
+
+                        {/* Location Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900">{dest.name}</div>
-                          <div className="text-sm text-gray-500">{dest.country}</div>
+                          <div className="font-semibold text-gray-900 truncate">{dest.name}</div>
+                          <div className="text-sm text-gray-500 truncate flex items-center gap-1">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            {dest.country}
+                          </div>
                         </div>
                       </button>
                     ))}
