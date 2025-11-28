@@ -123,6 +123,10 @@ export interface Hotel {
   // Distance (if location-based search)
   distanceKm?: number;
 
+  // Price (for search results)
+  lowestPrice?: number; // Total price for entire stay
+  lowestPricePerNight?: number; // Per-night price
+
   // Available rates
   rates: HotelRate[];
 
