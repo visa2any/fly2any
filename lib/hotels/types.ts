@@ -130,6 +130,9 @@ export interface Hotel {
   // Available rates
   rates: HotelRate[];
 
+  // Alternative room structure (from some API providers)
+  rooms?: any[];
+
   // Metadata
   source: 'Duffel Stays' | 'Amadeus' | 'LiteAPI' | 'Hotelbeds';
   lastUpdated?: string;
