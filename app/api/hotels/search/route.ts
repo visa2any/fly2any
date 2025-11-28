@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
 import { searchHotels as searchHotelbeds, normalizeHotelbedsHotel } from '@/lib/api/hotelbeds';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
-import type { HotelSearchParams } from '@/lib/hotels/types';
+import type { HotelSearchParams, Hotel } from '@/lib/hotels/types';
 
 // Comprehensive city name to coordinates mapping
 // Matches the suggestions API database for consistent location lookups
@@ -436,8 +436,8 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Multi-API Results: LiteAPI (${liteAPIResults.hotels?.length || 0}) + Hotelbeds (${hotelbedsResults.hotels?.length || 0}) = ${allHotels.length} total`);
 
     // Deduplicate hotels by name + approximate location (within 100m radius)
-    const deduplicatedHotels = [];
-    const seenHotels = new Map();
+    const deduplicatedHotels: Hotel[] = [];
+    const seenHotels = new Map<string, Hotel>();
 
     for (const hotel of allHotels) {
       const key = `${hotel.name.toLowerCase().trim()}:${Math.floor(hotel.latitude * 1000)}:${Math.floor(hotel.longitude * 1000)}`;
