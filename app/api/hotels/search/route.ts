@@ -498,7 +498,7 @@ export async function POST(request: NextRequest) {
 
     // Filter by rating
     if (searchParams.minRating !== undefined) {
-      filteredHotels = filteredHotels.filter((hotel) => hotel.stars >= (searchParams.minRating || 0));
+      filteredHotels = filteredHotels.filter((hotel) => (hotel.starRating || 0) >= (searchParams.minRating || 0));
     }
 
     // Map to expected format (handles both LiteAPI and Hotelbeds structures)
