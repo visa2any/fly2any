@@ -473,12 +473,12 @@ export async function POST(request: NextRequest) {
         return priceA - priceB;
       }),
       meta: {
-        usedMinRates: liteAPIResults.meta?.usedMinRates,
+        usedMinRates: 'meta' in liteAPIResults ? liteAPIResults.meta?.usedMinRates : undefined,
         liteAPICount: liteAPIResults.hotels?.length || 0,
         hotelbedsCount: hotelbedsResults.hotels?.length || 0,
         totalBeforeDedup: allHotels.length,
         totalAfterDedup: deduplicatedHotels.length,
-        hotelbedsTime: hotelbedsResults.processTime,
+        hotelbedsTime: 'processTime' in hotelbedsResults ? hotelbedsResults.processTime : undefined,
       }
     };
 
