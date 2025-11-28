@@ -2,7 +2,7 @@
 
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { HotelReviews } from '@/components/hotels/HotelReviews';
 import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
@@ -12,7 +12,14 @@ import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, 
 export default function HotelDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const hotelId = params.id as string;
+
+  // Get search params for rates (passed from search results)
+  const checkIn = searchParams.get('checkIn');
+  const checkOut = searchParams.get('checkOut');
+  const adults = searchParams.get('adults') || '2';
+  const children = searchParams.get('children') || '0';
 
   const [hotel, setHotel] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +44,14 @@ export default function HotelDetailPage() {
     const fetchHotelDetails = async () => {
       try {
         setError(null); // Clear previous errors
-        const response = await fetch(`/api/hotels/${hotelId}`);
+
+        // Build URL with optional date params for rates
+        let apiUrl = `/api/hotels/${hotelId}`;
+        if (checkIn && checkOut) {
+          apiUrl += `?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`;
+        }
+
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           // Handle different error statuses
@@ -70,7 +84,7 @@ export default function HotelDetailPage() {
       fetchHotelDetails();
       fetchReviews();
     }
-  }, [hotelId, retrying]);
+  }, [hotelId, retrying, checkIn, checkOut, adults]);
 
   // Fetch reviews from database
   const fetchReviews = async () => {
@@ -522,13 +536,12 @@ export default function HotelDetailPage() {
                                   setSelectedRoom(room);
                                   // Navigate to booking with this specific room
                                   const bookingData = {
-                                    hotelId: hotel.id,
+                                    hotelId: hotelId, // Use hotelId from URL params (always defined)
                                     name: hotel.name,
                                     location: `${hotel.address?.city}, ${hotel.address?.country}`,
-                                    checkIn: hotel.checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                                    checkOut: hotel.checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                                    adults: maxGuests,
-                                    children: 0,
+                                    checkIn: checkIn || hotel.checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                                    checkOut: checkOut || hotel.checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+                                    guests: { adults: maxGuests, children: 0 },
                                     roomId: room.id || `room_${index}`,
                                     roomName: roomName,
                                     bedType: bedType,
@@ -540,9 +553,9 @@ export default function HotelDetailPage() {
                                     breakfastIncluded: breakfastIncluded,
                                   };
 
-                                  sessionStorage.setItem(`hotel_booking_${hotel.id}`, JSON.stringify(bookingData));
+                                  sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
 
-                                  router.push(`/hotels/booking?hotelId=${hotel.id}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${maxGuests}&children=0&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(roomName)}&bedType=${encodeURIComponent(bedType)}&price=${roomPrice}&currency=${currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${isRefundable}&breakfastIncluded=${breakfastIncluded}`);
+                                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${maxGuests}&children=0&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(roomName)}&bedType=${encodeURIComponent(bedType)}&price=${roomPrice}&currency=${currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${isRefundable}&breakfastIncluded=${breakfastIncluded}`);
                                 }}
                                 className="w-full py-3 px-6 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg transition-colors"
                               >
@@ -630,27 +643,54 @@ export default function HotelDetailPage() {
                     <MapPin className="w-5 h-5 text-primary-600" />
                     Location
                   </h3>
-                  <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ height: '200px' }}>
-                    {hotel.address.lat && hotel.address.lng ? (
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                        allowFullScreen
-                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&q=${hotel.address.lat},${hotel.address.lng}&zoom=15`}
-                      />
-                    ) : (
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                        allowFullScreen
-                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&q=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}&zoom=15`}
-                      />
-                    )}
-                  </div>
+                  {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
+                    <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ height: '200px' }}>
+                      {hotel.address.lat && hotel.address.lng ? (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          allowFullScreen
+                          src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${hotel.address.lat},${hotel.address.lng}&zoom=15`}
+                        />
+                      ) : (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          allowFullScreen
+                          src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}&zoom=15`}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <a
+                      href={
+                        hotel.address.lat && hotel.address.lng
+                          ? `https://www.google.com/maps/search/?api=1&query=${hotel.address.lat},${hotel.address.lng}`
+                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden hover:from-blue-100 hover:to-blue-200 transition-all group"
+                      style={{ height: '200px' }}
+                    >
+                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                          <MapPin className="w-8 h-8 text-primary-600" />
+                        </div>
+                        <p className="font-semibold text-gray-900 mb-2">View on Google Maps</p>
+                        <p className="text-sm text-gray-600">
+                          {hotel.address.city}, {hotel.address.country}
+                        </p>
+                        <div className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-semibold group-hover:bg-primary-700 transition-colors">
+                          Open Map
+                        </div>
+                      </div>
+                    </a>
+                  )}
                   <div className="mt-3">
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`}
@@ -670,23 +710,22 @@ export default function HotelDetailPage() {
                 onClick={() => {
                   // Store hotel data for booking flow
                   const bookingData = {
-                    hotelId: hotel.id,
+                    hotelId: hotelId, // Use hotelId from URL params (always defined)
                     name: hotel.name,
                     location: `${hotel.address?.city}, ${hotel.address?.country}`,
-                    checkIn: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
-                    checkOut: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], // Day after
-                    adults: 2,
-                    children: 0,
+                    checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                    checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+                    guests: { adults: parseInt(adults, 10) || 2, children: 0 },
                     price: price,
                     currency: lowestRate?.totalPrice?.currency || lowestRate?.currency || 'USD',
                     image: mainImage,
                     stars: hotel.starRating,
                   };
 
-                  sessionStorage.setItem(`hotel_booking_${hotel.id}`, JSON.stringify(bookingData));
+                  sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
 
                   // Navigate to booking page
-                  router.push(`/hotels/booking?hotelId=${hotel.id}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=2&children=0&price=${price}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
+                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${price}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
                 }}
                 className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-lg transition-colors mb-3"
               >
@@ -694,7 +733,7 @@ export default function HotelDetailPage() {
               </button>
 
               <button
-                onClick={() => router.push('/hotels/search')}
+                onClick={() => router.push('/hotels')}
                 className="w-full py-3 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold rounded-lg transition-colors"
               >
                 View Similar Hotels

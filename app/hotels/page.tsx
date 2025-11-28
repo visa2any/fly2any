@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
+import { AnimatedTitle } from '@/components/home/AnimatedTitle';
 import { HotelsSectionEnhanced } from '@/components/home/HotelsSectionEnhanced';
 import { RecentlyViewedSection } from '@/components/home/RecentlyViewedSection';
 import { CompactTrustBar } from '@/components/conversion/CompactTrustBar';
@@ -230,22 +230,9 @@ const baseFaqs = [
 export default function HotelsPage() {
   const t = useTranslations('HotelsPage');
   const { language: lang, setLanguage: setLang } = useLanguage();
-  const [animationKey, setAnimationKey] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationKey(prev => prev + 1);
-    }, 12000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" suppressHydrationWarning>
       {/* Hero Section - Orange Theme */}
       <div className="relative bg-gradient-to-br from-amber-50 via-orange-50/30 to-amber-50 border-b border-orange-200/60 overflow-hidden md:overflow-visible max-h-[100vh] md:max-h-none">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -261,21 +248,21 @@ export default function HotelsPage() {
 
         <MaxWidthContainer className="relative overflow-hidden md:overflow-visible" noPadding={true} style={{ padding: '12px 0 8px' }}>
           <div className="px-4 md:px-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn">
-              <h1 key={`title-${animationKey}`} className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide">
-                {mounted ? t('sectionTitle').split('').map((char, index) => (
-                  <span key={index} className="letter-elastic" style={{ animationDelay: `${index * 0.038}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                )) : <span style={{ opacity: 0 }}>{t('sectionTitle')}</span>}
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 animate-fadeIn" suppressHydrationWarning>
+              <h1 className="hero-title text-lg sm:text-xl md:text-3xl font-extrabold tracking-tight sm:tracking-wide whitespace-nowrap overflow-x-auto scrollbar-hide" suppressHydrationWarning>
+                <AnimatedTitle
+                  text={t('sectionTitle')}
+                  animationDelay={0}
+                  letterDelay={0.038}
+                />
               </h1>
               <span className="hidden md:inline-block text-orange-400 text-2xl font-bold mx-1">•</span>
-              <p key={`subtitle-${animationKey}`} className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }}>
-                {mounted ? t('subtitle').split('').map((char, index) => (
-                  <span key={index} className="letter-elastic" style={{ animationDelay: `${2.0 + (index * 0.028)}s`, display: 'inline-block', minWidth: char === ' ' ? '0.3em' : 'auto' }}>
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                )) : <span style={{ opacity: 0 }}>{t('subtitle')}</span>}
+              <p className="hero-subtitle text-gray-700/90 mb-0 font-medium text-xs sm:text-sm md:text-lg leading-tight sm:leading-normal whitespace-nowrap overflow-x-auto scrollbar-hide" style={{ letterSpacing: '-0.01em' }} suppressHydrationWarning>
+                <AnimatedTitle
+                  text={t('subtitle')}
+                  animationDelay={2.0}
+                  letterDelay={0.028}
+                />
               </p>
             </div>
           </div>
@@ -309,9 +296,11 @@ export default function HotelsPage() {
         @media (prefers-reduced-motion: reduce) { .hero-title, .separator-dot, .letter-elastic, .floating-orb { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
       `}</style>
 
-      {/* HOTELS TAB FIRST - Search Bar */}
-      <div className="border-b border-gray-100">
-        <MobileHomeSearchWrapper lang={lang} defaultService="hotels" />
+      {/* Hotel Search Bar with Multi-Service Tabs */}
+      <div className="py-6 md:py-8 bg-gradient-to-b from-orange-50/30 to-white">
+        <MaxWidthContainer>
+          <MobileHomeSearchWrapper lang={lang} defaultService="hotels" />
+        </MaxWidthContainer>
       </div>
 
       {/* Compact Trust Bar */}

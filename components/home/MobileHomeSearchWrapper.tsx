@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion'
 import { X, MapPin, Calendar, Users, Search, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
+import { useHasMounted } from '@/lib/hooks/useHasMounted';
 
 interface PassengerCounts {
   adults: number;
@@ -63,6 +64,9 @@ export function MobileHomeSearchWrapper({
   lang = 'en',
   defaultService = 'flights',
 }: MobileHomeSearchWrapperProps) {
+  // CRITICAL: Only render mobile UI after hydration to prevent SSR/CSR mismatch
+  const hasMounted = useHasMounted();
+
   // View state management
   const [viewState, setViewState] = useState<ViewState>('collapsed');
   const [isMobile, setIsMobile] = useState(false);
@@ -95,8 +99,11 @@ export function MobileHomeSearchWrapper({
     return codes.split(',')[0].trim();
   };
 
-  // Detect mobile on mount and resize
+  // Detect mobile on mount and resize (ONLY after hydration completes)
   useEffect(() => {
+    // Skip if not mounted yet to prevent hydration mismatch
+    if (!hasMounted) return;
+
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
@@ -109,7 +116,7 @@ export function MobileHomeSearchWrapper({
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [viewState]);
+  }, [viewState, hasMounted]);
 
   // State-of-the-art scroll tracking with momentum detection and debouncing
   useEffect(() => {
@@ -186,12 +193,26 @@ export function MobileHomeSearchWrapper({
     damping: 30,
   };
 
-  // If not mobile, render EnhancedSearchBar directly (desktop behavior)
+  // HYDRATION FIX: Don't render anything until client-side hydration completes
+  // This prevents ALL server/client mismatches
+  if (!hasMounted) {
+    // Return a skeleton/placeholder that matches SSR output
+    return (
+      <div className="w-full bg-white rounded-3xl shadow-2xl border-2 border-gray-100 p-6 md:p-8" style={{ minHeight: '200px' }}>
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-200 rounded-lg mb-4 w-1/3"></div>
+          <div className="h-16 bg-gray-100 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // After hydration, render appropriate version
   if (!isMobile) {
     return <EnhancedSearchBar lang={lang} defaultService={defaultService} />;
   }
 
-  // Mobile rendering with three states
+  // Mobile rendering with three states (only after hydration on mobile devices)
   return (
     <div ref={wrapperRef} className="mobile-search-wrapper md:hidden">
       <AnimatePresence mode="wait">

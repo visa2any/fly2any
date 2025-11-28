@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check, ChevronDown, ChevronUp, Users, Clock, Info, Sparkles, Wifi, Coffee, Dumbbell, Car, Shield } from 'lucide-react';
-import { dimensions, spacing, typography, colors } from '@/lib/design-system';
+import {
+  Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check, ChevronDown, ChevronUp,
+  Users, Wifi, Coffee, Dumbbell, Car, X, Utensils, Shield
+} from 'lucide-react';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
-import type { MockHotel } from '@/lib/mock-data/hotels';
+import type { LiteAPIHotel, LiteAPIHotelRate } from '@/lib/hotels/types';
 
 export interface HotelCardProps {
-  hotel: MockHotel;
+  hotel: LiteAPIHotel;
   checkIn: string;
   checkOut: string;
   adults: number;
   children?: number;
   nights: number;
-  onSelect: (hotelId: string, rateId: string) => void;
+  onSelect: (hotelId: string, rateId: string, offerId: string) => void;
   onViewDetails: (hotelId: string) => void;
   lang?: 'en' | 'pt' | 'es';
 }
@@ -25,69 +27,57 @@ const translations = {
     total: 'Total',
     nights: 'nights',
     viewDetails: 'View Details',
-    selectRoom: 'Select Room',
+    selectRoom: 'Book Now',
+    seeAvailability: 'See Availability',
     freeCancellation: 'Free Cancellation',
     nonRefundable: 'Non-refundable',
-    breakfast: 'Breakfast Included',
     reviews: 'reviews',
     excellent: 'Excellent',
     veryGood: 'Very Good',
     good: 'Good',
-    save: 'SAVE',
-    bookedToday: 'booked today',
-    viewing: 'viewing now',
-    lastBooked: 'Last booked',
-    popularChoice: 'Popular Choice',
-    limitedAvailability: 'Only',
-    left: 'left!',
+    fair: 'Fair',
     showRates: 'Show Rates',
-    hideRates: 'Hide Rates',
+    hideRates: 'Hide',
+    noRates: 'Check availability',
+    from: 'From',
   },
   pt: {
     perNight: 'por noite',
     total: 'Total',
     nights: 'noites',
     viewDetails: 'Ver Detalhes',
-    selectRoom: 'Selecionar Quarto',
+    selectRoom: 'Reservar',
+    seeAvailability: 'Ver Disponibilidade',
     freeCancellation: 'Cancelamento Grátis',
     nonRefundable: 'Não reembolsável',
-    breakfast: 'Café da Manhã Incluído',
     reviews: 'avaliações',
     excellent: 'Excelente',
     veryGood: 'Muito Bom',
     good: 'Bom',
-    save: 'ECONOMIZE',
-    bookedToday: 'reservas hoje',
-    viewing: 'visualizando agora',
-    lastBooked: 'Última reserva',
-    popularChoice: 'Escolha Popular',
-    limitedAvailability: 'Apenas',
-    left: 'restantes!',
-    showRates: 'Mostrar Tarifas',
-    hideRates: 'Ocultar Tarifas',
+    fair: 'Regular',
+    showRates: 'Mostrar',
+    hideRates: 'Ocultar',
+    noRates: 'Ver disponibilidade',
+    from: 'De',
   },
   es: {
     perNight: 'por noche',
     total: 'Total',
     nights: 'noches',
     viewDetails: 'Ver Detalles',
-    selectRoom: 'Seleccionar Habitación',
+    selectRoom: 'Reservar',
+    seeAvailability: 'Ver Disponibilidad',
     freeCancellation: 'Cancelación Gratis',
     nonRefundable: 'No reembolsable',
-    breakfast: 'Desayuno Incluido',
     reviews: 'reseñas',
     excellent: 'Excelente',
     veryGood: 'Muy Bueno',
     good: 'Bueno',
-    save: 'AHORRA',
-    bookedToday: 'reservas hoy',
-    viewing: 'viendo ahora',
-    lastBooked: 'Última reserva',
-    popularChoice: 'Elección Popular',
-    limitedAvailability: 'Solo',
-    left: 'disponibles!',
-    showRates: 'Mostrar Tarifas',
-    hideRates: 'Ocultar Tarifas',
+    fair: 'Regular',
+    showRates: 'Mostrar',
+    hideRates: 'Ocultar',
+    noRates: 'Ver disponibilidad',
+    from: 'Desde',
   },
 };
 
@@ -107,14 +97,26 @@ export function HotelCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const t = translations[lang];
 
+  if (!hotel || !hotel.id) {
+    console.warn('HotelCard: Invalid hotel data', hotel);
+    return null;
+  }
+
+  const rawImages = hotel.images?.filter((img) => img && img.url) || [];
+  const images = rawImages.length > 0
+    ? rawImages
+    : hotel.thumbnail
+      ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }]
+      : [{ url: '/images/hotel-placeholder.jpg', alt: 'Hotel placeholder' }];
+
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev + 1) % hotel.photos.length);
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev - 1 + hotel.photos.length) % hotel.photos.length);
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const handleFavorite = (e: React.MouseEvent) => {
@@ -124,437 +126,427 @@ export function HotelCard({
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Implement share functionality
+    if (navigator.share) {
+      navigator.share({
+        title: hotel.name,
+        text: `Check out ${hotel.name}`,
+        url: window.location.href,
+      });
+    }
   };
 
-  // Get best rate (lowest price)
-  const bestRate = hotel.rates.reduce((prev, curr) =>
-    parseFloat(curr.total_amount) < parseFloat(prev.total_amount) ? curr : prev
+  const rates = (hotel.rates || []).filter(
+    (rate) => rate && rate.totalPrice && rate.totalPrice.amount
   );
 
-  const totalPrice = parseFloat(bestRate.total_amount) * nights;
-  const pricePerNight = parseFloat(bestRate.total_amount);
+  const bestRate = rates.length > 0
+    ? rates.reduce((prev, curr) => {
+        const prevPrice = parseFloat(prev.totalPrice?.amount || '999999');
+        const currPrice = parseFloat(curr.totalPrice?.amount || '999999');
+        return currPrice < prevPrice ? curr : prev;
+      })
+    : null;
 
-  // Calculate savings if public rate comparison exists
-  const savings = bestRate.public_rate_comparison
-    ? parseFloat(bestRate.public_rate_comparison) - pricePerNight
-    : 0;
-  const savingsPercentage = savings > 0
-    ? Math.round((savings / parseFloat(bestRate.public_rate_comparison!)) * 100)
-    : 0;
+  const perNightPrice = hotel.lowestPricePerNight
+    ? hotel.lowestPricePerNight
+    : hotel.lowestPrice?.amount
+      ? parseFloat(hotel.lowestPrice.amount) / nights
+      : bestRate?.totalPrice?.amount
+        ? parseFloat(bestRate.totalPrice.amount) / nights
+        : 0;
 
-  // Get review category
+  const totalPrice = hotel.lowestPrice?.amount
+    ? parseFloat(hotel.lowestPrice.amount)
+    : bestRate?.totalPrice?.amount
+      ? parseFloat(bestRate.totalPrice.amount)
+      : perNightPrice * nights;
+
+  const currency = hotel.lowestPrice?.currency || bestRate?.totalPrice?.currency || 'USD';
+
   const getReviewCategory = (score: number) => {
     if (score >= 9.0) return { text: t.excellent, color: 'text-green-700', bg: 'bg-green-600' };
     if (score >= 8.0) return { text: t.veryGood, color: 'text-blue-700', bg: 'bg-blue-600' };
-    return { text: t.good, color: 'text-gray-700', bg: 'bg-gray-600' };
+    if (score >= 7.0) return { text: t.good, color: 'text-slate-700', bg: 'bg-slate-600' };
+    return { text: t.fair, color: 'text-gray-600', bg: 'bg-gray-500' };
   };
 
-  const reviewCategory = getReviewCategory(hotel.reviews.score);
+  const reviewCategory = getReviewCategory(hotel.reviewScore || 0);
 
-  // Count limited availability rooms
-  const limitedRooms = hotel.rates.filter(r => r.available_quantity <= 2).length;
+  const getBoardLabel = (boardType: string) => {
+    const labels: Record<string, string> = {
+      'RO': 'Room Only', 'BB': 'Breakfast', 'HB': 'Half Board', 'FB': 'Full Board',
+      'AI': 'All Inclusive', 'BI': 'Breakfast', 'room_only': 'Room Only',
+      'breakfast': 'Breakfast', 'half_board': 'Half Board', 'full_board': 'Full Board',
+      'all_inclusive': 'All Inclusive',
+    };
+    return labels[boardType] || boardType || 'Room Only';
+  };
+
+  const getCurrencySymbol = (curr: string) => {
+    const symbols: Record<string, string> = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'BRL': 'R$' };
+    return symbols[curr] || curr + ' ';
+  };
+
+  const currencySymbol = getCurrencySymbol(currency);
+
+  const handleBooking = () => {
+    if (bestRate) {
+      onSelect(hotel.id, bestRate.id, bestRate.offerId);
+    } else {
+      onViewDetails(hotel.id);
+    }
+  };
 
   return (
     <div
       data-hotel-card
       data-hotel-id={hotel.id}
-      className="group relative bg-white rounded-xl border-2 border-slate-200/80 hover:border-primary-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
+      className="group relative bg-white rounded-xl border-2 border-slate-200/80 hover:border-orange-400 hover:shadow-2xl transition-all duration-300 overflow-hidden"
     >
-      {/* MAIN CONTENT - Photo Left | All Info Right (ULTRA COMPACT HORIZONTAL LAYOUT) */}
-      <div className="flex flex-col md:flex-row">
-        {/* Image Carousel - Left Side (LARGER - Full height) */}
-        <div className="relative w-full md:w-80 h-48 md:h-auto flex-shrink-0 overflow-hidden bg-gray-100">
-          {/* Deal Badge */}
-          {bestRate.deal_type && (
-            <div className="absolute top-2 left-2 z-10">
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-lg ${
-                bestRate.deal_type === 'loyalty' ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white' :
-                bestRate.deal_type === 'corporate' ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white' :
-                bestRate.deal_type === 'mobile' ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' :
-                bestRate.deal_type === 'seasonal' ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white' :
-                'bg-gradient-to-r from-red-500 to-pink-600 text-white'
-              }`}>
-                {bestRate.deal_type === 'loyalty' && '⭐ Loyalty'}
-                {bestRate.deal_type === 'corporate' && '💼 Corporate'}
-                {bestRate.deal_type === 'mobile' && '📱 Mobile'}
-                {bestRate.deal_type === 'seasonal' && '🎉 Seasonal'}
-                {bestRate.deal_type === 'promotion' && '🔥 Promo'}
-              </span>
-            </div>
-          )}
+      {/* COMPACT Grid: Image | Hotel Info + Amenities | Price & CTA */}
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_240px] gap-0">
 
-          {/* Quick Actions - Top Right of Photo */}
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+        {/* Column 1: Compact Image */}
+        <div className="relative w-full h-40 lg:h-40 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+          {/* Action Buttons */}
+          <div className="absolute top-2 right-2 z-10 flex gap-1.5">
             <button
               onClick={handleFavorite}
-              className={`p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full backdrop-blur-md transition-all ${
-                isFavorited
-                  ? 'bg-red-500 text-white'
-                  : 'bg-white/90 text-slate-600 hover:bg-red-50 hover:text-red-500'
+              className={`p-2 rounded-full backdrop-blur-md transition-all shadow-lg ${
+                isFavorited ? 'bg-red-500 text-white' : 'bg-white/95 text-slate-600 hover:bg-red-50'
               }`}
-              title="Save to favorites"
+              aria-label="Favorite"
             >
-              <Heart className={`w-5 h-5 md:w-4 md:h-4 ${isFavorited ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
-
             <button
               onClick={handleShare}
-              className="p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full backdrop-blur-md transition-all bg-white/90 text-slate-600 hover:bg-blue-50 hover:text-blue-600"
-              title="Share this hotel"
+              className="p-2 rounded-full backdrop-blur-md bg-white/95 text-slate-600 hover:bg-blue-50 transition-all shadow-lg"
+              aria-label="Share"
             >
-              <Share2 className="w-5 h-5 md:w-4 md:h-4" />
+              <Share2 className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Image - Optimized with Next.js Image */}
           <Image
-            src={hotel.photos[currentImageIndex]}
-            alt={`${hotel.name} - Photo ${currentImageIndex + 1}`}
+            src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
+            alt={images[currentImageIndex]?.alt || hotel.name}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 400px"
+            sizes="(max-width: 1024px) 100vw, 220px"
             priority={currentImageIndex === 0}
-            loading={currentImageIndex === 0 ? 'eager' : 'lazy'}
             placeholder="blur"
-            blurDataURL={getBlurDataURL(hotel.photos[currentImageIndex], 400, 300)}
-            quality={75}
+            blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 220, 160)}
+            quality={85}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg';
+            }}
           />
 
           {/* Image Navigation */}
-          {hotel.photos.length > 1 && (
+          {images.length > 1 && (
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-1.5 top-1/2 -translate-y-1/2 p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute left-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 text-gray-800 opacity-0 group-hover:opacity-100 transition-all shadow-md"
+                aria-label="Previous"
               >
-                <ChevronLeft className="w-5 h-5 md:w-4 md:h-4" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2.5 md:p-2 min-w-[44px] min-h-[44px] rounded-full bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 text-gray-800 opacity-0 group-hover:opacity-100 transition-all shadow-md"
+                aria-label="Next"
               >
-                <ChevronRight className="w-5 h-5 md:w-4 md:h-4" />
+                <ChevronRight className="w-4 h-4" />
               </button>
 
-              {/* Image Indicators */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                {hotel.photos.map((_, index) => (
+              {/* Image Indicator */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                {images.slice(0, 5).map((_, index) => (
                   <button
                     key={index}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentImageIndex(index);
-                    }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      index === currentImageIndex
-                        ? 'bg-white w-4'
-                        : 'bg-white/50'
-                    }`}
+                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
+                    className={`transition-all ${index === currentImageIndex ? 'bg-white w-4 h-1.5' : 'bg-white/60 w-1.5 h-1.5'} rounded-full`}
+                    aria-label={`Image ${index + 1}`}
                   />
                 ))}
+                {images.length > 5 && <span className="text-white text-[10px] font-bold ml-1">+{images.length - 5}</span>}
               </div>
             </>
           )}
         </div>
 
-        {/* ALL INFO - Right Side (ENHANCED HIERARCHY & READABILITY) */}
-        <div className="flex-1 p-3 flex flex-col">
-          {/* HEADER - Hotel Name, Stars, Rating, Badges */}
-          <div className="mb-2">
-            {/* Row 1: Hotel Name + Star Rating */}
-            <div className="flex items-start justify-between gap-2 mb-1.5">
-              <h3 className="font-extrabold text-slate-900 leading-tight flex-1" style={{ fontSize: '18px' }}>
-                {hotel.name}
-              </h3>
-              <div className="flex items-center gap-0.5 flex-shrink-0">
-                {Array.from({ length: hotel.star_rating }, (_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-            </div>
-
-            {/* Row 2: Review Score + Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <div className={`${reviewCategory.bg} text-white px-2 py-0.5 rounded font-bold text-sm`}>
-                  {hotel.reviews.score}
+        {/* Column 2: ALL INFO - NO VERTICAL WASTE */}
+        <div className="p-2 border-r border-slate-100">
+          {/* Row 1: Name + Stars + Review */}
+          <div className="mb-1">
+            <h3 className="font-black text-slate-900 text-base leading-tight mb-0.5 truncate">
+              {hotel.name}
+            </h3>
+            {/* Stars + Review Inline */}
+            <div className="flex items-center gap-2">
+              {hotel.rating > 0 && (
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  ))}
                 </div>
-                <span className={`font-semibold ${reviewCategory.color} text-sm`}>
-                  {reviewCategory.text}
-                </span>
-              </div>
-
-              {/* Popular Choice Badge */}
-              {hotel.booking_stats.popular_choice && (
-                <span className="font-bold text-orange-600 px-2 py-0.5 bg-orange-50 rounded text-xs">
-                  🔥 {t.popularChoice}
-                </span>
               )}
-
-              {/* Limited Availability Badge */}
-              {limitedRooms > 0 && (
-                <span className="font-bold text-red-600 px-2 py-0.5 bg-red-50 rounded text-xs">
-                  ⚠️ {limitedRooms} {t.left}
-                </span>
+              {hotel.reviewScore > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className={`${reviewCategory.bg} text-white px-2 py-0.5 rounded text-xs font-bold`}>
+                    {hotel.reviewScore.toFixed(1)}
+                  </div>
+                  <span className={`${reviewCategory.color} text-xs font-semibold`}>{reviewCategory.text}</span>
+                  {hotel.reviewCount > 0 && (
+                    <span className="text-slate-500 text-[10px]">({hotel.reviewCount.toLocaleString()})</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
-          {/* DETAILS - Location + Reviews */}
-          <div className="flex items-start justify-between gap-3 mb-1.5">
-            <div className="flex items-start gap-1.5 flex-1 min-w-0">
-              <MapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
-              <div className="min-w-0">
-                <p className="text-slate-800 text-sm font-medium leading-snug truncate">{hotel.address}</p>
-                {hotel.distance_to_center && (
-                  <p className="text-slate-500 text-xs leading-relaxed">{hotel.distance_to_center}</p>
+          {/* Row 2: Location */}
+          <div className="flex items-start gap-1.5 mb-1">
+            <MapPin className="w-3.5 h-3.5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <p className="text-slate-700 text-xs font-medium leading-tight">
+              {hotel.location?.address || `${hotel.location?.city}, ${hotel.location?.country}`}
+            </p>
+          </div>
+
+          {/* Row 3: Key Features - ALWAYS VISIBLE */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            {/* Room Type + Guests - ALWAYS SHOW */}
+            {bestRate ? (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded border border-blue-100">
+                <Users className="w-3 h-3 text-blue-600" />
+                <span className="text-[10px] font-bold text-blue-900">{bestRate.roomType} · {bestRate.maxOccupancy} guests</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 rounded border border-slate-200">
+                <Users className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] font-bold text-slate-700">Standard Room · 2 guests</span>
+              </div>
+            )}
+
+            {/* Cancellation - ALWAYS SHOW */}
+            {bestRate ? (
+              bestRate.refundable ? (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded border border-green-200">
+                  <Shield className="w-3 h-3 text-green-600" />
+                  <span className="text-[10px] font-bold text-green-700">Free Cancellation</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 rounded border border-red-200">
+                  <X className="w-3 h-3 text-red-600" />
+                  <span className="text-[10px] font-bold text-red-700">Non-refundable</span>
+                </div>
+              )
+            ) : (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded border border-blue-200">
+                <Shield className="w-3 h-3 text-blue-600" />
+                <span className="text-[10px] font-bold text-blue-700">Check availability</span>
+              </div>
+            )}
+
+            {/* Meal Plan - ALWAYS SHOW */}
+            {bestRate ? (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 rounded border border-orange-200">
+                <Utensils className="w-3 h-3 text-orange-600" />
+                <span className="text-[10px] font-bold text-orange-700">{getBoardLabel(bestRate.boardType)}</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 rounded border border-orange-200">
+                <Utensils className="w-3 h-3 text-orange-600" />
+                <span className="text-[10px] font-bold text-orange-700">Room Only</span>
+              </div>
+            )}
+          </div>
+
+          {/* Row 4: AMENITIES - ALWAYS VISIBLE */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {hotel.amenities && hotel.amenities.length > 0 ? (
+              <>
+                {hotel.amenities.slice(0, 6).map((amenity, idx) => {
+                  const amenityIcons: Record<string, { icon: any; color: string; label: string }> = {
+                    'wifi': { icon: Wifi, color: 'text-green-600', label: 'WiFi' },
+                    'breakfast': { icon: Coffee, color: 'text-orange-600', label: 'Breakfast' },
+                    'gym': { icon: Dumbbell, color: 'text-blue-600', label: 'Gym' },
+                    'parking': { icon: Car, color: 'text-slate-600', label: 'Parking' },
+                  };
+                  const amenityLower = amenity.toLowerCase();
+                  const config = Object.entries(amenityIcons).find(([key]) => amenityLower.includes(key))?.[1];
+                  const Icon = config?.icon || Check;
+                  const color = config?.color || 'text-slate-600';
+                  const label = config?.label || amenity.substring(0, 10);
+
+                  return (
+                    <div key={idx} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded">
+                      <Icon className={`w-3 h-3 ${color}`} />
+                      <span className="text-[10px] font-semibold text-slate-700">{label}</span>
+                    </div>
+                  );
+                })}
+                {hotel.amenities.length > 6 && (
+                  <span className="text-primary-600 text-[10px] font-bold">+{hotel.amenities.length - 6}</span>
                 )}
-              </div>
-            </div>
-
-            {/* Reviews Count */}
-            <div className="flex items-center gap-1 text-sm text-slate-700 leading-snug flex-shrink-0">
-              <Users className="w-3.5 h-3.5" />
-              <span className="font-semibold">{hotel.reviews.count.toLocaleString()}</span>
-            </div>
-          </div>
-
-          {/* AMENITIES + CANCELLATION */}
-          <div className="flex items-center justify-between gap-2 mb-1.5 pb-1.5 border-b border-slate-100">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {hotel.amenities.includes('wifi') && (
-                <span className="inline-flex items-center gap-1 text-sm text-green-700 font-semibold">
-                  <Wifi className="w-3.5 h-3.5" />WiFi
-                </span>
-              )}
-              {hotel.amenities.includes('breakfast') && (
-                <span className="inline-flex items-center gap-1 text-sm text-slate-700 font-semibold">
-                  <Coffee className="w-3.5 h-3.5" />Breakfast
-                </span>
-              )}
-              {hotel.amenities.includes('gym') && (
-                <span className="inline-flex items-center gap-1 text-sm text-slate-700 font-semibold">
-                  <Dumbbell className="w-3.5 h-3.5" />Gym
-                </span>
-              )}
-              {hotel.amenities.includes('parking') && (
-                <span className="inline-flex items-center gap-1 text-sm text-slate-700 font-semibold">
-                  <Car className="w-3.5 h-3.5" />Parking
-                </span>
-              )}
-            </div>
-
-            {bestRate.refundable && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold flex-shrink-0">
-                <Check className="w-3.5 h-3.5" />
-                {t.freeCancellation}
-              </span>
+              </>
+            ) : (
+              <>
+                {/* Placeholder amenities if none available */}
+                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded">
+                  <Wifi className="w-3 h-3 text-green-600" />
+                  <span className="text-[10px] font-semibold text-slate-700">WiFi</span>
+                </div>
+                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-50 rounded">
+                  <Check className="w-3 h-3 text-slate-600" />
+                  <span className="text-[10px] font-semibold text-slate-700">Standard amenities</span>
+                </div>
+              </>
             )}
-          </div>
-
-          {/* URGENCY SIGNALS - Social Proof */}
-          <div className="flex flex-col gap-1.5 mb-2">
-            <div className="flex items-center gap-3 text-sm flex-wrap">
-              {hotel.booking_stats.booked_today > 0 && (
-                <span className="inline-flex items-center gap-1 font-medium text-blue-700">
-                  <Check className="w-3.5 h-3.5" />
-                  <span className="font-bold">{hotel.booking_stats.booked_today}</span> {t.bookedToday}
-                </span>
-              )}
-
-              {hotel.booking_stats.viewing_now > 0 && (
-                <span className="inline-flex items-center gap-1 font-medium text-orange-700">
-                  <Users className="w-3.5 h-3.5" />
-                  <span className="font-bold">{hotel.booking_stats.viewing_now}</span> {t.viewing}
-                </span>
-              )}
-
-              {hotel.booking_stats.last_booked && (
-                <span className="inline-flex items-center gap-1 font-medium text-slate-600">
-                  <Clock className="w-3.5 h-3.5" />
-                  {t.lastBooked} {hotel.booking_stats.last_booked}
-                </span>
-              )}
-            </div>
-
-            {hotel.reviews.recent_comments && hotel.reviews.recent_comments.length > 0 && (
-              <div className="text-sm text-slate-600 italic leading-relaxed">
-                "{hotel.reviews.recent_comments[0]}"
-              </div>
-            )}
-          </div>
-
-          {/* PRICE + ACTIONS - Bottom of right column */}
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200 mt-auto">
-        {/* Left: Price */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            {/* Savings Display */}
-            {savings > 0 && bestRate.public_rate_comparison && (
-              <span className="text-slate-400 line-through text-sm leading-none">
-                ${Math.round(parseFloat(bestRate.public_rate_comparison))}
-              </span>
-            )}
-            <span className="font-extrabold text-slate-900" style={{ fontSize: '22px', lineHeight: '1' }}>
-              ${Math.round(pricePerNight)}
-            </span>
-            <span className="text-slate-600 text-sm leading-none font-medium">
-              {t.perNight}
-            </span>
-            {/* Savings Badge */}
-            {savingsPercentage > 0 && (
-              <span className="px-2 py-0.5 bg-green-100 text-green-700 font-bold rounded text-sm leading-none">
-                {t.save} {savingsPercentage}%
-              </span>
-            )}
-          </div>
-          <div className="text-slate-700 text-sm leading-relaxed">
-            {t.total}: <span className="font-bold text-slate-900">${Math.round(totalPrice)}</span> <span className="text-slate-500">({nights} {t.nights})</span>
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="px-2.5 py-1.5 bg-white border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:border-primary-500 hover:text-primary-600 transition-all flex items-center gap-1 text-sm"
-          >
-            {isExpanded ? t.hideRates : t.showRates} {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
+        {/* Column 3: PRICING & CTA - NO VERTICAL WASTE */}
+        <div className="p-2 bg-gradient-to-br from-orange-50 via-white to-red-50 flex flex-col justify-center">
+          {perNightPrice > 0 ? (
+            <div>
+              {/* PRICE - COMPACT */}
+              <div className="text-center mb-1.5">
+                <div className="text-slate-600 text-[10px] font-semibold">{t.from}</div>
+                <div className="text-slate-900 font-black text-3xl leading-none my-0.5">
+                  {currencySymbol}{Math.round(perNightPrice)}
+                </div>
+                <div className="text-slate-700 text-xs font-semibold mb-1">{t.perNight}</div>
 
-          <button
-            onClick={() => onSelect(hotel.id, bestRate.id)}
-            className="px-4 py-2 font-bold rounded-lg transition-all whitespace-nowrap bg-gradient-to-r from-primary-600 to-secondary-600 text-white hover:from-primary-700 hover:to-secondary-700 hover:shadow-lg active:scale-95 text-sm"
-          >
-            {t.selectRoom} →
-          </button>
-        </div>
-      </div>
+                {/* Total */}
+                <div className="px-2 py-0.5 bg-white rounded shadow-sm border border-slate-200">
+                  <div className="text-slate-600 text-[10px]">Total {nights}n:</div>
+                  <div className="text-slate-900 font-black text-base">
+                    {currencySymbol}{Math.round(totalPrice).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Multiple Rates */}
+              {rates.length > 1 && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="w-full mb-1.5 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded transition-all border border-blue-200"
+                >
+                  {rates.length} {isExpanded ? '−' : '+'}
+                </button>
+              )}
+
+              {/* BOOK BUTTON */}
+              <button
+                onClick={handleBooking}
+                className="w-full px-4 py-2 font-black text-sm rounded-lg transition-all bg-gradient-to-r from-orange-500 to-red-600 text-white hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 mb-1.5"
+              >
+                {bestRate ? t.selectRoom : t.seeAvailability}
+              </button>
+
+              {/* Trust Badges */}
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                  <Check className="w-3 h-3 text-green-600 flex-shrink-0" />
+                  <span className="font-medium">Instant</span>
+                </div>
+                <div className="flex items-center gap-1 text-[10px] text-slate-600">
+                  <Shield className="w-3 h-3 text-green-600 flex-shrink-0" />
+                  <span className="font-medium">Best price</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="text-slate-500 text-xs mb-1.5">{t.noRates}</div>
+              <button
+                onClick={() => onViewDetails(hotel.id)}
+                className="w-full px-4 py-2 font-bold text-sm rounded-lg transition-all bg-slate-200 text-slate-700 hover:bg-slate-300"
+              >
+                {t.viewDetails}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* EXPANDED RATES - All available rates */}
-      {isExpanded && (
-        <div className="px-3 py-2 border-t border-gray-200 space-y-2 bg-gray-50 animate-slideDown">
-          <h4 className="text-sm font-bold text-gray-900 mb-2">All Available Rates</h4>
-          {hotel.rates.map((rate) => {
-            const rateTotal = parseFloat(rate.total_amount) * nights;
-            const ratePerNight = parseFloat(rate.total_amount);
-            const rateSavings = rate.public_rate_comparison
-              ? parseFloat(rate.public_rate_comparison) - ratePerNight
-              : 0;
+      {/* Expanded Rates Section */}
+      {isExpanded && rates.length > 0 && (
+        <div className="px-6 py-4 border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-black text-slate-900">
+              All Room Options ({rates.length})
+            </h4>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="p-2 hover:bg-slate-200 rounded-lg transition-all"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
 
-            return (
-              <div key={rate.id} className="p-3 bg-white border-2 border-gray-200 rounded-lg hover:border-primary-300 transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  {/* Left: Rate Details */}
-                  <div className="flex-1">
-                    <h5 className="font-semibold text-gray-900 text-sm mb-1">{rate.name}</h5>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {rates.map((rate) => {
+              const ratePerNight = parseFloat(rate.totalPrice.amount) / nights;
+              const rateTotal = parseFloat(rate.totalPrice.amount);
+              return (
+                <div
+                  key={rate.id}
+                  className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-orange-400 hover:shadow-lg transition-all"
+                >
+                  <div className="mb-3">
+                    <h5 className="font-bold text-slate-900 text-base mb-2">{rate.roomType}</h5>
 
-                    {/* Rate Badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {/* Board Type */}
-                      {rate.board_type !== 'room_only' && (
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                          {rate.board_type === 'breakfast' && '☕ Breakfast'}
-                          {rate.board_type === 'half_board' && '🍽️ Half Board'}
-                          {rate.board_type === 'full_board' && '🍽️ Full Board'}
-                          {rate.board_type === 'all_inclusive' && '🌟 All Inclusive'}
-                        </span>
-                      )}
-
-                      {/* Refundable */}
+                    <div className="flex gap-2 flex-wrap mb-3">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-200">
+                        <Utensils className="w-3 h-3" />
+                        {getBoardLabel(rate.boardType)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 text-slate-700 rounded-md text-xs font-bold border border-slate-200">
+                        <Users className="w-3 h-3" />
+                        {rate.maxOccupancy} guests
+                      </span>
                       {rate.refundable ? (
-                        <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                          ✅ {t.freeCancellation}
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-md text-xs font-bold border border-green-200">
+                          <Shield className="w-3 h-3" />
+                          Free cancellation
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-medium">
-                          ❌ {t.nonRefundable}
-                        </span>
-                      )}
-
-                      {/* Payment Type */}
-                      {rate.payment_type === 'pay_later' && (
-                        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
-                          💳 Pay Later
-                        </span>
-                      )}
-
-                      {/* Deal Type */}
-                      {rate.deal_type && (
-                        <span className="px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-full text-xs font-bold">
-                          {rate.deal_type === 'loyalty' && '⭐ Loyalty'}
-                          {rate.deal_type === 'corporate' && '💼 Corporate'}
-                          {rate.deal_type === 'mobile' && '📱 Mobile'}
-                          {rate.deal_type === 'seasonal' && '🎉 Seasonal'}
-                        </span>
-                      )}
-
-                      {/* Limited Availability */}
-                      {rate.available_quantity <= 2 && (
-                        <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-xs font-bold">
-                          ⚠️ Only {rate.available_quantity} left!
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 rounded-md text-xs font-bold border border-red-200">
+                          Non-refundable
                         </span>
                       )}
                     </div>
-
-                    {/* Benefits */}
-                    {rate.benefits && rate.benefits.length > 0 && (
-                      <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
-                        {rate.benefits.map((benefit, idx) => (
-                          <li key={idx} className="flex items-center gap-1">
-                            <Check className="w-3 h-3 text-green-600" />
-                            {benefit}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {/* Loyalty Points */}
-                    {rate.loyalty_points_earned && (
-                      <div className="text-xs text-purple-700 font-medium">
-                        ⭐ Earn {rate.loyalty_points_earned.toLocaleString()} {rate.loyalty_program} points
-                      </div>
-                    )}
                   </div>
 
-                  {/* Right: Price + Select */}
-                  <div className="text-right flex flex-col items-end gap-2">
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
                     <div>
-                      {rateSavings > 0 && rate.public_rate_comparison && (
-                        <div className="text-xs text-gray-400 line-through mb-0.5">
-                          ${Math.round(parseFloat(rate.public_rate_comparison))} {t.perNight}
-                        </div>
-                      )}
-                      <div className="font-bold text-gray-900 text-lg">
-                        ${Math.round(ratePerNight)}
+                      <div className="text-slate-600 text-xs mb-0.5">From</div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-black text-slate-900 text-2xl leading-none">
+                          {currencySymbol}{Math.round(ratePerNight)}
+                        </span>
+                        <span className="text-slate-600 text-xs">/night</span>
                       </div>
-                      <div className="text-xs text-gray-600">{t.perNight}</div>
-                      <div className="text-xs text-gray-700 font-semibold mt-1">
-                        {t.total}: ${Math.round(rateTotal)}
+                      <div className="text-slate-500 text-xs mt-1">
+                        Total: <span className="font-bold text-slate-900">{currencySymbol}{Math.round(rateTotal).toLocaleString()}</span>
                       </div>
                     </div>
                     <button
-                      onClick={() => onSelect(hotel.id, rate.id)}
-                      className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-bold rounded-lg hover:shadow-lg transition-all text-sm"
+                      onClick={() => onSelect(hotel.id, rate.id, rate.offerId)}
+                      className="px-5 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all text-sm"
                     >
-                      Select →
+                      Select
                     </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {/* View Full Details Button */}
-          <button
-            onClick={() => onViewDetails(hotel.id)}
-            className="w-full px-4 py-2 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-primary-500 hover:text-primary-600 transition-all text-sm"
-          >
-            {t.viewDetails}
-          </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -34,7 +34,7 @@ function ConfirmationContent() {
         const ref = searchParams.get('ref');
 
         if (!bookingId) {
-          router.push('/hotels/search');
+          router.push('/hotels');
           return;
         }
 
@@ -65,11 +65,11 @@ function ConfirmationContent() {
           });
           setLoading(false);
         } else {
-          router.push('/hotels/search');
+          router.push('/hotels');
         }
       } catch (error) {
         console.error('Error loading booking:', error);
-        router.push('/hotels/search');
+        router.push('/hotels');
       }
     };
 

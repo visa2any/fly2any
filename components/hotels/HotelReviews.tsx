@@ -199,9 +199,9 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
       </p>
 
       {/* Pros & Cons */}
-      {(review.pros?.length || review.cons?.length) && (
+      {((Array.isArray(review.pros) && review.pros.length > 0) || (Array.isArray(review.cons) && review.cons.length > 0)) && (
         <div className="grid grid-cols-2 gap-3 mb-3">
-          {review.pros && review.pros.length > 0 && (
+          {Array.isArray(review.pros) && review.pros.length > 0 && (
             <div className="bg-green-50 rounded-lg p-2.5">
               <span className="text-xs font-semibold text-green-700 block mb-1">Pros</span>
               <ul className="space-y-0.5">
@@ -214,7 +214,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
               </ul>
             </div>
           )}
-          {review.cons && review.cons.length > 0 && (
+          {Array.isArray(review.cons) && review.cons.length > 0 && (
             <div className="bg-red-50 rounded-lg p-2.5">
               <span className="text-xs font-semibold text-red-700 block mb-1">Cons</span>
               <ul className="space-y-0.5">
