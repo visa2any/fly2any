@@ -389,10 +389,11 @@ export async function POST(request: NextRequest) {
 
         // Build paxes array for Hotelbeds
         const paxes = [];
-        for (let i = 0; i < searchParams.guests.adults; i++) {
+        const adults = searchParams.guests?.adults || 2;
+        for (let i = 0; i < adults; i++) {
           paxes.push({ type: 'AD' as const, age: 30 });
         }
-        const childrenCount = Array.isArray(searchParams.guests.children) ? searchParams.guests.children.length : 0;
+        const childrenCount = Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0;
         for (let i = 0; i < childrenCount; i++) {
           paxes.push({ type: 'CH' as const, age: 10 });
         }
