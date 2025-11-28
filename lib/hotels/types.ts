@@ -125,6 +125,7 @@ export interface Hotel {
 
   // Reviews & ratings
   reviewRating?: number; // Guest review score (0-10)
+  reviewScore?: number; // Alternative review score property (from some API providers)
   reviewCount?: number;
 
   // Contact
