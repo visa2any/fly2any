@@ -295,6 +295,7 @@ class LiteAPI {
     cityName?: string;
     iataCode?: string;
     limit?: number;
+    radius?: number;
   }): Promise<{ hotels: LiteAPIHotel[]; hotelIds: string[] }> {
     try {
       const queryParams: Record<string, string | number> = {};
@@ -302,6 +303,9 @@ class LiteAPI {
       if (params.latitude !== undefined && params.longitude !== undefined) {
         queryParams.latitude = params.latitude;
         queryParams.longitude = params.longitude;
+        // CRITICAL: Add radius for better hotel coverage (minimum 1000 meters per LiteAPI docs)
+        // Default to 25km (25000 meters) for major city coverage
+        queryParams.radius = params.radius || 25000;
       } else if (params.countryCode) {
         queryParams.countryCode = params.countryCode;
         if (params.cityName) {
@@ -414,11 +418,21 @@ class LiteAPI {
             guestNationality: params.guestNationality || 'US',
           };
 
+          // DEBUG: Log first batch request to understand what we're sending
+          if (batchNumber === 1) {
+            console.log('🔍 DEBUG: First batch request body:', JSON.stringify(requestBody, null, 2));
+          }
+
           // Use the CORRECT endpoint: /hotels/rates (not /hotels/min-rates which doesn't exist)
           const response = await axios.post(`${this.baseUrl}/hotels/rates`, requestBody, {
             headers: this.getHeaders(),
             timeout: 15000, // 15 second timeout per batch
           });
+
+          // DEBUG: Log first batch response
+          if (batchNumber === 1) {
+            console.log('🔍 DEBUG: First batch response:', JSON.stringify(response.data, null, 2));
+          }
 
           // Check for API error responses
           if (response.data.error) {
