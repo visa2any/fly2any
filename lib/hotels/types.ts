@@ -31,9 +31,9 @@ export interface HotelSearchParams {
   countryCode?: string;
   cityName?: string;
 
-  // Dates
-  checkIn: string; // YYYY-MM-DD
-  checkOut: string; // YYYY-MM-DD
+  // Dates (all optional for flexibility across different usage patterns)
+  checkIn?: string; // YYYY-MM-DD
+  checkOut?: string; // YYYY-MM-DD
   checkinDate?: string; // Alias for compatibility
   checkoutDate?: string; // Alias for compatibility
 

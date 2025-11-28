@@ -649,11 +649,18 @@ class LiteAPI {
   }> {
     try {
       // Calculate number of nights from check-in/check-out dates
-      const checkinDate = new Date(params.checkIn);
-      const checkoutDate = new Date(params.checkOut);
+      const checkIn = params.checkIn || params.checkinDate;
+      const checkOut = params.checkOut || params.checkoutDate;
+
+      if (!checkIn || !checkOut) {
+        throw new Error('Check-in and check-out dates are required');
+      }
+
+      const checkinDate = new Date(checkIn);
+      const checkoutDate = new Date(checkOut);
       const nights = Math.max(1, Math.ceil((checkoutDate.getTime() - checkinDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-      console.log(`📅 LiteAPI: Calculated ${nights} nights (${params.checkIn} to ${params.checkOut})`);
+      console.log(`📅 LiteAPI: Calculated ${nights} nights (${checkIn} to ${checkOut})`);
 
       // Step 1: Get hotel static data
       // INCREASED LIMIT: Get up to 200 hotels to maximize availability options
@@ -699,8 +706,8 @@ class LiteAPI {
 
       const minRatesData = await this.getHotelMinimumRates({
         hotelIds: activeHotelIds,
-        checkin: params.checkIn,
-        checkout: params.checkOut,
+        checkin: checkIn,
+        checkout: checkOut,
         occupancies: [{ adults, children: children ? [children] : undefined }],
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
