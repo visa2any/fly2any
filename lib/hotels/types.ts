@@ -24,8 +24,9 @@ export interface HotelGuests {
 }
 
 export interface HotelSearchParams {
-  // Location (flat structure for LiteAPI compatibility)
-  latitude?: number;
+  // Location (supports both nested and flat structures)
+  location?: HotelLocation | HotelLocationQuery; // Nested structure used by POST handler
+  latitude?: number; // Flat structure used by LiteAPI
   longitude?: number;
   countryCode?: string;
   cityName?: string;
@@ -36,8 +37,9 @@ export interface HotelSearchParams {
   checkinDate?: string; // Alias for compatibility
   checkoutDate?: string; // Alias for compatibility
 
-  // Guests (flat structure for LiteAPI compatibility)
-  adults: number;
+  // Guests (supports both nested and flat structures)
+  guests?: HotelGuests; // Nested structure used by POST handler
+  adults?: number; // Flat structure used by LiteAPI
   children?: number;
 
   rooms?: number; // Number of rooms (default: 1)

@@ -694,11 +694,14 @@ class LiteAPI {
       }
 
       // Step 2: Get MINIMUM rates (fast!)
+      const adults = params.adults || params.guests?.adults || 2; // Default to 2 adults
+      const children = params.children || (Array.isArray(params.guests?.children) ? params.guests.children.length : 0);
+
       const minRatesData = await this.getHotelMinimumRates({
         hotelIds: activeHotelIds,
         checkin: params.checkIn,
         checkout: params.checkOut,
-        occupancies: [{ adults: params.adults, children: params.children ? [params.children] : undefined }],
+        occupancies: [{ adults, children: children ? [children] : undefined }],
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
       });
