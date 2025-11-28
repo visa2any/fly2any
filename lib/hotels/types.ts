@@ -126,6 +126,7 @@ export interface Hotel {
   // Price (for search results)
   lowestPrice?: number; // Total price for entire stay
   lowestPricePerNight?: number; // Per-night price
+  currency?: string; // Price currency (USD, EUR, etc.)
 
   // Available rates
   rates: HotelRate[];
