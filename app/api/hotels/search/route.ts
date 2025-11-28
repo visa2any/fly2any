@@ -405,7 +405,7 @@ export async function POST(request: NextRequest) {
           },
           occupancies: [{
             rooms: 1,
-            adults: searchParams.guests.adults,
+            adults: adults,
             children: childrenCount,
             paxes,
           }],
