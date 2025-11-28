@@ -224,6 +224,7 @@ export default function EnhancedSearchBar({
   const [loadingCalendarPrices, setLoadingCalendarPrices] = useState(false);
   const fetchingCalendarPricesRef = useRef(false); // Deduplication guard
   const preFetchTimerRef = useRef<NodeJS.Timeout | null>(null); // Pre-fetch debounce timer
+  const hotelSuggestionsTimerRef = useRef<NodeJS.Timeout | null>(null); // Hotel suggestions debounce timer
 
   // Multi-city flights state (only for one-way mode)
   interface AdditionalFlight {
@@ -780,56 +781,104 @@ export default function EnhancedSearchBar({
 
   // Hotel destination autocomplete
   const fetchHotelSuggestions = async (query: string) => {
+    console.log('🔍 fetchHotelSuggestions called with query:', query);
+
     if (query.length < 2) {
+      console.log('⚠️ Query too short, clearing suggestions');
       setHotelSuggestions([]);
       setShowHotelSuggestions(false);
       return;
     }
 
+    console.log('⏳ Loading hotel suggestions...');
     setIsLoadingHotelSuggestions(true);
     setShowHotelSuggestions(true);
 
     try {
-      const response = await fetch(`/api/hotels/suggestions?query=${encodeURIComponent(query)}`);
+      const url = `/api/hotels/suggestions?query=${encodeURIComponent(query)}`;
+      console.log('📡 Fetching from:', url);
+
+      const response = await fetch(url);
       const data = await response.json();
 
+      console.log('✅ API Response:', data);
+
       if (data.data && Array.isArray(data.data)) {
-        setHotelSuggestions(data.data.slice(0, 5)); // Show top 5 suggestions
+        const suggestions = data.data.slice(0, 5); // Show top 5 suggestions
+        console.log('✅ Setting suggestions:', suggestions);
+        setHotelSuggestions(suggestions);
       } else {
+        console.warn('⚠️ No data in response');
         setHotelSuggestions([]);
       }
     } catch (error) {
-      console.error('Error fetching hotel suggestions:', error);
+      console.error('❌ Error fetching hotel suggestions:', error);
       setHotelSuggestions([]);
     } finally {
       setIsLoadingHotelSuggestions(false);
+      console.log('✅ Loading complete');
     }
   };
 
   const handleHotelDestinationChange = (value: string) => {
+    console.log('🎯 handleHotelDestinationChange called with:', value);
     setHotelDestination(value);
-    fetchHotelSuggestions(value);
+
+    // Clear previous timer
+    if (hotelSuggestionsTimerRef.current) {
+      clearTimeout(hotelSuggestionsTimerRef.current);
+    }
+
+    // Debounce API call (300ms) for better performance
+    console.log('⏱️ Setting debounce timer (300ms)...');
+    hotelSuggestionsTimerRef.current = setTimeout(() => {
+      console.log('⏰ Debounce timer fired, calling fetchHotelSuggestions');
+      fetchHotelSuggestions(value);
+    }, 300);
   };
 
   const handleHotelSuggestionSelect = (suggestion: any) => {
-    setHotelDestination(suggestion.name || suggestion.city_name);
+    console.log('✅ Suggestion selected:', suggestion);
+    // Use the correct data structure from /api/hotels/suggestions
+    setHotelDestination(suggestion.name || suggestion.city);
     setHotelLocation({
-      lat: suggestion.latitude,
-      lng: suggestion.longitude
+      lat: suggestion.location?.lat || suggestion.latitude,
+      lng: suggestion.location?.lng || suggestion.longitude
+    });
+    console.log('📍 Hotel location set to:', {
+      lat: suggestion.location?.lat || suggestion.latitude,
+      lng: suggestion.location?.lng || suggestion.longitude
     });
     setShowHotelSuggestions(false);
   };
+
+  // Debug logging for hotel suggestions state
+  useEffect(() => {
+    console.log('🔄 Hotel suggestions state changed:', {
+      suggestions: hotelSuggestions,
+      count: hotelSuggestions.length,
+      showDropdown: showHotelSuggestions,
+      loading: isLoadingHotelSuggestions
+    });
+  }, [hotelSuggestions, showHotelSuggestions, isLoadingHotelSuggestions]);
 
   // Close hotel suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (hotelDestinationRef.current && !hotelDestinationRef.current.contains(event.target as Node)) {
+        console.log('🔒 Closing suggestions dropdown (clicked outside)');
         setShowHotelSuggestions(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      // Cleanup debounce timer on unmount
+      if (hotelSuggestionsTimerRef.current) {
+        clearTimeout(hotelSuggestionsTimerRef.current);
+      }
+    };
   }, []);
 
   return (
@@ -1557,8 +1606,19 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => handleHotelDestinationChange(e.target.value)}
-                onFocus={() => hotelDestination.length >= 2 && setShowHotelSuggestions(true)}
+                onChange={(e) => {
+                  console.log('⌨️ Input onChange event:', e.target.value);
+                  handleHotelDestinationChange(e.target.value);
+                }}
+                onFocus={() => {
+                  console.log('👆 Input onFocus event, current value:', hotelDestination);
+                  if (hotelDestination.length >= 2) {
+                    console.log('✅ Opening suggestions (value length >= 2)');
+                    setShowHotelSuggestions(true);
+                  } else {
+                    console.log('⚠️ Not opening suggestions (value too short)');
+                  }
+                }}
                 placeholder="City, hotel, or landmark"
                 className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
                   errors.hotel ? 'border-red-500' : 'border-gray-300'
@@ -1587,11 +1647,11 @@ export default function EnhancedSearchBar({
                           <Building2 size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-gray-900 text-sm truncate">
-                              {suggestion.name || suggestion.city_name}
+                              {suggestion.name}
                             </div>
-                            {suggestion.country_name && (
+                            {(suggestion.city || suggestion.country) && (
                               <div className="text-xs text-gray-500 truncate">
-                                {suggestion.country_name}
+                                {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
                               </div>
                             )}
                           </div>
@@ -2623,8 +2683,19 @@ export default function EnhancedSearchBar({
               <input
                 type="text"
                 value={hotelDestination}
-                onChange={(e) => handleHotelDestinationChange(e.target.value)}
-                onFocus={() => hotelDestination.length >= 2 && setShowHotelSuggestions(true)}
+                onChange={(e) => {
+                  console.log('📱 Mobile input onChange event:', e.target.value);
+                  handleHotelDestinationChange(e.target.value);
+                }}
+                onFocus={() => {
+                  console.log('📱 Mobile input onFocus event, current value:', hotelDestination);
+                  if (hotelDestination.length >= 2) {
+                    console.log('✅ Opening mobile suggestions (value length >= 2)');
+                    setShowHotelSuggestions(true);
+                  } else {
+                    console.log('⚠️ Not opening mobile suggestions (value too short)');
+                  }
+                }}
                 placeholder="City, hotel, or landmark"
                 className={`w-full pl-9 pr-3 py-2 bg-gray-50 border-2 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm font-semibold text-gray-900 ${
                   errors.hotel ? 'border-red-500' : 'border-gray-200'
@@ -2654,11 +2725,11 @@ export default function EnhancedSearchBar({
                         <Building2 size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 text-xs truncate">
-                            {suggestion.name || suggestion.city_name}
+                            {suggestion.name}
                           </div>
-                          {suggestion.country_name && (
+                          {(suggestion.city || suggestion.country) && (
                             <div className="text-[10px] text-gray-500 truncate">
-                              {suggestion.country_name}
+                              {[suggestion.city, suggestion.country].filter(Boolean).join(', ')}
                             </div>
                           )}
                         </div>
