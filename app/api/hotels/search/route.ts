@@ -358,8 +358,8 @@ export async function POST(request: NextRequest) {
     const liteAPIPromise = liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
-      checkinDate: searchParams.checkIn,
-      checkoutDate: searchParams.checkOut,
+      checkinDate: searchParams.checkIn!,
+      checkoutDate: searchParams.checkOut!,
       adults: searchParams.guests?.adults || 2,
       children: Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0,
       currency: searchParams.currency || 'USD',
@@ -400,8 +400,8 @@ export async function POST(request: NextRequest) {
 
         const hotelbedsResults = await searchHotelbeds({
           stay: {
-            checkIn: searchParams.checkIn,
-            checkOut: searchParams.checkOut,
+            checkIn: searchParams.checkIn!,
+            checkOut: searchParams.checkOut!,
           },
           occupancies: [{
             rooms: 1,
@@ -419,7 +419,7 @@ export async function POST(request: NextRequest) {
         });
 
         const hotelbedsHotels = (hotelbedsResults.hotels?.hotels || []).map(hotel =>
-          normalizeHotelbedsHotel(hotel, searchParams.checkIn, searchParams.checkOut)
+          normalizeHotelbedsHotel(hotel, searchParams.checkIn!, searchParams.checkOut!)
         );
 
         return {
