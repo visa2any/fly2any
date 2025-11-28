@@ -24,20 +24,35 @@ export interface HotelGuests {
 }
 
 export interface HotelSearchParams {
-  location: HotelLocation | HotelLocationQuery;
+  // Location (flat structure for LiteAPI compatibility)
+  latitude?: number;
+  longitude?: number;
+  countryCode?: string;
+  cityName?: string;
+
+  // Dates
   checkIn: string; // YYYY-MM-DD
   checkOut: string; // YYYY-MM-DD
-  guests: HotelGuests;
+  checkinDate?: string; // Alias for compatibility
+  checkoutDate?: string; // Alias for compatibility
+
+  // Guests (flat structure for LiteAPI compatibility)
+  adults: number;
+  children?: number;
+
   rooms?: number; // Number of rooms (default: 1)
   radius?: number; // Search radius in km (default: 5, max: 50)
   limit?: number; // Max results (default: 20, max: 100)
+
+  // Additional parameters
+  currency?: string; // USD, EUR, GBP, etc.
+  guestNationality?: string; // e.g., 'US'
 
   // Filters
   minRating?: number; // 1-5 stars
   maxRating?: number;
   minPrice?: number;
   maxPrice?: number;
-  currency?: string; // USD, EUR, GBP, etc.
   amenities?: HotelAmenity[];
   propertyTypes?: HotelPropertyType[];
   sortBy?: 'price_asc' | 'price_desc' | 'rating' | 'distance' | 'popularity';

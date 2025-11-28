@@ -683,17 +683,14 @@ export async function GET(request: NextRequest) {
     // Search hotels using MINIMUM rates (5x faster and more reliable!)
     // INCREASED LIMIT: Get up to 200 hotels for better availability
     const results = await liteAPI.searchHotelsWithMinRates({
-      location: {
-        lat: latitude,
-        lng: longitude,
-      },
+      latitude,
+      longitude,
       checkIn,
       checkOut,
-      guests: {
-        adults: parseInt(adults),
-        children: searchParams.get('children') ? [parseInt(searchParams.get('children')!)] : undefined,
-      },
+      adults: parseInt(adults),
+      children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0,
       currency: searchParams.get('currency') || 'USD',
+      guestNationality: 'US',
       limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 200, // Increased from 50 to 200
     });
 

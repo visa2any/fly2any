@@ -661,14 +661,14 @@ class LiteAPI {
         limit: params.limit || 200, // LiteAPI supports up to 200 hotels per request
       };
 
-      // Handle location parameter (can be lat/lng or query)
-      if ('lat' in params.location && 'lng' in params.location) {
-        locationParams.latitude = params.location.lat;
-        locationParams.longitude = params.location.lng;
-      } else if ('query' in params.location) {
-        // For query-based location, we'd need to geocode first
-        // For now, this path is not used by the GET handler
-        console.warn('Query-based location not yet supported in searchHotelsWithMinRates');
+      if (params.latitude !== undefined && params.longitude !== undefined) {
+        locationParams.latitude = params.latitude;
+        locationParams.longitude = params.longitude;
+      } else if (params.countryCode) {
+        locationParams.countryCode = params.countryCode;
+        if (params.cityName) {
+          locationParams.cityName = params.cityName;
+        }
       }
 
       const { hotels, hotelIds } = await this.getHotelsByLocation(locationParams);
@@ -698,12 +698,9 @@ class LiteAPI {
         hotelIds: activeHotelIds,
         checkin: params.checkIn,
         checkout: params.checkOut,
-        occupancies: [{
-          adults: params.guests.adults,
-          children: params.guests.children,
-        }],
+        occupancies: [{ adults: params.adults, children: params.children ? [params.children] : undefined }],
         currency: params.currency || 'USD',
-        guestNationality: 'US', // Default nationality
+        guestNationality: params.guestNationality || 'US',
       });
 
       // Step 3: Merge hotel data with minimum rates
