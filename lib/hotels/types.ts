@@ -92,16 +92,32 @@ export interface Hotel {
   location: {
     lat: number;
     lng: number;
+    // Alternative properties from some API providers
+    address?: string;
+    city?: string;
+    country?: string;
+    latitude?: number;
+    longitude?: number;
   };
+
+  // Alternative flat location properties (from some API providers)
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
 
   // Property details
   starRating?: number; // 1-5
+  stars?: number; // Alternative star rating property (from some API providers)
+  rating?: number; // General rating
   propertyType: HotelPropertyType;
   chainCode?: string;
   chainName?: string;
 
   // Media
   images: HotelImage[];
+  image?: string; // Single image URL (from some API providers)
+  thumbnail?: string; // Thumbnail image URL
 
   // Amenities & features
   amenities: string[];
