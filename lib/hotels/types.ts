@@ -131,7 +131,7 @@ export interface Hotel {
   rates: HotelRate[];
 
   // Metadata
-  source: 'Duffel Stays' | 'Amadeus' | 'LiteAPI';
+  source: 'Duffel Stays' | 'Amadeus' | 'LiteAPI' | 'Hotelbeds';
   lastUpdated?: string;
 }
 

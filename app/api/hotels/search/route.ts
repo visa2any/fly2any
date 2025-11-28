@@ -505,7 +505,7 @@ export async function POST(request: NextRequest) {
     const mappedHotels = filteredHotels.map(hotel => {
       // Determine source (LiteAPI or Hotelbeds)
       const source = hotel.source || 'LiteAPI';
-      const isHotelbeds = source === 'hotelbeds' || source.toLowerCase() === 'hotelbeds';
+      const isHotelbeds = source === 'Hotelbeds';
 
       // Get location data
       const location = hotel.location || {};
