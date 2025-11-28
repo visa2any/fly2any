@@ -416,6 +416,9 @@ class LiteAPI {
             occupancies: params.occupancies,
             currency: params.currency || 'USD',
             guestNationality: params.guestNationality || 'US',
+            // CRITICAL PARAMETERS from official Postman collection:
+            timeout: 5,        // 5 seconds - allows API more time to find availability
+            roomMapping: true, // Enable room mapping for better availability
           };
 
           // DEBUG: Log first batch request to understand what we're sending
