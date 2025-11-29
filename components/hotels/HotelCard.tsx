@@ -221,32 +221,15 @@ export function HotelCard({
       data-hotel-id={hotel.id}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="group relative h-full bg-white rounded-2xl overflow-hidden flex flex-col transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] border border-slate-200/50 hover:border-slate-300"
+      className="group relative bg-white rounded-2xl overflow-hidden flex flex-row transition-all duration-500 hover:shadow-2xl hover:scale-[1.01] border border-slate-200/50 hover:border-slate-300 h-[200px]"
       style={{
         boxShadow: isHovering
           ? '0 20px 60px -15px rgba(0, 0, 0, 0.15), 0 10px 30px -10px rgba(0, 0, 0, 0.1)'
           : '0 4px 12px -2px rgba(0, 0, 0, 0.08)'
       }}
     >
-      {/* 🎨 HERO IMAGE SECTION - Compact Height */}
-      <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
-        {/* Floating Price Badge - Airbnb Style */}
-        {perNightPrice > 0 && (
-          <div className="absolute top-4 left-4 z-20 backdrop-blur-xl bg-white/95 rounded-2xl shadow-2xl px-4 py-2.5 border border-white/20">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-slate-900 font-black text-2xl tracking-tight">
-                {currencySymbol}{Math.round(perNightPrice)}
-              </span>
-              <span className="text-slate-600 text-sm font-semibold">/{t.perNight.split(' ')[1] || 'night'}</span>
-            </div>
-            {totalPrice > perNightPrice && (
-              <div className="text-slate-500 text-xs font-medium mt-0.5">
-                {currencySymbol}{Math.round(totalPrice).toLocaleString()} total
-              </div>
-            )}
-          </div>
-        )}
-
+      {/* 🎨 HERO IMAGE SECTION - Horizontal Compact (LEFT SIDE) */}
+      <div className="relative w-72 h-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
         {/* Action Buttons - Top Right */}
         <div className="absolute top-4 right-4 z-20 flex gap-2">
           <button
@@ -336,181 +319,115 @@ export function HotelCard({
         )}
       </div>
 
-      {/* 📝 CONTENT SECTION - Premium Typography & Compact Spacing */}
-      <div className="flex-1 flex flex-col p-3">
-        {/* Hotel Name - Large & Bold */}
-        <h3 className="text-slate-900 font-black text-lg leading-tight mb-2 line-clamp-2 tracking-tight">
-          {hotel.name}
-        </h3>
+      {/* 📝 CONTENT SECTION - Premium Horizontal Compact (RIGHT SIDE) */}
+      <div className="flex-1 flex flex-col p-4">
+        {/* Top: Hotel Name, Rating & Location */}
+        <div className="mb-2">
+          <h3 className="text-slate-900 font-bold text-base leading-tight mb-1.5 line-clamp-1 tracking-tight">
+            {hotel.name}
+          </h3>
 
-        {/* Rating & Reviews - Single Line */}
-        <div className="flex items-center gap-3 mb-2">
-          {/* Stars */}
-          {hotel.rating > 0 && (
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
-                <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-              ))}
-            </div>
-          )}
-
-          {/* Review Score */}
-          {hotel.reviewScore > 0 && (
-            <div className="flex items-center gap-2">
-              <div className={`${reviewCategory.bg} text-white px-3 py-1 rounded-lg text-sm font-black shadow-sm`}>
-                {hotel.reviewScore.toFixed(1)}
+          {/* Rating & Location Row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Stars */}
+            {hotel.rating > 0 && (
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                ))}
               </div>
-              <div>
-                <div className={`${reviewCategory.color} text-sm font-bold leading-none`}>
+            )}
+
+            {/* Review Score */}
+            {hotel.reviewScore > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className={`${reviewCategory.bg} text-white px-2 py-0.5 rounded text-xs font-black`}>
+                  {hotel.reviewScore.toFixed(1)}
+                </div>
+                <div className={`${reviewCategory.color} text-xs font-bold`}>
                   {reviewCategory.text}
                 </div>
                 {hotel.reviewCount > 0 && (
-                  <div className="text-slate-500 text-xs mt-0.5">
-                    {hotel.reviewCount.toLocaleString()} {t.reviews}
-                  </div>
+                  <span className="text-slate-500 text-xs">
+                    ({hotel.reviewCount.toLocaleString()})
+                  </span>
                 )}
               </div>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Location */}
-        <div className="flex items-start gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-          <p className="text-slate-600 text-sm font-medium leading-snug line-clamp-1">
-            {hotel.location?.address || `${hotel.location?.city}, ${hotel.location?.country}`}
-          </p>
-        </div>
-
-        {/* Description - Subtle */}
-        {hotel.description && (
-          <p className="text-slate-500 text-sm leading-relaxed mb-2 line-clamp-2">
-            {hotel.description}
-          </p>
-        )}
-
-        {/* Key Features - Icons Only (Clean & Minimal) */}
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          {/* Room Type */}
-          {bestRate && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200/50 transition-colors">
-              <Users className="w-4 h-4 text-slate-600" />
-              <span className="text-xs font-semibold text-slate-700">
-                {bestRate.maxOccupancy} Guests
-              </span>
-            </div>
-          )}
-
-          {/* Cancellation */}
-          {bestRate && (
-            bestRate.refundable ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200/50 transition-colors">
-                <Shield className="w-4 h-4 text-emerald-600" />
-                <span className="text-xs font-semibold text-emerald-700">Free Cancel</span>
+            {/* Location */}
+            {(hotel.location?.city || hotel.location?.country) && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-slate-400" />
+                <span className="text-slate-600 text-xs line-clamp-1">
+                  {hotel.location?.city || hotel.location?.country}
+                </span>
               </div>
-            ) : (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 rounded-lg border border-rose-200/50">
-                <X className="w-4 h-4 text-rose-600" />
-                <span className="text-xs font-semibold text-rose-700">Non-refundable</span>
-              </div>
-            )
-          )}
+            )}
+          </div>
+        </div>
 
-          {/* Meal Plan */}
+        {/* Middle: Feature Badges */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-auto">
+          {bestRate && bestRate.refundable && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-200/50">
+              <Shield className="w-3 h-3 text-emerald-600" />
+              <span className="text-[10px] font-semibold text-emerald-700">Free Cancel</span>
+            </div>
+          )}
+          {bestRate && bestRate.breakfastIncluded && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-md border border-amber-200/50">
+              <Coffee className="w-3 h-3 text-amber-600" />
+              <span className="text-[10px] font-semibold text-amber-700">Breakfast</span>
+            </div>
+          )}
           {bestRate && (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200/50 transition-colors">
-              <Utensils className="w-4 h-4 text-amber-600" />
-              <span className="text-xs font-semibold text-amber-700">
-                {getBoardLabel(bestRate.boardType)}
-              </span>
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md border border-slate-200/50">
+              <Users className="w-3 h-3 text-slate-600" />
+              <span className="text-[10px] font-semibold text-slate-700">{bestRate.maxOccupancy}</span>
             </div>
           )}
         </div>
 
-        {/* Amenities - Icon Only (Premium & Clean) */}
-        <div className="flex items-center gap-2 mb-3">
-          {hotel.amenities && hotel.amenities.length > 0 ? (
-            <>
-              {hotel.amenities.slice(0, 4).map((amenity, idx) => {
-                const { icon: Icon, color } = getAmenityIcon(amenity);
-                return (
-                  <div
-                    key={idx}
-                    className="p-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200/30"
-                    title={amenity}
-                  >
-                    <Icon className={`w-4 h-4 ${color}`} />
-                  </div>
-                );
-              })}
-              {hotel.amenities.length > 4 && (
-                <div className="px-3 py-2 bg-slate-50 rounded-lg border border-slate-200/30">
-                  <span className="text-xs font-bold text-slate-600">+{hotel.amenities.length - 4}</span>
-                </div>
+        {/* Bottom: Price & CTA */}
+        <div className="flex items-center justify-between gap-3 mt-2">
+          {/* Price */}
+          {perNightPrice > 0 && (
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-1">
+                <span className="text-slate-900 font-black text-xl">
+                  ${Math.round(perNightPrice)}
+                </span>
+                <span className="text-slate-600 text-xs font-medium">/night</span>
+              </div>
+              {totalPrice > perNightPrice && (
+                <span className="text-slate-500 text-[10px]">
+                  ${Math.round(totalPrice).toLocaleString()} total
+                </span>
               )}
-            </>
-          ) : (
-            <>
-              <div className="p-2 bg-slate-50 rounded-lg border border-slate-200/30">
-                <Wifi className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div className="p-2 bg-slate-50 rounded-lg border border-slate-200/30">
-                <Coffee className="w-4 h-4 text-amber-600" />
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* CTA Section - Bottom */}
-        <div className="mt-auto space-y-2">
-          {/* Multiple Rates Indicator */}
-          {rates.length > 1 && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-all border border-slate-200/50 flex items-center justify-center gap-2"
-            >
-              <TrendingUp className="w-4 h-4" />
-              {rates.length} {t.showRates} Available
-            </button>
+            </div>
           )}
 
-          {/* Primary CTA - Irresistible */}
+          {/* CTA Button */}
           {perNightPrice > 0 ? (
             <button
               onClick={handleBooking}
-              className="w-full px-6 py-3 font-black text-base rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl active:scale-95 relative overflow-hidden group/btn"
+              className="px-5 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-xl active:scale-95 whitespace-nowrap"
               style={{
                 background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%)',
                 color: 'white',
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000" />
-              <div className="relative flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                <span>{bestRate ? t.selectRoom : t.seeAvailability}</span>
-              </div>
+              Book Now
             </button>
           ) : (
             <button
               onClick={() => onViewDetails(hotel.id)}
-              className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-xl transition-all"
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all whitespace-nowrap"
             >
-              {t.viewDetails}
+              View Details
             </button>
           )}
-
-          {/* Trust Signals - Subtle */}
-          <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-            <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="font-medium">{t.instantBook}</span>
-            </div>
-            <div className="w-px h-3 bg-slate-300" />
-            <div className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
-              <span className="font-medium">Secure Booking</span>
-            </div>
-          </div>
         </div>
       </div>
 
