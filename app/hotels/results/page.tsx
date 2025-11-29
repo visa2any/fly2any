@@ -437,9 +437,8 @@ function HotelResultsContent() {
   };
 
   const handleViewDetails = (hotelId: string) => {
-    setSelectedHotelId(hotelId);
-    setIsNavigating(true);
-    router.push(`/hotels/${hotelId}?checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}`);
+    // Open hotel details in a new tab
+    window.open(`/hotels/${hotelId}?checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}`, '_blank');
   };
 
   // Loading state
@@ -557,6 +556,12 @@ function HotelResultsContent() {
         <EnhancedSearchBar
           lang={lang}
           defaultService="hotels"
+          hotelDestination={searchData.destination}
+          hotelCheckIn={searchData.checkIn}
+          hotelCheckOut={searchData.checkOut}
+          hotelAdults={searchData.adults}
+          hotelChildren={searchData.children}
+          hotelRooms={searchData.rooms}
         />
       </CollapsibleSearchBar>
 
@@ -565,6 +570,12 @@ function HotelResultsContent() {
         <EnhancedSearchBar
           lang={lang}
           defaultService="hotels"
+          hotelDestination={searchData.destination}
+          hotelCheckIn={searchData.checkIn}
+          hotelCheckOut={searchData.checkOut}
+          hotelAdults={searchData.adults}
+          hotelChildren={searchData.children}
+          hotelRooms={searchData.rooms}
         />
       </div>
 

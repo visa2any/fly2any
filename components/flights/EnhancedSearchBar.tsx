@@ -21,12 +21,23 @@ interface PassengerCounts {
 }
 
 interface EnhancedSearchBarProps {
+  // Flight-specific props
   origin?: string;  // Can be single code "JFK" or comma-separated "JFK,EWR,LGA"
   destination?: string;  // Can be single code "LAX" or comma-separated "LAX,SNA,ONT"
   departureDate?: string;
   returnDate?: string;
   passengers?: PassengerCounts;
   cabinClass?: 'economy' | 'premium' | 'business' | 'first';
+
+  // Hotel-specific props
+  hotelDestination?: string;  // City or place name for hotel search
+  hotelCheckIn?: string;  // Check-in date (YYYY-MM-DD)
+  hotelCheckOut?: string;  // Check-out date (YYYY-MM-DD)
+  hotelAdults?: number;  // Number of adults
+  hotelChildren?: number;  // Number of children
+  hotelRooms?: number;  // Number of rooms
+
+  // Common props
   lang?: 'en' | 'pt' | 'es';
   defaultService?: ServiceType;  // Default tab to show (flights, hotels, cars, tours)
 }
@@ -137,12 +148,23 @@ function lookupAirportByCode(code: string): Airport | null {
 }
 
 export default function EnhancedSearchBar({
+  // Flight props
   origin: initialOrigin = '',
   destination: initialDestination = '',
   departureDate: initialDepartureDate = '',
   returnDate: initialReturnDate = '',
   passengers: initialPassengers = { adults: 1, children: 0, infants: 0 },
   cabinClass: initialCabinClass = 'economy',
+
+  // Hotel props
+  hotelDestination: initialHotelDestination = '',
+  hotelCheckIn: initialHotelCheckIn = '',
+  hotelCheckOut: initialHotelCheckOut = '',
+  hotelAdults: initialHotelAdults = 2,
+  hotelChildren: initialHotelChildren = 0,
+  hotelRooms: initialHotelRooms = 1,
+
+  // Common props
   lang = 'en',
   defaultService = 'flights',
 }: EnhancedSearchBarProps) {
@@ -192,14 +214,14 @@ export default function EnhancedSearchBar({
   const [fromNonstop, setFromNonstop] = useState(false);
   const [toNonstop, setToNonstop] = useState(false);
 
-  // Hotel-specific state
-  const [hotelDestination, setHotelDestination] = useState('');
+  // Hotel-specific state (initialized from props)
+  const [hotelDestination, setHotelDestination] = useState(initialHotelDestination);
   const [hotelLocation, setHotelLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [checkInDate, setCheckInDate] = useState('');
-  const [checkOutDate, setCheckOutDate] = useState('');
-  const [hotelAdults, setHotelAdults] = useState(2);
-  const [hotelChildren, setHotelChildren] = useState(0);
-  const [hotelRooms, setHotelRooms] = useState(1);
+  const [checkInDate, setCheckInDate] = useState(initialHotelCheckIn);
+  const [checkOutDate, setCheckOutDate] = useState(initialHotelCheckOut);
+  const [hotelAdults, setHotelAdults] = useState(initialHotelAdults);
+  const [hotelChildren, setHotelChildren] = useState(initialHotelChildren);
+  const [hotelRooms, setHotelRooms] = useState(initialHotelRooms);
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
   const [showHotelGuestPicker, setShowHotelGuestPicker] = useState(false);

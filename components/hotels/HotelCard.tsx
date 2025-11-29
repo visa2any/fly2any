@@ -206,8 +206,8 @@ export function HotelCard({
       {/* COMPACT Grid: Image | Hotel Info + Amenities | Price & CTA */}
       <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_240px] gap-0 flex-1 min-h-0">
 
-        {/* Column 1: Compact Image */}
-        <div className="relative w-full h-40 lg:h-40 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        {/* Column 1: Enhanced Larger Image */}
+        <div className="relative w-full h-56 lg:h-56 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
           {/* Action Buttons */}
           <div className="absolute top-2 right-2 z-10 flex gap-1.5">
             <button
@@ -310,10 +310,17 @@ export function HotelCard({
           {/* Row 2: Location */}
           <div className="flex items-start gap-1.5 mb-1">
             <MapPin className="w-3.5 h-3.5 text-orange-500 flex-shrink-0 mt-0.5" />
-            <p className="text-slate-700 text-xs font-medium leading-tight">
+            <p className="text-slate-700 text-xs font-medium leading-tight line-clamp-2">
               {hotel.location?.address || `${hotel.location?.city}, ${hotel.location?.country}`}
             </p>
           </div>
+
+          {/* Row 2.5: Description Preview - NEW! */}
+          {hotel.description && (
+            <p className="text-slate-600 text-[11px] leading-tight mb-1 line-clamp-2">
+              {hotel.description}
+            </p>
+          )}
 
           {/* Row 3: Key Features - ALWAYS VISIBLE */}
           <div className="flex items-center gap-1.5 flex-wrap mb-1">

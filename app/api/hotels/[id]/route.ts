@@ -114,14 +114,32 @@ export async function GET(
           );
         }
 
-        // Build images array from LiteAPI response
+        // Build images array from LiteAPI response - GET ALL PHOTOS
         const images: Array<{ url: string; caption?: string }> = [];
-        if (hotelDetails.main_photo) {
-          images.push({ url: hotelDetails.main_photo, caption: hotelDetails.name });
+
+        // LiteAPI provides images array - use it first
+        if (hotelDetails.images && Array.isArray(hotelDetails.images) && hotelDetails.images.length > 0) {
+          // Use all images from the images array
+          hotelDetails.images.forEach((img: any, index: number) => {
+            const imageUrl = typeof img === 'string' ? img : (img.url || img.large || img.medium || img.small);
+            if (imageUrl) {
+              images.push({
+                url: imageUrl,
+                caption: `${hotelDetails.name} - Image ${index + 1}`
+              });
+            }
+          });
+        } else {
+          // Fallback: use main_photo and thumbnail if images array not available
+          if (hotelDetails.main_photo) {
+            images.push({ url: hotelDetails.main_photo, caption: hotelDetails.name });
+          }
+          if (hotelDetails.thumbnail && hotelDetails.thumbnail !== hotelDetails.main_photo) {
+            images.push({ url: hotelDetails.thumbnail, caption: `${hotelDetails.name} thumbnail` });
+          }
         }
-        if (hotelDetails.thumbnail && hotelDetails.thumbnail !== hotelDetails.main_photo) {
-          images.push({ url: hotelDetails.thumbnail, caption: `${hotelDetails.name} thumbnail` });
-        }
+
+        console.log(`📸 [LITEAPI] Found ${images.length} photos for hotel ${accommodationId}`);
 
         // Map facility IDs to amenity names (common facility mappings)
         const facilityMap: Record<number, string> = {
@@ -168,6 +186,9 @@ export async function GET(
             facilities: hotelDetails.facilityIds || [],
             checkInTime: hotelDetails.checkInTime || '15:00',
             checkOutTime: hotelDetails.checkOutTime || '11:00',
+            // CRITICAL: Add checkIn/checkOut dates for nights calculation
+            checkIn: checkIn || null,
+            checkOut: checkOut || null,
             chain: hotelDetails.chain,
             source: 'LiteAPI',
             // Room rates - fetch if dates provided
