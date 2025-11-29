@@ -452,7 +452,7 @@ export default function HotelDetailPage() {
 
                     {/* Dot Indicators */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                      {hotel.images.slice(0, Math.min(hotel.images.length, 10)).map((_, index) => (
+                      {hotel.images.slice(0, Math.min(hotel.images.length, 10)).map((_img: any, index: number) => (
                         <button
                           key={index}
                           onClick={(e) => {
