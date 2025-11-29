@@ -595,10 +595,33 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Hotel search error:', error);
+
+    // Enhanced error logging for production debugging
+    const errorDetails = {
+      message: error.message || 'Failed to search hotels',
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status,
+    };
+
+    console.error('📊 Error details:', JSON.stringify(errorDetails, null, 2));
+
+    // Check for specific error types
+    let userMessage = error.message || 'Failed to search hotels';
+    if (error.message?.includes('API key') || error.response?.status === 401) {
+      userMessage = 'Hotel search service is temporarily unavailable. Please try again later.';
+      console.error('🔑 LiteAPI Authentication Error - Check LITEAPI_API_KEY environment variable');
+    } else if (error.response?.status === 429) {
+      userMessage = 'Too many requests. Please wait a moment and try again.';
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      userMessage = 'Unable to connect to hotel search service. Please check your internet connection.';
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to search hotels',
+        error: userMessage,
+        errorCode: error.code,
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }
@@ -759,10 +782,34 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Hotel search error (GET):', error);
+
+    // Enhanced error logging for production debugging
+    const errorDetails = {
+      message: error.message || 'Failed to search hotels',
+      code: error.code,
+      response: error.response?.data,
+      status: error.response?.status,
+    };
+
+    console.error('📊 Error details (GET):', JSON.stringify(errorDetails, null, 2));
+
+    // Check for specific error types
+    let userMessage = error.message || 'Failed to search hotels';
+    if (error.message?.includes('API key') || error.response?.status === 401) {
+      userMessage = 'Hotel search service is temporarily unavailable. Please try again later.';
+      console.error('🔑 LiteAPI Authentication Error - Check LITEAPI_API_KEY environment variable');
+    } else if (error.response?.status === 429) {
+      userMessage = 'Too many requests. Please wait a moment and try again.';
+    } else if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      userMessage = 'Unable to connect to hotel search service. Please check your internet connection.';
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to search hotels',
+        error: userMessage,
+        errorCode: error.code,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       },
       { status: 500 }
     );
