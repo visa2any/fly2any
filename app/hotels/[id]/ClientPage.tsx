@@ -364,9 +364,22 @@ export default function HotelDetailPage() {
     : null;
   const lowestRate = hotel.rates && hotel.rates.length > 0 ? hotel.rates[0] : null;
   // Handle both Duffel API structure (totalPrice.amount) and mock data structure (total_amount)
-  const price = lowestRate
+  const totalPrice = lowestRate
     ? parseFloat(lowestRate.totalPrice?.amount || lowestRate.total_amount || '0')
     : 0;
+
+  // Calculate number of nights from check-in/check-out dates
+  const nights = useMemo(() => {
+    if (!checkIn || !checkOut) return 1; // Default to 1 night if dates not provided
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 1; // Minimum 1 night
+  }, [checkIn, checkOut]);
+
+  // Calculate per-night price
+  const perNightPrice = totalPrice > 0 ? totalPrice / nights : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -618,17 +631,13 @@ export default function HotelDetailPage() {
             {/* Image Gallery - Enhanced with ordering, captions, and lightbox */}
             {hotel.images && hotel.images.length > 1 && (
               <div className="bg-white rounded-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Photo Gallery</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Photo Gallery ({hotel.images.length - 1} Photos)</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {(() => {
-                    // Sort images by order field, then slice for display
-                    // Show 4 images on mobile, 6 on desktop
-                    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                    const imageCount = isMobile ? 4 : 6;
-
+                    // Sort images by order field and show all images except the first one (hero)
                     return hotel.images
                       .sort((a: any, b: any) => (a.order || 999) - (b.order || 999))
-                      .slice(1, imageCount + 1)
+                      .slice(1) // Only skip the first image (hero), show all others
                       .map((image: any, idx: number) => (
                         <div
                           key={idx}
@@ -666,18 +675,16 @@ export default function HotelDetailPage() {
                       ));
                   })()}
                 </div>
-                {hotel.images.length > 7 && (
-                  <button
-                    onClick={() => {
-                      setLightboxIndex(0);
-                      setLightboxOpen(true);
-                    }}
-                    className="mt-4 text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-2"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    View all {hotel.images.length} photos
-                  </button>
-                )}
+                <button
+                  onClick={() => {
+                    setLightboxIndex(0);
+                    setLightboxOpen(true);
+                  }}
+                  className="mt-4 text-primary-600 hover:text-primary-700 font-semibold text-sm flex items-center gap-2"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                  View photos in fullscreen
+                </button>
               </div>
             )}
 
@@ -860,10 +867,16 @@ export default function HotelDetailPage() {
                 <p className="text-sm text-gray-600 mb-1">Starting from</p>
                 <div className="flex items-end gap-2 mb-2">
                   <span className="text-4xl font-bold text-primary-600">
-                    ${price}
+                    ${perNightPrice.toFixed(2)}
                   </span>
                   <span className="text-gray-600 mb-2">per night</span>
                 </div>
+
+                {checkIn && checkOut && (
+                  <div className="text-sm text-gray-600 mb-3">
+                    <span className="font-semibold">${totalPrice.toFixed(2)}</span> total for {nights} {nights === 1 ? 'night' : 'nights'}
+                  </div>
+                )}
 
                 {lowestRate && (
                   <div className="flex items-center gap-2 text-sm">
@@ -881,7 +894,7 @@ export default function HotelDetailPage() {
                 <HotelUrgencySignals
                   hotelId={hotelId}
                   hotelName={hotel?.name}
-                  basePrice={price}
+                  basePrice={perNightPrice}
                   variant="detail"
                 />
               </div>

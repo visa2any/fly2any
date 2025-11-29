@@ -75,3 +75,4 @@ build-final.log
 *.backup
 *.backup2
 .env.production.check
+.env.vercel.prod

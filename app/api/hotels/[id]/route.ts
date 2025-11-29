@@ -218,10 +218,23 @@ export async function GET(
               const hotelRates = ratesData[0];
               const rates: any[] = [];
 
+              // Use hotel images for rooms (since LiteAPI doesn't provide room-level images)
+              // Distribute images across different room types
+              let imageIndex = 1; // Start from index 1 (skip hero image)
+
               for (const roomType of hotelRates.roomTypes || []) {
                 for (const rate of roomType.rates || []) {
                   const price = rate.retailRate?.total?.[0]?.amount || 0;
                   const currency = rate.retailRate?.total?.[0]?.currency || 'USD';
+
+                  // Assign images to rooms in a round-robin fashion
+                  const roomImages = [];
+                  if (images.length > 1) {
+                    // Use different images for different rooms (cycle through available images)
+                    const currentImageIndex = (imageIndex % (images.length - 1)) + 1;
+                    roomImages.push(images[currentImageIndex]);
+                    imageIndex++;
+                  }
 
                   rates.push({
                     id: rate.rateId,
@@ -237,12 +250,14 @@ export async function GET(
                     refundable: rate.cancellationPolicies?.refundableTag === 'RFN',
                     breakfastIncluded: rate.boardType === 'BB' || rate.boardName?.toLowerCase().includes('breakfast'),
                     amenities: [],
+                    // Add images for CompactRoomCard
+                    images: roomImages,
                   });
                 }
               }
 
               formattedResponse.data.rates = rates;
-              console.log(`✅ [LITEAPI] Found ${rates.length} room rates`);
+              console.log(`✅ [LITEAPI] Found ${rates.length} room rates with images assigned`);
             }
           } catch (ratesError) {
             console.error('⚠️ [LITEAPI] Failed to fetch rates:', ratesError);
