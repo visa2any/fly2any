@@ -631,24 +631,28 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET endpoint for URL-based searches
+ * Supports both new (query/checkIn/checkOut) and legacy (cityCode/checkInDate/checkOutDate) parameters
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
-    const query = searchParams.get('query');
+    // Support both new and legacy parameter names
+    const query = searchParams.get('query') || searchParams.get('cityCode');
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
-    const checkIn = searchParams.get('checkIn');
-    const checkOut = searchParams.get('checkOut');
+    const checkIn = searchParams.get('checkIn') || searchParams.get('checkInDate');
+    const checkOut = searchParams.get('checkOut') || searchParams.get('checkOutDate');
     const adults = searchParams.get('adults');
+
+    console.log('🔍 Hotel search GET request:', { query, lat, lng, checkIn, checkOut, adults });
 
     if (!(query || (lat && lng)) || !checkIn || !checkOut || !adults) {
       return NextResponse.json(
         {
           success: false,
           error: 'Missing required parameters',
-          hint: 'Provide query or lat/lng, checkIn, checkOut, and adults'
+          hint: 'Provide query/cityCode or lat/lng, checkIn/checkInDate, checkOut/checkOutDate, and adults'
         },
         { status: 400 }
       );
@@ -666,6 +670,7 @@ export async function GET(request: NextRequest) {
       if (cityCoords) {
         latitude = cityCoords.lat;
         longitude = cityCoords.lng;
+        console.log(`✅ Resolved "${query}" to coordinates:`, { latitude, longitude });
       }
     }
 
@@ -674,7 +679,8 @@ export async function GET(request: NextRequest) {
         {
           success: false,
           error: 'Could not determine location',
-          hint: 'Provide valid coordinates or a recognized city name'
+          hint: `Provide valid coordinates or a recognized city name. Searched for: "${query}"`,
+          details: process.env.NODE_ENV === 'development' ? 'City not found in coordinate database' : undefined,
         },
         { status: 400 }
       );

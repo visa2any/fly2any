@@ -77,6 +77,8 @@ export async function GET(request: NextRequest) {
   let cacheKey: string = '';
 
   try {
+    console.log('🏨 Hotels API - Request received');
+
     const { searchParams } = new URL(request.url);
 
     const cityCodeParam = searchParams.get('cityCode');
@@ -180,6 +182,18 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Searching hotels with LiteAPI...', { cityCode, coords });
 
+    // Check if LiteAPI is configured
+    if (!liteAPI.isConfigured()) {
+      console.error('❌ LiteAPI not configured - missing API key');
+      return NextResponse.json({
+        data: [],
+        meta: {
+          count: 0,
+          message: 'Hotel search service not configured. Please contact support.',
+        }
+      }, { status: 200 });
+    }
+
     // Search hotels using LiteAPI
     const results = await liteAPI.searchHotelsWithRates({
       latitude: coords.lat,
@@ -253,16 +267,25 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('❌ Error in hotels API:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      cityCode,
+      checkInDate,
+      checkOutDate,
+    });
 
-    // Return empty result on error
+    // Return empty result on error with detailed message
+    const errorMessage = error?.message || error?.toString() || 'Unknown error occurred';
     const emptyResponse = {
       data: [],
       meta: {
         count: 0,
-        message: `Error searching hotels: ${error.message}`,
+        message: `Unable to search hotels at this time. ${errorMessage}`,
       }
     };
 
+    // IMPORTANT: Return 200 status with empty data instead of 500
     return NextResponse.json(emptyResponse, { status: 200 });
   }
 }
