@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { HotelCard } from '@/components/hotels/HotelCard';
+import { HotelCardsSkeletonList } from '@/components/hotels/HotelCardSkeleton';
 import HotelFilters, { type HotelFiltersType } from '@/components/hotels/HotelFilters';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
@@ -441,7 +442,7 @@ function HotelResultsContent() {
     window.open(`/hotels/${hotelId}?checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}`, '_blank');
   };
 
-  // Loading state
+  // Loading state with skeleton
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
@@ -451,19 +452,14 @@ function HotelResultsContent() {
           defaultService="hotels"
         />
 
-        <div className="flex items-center justify-center pt-20">
-          <div className="text-center">
-            <div className="relative w-28 h-28 mx-auto mb-8">
-              <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
-              <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
-                <Hotel className="w-10 h-10 text-orange-600" />
-              </div>
-            </div>
-            <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.searching}</h2>
-            <p className="text-lg text-slate-600 font-medium leading-relaxed">Finding the perfect stay in {searchData.destination}</p>
-            <p className="text-sm text-slate-500 mt-2 leading-relaxed">{searchData.checkIn} - {searchData.checkOut} · {nights} {nights === 1 ? 'night' : 'nights'}</p>
+        {/* Loading skeleton cards */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-slate-900">{t.searching}</h2>
+            <p className="text-slate-600 mt-2">Finding the perfect stay in {searchData.destination}...</p>
+            <p className="text-sm text-slate-500 mt-1">{searchData.checkIn} - {searchData.checkOut} · {nights} {nights === 1 ? 'night' : 'nights'}</p>
           </div>
+          <HotelCardsSkeletonList count={5} />
         </div>
       </div>
     );

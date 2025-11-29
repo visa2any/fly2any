@@ -364,7 +364,7 @@ export async function POST(request: NextRequest) {
       children: Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0,
       currency: searchParams.currency || 'USD',
       guestNationality: 'US',
-      limit: searchParams.limit || 50,
+      limit: searchParams.limit || 30, // Reduced from 50 to 30 for faster initial response
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -711,7 +711,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Searching hotels with LiteAPI (GET - FAST MODE)...', { latitude, longitude });
 
     // Search hotels using MINIMUM rates (5x faster and more reliable!)
-    // INCREASED LIMIT: Get up to 200 hotels for better availability
+    // OPTIMIZED LIMIT: Get up to 50 hotels for fast initial load (user can load more)
     const results = await liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
@@ -721,7 +721,7 @@ export async function GET(request: NextRequest) {
       children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0,
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 200, // Increased from 50 to 200
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50, // Reduced from 200 to 50 for faster response
     });
 
     // Map to expected format
