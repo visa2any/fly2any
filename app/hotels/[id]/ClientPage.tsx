@@ -1043,7 +1043,7 @@ export default function HotelDetailPage() {
                 <p className="text-xs text-gray-600">Starting from</p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-bold text-primary-600">
-                    ${Math.round(price)}
+                    ${Math.round(perNightPrice)}
                   </span>
                   <span className="text-sm text-gray-600">/night</span>
                 </div>
@@ -1058,13 +1058,13 @@ export default function HotelDetailPage() {
                     checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
                     checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
                     guests: { adults: parseInt(adults, 10) || 2, children: 0 },
-                    price: price,
+                    price: totalPrice,
                     currency: lowestRate?.totalPrice?.currency || 'USD',
                     image: mainImage,
                     stars: hotel.starRating,
                   };
                   sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${price}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
+                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
                 }}
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
               >
