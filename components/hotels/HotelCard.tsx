@@ -228,8 +228,8 @@ export function HotelCard({
           : '0 4px 12px -2px rgba(0, 0, 0, 0.08)'
       }}
     >
-      {/* 🎨 HERO IMAGE SECTION - Optimized Height */}
-      <div className="relative w-full h-48 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
+      {/* 🎨 HERO IMAGE SECTION - Compact Height */}
+      <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
         {/* Floating Price Badge - Airbnb Style */}
         {perNightPrice > 0 && (
           <div className="absolute top-4 left-4 z-20 backdrop-blur-xl bg-white/95 rounded-2xl shadow-2xl px-4 py-2.5 border border-white/20">
@@ -337,14 +337,14 @@ export function HotelCard({
       </div>
 
       {/* 📝 CONTENT SECTION - Premium Typography & Compact Spacing */}
-      <div className="flex-1 flex flex-col p-4">
+      <div className="flex-1 flex flex-col p-3">
         {/* Hotel Name - Large & Bold */}
         <h3 className="text-slate-900 font-black text-lg leading-tight mb-2 line-clamp-2 tracking-tight">
           {hotel.name}
         </h3>
 
         {/* Rating & Reviews - Single Line */}
-        <div className="flex items-center gap-3 mb-2.5">
+        <div className="flex items-center gap-3 mb-2">
           {/* Stars */}
           {hotel.rating > 0 && (
             <div className="flex items-center gap-0.5">
@@ -375,7 +375,7 @@ export function HotelCard({
         </div>
 
         {/* Location */}
-        <div className="flex items-start gap-2 mb-2.5">
+        <div className="flex items-start gap-2 mb-2">
           <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
           <p className="text-slate-600 text-sm font-medium leading-snug line-clamp-1">
             {hotel.location?.address || `${hotel.location?.city}, ${hotel.location?.country}`}
@@ -384,13 +384,13 @@ export function HotelCard({
 
         {/* Description - Subtle */}
         {hotel.description && (
-          <p className="text-slate-500 text-sm leading-relaxed mb-3 line-clamp-2">
+          <p className="text-slate-500 text-sm leading-relaxed mb-2 line-clamp-2">
             {hotel.description}
           </p>
         )}
 
         {/* Key Features - Icons Only (Clean & Minimal) */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           {/* Room Type */}
           {bestRate && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200/50 transition-colors">
@@ -428,7 +428,7 @@ export function HotelCard({
         </div>
 
         {/* Amenities - Icon Only (Premium & Clean) */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           {hotel.amenities && hotel.amenities.length > 0 ? (
             <>
               {hotel.amenities.slice(0, 4).map((amenity, idx) => {
@@ -462,12 +462,12 @@ export function HotelCard({
         </div>
 
         {/* CTA Section - Bottom */}
-        <div className="mt-auto space-y-2.5">
+        <div className="mt-auto space-y-2">
           {/* Multiple Rates Indicator */}
           {rates.length > 1 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-all border border-slate-200/50 flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl transition-all border border-slate-200/50 flex items-center justify-center gap-2"
             >
               <TrendingUp className="w-4 h-4" />
               {rates.length} {t.showRates} Available
@@ -478,7 +478,7 @@ export function HotelCard({
           {perNightPrice > 0 ? (
             <button
               onClick={handleBooking}
-              className="w-full px-6 py-3.5 font-black text-base rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl active:scale-95 relative overflow-hidden group/btn"
+              className="w-full px-6 py-3 font-black text-base rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl active:scale-95 relative overflow-hidden group/btn"
               style={{
                 background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%)',
                 color: 'white',
@@ -493,7 +493,7 @@ export function HotelCard({
           ) : (
             <button
               onClick={() => onViewDetails(hotel.id)}
-              className="w-full px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-xl transition-all"
+              className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base rounded-xl transition-all"
             >
               {t.viewDetails}
             </button>
