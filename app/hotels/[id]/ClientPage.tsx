@@ -291,6 +291,17 @@ export default function HotelDetailPage() {
     return rooms;
   }, [hotel, priceFilter, bedTypeFilter, sortBy]);
 
+  // Calculate number of nights from check-in/check-out dates
+  // IMPORTANT: This must be before early returns to maintain hook call order
+  const nights = useMemo(() => {
+    if (!checkIn || !checkOut) return 1; // Default to 1 night if dates not provided
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 1; // Minimum 1 night
+  }, [checkIn, checkOut]);
+
   // Retry handler
   const handleRetry = () => {
     setLoading(true);
@@ -368,17 +379,7 @@ export default function HotelDetailPage() {
     ? parseFloat(lowestRate.totalPrice?.amount || lowestRate.total_amount || '0')
     : 0;
 
-  // Calculate number of nights from check-in/check-out dates
-  const nights = useMemo(() => {
-    if (!checkIn || !checkOut) return 1; // Default to 1 night if dates not provided
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const diffTime = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 1; // Minimum 1 night
-  }, [checkIn, checkOut]);
-
-  // Calculate per-night price
+  // Calculate per-night price (nights is calculated earlier before early returns)
   const perNightPrice = totalPrice > 0 ? totalPrice / nights : 0;
 
   return (

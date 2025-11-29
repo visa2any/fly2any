@@ -370,8 +370,8 @@ export function HotelCard({
 
         {/* Middle: Enhanced Hotel & Room Information */}
         <div className="flex flex-col gap-2 mb-auto">
-          {/* Room Type */}
-          {bestRate && bestRate.roomType && (
+          {/* Room Type - Only show if rate data available */}
+          {bestRate?.roomType && (
             <div className="flex items-center gap-1.5">
               <Bed className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
               <span className="text-slate-700 text-xs font-medium line-clamp-1">
@@ -382,13 +382,16 @@ export function HotelCard({
 
           {/* Feature Badges */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            {bestRate && bestRate.refundable && (
+            {/* Free Cancellation Badge */}
+            {bestRate?.refundable && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-200/50">
                 <Shield className="w-3 h-3 text-emerald-600" />
                 <span className="text-[10px] font-semibold text-emerald-700">Free Cancel</span>
               </div>
             )}
-            {bestRate && bestRate.boardType && ['breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase()) && (
+
+            {/* Meal Plan Badge */}
+            {bestRate?.boardType && ['breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase()) && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-md border border-amber-200/50">
                 <Coffee className="w-3 h-3 text-amber-600" />
                 <span className="text-[10px] font-semibold text-amber-700">
@@ -396,15 +399,25 @@ export function HotelCard({
                 </span>
               </div>
             )}
-            {bestRate && (
+
+            {/* Max Occupancy Badge */}
+            {bestRate?.maxOccupancy && (
               <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md border border-slate-200/50">
                 <Users className="w-3 h-3 text-slate-600" />
                 <span className="text-[10px] font-semibold text-slate-700">{bestRate.maxOccupancy} guests</span>
               </div>
             )}
+
+            {/* Popular/Best Price badge when no rate-specific badges */}
+            {!bestRate && perNightPrice > 0 && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 rounded-md border border-orange-200/50">
+                <TrendingUp className="w-3 h-3 text-orange-600" />
+                <span className="text-[10px] font-semibold text-orange-700">Best Price</span>
+              </div>
+            )}
           </div>
 
-          {/* Top Amenities */}
+          {/* Top Amenities - ALWAYS show if available */}
           {hotel.amenities && hotel.amenities.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               {hotel.amenities.slice(0, 5).map((amenity, idx) => {
