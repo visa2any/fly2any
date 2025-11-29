@@ -201,10 +201,10 @@ export function HotelCard({
     <div
       data-hotel-card
       data-hotel-id={hotel.id}
-      className="group relative bg-white rounded-xl border-2 border-slate-200/80 hover:border-orange-400 hover:shadow-2xl transition-all duration-300 overflow-hidden"
+      className="group relative h-full bg-white rounded-xl border-2 border-slate-200/80 hover:border-orange-400 hover:shadow-2xl transition-all duration-300 overflow-hidden flex flex-col"
     >
       {/* COMPACT Grid: Image | Hotel Info + Amenities | Price & CTA */}
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_240px] gap-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_240px] gap-0 flex-1 min-h-0">
 
         {/* Column 1: Compact Image */}
         <div className="relative w-full h-40 lg:h-40 flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
@@ -278,7 +278,7 @@ export function HotelCard({
         </div>
 
         {/* Column 2: ALL INFO - NO VERTICAL WASTE */}
-        <div className="p-2 border-r border-slate-100">
+        <div className="p-2 border-r border-slate-100 flex flex-col h-full min-h-0">
           {/* Row 1: Name + Stars + Review */}
           <div className="mb-1">
             <h3 className="font-black text-slate-900 text-base leading-tight mb-0.5 truncate">
@@ -409,7 +409,7 @@ export function HotelCard({
         </div>
 
         {/* Column 3: PRICING & CTA - NO VERTICAL WASTE */}
-        <div className="p-2 bg-gradient-to-br from-orange-50 via-white to-red-50 flex flex-col justify-center">
+        <div className="p-2 bg-gradient-to-br from-orange-50 via-white to-red-50 flex flex-col justify-between h-full min-h-0">
           {perNightPrice > 0 ? (
             <div>
               {/* PRICE - COMPACT */}

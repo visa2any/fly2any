@@ -2,6 +2,23 @@
 // Two-step flow: 1) Get hotel list with static data, 2) Get rates for those hotels
 import axios, { AxiosError } from 'axios';
 import { HotelSearchParams } from '@/lib/hotels/types';
+import {
+  Guest,
+  CreateGuestParams,
+  GuestBooking,
+  LoyaltyConfig,
+  GuestLoyaltyPoints,
+  RedeemPointsParams,
+  PointsTransaction,
+  Voucher,
+  CreateVoucherParams,
+  ValidateVoucherParams,
+  VoucherValidationResult,
+  VoucherRedemption,
+  WeeklyAnalytics,
+  HotelRankings,
+  MarketData,
+} from './liteapi-types';
 
 interface HotelDetailsParams {
   hotelId: string;
@@ -1216,6 +1233,159 @@ class LiteAPI {
   }
 
   /**
+   * Get list of all bookings
+   * @param params - Optional filters for booking list
+   * @returns List of bookings with summary information
+   */
+  async getBookings(params?: {
+    guestId?: string;
+    status?: 'confirmed' | 'cancelled' | 'pending';
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    data: Array<{
+      bookingId: string;
+      hotelId: string;
+      hotelName: string;
+      status: string;
+      checkIn: string;
+      checkOut: string;
+      guestName: string;
+      totalAmount: number;
+      currency: string;
+      createdAt: string;
+    }>;
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
+    try {
+      console.log('🔍 LiteAPI: Fetching bookings list');
+
+      const response = await axios.get(`${this.baseUrl}/bookings`, {
+        params,
+        headers: this.getHeaders(),
+        timeout: 15000,
+      });
+
+      const bookings = response.data.data || [];
+      console.log(`✅ LiteAPI: Found ${bookings.length} bookings`);
+
+      return {
+        data: bookings,
+        total: response.data.total || bookings.length,
+        limit: params?.limit || 50,
+        offset: params?.offset || 0,
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error fetching bookings:', axiosError.response?.data || axiosError.message);
+      throw new Error(axiosError.response?.data?.error?.message || 'Failed to fetch bookings');
+    }
+  }
+
+  /**
+   * Get prebook session status and details
+   * @param prebookId - The prebook session ID
+   * @returns Prebook session details including expiry status
+   */
+  async getPrebookStatus(prebookId: string): Promise<{
+    prebookId: string;
+    status: 'active' | 'expired' | 'completed';
+    offerId: string;
+    hotelId: string;
+    price: {
+      amount: number;
+      currency: string;
+    };
+    expiresAt: string;
+    timeRemaining: number;
+    expired: boolean;
+  }> {
+    try {
+      console.log(`🔍 LiteAPI: Checking prebook status for ${prebookId}`);
+
+      const response = await axios.get(`${this.baseUrl}/prebooks/${prebookId}`, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+
+      const data = response.data.data;
+      const expiresAt = new Date(data.expiresAt);
+      const now = new Date();
+      const timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000));
+      const expired = timeRemaining === 0;
+
+      console.log(`✅ LiteAPI: Prebook ${expired ? 'expired' : 'active'}, ${timeRemaining}s remaining`);
+
+      return {
+        prebookId: data.prebookId || prebookId,
+        status: expired ? 'expired' : data.status === 'completed' ? 'completed' : 'active',
+        offerId: data.offerId,
+        hotelId: data.hotelId,
+        price: {
+          amount: data.price?.amount || 0,
+          currency: data.price?.currency || 'USD',
+        },
+        expiresAt: data.expiresAt,
+        timeRemaining,
+        expired,
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error fetching prebook status:', axiosError.response?.data || axiosError.message);
+      throw new Error(axiosError.response?.data?.error?.message || 'Failed to fetch prebook status');
+    }
+  }
+
+  /**
+   * Amend booking guest information
+   * @param bookingId - The booking ID to amend
+   * @param params - Guest information to update
+   * @returns Updated booking confirmation
+   */
+  async amendBooking(
+    bookingId: string,
+    params: {
+      guestFirstName?: string;
+      guestLastName?: string;
+      guestEmail?: string;
+    }
+  ): Promise<{
+    bookingId: string;
+    status: string;
+    amendedAt: string;
+    updatedFields: string[];
+  }> {
+    try {
+      console.log(`🔍 LiteAPI: Amending booking ${bookingId}`);
+
+      const response = await axios.put(
+        `${this.baseUrl}/bookings/${bookingId}/amend`,
+        params,
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      const data = response.data.data;
+      const updatedFields = Object.keys(params);
+
+      console.log(`✅ LiteAPI: Booking amended successfully`);
+      console.log(`   Updated fields: ${updatedFields.join(', ')}`);
+
+      return {
+        bookingId: data.bookingId || bookingId,
+        status: data.status || 'confirmed',
+        amendedAt: data.amendedAt || new Date().toISOString(),
+        updatedFields,
+      };
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      console.error('❌ LiteAPI: Error amending booking:', axiosError.response?.data || axiosError.message);
+      throw new Error(axiosError.response?.data?.error?.message || 'Failed to amend booking');
+    }
+  }
+
+  /**
    * Enhanced places search for autocomplete suggestions
    * Supports cities, countries, IATA codes, landmarks, and points of interest
    * Returns results suitable for location autocomplete dropdowns
@@ -1700,6 +1870,493 @@ class LiteAPI {
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  // ============================================
+  // GUEST MANAGEMENT METHODS
+  // ============================================
+
+  /**
+   * Create a new guest profile
+   */
+  async createGuest(params: CreateGuestParams): Promise<Guest> {
+    try {
+      console.log('🔍 LiteAPI: Creating guest profile');
+
+      const response = await axios.post(
+        `${this.baseUrl}/guests`,
+        params,
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      const guest = response.data.data;
+      console.log(`✅ LiteAPI: Guest created - ${guest.email}`);
+
+      return guest;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error creating guest:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to create guest');
+    }
+  }
+
+  /**
+   * Get guest profile by ID
+   */
+  async getGuest(guestId: string): Promise<Guest> {
+    try {
+      console.log(`🔍 LiteAPI: Getting guest ${guestId}`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/guests/${guestId}`,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting guest:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get guest');
+    }
+  }
+
+  /**
+   * Update guest profile
+   */
+  async updateGuest(guestId: string, updates: Partial<CreateGuestParams>): Promise<Guest> {
+    try {
+      console.log(`🔍 LiteAPI: Updating guest ${guestId}`);
+
+      const response = await axios.put(
+        `${this.baseUrl}/guests/${guestId}`,
+        updates,
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error updating guest:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to update guest');
+    }
+  }
+
+  /**
+   * Get guest booking history
+   */
+  async getGuestBookings(guestId: string, params?: {
+    status?: 'confirmed' | 'cancelled' | 'completed';
+    limit?: number;
+  }): Promise<{ data: GuestBooking[]; total: number }> {
+    try {
+      console.log(`🔍 LiteAPI: Getting bookings for guest ${guestId}`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/guests/${guestId}/bookings`,
+        {
+          params,
+          headers: this.getHeaders(),
+          timeout: 15000,
+        }
+      );
+
+      const bookings = response.data.data || [];
+      console.log(`✅ LiteAPI: Found ${bookings.length} bookings`);
+
+      return {
+        data: bookings,
+        total: response.data.total || bookings.length,
+      };
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting guest bookings:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get guest bookings');
+    }
+  }
+
+  // ============================================
+  // LOYALTY PROGRAM METHODS
+  // ============================================
+
+  /**
+   * Get loyalty program configuration
+   */
+  async getLoyaltyConfig(): Promise<LoyaltyConfig> {
+    try {
+      console.log('🔍 LiteAPI: Getting loyalty program configuration');
+
+      const response = await axios.get(
+        `${this.baseUrl}/loyalties`,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting loyalty config:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get loyalty config');
+    }
+  }
+
+  /**
+   * Get guest loyalty points balance
+   */
+  async getGuestLoyaltyPoints(guestId: string): Promise<GuestLoyaltyPoints> {
+    try {
+      console.log(`🔍 LiteAPI: Getting loyalty points for guest ${guestId}`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/guests/${guestId}/loyalty-points`,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      const points = response.data.data;
+      console.log(`✅ LiteAPI: Guest has ${points.currentPoints} points`);
+
+      return points;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting loyalty points:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get loyalty points');
+    }
+  }
+
+  /**
+   * Redeem loyalty points
+   */
+  async redeemLoyaltyPoints(params: RedeemPointsParams): Promise<{
+    success: boolean;
+    redemptionId: string;
+    pointsRedeemed: number;
+    valueReceived: number;
+    newBalance: number;
+  }> {
+    try {
+      console.log(`🔍 LiteAPI: Redeeming ${params.points} points for guest ${params.guestId}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/guests/${params.guestId}/loyalty-points/redeem`,
+        {
+          points: params.points,
+          redemptionType: params.redemptionType,
+          bookingId: params.bookingId,
+        },
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      const result = response.data.data;
+      console.log(`✅ LiteAPI: Redeemed ${result.pointsRedeemed} points`);
+
+      return result;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error redeeming points:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to redeem points');
+    }
+  }
+
+  /**
+   * Get loyalty points transaction history
+   */
+  async getLoyaltyHistory(guestId: string, limit = 50): Promise<PointsTransaction[]> {
+    try {
+      console.log(`🔍 LiteAPI: Getting loyalty history for guest ${guestId}`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/guests/${guestId}/loyalty-points/history`,
+        {
+          params: { limit },
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      return response.data.data || [];
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting loyalty history:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get loyalty history');
+    }
+  }
+
+  // ============================================
+  // VOUCHER SYSTEM METHODS
+  // ============================================
+
+  /**
+   * Create a new promotional voucher
+   */
+  async createVoucher(params: CreateVoucherParams): Promise<Voucher> {
+    try {
+      console.log(`🔍 LiteAPI: Creating voucher ${params.code}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/vouchers`,
+        params,
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      const voucher = response.data.data;
+      console.log(`✅ LiteAPI: Voucher created - ${voucher.code}`);
+
+      return voucher;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error creating voucher:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to create voucher');
+    }
+  }
+
+  /**
+   * Get all vouchers
+   */
+  async getVouchers(params?: {
+    status?: 'active' | 'inactive' | 'expired';
+    limit?: number;
+    offset?: number;
+  }): Promise<{ data: Voucher[]; total: number }> {
+    try {
+      console.log('🔍 LiteAPI: Getting vouchers');
+
+      const response = await axios.get(
+        `${this.baseUrl}/vouchers`,
+        {
+          params,
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      const vouchers = response.data.data || [];
+      console.log(`✅ LiteAPI: Found ${vouchers.length} vouchers`);
+
+      return {
+        data: vouchers,
+        total: response.data.total || vouchers.length,
+      };
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting vouchers:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get vouchers');
+    }
+  }
+
+  /**
+   * Get voucher by ID
+   */
+  async getVoucher(voucherId: string): Promise<Voucher> {
+    try {
+      console.log(`🔍 LiteAPI: Getting voucher ${voucherId}`);
+
+      const response = await axios.get(
+        `${this.baseUrl}/vouchers/${voucherId}`,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting voucher:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get voucher');
+    }
+  }
+
+  /**
+   * Update voucher
+   */
+  async updateVoucher(voucherId: string, updates: Partial<CreateVoucherParams>): Promise<Voucher> {
+    try {
+      console.log(`🔍 LiteAPI: Updating voucher ${voucherId}`);
+
+      const response = await axios.put(
+        `${this.baseUrl}/vouchers/${voucherId}`,
+        updates,
+        { headers: this.getHeaders(), timeout: 15000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error updating voucher:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to update voucher');
+    }
+  }
+
+  /**
+   * Update voucher status
+   */
+  async updateVoucherStatus(voucherId: string, status: 'active' | 'inactive'): Promise<Voucher> {
+    try {
+      console.log(`🔍 LiteAPI: Updating voucher ${voucherId} status to ${status}`);
+
+      const response = await axios.put(
+        `${this.baseUrl}/vouchers/${voucherId}/status`,
+        { status },
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error updating voucher status:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to update voucher status');
+    }
+  }
+
+  /**
+   * Delete voucher
+   */
+  async deleteVoucher(voucherId: string): Promise<{ success: boolean }> {
+    try {
+      console.log(`🔍 LiteAPI: Deleting voucher ${voucherId}`);
+
+      await axios.delete(
+        `${this.baseUrl}/vouchers/${voucherId}`,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      console.log(`✅ LiteAPI: Voucher deleted`);
+      return { success: true };
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error deleting voucher:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to delete voucher');
+    }
+  }
+
+  /**
+   * Validate voucher code and calculate discount
+   */
+  async validateVoucher(params: ValidateVoucherParams): Promise<VoucherValidationResult> {
+    try {
+      console.log(`🔍 LiteAPI: Validating voucher ${params.code}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/vouchers/validate`,
+        params,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      const result = response.data.data;
+
+      if (result.valid) {
+        console.log(`✅ LiteAPI: Voucher valid - Discount: ${result.discountAmount}`);
+      } else {
+        console.log(`❌ LiteAPI: Voucher invalid - ${result.reason}`);
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error validating voucher:', error.message);
+      return {
+        valid: false,
+        error: error.response?.data?.error?.message || 'Failed to validate voucher',
+      };
+    }
+  }
+
+  /**
+   * Get voucher redemption history
+   */
+  async getVoucherHistory(params?: {
+    voucherId?: string;
+    guestId?: string;
+    limit?: number;
+  }): Promise<VoucherRedemption[]> {
+    try {
+      console.log('🔍 LiteAPI: Getting voucher redemption history');
+
+      const response = await axios.get(
+        `${this.baseUrl}/vouchers/history`,
+        {
+          params,
+          headers: this.getHeaders(),
+          timeout: 10000,
+        }
+      );
+
+      return response.data.data || [];
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting voucher history:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get voucher history');
+    }
+  }
+
+  // ============================================
+  // ANALYTICS METHODS
+  // ============================================
+
+  /**
+   * Get weekly analytics report
+   */
+  async getWeeklyAnalytics(weekStartDate?: string): Promise<WeeklyAnalytics> {
+    try {
+      console.log('🔍 LiteAPI: Getting weekly analytics');
+
+      const response = await axios.post(
+        `${this.baseUrl}/analytics/weekly`,
+        { weekStartDate },
+        { headers: this.getHeaders(), timeout: 20000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting weekly analytics:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get analytics');
+    }
+  }
+
+  /**
+   * Get detailed analytics report
+   */
+  async getAnalyticsReport(params: {
+    startDate: string;
+    endDate: string;
+    metrics?: string[];
+  }): Promise<any> {
+    try {
+      console.log('🔍 LiteAPI: Getting analytics report');
+
+      const response = await axios.post(
+        `${this.baseUrl}/analytics/report`,
+        params,
+        { headers: this.getHeaders(), timeout: 30000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting analytics report:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get analytics report');
+    }
+  }
+
+  /**
+   * Get most-booked hotels rankings
+   */
+  async getHotelRankings(period: 'week' | 'month' | 'year' = 'month'): Promise<HotelRankings> {
+    try {
+      console.log(`🔍 LiteAPI: Getting hotel rankings for ${period}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/analytics/hotels`,
+        { period },
+        { headers: this.getHeaders(), timeout: 20000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting hotel rankings:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get hotel rankings');
+    }
+  }
+
+  /**
+   * Get market-specific data
+   */
+  async getMarketData(marketId: string, params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<MarketData> {
+    try {
+      console.log(`🔍 LiteAPI: Getting market data for ${marketId}`);
+
+      const response = await axios.post(
+        `${this.baseUrl}/analytics/markets`,
+        { marketId, ...params },
+        { headers: this.getHeaders(), timeout: 20000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error getting market data:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to get market data');
+    }
   }
 }
 

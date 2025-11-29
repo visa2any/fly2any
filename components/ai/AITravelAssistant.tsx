@@ -19,6 +19,7 @@ import {
 import { getConsultant, type TeamType, type ConsultantProfile } from '@/lib/ai/consultant-profiles';
 import { getEngagementStage, buildAuthPrompt, type UserSession } from '@/lib/ai/auth-strategy';
 import { FlightResultCard } from './FlightResultCard';
+import { HotelResultCard } from './HotelResultCard';
 import { ConsultantAvatar, UserAvatar } from './ConsultantAvatar';
 import { ConsultantProfileModal } from './ConsultantProfileModal';
 import { EnhancedTypingIndicator } from './EnhancedTypingIndicator';
@@ -105,6 +106,24 @@ interface FlightSearchResult {
   };
 }
 
+interface HotelSearchResult {
+  id: string;
+  name: string;
+  rating: number;
+  address: string;
+  pricePerNight: number;
+  totalPrice: number;
+  currency: string;
+  amenities: string[];
+  distance: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  rooms: number;
+  availability: string;
+  image?: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -118,6 +137,7 @@ interface Message {
     team: TeamType;
   };
   flightResults?: FlightSearchResult[];
+  hotelResults?: HotelSearchResult[];
   isSearching?: boolean;
   // NEW: E2E Booking Flow Widgets
   widget?: {
@@ -466,6 +486,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           emoji: consultant.avatar
         },
         flightResults: additionalData?.flightResults,
+        hotelResults: additionalData?.hotelResults,
       });
       setConversation(updatedConversation);
     }
@@ -749,47 +770,31 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         if (data.success && data.hotels && data.hotels.length > 0) {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          // Marcus's warm, hospitable response
+          // Marcus's warm, hospitable response with hotel cards
           const hotelCount = data.hotels.length;
           const nights = data.searchParams.checkOut && data.searchParams.checkIn
             ? Math.ceil((new Date(data.searchParams.checkOut).getTime() - new Date(data.searchParams.checkIn).getTime()) / (1000 * 60 * 60 * 24))
             : 0;
 
-          const warmResponse = language === 'en'
-            ? `¡Perfecto! I found ${hotelCount} wonderful options in ${data.searchParams.city} for you! 🏨\n\n` +
-              `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} (${data.searchParams.checkIn} to ${data.searchParams.checkOut}) ` +
-              `with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Let me show you the best choices:\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/night ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n')
+          const resultsContent = language === 'en'
+            ? `Perfect! 🏨 I found ${hotelCount} wonderful hotels in ${data.searchParams.city} for you! ` +
+              `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Here are the best options:`
             : language === 'pt'
-            ? `¡Perfeito! Encontrei ${hotelCount} opções maravilhosas em ${data.searchParams.city} para você! 🏨\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/noite ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n')
-            : `¡Perfecto! Encontré ${hotelCount} opciones maravillosas en ${data.searchParams.city} para ti! 🏨\n\n` +
-              data.hotels.slice(0, 3).map((hotel: any, i: number) =>
-                `${i + 1}. **${hotel.name}** ⭐ ${hotel.rating}/5\n` +
-                `   📍 ${hotel.address}\n` +
-                `   💰 $${hotel.pricePerNight}/noche ($${hotel.totalPrice} total)\n` +
-                `   ✨ ${hotel.amenities.slice(0, 3).join(', ')}`
-              ).join('\n\n');
+            ? `Perfeito! 🏨 Encontrei ${hotelCount} hotéis maravilhosos em ${data.searchParams.city} para você! ` +
+              `Você ficará por ${nights} noite${nights > 1 ? 's' : ''} com ${data.searchParams.guests} hóspede${data.searchParams.guests > 1 ? 's' : ''}. Aqui estão as melhores opções:`
+            : `¡Perfecto! 🏨 Encontré ${hotelCount} hoteles maravillosos en ${data.searchParams.city} para ti! ` +
+              `Te quedarás por ${nights} noche${nights > 1 ? 's' : ''} con ${data.searchParams.guests} huésped${data.searchParams.guests > 1 ? 'es' : ''}. Aquí están las mejores opciones:`;
 
           const followUpContent = language === 'en'
-            ? "\n\nWhich one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
+            ? "Which one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
             : language === 'pt'
-            ? "\n\nQual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
-            : "\n\n¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
+            ? "Qual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
+            : "¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
 
           await sendMultipleAIResponses([
             {
-              content: warmResponse
+              content: resultsContent,
+              additionalData: { hotelResults: data.hotels.slice(0, 3) }
             },
             {
               content: followUpContent
@@ -1929,6 +1934,42 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                           className="w-full py-2 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all text-sm"
                         >
                           See More Flights →
+                        </button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+
+                {/* Hotel Results */}
+                {messages.map((message) => {
+                  if (message.hotelResults && message.hotelResults.length > 0) {
+                    return (
+                      <div key={`hotels-${message.id}`} className="space-y-3 mt-2">
+                        {message.hotelResults.map((hotel) => (
+                          <HotelResultCard
+                            key={hotel.id}
+                            hotel={hotel}
+                          />
+                        ))}
+                        <button
+                          onClick={() => {
+                            // Navigate to hotel search results page
+                            const firstHotel = message.hotelResults?.[0];
+                            if (firstHotel) {
+                              const params = new URLSearchParams({
+                                destination: firstHotel.address.split(',')[0] || 'City',
+                                checkIn: firstHotel.checkIn,
+                                checkOut: firstHotel.checkOut,
+                                adults: firstHotel.guests.toString(),
+                                rooms: firstHotel.rooms.toString(),
+                              });
+                              router.push(`/hotels/results?${params.toString()}`);
+                            }
+                          }}
+                          className="w-full py-2 bg-white border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-all text-sm"
+                        >
+                          See More Hotels →
                         </button>
                       </div>
                     );
