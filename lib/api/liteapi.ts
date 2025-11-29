@@ -354,7 +354,7 @@ class LiteAPI {
 
       return { hotels, hotelIds };
     } catch (error) {
-      const axiosError = error as AxiosError<{ error?: { message?: string } }>;
+      const axiosError = error as AxiosError<{ error?: { message?: string }; message?: string }>;
       console.error('❌ LiteAPI: Error getting hotels');
       console.error('Status:', axiosError.response?.status);
       console.error('Response data:', JSON.stringify(axiosError.response?.data, null, 2));
