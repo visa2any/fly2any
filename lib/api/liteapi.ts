@@ -295,6 +295,9 @@ class LiteAPI {
   }
 
   private getHeaders() {
+    const masked = this.apiKey ? `${this.apiKey.substring(0, 8)}...${this.apiKey.substring(this.apiKey.length - 4)}` : 'NONE';
+    console.log(`🔑 LiteAPI: Using API key: ${masked} (sandbox: ${this.isSandbox})`);
+
     return {
       'X-API-Key': this.apiKey,
       'Content-Type': 'application/json',
@@ -352,8 +355,19 @@ class LiteAPI {
       return { hotels, hotelIds };
     } catch (error) {
       const axiosError = error as AxiosError<{ error?: { message?: string } }>;
-      console.error('❌ LiteAPI: Error getting hotels:', axiosError.response?.data || axiosError.message);
-      throw new Error(axiosError.response?.data?.error?.message || 'Failed to get hotels');
+      console.error('❌ LiteAPI: Error getting hotels');
+      console.error('Status:', axiosError.response?.status);
+      console.error('Response data:', JSON.stringify(axiosError.response?.data, null, 2));
+      console.error('Request headers:', JSON.stringify(axiosError.config?.headers, null, 2));
+      console.error('Request URL:', axiosError.config?.url);
+      console.error('Error message:', axiosError.message);
+
+      const errorMessage = axiosError.response?.data?.error?.message
+        || axiosError.response?.data?.message
+        || axiosError.message
+        || 'Failed to get hotels';
+
+      throw new Error(errorMessage);
     }
   }
 
