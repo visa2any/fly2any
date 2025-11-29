@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check,
-  Users, Wifi, Coffee, Dumbbell, Car, X, Utensils, Shield, Sparkles, Award, TrendingUp
+  Users, Wifi, Coffee, Dumbbell, Car, X, Utensils, Shield, Sparkles, Award, TrendingUp,
+  Waves, ParkingCircle, UtensilsCrossed, Bed
 } from 'lucide-react';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import type { LiteAPIHotel, LiteAPIHotelRate } from '@/lib/hotels/types';
@@ -367,24 +368,87 @@ export function HotelCard({
           </div>
         </div>
 
-        {/* Middle: Feature Badges */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-auto">
-          {bestRate && bestRate.refundable && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-200/50">
-              <Shield className="w-3 h-3 text-emerald-600" />
-              <span className="text-[10px] font-semibold text-emerald-700">Free Cancel</span>
+        {/* Middle: Enhanced Hotel & Room Information */}
+        <div className="flex flex-col gap-2 mb-auto">
+          {/* Room Type */}
+          {bestRate && bestRate.roomType && (
+            <div className="flex items-center gap-1.5">
+              <Bed className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+              <span className="text-slate-700 text-xs font-medium line-clamp-1">
+                {bestRate.roomType}
+              </span>
             </div>
           )}
-          {bestRate && bestRate.breakfastIncluded && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-md border border-amber-200/50">
-              <Coffee className="w-3 h-3 text-amber-600" />
-              <span className="text-[10px] font-semibold text-amber-700">Breakfast</span>
-            </div>
-          )}
-          {bestRate && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md border border-slate-200/50">
-              <Users className="w-3 h-3 text-slate-600" />
-              <span className="text-[10px] font-semibold text-slate-700">{bestRate.maxOccupancy}</span>
+
+          {/* Feature Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {bestRate && bestRate.refundable && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-200/50">
+                <Shield className="w-3 h-3 text-emerald-600" />
+                <span className="text-[10px] font-semibold text-emerald-700">Free Cancel</span>
+              </div>
+            )}
+            {bestRate && bestRate.boardType && ['breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase()) && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-md border border-amber-200/50">
+                <Coffee className="w-3 h-3 text-amber-600" />
+                <span className="text-[10px] font-semibold text-amber-700">
+                  {bestRate.boardType === 'all_inclusive' ? 'All-Inclusive' : bestRate.boardType === 'full_board' ? 'Full Board' : bestRate.boardType === 'half_board' ? 'Half Board' : 'Breakfast'}
+                </span>
+              </div>
+            )}
+            {bestRate && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md border border-slate-200/50">
+                <Users className="w-3 h-3 text-slate-600" />
+                <span className="text-[10px] font-semibold text-slate-700">{bestRate.maxOccupancy} guests</span>
+              </div>
+            )}
+          </div>
+
+          {/* Top Amenities */}
+          {hotel.amenities && hotel.amenities.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {hotel.amenities.slice(0, 5).map((amenity, idx) => {
+                const amenityLower = amenity.toLowerCase();
+                let icon = null;
+                let label = amenity;
+
+                // Map amenities to icons
+                if (amenityLower.includes('wifi') || amenityLower.includes('internet')) {
+                  icon = <Wifi className="w-3 h-3 text-blue-600" />;
+                  label = 'WiFi';
+                } else if (amenityLower.includes('pool') || amenityLower.includes('swimming')) {
+                  icon = <Waves className="w-3 h-3 text-cyan-600" />;
+                  label = 'Pool';
+                } else if (amenityLower.includes('gym') || amenityLower.includes('fitness')) {
+                  icon = <Dumbbell className="w-3 h-3 text-orange-600" />;
+                  label = 'Gym';
+                } else if (amenityLower.includes('parking') || amenityLower.includes('garage')) {
+                  icon = <ParkingCircle className="w-3 h-3 text-slate-600" />;
+                  label = 'Parking';
+                } else if (amenityLower.includes('restaurant') || amenityLower.includes('dining')) {
+                  icon = <UtensilsCrossed className="w-3 h-3 text-red-600" />;
+                  label = 'Restaurant';
+                } else if (amenityLower.includes('bar') || amenityLower.includes('lounge')) {
+                  icon = <Utensils className="w-3 h-3 text-purple-600" />;
+                  label = 'Bar';
+                } else if (amenityLower.includes('spa') || amenityLower.includes('wellness')) {
+                  icon = <Sparkles className="w-3 h-3 text-pink-600" />;
+                  label = 'Spa';
+                } else if (amenityLower.includes('air') && amenityLower.includes('condition')) {
+                  icon = <Award className="w-3 h-3 text-teal-600" />;
+                  label = 'A/C';
+                } else {
+                  icon = <Check className="w-3 h-3 text-slate-500" />;
+                  label = amenity.length > 15 ? amenity.substring(0, 15) + '...' : amenity;
+                }
+
+                return (
+                  <div key={idx} className="inline-flex items-center gap-1">
+                    {icon}
+                    <span className="text-[10px] text-slate-600 font-medium">{label}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
