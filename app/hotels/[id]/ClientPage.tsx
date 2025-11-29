@@ -1007,7 +1007,7 @@ export default function HotelDetailPage() {
                     checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
                     checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
                     guests: { adults: parseInt(adults, 10) || 2, children: 0 },
-                    price: price,
+                    price: totalPrice,
                     currency: lowestRate?.totalPrice?.currency || lowestRate?.currency || 'USD',
                     image: mainImage,
                     stars: hotel.starRating,
@@ -1016,7 +1016,7 @@ export default function HotelDetailPage() {
                   sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
 
                   // Navigate to booking page
-                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${price}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
+                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
                 }}
                 className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-lg transition-colors mb-3"
               >
