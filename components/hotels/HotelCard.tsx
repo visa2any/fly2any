@@ -600,15 +600,28 @@ export function HotelCard({
             </div>
           )}
 
-          {/* Enhanced Location Info */}
+          {/* Enhanced Location Info - Single Row */}
           {(hotel.location?.city || hotel.location?.country) && (
             <div className="flex items-center gap-1.5 text-slate-600 flex-wrap">
               <MapPin className="w-3 h-3 text-orange-500 flex-shrink-0" />
+              {/* City */}
               <span className="text-xs font-medium">
-                {locationContext?.district ? `${locationContext.district}, ` : ''}
                 {hotel.location?.city || hotel.location?.country}
               </span>
-              {/* Distance indicators - compact */}
+              {/* Popular Area Badge */}
+              {locationContext?.district && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded border border-blue-200/60 text-[10px] font-semibold text-blue-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  {locationContext.district}
+                </span>
+              )}
+              {/* Address - truncated inline */}
+              {hotel.location?.address && (
+                <span className="text-[10px] text-slate-400 max-w-[180px] truncate" title={hotel.location.address}>
+                  · {hotel.location.address}
+                </span>
+              )}
+              {/* Distance indicators */}
               {locationContext && (
                 <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
                   <span className="flex items-center gap-0.5" title="Distance to city center">
@@ -632,14 +645,6 @@ export function HotelCard({
 
         {/* 🎯 KEY VALUE PROPOSITIONS - Decision Drivers */}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
-          {/* Free Cancellation - Most Important */}
-          {hasFreeCancellation && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-200">
-              <Shield className="w-3 h-3 text-emerald-600" />
-              <span className="text-[10px] font-bold text-emerald-700">{t.freeCancellation}</span>
-            </div>
-          )}
-
           {/* Breakfast Included */}
           {hasBreakfast && (
             <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded border border-amber-200">
@@ -785,53 +790,32 @@ export function HotelCard({
             )}
           </div>
 
-          {/* 🛡️ CANCELLATION POLICY - Enhanced (show when we have pricing info) */}
+          {/* 🛡️ CANCELLATION POLICY - Subtle & Informative */}
           {perNightPrice > 0 && (
-            <div className={`flex items-center gap-2 p-2 rounded-lg ${
-              hasFreeCancellation
-                ? 'bg-emerald-50 border border-emerald-200'
-                : 'bg-red-50 border border-red-200'
-            }`}>
+            <div className="flex items-center gap-3 text-[10px]">
               {hasFreeCancellation ? (
-                <>
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      {t.freeCancellation}
-                    </div>
-                    {cancellationDeadline ? (
-                      <div className="text-[9px] text-emerald-600">
-                        Cancel free until {new Date(cancellationDeadline).toLocaleDateString()}
-                      </div>
-                    ) : (
-                      <div className="text-[9px] text-emerald-600">
-                        Cancel anytime before check-in for full refund
-                      </div>
-                    )}
-                  </div>
-                </>
+                // Free cancellation - prominent positive indicator
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded border border-emerald-200">
+                  <Shield className="w-3 h-3 text-emerald-600" />
+                  <span className="font-semibold text-emerald-700">{t.freeCancellation}</span>
+                  {cancellationDeadline && (
+                    <span className="text-emerald-600 font-normal">
+                      until {new Date(cancellationDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
+                </div>
               ) : (
-                <>
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-                    <Ban className="w-4 h-4 text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[11px] font-bold text-red-700 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {t.nonRefundable}
-                    </div>
-                    <div className="text-[9px] text-red-600">
-                      This rate cannot be cancelled or modified
-                    </div>
-                  </div>
-                  {/* Price advantage for non-refundable */}
-                  <div className="flex-shrink-0 px-2 py-1 bg-amber-100 rounded text-[9px] font-bold text-amber-700">
-                    Best Price
-                  </div>
-                </>
+                // Non-refundable - subtle, not alarming, emphasizes value
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-slate-600">
+                    <Info className="w-3 h-3" />
+                    <span className="font-medium">{t.nonRefundable}</span>
+                  </span>
+                  <span className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded border border-amber-200 text-amber-700 font-semibold">
+                    <BadgePercent className="w-3 h-3" />
+                    Lower price
+                  </span>
+                </div>
               )}
             </div>
           )}

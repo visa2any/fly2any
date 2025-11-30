@@ -556,6 +556,14 @@ export async function POST(request: NextRequest) {
           amount: lowestPriceValue.toString(),
           currency: hotel.currency || 'USD',
         } : undefined,
+        lowestPricePerNight: hotel.lowestPricePerNight,
+        // ✅ CRITICAL: Pass cancellation policy data from LiteAPI
+        refundable: (hotel as any).refundable || false,
+        hasRefundableRate: (hotel as any).hasRefundableRate || false,
+        lowestRefundablePrice: (hotel as any).lowestRefundablePrice || null,
+        refundableCancellationDeadline: (hotel as any).refundableCancellationDeadline || null,
+        cancellationDeadline: (hotel as any).cancellationDeadline || null,
+        boardType: (hotel as any).boardType || 'RO',
         source,
       };
     });
@@ -759,6 +767,13 @@ export async function GET(request: NextRequest) {
         currency: hotel.currency,
       } : undefined,
       lowestPricePerNight: hotel.lowestPricePerNight, // CRITICAL: Include per-night price
+      // ✅ CRITICAL: Pass cancellation policy data from LiteAPI
+      refundable: (hotel as any).refundable || false,
+      hasRefundableRate: (hotel as any).hasRefundableRate || false,
+      lowestRefundablePrice: (hotel as any).lowestRefundablePrice || null,
+      refundableCancellationDeadline: (hotel as any).refundableCancellationDeadline || null,
+      cancellationDeadline: (hotel as any).cancellationDeadline || null,
+      boardType: (hotel as any).boardType || 'RO',
       source: 'liteapi',
     }));
 

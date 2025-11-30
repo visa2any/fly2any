@@ -29,9 +29,12 @@ interface SearchParams {
   children: number;
   rooms: number;
   currency: string;
+  lat?: string;
+  lng?: string;
+  districts?: string;
 }
 
-type SortOption = 'best' | 'cheapest' | 'rating' | 'distance' | 'popular' | 'deals' | 'topRated';
+type SortOption = 'best' | 'cheapest' | 'rating' | 'distance' | 'popular' | 'deals' | 'topRated' | 'refundable';
 
 // ===========================
 // TRANSLATIONS
@@ -62,6 +65,8 @@ const translations = {
     mostPopular: 'Most Popular',
     bestDealsSort: 'Best Deals',
     topRated: 'Top Rated',
+    refundableFirst: 'Refundable First',
+    freeCancellation: 'Free Cancellation',
     priceInsights: 'Price Insights',
     avgPrice: 'Average Price',
     perNight: 'per night',
@@ -95,6 +100,8 @@ const translations = {
     mostPopular: 'Mais Popular',
     bestDealsSort: 'Melhores Ofertas',
     topRated: 'Melhor Avaliados',
+    refundableFirst: 'Reembolsável Primeiro',
+    freeCancellation: 'Cancelamento Grátis',
     priceInsights: 'Insights de Preço',
     avgPrice: 'Preço Médio',
     perNight: 'por noite',
@@ -128,6 +135,8 @@ const translations = {
     mostPopular: 'Más Popular',
     bestDealsSort: 'Mejores Ofertas',
     topRated: 'Mejor Valorados',
+    refundableFirst: 'Reembolsable Primero',
+    freeCancellation: 'Cancelación Gratis',
     priceInsights: 'Información de Precios',
     avgPrice: 'Precio Promedio',
     perNight: 'por noche',
@@ -265,6 +274,14 @@ const sortHotels = (hotels: LiteAPIHotel[], sortBy: SortOption): LiteAPIHotel[] 
         const bValue = ((b?.rating || 0) * 20) + ((b?.reviewScore || 0) * 10);
         return bValue - aValue;
       });
+    case 'refundable':
+      // Sort refundable hotels first, then by price within each group
+      return sorted.sort((a, b) => {
+        const aRefundable = (a as any)?.hasRefundableRate || (a as any)?.refundable ? 1 : 0;
+        const bRefundable = (b as any)?.hasRefundableRate || (b as any)?.refundable ? 1 : 0;
+        if (aRefundable !== bRefundable) return bRefundable - aRefundable; // Refundable first
+        return getLowestPrice(a) - getLowestPrice(b); // Then by price
+      });
     default:
       return sorted;
   }
@@ -289,7 +306,13 @@ function HotelResultsContent() {
     children: parseInt(searchParams.get('children') || '0'),
     rooms: parseInt(searchParams.get('rooms') || '1'),
     currency: searchParams.get('currency') || 'USD',
+    lat: searchParams.get('lat') || undefined,
+    lng: searchParams.get('lng') || undefined,
+    districts: searchParams.get('districts') || undefined,
   };
+
+  // Debug: Log search data to verify districts are being extracted
+  console.log('🔍 Results page searchData:', { destination: searchData.destination, districts: searchData.districts, lat: searchData.lat, lng: searchData.lng });
 
   // Calculate nights
   const nights = searchData.checkIn && searchData.checkOut
@@ -300,7 +323,7 @@ function HotelResultsContent() {
   const [hotels, setHotels] = useState<LiteAPIHotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('best');
+  const [sortBy, setSortBy] = useState<SortOption>('cheapest');
   const [displayCount, setDisplayCount] = useState(20);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -352,15 +375,32 @@ function HotelResultsContent() {
     setError(null);
 
     try {
-      const query = new URLSearchParams({
+      // Build query params - use lat/lng if available (from district selection), otherwise use destination query
+      const queryParams: Record<string, string> = {
         checkIn: searchData.checkIn,
         checkOut: searchData.checkOut,
         adults: searchData.adults.toString(),
-        ...(searchData.children > 0 && { children: searchData.children.toString() }),
-        query: searchData.destination,
         currency: searchData.currency,
         limit: '200', // Increased from 50 to get more hotel options
-      });
+      };
+
+      // Add children if present
+      if (searchData.children > 0) {
+        queryParams.children = searchData.children.toString();
+      }
+
+      // Use lat/lng for district-based search (more precise), or query for city-based search
+      if (searchData.lat && searchData.lng) {
+        queryParams.lat = searchData.lat;
+        queryParams.lng = searchData.lng;
+        // Also pass query for display purposes
+        queryParams.query = searchData.destination;
+        console.log('🎯 Using district coordinates for search:', { lat: searchData.lat, lng: searchData.lng, districts: searchData.districts });
+      } else {
+        queryParams.query = searchData.destination;
+      }
+
+      const query = new URLSearchParams(queryParams);
 
       const response = await fetch(`/api/hotels/search?${query.toString()}`);
 
@@ -558,6 +598,9 @@ function HotelResultsContent() {
           hotelAdults={searchData.adults}
           hotelChildren={searchData.children}
           hotelRooms={searchData.rooms}
+          hotelLat={searchData.lat ? parseFloat(searchData.lat) : undefined}
+          hotelLng={searchData.lng ? parseFloat(searchData.lng) : undefined}
+          hotelDistricts={searchData.districts}
         />
       </CollapsibleSearchBar>
 
@@ -572,6 +615,9 @@ function HotelResultsContent() {
           hotelAdults={searchData.adults}
           hotelChildren={searchData.children}
           hotelRooms={searchData.rooms}
+          hotelLat={searchData.lat ? parseFloat(searchData.lat) : undefined}
+          hotelLng={searchData.lng ? parseFloat(searchData.lng) : undefined}
+          hotelDistricts={searchData.districts}
         />
       </div>
 
@@ -596,15 +642,14 @@ function HotelResultsContent() {
           {/* Main Content - Hotel Results */}
           <main className="lg:col-span-8">
             {/* Sort Tabs */}
-            <div className="flex items-center justify-between mb-2 md:mb-4 px-1">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between mb-2 md:mb-4 px-1 flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs font-semibold text-slate-700 mr-0.5">Sort:</span>
                 <div className="flex items-center gap-1.5 flex-wrap md:flex-nowrap">
                   {[
-                    { key: 'best', label: t.bestValue, icon: '' },
                     { key: 'cheapest', label: t.lowestPrice, icon: '💰' },
+                    { key: 'refundable', label: t.refundableFirst, icon: '🛡️' },
                     { key: 'rating', label: t.highestRating, icon: '⭐' },
-                    { key: 'distance', label: t.nearest, icon: '📍' },
                     { key: 'popular', label: t.mostPopular, icon: '🔥' },
                     { key: 'topRated', label: t.topRated, icon: '🏆' },
                   ].map(({ key, label, icon }) => (

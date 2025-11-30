@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield } from 'lucide-react';
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { useTranslations } from 'next-intl';
@@ -36,6 +36,9 @@ interface EnhancedSearchBarProps {
   hotelAdults?: number;  // Number of adults
   hotelChildren?: number;  // Number of children
   hotelRooms?: number;  // Number of rooms
+  hotelLat?: number;  // Location latitude (for preserving search context)
+  hotelLng?: number;  // Location longitude (for preserving search context)
+  hotelDistricts?: string;  // Comma-separated district names (for preserving popular areas)
 
   // Common props
   lang?: 'en' | 'pt' | 'es';
@@ -163,6 +166,9 @@ export default function EnhancedSearchBar({
   hotelAdults: initialHotelAdults = 2,
   hotelChildren: initialHotelChildren = 0,
   hotelRooms: initialHotelRooms = 1,
+  hotelLat: initialHotelLat,
+  hotelLng: initialHotelLng,
+  hotelDistricts: initialHotelDistricts = '',
 
   // Common props
   lang = 'en',
@@ -216,7 +222,10 @@ export default function EnhancedSearchBar({
 
   // Hotel-specific state (initialized from props)
   const [hotelDestination, setHotelDestination] = useState(initialHotelDestination);
-  const [hotelLocation, setHotelLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // Initialize hotel location from props if available
+  const [hotelLocation, setHotelLocation] = useState<{ lat: number; lng: number } | null>(
+    initialHotelLat && initialHotelLng ? { lat: initialHotelLat, lng: initialHotelLng } : null
+  );
   const [checkInDate, setCheckInDate] = useState(initialHotelCheckIn);
   const [checkOutDate, setCheckOutDate] = useState(initialHotelCheckOut);
   const [hotelAdults, setHotelAdults] = useState(initialHotelAdults);
@@ -230,6 +239,34 @@ export default function EnhancedSearchBar({
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
   const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
   const [popularDistricts, setPopularDistricts] = useState<Array<{ id: string; name: string; city: string; location: { lat: number; lng: number } }>>([]);
+
+  // Multi-select districts state - parse from comma-separated string if provided
+  // Using explicit arrow function lazy initializer for reliable prop access
+  const [selectedDistricts, setSelectedDistricts] = useState<Array<{ id: string; name: string; location: { lat: number; lng: number } }>>(() => {
+    console.log('🔥 Initializing selectedDistricts from prop:', initialHotelDistricts);
+    if (!initialHotelDistricts) return [];
+    const parsed = initialHotelDistricts.split(',').map(name => name.trim()).filter(name => name).map(name => ({
+      id: name.toLowerCase().replace(/\s+/g, '-'),
+      name,
+      location: initialHotelLat && initialHotelLng ? { lat: initialHotelLat, lng: initialHotelLng } : { lat: 0, lng: 0 }
+    }));
+    console.log('🔥 Parsed districts:', parsed);
+    return parsed;
+  });
+
+  // Selected destination details for enhanced display
+  // Initialize from props if destination was provided (e.g., from results page)
+  const [selectedDestinationDetails, setSelectedDestinationDetails] = useState<{
+    name: string;
+    country: string;
+    emoji?: string;
+    type?: string;
+    categories?: string[];
+  } | null>(initialHotelDestination ? {
+    name: initialHotelDestination,
+    country: '', // Will be empty when coming from results page
+    type: 'city'
+  } : null);
 
   // Car rental-specific state
   const [carPickupLocation, setCarPickupLocation] = useState('');
@@ -283,6 +320,7 @@ export default function EnhancedSearchBar({
   const carDropoffDateRef = useRef<HTMLButtonElement>(null);
 
   // Set default dates for hotels and minDate (prevent hydration errors)
+  // Only set default dates if not provided via props (e.g., from results page)
   useEffect(() => {
     const today = new Date();
     const tomorrow = new Date();
@@ -291,9 +329,34 @@ export default function EnhancedSearchBar({
     dayAfter.setDate(dayAfter.getDate() + 2);
 
     setMinDate(today.toISOString().split('T')[0]);
-    setCheckInDate(tomorrow.toISOString().split('T')[0]);
-    setCheckOutDate(dayAfter.toISOString().split('T')[0]);
-  }, []);
+
+    // Only set defaults if not provided via props
+    if (!initialHotelCheckIn) {
+      setCheckInDate(tomorrow.toISOString().split('T')[0]);
+    }
+    if (!initialHotelCheckOut) {
+      setCheckOutDate(dayAfter.toISOString().split('T')[0]);
+    }
+  }, [initialHotelCheckIn, initialHotelCheckOut]);
+
+  // Debug: Log state preservation from props
+  useEffect(() => {
+    console.log('🏨 EnhancedSearchBar mounted with props:', {
+      destination: initialHotelDestination,
+      districts: initialHotelDistricts,
+      lat: initialHotelLat,
+      lng: initialHotelLng,
+      checkIn: initialHotelCheckIn,
+      checkOut: initialHotelCheckOut,
+    });
+    console.log('🏨 Initial state values:', {
+      hotelDestination,
+      selectedDistricts,
+      hotelLocation,
+      checkInDate,
+      checkOutDate,
+    });
+  }, []); // Empty deps - only run on mount
 
   // Fetch popular districts when a hotel destination is selected
   useEffect(() => {
@@ -720,6 +783,14 @@ export default function EnhancedSearchBar({
         }),
       });
 
+      // Add selected districts if any (multi-select)
+      if (selectedDistricts.length > 0) {
+        hotelParams.set('districts', selectedDistricts.map(d => d.name).join(','));
+        // Use first selected district's location for more precise search
+        hotelParams.set('lat', selectedDistricts[0].location.lat.toString());
+        hotelParams.set('lng', selectedDistricts[0].location.lng.toString());
+      }
+
       const url = `/hotels/results?${hotelParams.toString()}`;
       window.open(url, '_blank', 'noopener,noreferrer');
 
@@ -898,7 +969,38 @@ export default function EnhancedSearchBar({
       lat: suggestion.location?.lat || suggestion.latitude,
       lng: suggestion.location?.lng || suggestion.longitude
     });
+    // Store destination details for enhanced display
+    setSelectedDestinationDetails({
+      name: suggestion.name || suggestion.city,
+      country: suggestion.country || '',
+      emoji: suggestion.emoji,
+      type: suggestion.type || 'city',
+      categories: suggestion.categories,
+    });
+    // Clear selected districts when changing destination
+    setSelectedDistricts([]);
     setShowHotelSuggestions(false);
+  };
+
+  // Toggle district selection (multi-select)
+  const toggleDistrictSelection = (district: { id: string; name: string; location: { lat: number; lng: number } }) => {
+    setSelectedDistricts(prev => {
+      const isSelected = prev.some(d => d.id === district.id);
+      if (isSelected) {
+        return prev.filter(d => d.id !== district.id);
+      } else {
+        return [...prev, { id: district.id, name: district.name, location: district.location }];
+      }
+    });
+  };
+
+  // Clear destination and selections
+  const clearHotelDestination = () => {
+    setHotelDestination('');
+    setHotelLocation(null);
+    setSelectedDestinationDetails(null);
+    setSelectedDistricts([]);
+    setPopularDistricts([]);
   };
 
   // Debug logging for hotel suggestions state
@@ -1646,33 +1748,86 @@ export default function EnhancedSearchBar({
           <>
           {/* Search Fields Row */}
           <div className="flex items-center gap-3">
-            {/* Hotel Destination */}
+            {/* Hotel Destination - Enhanced Display */}
             <div ref={hotelDestinationRef} className="flex-1 relative">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Building2 size={13} className="text-gray-600" />
                 <span>Destination</span>
               </label>
-              <input
-                type="text"
-                value={hotelDestination}
-                onChange={(e) => {
-                  console.log('⌨️ Input onChange event:', e.target.value);
-                  handleHotelDestinationChange(e.target.value);
-                }}
-                onFocus={() => {
-                  console.log('👆 Input onFocus event, current value:', hotelDestination);
-                  if (hotelDestination.length >= 2) {
-                    console.log('✅ Opening suggestions (value length >= 2)');
+
+              {/* Enhanced Selected Destination Display */}
+              {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (
+                <div
+                  onClick={() => {
                     setShowHotelSuggestions(true);
-                  } else {
-                    console.log('⚠️ Not opening suggestions (value too short)');
-                  }
-                }}
-                placeholder="City, hotel, or landmark"
-                className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
-                  errors.hotel ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
+                  }}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-[#0087FF] rounded-lg cursor-pointer transition-all hover:border-[#0077E6] hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Destination Emoji or Globe Icon */}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0087FF] to-cyan-500 flex items-center justify-center shadow-md">
+                        {selectedDestinationDetails.emoji ? (
+                          <span className="text-xl">{selectedDestinationDetails.emoji}</span>
+                        ) : (
+                          <Globe className="w-5 h-5 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 text-base leading-tight flex items-center gap-2">
+                          {selectedDestinationDetails.name}
+                          <Check className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <Navigation className="w-3 h-3" />
+                          {selectedDestinationDetails.country || 'Destination selected'}
+                          {selectedDestinationDetails.type && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded-full capitalize font-medium">
+                              {selectedDestinationDetails.type}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearHotelDestination();
+                      }}
+                      className="p-2 hover:bg-blue-100 rounded-full transition-colors"
+                    >
+                      <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={hotelDestination}
+                  onChange={(e) => {
+                    console.log('⌨️ Input onChange event:', e.target.value);
+                    handleHotelDestinationChange(e.target.value);
+                    // Clear selected details if user types something different
+                    if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
+                      setSelectedDestinationDetails(null);
+                    }
+                  }}
+                  onFocus={() => {
+                    console.log('👆 Input onFocus event, current value:', hotelDestination);
+                    if (hotelDestination.length >= 2) {
+                      console.log('✅ Opening suggestions (value length >= 2)');
+                      setShowHotelSuggestions(true);
+                    } else {
+                      console.log('⚠️ Not opening suggestions (value too short)');
+                    }
+                  }}
+                  placeholder="City, hotel, or landmark"
+                  className={`w-full px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all text-base font-medium ${
+                    errors.hotel ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+              )}
               {errors.hotel && (
                 <p className="mt-1 text-xs text-red-600" role="alert">
                   {errors.hotel}
@@ -1814,30 +1969,9 @@ export default function EnhancedSearchBar({
                 </div>
               )}
 
-              {/* Popular Districts Quick-Select */}
-              {popularDistricts.length > 0 && !showHotelSuggestions && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs text-gray-500 font-medium">Popular areas:</span>
-                    {popularDistricts.map((district) => (
-                      <button
-                        key={district.id}
-                        type="button"
-                        onClick={() => {
-                          setHotelDestination(district.name);
-                          setHotelLocation(district.location);
-                        }}
-                        className="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors"
-                      >
-                        {district.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Check-in Date */}
+            {/* Check-in Date - Enhanced Premium Style */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <CalendarDays size={13} className="text-gray-600" />
@@ -1847,16 +1981,41 @@ export default function EnhancedSearchBar({
                 ref={hotelCheckInRef}
                 type="button"
                 onClick={() => setShowHotelCheckInPicker(true)}
-                className="w-full relative px-4 py-4 bg-white border rounded-lg hover:border-[#0087FF] transition-all cursor-pointer border-gray-300"
+                className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
+                  checkInDate
+                    ? 'bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-500 hover:border-emerald-600 hover:shadow-md'
+                    : 'bg-white border border-gray-300 hover:border-[#0087FF]'
+                }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-base font-medium text-gray-900">
-                  {checkInDate ? formatDateForDisplay(checkInDate) : 'Select date'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                    checkInDate
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-sm'
+                      : 'bg-gray-100'
+                  }`}>
+                    <Calendar className={`w-4 h-4 ${checkInDate ? 'text-white' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="text-left flex-1">
+                    {checkInDate ? (
+                      <>
+                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                          {formatDateForDisplay(checkInDate)}
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        </div>
+                        <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                          <LogIn className="w-3 h-3" />
+                          Check-in day
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-sm text-gray-500">Select date</span>
+                    )}
+                  </div>
+                </div>
               </button>
             </div>
 
-            {/* Check-out Date */}
+            {/* Check-out Date - Enhanced Premium Style */}
             <div className="flex-1">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <CalendarCheck size={13} className="text-gray-600" />
@@ -1866,17 +2025,42 @@ export default function EnhancedSearchBar({
                 ref={hotelCheckOutRef}
                 type="button"
                 onClick={() => setShowHotelCheckOutPicker(true)}
-                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                className={`w-full px-3 py-3 rounded-lg cursor-pointer transition-all ${
+                  checkOutDate
+                    ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-500 hover:border-orange-600 hover:shadow-md'
+                    : 'bg-white border border-gray-300 hover:border-[#0087FF]'
+                }`}
               >
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <span className="block pl-8 text-base font-medium text-gray-900">
-                  {checkOutDate ? formatDateForDisplay(checkOutDate) : 'Select date'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                    checkOutDate
+                      ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm'
+                      : 'bg-gray-100'
+                  }`}>
+                    <Calendar className={`w-4 h-4 ${checkOutDate ? 'text-white' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="text-left flex-1">
+                    {checkOutDate ? (
+                      <>
+                        <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                          {formatDateForDisplay(checkOutDate)}
+                          <Check className="w-3.5 h-3.5 text-orange-600" />
+                        </div>
+                        <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                          <LogOut className="w-3 h-3" />
+                          Check-out day
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-sm text-gray-500">Select date</span>
+                    )}
+                  </div>
+                </div>
               </button>
             </div>
 
-            {/* Guests & Rooms */}
-            <div className="relative flex-shrink-0 w-52">
+            {/* Guests & Rooms - Enhanced Premium Style */}
+            <div className="relative flex-shrink-0 w-56">
               <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
                 <Users size={13} className="text-gray-600" />
                 <span>Guests & Rooms</span>
@@ -1884,12 +2068,24 @@ export default function EnhancedSearchBar({
               <button
                 type="button"
                 onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                className="w-full px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all text-left flex items-center justify-between"
+                className="w-full px-3 py-3 bg-gradient-to-r from-violet-50 to-purple-50 border-2 border-violet-500 rounded-lg hover:border-violet-600 hover:shadow-md transition-all text-left"
               >
-                <span className="text-base font-medium text-gray-900">
-                  {hotelAdults + hotelChildren} guests, {hotelRooms} room{hotelRooms > 1 ? 's' : ''}
-                </span>
-                <ChevronDown size={20} className="text-gray-400" />
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-sm">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                      {hotelAdults + hotelChildren} guest{hotelAdults + hotelChildren > 1 ? 's' : ''}
+                      <Check className="w-3.5 h-3.5 text-violet-600" />
+                    </div>
+                    <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                      <BedDouble className="w-3 h-3" />
+                      {hotelRooms} room{hotelRooms > 1 ? 's' : ''} · {hotelChildren > 0 ? `${hotelChildren} child${hotelChildren > 1 ? 'ren' : ''}` : `${hotelAdults} adult${hotelAdults > 1 ? 's' : ''}`}
+                    </div>
+                  </div>
+                  <ChevronDown size={18} className={`text-violet-500 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
+                </div>
               </button>
 
               {/* Guests & Rooms Dropdown */}
@@ -1995,6 +2191,76 @@ export default function EnhancedSearchBar({
               </button>
             </div>
           </div>
+
+          {/* 📍 POPULAR AREAS - Ultra Compact Single Row */}
+          {/* Show when we have popular districts OR previously selected districts (from results page) */}
+          {(popularDistricts.length > 0 || selectedDistricts.length > 0) && hotelDestination && (
+            <div className="mt-3 px-3 py-2 bg-gradient-to-r from-slate-50/80 via-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-100/50 flex items-center gap-3">
+              {/* Left: Title Section */}
+              <div className="flex-shrink-0 flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#0087FF] to-cyan-500 flex items-center justify-center">
+                  <MapPin className="w-3 h-3 text-white" />
+                </div>
+                <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">Popular Areas</span>
+                <span className="text-gray-300">•</span>
+                <span className="text-[11px] text-gray-400 whitespace-nowrap">multi-select</span>
+              </div>
+
+              {/* Middle: Scrollable District Chips */}
+              <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+                {/* When we have popular districts from API, show those with selection state */}
+                {popularDistricts.length > 0 ? (
+                  popularDistricts.map((district) => {
+                    // Case-insensitive comparison for matching selections across different sources
+                    const isSelected = selectedDistricts.some(d =>
+                      (d.id && district.id && d.id.toLowerCase() === district.id.toLowerCase()) ||
+                      (d.name && district.name && d.name.toLowerCase() === district.name.toLowerCase())
+                    );
+                    return (
+                      <button
+                        key={district.id}
+                        type="button"
+                        onClick={() => toggleDistrictSelection(district)}
+                        className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-[#0087FF] to-cyan-500 text-white shadow-sm'
+                            : 'bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-700 border border-gray-200/80 hover:border-blue-300'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3" />}
+                        {district.name}
+                      </button>
+                    );
+                  })
+                ) : (
+                  /* When no popular districts from API but we have selected ones (from results page), show those */
+                  selectedDistricts.map((district) => (
+                    <button
+                      key={district.id}
+                      type="button"
+                      onClick={() => setSelectedDistricts(selectedDistricts.filter(d => d.id !== district.id))}
+                      className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 bg-gradient-to-r from-[#0087FF] to-cyan-500 text-white shadow-sm"
+                    >
+                      <Check className="w-3 h-3" />
+                      {district.name}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Right: Clear Button (only if selections) */}
+              {selectedDistricts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDistricts([])}
+                  className="flex-shrink-0 text-[11px] text-gray-400 hover:text-red-500 flex items-center gap-0.5 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
           </>
           )}
 

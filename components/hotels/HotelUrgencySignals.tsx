@@ -13,6 +13,11 @@ interface UrgencySignalsProps {
   isPopular?: boolean;
   lastBooked?: string;
   variant?: 'card' | 'detail' | 'checkout';
+  // Real-time data props (when available from API)
+  realViewers?: number;
+  realRecentBookings?: number;
+  realPriceDropPercent?: number;
+  isRealData?: boolean;
 }
 
 interface SignalData {
@@ -22,17 +27,30 @@ interface SignalData {
   priceDropPercent: number;
   bookingTrend: 'hot' | 'warm' | 'normal';
   lastBookedMinutes: number;
+  isRealData: boolean;
 }
 
-// Simulated real-time data (in production, this would come from WebSocket/API)
-function generateSignalData(hotelId: string, roomsLeft?: number): SignalData {
-  // Use hotelId to generate consistent but varied data
+// Generate signal data - use real data when available, otherwise estimate based on hotel ID
+function generateSignalData(
+  hotelId: string,
+  options: {
+    roomsLeft?: number;
+    realViewers?: number;
+    realRecentBookings?: number;
+    realPriceDropPercent?: number;
+    isRealData?: boolean;
+  }
+): SignalData {
+  const { roomsLeft, realViewers, realRecentBookings, realPriceDropPercent, isRealData } = options;
+
+  // Use hotelId to generate consistent but varied data for fallback
   const hash = hotelId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-  const viewers = 2 + (hash % 15); // 2-16 viewers
-  const recentBookings = 1 + (hash % 5); // 1-5 recent bookings
-  const rooms = roomsLeft ?? (3 + (hash % 8)); // 3-10 rooms left
-  const priceDropPercent = hash % 3 === 0 ? 10 + (hash % 20) : 0; // 10-30% or 0
+  // Use real data when available, otherwise generate estimates
+  const viewers = realViewers ?? (2 + (hash % 15)); // 2-16 viewers
+  const recentBookings = realRecentBookings ?? (1 + (hash % 5)); // 1-5 recent bookings
+  const rooms = roomsLeft ?? (3 + (hash % 8)); // Use real room count or estimate 3-10
+  const priceDropPercent = realPriceDropPercent ?? (hash % 3 === 0 ? 10 + (hash % 20) : 0);
   const trend = rooms < 4 ? 'hot' : rooms < 7 ? 'warm' : 'normal';
   const lastBooked = 5 + (hash % 55); // 5-60 minutes ago
 
@@ -43,6 +61,7 @@ function generateSignalData(hotelId: string, roomsLeft?: number): SignalData {
     priceDropPercent,
     bookingTrend: trend,
     lastBookedMinutes: lastBooked,
+    isRealData: isRealData || (roomsLeft !== undefined),
   };
 }
 
@@ -202,22 +221,40 @@ export function HotelUrgencySignals({
   isPopular,
   lastBooked,
   variant = 'card',
+  realViewers,
+  realRecentBookings,
+  realPriceDropPercent,
+  isRealData,
 }: UrgencySignalsProps) {
   const [signalData, setSignalData] = useState<SignalData | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const data = generateSignalData(hotelId, roomsLeft);
+    const data = generateSignalData(hotelId, {
+      roomsLeft,
+      realViewers,
+      realRecentBookings,
+      realPriceDropPercent,
+      isRealData,
+    });
     setSignalData(data);
 
-    // Update periodically for realism
-    const interval = setInterval(() => {
-      setSignalData(generateSignalData(hotelId, roomsLeft));
-    }, 30000);
+    // Update periodically for realism (only if not using real data)
+    if (!isRealData) {
+      const interval = setInterval(() => {
+        setSignalData(generateSignalData(hotelId, {
+          roomsLeft,
+          realViewers,
+          realRecentBookings,
+          realPriceDropPercent,
+          isRealData,
+        }));
+      }, 30000);
 
-    return () => clearInterval(interval);
-  }, [hotelId, roomsLeft]);
+      return () => clearInterval(interval);
+    }
+  }, [hotelId, roomsLeft, realViewers, realRecentBookings, realPriceDropPercent, isRealData]);
 
   if (!mounted || !signalData) return null;
 

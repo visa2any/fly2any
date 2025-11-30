@@ -105,7 +105,11 @@ export async function GET(
       }
 
       try {
-        const hotelDetails = await liteAPI.getHotelDetails({ hotelId: accommodationId });
+        // Use getEnhancedHotelDetails for comprehensive data including ALL photos
+        const enhancedDetails = await liteAPI.getEnhancedHotelDetails(accommodationId);
+
+        // Fallback to basic getHotelDetails if enhanced fails
+        const hotelDetails = enhancedDetails || await liteAPI.getHotelDetails({ hotelId: accommodationId });
 
         if (!hotelDetails) {
           return NextResponse.json(
@@ -117,29 +121,85 @@ export async function GET(
         // Build images array from LiteAPI response - GET ALL PHOTOS
         const images: Array<{ url: string; caption?: string }> = [];
 
-        // LiteAPI provides images array - use it first
-        if (hotelDetails.images && Array.isArray(hotelDetails.images) && hotelDetails.images.length > 0) {
-          // Use all images from the images array
-          hotelDetails.images.forEach((img: any, index: number) => {
-            const imageUrl = typeof img === 'string' ? img : (img.url || img.large || img.medium || img.small);
-            if (imageUrl) {
+        // Debug: Log what photo data is available
+        console.log(`📸 [DEBUG] Photo sources for ${accommodationId}:`, {
+          enhancedHotelPhotos: enhancedDetails?.hotelPhotos?.length || 0,
+          hotelImagesFromDetails: hotelDetails.hotelImages?.length || 0,
+          hotelPhotosFromDetails: hotelDetails.hotelPhotos?.length || 0,
+          imagesArray: hotelDetails.images?.length || 0,
+          hasMainPhoto: !!hotelDetails.main_photo,
+          hasThumbnail: !!hotelDetails.thumbnail,
+        });
+
+        // PRIORITY 1: Use hotelPhotos from enhanced details (parsed from hotelImages)
+        if (enhancedDetails?.hotelPhotos && enhancedDetails.hotelPhotos.length > 0) {
+          enhancedDetails.hotelPhotos.forEach((photo) => {
+            if (photo.url) {
               images.push({
-                url: imageUrl,
-                caption: `${hotelDetails.name} - Image ${index + 1}`
+                url: photo.url,
+                caption: photo.caption || `${hotelDetails.name}`,
               });
             }
           });
-        } else {
-          // Fallback: use main_photo and thumbnail if images array not available
+          console.log(`📸 [LITEAPI] Using ${images.length} photos from enhancedDetails.hotelPhotos`);
+        }
+        // PRIORITY 2: Use hotelImages directly from hotelDetails (official LiteAPI field)
+        else if (hotelDetails.hotelImages && Array.isArray(hotelDetails.hotelImages) && hotelDetails.hotelImages.length > 0) {
+          // Sort by order and defaultImage
+          const sortedImages = [...hotelDetails.hotelImages].sort((a: any, b: any) => {
+            if (a.defaultImage && !b.defaultImage) return -1;
+            if (!a.defaultImage && b.defaultImage) return 1;
+            return (a.order || 0) - (b.order || 0);
+          });
+          sortedImages.forEach((img: any) => {
+            const imageUrl = img.url || img.image;
+            if (imageUrl) {
+              images.push({
+                url: imageUrl,
+                caption: img.caption || `${hotelDetails.name}`,
+              });
+            }
+          });
+          console.log(`📸 [LITEAPI] Using ${images.length} photos from hotelDetails.hotelImages`);
+        }
+        // PRIORITY 3: Use hotelPhotos from basic endpoint
+        else if (hotelDetails.hotelPhotos && Array.isArray(hotelDetails.hotelPhotos) && hotelDetails.hotelPhotos.length > 0) {
+          hotelDetails.hotelPhotos.forEach((photo: any) => {
+            const imageUrl = photo.image || photo.url;
+            if (imageUrl) {
+              images.push({
+                url: imageUrl,
+                caption: photo.imageCaption || photo.caption || `${hotelDetails.name}`,
+              });
+            }
+          });
+          console.log(`📸 [LITEAPI] Using ${images.length} photos from hotelDetails.hotelPhotos`);
+        }
+        // PRIORITY 4: Use images array from basic endpoint
+        else if (hotelDetails.images && Array.isArray(hotelDetails.images) && hotelDetails.images.length > 0) {
+          hotelDetails.images.forEach((img: any, index: number) => {
+            const imageUrl = typeof img === 'string' ? img : (img.url || img.large || img.medium || img.small || img.image);
+            if (imageUrl) {
+              images.push({
+                url: imageUrl,
+                caption: img.caption || img.imageCaption || `${hotelDetails.name} - Photo ${index + 1}`
+              });
+            }
+          });
+          console.log(`📸 [LITEAPI] Using ${images.length} photos from hotelDetails.images`);
+        }
+        // PRIORITY 5: Fallback to main_photo and thumbnail
+        else {
           if (hotelDetails.main_photo) {
             images.push({ url: hotelDetails.main_photo, caption: hotelDetails.name });
           }
           if (hotelDetails.thumbnail && hotelDetails.thumbnail !== hotelDetails.main_photo) {
-            images.push({ url: hotelDetails.thumbnail, caption: `${hotelDetails.name} thumbnail` });
+            images.push({ url: hotelDetails.thumbnail, caption: `${hotelDetails.name}` });
           }
+          console.log(`📸 [LITEAPI] Using ${images.length} fallback photos (main_photo/thumbnail)`);
         }
 
-        console.log(`📸 [LITEAPI] Found ${images.length} photos for hotel ${accommodationId}`);
+        console.log(`📸 [LITEAPI] Total ${images.length} photos for hotel ${accommodationId}`);
 
         // Map facility IDs to amenity names (common facility mappings)
         const facilityMap: Record<number, string> = {
@@ -158,6 +218,16 @@ export async function GET(
             .replace(/\s+/g, ' ')
             .trim();
         };
+
+        // Extract check-in/out times from enhanced details
+        const checkInTime = enhancedDetails?.checkinCheckoutTimes?.checkin || hotelDetails.checkInTime || '15:00';
+        const checkOutTime = enhancedDetails?.checkinCheckoutTimes?.checkout || hotelDetails.checkOutTime || '11:00';
+
+        // Get hotel important information from enhanced details
+        const hotelImportantInfo = enhancedDetails?.hotelImportantInformation || hotelDetails.hotelImportantInformation;
+
+        // Get facilities from enhanced details
+        const hotelFacilities = enhancedDetails?.hotelFacilities || enhancedDetails?.facilities || [];
 
         // Format response to match expected structure for ClientPage
         const formattedResponse = {
@@ -182,14 +252,20 @@ export async function GET(
             reviewCount: hotelDetails.reviewCount || 0,
             images: images,
             photos: images.map(img => img.url), // Alternate format
+            totalPhotos: images.length, // Photo count for gallery UI
             amenities: amenities,
             facilities: hotelDetails.facilityIds || [],
-            checkInTime: hotelDetails.checkInTime || '15:00',
-            checkOutTime: hotelDetails.checkOutTime || '11:00',
+            hotelFacilities: hotelFacilities,
+            checkInTime: checkInTime,
+            checkOutTime: checkOutTime,
             // CRITICAL: Add checkIn/checkOut dates for nights calculation
             checkIn: checkIn || null,
             checkOut: checkOut || null,
             chain: hotelDetails.chain,
+            // Important information from enhanced API
+            hotelImportantInformation: Array.isArray(hotelImportantInfo)
+              ? hotelImportantInfo.join('\n')
+              : hotelImportantInfo || '',
             source: 'LiteAPI',
             // Room rates - fetch if dates provided
             rates: [] as any[],
@@ -197,6 +273,7 @@ export async function GET(
           meta: {
             lastUpdated: new Date().toISOString(),
             source: 'LiteAPI',
+            photoCount: images.length,
           },
         };
 
@@ -213,51 +290,119 @@ export async function GET(
               guestNationality: 'US',
             });
 
-            // Transform rates to match expected format
+            // Transform rates to match expected format - GROUP BY UNIQUE ROOM TYPE
             if (ratesData && ratesData.length > 0) {
               const hotelRates = ratesData[0];
-              const rates: any[] = [];
 
-              // Use hotel images for rooms (since LiteAPI doesn't provide room-level images)
-              // Distribute images across different room types
-              let imageIndex = 1; // Start from index 1 (skip hero image)
+              // Group rates by room type name to avoid duplicates
+              const roomTypeMap = new Map<string, {
+                rates: any[];
+                lowestPrice: number;
+                currency: string;
+                hasRefundable: boolean;
+                hasBreakfast: boolean;
+                maxOccupancy: number;
+                offerId: string;
+                bestRate: any;
+              }>();
 
+              // First pass: collect all rates by room type name
               for (const roomType of hotelRates.roomTypes || []) {
                 for (const rate of roomType.rates || []) {
+                  const roomName = rate.name || 'Standard Room';
                   const price = rate.retailRate?.total?.[0]?.amount || 0;
                   const currency = rate.retailRate?.total?.[0]?.currency || 'USD';
+                  const isRefundable = rate.cancellationPolicies?.refundableTag === 'RFN';
+                  const hasBreakfast = rate.boardType === 'BB' || rate.boardName?.toLowerCase().includes('breakfast');
 
-                  // Assign images to rooms in a round-robin fashion
-                  const roomImages = [];
-                  if (images.length > 1) {
-                    // Use different images for different rooms (cycle through available images)
-                    const currentImageIndex = (imageIndex % (images.length - 1)) + 1;
-                    roomImages.push(images[currentImageIndex]);
-                    imageIndex++;
+                  if (!roomTypeMap.has(roomName)) {
+                    roomTypeMap.set(roomName, {
+                      rates: [],
+                      lowestPrice: price,
+                      currency: currency,
+                      hasRefundable: isRefundable,
+                      hasBreakfast: hasBreakfast,
+                      maxOccupancy: rate.maxOccupancy || 2,
+                      offerId: roomType.offerId,
+                      bestRate: rate,
+                    });
                   }
 
-                  rates.push({
-                    id: rate.rateId,
-                    offerId: roomType.offerId,
-                    roomName: rate.name,
-                    name: rate.name,
-                    bedType: rate.boardName || 'Standard Bed',
-                    maxGuests: rate.maxOccupancy || 2,
-                    totalPrice: {
-                      amount: String(price),
-                      currency: currency,
-                    },
-                    refundable: rate.cancellationPolicies?.refundableTag === 'RFN',
-                    breakfastIncluded: rate.boardType === 'BB' || rate.boardName?.toLowerCase().includes('breakfast'),
-                    amenities: [],
-                    // Add images for CompactRoomCard
-                    images: roomImages,
-                  });
+                  const existing = roomTypeMap.get(roomName)!;
+                  existing.rates.push(rate);
+
+                  // Update with best values
+                  if (price < existing.lowestPrice) {
+                    existing.lowestPrice = price;
+                    existing.bestRate = rate;
+                  }
+                  if (isRefundable) existing.hasRefundable = true;
+                  if (hasBreakfast) existing.hasBreakfast = true;
+                  if (rate.maxOccupancy > existing.maxOccupancy) {
+                    existing.maxOccupancy = rate.maxOccupancy;
+                  }
                 }
               }
 
+              // Extract bed type from room name
+              const extractBedType = (name: string): string => {
+                const nameLower = name.toLowerCase();
+                if (nameLower.includes('king')) return 'King Bed';
+                if (nameLower.includes('queen')) return 'Queen Bed';
+                if (nameLower.includes('twin')) return 'Twin Beds';
+                if (nameLower.includes('double')) return 'Double Bed';
+                if (nameLower.includes('single')) return 'Single Bed';
+                if (nameLower.includes('suite')) return 'Suite';
+                if (nameLower.includes('studio')) return 'Studio';
+                return 'Standard Bed';
+              };
+
+              // Use hotel images for rooms (since LiteAPI doesn't provide room-level images)
+              let imageIndex = 1;
+              const rates: any[] = [];
+
+              // Convert grouped rooms to rates array
+              for (const [roomName, roomData] of roomTypeMap) {
+                // Assign images in round-robin fashion
+                const roomImages = [];
+                if (images.length > 1) {
+                  const currentImageIndex = (imageIndex % (images.length - 1)) + 1;
+                  roomImages.push(images[currentImageIndex]);
+                  imageIndex++;
+                }
+
+                rates.push({
+                  id: roomData.bestRate.rateId,
+                  offerId: roomData.offerId,
+                  roomName: roomName,
+                  name: roomName,
+                  bedType: extractBedType(roomName),
+                  maxGuests: roomData.maxOccupancy,
+                  totalPrice: {
+                    amount: String(roomData.lowestPrice),
+                    currency: roomData.currency,
+                  },
+                  refundable: roomData.hasRefundable,
+                  breakfastIncluded: roomData.hasBreakfast,
+                  amenities: [],
+                  images: roomImages,
+                  // Include all rate options for user selection
+                  rateOptions: roomData.rates.length,
+                  allRates: roomData.rates.map(r => ({
+                    rateId: r.rateId,
+                    price: r.retailRate?.total?.[0]?.amount || 0,
+                    boardType: r.boardType,
+                    boardName: r.boardName,
+                    refundable: r.cancellationPolicies?.refundableTag === 'RFN',
+                  })),
+                });
+              }
+
+              // Sort by price (lowest first)
+              rates.sort((a, b) => parseFloat(a.totalPrice.amount) - parseFloat(b.totalPrice.amount));
+
               formattedResponse.data.rates = rates;
-              console.log(`✅ [LITEAPI] Found ${rates.length} room rates with images assigned`);
+              console.log(`✅ [LITEAPI] Found ${rates.length} unique room types (from ${hotelRates.roomTypes?.length || 0} total)`);
             }
           } catch (ratesError) {
             console.error('⚠️ [LITEAPI] Failed to fetch rates:', ratesError);

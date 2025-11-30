@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Star, ThumbsUp, CheckCircle2, User, MapPin, Calendar, ChevronDown, ChevronUp, Quote, TrendingUp, Users, Briefcase, Heart, Plane } from 'lucide-react';
+import { Star, ThumbsUp, CheckCircle2, User, MapPin, Calendar, ChevronDown, ChevronUp, Quote, TrendingUp, Users, Briefcase, Heart, Plane, Sparkles, ThumbsDown, Brain, Lightbulb, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Review {
@@ -31,6 +31,24 @@ interface ReviewsSummary {
     1: number;
   };
   recommendationRate?: number;
+}
+
+// AI Sentiment Analysis from LiteAPI
+interface SentimentAnalysis {
+  overallScore: number;
+  totalReviews: number;
+  categories?: {
+    cleanliness?: number;
+    service?: number;
+    location?: number;
+    roomQuality?: number;
+    amenities?: number;
+    valueForMoney?: number;
+    foodAndBeverage?: number;
+    overallExperience?: number;
+  };
+  pros?: string[];
+  cons?: string[];
 }
 
 interface HotelReviewsProps {
@@ -252,6 +270,128 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
   );
 }
 
+// AI Sentiment Category Card
+function SentimentCategoryCard({ label, score, icon }: { label: string; score?: number; icon: React.ReactNode }) {
+  if (score === undefined || score === null) return null;
+
+  const getScoreColor = (s: number) => {
+    if (s >= 8) return 'text-green-600 bg-green-50';
+    if (s >= 6) return 'text-yellow-600 bg-yellow-50';
+    return 'text-red-600 bg-red-50';
+  };
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getScoreColor(score)}`}>
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+      <span className="ml-auto font-bold">{score.toFixed(1)}</span>
+    </div>
+  );
+}
+
+// AI Sentiment Section
+function AISentimentSection({ sentiment }: { sentiment: SentimentAnalysis }) {
+  const categoryIcons: Record<string, React.ReactNode> = {
+    cleanliness: <Sparkles className="w-4 h-4" />,
+    service: <Users className="w-4 h-4" />,
+    location: <MapPin className="w-4 h-4" />,
+    roomQuality: <Star className="w-4 h-4" />,
+    amenities: <CheckCircle2 className="w-4 h-4" />,
+    valueForMoney: <TrendingUp className="w-4 h-4" />,
+    foodAndBeverage: <Heart className="w-4 h-4" />,
+    overallExperience: <Brain className="w-4 h-4" />,
+  };
+
+  const categoryLabels: Record<string, string> = {
+    cleanliness: 'Cleanliness',
+    service: 'Service',
+    location: 'Location',
+    roomQuality: 'Room Quality',
+    amenities: 'Amenities',
+    valueForMoney: 'Value',
+    foodAndBeverage: 'Food & Drink',
+    overallExperience: 'Experience',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-100 mb-6"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-2 bg-purple-100 rounded-lg">
+          <Brain className="w-5 h-5 text-purple-600" />
+        </div>
+        <div>
+          <h3 className="font-bold text-gray-900">AI Sentiment Analysis</h3>
+          <p className="text-xs text-gray-500">Analyzed from {sentiment.totalReviews || 'multiple'} guest reviews</p>
+        </div>
+        <div className="ml-auto text-right">
+          <div className="text-3xl font-bold text-purple-600">{sentiment.overallScore?.toFixed(1) || 'N/A'}</div>
+          <div className="text-xs text-gray-500">/10 score</div>
+        </div>
+      </div>
+
+      {/* Category Ratings Grid */}
+      {sentiment.categories && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          {Object.entries(sentiment.categories).map(([key, value]) => (
+            <SentimentCategoryCard
+              key={key}
+              label={categoryLabels[key] || key}
+              score={value}
+              icon={categoryIcons[key] || <Star className="w-4 h-4" />}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Pros & Cons from AI */}
+      {((sentiment.pros && sentiment.pros.length > 0) || (sentiment.cons && sentiment.cons.length > 0)) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {/* AI-identified Pros */}
+          {sentiment.pros && sentiment.pros.length > 0 && (
+            <div className="bg-white/70 rounded-xl p-4 border border-green-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Lightbulb className="w-4 h-4 text-green-600" />
+                <span className="font-semibold text-green-700 text-sm">What Guests Love</span>
+              </div>
+              <ul className="space-y-2">
+                {sentiment.pros.slice(0, 5).map((pro, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-green-700">
+                    <ThumbsUp className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>{pro}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* AI-identified Cons */}
+          {sentiment.cons && sentiment.cons.length > 0 && (
+            <div className="bg-white/70 rounded-xl p-4 border border-orange-200">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertCircle className="w-4 h-4 text-orange-600" />
+                <span className="font-semibold text-orange-700 text-sm">Areas for Improvement</span>
+              </div>
+              <ul className="space-y-2">
+                {sentiment.cons.slice(0, 5).map((con, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-orange-700">
+                    <ThumbsDown className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>{con}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 export function HotelReviews({
   hotelId,
   hotelName,
@@ -261,6 +401,7 @@ export function HotelReviews({
 }: HotelReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [summary, setSummary] = useState<ReviewsSummary | null>(null);
+  const [sentiment, setSentiment] = useState<SentimentAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -271,13 +412,17 @@ export function HotelReviews({
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/hotels/${hotelId}/reviews?limit=${maxReviews}&sort=${sortBy}`
+          `/api/hotels/${hotelId}/reviews?limit=${maxReviews}&sort=${sortBy}&sentiment=true`
         );
         const data = await response.json();
 
         if (data.success) {
           setReviews(data.data || []);
           setSummary(data.summary || null);
+          // Set AI sentiment analysis from LiteAPI
+          if (data.sentiment) {
+            setSentiment(data.sentiment);
+          }
         } else {
           setError(data.error || 'Failed to load reviews');
         }
@@ -309,6 +454,11 @@ export function HotelReviews({
 
   return (
     <div className="space-y-6">
+      {/* AI Sentiment Analysis Section - Show when available */}
+      {showSummary && sentiment && (
+        <AISentimentSection sentiment={sentiment} />
+      )}
+
       {/* Header with Summary */}
       {showSummary && summary && (
         <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-100">

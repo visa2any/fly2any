@@ -102,6 +102,13 @@ interface HotelDetailedInfo {
   chain?: string;
   currency?: string;
 
+  // Hotel Photos - Full gallery from /data/hotel endpoint
+  hotelPhotos?: Array<{
+    url: string;
+    caption?: string;
+    category?: string;
+  }>;
+
   // Enhanced details
   checkinCheckoutTimes?: {
     checkin: string;
@@ -261,7 +268,10 @@ interface NormalizedHotel {
   currency: string;
   lowestPrice?: number; // TOTAL price for entire stay
   // Cancellation & board info from best rate
-  refundable?: boolean; // true = free cancellation available
+  refundable?: boolean; // true = free cancellation available on cheapest rate
+  hasRefundableRate?: boolean; // true = hotel has ANY refundable room option
+  lowestRefundablePrice?: number | null; // Lowest refundable rate total price
+  refundableCancellationDeadline?: string | null; // Cancellation deadline for refundable rate
   boardType?: string; // BB, RO, HB, FB, AI, etc.
   cancellationDeadline?: string; // ISO date for cancellation deadline
   lowestPricePerNight?: number; // Per-night price
@@ -506,28 +516,44 @@ class LiteAPI {
             }
 
             // Find the minimum price across all room types and extract refundable/boardType info
+            // Also track if ANY rate is refundable and the lowest refundable price
             let minPrice = Infinity;
+            let minRefundablePrice = Infinity;
             let currency = params.currency || 'USD';
-            let refundable = false;
+            let refundable = false; // Is the CHEAPEST rate refundable?
+            let hasRefundableRate = false; // Does this hotel have ANY refundable rate?
             let boardType = 'RO'; // Default to Room Only
             let cancellationDeadline: string | undefined;
+            let refundableCancellationDeadline: string | undefined;
 
             for (const roomType of roomTypes) {
               // Check all rates in this room type
               const rates = roomType.rates || [];
               for (const rate of rates) {
                 const price = rate.retailRate?.total?.[0]?.amount || roomType.offerRetailRate?.amount;
+                const rateCurrency = rate.retailRate?.total?.[0]?.currency || roomType.offerRetailRate?.currency || currency;
+                const refundableTag = rate.cancellationPolicies?.refundableTag;
+                const isRateRefundable = refundableTag === 'RFN';
+                const rateBoardType = rate.boardType || rate.boardName || 'RO';
+                const rateCancelDeadline = rate.cancellationPolicies?.cancelPolicyInfos?.[0]?.cancelTime;
+
+                // Track if ANY rate is refundable
+                if (isRateRefundable) {
+                  hasRefundableRate = true;
+                  // Track lowest refundable price
+                  if (price && price < minRefundablePrice) {
+                    minRefundablePrice = price;
+                    refundableCancellationDeadline = rateCancelDeadline;
+                  }
+                }
+
+                // Track absolute lowest price (regardless of refundability)
                 if (price && price < minPrice) {
                   minPrice = price;
-                  currency = rate.retailRate?.total?.[0]?.currency || roomType.offerRetailRate?.currency || currency;
-                  // Extract cancellation policy from rate
-                  const refundableTag = rate.cancellationPolicies?.refundableTag;
-                  refundable = refundableTag === 'RFN';
-                  boardType = rate.boardType || rate.boardName || 'RO';
-                  // Extract cancellation deadline if available
-                  if (rate.cancellationPolicies?.cancelPolicyInfos?.[0]?.cancelTime) {
-                    cancellationDeadline = rate.cancellationPolicies.cancelPolicyInfos[0].cancelTime;
-                  }
+                  currency = rateCurrency;
+                  refundable = isRateRefundable;
+                  boardType = rateBoardType;
+                  cancellationDeadline = rateCancelDeadline;
                 }
               }
               // Fallback: check offerRetailRate directly on roomType
@@ -542,7 +568,10 @@ class LiteAPI {
               hotelId,
               minimumRate: { amount: minPrice === Infinity ? 0 : minPrice, currency },
               available: minPrice !== Infinity,
-              refundable,
+              refundable, // Is cheapest rate refundable?
+              hasRefundableRate, // Does hotel have ANY refundable option?
+              lowestRefundablePrice: minRefundablePrice === Infinity ? null : minRefundablePrice,
+              refundableCancellationDeadline,
               boardType,
               cancellationDeadline
             };
@@ -880,6 +909,9 @@ class LiteAPI {
           lowestPricePerNight: perNightPrice, // Per-night price
           // ✅ ADDED: Cancellation & board info from best rate
           refundable: (minRateData as any).refundable || false,
+          hasRefundableRate: (minRateData as any).hasRefundableRate || false, // Does hotel have ANY refundable option?
+          lowestRefundablePrice: (minRateData as any).lowestRefundablePrice || null,
+          refundableCancellationDeadline: (minRateData as any).refundableCancellationDeadline || null,
           boardType: (minRateData as any).boardType || 'RO',
           cancellationDeadline: (minRateData as any).cancellationDeadline,
           rooms: [], // No room details in min rates mode
@@ -1049,6 +1081,69 @@ class LiteAPI {
 
       console.log(`✅ LiteAPI: Got enhanced details for ${hotelData.name}`);
 
+      // Parse hotel photos - LiteAPI returns hotelImages array with {url, caption, order, defaultImage}
+      const hotelPhotos: Array<{ url: string; caption?: string; category?: string; order?: number }> = [];
+
+      // PRIORITY 1: Use hotelImages from LiteAPI (official field name per docs)
+      if (hotelData.hotelImages && Array.isArray(hotelData.hotelImages) && hotelData.hotelImages.length > 0) {
+        // Sort by order if available, put defaultImage first
+        const sortedImages = [...hotelData.hotelImages].sort((a: any, b: any) => {
+          if (a.defaultImage && !b.defaultImage) return -1;
+          if (!a.defaultImage && b.defaultImage) return 1;
+          return (a.order || 0) - (b.order || 0);
+        });
+
+        sortedImages.forEach((photo: any) => {
+          const imageUrl = photo.url || photo.image || photo.large || photo.medium;
+          if (imageUrl) {
+            hotelPhotos.push({
+              url: imageUrl,
+              caption: photo.caption || photo.imageCaption || undefined,
+              category: photo.category || undefined,
+              order: photo.order,
+            });
+          }
+        });
+        console.log(`📸 LiteAPI: Found ${hotelPhotos.length} photos from hotelImages for hotel ${hotelId}`);
+      }
+      // PRIORITY 2: Try hotelPhotos (alternate field name)
+      else if (hotelData.hotelPhotos && Array.isArray(hotelData.hotelPhotos) && hotelData.hotelPhotos.length > 0) {
+        hotelData.hotelPhotos.forEach((photo: any) => {
+          const imageUrl = photo.image || photo.url || photo.large || photo.medium;
+          if (imageUrl) {
+            hotelPhotos.push({
+              url: imageUrl,
+              caption: photo.imageCaption || photo.caption || undefined,
+              category: photo.category || undefined,
+            });
+          }
+        });
+        console.log(`📸 LiteAPI: Found ${hotelPhotos.length} photos from hotelPhotos for hotel ${hotelId}`);
+      }
+      // PRIORITY 3: Try images array
+      else if (hotelData.images && Array.isArray(hotelData.images) && hotelData.images.length > 0) {
+        hotelData.images.forEach((img: any, index: number) => {
+          const imageUrl = typeof img === 'string' ? img : (img.url || img.image || img.large || img.medium);
+          if (imageUrl) {
+            hotelPhotos.push({
+              url: imageUrl,
+              caption: img.caption || `${hotelData.name} - Photo ${index + 1}`,
+            });
+          }
+        });
+        console.log(`📸 LiteAPI: Found ${hotelPhotos.length} photos from images for hotel ${hotelId}`);
+      }
+      // PRIORITY 4: Fallback to main_photo and thumbnail
+      else {
+        if (hotelData.main_photo) {
+          hotelPhotos.push({ url: hotelData.main_photo, caption: `${hotelData.name} - Main Photo` });
+        }
+        if (hotelData.thumbnail && hotelData.thumbnail !== hotelData.main_photo) {
+          hotelPhotos.push({ url: hotelData.thumbnail, caption: `${hotelData.name}` });
+        }
+        console.log(`📸 LiteAPI: Using fallback ${hotelPhotos.length} photos for hotel ${hotelId}`);
+      }
+
       return {
         id: hotelData.id,
         name: hotelData.name,
@@ -1065,6 +1160,7 @@ class LiteAPI {
         thumbnail: hotelData.thumbnail,
         chain: hotelData.chain,
         currency: hotelData.currency,
+        hotelPhotos: hotelPhotos,
         checkinCheckoutTimes: hotelData.checkinCheckoutTimes,
         hotelImportantInformation: hotelData.hotelImportantInformation,
         hotelFacilities: hotelData.hotelFacilities,
