@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed } from 'lucide-react';
+import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed, Globe, Check, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCityData } from '@/lib/data/city-locations';
 
 interface HotelSearchBarProps {
   lang?: 'en' | 'pt' | 'es';
@@ -18,6 +19,12 @@ interface LocationSuggestion {
   type: 'city' | 'landmark' | 'airport' | 'neighborhood' | 'poi';
   placeId?: string;
   emoji?: string; // Visual icon for enhanced display
+}
+
+interface SelectedDistrict {
+  id: string;
+  name: string;
+  location: { lat: number; lng: number };
 }
 
 // Get icon for location type
@@ -122,6 +129,17 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [popularDistricts, setPopularDistricts] = useState<Array<{ id: string; name: string; city: string; location: { lat: number; lng: number } }>>([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
 
+  // Multi-select Districts State
+  const [selectedDistricts, setSelectedDistricts] = useState<SelectedDistrict[]>([]);
+
+  // Selected destination details for enhanced display
+  const [selectedDestinationDetails, setSelectedDestinationDetails] = useState<{
+    name: string;
+    country: string;
+    emoji?: string;
+    type?: string;
+  } | null>(null);
+
   const destinationRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -198,6 +216,21 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     const fetchDistricts = async () => {
       setLoadingDistricts(true);
       try {
+        // First try local data for instant response
+        const localCityData = getCityData(destination);
+        if (localCityData && localCityData.popularDistricts.length > 0) {
+          const localDistricts = localCityData.popularDistricts.map((district, idx) => ({
+            id: `${destination.toLowerCase().replace(/\s+/g, '-')}-${idx}`,
+            name: district,
+            city: destination,
+            location: localCityData.center,
+          }));
+          setPopularDistricts(localDistricts.slice(0, 8));
+          setLoadingDistricts(false);
+          return;
+        }
+
+        // Fallback to API if local data not available
         const response = await fetch(`/api/hotels/districts?city=${encodeURIComponent(destination)}`);
         const data = await response.json();
         if (data.success && data.data && data.data.length > 0) {
@@ -207,15 +240,26 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         }
       } catch (error) {
         console.error('Error fetching districts:', error);
-        setPopularDistricts([]);
+        // Try local data as final fallback
+        const localCityData = getCityData(destination);
+        if (localCityData && localCityData.popularDistricts.length > 0) {
+          const localDistricts = localCityData.popularDistricts.map((district, idx) => ({
+            id: `${destination.toLowerCase().replace(/\s+/g, '-')}-${idx}`,
+            name: district,
+            city: destination,
+            location: localCityData.center,
+          }));
+          setPopularDistricts(localDistricts.slice(0, 8));
+        } else {
+          setPopularDistricts([]);
+        }
       } finally {
         setLoadingDistricts(false);
       }
     };
 
-    // Only fetch districts if destination looks like a city (not a specific district/hotel)
-    const delayFetch = setTimeout(fetchDistricts, 300);
-    return () => clearTimeout(delayFetch);
+    // Fetch immediately, no delay needed for local data
+    fetchDistricts();
   }, [destination]);
 
   // Fetch suggestions from API
@@ -268,6 +312,37 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     setSelectedLocation({ lat: suggestion.location.lat, lng: suggestion.location.lng });
     setShowDestinationDropdown(false);
     setSelectedIndex(-1);
+    // Clear selected districts when changing destination
+    setSelectedDistricts([]);
+    // Store destination details for enhanced display
+    setSelectedDestinationDetails({
+      name: suggestion.name,
+      country: suggestion.country,
+      emoji: suggestion.emoji,
+      type: suggestion.type,
+    });
+  }, []);
+
+  // Toggle district selection (multi-select)
+  const toggleDistrictSelection = useCallback((district: { id: string; name: string; location: { lat: number; lng: number } }) => {
+    setSelectedDistricts(prev => {
+      const isSelected = prev.some(d => d.id === district.id);
+      if (isSelected) {
+        return prev.filter(d => d.id !== district.id);
+      } else {
+        return [...prev, { id: district.id, name: district.name, location: district.location }];
+      }
+    });
+  }, []);
+
+  // Clear destination and all selections
+  const clearDestination = useCallback(() => {
+    setDestinationQuery('');
+    setDestination('');
+    setSelectedLocation(null);
+    setSelectedDistricts([]);
+    setSelectedDestinationDetails(null);
+    setPopularDistricts([]);
   }, []);
 
   // Keyboard navigation for suggestions
@@ -323,6 +398,14 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       queryParams.lng = selectedLocation.lng.toString();
     }
 
+    // Add selected districts if any (multi-select)
+    if (selectedDistricts.length > 0) {
+      queryParams.districts = selectedDistricts.map(d => d.name).join(',');
+      // Use first selected district's location for more precise search
+      queryParams.lat = selectedDistricts[0].location.lat.toString();
+      queryParams.lng = selectedDistricts[0].location.lng.toString();
+    }
+
     // Add advanced filters if any are selected
     if (selectedChains.length > 0) {
       queryParams.chains = selectedChains.join(',');
@@ -372,34 +455,107 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             {t.destination}
           </label>
           <div className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={destinationQuery}
-              onChange={(e) => {
-                setDestinationQuery(e.target.value);
-                setShowDestinationDropdown(true);
-              }}
-              onFocus={() => setShowDestinationDropdown(true)}
-              onKeyDown={handleKeyDown}
-              placeholder="New York, Paris, London..."
-              autoComplete="off"
-              className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
-            />
-            {loadingSuggestions && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
-            )}
-            {destinationQuery && !loadingSuggestions && (
-              <button
+            {/* Enhanced Selected Destination Display */}
+            {selectedDestinationDetails && destinationQuery === selectedDestinationDetails.name ? (
+              <div
                 onClick={() => {
-                  setDestinationQuery('');
-                  setDestination('');
-                  setSelectedLocation(null);
+                  setShowDestinationDropdown(true);
+                  inputRef.current?.focus();
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="w-full px-4 py-3 rounded-xl border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-amber-50 cursor-pointer transition-all hover:border-orange-500 hover:shadow-md"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* Destination Emoji or Globe Icon */}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-md">
+                      {selectedDestinationDetails.emoji ? (
+                        <span className="text-xl">{selectedDestinationDetails.emoji}</span>
+                      ) : (
+                        <Globe className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900 text-lg leading-tight flex items-center gap-2">
+                        {selectedDestinationDetails.name}
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        <Navigation className="w-3 h-3" />
+                        {selectedDestinationDetails.country || 'Destination selected'}
+                        {selectedDestinationDetails.type && (
+                          <span className="ml-1 px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full capitalize">
+                            {selectedDestinationDetails.type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearDestination();
+                    }}
+                    className="p-2 hover:bg-orange-100 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                  </button>
+                </div>
+                {/* Selected Districts Display */}
+                {selectedDistricts.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-orange-200 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium">Areas:</span>
+                    {selectedDistricts.map(district => (
+                      <span
+                        key={district.id}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-xs font-semibold text-orange-700 border border-orange-200"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        {district.name}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDistrictSelection(district);
+                          }}
+                          className="ml-0.5 hover:text-red-500"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={destinationQuery}
+                  onChange={(e) => {
+                    setDestinationQuery(e.target.value);
+                    setShowDestinationDropdown(true);
+                    if (selectedDestinationDetails && e.target.value !== selectedDestinationDetails.name) {
+                      setSelectedDestinationDetails(null);
+                    }
+                  }}
+                  onFocus={() => setShowDestinationDropdown(true)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="New York, Paris, London..."
+                  autoComplete="off"
+                  className="w-full px-4 py-3 pr-10 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
+                />
+                {loadingSuggestions && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
+                )}
+                {destinationQuery && !loadingSuggestions && (
+                  <button
+                    onClick={clearDestination}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </>
             )}
           </div>
 
@@ -526,35 +682,6 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             )}
           </AnimatePresence>
 
-          {/* Popular Districts Quick-Select */}
-          <AnimatePresence>
-            {popularDistricts.length > 0 && !showDestinationDropdown && (
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -5 }}
-                className="mt-2"
-              >
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs text-gray-500 font-medium">Popular areas:</span>
-                  {popularDistricts.map((district) => (
-                    <button
-                      key={district.id}
-                      type="button"
-                      onClick={() => {
-                        setDestination(district.name);
-                        setDestinationQuery(district.name);
-                        setSelectedLocation(district.location);
-                      }}
-                      className="px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-full border border-orange-200 transition-colors"
-                    >
-                      {district.name}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Check-in */}
@@ -703,6 +830,94 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           </button>
         </div>
       </div>
+
+      {/* 📍 POPULAR AREAS - Dedicated Row Below All Fields (Multi-Select) */}
+      <AnimatePresence>
+        {popularDistricts.length > 0 && destination && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 overflow-hidden"
+          >
+            <div className="p-4 bg-gradient-to-r from-slate-50 via-orange-50/30 to-amber-50/30 rounded-xl border border-orange-200/50">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                    <MapPin className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    Popular Areas in {destination}
+                  </span>
+                  <span className="text-xs text-gray-400">(select multiple)</span>
+                </div>
+                {selectedDistricts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDistricts([])}
+                    className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Horizontal Scrollable Districts */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {loadingDistricts ? (
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-xs">Loading areas...</span>
+                  </div>
+                ) : (
+                  <>
+                    {popularDistricts.map((district) => {
+                      const isSelected = selectedDistricts.some(d => d.id === district.id);
+                      return (
+                        <button
+                          key={district.id}
+                          type="button"
+                          onClick={() => toggleDistrictSelection(district)}
+                          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md scale-105'
+                              : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-700 border border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          {isSelected ? (
+                            <Check className="w-3.5 h-3.5" />
+                          ) : (
+                            <MapPin className="w-3.5 h-3.5" />
+                          )}
+                          {district.name}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+
+              {/* Selected Districts Summary */}
+              {selectedDistricts.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-orange-200/50">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      {selectedDistricts.length} area{selectedDistricts.length > 1 ? 's' : ''} selected:
+                    </span>
+                    {selectedDistricts.map(d => (
+                      <span key={d.id} className="text-xs text-gray-600 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                        {d.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Advanced Filters Toggle */}
       <div className="mt-4">

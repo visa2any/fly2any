@@ -5,7 +5,10 @@ import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check,
   Users, Wifi, Coffee, Dumbbell, Car, X, Utensils, Shield, Sparkles, Award, TrendingUp,
-  Waves, ParkingCircle, UtensilsCrossed, Bed, Clock, Flame, ThumbsUp, Zap, BadgePercent, Loader2
+  Waves, ParkingCircle, UtensilsCrossed, Bed, Clock, Flame, ThumbsUp, Zap, BadgePercent, Loader2,
+  ChevronDown, ChevronUp, Tv, Wind, Bath, Refrigerator, Mountain, Cigarette, CigaretteOff,
+  Baby, Dog, Accessibility, CalendarCheck, CalendarX, AlertCircle, Info, Ban, CheckCircle2,
+  LogIn, LogOut, Timer
 } from 'lucide-react';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import { getHotelLocationContext } from '@/lib/data/city-locations';
@@ -124,6 +127,7 @@ export function HotelCard({
   const [loadedImages, setLoadedImages] = useState<Array<{ url: string; alt: string }>>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const t = translations[lang];
 
   // Fetch full image gallery when user hovers on the image
@@ -255,12 +259,16 @@ export function HotelCard({
 
   const currency = hotel.lowestPrice?.currency || bestRate?.totalPrice?.currency || 'USD';
 
-  // Check for breakfast included
-  const hasBreakfast = bestRate?.boardType &&
-    ['BB', 'HB', 'FB', 'AI', 'BI', 'breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase());
+  // Check for breakfast included (use hotel-level or rate-level info)
+  const boardTypeToCheck = bestRate?.boardType || (hotel as any).boardType;
+  const hasBreakfast = boardTypeToCheck &&
+    ['BB', 'HB', 'FB', 'AI', 'BI', 'breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(boardTypeToCheck.toLowerCase());
 
-  // Check for free cancellation
-  const hasFreeCancellation = bestRate?.refundable === true;
+  // Check for free cancellation (use hotel-level or rate-level info)
+  const hasFreeCancellation = bestRate?.refundable === true || (hotel as any).refundable === true;
+
+  // Get cancellation deadline if available
+  const cancellationDeadline = bestRate?.cancellationDeadline || (hotel as any).cancellationDeadline;
 
   // Generate a pseudo-random "rooms left" number based on hotel ID (for urgency)
   const roomsLeft = useMemo(() => {
@@ -295,36 +303,101 @@ export function HotelCard({
     }
   };
 
-  // Priority amenities to show (max 4 with icons)
-  const priorityAmenities = useMemo(() => {
-    if (!hotel.amenities || hotel.amenities.length === 0) return [];
+  // Comprehensive amenity icon mapping
+  const amenityIconMap: Record<string, { icon: any; label: string; color: string }> = {
+    // Connectivity
+    'wifi': { icon: Wifi, label: 'Free WiFi', color: 'text-blue-600' },
+    'internet': { icon: Wifi, label: 'Internet', color: 'text-blue-600' },
+    'wi-fi': { icon: Wifi, label: 'WiFi', color: 'text-blue-600' },
+    // Recreation
+    'pool': { icon: Waves, label: 'Pool', color: 'text-cyan-600' },
+    'swimming': { icon: Waves, label: 'Swimming Pool', color: 'text-cyan-600' },
+    'spa': { icon: Sparkles, label: 'Spa', color: 'text-pink-600' },
+    'wellness': { icon: Sparkles, label: 'Wellness', color: 'text-pink-600' },
+    'sauna': { icon: Sparkles, label: 'Sauna', color: 'text-pink-600' },
+    'gym': { icon: Dumbbell, label: 'Gym', color: 'text-orange-600' },
+    'fitness': { icon: Dumbbell, label: 'Fitness Center', color: 'text-orange-600' },
+    // Transport
+    'parking': { icon: ParkingCircle, label: 'Parking', color: 'text-slate-600' },
+    'garage': { icon: Car, label: 'Garage', color: 'text-slate-600' },
+    'valet': { icon: Car, label: 'Valet Parking', color: 'text-slate-600' },
+    // Food & Drink
+    'restaurant': { icon: UtensilsCrossed, label: 'Restaurant', color: 'text-red-600' },
+    'dining': { icon: UtensilsCrossed, label: 'Dining', color: 'text-red-600' },
+    'breakfast': { icon: Coffee, label: 'Breakfast', color: 'text-amber-600' },
+    'bar': { icon: Coffee, label: 'Bar/Lounge', color: 'text-amber-700' },
+    'room service': { icon: Utensils, label: 'Room Service', color: 'text-red-500' },
+    // Room Features
+    'air condition': { icon: Wind, label: 'A/C', color: 'text-teal-600' },
+    'a/c': { icon: Wind, label: 'Air Conditioning', color: 'text-teal-600' },
+    'ac': { icon: Wind, label: 'A/C', color: 'text-teal-600' },
+    'climate': { icon: Wind, label: 'Climate Control', color: 'text-teal-600' },
+    'tv': { icon: Tv, label: 'TV', color: 'text-slate-700' },
+    'television': { icon: Tv, label: 'Television', color: 'text-slate-700' },
+    'minibar': { icon: Refrigerator, label: 'Minibar', color: 'text-indigo-600' },
+    'refrigerator': { icon: Refrigerator, label: 'Refrigerator', color: 'text-indigo-600' },
+    'bath': { icon: Bath, label: 'Bathtub', color: 'text-blue-500' },
+    'jacuzzi': { icon: Bath, label: 'Jacuzzi', color: 'text-blue-500' },
+    // Policies
+    'pet': { icon: Dog, label: 'Pet Friendly', color: 'text-amber-600' },
+    'dog': { icon: Dog, label: 'Dogs Allowed', color: 'text-amber-600' },
+    'non-smoking': { icon: CigaretteOff, label: 'Non-Smoking', color: 'text-emerald-600' },
+    'smoking': { icon: Cigarette, label: 'Smoking Area', color: 'text-gray-500' },
+    // Family
+    'kids': { icon: Baby, label: 'Kids Friendly', color: 'text-pink-500' },
+    'family': { icon: Users, label: 'Family Rooms', color: 'text-purple-600' },
+    'babysitting': { icon: Baby, label: 'Babysitting', color: 'text-pink-500' },
+    // Accessibility
+    'wheelchair': { icon: Accessibility, label: 'Wheelchair Access', color: 'text-blue-600' },
+    'accessible': { icon: Accessibility, label: 'Accessible', color: 'text-blue-600' },
+    'elevator': { icon: Building2, label: 'Elevator', color: 'text-slate-600' },
+    'lift': { icon: Building2, label: 'Elevator', color: 'text-slate-600' },
+    // Views & Location
+    'sea view': { icon: Mountain, label: 'Sea View', color: 'text-blue-500' },
+    'ocean': { icon: Mountain, label: 'Ocean View', color: 'text-blue-500' },
+    'beach': { icon: Waves, label: 'Beach Access', color: 'text-cyan-500' },
+    'balcony': { icon: Mountain, label: 'Balcony', color: 'text-green-600' },
+    // Services
+    'concierge': { icon: Award, label: 'Concierge', color: 'text-amber-600' },
+    '24-hour': { icon: Clock, label: '24/7 Service', color: 'text-slate-600' },
+    'laundry': { icon: Sparkles, label: 'Laundry', color: 'text-blue-500' },
+    // Default
+    'default': { icon: Check, label: '', color: 'text-slate-500' },
+  };
 
-    const amenityPriority = [
-      { match: ['wifi', 'internet', 'wi-fi'], icon: Wifi, label: 'WiFi', color: 'text-blue-600' },
-      { match: ['pool', 'swimming'], icon: Waves, label: 'Pool', color: 'text-cyan-600' },
-      { match: ['spa', 'wellness', 'sauna'], icon: Sparkles, label: 'Spa', color: 'text-pink-600' },
-      { match: ['gym', 'fitness', 'exercise'], icon: Dumbbell, label: 'Gym', color: 'text-orange-600' },
-      { match: ['parking', 'garage', 'car'], icon: ParkingCircle, label: 'Parking', color: 'text-slate-600' },
-      { match: ['restaurant', 'dining'], icon: UtensilsCrossed, label: 'Restaurant', color: 'text-red-600' },
-      { match: ['air condition', 'a/c', 'ac', 'climate'], icon: Zap, label: 'A/C', color: 'text-teal-600' },
-      { match: ['pet', 'dog', 'animal'], icon: Heart, label: 'Pet Friendly', color: 'text-rose-600' },
-    ];
-
-    const matched: Array<{ icon: any; label: string; color: string }> = [];
-
-    for (const amenity of hotel.amenities) {
-      const lowerAmenity = amenity.toLowerCase();
-      for (const priority of amenityPriority) {
-        if (priority.match.some(m => lowerAmenity.includes(m)) && !matched.find(m => m.label === priority.label)) {
-          matched.push({ icon: priority.icon, label: priority.label, color: priority.color });
-          break;
-        }
+  // Get icon for any amenity
+  const getAmenityIcon = (amenity: string): { icon: any; label: string; color: string } => {
+    const lower = amenity.toLowerCase();
+    for (const [key, value] of Object.entries(amenityIconMap)) {
+      if (lower.includes(key)) {
+        return { ...value, label: value.label || amenity };
       }
-      if (matched.length >= 4) break;
     }
+    return { icon: Check, label: amenity, color: 'text-slate-500' };
+  };
 
-    return matched;
+  // All amenities with icons
+  const allAmenities = useMemo(() => {
+    if (!hotel.amenities || hotel.amenities.length === 0) return [];
+    return hotel.amenities.map(amenity => ({
+      ...getAmenityIcon(amenity),
+      original: amenity
+    }));
   }, [hotel.amenities]);
+
+  // Priority amenities (first 4-5 important ones)
+  const priorityAmenities = useMemo(() => {
+    const priorityOrder = ['wifi', 'pool', 'spa', 'gym', 'parking', 'restaurant', 'breakfast', 'air condition', 'pet'];
+    const sorted = [...allAmenities].sort((a, b) => {
+      const aIndex = priorityOrder.findIndex(p => a.original.toLowerCase().includes(p));
+      const bIndex = priorityOrder.findIndex(p => b.original.toLowerCase().includes(p));
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+    return sorted.slice(0, 5);
+  }, [allAmenities]);
 
   return (
     <div
@@ -633,25 +706,136 @@ export function HotelCard({
           )}
         </div>
 
-        {/* 🏷️ AMENITIES - Quick Icons */}
-        {priorityAmenities.length > 0 && (
-          <div className="flex items-center gap-3 mt-auto pt-3 border-t border-slate-100">
-            {priorityAmenities.map((amenity, idx) => {
-              const IconComponent = amenity.icon;
-              return (
-                <div key={idx} className="flex items-center gap-1" title={amenity.label}>
-                  <IconComponent className={`w-4 h-4 ${amenity.color}`} />
-                  <span className="text-[11px] text-slate-600 font-medium">{amenity.label}</span>
+        {/* 🏷️ AMENITIES & POLICIES SECTION */}
+        <div className="mt-auto pt-3 border-t border-slate-100 space-y-2">
+          {/* Priority Amenities Row */}
+          {priorityAmenities.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {priorityAmenities.map((amenity, idx) => {
+                const IconComponent = amenity.icon;
+                return (
+                  <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md" title={amenity.original}>
+                    <IconComponent className={`w-3.5 h-3.5 ${amenity.color}`} />
+                    <span className="text-[10px] text-slate-600 font-medium">{amenity.label}</span>
+                  </div>
+                );
+              })}
+              {allAmenities.length > 5 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowAllAmenities(!showAllAmenities); }}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded-md text-blue-600 transition-colors"
+                >
+                  <span className="text-[10px] font-semibold">
+                    {showAllAmenities ? 'Less' : `+${allAmenities.length - 5} more`}
+                  </span>
+                  {showAllAmenities ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Expanded All Amenities */}
+          {showAllAmenities && allAmenities.length > 5 && (
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="text-[10px] font-bold text-slate-700 uppercase tracking-wide mb-2">All Amenities</div>
+              <div className="flex flex-wrap gap-1.5">
+                {allAmenities.map((amenity, idx) => {
+                  const IconComponent = amenity.icon;
+                  return (
+                    <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-slate-200" title={amenity.original}>
+                      <IconComponent className={`w-3 h-3 ${amenity.color}`} />
+                      <span className="text-[9px] text-slate-600">{amenity.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 📅 CHECK-IN/OUT & CANCELLATION SECTION */}
+          <div className="flex items-center gap-3 flex-wrap text-[10px]">
+            {/* Check-in Time (if available) */}
+            {hotel.checkInTime && (
+              <div className="flex items-center gap-1 text-slate-600">
+                <LogIn className="w-3 h-3 text-emerald-500" />
+                <span>Check-in: <span className="font-semibold">{hotel.checkInTime}</span></span>
+              </div>
+            )}
+
+            {/* Check-out Time (if available) */}
+            {hotel.checkOutTime && (
+              <div className="flex items-center gap-1 text-slate-600">
+                <LogOut className="w-3 h-3 text-red-500" />
+                <span>Check-out: <span className="font-semibold">{hotel.checkOutTime}</span></span>
+              </div>
+            )}
+
+            {/* Default times if not provided */}
+            {!hotel.checkInTime && !hotel.checkOutTime && (
+              <>
+                <div className="flex items-center gap-1 text-slate-500">
+                  <LogIn className="w-3 h-3 text-emerald-500" />
+                  <span>Check-in: <span className="font-medium">3:00 PM</span></span>
                 </div>
-              );
-            })}
-            {hotel.amenities && hotel.amenities.length > 4 && (
-              <span className="text-[11px] text-slate-400 font-medium">
-                +{hotel.amenities.length - 4} more
-              </span>
+                <div className="flex items-center gap-1 text-slate-500">
+                  <LogOut className="w-3 h-3 text-red-500" />
+                  <span>Check-out: <span className="font-medium">11:00 AM</span></span>
+                </div>
+              </>
             )}
           </div>
-        )}
+
+          {/* 🛡️ CANCELLATION POLICY - Enhanced (show when we have pricing info) */}
+          {perNightPrice > 0 && (
+            <div className={`flex items-center gap-2 p-2 rounded-lg ${
+              hasFreeCancellation
+                ? 'bg-emerald-50 border border-emerald-200'
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              {hasFreeCancellation ? (
+                <>
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                      <Shield className="w-3 h-3" />
+                      {t.freeCancellation}
+                    </div>
+                    {cancellationDeadline ? (
+                      <div className="text-[9px] text-emerald-600">
+                        Cancel free until {new Date(cancellationDeadline).toLocaleDateString()}
+                      </div>
+                    ) : (
+                      <div className="text-[9px] text-emerald-600">
+                        Cancel anytime before check-in for full refund
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <Ban className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[11px] font-bold text-red-700 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {t.nonRefundable}
+                    </div>
+                    <div className="text-[9px] text-red-600">
+                      This rate cannot be cancelled or modified
+                    </div>
+                  </div>
+                  {/* Price advantage for non-refundable */}
+                  <div className="flex-shrink-0 px-2 py-1 bg-amber-100 rounded text-[9px] font-bold text-amber-700">
+                    Best Price
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* 🔘 CTA BUTTON - Bottom Right */}
         <div className="absolute bottom-4 right-4">

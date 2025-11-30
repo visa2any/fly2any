@@ -628,6 +628,13 @@ export interface LiteAPIHotelRate {
   refundable: boolean;
   maxOccupancy: number;
   offerId: string;
+  // Cancellation
+  cancellationDeadline?: string; // ISO date - free cancellation until this date
+  cancellationPolicy?: {
+    type: 'free_cancellation' | 'partial_refund' | 'non_refundable';
+    description?: string;
+    penaltyAmount?: string;
+  };
 }
 
 export interface LiteAPIHotel {
@@ -654,6 +661,21 @@ export interface LiteAPIHotel {
   };
   lowestPricePerNight?: number; // Per-night price (lowestPrice is TOTAL for entire stay)
   source: 'liteapi';
+  // Cancellation & board info from best rate (populated from search results)
+  refundable?: boolean; // true = free cancellation available
+  boardType?: string; // BB, RO, HB, FB, AI, etc.
+  cancellationDeadline?: string; // ISO date for cancellation deadline
+  // Check-in/out times
+  checkInTime?: string; // e.g., "3:00 PM" or "15:00"
+  checkOutTime?: string; // e.g., "11:00 AM" or "11:00"
+  // Hotel policies
+  hotelPolicies?: {
+    checkin?: string;
+    checkout?: string;
+    cancellation?: string;
+    childPolicy?: string;
+    petPolicy?: string;
+  };
 }
 
 // ============================================================================

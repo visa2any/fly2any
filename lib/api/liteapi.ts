@@ -260,6 +260,10 @@ interface NormalizedHotel {
   chain?: string;
   currency: string;
   lowestPrice?: number; // TOTAL price for entire stay
+  // Cancellation & board info from best rate
+  refundable?: boolean; // true = free cancellation available
+  boardType?: string; // BB, RO, HB, FB, AI, etc.
+  cancellationDeadline?: string; // ISO date for cancellation deadline
   lowestPricePerNight?: number; // Per-night price
   rooms?: NormalizedRoom[];
   source: 'liteapi';
@@ -501,14 +505,35 @@ class LiteAPI {
               return { hotelId, minimumRate: { amount: 0, currency: params.currency || 'USD' }, available: false };
             }
 
-            // Find the minimum price across all room types
+            // Find the minimum price across all room types and extract refundable/boardType info
             let minPrice = Infinity;
             let currency = params.currency || 'USD';
+            let refundable = false;
+            let boardType = 'RO'; // Default to Room Only
+            let cancellationDeadline: string | undefined;
 
             for (const roomType of roomTypes) {
-              const price = roomType.offerRetailRate?.amount;
-              if (price && price < minPrice) {
-                minPrice = price;
+              // Check all rates in this room type
+              const rates = roomType.rates || [];
+              for (const rate of rates) {
+                const price = rate.retailRate?.total?.[0]?.amount || roomType.offerRetailRate?.amount;
+                if (price && price < minPrice) {
+                  minPrice = price;
+                  currency = rate.retailRate?.total?.[0]?.currency || roomType.offerRetailRate?.currency || currency;
+                  // Extract cancellation policy from rate
+                  const refundableTag = rate.cancellationPolicies?.refundableTag;
+                  refundable = refundableTag === 'RFN';
+                  boardType = rate.boardType || rate.boardName || 'RO';
+                  // Extract cancellation deadline if available
+                  if (rate.cancellationPolicies?.cancelPolicyInfos?.[0]?.cancelTime) {
+                    cancellationDeadline = rate.cancellationPolicies.cancelPolicyInfos[0].cancelTime;
+                  }
+                }
+              }
+              // Fallback: check offerRetailRate directly on roomType
+              const directPrice = roomType.offerRetailRate?.amount;
+              if (directPrice && directPrice < minPrice) {
+                minPrice = directPrice;
                 currency = roomType.offerRetailRate?.currency || currency;
               }
             }
@@ -516,7 +541,10 @@ class LiteAPI {
             return {
               hotelId,
               minimumRate: { amount: minPrice === Infinity ? 0 : minPrice, currency },
-              available: minPrice !== Infinity
+              available: minPrice !== Infinity,
+              refundable,
+              boardType,
+              cancellationDeadline
             };
           });
 
@@ -850,6 +878,10 @@ class LiteAPI {
           currency: minRateData.minimumRate.currency,
           lowestPrice: totalPrice, // TOTAL price for entire stay
           lowestPricePerNight: perNightPrice, // Per-night price
+          // ✅ ADDED: Cancellation & board info from best rate
+          refundable: (minRateData as any).refundable || false,
+          boardType: (minRateData as any).boardType || 'RO',
+          cancellationDeadline: (minRateData as any).cancellationDeadline,
           rooms: [], // No room details in min rates mode
           source: 'liteapi',
         });
