@@ -255,6 +255,8 @@ interface NormalizedHotel {
   reviewCount: number;
   image: string;
   thumbnail: string;
+  images?: Array<{ url: string; alt: string }>; // Full gallery images from /data/hotel endpoint
+  amenities?: string[]; // Hotel amenities/facilities
   chain?: string;
   currency: string;
   lowestPrice?: number; // TOTAL price for entire stay
@@ -763,7 +765,19 @@ class LiteAPI {
         guestNationality: params.guestNationality || 'US',
       });
 
-      // Step 3: Merge hotel data with minimum rates
+      // Step 3: Load facilities for amenity mapping (cached)
+      let facilitiesMap = new Map<number, string>();
+      try {
+        const facilitiesData = await this.getFacilities();
+        console.log('🔍 DEBUG: First facility:', facilitiesData.data[0]);
+        facilitiesMap = new Map(facilitiesData.data.map(f => [f.facility_id, f.facility]));
+        console.log(`✅ Loaded ${facilitiesMap.size} facilities for amenity mapping`);
+        console.log('🔍 DEBUG: First 3 from map:', Array.from(facilitiesMap.entries()).slice(0, 3));
+      } catch (error) {
+        console.warn('⚠️ Could not load facilities, hotels will have no amenities');
+      }
+
+      // Step 4: Merge hotel data with minimum rates
       const hotelsMap = new Map(hotels.map(h => [h.id, h]));
       const normalizedHotels: NormalizedHotel[] = [];
 
@@ -778,6 +792,42 @@ class LiteAPI {
         const perNightPrice = totalPrice / nights;
 
         console.log(`💰 ${hotelInfo.name}: Total $${totalPrice.toFixed(2)} ÷ ${nights} nights = $${perNightPrice.toFixed(2)}/night`);
+
+        // Map facility IDs to amenity names
+        if (normalizedHotels.length === 0) {
+          console.log(`🔍 DEBUG: First hotel "${hotelInfo.name}" facilityIds:`, hotelInfo.facilityIds?.slice(0, 5));
+        }
+        const amenities = (hotelInfo.facilityIds || [])
+          .map(id => facilitiesMap.get(id))
+          .filter((name): name is string => !!name)
+          .slice(0, 10); // Limit to top 10 amenities for performance
+        if (normalizedHotels.length === 0) {
+          console.log(`🔍 DEBUG: Mapped amenities for first hotel:`, amenities);
+        }
+
+        // Build images array from available sources
+        const hotelImages: Array<{ url: string; alt: string }> = [];
+
+        // Add main photo
+        if (hotelInfo.main_photo) {
+          hotelImages.push({ url: hotelInfo.main_photo, alt: hotelInfo.name });
+        }
+
+        // Add thumbnail if different from main photo
+        if (hotelInfo.thumbnail && hotelInfo.thumbnail !== hotelInfo.main_photo) {
+          hotelImages.push({ url: hotelInfo.thumbnail, alt: `${hotelInfo.name} thumbnail` });
+        }
+
+        // Add any additional images from hotelInfo.images array if available
+        if ((hotelInfo as any).images && Array.isArray((hotelInfo as any).images)) {
+          for (const img of (hotelInfo as any).images) {
+            if (img && typeof img === 'string' && !hotelImages.find(h => h.url === img)) {
+              hotelImages.push({ url: img, alt: hotelInfo.name });
+            } else if (img && img.url && !hotelImages.find(h => h.url === img.url)) {
+              hotelImages.push({ url: img.url, alt: img.alt || hotelInfo.name });
+            }
+          }
+        }
 
         normalizedHotels.push({
           id: hotelInfo.id,
@@ -794,6 +844,8 @@ class LiteAPI {
           reviewCount: hotelInfo.reviewCount || 0,
           image: hotelInfo.main_photo || '',
           thumbnail: hotelInfo.thumbnail || hotelInfo.main_photo || '',
+          images: hotelImages, // ✅ ADDED: Array of all available images
+          amenities, // ✅ ADDED: Map facility IDs to amenity names
           chain: hotelInfo.chain,
           currency: minRateData.minimumRate.currency,
           lowestPrice: totalPrice, // TOTAL price for entire stay
@@ -804,6 +856,8 @@ class LiteAPI {
       }
 
       // Note: Fallback removed - getHotelMinimumRates now uses correct /hotels/rates endpoint
+      // Note: Full image galleries are fetched on-demand via /api/hotels/[id]/images endpoint
+      // to avoid slowing down search results. HotelCard will lazy-load images.
 
       // Sort by lowest per-night price
       normalizedHotels.sort((a, b) => (a.lowestPricePerNight || Infinity) - (b.lowestPricePerNight || Infinity));
@@ -873,6 +927,71 @@ class LiteAPI {
       console.error('❌ LiteAPI: Error getting hotel details:', axiosError.response?.data || axiosError.message);
       throw new Error('Failed to get hotel details');
     }
+  }
+
+  /**
+   * Get all images for a hotel from the detailed endpoint
+   * The /data/hotel endpoint returns full hotelImages array (30+ images)
+   */
+  async getHotelImages(hotelId: string): Promise<Array<{ url: string; alt: string }>> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/data/hotel`, {
+        params: { hotelId },
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+
+      const hotelData = response.data.data;
+      if (!hotelData?.hotelImages) {
+        return [];
+      }
+
+      // Map hotelImages to our format
+      return hotelData.hotelImages.map((img: any) => ({
+        url: img.url || img.urlHd || '',
+        alt: img.caption || hotelData.name || 'Hotel image',
+      })).filter((img: { url: string }) => img.url);
+    } catch (error) {
+      console.warn(`⚠️ Could not fetch images for hotel ${hotelId}`);
+      return [];
+    }
+  }
+
+  /**
+   * Batch fetch images for multiple hotels in parallel
+   * Optimized with concurrency limit to avoid rate limiting
+   */
+  async getHotelImagesBatch(hotelIds: string[]): Promise<Map<string, Array<{ url: string; alt: string }>>> {
+    const BATCH_SIZE = 10; // Process 10 hotels at a time
+    const imagesMap = new Map<string, Array<{ url: string; alt: string }>>();
+
+    console.log(`📸 Fetching images for ${hotelIds.length} hotels in batches of ${BATCH_SIZE}`);
+
+    for (let i = 0; i < hotelIds.length; i += BATCH_SIZE) {
+      const batchIds = hotelIds.slice(i, i + BATCH_SIZE);
+
+      // Fetch images for this batch in parallel
+      const batchPromises = batchIds.map(async (hotelId) => {
+        const images = await this.getHotelImages(hotelId);
+        return { hotelId, images };
+      });
+
+      const results = await Promise.all(batchPromises);
+
+      for (const { hotelId, images } of results) {
+        if (images.length > 0) {
+          imagesMap.set(hotelId, images);
+        }
+      }
+
+      // Small delay between batches to avoid rate limiting
+      if (i + BATCH_SIZE < hotelIds.length) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+
+    console.log(`✅ Fetched images for ${imagesMap.size}/${hotelIds.length} hotels`);
+    return imagesMap;
   }
 
   /**
@@ -1663,9 +1782,9 @@ class LiteAPI {
    */
   async getFacilities(): Promise<{
     data: Array<{
-      id: number;
-      name: string;
-      category?: string;
+      facility_id: number;
+      facility: string;
+      sort?: number;
     }>;
   }> {
     try {
@@ -1678,6 +1797,7 @@ class LiteAPI {
 
       const facilities = response.data.data || [];
       console.log(`✅ LiteAPI: Got ${facilities.length} facilities`);
+      console.log('🔍 DEBUG: First 3 facilities:', JSON.stringify(facilities.slice(0, 3), null, 2));
 
       return { data: facilities };
     } catch (error) {

@@ -229,6 +229,7 @@ export default function EnhancedSearchBar({
   const [isLoadingHotelSuggestions, setIsLoadingHotelSuggestions] = useState(false);
   const [showHotelCheckInPicker, setShowHotelCheckInPicker] = useState(false);
   const [showHotelCheckOutPicker, setShowHotelCheckOutPicker] = useState(false);
+  const [popularDistricts, setPopularDistricts] = useState<Array<{ id: string; name: string; city: string; location: { lat: number; lng: number } }>>([]);
 
   // Car rental-specific state
   const [carPickupLocation, setCarPickupLocation] = useState('');
@@ -293,6 +294,32 @@ export default function EnhancedSearchBar({
     setCheckInDate(tomorrow.toISOString().split('T')[0]);
     setCheckOutDate(dayAfter.toISOString().split('T')[0]);
   }, []);
+
+  // Fetch popular districts when a hotel destination is selected
+  useEffect(() => {
+    if (!hotelDestination || !hotelLocation) {
+      setPopularDistricts([]);
+      return;
+    }
+
+    const fetchDistricts = async () => {
+      try {
+        const response = await fetch(`/api/hotels/districts?city=${encodeURIComponent(hotelDestination)}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setPopularDistricts(data.data.slice(0, 8));
+        } else {
+          setPopularDistricts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching districts:', error);
+        setPopularDistricts([]);
+      }
+    };
+
+    const delayFetch = setTimeout(fetchDistricts, 300);
+    return () => clearTimeout(delayFetch);
+  }, [hotelDestination, hotelLocation]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -1786,6 +1813,28 @@ export default function EnhancedSearchBar({
                   )}
                 </div>
               )}
+
+              {/* Popular Districts Quick-Select */}
+              {popularDistricts.length > 0 && !showHotelSuggestions && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium">Popular areas:</span>
+                    {popularDistricts.map((district) => (
+                      <button
+                        key={district.id}
+                        type="button"
+                        onClick={() => {
+                          setHotelDestination(district.name);
+                          setHotelLocation(district.location);
+                        }}
+                        className="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors"
+                      >
+                        {district.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Check-in Date */}
@@ -2862,6 +2911,28 @@ export default function EnhancedSearchBar({
                 ) : (
                   <div className="p-4 text-center text-gray-500 text-sm">No results found</div>
                 )}
+              </div>
+            )}
+
+            {/* Popular Districts Quick-Select (Mobile) */}
+            {popularDistricts.length > 0 && !showHotelSuggestions && (
+              <div className="mt-2">
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span className="text-[10px] text-gray-500 font-medium">Popular:</span>
+                  {popularDistricts.slice(0, 5).map((district) => (
+                    <button
+                      key={district.id}
+                      type="button"
+                      onClick={() => {
+                        setHotelDestination(district.name);
+                        setHotelLocation(district.location);
+                      }}
+                      className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors"
+                    >
+                      {district.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

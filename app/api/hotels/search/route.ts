@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { liteAPI } from '@/lib/api/liteapi';
+import { liteAPI } from '@/lib/api/liteapi'; // ✅ Updated with amenities support
 import { searchHotels as searchHotelbeds, normalizeHotelbedsHotel } from '@/lib/api/hotelbeds';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import type { HotelSearchParams, Hotel } from '@/lib/hotels/types';
@@ -739,9 +739,9 @@ export async function GET(request: NextRequest) {
       rating: hotel.stars,
       reviewScore: hotel.rating,
       reviewCount: hotel.reviewCount,
-      images: hotel.image ? [{ url: hotel.image, alt: hotel.name }] : [],
+      images: hotel.images || (hotel.image ? [{ url: hotel.image, alt: hotel.name }] : []),
       thumbnail: hotel.thumbnail,
-      amenities: [],
+      amenities: hotel.amenities || [],
       rates: hotel.rooms?.map(room => ({
         id: room.rateId,
         roomType: room.name,

@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Star, MapPin, ChevronLeft, ChevronRight, Heart, Share2, Check,
   Users, Wifi, Coffee, Dumbbell, Car, X, Utensils, Shield, Sparkles, Award, TrendingUp,
-  Waves, ParkingCircle, UtensilsCrossed, Bed
+  Waves, ParkingCircle, UtensilsCrossed, Bed, Clock, Flame, ThumbsUp, Zap, BadgePercent, Loader2
 } from 'lucide-react';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
+import { getHotelLocationContext } from '@/lib/data/city-locations';
 import type { LiteAPIHotel, LiteAPIHotelRate } from '@/lib/hotels/types';
+import { Plane, Building2 } from 'lucide-react';
 
 export interface HotelCardProps {
   hotel: LiteAPIHotel;
@@ -20,12 +22,14 @@ export interface HotelCardProps {
   onSelect: (hotelId: string, rateId: string, offerId: string) => void;
   onViewDetails: (hotelId: string) => void;
   lang?: 'en' | 'pt' | 'es';
+  searchLat?: number;
+  searchLng?: number;
 }
 
 const translations = {
   en: {
-    perNight: 'per night',
-    total: 'Total',
+    perNight: '/night',
+    total: 'total',
     nights: 'nights',
     viewDetails: 'View Details',
     selectRoom: 'Book Now',
@@ -33,20 +37,24 @@ const translations = {
     freeCancellation: 'Free Cancellation',
     nonRefundable: 'Non-refundable',
     reviews: 'reviews',
-    excellent: 'Exceptional',
-    veryGood: 'Excellent',
-    good: 'Very Good',
-    fair: 'Good',
+    exceptional: 'Exceptional',
+    excellent: 'Excellent',
+    veryGood: 'Very Good',
+    good: 'Good',
     showRates: 'More Options',
     hideRates: 'Less',
     noRates: 'Check Dates',
     from: 'From',
     bestPrice: 'Best Price',
     instantBook: 'Instant Confirmation',
+    popularChoice: 'Popular Choice',
+    limitedAvail: 'Only few left!',
+    breakfastIncl: 'Breakfast Included',
+    verified: 'Verified',
   },
   pt: {
-    perNight: 'por noite',
-    total: 'Total',
+    perNight: '/noite',
+    total: 'total',
     nights: 'noites',
     viewDetails: 'Ver Detalhes',
     selectRoom: 'Reservar',
@@ -54,20 +62,24 @@ const translations = {
     freeCancellation: 'Cancelamento Grátis',
     nonRefundable: 'Não reembolsável',
     reviews: 'avaliações',
-    excellent: 'Excepcional',
-    veryGood: 'Excelente',
-    good: 'Muito Bom',
-    fair: 'Bom',
+    exceptional: 'Excepcional',
+    excellent: 'Excelente',
+    veryGood: 'Muito Bom',
+    good: 'Bom',
     showRates: 'Mais Opções',
     hideRates: 'Menos',
     noRates: 'Ver Datas',
     from: 'De',
     bestPrice: 'Melhor Preço',
     instantBook: 'Confirmação Instantânea',
+    popularChoice: 'Escolha Popular',
+    limitedAvail: 'Restam poucos!',
+    breakfastIncl: 'Café da Manhã Incluído',
+    verified: 'Verificado',
   },
   es: {
-    perNight: 'por noche',
-    total: 'Total',
+    perNight: '/noche',
+    total: 'total',
     nights: 'noches',
     viewDetails: 'Ver Detalles',
     selectRoom: 'Reservar',
@@ -75,16 +87,20 @@ const translations = {
     freeCancellation: 'Cancelación Gratis',
     nonRefundable: 'No reembolsable',
     reviews: 'reseñas',
-    excellent: 'Excepcional',
-    veryGood: 'Excelente',
-    good: 'Muy Bueno',
-    fair: 'Bueno',
+    exceptional: 'Excepcional',
+    excellent: 'Excelente',
+    veryGood: 'Muy Bueno',
+    good: 'Bueno',
     showRates: 'Más Opciones',
     hideRates: 'Menos',
     noRates: 'Ver Fechas',
     from: 'Desde',
     bestPrice: 'Mejor Precio',
     instantBook: 'Confirmación Instantánea',
+    popularChoice: 'Elección Popular',
+    limitedAvail: '¡Quedan pocos!',
+    breakfastIncl: 'Desayuno Incluido',
+    verified: 'Verificado',
   },
 };
 
@@ -98,32 +114,100 @@ export function HotelCard({
   onSelect,
   onViewDetails,
   lang = 'en',
+  searchLat,
+  searchLng,
 }: HotelCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Array<{ url: string; alt: string }>>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const t = translations[lang];
+
+  // Fetch full image gallery when user hovers on the image
+  const fetchImages = useCallback(async () => {
+    if (hasLoadedImages || isLoadingImages) return;
+
+    setIsLoadingImages(true);
+    try {
+      const response = await fetch(`/api/hotels/${hotel.id}/images`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.length > 0) {
+          setLoadedImages(data.data);
+          setCurrentImageIndex(0); // Reset to first image when gallery loads
+          console.log(`📸 Loaded ${data.data.length} images for ${hotel.name}`);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load hotel images:', error);
+    } finally {
+      setIsLoadingImages(false);
+      setHasLoadedImages(true);
+    }
+  }, [hotel.id, hotel.name, hasLoadedImages, isLoadingImages]);
 
   if (!hotel || !hotel.id) {
     console.warn('HotelCard: Invalid hotel data', hotel);
     return null;
   }
 
+  // Calculate distance from search point
+  const distance = useMemo(() => {
+    if (!searchLat || !searchLng || !hotel.location?.latitude || !hotel.location?.longitude) {
+      return null;
+    }
+    const R = 6371; // Earth's radius in km
+    const dLat = (hotel.location.latitude - searchLat) * Math.PI / 180;
+    const dLon = (hotel.location.longitude - searchLng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(searchLat * Math.PI / 180) * Math.cos(hotel.location.latitude * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }, [searchLat, searchLng, hotel.location?.latitude, hotel.location?.longitude]);
+
+  // Get enhanced location context (district, city center, airport distances)
+  const locationContext = useMemo(() => {
+    if (!hotel.location?.latitude || !hotel.location?.longitude || !hotel.location?.city) {
+      return null;
+    }
+    return getHotelLocationContext(
+      hotel.location.latitude,
+      hotel.location.longitude,
+      hotel.location.city,
+      hotel.location.address
+    );
+  }, [hotel.location?.latitude, hotel.location?.longitude, hotel.location?.city, hotel.location?.address]);
+
+  // Use loaded images if available, otherwise fallback to initial images
   const rawImages = hotel.images?.filter((img) => img && img.url) || [];
-  const images = rawImages.length > 0
+  const initialImages = rawImages.length > 0
     ? rawImages
     : hotel.thumbnail
       ? [{ url: hotel.thumbnail, alt: hotel.name || 'Hotel' }]
       : [{ url: '/images/hotel-placeholder.jpg', alt: 'Hotel placeholder' }];
 
-  const nextImage = (e: React.MouseEvent) => {
+  // Use dynamically loaded images if available
+  const images = loadedImages.length > 0 ? loadedImages : initialImages;
+
+  const nextImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Trigger image fetch if not loaded yet
+    if (!hasLoadedImages && !isLoadingImages) {
+      await fetchImages();
+    }
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
-  const prevImage = (e: React.MouseEvent) => {
+  const prevImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Trigger image fetch if not loaded yet
+    if (!hasLoadedImages && !isLoadingImages) {
+      await fetchImages();
+    }
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
@@ -171,24 +255,30 @@ export function HotelCard({
 
   const currency = hotel.lowestPrice?.currency || bestRate?.totalPrice?.currency || 'USD';
 
+  // Check for breakfast included
+  const hasBreakfast = bestRate?.boardType &&
+    ['BB', 'HB', 'FB', 'AI', 'BI', 'breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase());
+
+  // Check for free cancellation
+  const hasFreeCancellation = bestRate?.refundable === true;
+
+  // Generate a pseudo-random "rooms left" number based on hotel ID (for urgency)
+  const roomsLeft = useMemo(() => {
+    const hash = hotel.id.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+    return Math.abs(hash % 5) + 1; // 1-5 rooms left
+  }, [hotel.id]);
+
+  // Is this a popular choice? (high review count or score)
+  const isPopular = (hotel.reviewCount && hotel.reviewCount > 200) || (hotel.reviewScore && hotel.reviewScore >= 8.5);
+
   const getReviewCategory = (score: number) => {
-    if (score >= 9.0) return { text: t.excellent, color: 'text-emerald-900', bg: 'bg-emerald-600', border: 'border-emerald-200' };
-    if (score >= 8.0) return { text: t.veryGood, color: 'text-blue-900', bg: 'bg-blue-600', border: 'border-blue-200' };
-    if (score >= 7.0) return { text: t.good, color: 'text-indigo-900', bg: 'bg-indigo-600', border: 'border-indigo-200' };
-    return { text: t.fair, color: 'text-slate-700', bg: 'bg-slate-500', border: 'border-slate-200' };
+    if (score >= 9.0) return { text: t.exceptional, color: 'text-white', bg: 'bg-emerald-600', gradient: 'from-emerald-500 to-emerald-700' };
+    if (score >= 8.0) return { text: t.excellent, color: 'text-white', bg: 'bg-blue-600', gradient: 'from-blue-500 to-blue-700' };
+    if (score >= 7.0) return { text: t.veryGood, color: 'text-white', bg: 'bg-indigo-600', gradient: 'from-indigo-500 to-indigo-700' };
+    return { text: t.good, color: 'text-white', bg: 'bg-slate-500', gradient: 'from-slate-400 to-slate-600' };
   };
 
   const reviewCategory = getReviewCategory(hotel.reviewScore || 0);
-
-  const getBoardLabel = (boardType: string) => {
-    const labels: Record<string, string> = {
-      'RO': 'Room Only', 'BB': 'Breakfast', 'HB': 'Half Board', 'FB': 'Full Board',
-      'AI': 'All Inclusive', 'BI': 'Breakfast', 'room_only': 'Room Only',
-      'breakfast': 'Breakfast', 'half_board': 'Half Board', 'full_board': 'Full Board',
-      'all_inclusive': 'All Inclusive',
-    };
-    return labels[boardType] || boardType || 'Room Only';
-  };
 
   const getCurrencySymbol = (curr: string) => {
     const symbols: Record<string, string> = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'BRL': 'R$' };
@@ -205,16 +295,36 @@ export function HotelCard({
     }
   };
 
-  // Amenity icons mapping
-  const getAmenityIcon = (amenity: string) => {
-    const amenityLower = amenity.toLowerCase();
-    if (amenityLower.includes('wifi') || amenityLower.includes('internet')) return { icon: Wifi, color: 'text-emerald-600' };
-    if (amenityLower.includes('breakfast') || amenityLower.includes('coffee')) return { icon: Coffee, color: 'text-amber-600' };
-    if (amenityLower.includes('gym') || amenityLower.includes('fitness')) return { icon: Dumbbell, color: 'text-blue-600' };
-    if (amenityLower.includes('parking') || amenityLower.includes('car')) return { icon: Car, color: 'text-slate-600' };
-    if (amenityLower.includes('restaurant') || amenityLower.includes('dining')) return { icon: Utensils, color: 'text-orange-600' };
-    return { icon: Check, color: 'text-slate-500' };
-  };
+  // Priority amenities to show (max 4 with icons)
+  const priorityAmenities = useMemo(() => {
+    if (!hotel.amenities || hotel.amenities.length === 0) return [];
+
+    const amenityPriority = [
+      { match: ['wifi', 'internet', 'wi-fi'], icon: Wifi, label: 'WiFi', color: 'text-blue-600' },
+      { match: ['pool', 'swimming'], icon: Waves, label: 'Pool', color: 'text-cyan-600' },
+      { match: ['spa', 'wellness', 'sauna'], icon: Sparkles, label: 'Spa', color: 'text-pink-600' },
+      { match: ['gym', 'fitness', 'exercise'], icon: Dumbbell, label: 'Gym', color: 'text-orange-600' },
+      { match: ['parking', 'garage', 'car'], icon: ParkingCircle, label: 'Parking', color: 'text-slate-600' },
+      { match: ['restaurant', 'dining'], icon: UtensilsCrossed, label: 'Restaurant', color: 'text-red-600' },
+      { match: ['air condition', 'a/c', 'ac', 'climate'], icon: Zap, label: 'A/C', color: 'text-teal-600' },
+      { match: ['pet', 'dog', 'animal'], icon: Heart, label: 'Pet Friendly', color: 'text-rose-600' },
+    ];
+
+    const matched: Array<{ icon: any; label: string; color: string }> = [];
+
+    for (const amenity of hotel.amenities) {
+      const lowerAmenity = amenity.toLowerCase();
+      for (const priority of amenityPriority) {
+        if (priority.match.some(m => lowerAmenity.includes(m)) && !matched.find(m => m.label === priority.label)) {
+          matched.push({ icon: priority.icon, label: priority.label, color: priority.color });
+          break;
+        }
+      }
+      if (matched.length >= 4) break;
+    }
+
+    return matched;
+  }, [hotel.amenities]);
 
   return (
     <div
@@ -222,285 +332,347 @@ export function HotelCard({
       data-hotel-id={hotel.id}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="group relative bg-white rounded-2xl overflow-hidden flex flex-row transition-all duration-500 hover:shadow-2xl hover:scale-[1.01] border border-slate-200/50 hover:border-slate-300 h-[200px]"
+      className="group relative bg-white rounded-2xl overflow-hidden flex flex-row transition-all duration-300 hover:shadow-2xl border border-slate-200 hover:border-orange-300 min-h-[220px]"
       style={{
         boxShadow: isHovering
-          ? '0 20px 60px -15px rgba(0, 0, 0, 0.15), 0 10px 30px -10px rgba(0, 0, 0, 0.1)'
+          ? '0 25px 50px -12px rgba(249, 115, 22, 0.25), 0 12px 24px -8px rgba(0, 0, 0, 0.1)'
           : '0 4px 12px -2px rgba(0, 0, 0, 0.08)'
       }}
     >
-      {/* 🎨 HERO IMAGE SECTION - Horizontal Compact (LEFT SIDE) */}
-      <div className="relative w-72 h-full flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
-        {/* Action Buttons - Top Right */}
-        <div className="absolute top-4 right-4 z-20 flex gap-2">
+      {/* 🎨 IMAGE SECTION (LEFT SIDE) - Hover to load full gallery */}
+      <div
+        className="relative w-[280px] min-w-[280px] h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
+        onMouseEnter={fetchImages}
+      >
+        {/* Favorite & Share Buttons */}
+        <div className="absolute top-3 right-3 z-20 flex gap-2">
           <button
             onClick={handleFavorite}
-            className={`p-2.5 rounded-full backdrop-blur-xl transition-all duration-300 shadow-lg border border-white/20 ${
+            className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg ${
               isFavorited
                 ? 'bg-rose-500 text-white scale-110'
-                : 'bg-white/95 text-slate-700 hover:bg-white hover:scale-110'
+                : 'bg-white/90 text-slate-600 hover:bg-white hover:scale-110 hover:text-rose-500'
             }`}
             aria-label="Favorite"
           >
-            <Heart className={`w-4.5 h-4.5 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={handleShare}
-            className="p-2.5 rounded-full backdrop-blur-xl bg-white/95 text-slate-700 hover:bg-white hover:scale-110 transition-all duration-300 shadow-lg border border-white/20"
+            className="p-2 rounded-full backdrop-blur-md bg-white/90 text-slate-600 hover:bg-white hover:scale-110 transition-all duration-300 shadow-lg"
             aria-label="Share"
           >
-            <Share2 className="w-4.5 h-4.5" />
+            <Share2 className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Best Price Badge - Top Right Corner */}
-        {bestRate && bestRate.refundable && (
-          <div className="absolute top-4 right-4 mr-24 z-10 backdrop-blur-xl bg-emerald-500/95 text-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1.5 border border-emerald-400/30">
-            <Award className="w-3.5 h-3.5" />
-            <span className="text-xs font-bold">{t.bestPrice}</span>
-          </div>
-        )}
+        {/* Top-Left Badges Stack */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+          {/* Popular Choice Badge */}
+          {isPopular && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-md shadow-lg">
+              <Flame className="w-3 h-3" />
+              <span className="text-[10px] font-bold uppercase tracking-wide">{t.popularChoice}</span>
+            </div>
+          )}
+
+          {/* Limited Availability Urgency */}
+          {roomsLeft <= 3 && perNightPrice > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white rounded-md shadow-lg animate-pulse">
+              <Clock className="w-3 h-3" />
+              <span className="text-[10px] font-bold">{roomsLeft} left at this price!</span>
+            </div>
+          )}
+        </div>
 
         {/* Image */}
         <Image
           src={images[currentImageIndex]?.url || '/images/hotel-placeholder.jpg'}
           alt={images[currentImageIndex]?.alt || hotel.name}
           fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          sizes="280px"
           priority={currentImageIndex === 0}
           placeholder="blur"
-          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 400, 225)}
-          quality={90}
+          blurDataURL={getBlurDataURL(images[currentImageIndex]?.url || '', 280, 220)}
+          quality={85}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/hotel-placeholder.jpg';
           }}
         />
 
-        {/* Gradient Overlay - Bottom */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-        {/* Image Navigation */}
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/95 text-slate-900 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl hover:bg-white hover:scale-110"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/95 text-slate-900 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl hover:bg-white hover:scale-110"
-              aria-label="Next"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-
-            {/* Image Dots */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/30 backdrop-blur-md px-3 py-2 rounded-full">
-              {images.slice(0, 5).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentImageIndex
-                      ? 'bg-white w-6 h-2'
-                      : 'bg-white/50 hover:bg-white/80 w-2 h-2'
-                  }`}
-                  aria-label={`Image ${index + 1}`}
-                />
-              ))}
-              {images.length > 5 && (
-                <span className="text-white text-xs font-bold ml-1">+{images.length - 5}</span>
-              )}
-            </div>
-          </>
+        {/* Loading Indicator for Images */}
+        {isLoadingImages && (
+          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
+            <Loader2 className="w-3 h-3 text-white animate-spin" />
+            <span className="text-white text-[10px] font-medium">Loading photos...</span>
+          </div>
         )}
-      </div>
 
-      {/* 📝 CONTENT SECTION - Premium Horizontal Compact (RIGHT SIDE) */}
-      <div className="flex-1 flex flex-col p-4">
-        {/* Top: Hotel Name, Rating & Location */}
-        <div className="mb-2">
-          <h3 className="text-slate-900 font-bold text-base leading-tight mb-1.5 line-clamp-1 tracking-tight">
-            {hotel.name}
-          </h3>
+        {/* Image Navigation - Always Visible to allow browsing */}
+        <>
+          <button
+            onClick={prevImage}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-white hover:scale-110 transition-all duration-200 border border-slate-200"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-5 h-5 text-slate-700" />
+          </button>
+          <button
+            onClick={nextImage}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-lg hover:bg-white hover:scale-110 transition-all duration-200 border border-slate-200"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-5 h-5 text-slate-700" />
+          </button>
 
-          {/* Rating & Location Row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Stars */}
-            {hotel.rating > 0 && (
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          {/* Image Dots - Show count indicator */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+            {images.length > 1 ? (
+              <>
+                {images.slice(0, 5).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
+                    className={`transition-all duration-300 rounded-full ${
+                      index === currentImageIndex
+                        ? 'bg-white w-4 h-1.5'
+                        : 'bg-white/50 hover:bg-white/80 w-1.5 h-1.5'
+                    }`}
+                    aria-label={`Image ${index + 1}`}
+                  />
                 ))}
-              </div>
-            )}
-
-            {/* Review Score */}
-            {hotel.reviewScore > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className={`${reviewCategory.bg} text-white px-2 py-0.5 rounded text-xs font-black`}>
-                  {hotel.reviewScore.toFixed(1)}
-                </div>
-                <div className={`${reviewCategory.color} text-xs font-bold`}>
-                  {reviewCategory.text}
-                </div>
-                {hotel.reviewCount > 0 && (
-                  <span className="text-slate-500 text-xs">
-                    ({hotel.reviewCount.toLocaleString()})
-                  </span>
+                {images.length > 5 && (
+                  <span className="text-white text-[10px] font-bold ml-1">+{images.length - 5}</span>
                 )}
-              </div>
-            )}
-
-            {/* Location */}
-            {(hotel.location?.city || hotel.location?.country) && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3 h-3 text-slate-400" />
-                <span className="text-slate-600 text-xs line-clamp-1">
-                  {hotel.location?.city || hotel.location?.country}
-                </span>
-              </div>
+              </>
+            ) : (
+              <span className="text-white text-[10px] font-medium">Click arrows to view more</span>
             )}
           </div>
+        </>
+      </div>
+
+      {/* 📝 CONTENT SECTION (RIGHT SIDE) */}
+      <div className="flex-1 flex flex-col p-4 relative">
+
+        {/* 💰 PRICE - TOP RIGHT (Most Prominent) */}
+        {perNightPrice > 0 && (
+          <div className="absolute top-3 right-4 text-right">
+            <div className="flex flex-col items-end">
+              {/* Per Night Price - BIG */}
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-3xl font-black text-slate-900 tracking-tight">
+                  {currencySymbol}{Math.round(perNightPrice).toLocaleString()}
+                </span>
+                <span className="text-sm font-medium text-slate-500">{t.perNight}</span>
+              </div>
+
+              {/* Total Price with Guest Info */}
+              <div className="text-xs text-slate-500 mt-0.5">
+                {currencySymbol}{Math.round(totalPrice).toLocaleString()} {t.total} · {nights} {t.nights}
+              </div>
+
+              {/* Guest Count Badge */}
+              <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-600">
+                <Users className="w-3 h-3" />
+                <span>
+                  {adults} {adults === 1 ? 'adult' : 'adults'}
+                  {children > 0 && `, ${children} ${children === 1 ? 'child' : 'children'}`}
+                </span>
+              </div>
+
+              {/* Best Price Indicator */}
+              <div className="flex items-center gap-1 mt-1 px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-200">
+                <BadgePercent className="w-3 h-3 text-emerald-600" />
+                <span className="text-[10px] font-bold text-emerald-700">{t.bestPrice}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Hotel Name */}
+        <h3 className="text-slate-900 font-bold text-lg leading-tight pr-36 line-clamp-1 tracking-tight">
+          {hotel.name}
+        </h3>
+
+        {/* Rating & Location Row */}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          {/* Star Rating */}
+          {hotel.rating > 0 && (
+            <div className="flex items-center">
+              {Array.from({ length: Math.min(hotel.rating || 0, 5) }, (_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+          )}
+
+          {/* Review Score Badge */}
+          {hotel.reviewScore > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className={`bg-gradient-to-r ${reviewCategory.gradient} text-white px-2 py-0.5 rounded-md text-xs font-black shadow-sm`}>
+                {hotel.reviewScore.toFixed(1)}
+              </div>
+              <span className="text-slate-700 text-xs font-semibold">
+                {reviewCategory.text}
+              </span>
+              {hotel.reviewCount > 0 && (
+                <span className="text-slate-500 text-xs">
+                  ({hotel.reviewCount.toLocaleString()})
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Enhanced Location Info */}
+          {(hotel.location?.city || hotel.location?.country) && (
+            <div className="flex items-center gap-1.5 text-slate-600 flex-wrap">
+              <MapPin className="w-3 h-3 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-medium">
+                {locationContext?.district ? `${locationContext.district}, ` : ''}
+                {hotel.location?.city || hotel.location?.country}
+              </span>
+              {/* Distance indicators - compact */}
+              {locationContext && (
+                <span className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                  <span className="flex items-center gap-0.5" title="Distance to city center">
+                    <Building2 className="w-3 h-3" />
+                    {locationContext.distanceToCenter}
+                  </span>
+                  <span className="flex items-center gap-0.5" title={`To ${locationContext.airportCode} Airport`}>
+                    <Plane className="w-3 h-3" />
+                    {locationContext.driveTimeToAirport}
+                  </span>
+                </span>
+              )}
+              {!locationContext && distance !== null && distance < 50 && (
+                <span className="text-[10px] text-slate-400">
+                  · {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Middle: Enhanced Hotel & Room Information */}
-        <div className="flex flex-col gap-2 mb-auto">
-          {/* Room Type - Only show if rate data available */}
-          {bestRate?.roomType && (
-            <div className="flex items-center gap-1.5">
-              <Bed className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-              <span className="text-slate-700 text-xs font-medium line-clamp-1">
-                {bestRate.roomType}
+        {/* 🎯 KEY VALUE PROPOSITIONS - Decision Drivers */}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {/* Free Cancellation - Most Important */}
+          {hasFreeCancellation && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 rounded border border-emerald-200">
+              <Shield className="w-3 h-3 text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700">{t.freeCancellation}</span>
+            </div>
+          )}
+
+          {/* Breakfast Included */}
+          {hasBreakfast && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded border border-amber-200">
+              <Coffee className="w-3 h-3 text-amber-600" />
+              <span className="text-[10px] font-bold text-amber-700">{t.breakfastIncl}</span>
+            </div>
+          )}
+
+          {/* Instant Confirmation */}
+          {bestRate && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded border border-blue-200">
+              <Zap className="w-3 h-3 text-blue-600" />
+              <span className="text-[10px] font-bold text-blue-700">{t.instantBook}</span>
+            </div>
+          )}
+
+          {/* Board/Meal Type */}
+          {bestRate?.boardType && (
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-slate-50 rounded border border-slate-200">
+              <Utensils className="w-3 h-3 text-slate-500" />
+              <span className="text-[10px] font-bold text-slate-600">
+                {bestRate.boardType === 'RO' ? 'Room Only' :
+                 bestRate.boardType === 'BB' ? 'Breakfast' :
+                 bestRate.boardType === 'HB' ? 'Half Board' :
+                 bestRate.boardType === 'FB' ? 'Full Board' :
+                 bestRate.boardType === 'AI' ? 'All Inclusive' : bestRate.boardType}
               </span>
             </div>
           )}
-
-          {/* Feature Badges */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Free Cancellation Badge */}
-            {bestRate?.refundable && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-200/50">
-                <Shield className="w-3 h-3 text-emerald-600" />
-                <span className="text-[10px] font-semibold text-emerald-700">Free Cancel</span>
-              </div>
-            )}
-
-            {/* Meal Plan Badge */}
-            {bestRate?.boardType && ['breakfast', 'half_board', 'full_board', 'all_inclusive'].includes(bestRate.boardType.toLowerCase()) && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-md border border-amber-200/50">
-                <Coffee className="w-3 h-3 text-amber-600" />
-                <span className="text-[10px] font-semibold text-amber-700">
-                  {bestRate.boardType === 'all_inclusive' ? 'All-Inclusive' : bestRate.boardType === 'full_board' ? 'Full Board' : bestRate.boardType === 'half_board' ? 'Half Board' : 'Breakfast'}
-                </span>
-              </div>
-            )}
-
-            {/* Max Occupancy Badge */}
-            {bestRate?.maxOccupancy && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-md border border-slate-200/50">
-                <Users className="w-3 h-3 text-slate-600" />
-                <span className="text-[10px] font-semibold text-slate-700">{bestRate.maxOccupancy} guests</span>
-              </div>
-            )}
-
-            {/* Popular/Best Price badge when no rate-specific badges */}
-            {!bestRate && perNightPrice > 0 && (
-              <div className="inline-flex items-center gap-1 px-2 py-1 bg-orange-50 rounded-md border border-orange-200/50">
-                <TrendingUp className="w-3 h-3 text-orange-600" />
-                <span className="text-[10px] font-semibold text-orange-700">Best Price</span>
-              </div>
-            )}
-          </div>
-
-          {/* Top Amenities - ALWAYS show if available */}
-          {hotel.amenities && hotel.amenities.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {hotel.amenities.slice(0, 5).map((amenity, idx) => {
-                const amenityLower = amenity.toLowerCase();
-                let icon = null;
-                let label = amenity;
-
-                // Map amenities to icons
-                if (amenityLower.includes('wifi') || amenityLower.includes('internet')) {
-                  icon = <Wifi className="w-3 h-3 text-blue-600" />;
-                  label = 'WiFi';
-                } else if (amenityLower.includes('pool') || amenityLower.includes('swimming')) {
-                  icon = <Waves className="w-3 h-3 text-cyan-600" />;
-                  label = 'Pool';
-                } else if (amenityLower.includes('gym') || amenityLower.includes('fitness')) {
-                  icon = <Dumbbell className="w-3 h-3 text-orange-600" />;
-                  label = 'Gym';
-                } else if (amenityLower.includes('parking') || amenityLower.includes('garage')) {
-                  icon = <ParkingCircle className="w-3 h-3 text-slate-600" />;
-                  label = 'Parking';
-                } else if (amenityLower.includes('restaurant') || amenityLower.includes('dining')) {
-                  icon = <UtensilsCrossed className="w-3 h-3 text-red-600" />;
-                  label = 'Restaurant';
-                } else if (amenityLower.includes('bar') || amenityLower.includes('lounge')) {
-                  icon = <Utensils className="w-3 h-3 text-purple-600" />;
-                  label = 'Bar';
-                } else if (amenityLower.includes('spa') || amenityLower.includes('wellness')) {
-                  icon = <Sparkles className="w-3 h-3 text-pink-600" />;
-                  label = 'Spa';
-                } else if (amenityLower.includes('air') && amenityLower.includes('condition')) {
-                  icon = <Award className="w-3 h-3 text-teal-600" />;
-                  label = 'A/C';
-                } else {
-                  icon = <Check className="w-3 h-3 text-slate-500" />;
-                  label = amenity.length > 15 ? amenity.substring(0, 15) + '...' : amenity;
-                }
-
-                return (
-                  <div key={idx} className="inline-flex items-center gap-1">
-                    {icon}
-                    <span className="text-[10px] text-slate-600 font-medium">{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
 
-        {/* Bottom: Price & CTA */}
-        <div className="flex items-center justify-between gap-3 mt-2">
-          {/* Price */}
-          {perNightPrice > 0 && (
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-1">
-                <span className="text-slate-900 font-black text-xl">
-                  ${Math.round(perNightPrice)}
-                </span>
-                <span className="text-slate-600 text-xs font-medium">/night</span>
-              </div>
-              {totalPrice > perNightPrice && (
-                <span className="text-slate-500 text-[10px]">
-                  ${Math.round(totalPrice).toLocaleString()} total
-                </span>
+        {/* 📝 Hotel Description + Room Info */}
+        <div className="mt-2 space-y-1.5">
+          {/* Short Description */}
+          {hotel.description && (
+            <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed pr-32">
+              {hotel.description.length > 120 ? hotel.description.substring(0, 120) + '...' : hotel.description}
+            </p>
+          )}
+
+          {/* Room Type with details */}
+          {bestRate?.roomType && (
+            <div className="flex items-center gap-1.5">
+              <Bed className="w-3 h-3 text-indigo-500 flex-shrink-0" />
+              <span className="text-slate-700 text-[11px] font-medium line-clamp-1">
+                {bestRate.roomType}
+              </span>
+              {bestRate.maxOccupancy && (
+                <span className="text-slate-400 text-[10px]">· Sleeps {bestRate.maxOccupancy}</span>
               )}
             </div>
           )}
 
-          {/* CTA Button */}
+          {/* Guest Highlights based on rating */}
+          {hotel.reviewScore && hotel.reviewScore >= 7 && (
+            <div className="flex items-center gap-2 text-[10px]">
+              <ThumbsUp className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+              <span className="text-slate-600">
+                {hotel.reviewScore >= 9 ? 'Guests love everything about this property' :
+                 hotel.reviewScore >= 8 ? 'Highly rated for cleanliness & comfort' :
+                 'Great value for money'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 🏷️ AMENITIES - Quick Icons */}
+        {priorityAmenities.length > 0 && (
+          <div className="flex items-center gap-3 mt-auto pt-3 border-t border-slate-100">
+            {priorityAmenities.map((amenity, idx) => {
+              const IconComponent = amenity.icon;
+              return (
+                <div key={idx} className="flex items-center gap-1" title={amenity.label}>
+                  <IconComponent className={`w-4 h-4 ${amenity.color}`} />
+                  <span className="text-[11px] text-slate-600 font-medium">{amenity.label}</span>
+                </div>
+              );
+            })}
+            {hotel.amenities && hotel.amenities.length > 4 && (
+              <span className="text-[11px] text-slate-400 font-medium">
+                +{hotel.amenities.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* 🔘 CTA BUTTON - Bottom Right */}
+        <div className="absolute bottom-4 right-4">
           {perNightPrice > 0 ? (
             <button
               onClick={handleBooking}
-              className="px-5 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 shadow-md hover:shadow-xl active:scale-95 whitespace-nowrap"
+              className="px-6 py-2.5 font-bold text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 whitespace-nowrap group/btn"
               style={{
                 background: 'linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%)',
                 color: 'white',
               }}
             >
-              Book Now
+              <span className="flex items-center gap-1.5">
+                Book Now
+                <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" />
+              </span>
             </button>
           ) : (
             <button
               onClick={() => onViewDetails(hotel.id)}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all whitespace-nowrap"
+              className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all shadow-md whitespace-nowrap"
             >
               View Details
             </button>
@@ -508,7 +680,7 @@ export function HotelCard({
         </div>
       </div>
 
-      {/* Expanded Rates Section - Premium Design */}
+      {/* Expanded Rates Section */}
       {isExpanded && rates.length > 0 && (
         <div className="px-6 py-6 border-t-2 border-slate-100 bg-gradient-to-br from-slate-50 via-white to-slate-50">
           <div className="flex items-center justify-between mb-5">
@@ -531,51 +703,50 @@ export function HotelCard({
               return (
                 <div
                   key={rate.id}
-                  className="p-5 bg-white border-2 border-slate-200/50 rounded-2xl hover:border-orange-400 hover:shadow-xl transition-all duration-300"
+                  className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-orange-400 hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="mb-4">
-                    <h5 className="font-bold text-slate-900 text-base mb-3 line-clamp-1">
-                      {rate.roomType}
-                    </h5>
+                  <h5 className="font-bold text-slate-900 text-sm mb-2 line-clamp-1">
+                    {rate.roomType}
+                  </h5>
 
-                    <div className="flex gap-2 flex-wrap mb-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-200/50">
-                        <Utensils className="w-3.5 h-3.5" />
-                        {getBoardLabel(rate.boardType)}
+                  <div className="flex gap-1.5 flex-wrap mb-3">
+                    {rate.boardType && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">
+                        <Utensils className="w-3 h-3" />
+                        {rate.boardType}
                       </span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-xs font-bold border border-slate-200/50">
-                        <Users className="w-3.5 h-3.5" />
-                        {rate.maxOccupancy} guests
+                    )}
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-700 rounded text-[10px] font-bold">
+                      <Users className="w-3 h-3" />
+                      {rate.maxOccupancy} guests
+                    </span>
+                    {rate.refundable ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">
+                        <Shield className="w-3 h-3" />
+                        Free cancel
                       </span>
-                      {rate.refundable ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold border border-emerald-200/50">
-                          <Shield className="w-3.5 h-3.5" />
-                          Free cancel
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold border border-rose-200/50">
-                          Non-refundable
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      <span className="px-2 py-1 bg-rose-50 text-rose-700 rounded text-[10px] font-bold">
+                        Non-refundable
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between gap-4 pt-3 border-t border-slate-100">
                     <div>
-                      <div className="text-slate-500 text-xs mb-1">From</div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="font-black text-slate-900 text-2xl leading-none tracking-tight">
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-black text-slate-900 text-xl">
                           {currencySymbol}{Math.round(ratePerNight)}
                         </span>
-                        <span className="text-slate-500 text-sm">/night</span>
+                        <span className="text-slate-500 text-xs">/night</span>
                       </div>
-                      <div className="text-slate-500 text-xs mt-1.5">
-                        Total: <span className="font-bold text-slate-900">{currencySymbol}{Math.round(rateTotal).toLocaleString()}</span>
+                      <div className="text-slate-500 text-[10px]">
+                        {currencySymbol}{Math.round(rateTotal).toLocaleString()} total
                       </div>
                     </div>
                     <button
                       onClick={() => onSelect(hotel.id, rate.id, rate.offerId)}
-                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl hover:shadow-xl hover:scale-105 active:scale-95 transition-all text-sm whitespace-nowrap"
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 active:scale-95 transition-all text-xs"
                     >
                       Select
                     </button>

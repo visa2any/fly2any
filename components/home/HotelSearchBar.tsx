@@ -118,6 +118,10 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
 
+  // Popular Districts State
+  const [popularDistricts, setPopularDistricts] = useState<Array<{ id: string; name: string; city: string; location: { lat: number; lng: number } }>>([]);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+
   const destinationRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -183,6 +187,36 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     };
     fetchAdvancedFiltersData();
   }, []);
+
+  // Fetch popular districts when a city is selected
+  useEffect(() => {
+    if (!destination) {
+      setPopularDistricts([]);
+      return;
+    }
+
+    const fetchDistricts = async () => {
+      setLoadingDistricts(true);
+      try {
+        const response = await fetch(`/api/hotels/districts?city=${encodeURIComponent(destination)}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setPopularDistricts(data.data.slice(0, 8)); // Limit to 8 districts
+        } else {
+          setPopularDistricts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching districts:', error);
+        setPopularDistricts([]);
+      } finally {
+        setLoadingDistricts(false);
+      }
+    };
+
+    // Only fetch districts if destination looks like a city (not a specific district/hotel)
+    const delayFetch = setTimeout(fetchDistricts, 300);
+    return () => clearTimeout(delayFetch);
+  }, [destination]);
 
   // Fetch suggestions from API
   useEffect(() => {
@@ -488,6 +522,36 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                     ))}
                   </div>
                 )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Popular Districts Quick-Select */}
+          <AnimatePresence>
+            {popularDistricts.length > 0 && !showDestinationDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="mt-2"
+              >
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs text-gray-500 font-medium">Popular areas:</span>
+                  {popularDistricts.map((district) => (
+                    <button
+                      key={district.id}
+                      type="button"
+                      onClick={() => {
+                        setDestination(district.name);
+                        setDestinationQuery(district.name);
+                        setSelectedLocation(district.location);
+                      }}
+                      className="px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 rounded-full border border-orange-200 transition-colors"
+                    >
+                      {district.name}
+                    </button>
+                  ))}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

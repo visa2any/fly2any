@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { GLOBAL_CITIES, POPULAR_DESTINATIONS as POPULAR_CITIES, type CityDestination } from '@/lib/data/global-cities-database';
+import { cityLocations, getCityData } from '@/lib/data/city-locations';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -117,6 +118,143 @@ function searchCities(query: string): CitySuggestion[] {
 const POPULAR_DESTINATIONS: CitySuggestion[] = POPULAR_CITIES;
 
 /**
+ * Search through popular districts from our city locations database
+ * Returns matching districts with their parent city coordinates
+ */
+function searchPopularDistricts(query: string): CitySuggestion[] {
+  const normalizedQuery = normalizeString(query);
+  if (normalizedQuery.length < 2) return [];
+
+  const results: CitySuggestion[] = [];
+
+  for (const [cityKey, cityData] of Object.entries(cityLocations)) {
+    const cityName = cityKey.charAt(0).toUpperCase() + cityKey.slice(1);
+
+    for (const district of cityData.popularDistricts) {
+      const normalizedDistrict = normalizeString(district);
+      const normalizedCityName = normalizeString(cityName);
+
+      // Check if query matches district or "district, city" format
+      const fullName = `${district}, ${cityName}`;
+      const normalizedFullName = normalizeString(fullName);
+
+      let score = 0;
+
+      // Exact district match
+      if (normalizedDistrict === normalizedQuery) {
+        score = 90;
+      }
+      // District starts with query
+      else if (normalizedDistrict.startsWith(normalizedQuery)) {
+        score = 80;
+      }
+      // District contains query
+      else if (normalizedDistrict.includes(normalizedQuery)) {
+        score = 70;
+      }
+      // Full name contains query (e.g., "itaim sao" matches "Itaim Bibi, São Paulo")
+      else if (normalizedFullName.includes(normalizedQuery)) {
+        score = 65;
+      }
+      // Query contains city name and district is in that city
+      else if (normalizedQuery.includes(normalizedCityName) && normalizedDistrict.includes(normalizedQuery.replace(normalizedCityName, '').trim())) {
+        score = 60;
+      }
+
+      if (score > 0) {
+        results.push({
+          id: `district-${cityKey}-${normalizeString(district).replace(/\s+/g, '-')}`,
+          name: district,
+          city: cityName,
+          country: getCountryFromCity(cityKey),
+          countryCode: getCountryCodeFromCity(cityKey),
+          continent: getContinentFromCity(cityKey),
+          location: {
+            lat: cityData.center.lat,
+            lng: cityData.center.lng,
+          },
+          type: 'neighborhood',
+          emoji: '🏘️',
+          flag: getFlagFromCity(cityKey),
+          popularity: 7,
+        } as CitySuggestion);
+      }
+    }
+  }
+
+  // Sort by relevance and limit
+  return results.slice(0, 8);
+}
+
+// Helper functions for district search
+function getCountryFromCity(cityKey: string): string {
+  const countryMap: Record<string, string> = {
+    'dubai': 'United Arab Emirates',
+    'abu dhabi': 'United Arab Emirates',
+    'sao paulo': 'Brazil',
+    'rio de janeiro': 'Brazil',
+    'paris': 'France',
+    'london': 'United Kingdom',
+    'barcelona': 'Spain',
+    'rome': 'Italy',
+    'madrid': 'Spain',
+    'amsterdam': 'Netherlands',
+    'lisbon': 'Portugal',
+    'berlin': 'Germany',
+    'new york': 'United States',
+    'los angeles': 'United States',
+    'miami': 'United States',
+    'cancun': 'Mexico',
+    'mexico city': 'Mexico',
+    'buenos aires': 'Argentina',
+    'tokyo': 'Japan',
+    'singapore': 'Singapore',
+    'bangkok': 'Thailand',
+    'hong kong': 'China',
+    'bali': 'Indonesia',
+    'sydney': 'Australia',
+    'cape town': 'South Africa',
+    'marrakech': 'Morocco',
+  };
+  return countryMap[cityKey] || '';
+}
+
+function getCountryCodeFromCity(cityKey: string): string {
+  const codeMap: Record<string, string> = {
+    'dubai': 'AE', 'abu dhabi': 'AE',
+    'sao paulo': 'BR', 'rio de janeiro': 'BR',
+    'paris': 'FR', 'london': 'GB', 'barcelona': 'ES', 'rome': 'IT',
+    'madrid': 'ES', 'amsterdam': 'NL', 'lisbon': 'PT', 'berlin': 'DE',
+    'new york': 'US', 'los angeles': 'US', 'miami': 'US',
+    'cancun': 'MX', 'mexico city': 'MX', 'buenos aires': 'AR',
+    'tokyo': 'JP', 'singapore': 'SG', 'bangkok': 'TH', 'hong kong': 'HK',
+    'bali': 'ID', 'sydney': 'AU', 'cape town': 'ZA', 'marrakech': 'MA',
+  };
+  return codeMap[cityKey] || 'XX';
+}
+
+function getContinentFromCity(cityKey: string): 'North America' | 'South America' | 'Europe' | 'Asia' | 'Africa' | 'Oceania' | 'Middle East' | 'Caribbean' {
+  const continentMap: Record<string, any> = {
+    'dubai': 'Middle East', 'abu dhabi': 'Middle East',
+    'sao paulo': 'South America', 'rio de janeiro': 'South America', 'buenos aires': 'South America',
+    'paris': 'Europe', 'london': 'Europe', 'barcelona': 'Europe', 'rome': 'Europe',
+    'madrid': 'Europe', 'amsterdam': 'Europe', 'lisbon': 'Europe', 'berlin': 'Europe',
+    'new york': 'North America', 'los angeles': 'North America', 'miami': 'North America',
+    'cancun': 'North America', 'mexico city': 'North America',
+    'tokyo': 'Asia', 'singapore': 'Asia', 'bangkok': 'Asia', 'hong kong': 'Asia', 'bali': 'Asia',
+    'sydney': 'Oceania', 'cape town': 'Africa', 'marrakech': 'Africa',
+  };
+  return continentMap[cityKey] || 'North America';
+}
+
+function getFlagFromCity(cityKey: string): string {
+  const code = getCountryCodeFromCity(cityKey);
+  if (code === 'XX') return '🌍';
+  const codePoints = code.toUpperCase().split('').map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+/**
  * Hotel Location Suggestions API Route
  *
  * GET /api/hotels/suggestions?query=Paris
@@ -179,14 +317,18 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Searching suggestions for "${query}"...`);
 
-    // Parallel search: LiteAPI + local database
-    const [liteApiResponse, localResults] = await Promise.all([
+    // Parallel search: LiteAPI + local database + popular districts
+    const [liteApiResponse, localResults, districtResults] = await Promise.all([
       searchLiteApiPlaces(query),
       Promise.resolve(searchCities(query)),
+      Promise.resolve(searchPopularDistricts(query)),
     ]);
 
+    // Combine local results with district results
+    const combinedLocalResults = [...localResults, ...districtResults];
+
     // Merge results with intelligent prioritization based on search intent
-    const merged = mergeResults(liteApiResponse.results, localResults, liteApiResponse.intent);
+    const merged = mergeResults(liteApiResponse.results, combinedLocalResults, liteApiResponse.intent);
 
     // Normalize all results for frontend compatibility
     const normalizedMerged = merged.map(normalizeForFrontend);
