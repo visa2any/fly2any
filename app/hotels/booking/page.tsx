@@ -10,6 +10,7 @@ import {
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { StripePaymentForm } from '@/components/hotels/StripePaymentForm';
+import { LiteAPIPaymentForm } from '@/components/hotels/LiteAPIPaymentForm';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -38,6 +39,9 @@ interface PrebookData {
   status: 'confirmed' | 'pending' | 'failed';
   price: { amount: number; currency: string };
   expiresAt: string;
+  // User Payment SDK fields (for LiteAPI payment flow)
+  secretKey?: string;
+  transactionId?: string;
 }
 
 interface HotelBookingData {
@@ -95,6 +99,9 @@ function HotelCheckoutContent() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [paymentReady, setPaymentReady] = useState(false);
+
+  // LiteAPI Payment SDK
+  const [liteApiTransactionId, setLiteApiTransactionId] = useState<string | null>(null);
 
   // Price lock timer
   const [timeRemaining, setTimeRemaining] = useState<number>(900); // 15 minutes in seconds
@@ -349,7 +356,42 @@ function HotelCheckoutContent() {
     setIsProcessing(false);
   };
 
-  // LiteAPI booking - uses prebook + LiteAPI payment processing
+  // LiteAPI Payment SDK - callback when payment is successful
+  const handleLiteAPIPaymentSuccess = async (transactionId: string) => {
+    console.log('LiteAPI Payment Success! Transaction ID:', transactionId);
+    setLiteApiTransactionId(transactionId);
+
+    if (!isGuestValid()) {
+      setError('Please fill in all guest details');
+      return;
+    }
+
+    // PRODUCTION: Require valid prebook for real bookings
+    if (!prebookData?.prebookId) {
+      setError('Price lock expired or not available. Please go back and try again.');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setError(null);
+
+      // Complete booking with LiteAPI transactionId
+      await handlePaymentSuccess(`liteapi_transaction_${transactionId}`);
+    } catch (err: any) {
+      setError(err.message || 'Booking failed');
+      setIsProcessing(false);
+    }
+  };
+
+  // LiteAPI Payment SDK - callback when payment fails
+  const handleLiteAPIPaymentError = (errorMessage: string) => {
+    console.error('LiteAPI Payment Error:', errorMessage);
+    setError(errorMessage);
+    setIsProcessing(false);
+  };
+
+  // LiteAPI booking - uses prebook + LiteAPI payment processing (fallback for no SDK)
   const handleLiteAPIBooking = async () => {
     if (!isGuestValid()) {
       setError('Please fill in all guest details');
@@ -684,9 +726,38 @@ function HotelCheckoutContent() {
                 )}
 
                 {!stripePromise || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
-                  // LiteAPI Payment Mode - No Stripe needed
+                  // LiteAPI Payment Mode - Using User Payment SDK
                   <div className="space-y-4">
-                    {hotelData.price > 0 || prebookData?.price?.amount ? (
+                    {prebooking ? (
+                      // Loading state while prebook is in progress
+                      <div className="text-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+                        <p className="text-gray-600">Securing your rate...</p>
+                        <p className="text-sm text-gray-500 mt-1">Locking in your price and preparing payment</p>
+                      </div>
+                    ) : prebookData?.secretKey ? (
+                      // LiteAPI Payment SDK available - render secure payment form
+                      <>
+                        {!isGuestValid() && (
+                          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-4">
+                            <p className="text-sm text-amber-800 font-medium flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              Please fill in all guest details above to enable payment
+                            </p>
+                          </div>
+                        )}
+                        <LiteAPIPaymentForm
+                          secretKey={prebookData.secretKey}
+                          transactionId={prebookData.transactionId || ''}
+                          displayAmount={getGrandTotal()}
+                          currency={hotelData.currency}
+                          onPaymentSuccess={handleLiteAPIPaymentSuccess}
+                          onPaymentError={handleLiteAPIPaymentError}
+                          isProcessing={isProcessing}
+                        />
+                      </>
+                    ) : (hotelData.price > 0 || prebookData?.price?.amount) ? (
+                      // Fallback: Simple button when SDK is not available
                       <>
                         <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
                           <p className="text-sm text-green-900 font-medium">LiteAPI Payment</p>

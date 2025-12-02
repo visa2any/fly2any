@@ -177,6 +177,14 @@ interface PrebookResponse {
   };
   expiresAt: string;
   hotelConfirmationCode?: string;
+  // User Payment SDK fields (only present when usePaymentSdk: true)
+  secretKey?: string;
+  transactionId?: string;
+}
+
+interface PrebookOptions {
+  /** Enable User Payment SDK flow (customer pays directly via LiteAPI) */
+  usePaymentSdk?: boolean;
 }
 
 interface BookingResponse {
@@ -1299,15 +1307,20 @@ class LiteAPI {
    * Creates a checkout session and locks in the price for a limited time
    *
    * @param offerId - The offer ID from hotel rates search
-   * @returns Prebook response with prebookId for completing the booking
+   * @param options - Optional settings including usePaymentSdk for User Payment flow
+   * @returns Prebook response with prebookId (and secretKey/transactionId if usePaymentSdk)
    */
-  async preBookHotel(offerId: string): Promise<PrebookResponse> {
+  async preBookHotel(offerId: string, options?: PrebookOptions): Promise<PrebookResponse> {
     try {
-      console.log(`🔍 LiteAPI: Pre-booking offer ${offerId}`);
+      const usePaymentSdk = options?.usePaymentSdk ?? true; // Default to SDK mode
+      console.log(`🔍 LiteAPI: Pre-booking offer ${offerId} (usePaymentSdk: ${usePaymentSdk})`);
 
       const response = await axios.post(
         `${this.baseUrl}/rates/prebook`,
-        { offerId },
+        {
+          offerId,
+          usePaymentSdk, // Enable User Payment SDK flow
+        },
         { headers: this.getHeaders(), timeout: 30000 }
       );
 
@@ -1317,6 +1330,10 @@ class LiteAPI {
       console.log(`   Status: ${data.status}`);
       console.log(`   Price: ${data.price?.amount} ${data.price?.currency}`);
       console.log(`   Expires: ${data.expiresAt}`);
+      if (data.secretKey) {
+        console.log(`   Payment SDK: Enabled (secretKey received)`);
+        console.log(`   Transaction ID: ${data.transactionId}`);
+      }
 
       return {
         prebookId: data.prebookId,
@@ -1329,6 +1346,9 @@ class LiteAPI {
         },
         expiresAt: data.expiresAt,
         hotelConfirmationCode: data.hotelConfirmationCode,
+        // User Payment SDK fields
+        secretKey: data.secretKey,
+        transactionId: data.transactionId,
       };
     } catch (error) {
       const axiosError = error as AxiosError<{ error?: { message?: string } }>;
@@ -1352,15 +1372,44 @@ class LiteAPI {
       guestPhone?: string;
     };
     paymentMethod?: string;
+    transactionId?: string; // From User Payment SDK
     holderName?: string;
     specialRequests?: string;
   }): Promise<BookingResponse> {
     try {
       console.log(`🔍 LiteAPI: Completing booking for prebook ${bookingData.prebookId}`);
 
+      // Build the request payload according to LiteAPI specification
+      const payload: Record<string, any> = {
+        prebookId: bookingData.prebookId,
+        holder: {
+          firstName: bookingData.guestInfo.guestFirstName,
+          lastName: bookingData.guestInfo.guestLastName,
+          email: bookingData.guestInfo.guestEmail,
+        },
+        guests: [{
+          firstName: bookingData.guestInfo.guestFirstName,
+          lastName: bookingData.guestInfo.guestLastName,
+        }],
+      };
+
+      // Add payment info for User Payment SDK flow
+      if (bookingData.transactionId) {
+        payload.payment = {
+          method: 'TRANSACTION_ID',
+          transactionId: bookingData.transactionId,
+        };
+        console.log(`   Using TRANSACTION_ID payment: ${bookingData.transactionId}`);
+      }
+
+      // Add special requests if any
+      if (bookingData.specialRequests) {
+        payload.remarks = { specialRequest: bookingData.specialRequests };
+      }
+
       const response = await axios.post(
         `${this.baseUrl}/rates/book`,
-        bookingData,
+        payload,
         { headers: this.getHeaders(), timeout: 60000 }
       );
 

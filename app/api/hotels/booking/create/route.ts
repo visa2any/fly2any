@@ -99,11 +99,21 @@ export async function POST(request: NextRequest) {
 
     // STEP 1: Verify payment method
     let paymentVerified = false;
-    let paymentMethod: 'stripe' | 'liteapi' | 'demo' = 'liteapi';
+    let paymentMethod: 'stripe' | 'liteapi' | 'liteapi_sdk' | 'demo' = 'liteapi';
+    let liteApiTransactionId: string | null = null;
 
-    // LiteAPI Payment Flow - prebookId contains the price lock
-    if (body.paymentIntentId?.startsWith('liteapi_')) {
-      console.log('💳 LiteAPI Payment Flow');
+    // LiteAPI User Payment SDK Flow - transactionId from SDK payment
+    if (body.paymentIntentId?.startsWith('liteapi_transaction_')) {
+      console.log('💳 LiteAPI User Payment SDK Flow');
+      // Extract transactionId from payment reference
+      liteApiTransactionId = body.paymentIntentId.replace('liteapi_transaction_', '');
+      paymentVerified = true;
+      paymentMethod = 'liteapi_sdk';
+      console.log('✅ LiteAPI SDK payment verified with transactionId:', liteApiTransactionId);
+    }
+    // LiteAPI Payment Flow - prebookId contains the price lock (fallback)
+    else if (body.paymentIntentId?.startsWith('liteapi_')) {
+      console.log('💳 LiteAPI Payment Flow (Legacy)');
       // Extract prebookId from payment reference
       const prebookIdFromPayment = body.paymentIntentId.replace('liteapi_', '');
 
@@ -179,7 +189,17 @@ export async function POST(request: NextRequest) {
     if (body.prebookId) {
       console.log('🔗 Completing LiteAPI booking...');
       try {
-        const bookingResult = await liteAPI.bookHotel({
+        const bookingPayload: {
+          prebookId: string;
+          guestInfo: {
+            guestFirstName: string;
+            guestLastName: string;
+            guestEmail: string;
+            guestPhone?: string;
+          };
+          transactionId?: string;
+          specialRequests?: string;
+        } = {
           prebookId: body.prebookId,
           guestInfo: {
             guestFirstName: body.guestFirstName,
@@ -188,7 +208,15 @@ export async function POST(request: NextRequest) {
             guestPhone: body.guestPhone,
           },
           specialRequests: body.specialRequests,
-        });
+        };
+
+        // Add transactionId for User Payment SDK flow
+        if (liteApiTransactionId) {
+          bookingPayload.transactionId = liteApiTransactionId;
+          console.log('💳 Using TRANSACTION_ID payment method:', liteApiTransactionId);
+        }
+
+        const bookingResult = await liteAPI.bookHotel(bookingPayload);
 
         liteApiBookingId = bookingResult.bookingId;
         liteApiReference = bookingResult.reference;
@@ -284,6 +312,8 @@ export async function POST(request: NextRequest) {
             prebookId: body.prebookId,
             liteApiBookingId,
             liteApiReference,
+            transactionId: liteApiTransactionId,
+            paymentMethod: liteApiTransactionId ? 'USER_PAYMENT_SDK' : 'ACCOUNT',
           }),
 
           // Metadata

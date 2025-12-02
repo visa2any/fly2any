@@ -79,8 +79,11 @@ export async function POST(request: NextRequest) {
     if (hotelId) console.log(`   Hotel ID: ${hotelId}`);
     if (checkIn && checkOut) console.log(`   Dates: ${checkIn} → ${checkOut}`);
 
-    // Call LiteAPI prebook endpoint
-    const prebookResponse = await liteAPI.preBookHotel(offerId);
+    // Call LiteAPI prebook endpoint with User Payment SDK enabled
+    // This enables customers to pay directly via LiteAPI's secure payment portal
+    const prebookResponse = await liteAPI.preBookHotel(offerId, {
+      usePaymentSdk: true, // Enable LiteAPI User Payment SDK
+    });
 
     // Check prebook status
     if (prebookResponse.status === 'failed') {
@@ -105,13 +108,25 @@ export async function POST(request: NextRequest) {
     console.log(`   Expires At: ${prebookResponse.expiresAt}`);
     console.log(`   Time Until Expiry: ${Math.floor(timeUntilExpiry / 60)} minutes`);
 
+    // Log User Payment SDK info if available
+    if (prebookResponse.secretKey) {
+      console.log(`   Payment SDK: Enabled`);
+      console.log(`   Transaction ID: ${prebookResponse.transactionId}`);
+    }
+
     return NextResponse.json({
       success: true,
-      data: prebookResponse,
+      data: {
+        ...prebookResponse,
+        // Ensure secretKey and transactionId are included for SDK
+        secretKey: prebookResponse.secretKey,
+        transactionId: prebookResponse.transactionId,
+      },
       meta: {
         timeUntilExpiry, // seconds until expiry
         expiryMinutes: Math.floor(timeUntilExpiry / 60),
         expirySeconds: timeUntilExpiry % 60,
+        paymentSdkEnabled: !!prebookResponse.secretKey,
       }
     });
 
