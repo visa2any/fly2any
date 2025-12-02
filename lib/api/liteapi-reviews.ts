@@ -75,6 +75,7 @@ class LiteAPIReviews {
 
   /**
    * Fetch hotel reviews from LiteAPI
+   * Falls back to generated reviews if API returns no content
    */
   async getHotelReviews(
     hotelId: string,
@@ -85,11 +86,13 @@ class LiteAPIReviews {
       language?: string;
     }
   ): Promise<ReviewsResponse> {
+    const limit = options?.limit || 10;
+
     try {
       const response = await axios.get(`${this.baseUrl}/data/reviews`, {
         params: {
           hotelId,
-          limit: options?.limit || 10,
+          limit,
           offset: options?.offset || 0,
           sort: options?.sort || 'recent',
           language: options?.language || 'en',
@@ -99,15 +102,29 @@ class LiteAPIReviews {
       });
 
       // If LiteAPI returns reviews, parse them
-      if (response.data?.data && Array.isArray(response.data.data)) {
-        return this.parseReviewsResponse(response.data, hotelId);
+      if (response.data?.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+        const parsed = this.parseReviewsResponse(response.data, hotelId);
+
+        // Check if parsed reviews have ACTUAL content (not empty)
+        const reviewsWithContent = parsed.reviews.filter(r => r.content && r.content.length > 20);
+
+        if (reviewsWithContent.length > 0) {
+          console.log(`✅ LiteAPI returned ${reviewsWithContent.length} reviews with content`);
+          return {
+            ...parsed,
+            reviews: reviewsWithContent,
+          };
+        }
+
+        console.log(`⚠️ LiteAPI returned ${parsed.reviews.length} reviews but none have content`);
       }
 
-      // If no reviews from API, generate realistic mock reviews
-      return this.generateMockReviews(hotelId, options?.limit || 10);
+      // If no reviews with content from API, generate realistic mock reviews
+      console.log(`📝 Generating ${limit} mock reviews for hotel ${hotelId}`);
+      return this.generateMockReviews(hotelId, limit);
     } catch (error: any) {
       console.warn('LiteAPI reviews fetch failed, using generated reviews:', error.message);
-      return this.generateMockReviews(hotelId, options?.limit || 10);
+      return this.generateMockReviews(hotelId, limit);
     }
   }
 

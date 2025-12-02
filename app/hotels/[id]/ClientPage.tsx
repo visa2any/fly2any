@@ -106,21 +106,54 @@ export default function HotelDetailPage() {
 
     if (hotelId) {
       fetchHotelDetails();
-      fetchReviews();
     }
   }, [hotelId, retrying, checkIn, checkOut, adults]);
 
-  // Fetch reviews from database
-  const fetchReviews = async () => {
+  // Initialize selectedRoom with lowest rate when hotel loads
+  useEffect(() => {
+    if (hotel?.rates?.length > 0 && !selectedRoom) {
+      setSelectedRoom(hotel.rates[0]);
+    }
+  }, [hotel, selectedRoom]);
+
+  // Fetch reviews AFTER hotel data is loaded (for contextual review generation)
+  useEffect(() => {
+    if (hotel && hotelId) {
+      fetchReviews(hotel);
+    }
+  }, [hotel, hotelId]);
+
+  // Fetch reviews with hotel context for contextually-appropriate reviews
+  const fetchReviews = async (hotelData?: any) => {
     try {
       setReviewsLoading(true);
-      const response = await fetch(`/api/hotels/${hotelId}/reviews`);
+
+      // Build URL with hotel context for contextual review generation
+      let reviewUrl = `/api/hotels/${hotelId}/reviews?limit=10`;
+
+      // Add hotel context if available (for contextually-appropriate reviews)
+      if (hotelData) {
+        const hotelName = encodeURIComponent(hotelData.name || 'Hotel');
+        const hotelCity = encodeURIComponent(hotelData.address?.city || '');
+        const hotelStars = hotelData.starRating || hotelData.stars || 3;
+
+        // Extract amenity names for context
+        const amenities = (hotelData.amenities || [])
+          .slice(0, 20)
+          .map((a: any) => typeof a === 'string' ? a : a.name || '')
+          .filter(Boolean)
+          .join(',');
+
+        reviewUrl += `&hotelName=${hotelName}&hotelCity=${hotelCity}&hotelStars=${hotelStars}&amenities=${encodeURIComponent(amenities)}`;
+      }
+
+      const response = await fetch(reviewUrl);
 
       if (response.ok) {
         const data = await response.json();
-        setReviews(data.reviews || []);
-        setAverageRating(data.averageRating || 0);
-        setReviewCount(data.total || 0);
+        setReviews(data.reviews || data.data || []);
+        setAverageRating(data.averageRating || data.summary?.averageRating || 0);
+        setReviewCount(data.total || data.summary?.totalReviews || 0);
       }
     } catch (err) {
       console.error('Error fetching reviews:', err);
@@ -328,6 +361,14 @@ export default function HotelDetailPage() {
 
   // Calculate per-night price (nights is calculated earlier before early returns)
   const perNightPrice = totalPrice > 0 ? totalPrice / nights : 0;
+
+  // Selected room details for sidebar display
+  const activeRoom = selectedRoom || lowestRate;
+  const activeRoomPrice = activeRoom
+    ? parseFloat(activeRoom.totalPrice?.amount || activeRoom.total_amount || '0')
+    : totalPrice;
+  const activeRoomPerNight = activeRoomPrice > 0 ? activeRoomPrice / nights : perNightPrice;
+  const activeRoomName = activeRoom?.name || activeRoom?.room_type || activeRoom?.roomType || 'Standard Room';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -750,36 +791,20 @@ export default function HotelDetailPage() {
                           refundable: isRefundable,
                         };
 
+                        // Check if this room is currently selected
+                        const isThisRoomSelected = selectedRoom?.id === room.id ||
+                          (selectedRoom && !selectedRoom.id && !room.id && selectedRoom.name === room.name);
+
                         return (
                           <CompactRoomCard
                             key={room.id || index}
                             room={transformedRoom}
                             nights={nights}
                             currency={currency}
+                            isSelected={isThisRoomSelected}
                             onSelect={() => {
+                              // Just select the room - sidebar updates automatically
                               setSelectedRoom(room);
-                              // Navigate to booking with this specific room
-                              const bookingData = {
-                                hotelId: hotelId,
-                                name: hotel.name,
-                                location: `${hotel.address?.city}, ${hotel.address?.country}`,
-                                checkIn: checkIn || hotel.checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                                checkOut: checkOut || hotel.checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                                guests: { adults: maxGuests, children: 0 },
-                                roomId: room.id || `room_${index}`,
-                                roomName: roomName,
-                                bedType: bedType,
-                                price: roomPrice,
-                                currency: currency,
-                                image: mainImage,
-                                stars: hotel.starRating,
-                                refundable: isRefundable,
-                                breakfastIncluded: breakfastIncluded,
-                              };
-
-                              sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-
-                              router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${maxGuests}&children=0&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(roomName)}&bedType=${encodeURIComponent(bedType)}&price=${roomPrice}&currency=${currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${isRefundable}&breakfastIncluded=${breakfastIncluded}`);
                             }}
                             lang="en"
                           />
@@ -817,14 +842,28 @@ export default function HotelDetailPage() {
               </div>
             )}
 
-            {/* Enhanced Reviews Section */}
-            <div className="bg-white rounded-lg p-6 mt-6">
-              <HotelReviews
-                hotelId={hotelId}
-                hotelName={hotel?.name}
-                showSummary={true}
-                maxReviews={10}
-              />
+            {/* Enhanced Reviews Section - Premium Styling */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden mt-6">
+              {/* Section Header */}
+              <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl">
+                    <Star className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Guest Reviews</h2>
+                    <p className="text-sm text-gray-500">Real experiences from verified guests</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <HotelReviews
+                  hotelId={hotelId}
+                  hotelName={hotel?.name}
+                  showSummary={true}
+                  maxReviews={10}
+                />
+              </div>
             </div>
 
             {/* Trust Badges Section */}
@@ -833,177 +872,206 @@ export default function HotelDetailPage() {
             </div>
           </div>
 
-          {/* Booking Sidebar */}
+          {/* Premium Booking Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg p-6 sticky top-24">
-              <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-1">Starting from</p>
-                <div className="flex items-end gap-2 mb-2">
-                  <span className="text-4xl font-bold text-primary-600">
-                    ${perNightPrice.toFixed(2)}
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 sticky top-24 overflow-hidden">
+              {/* Premium Price Header - Shows Selected Room */}
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-5">
+                {/* Room Name Badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  <BedDouble className="w-4 h-4 text-white/80" />
+                  <p className="text-white text-sm font-medium truncate" title={activeRoomName}>
+                    {activeRoomName.length > 30 ? `${activeRoomName.substring(0, 30)}...` : activeRoomName}
+                  </p>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-4xl font-bold text-white">
+                    ${activeRoomPerNight.toFixed(0)}
                   </span>
-                  <span className="text-gray-600 mb-2">per night</span>
+                  <span className="text-orange-100 text-lg mb-1">/night</span>
                 </div>
-
                 {checkIn && checkOut && (
-                  <div className="text-sm text-gray-600 mb-3">
-                    <span className="font-semibold">${totalPrice.toFixed(2)}</span> total for {nights} {nights === 1 ? 'night' : 'nights'}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-white/90 text-sm">
+                      <span className="font-bold">${activeRoomPrice.toFixed(0)}</span> total for {nights} {nights === 1 ? 'night' : 'nights'}
+                    </span>
                   </div>
                 )}
-
-                {lowestRate && (
-                  <div className="flex items-center gap-2 text-sm">
-                    {lowestRate.refundable && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-semibold">
-                        Free Cancellation
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Urgency Signals - Pass real room count from API */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <HotelUrgencySignals
-                  hotelId={hotelId}
-                  hotelName={hotel?.name}
-                  basePrice={perNightPrice}
-                  variant="detail"
-                  roomsLeft={hotel?.rates?.length || undefined}
-                  isRealData={hotel?.rates?.length > 0}
-                />
-              </div>
-
-              {/* Quick Info */}
-              <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
-                {/* Check-in/Check-out Times */}
-                {(hotel.checkInTime || hotel.checkOutTime) && (
-                  <div className="flex items-start gap-3 text-gray-700">
-                    <Clock className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm mb-1">Check-in / Check-out</p>
-                      <p className="text-sm text-gray-600">
-                        {hotel.checkInTime || '15:00'} / {hotel.checkOutTime || '11:00'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Calendar className="w-5 h-5 text-primary-600" />
-                  <span>Flexible check-in/out</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Users className="w-5 h-5 text-primary-600" />
-                  <span>Suitable for all guests</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Shield className="w-5 h-5 text-primary-600" />
-                  <span>Secure booking</span>
-                </div>
-              </div>
-
-              {/* Location Map */}
-              {hotel.address && (hotel.address.lat || hotel.address.city) && (
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-primary-600" />
-                    Location
-                  </h3>
-                  {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
-                    <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ height: '200px' }}>
-                      {hotel.address.lat && hotel.address.lng ? (
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          allowFullScreen
-                          src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${hotel.address.lat},${hotel.address.lng}&zoom=15`}
-                        />
-                      ) : (
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          allowFullScreen
-                          src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}&zoom=15`}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <a
-                      href={
-                        hotel.address.lat && hotel.address.lng
-                          ? `https://www.google.com/maps/search/?api=1&query=${hotel.address.lat},${hotel.address.lng}`
-                          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden hover:from-blue-100 hover:to-blue-200 transition-all group"
-                      style={{ height: '200px' }}
-                    >
-                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
-                          <MapPin className="w-8 h-8 text-primary-600" />
-                        </div>
-                        <p className="font-semibold text-gray-900 mb-2">View on Google Maps</p>
-                        <p className="text-sm text-gray-600">
-                          {hotel.address.city}, {hotel.address.country}
-                        </p>
-                        <div className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-semibold group-hover:bg-primary-700 transition-colors">
-                          Open Map
-                        </div>
-                      </div>
-                    </a>
-                  )}
+                {activeRoom?.refundable && (
                   <div className="mt-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-xs font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Free Cancellation
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-5">
+                {/* Booking Details - COMPACT 2-Column Grid (BEFORE CTA) */}
+                <div className="mb-4 pb-4 border-b border-slate-100">
+                  <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Your Booking</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Check-in with Date */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-orange-100 flex-shrink-0">
+                        <Calendar className="w-3.5 h-3.5 text-orange-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-slate-500 leading-tight">Check-in</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">
+                          {checkIn ? new Date(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Select'}
+                        </p>
+                        <p className="text-[9px] text-slate-400">{hotel.checkInTime || '3:00 PM'}</p>
+                      </div>
+                    </div>
+
+                    {/* Check-out with Date */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-blue-100 flex-shrink-0">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-slate-500 leading-tight">Check-out</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">
+                          {checkOut ? new Date(checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Select'}
+                        </p>
+                        <p className="text-[9px] text-slate-400">{hotel.checkOutTime || '11:00 AM'}</p>
+                      </div>
+                    </div>
+
+                    {/* Guests */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-green-100 flex-shrink-0">
+                        <Users className="w-3.5 h-3.5 text-green-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-slate-500 leading-tight">Guests</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">{parseInt(adults)} {parseInt(adults) === 1 ? 'Guest' : 'Guests'}</p>
+                      </div>
+                    </div>
+
+                    {/* Instant Confirmation */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-md bg-purple-100 flex-shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-slate-500 leading-tight">Booking</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">Instant Confirm</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary CTA - Book Now (uses selected room) */}
+                <button
+                  onClick={() => {
+                    const roomCurrency = activeRoom?.totalPrice?.currency || activeRoom?.currency || 'USD';
+                    const roomOfferId = activeRoom?.offerId || activeRoom?.id || '';
+                    const bookingData = {
+                      hotelId: hotelId,
+                      name: hotel.name,
+                      location: `${hotel.address?.city}, ${hotel.address?.country}`,
+                      checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                      checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+                      guests: { adults: parseInt(adults, 10) || 2, children: 0 },
+                      roomId: activeRoom?.id || 'default_room',
+                      offerId: roomOfferId,
+                      roomName: activeRoomName,
+                      price: activeRoomPrice,
+                      perNightPrice: activeRoomPerNight,
+                      currency: roomCurrency,
+                      image: mainImage,
+                      stars: hotel.starRating,
+                      refundable: activeRoom?.refundable || false,
+                      breakfastIncluded: activeRoom?.breakfastIncluded || false,
+                      boardType: activeRoom?.boardType || 'RO',
+                      nights: nights,
+                    };
+                    sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
+                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${bookingData.guests.adults}&children=${children}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all mb-4 flex items-center justify-center gap-2"
+                >
+                  <BedDouble className="w-5 h-5" />
+                  Book Now
+                </button>
+
+                {/* Urgency Signals */}
+                <div className="mb-4 pb-4 border-b border-slate-100">
+                  <HotelUrgencySignals
+                    hotelId={hotelId}
+                    hotelName={hotel?.name}
+                    basePrice={perNightPrice}
+                    variant="detail"
+                    availableRoomTypes={hotel?.rates?.length || 0}
+                    isRealData={hotel?.rates?.length > 0}
+                  />
+                </div>
+
+                {/* Location Map - FREE OpenStreetMap Preview */}
+                {hotel.address && (hotel.address.lat || hotel.address.city) && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-orange-500" />
+                      Location
+                    </h3>
+                    {/* OpenStreetMap Embed - FREE, No API Key Required */}
+                    {hotel.address.lat && hotel.address.lng ? (
+                      <div className="bg-slate-100 rounded-xl overflow-hidden shadow-inner border border-slate-200" style={{ height: '160px' }}>
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${hotel.address.lng - 0.015}%2C${hotel.address.lat - 0.01}%2C${hotel.address.lng + 0.015}%2C${hotel.address.lat + 0.01}&layer=mapnik&marker=${hotel.address.lat}%2C${hotel.address.lng}`}
+                          title="Hotel Location Map"
+                        />
+                      </div>
+                    ) : (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl overflow-hidden hover:from-orange-50 hover:to-amber-50 transition-all group border border-slate-200"
+                        style={{ height: '160px' }}
+                      >
+                        <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-2 shadow-lg group-hover:scale-110 transition-transform border border-slate-200">
+                            <MapPin className="w-6 h-6 text-orange-500" />
+                          </div>
+                          <p className="font-semibold text-slate-800 mb-1 text-sm">View on Map</p>
+                          <p className="text-xs text-slate-500">
+                            {hotel.address.city}, {hotel.address.country}
+                          </p>
+                        </div>
+                      </a>
+                    )}
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${hotel.name}, ${hotel.address.city}, ${hotel.address.country}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-1"
+                      className="mt-3 text-sm text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1.5 justify-center py-2 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
                     >
-                      <MapPin className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4" />
                       Get Directions
                     </a>
                   </div>
+                )}
+
+                {/* View Similar Hotels - MOVED TO BOTTOM (for undecided users only) */}
+                <div className="mt-5 pt-4 border-t border-slate-100">
+                  <p className="text-xs text-slate-500 text-center mb-2">Not quite right?</p>
+                  <button
+                    onClick={() => router.push('/hotels')}
+                    className="w-full py-2.5 border border-slate-200 text-slate-500 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 font-medium text-sm rounded-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    View Similar Hotels
+                  </button>
                 </div>
-              )}
-
-              {/* CTA Buttons */}
-              <button
-                onClick={() => {
-                  // Store hotel data for booking flow
-                  const bookingData = {
-                    hotelId: hotelId, // Use hotelId from URL params (always defined)
-                    name: hotel.name,
-                    location: `${hotel.address?.city}, ${hotel.address?.country}`,
-                    checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                    checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                    guests: { adults: parseInt(adults, 10) || 2, children: 0 },
-                    price: totalPrice,
-                    currency: lowestRate?.totalPrice?.currency || lowestRate?.currency || 'USD',
-                    image: mainImage,
-                    stars: hotel.starRating,
-                  };
-
-                  sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-
-                  // Navigate to booking page
-                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
-                }}
-                className="w-full py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg rounded-lg transition-colors mb-3"
-              >
-                Book Now
-              </button>
-
-              <button
-                onClick={() => router.push('/hotels')}
-                className="w-full py-3 border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold rounded-lg transition-colors"
-              >
-                View Similar Hotels
-              </button>
+              </div>
             </div>
           </div>
         </div>

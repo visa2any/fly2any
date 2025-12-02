@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Award,
 } from 'lucide-react';
 
 interface NavItem {
@@ -124,6 +125,12 @@ export function AccountSidebar({ unreadNotifications = 0, activeAlerts = 0 }: Ac
       href: '/account/referrals',
       label: 'Refer & Earn',
       icon: <Gift className="w-5 h-5" />,
+      isNew: true,
+    },
+    {
+      href: '/account/loyalty',
+      label: 'Loyalty & Rewards',
+      icon: <Award className="w-5 h-5" />,
       isNew: true,
     },
     {

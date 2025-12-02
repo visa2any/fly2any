@@ -27,6 +27,7 @@ import {
   CreditCard,
   PiggyBank,
   GitBranch,
+  Ticket,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -118,6 +119,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'Refer & Earn',
       href: '/admin/referrals',
       icon: Gift,
+      roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'Vouchers & Promos',
+      href: '/admin/vouchers',
+      icon: Ticket,
       roles: ['super_admin', 'admin']
     },
     {

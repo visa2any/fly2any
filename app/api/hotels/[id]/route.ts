@@ -201,15 +201,70 @@ export async function GET(
 
         console.log(`📸 [LITEAPI] Total ${images.length} photos for hotel ${accommodationId}`);
 
-        // Map facility IDs to amenity names (common facility mappings)
-        const facilityMap: Record<number, string> = {
-          1: 'wifi', 2: 'parking', 3: 'pool', 4: 'gym', 5: 'restaurant',
-          6: 'bar', 7: 'spa', 8: 'room_service', 9: 'air_conditioning',
-          10: 'laundry', 11: 'concierge', 12: 'business_center',
-        };
-        const amenities = (hotelDetails.facilityIds || [])
-          .map((id: number) => facilityMap[id])
-          .filter(Boolean);
+        // ============================================================================
+        // ENHANCED AMENITIES/FACILITIES EXTRACTION
+        // Priority: hotelFacilities (names) > facilities array > facilityIds mapping
+        // ============================================================================
+
+        // Get facilities from enhanced details (has actual names!)
+        const hotelFacilities = enhancedDetails?.hotelFacilities || enhancedDetails?.facilities || [];
+
+        // Extract amenity names from facilities array (can have id + name)
+        let amenities: string[] = [];
+
+        // PRIORITY 1: Use hotelFacilities if available (has actual names)
+        if (Array.isArray(hotelFacilities) && hotelFacilities.length > 0) {
+          amenities = hotelFacilities.map((f: any) => {
+            // Handle different formats: string, {name}, {id, name}
+            if (typeof f === 'string') return f;
+            if (f.name) return f.name;
+            return null;
+          }).filter(Boolean);
+          console.log(`✅ [AMENITIES] Using ${amenities.length} facilities from hotelFacilities`);
+        }
+
+        // PRIORITY 2: Fallback to facilityIds mapping if no names available
+        if (amenities.length === 0 && hotelDetails.facilityIds?.length > 0) {
+          // Extended facility ID mapping (LiteAPI common IDs)
+          const facilityMap: Record<number, string> = {
+            1: 'Free WiFi', 2: 'Parking', 3: 'Swimming Pool', 4: 'Fitness Center', 5: 'Restaurant',
+            6: 'Bar/Lounge', 7: 'Spa', 8: 'Room Service', 9: 'Air Conditioning', 10: 'Laundry Service',
+            11: 'Concierge', 12: 'Business Center', 13: 'Pet Friendly', 14: 'Non-Smoking Rooms',
+            15: 'Family Rooms', 16: 'Airport Shuttle', 17: 'Beach Access', 18: 'Golf Course',
+            19: 'Tennis Court', 20: 'Kids Club', 21: 'Sauna', 22: 'Hot Tub', 23: 'Casino',
+            24: 'Nightclub', 25: 'Meeting Rooms', 26: 'Wheelchair Accessible', 27: '24-Hour Front Desk',
+            28: 'Breakfast Included', 29: 'Kitchen', 30: 'Balcony', 31: 'Ocean View', 32: 'City View',
+            33: 'Garden', 34: 'Terrace', 35: 'BBQ Facilities', 36: 'Elevator', 37: 'Safe Deposit Box',
+            38: 'Luggage Storage', 39: 'Currency Exchange', 40: 'ATM', 41: 'Gift Shop', 42: 'Valet Parking',
+            43: 'Electric Vehicle Charging', 44: 'Bicycle Rental', 45: 'Car Rental', 46: 'Tour Desk',
+            47: 'Ticket Service', 48: 'Babysitting', 49: 'Dry Cleaning', 50: 'Ironing Service',
+          };
+          amenities = (hotelDetails.facilityIds || [])
+            .map((id: number) => facilityMap[id])
+            .filter(Boolean);
+          console.log(`✅ [AMENITIES] Using ${amenities.length} facilities from facilityIds mapping`);
+        }
+
+        // PRIORITY 3: Check for common amenity fields in hotelDetails
+        if (amenities.length === 0) {
+          const commonAmenities: string[] = [];
+          if (hotelDetails.hasWifi || hotelDetails.wifi) commonAmenities.push('Free WiFi');
+          if (hotelDetails.hasParking || hotelDetails.parking) commonAmenities.push('Parking');
+          if (hotelDetails.hasPool || hotelDetails.pool) commonAmenities.push('Swimming Pool');
+          if (hotelDetails.hasGym || hotelDetails.gym) commonAmenities.push('Fitness Center');
+          if (hotelDetails.hasRestaurant || hotelDetails.restaurant) commonAmenities.push('Restaurant');
+          if (hotelDetails.hasSpa || hotelDetails.spa) commonAmenities.push('Spa');
+          if (hotelDetails.hasBar || hotelDetails.bar) commonAmenities.push('Bar/Lounge');
+          if (hotelDetails.airConditioning || hotelDetails.ac) commonAmenities.push('Air Conditioning');
+          if (hotelDetails.roomService) commonAmenities.push('Room Service');
+          if (hotelDetails.petFriendly) commonAmenities.push('Pet Friendly');
+          if (commonAmenities.length > 0) {
+            amenities = commonAmenities;
+            console.log(`✅ [AMENITIES] Using ${amenities.length} common amenity fields`);
+          }
+        }
+
+        console.log(`📋 [LITEAPI] Final amenities count: ${amenities.length}`);
 
         // Strip HTML tags from description
         const stripHtml = (html: string): string => {
@@ -225,9 +280,6 @@ export async function GET(
 
         // Get hotel important information from enhanced details
         const hotelImportantInfo = enhancedDetails?.hotelImportantInformation || hotelDetails.hotelImportantInformation;
-
-        // Get facilities from enhanced details
-        const hotelFacilities = enhancedDetails?.hotelFacilities || enhancedDetails?.facilities || [];
 
         // Format response to match expected structure for ClientPage
         const formattedResponse = {

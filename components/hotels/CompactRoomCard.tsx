@@ -1,12 +1,13 @@
 'use client';
 
-import { Users, Utensils, Shield, X, BedDouble, Maximize2, Coffee, Star, Sparkles } from 'lucide-react';
+import { Users, Utensils, Shield, X, BedDouble, Maximize2, Coffee, Star, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export interface CompactRoomCardProps {
   room: any;
   nights: number;
   currency: string;
   onSelect: () => void;
+  isSelected?: boolean;
   lang?: 'en' | 'pt' | 'es';
 }
 
@@ -18,6 +19,7 @@ const translations = {
     freeCancellation: 'Free Cancellation',
     nonRefundable: 'Non-refundable',
     select: 'Select Room',
+    selected: 'Selected',
   },
   pt: {
     perNight: 'por noite',
@@ -26,6 +28,7 @@ const translations = {
     freeCancellation: 'Cancelamento Grátis',
     nonRefundable: 'Não reembolsável',
     select: 'Selecionar',
+    selected: 'Selecionado',
   },
   es: {
     perNight: 'por noche',
@@ -34,6 +37,7 @@ const translations = {
     freeCancellation: 'Cancelación Gratis',
     nonRefundable: 'No reembolsable',
     select: 'Seleccionar',
+    selected: 'Seleccionado',
   },
 };
 
@@ -57,6 +61,7 @@ export function CompactRoomCard({
   nights,
   currency,
   onSelect,
+  isSelected = false,
   lang = 'en',
 }: CompactRoomCardProps) {
   const t = translations[lang];
@@ -182,9 +187,14 @@ export function CompactRoomCard({
 
           <button
             onClick={onSelect}
-            className="w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-amber-600 hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm shadow-md"
+            className={`w-full px-4 py-2.5 font-bold rounded-xl transition-all text-sm shadow-md flex items-center justify-center gap-2 ${
+              isSelected
+                ? 'bg-green-500 text-white ring-2 ring-green-600 ring-offset-1'
+                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:shadow-lg hover:scale-[1.02] active:scale-95'
+            }`}
           >
-            {t.select}
+            {isSelected && <CheckCircle2 className="w-4 h-4" />}
+            {isSelected ? t.selected : t.select}
           </button>
         </div>
       </div>

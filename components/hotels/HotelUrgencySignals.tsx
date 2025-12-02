@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, Clock, TrendingUp, Flame, Users, AlertTriangle, Zap, Calendar, Timer } from 'lucide-react';
+import { Eye, Clock, TrendingUp, Flame, Users, AlertTriangle, Zap, Calendar, Timer, BedDouble } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UrgencySignalsProps {
@@ -10,6 +10,7 @@ interface UrgencySignalsProps {
   basePrice?: number;
   originalPrice?: number;
   roomsLeft?: number;
+  availableRoomTypes?: number; // REAL data: number of room types from API
   isPopular?: boolean;
   lastBooked?: string;
   variant?: 'card' | 'detail' | 'checkout';
@@ -87,10 +88,10 @@ function ViewersIndicator({ count, animate = true }: { count: number; animate?: 
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex items-center gap-1.5 bg-red-50 text-red-600 px-2.5 py-1 rounded-full text-xs font-medium"
+      className="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap"
     >
-      <Eye className="w-3.5 h-3.5 animate-pulse" />
-      <span>{displayCount} people viewing</span>
+      <Eye className="w-3 h-3 animate-pulse flex-shrink-0" />
+      <span>{displayCount} viewing</span>
     </motion.div>
   );
 }
@@ -121,20 +122,41 @@ function RoomsLeftBadge({ count }: { count: number }) {
   );
 }
 
+// NEW: Real data badge showing available room types from API
+function AvailableRoomTypesBadge({ count }: { count: number }) {
+  const isLimited = count <= 3;
+  const isModerate = count <= 5;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
+        isLimited
+          ? 'bg-amber-100 text-amber-700'
+          : isModerate
+          ? 'bg-blue-100 text-blue-700'
+          : 'bg-slate-100 text-slate-700'
+      }`}
+    >
+      <BedDouble className="w-3 h-3 flex-shrink-0" />
+      <span>{count} rooms left</span>
+    </motion.div>
+  );
+}
+
 function RecentBookingPulse({ minutes, bookings }: { minutes: number; bookings: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2.5 py-1 rounded-full text-xs font-medium"
+      className="flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap"
     >
-      <div className="relative">
-        <Zap className="w-3.5 h-3.5" />
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-ping" />
+      <div className="relative flex-shrink-0">
+        <Zap className="w-3 h-3" />
+        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
       </div>
-      <span>
-        {bookings} booked in last {minutes < 60 ? `${minutes}min` : `${Math.floor(minutes / 60)}h`}
-      </span>
+      <span>{bookings} booked</span>
     </motion.div>
   );
 }
@@ -218,6 +240,7 @@ export function HotelUrgencySignals({
   basePrice,
   originalPrice,
   roomsLeft,
+  availableRoomTypes,
   isPopular,
   lastBooked,
   variant = 'card',
@@ -273,13 +296,17 @@ export function HotelUrgencySignals({
   if (variant === 'detail') {
     return (
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+        {/* All badges on ONE ROW - no wrap */}
+        <div className="flex items-center gap-1.5 flex-nowrap">
           <ViewersIndicator count={signalData.viewers} />
-          {signalData.roomsLeft <= 5 && <RoomsLeftBadge count={signalData.roomsLeft} />}
           <RecentBookingPulse
             minutes={signalData.lastBookedMinutes}
             bookings={signalData.recentBookings}
           />
+          {/* REAL DATA: Show available room types from API */}
+          {availableRoomTypes !== undefined && availableRoomTypes > 0 && (
+            <AvailableRoomTypesBadge count={availableRoomTypes} />
+          )}
         </div>
 
         {signalData.priceDropPercent > 0 && (

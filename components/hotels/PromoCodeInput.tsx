@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Tag, CheckCircle2, XCircle, Loader2, Percent, Gift } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Tag, CheckCircle2, XCircle, Loader2, Percent, Gift, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PromoCodeInputProps {
@@ -11,18 +11,22 @@ interface PromoCodeInputProps {
   appliedDiscount?: PromoDiscount;
   totalPrice: number;
   currency?: string;
+  hotelId?: string;
+  guestId?: string;
 }
 
 export interface PromoDiscount {
-  type: 'percentage' | 'fixed';
+  type: 'percentage' | 'fixed' | 'freeNight';
   value: number;
   maxDiscount?: number;
   minPurchase?: number;
   description?: string;
+  voucherId?: string;
+  discountAmount?: number;
 }
 
-// Demo promo codes (in production, validate against API/database)
-const PROMO_CODES: Record<string, PromoDiscount> = {
+// Fallback demo codes (only used when API fails or in development)
+const FALLBACK_PROMO_CODES: Record<string, PromoDiscount> = {
   'WELCOME10': { type: 'percentage', value: 10, description: '10% off your first booking' },
   'SAVE20': { type: 'percentage', value: 20, maxDiscount: 100, description: '20% off (max $100)' },
   'HOTEL50': { type: 'fixed', value: 50, minPurchase: 200, description: '$50 off hotels over $200' },
@@ -37,17 +41,25 @@ export function PromoCodeInput({
   appliedDiscount,
   totalPrice,
   currency = 'USD',
+  hotelId,
+  guestId,
 }: PromoCodeInputProps) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showInput, setShowInput] = useState(!appliedCode);
+  const [apiAvailable, setApiAvailable] = useState(true);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(price);
   };
 
   const calculateDiscount = (discount: PromoDiscount, price: number): number => {
+    // If API already calculated discount, use that
+    if (discount.discountAmount !== undefined) {
+      return discount.discountAmount;
+    }
+
     if (discount.minPurchase && price < discount.minPurchase) {
       return 0;
     }
@@ -59,12 +71,64 @@ export function PromoCodeInput({
       if (discount.maxDiscount) {
         discountAmount = Math.min(discountAmount, discount.maxDiscount);
       }
-    } else {
+    } else if (discount.type === 'fixed') {
       discountAmount = discount.value;
+    } else if (discount.type === 'freeNight') {
+      // Free night calculation would depend on per-night price
+      discountAmount = discount.value;
+    } else {
+      discountAmount = 0;
     }
 
-    return Math.min(discountAmount, price); // Can't discount more than the price
+    return Math.min(discountAmount, price);
   };
+
+  const validateWithAPI = useCallback(async (promoCode: string): Promise<{
+    success: boolean;
+    discount?: PromoDiscount;
+    error?: string;
+  }> => {
+    try {
+      const response = await fetch('/api/vouchers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoCode,
+          totalAmount: totalPrice,
+          currency,
+          hotelId,
+          guestId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data?.valid) {
+        const voucher = data.data.voucher;
+        return {
+          success: true,
+          discount: {
+            type: voucher?.type || 'percentage',
+            value: voucher?.value || 0,
+            maxDiscount: voucher?.maxDiscount,
+            minPurchase: voucher?.minSpend,
+            description: voucher?.code ? `${voucher.code} applied` : 'Discount applied',
+            voucherId: voucher?.id,
+            discountAmount: data.data.discountAmount,
+          },
+        };
+      } else {
+        return {
+          success: false,
+          error: data.data?.error || data.data?.reason || 'Invalid promo code',
+        };
+      }
+    } catch (err) {
+      console.warn('Voucher API unavailable, falling back to demo codes');
+      setApiAvailable(false);
+      return { success: false, error: 'API_UNAVAILABLE' };
+    }
+  }, [totalPrice, currency, hotelId, guestId]);
 
   const handleApply = async () => {
     const trimmedCode = code.trim().toUpperCase();
@@ -77,24 +141,41 @@ export function PromoCodeInput({
     setLoading(true);
     setError(null);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Try API validation first
+    if (apiAvailable) {
+      const apiResult = await validateWithAPI(trimmedCode);
 
-    const discount = PROMO_CODES[trimmedCode];
+      if (apiResult.success && apiResult.discount) {
+        onApply(trimmedCode, apiResult.discount);
+        setShowInput(false);
+        setLoading(false);
+        return;
+      }
 
-    if (!discount) {
+      // If API returned error (not unavailable), show it
+      if (apiResult.error && apiResult.error !== 'API_UNAVAILABLE') {
+        setError(apiResult.error);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Fallback to demo codes (only in development or when API unavailable)
+    const fallbackDiscount = FALLBACK_PROMO_CODES[trimmedCode];
+
+    if (!fallbackDiscount) {
       setError('Invalid promo code');
       setLoading(false);
       return;
     }
 
-    if (discount.minPurchase && totalPrice < discount.minPurchase) {
-      setError(`Minimum purchase of ${formatPrice(discount.minPurchase)} required`);
+    if (fallbackDiscount.minPurchase && totalPrice < fallbackDiscount.minPurchase) {
+      setError(`Minimum purchase of ${formatPrice(fallbackDiscount.minPurchase)} required`);
       setLoading(false);
       return;
     }
 
-    onApply(trimmedCode, discount);
+    onApply(trimmedCode, fallbackDiscount);
     setShowInput(false);
     setLoading(false);
   };
@@ -128,6 +209,12 @@ export function PromoCodeInput({
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-green-700">{appliedCode}</span>
                     <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    {appliedDiscount.voucherId && (
+                      <span className="text-xs bg-green-200 text-green-700 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Verified
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-green-600">{appliedDiscount.description}</p>
                   <p className="text-lg font-bold text-green-700 mt-1">
@@ -200,21 +287,23 @@ export function PromoCodeInput({
                 </button>
               </div>
 
-              {/* Available codes hint */}
-              <div className="mt-4 pt-3 border-t border-gray-200">
-                <p className="text-xs text-gray-500 mb-2">Try these codes:</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {Object.entries(PROMO_CODES).slice(0, 3).map(([promoCode, discount]) => (
-                    <button
-                      key={promoCode}
-                      onClick={() => setCode(promoCode)}
-                      className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full hover:border-orange-300 hover:text-orange-600 transition-colors"
-                    >
-                      {promoCode}
-                    </button>
-                  ))}
+              {/* Sample codes hint - only show in development or demo mode */}
+              {!apiAvailable && (
+                <div className="mt-4 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">Try these codes:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(FALLBACK_PROMO_CODES).slice(0, 3).map(([promoCode]) => (
+                      <button
+                        key={promoCode}
+                        onClick={() => setCode(promoCode)}
+                        className="text-xs px-2 py-1 bg-white border border-gray-200 rounded-full hover:border-orange-300 hover:text-orange-600 transition-colors"
+                      >
+                        {promoCode}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

@@ -22,16 +22,566 @@ export const cityLocations: Record<string, CityLocation> = {
     popularDistricts: ['Corniche', 'Al Maryah Island', 'Yas Island', 'Saadiyat Island', 'Al Reem Island']
   },
 
-  // Brazil
+  // Brazil - Expanded districts for better location matching
   'sao paulo': {
     center: { lat: -23.5505, lng: -46.6333 },
     airport: { code: 'GRU', lat: -23.4356, lng: -46.4731, name: 'Guarulhos International' },
-    popularDistricts: ['Paulista', 'Itaim Bibi', 'Vila Madalena', 'Pinheiros', 'Jardins', 'Faria Lima', 'Centro', 'Moema', 'Vila Olímpia']
+    popularDistricts: [
+      // Premium/Business Districts
+      'Paulista', 'Itaim Bibi', 'Vila Olímpia', 'Faria Lima', 'Brooklin', 'Berrini',
+      // Upscale Residential
+      'Jardins', 'Jardim Paulista', 'Jardim América', 'Jardim Europa', 'Moema', 'Higienópolis',
+      // Trendy/Cultural
+      'Vila Madalena', 'Pinheiros', 'Consolação', 'Bela Vista', 'Liberdade',
+      // Central/Historic
+      'Centro', 'República', 'Sé', 'Luz', 'Santa Cecília', 'Bom Retiro',
+      // Residential
+      'Perdizes', 'Pompeia', 'Lapa', 'Vila Mariana', 'Saúde', 'Ipiranga',
+      'Tatuapé', 'Mooca', 'Penha', 'Santana', 'Tucuruvi', 'Casa Verde',
+      // Airport/Business
+      'Guarulhos', 'Congonhas', 'Campo Belo', 'Santo Amaro', 'Morumbi', 'Butantã'
+    ]
   },
   'rio de janeiro': {
     center: { lat: -22.9068, lng: -43.1729 },
     airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International' },
-    popularDistricts: ['Copacabana', 'Ipanema', 'Leblon', 'Barra da Tijuca', 'Botafogo', 'Centro', 'Santa Teresa', 'Lapa']
+    popularDistricts: [
+      // Iconic Beach Districts
+      'Copacabana', 'Ipanema', 'Leblon', 'Leme', 'Arpoador',
+      // Barra & West Zone
+      'Barra da Tijuca', 'Recreio', 'Jacarepaguá', 'São Conrado',
+      // South Zone
+      'Botafogo', 'Flamengo', 'Laranjeiras', 'Catete', 'Glória', 'Urca', 'Humaitá', 'Lagoa', 'Gávea', 'Jardim Botânico',
+      // Historic/Cultural
+      'Centro', 'Santa Teresa', 'Lapa', 'Cinelândia', 'Praça Mauá', 'Saúde',
+      // North Zone
+      'Tijuca', 'Maracanã', 'Vila Isabel', 'Grajaú', 'Méier', 'Penha',
+      // Business
+      'Centro', 'Porto Maravilha', 'Cidade Nova'
+    ]
+  },
+  'brasilia': {
+    center: { lat: -15.7801, lng: -47.9292 },
+    airport: { code: 'BSB', lat: -15.8711, lng: -47.9186, name: 'Presidente Juscelino Kubitschek' },
+    popularDistricts: [
+      'Asa Sul', 'Asa Norte', 'Lago Sul', 'Lago Norte', 'Plano Piloto',
+      'Setor Hoteleiro Sul', 'Setor Hoteleiro Norte', 'Setor Comercial Sul', 'Setor Comercial Norte',
+      'Sudoeste', 'Noroeste', 'Águas Claras', 'Taguatinga', 'Guará', 'Esplanada dos Ministérios'
+    ]
+  },
+  'salvador': {
+    center: { lat: -12.9714, lng: -38.5014 },
+    airport: { code: 'SSA', lat: -12.9086, lng: -38.3225, name: 'Deputado Luís Eduardo Magalhães' },
+    popularDistricts: [
+      'Pelourinho', 'Barra', 'Ondina', 'Rio Vermelho', 'Itapuã', 'Stella Maris',
+      'Campo Grande', 'Vitória', 'Graça', 'Canela', 'Comércio', 'Ribeira',
+      'Pituba', 'Costa Azul', 'Amaralina', 'Armação', 'Boca do Rio'
+    ]
+  },
+  'belo horizonte': {
+    center: { lat: -19.9167, lng: -43.9345 },
+    airport: { code: 'CNF', lat: -19.6244, lng: -43.9719, name: 'Tancredo Neves International' },
+    popularDistricts: [
+      'Savassi', 'Lourdes', 'Funcionários', 'Belvedere', 'Sion', 'Mangabeiras',
+      'Centro', 'Santa Efigênia', 'Floresta', 'Santa Tereza', 'Serra',
+      'Pampulha', 'Cidade Jardim', 'Buritis', 'Anchieta', 'Carmo'
+    ]
+  },
+  'recife': {
+    center: { lat: -8.0476, lng: -34.8770 },
+    airport: { code: 'REC', lat: -8.1265, lng: -34.9236, name: 'Guararapes International' },
+    popularDistricts: [
+      'Boa Viagem', 'Pina', 'Piedade', 'Recife Antigo', 'Santo Antônio', 'São José',
+      'Boa Vista', 'Derby', 'Graças', 'Aflitos', 'Espinheiro', 'Casa Forte',
+      'Parnamirim', 'Tamarineira', 'Casa Amarela', 'Madalena', 'Torre'
+    ]
+  },
+  'fortaleza': {
+    center: { lat: -3.7172, lng: -38.5433 },
+    airport: { code: 'FOR', lat: -3.7763, lng: -38.5326, name: 'Pinto Martins International' },
+    popularDistricts: [
+      'Meireles', 'Aldeota', 'Praia de Iracema', 'Mucuripe', 'Varjota', 'Cocó',
+      'Centro', 'Fátima', 'Dionísio Torres', 'Papicu', 'Edson Queiroz',
+      'Beira Mar', 'Cumbuco', 'Porto das Dunas', 'Beach Park'
+    ]
+  },
+  'curitiba': {
+    center: { lat: -25.4290, lng: -49.2671 },
+    airport: { code: 'CWB', lat: -25.5285, lng: -49.1758, name: 'Afonso Pena International' },
+    popularDistricts: [
+      'Centro', 'Batel', 'Água Verde', 'Bigorrilho', 'Centro Cívico', 'Alto da XV',
+      'Cabral', 'Juvevê', 'Hugo Lange', 'Jardim Social', 'Champagnat', 'Mercês',
+      'Santa Felicidade', 'Ecoville', 'Campo Comprido', 'Portão', 'Rebouças'
+    ]
+  },
+  'porto alegre': {
+    center: { lat: -30.0346, lng: -51.2177 },
+    airport: { code: 'POA', lat: -29.9944, lng: -51.1714, name: 'Salgado Filho International' },
+    popularDistricts: [
+      'Moinhos de Vento', 'Bela Vista', 'Petrópolis', 'Rio Branco', 'Independência',
+      'Centro Histórico', 'Cidade Baixa', 'Menino Deus', 'Floresta', 'Auxiliadora',
+      'Mont Serrat', 'Boa Vista', 'Higienópolis', 'Três Figueiras', 'Chácara das Pedras'
+    ]
+  },
+  'florianopolis': {
+    center: { lat: -27.5954, lng: -48.5480 },
+    airport: { code: 'FLN', lat: -27.6703, lng: -48.5525, name: 'Hercílio Luz International' },
+    popularDistricts: [
+      'Centro', 'Lagoa da Conceição', 'Jurerê', 'Jurerê Internacional', 'Canasvieiras',
+      'Ingleses', 'Santinho', 'Campeche', 'Joaquina', 'Barra da Lagoa', 'Praia Mole',
+      'Trindade', 'Itacorubi', 'Córrego Grande', 'Santa Mônica', 'Agronômica'
+    ]
+  },
+  'natal': {
+    center: { lat: -5.7945, lng: -35.2110 },
+    airport: { code: 'NAT', lat: -5.9108, lng: -35.2478, name: 'São Gonçalo do Amarante' },
+    popularDistricts: [
+      'Ponta Negra', 'Areia Preta', 'Praia do Meio', 'Via Costeira', 'Tirol',
+      'Petrópolis', 'Lagoa Nova', 'Capim Macio', 'Cidade Alta', 'Ribeira',
+      'Pipa', 'Genipabu', 'Pirangi'
+    ]
+  },
+  'manaus': {
+    center: { lat: -3.1190, lng: -60.0217 },
+    airport: { code: 'MAO', lat: -3.0386, lng: -60.0497, name: 'Eduardo Gomes International' },
+    popularDistricts: [
+      'Centro', 'Ponta Negra', 'Adrianópolis', 'Nossa Senhora das Gracas', 'Chapada',
+      'Vieiralves', 'Parque Dez', 'Flores', 'Aleixo', 'Dom Pedro', 'Cachoeirinha'
+    ]
+  },
+  'buzios': {
+    center: { lat: -22.7469, lng: -41.8817 },
+    airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International (Rio)' },
+    popularDistricts: [
+      'Centro', 'Rua das Pedras', 'Orla Bardot', 'Geribá', 'Ferradura', 'João Fernandes',
+      'Manguinhos', 'Armação', 'Ossos', 'Azeda', 'Tartaruga', 'Brava'
+    ]
+  },
+  'foz do iguacu': {
+    center: { lat: -25.5163, lng: -54.5854 },
+    airport: { code: 'IGU', lat: -25.5963, lng: -54.4897, name: 'Cataratas International' },
+    popularDistricts: [
+      'Centro', 'Vila Yolanda', 'Jardim Central', 'Parque Nacional do Iguaçu',
+      'Porto Meira', 'Vila Portes', 'Três Lagoas', 'Morumbi'
+    ]
+  },
+
+  // ============================================================================
+  // BRAZIL - ALL STATE CAPITALS (Complete List)
+  // ============================================================================
+
+  // North Region Capitals
+  'belem': {
+    center: { lat: -1.4558, lng: -48.4902 },
+    airport: { code: 'BEL', lat: -1.3792, lng: -48.4763, name: 'Val de Cans International' },
+    popularDistricts: [
+      'Cidade Velha', 'Campina', 'Nazaré', 'Umarizal', 'Batista Campos', 'Marco',
+      'Reduto', 'São Brás', 'Pedreira', 'Jurunas', 'Mosqueiro', 'Icoaraci',
+      'Ver-o-Peso', 'Estação das Docas', 'Mangal das Garças'
+    ]
+  },
+  'porto velho': {
+    center: { lat: -8.7612, lng: -63.9004 },
+    airport: { code: 'PVH', lat: -8.7093, lng: -63.9023, name: 'Governador Jorge Teixeira' },
+    popularDistricts: [
+      'Centro', 'Caiari', 'Pedrinhas', 'Olaria', 'Arigolândia', 'São Cristóvão',
+      'Embratel', 'Lagoa', 'Nova Porto Velho', 'Estrada de Ferro Madeira-Mamoré'
+    ]
+  },
+  'rio branco': {
+    center: { lat: -9.9754, lng: -67.8249 },
+    airport: { code: 'RBR', lat: -9.8690, lng: -67.8941, name: 'Plácido de Castro International' },
+    popularDistricts: [
+      'Centro', 'Bosque', 'Jardim Europa', 'Conjunto Tucumã', 'Aviário',
+      'Estação Experimental', 'Conquista', 'Vila Ivonete', 'Bahia Nova'
+    ]
+  },
+  'macapa': {
+    center: { lat: 0.0356, lng: -51.0705 },
+    airport: { code: 'MCP', lat: 0.0507, lng: -51.0722, name: 'Alberto Alcolumbre International' },
+    popularDistricts: [
+      'Centro', 'Santa Rita', 'Trem', 'Laguinho', 'Beirol', 'Buritizal',
+      'Jesus de Nazaré', 'Pacoval', 'Marco Zero do Equador', 'Fortaleza de São José'
+    ]
+  },
+  'boa vista': {
+    center: { lat: 2.8235, lng: -60.6758 },
+    airport: { code: 'BVB', lat: 2.8465, lng: -60.6922, name: 'Atlas Brasil Cantanhede International' },
+    popularDistricts: [
+      'Centro', 'São Francisco', 'Caçari', 'Paraviana', 'Mecejana', 'Aparecida',
+      'São Vicente', 'Pricumã', 'Praça do Centro Cívico', 'Orla Taumanan'
+    ]
+  },
+  'palmas': {
+    center: { lat: -10.2491, lng: -48.3243 },
+    airport: { code: 'PMW', lat: -10.2915, lng: -48.3570, name: 'Brigadeiro Lysias Rodrigues' },
+    popularDistricts: [
+      'Centro', 'Plano Diretor Sul', 'Plano Diretor Norte', 'Aureny I', 'Aureny II',
+      'Taquaralto', 'Jardim Aureny III', 'Graciosa', 'Praia da Graciosa', 'Praça dos Girassóis'
+    ]
+  },
+
+  // Northeast Region Capitals
+  'sao luis': {
+    center: { lat: -2.5307, lng: -44.3068 },
+    airport: { code: 'SLZ', lat: -2.5854, lng: -44.2341, name: 'Marechal Cunha Machado International' },
+    popularDistricts: [
+      'Centro Histórico', 'Praia Grande', 'Reviver', 'Renascença', 'Calhau', 'Ponta do Farol',
+      'São Francisco', 'Olho d\'Água', 'Cohama', 'Turu', 'Araçagy',
+      'Litorânea', 'Lagoa da Jansen', 'Avenida Beira Mar'
+    ]
+  },
+  'teresina': {
+    center: { lat: -5.0920, lng: -42.8038 },
+    airport: { code: 'THE', lat: -5.0599, lng: -42.8235, name: 'Senador Petrônio Portella' },
+    popularDistricts: [
+      'Centro', 'Jóquei', 'Fátima', 'Ilhotas', 'Horto', 'São Cristóvão',
+      'Ininga', 'Morros', 'Noivos', 'Piçarra', 'Ponte Estaiada', 'Encontro dos Rios'
+    ]
+  },
+  'joao pessoa': {
+    center: { lat: -7.1195, lng: -34.8450 },
+    airport: { code: 'JPA', lat: -7.1461, lng: -34.9486, name: 'Presidente Castro Pinto International' },
+    popularDistricts: [
+      'Tambaú', 'Manaíra', 'Cabo Branco', 'Bessa', 'Altiplano', 'Centro',
+      'Jardim Oceania', 'Bancários', 'Mangabeira', 'Epitácio Pessoa',
+      'Ponta do Seixas', 'Praia do Jacaré', 'Farol do Cabo Branco'
+    ]
+  },
+  'maceio': {
+    center: { lat: -9.6498, lng: -35.7089 },
+    airport: { code: 'MCZ', lat: -9.5108, lng: -35.7917, name: 'Zumbi dos Palmares International' },
+    popularDistricts: [
+      'Pajuçara', 'Ponta Verde', 'Jatiúca', 'Cruz das Almas', 'Jaraguá', 'Centro',
+      'Stella Maris', 'Mangabeiras', 'Farol', 'Gruta de Lourdes',
+      'Praia do Francês', 'Barra de São Miguel', 'Maragogi'
+    ]
+  },
+  'aracaju': {
+    center: { lat: -10.9472, lng: -37.0731 },
+    airport: { code: 'AJU', lat: -10.9840, lng: -37.0703, name: 'Santa Maria' },
+    popularDistricts: [
+      'Atalaia', 'Centro', 'Jardins', '13 de Julho', 'Salgado Filho', 'Grageru',
+      'Coroa do Meio', 'Luzia', 'Farolândia', 'Aruana', 'Mosqueiro',
+      'Orla de Atalaia', 'Passarela do Caranguejo'
+    ]
+  },
+
+  // Central-West Region Capitals
+  'goiania': {
+    center: { lat: -16.6869, lng: -49.2648 },
+    airport: { code: 'GYN', lat: -16.6320, lng: -49.2207, name: 'Santa Genoveva' },
+    popularDistricts: [
+      'Setor Bueno', 'Setor Marista', 'Setor Oeste', 'Centro', 'Jardim Goiás',
+      'Setor Sul', 'Setor Central', 'Setor Aeroporto', 'Setor Pedro Ludovico',
+      'Setor Nova Suíça', 'Alphaville', 'Praça Cívica', 'Parque Vaca Brava'
+    ]
+  },
+  'campo grande': {
+    center: { lat: -20.4697, lng: -54.6201 },
+    airport: { code: 'CGR', lat: -20.4686, lng: -54.6725, name: 'Campo Grande International' },
+    popularDistricts: [
+      'Centro', 'Jardim dos Estados', 'Chácara Cachoeira', 'Carandá Bosque', 'Monte Castelo',
+      'Santa Fé', 'Vilas Boas', 'Rita Vieira', 'Taveirópolis', 'Tiradentes',
+      'Parque dos Poderes', 'Orla Morena', 'Horto Florestal'
+    ]
+  },
+  'cuiaba': {
+    center: { lat: -15.6014, lng: -56.0979 },
+    airport: { code: 'CGB', lat: -15.6529, lng: -56.1167, name: 'Marechal Rondon International' },
+    popularDistricts: [
+      'Centro', 'Popular', 'Goiabeiras', 'Jardim das Américas', 'Bosque da Saúde',
+      'Quilombo', 'Araés', 'Bandeirantes', 'Santa Rosa', 'Alvorada',
+      'Centro Histórico', 'Orla do Porto', 'Chapada dos Guimarães'
+    ]
+  },
+
+  // Southeast Region Capital (remaining)
+  'vitoria': {
+    center: { lat: -20.3155, lng: -40.3128 },
+    airport: { code: 'VIX', lat: -20.2581, lng: -40.2864, name: 'Eurico de Aguiar Salles' },
+    popularDistricts: [
+      'Centro', 'Praia do Canto', 'Jardim da Penha', 'Jardim Camburi', 'Mata da Praia',
+      'Santa Lúcia', 'Enseada do Suá', 'Bento Ferreira', 'Ilha do Boi', 'Ilha do Frade',
+      'Curva da Jurema', 'Praia de Camburi', 'Terceira Ponte'
+    ]
+  },
+
+  // ============================================================================
+  // BRAZIL - POPULAR TOURIST DESTINATIONS
+  // ============================================================================
+
+  // Rio de Janeiro State - Beach & Nature Tourism
+  'paraty': {
+    center: { lat: -23.2178, lng: -44.7131 },
+    airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International (Rio)' },
+    popularDistricts: [
+      'Centro Histórico', 'Praia do Pontal', 'Jabaquara', 'Trindade', 'Praia do Sono',
+      'Cais', 'Ilha Grande (via ferry)', 'Saco do Mamanguá', 'Laranjeiras', 'Prainha'
+    ]
+  },
+  'angra dos reis': {
+    center: { lat: -23.0067, lng: -44.3181 },
+    airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International (Rio)' },
+    popularDistricts: [
+      'Centro', 'Praia do Anil', 'Praia Grande', 'Mambucaba', 'Frade', 'Bracuí',
+      'Ilha Grande', 'Vila do Abraão', 'Lopes Mendes', 'Lagoa Azul', 'Praia Vermelha'
+    ]
+  },
+  'ilha grande': {
+    center: { lat: -23.1494, lng: -44.2300 },
+    airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International (Rio)' },
+    popularDistricts: [
+      'Vila do Abraão', 'Lopes Mendes', 'Praia do Aventureiro', 'Dois Rios', 'Lagoa Azul',
+      'Praia Vermelha', 'Lagoa Verde', 'Praia Preta', 'Saco do Céu', 'Araçatiba'
+    ]
+  },
+  'arraial do cabo': {
+    center: { lat: -22.9668, lng: -42.0276 },
+    airport: { code: 'GIG', lat: -22.8090, lng: -43.2506, name: 'Galeão International (Rio)' },
+    popularDistricts: [
+      'Centro', 'Praia Grande', 'Prainha', 'Praia do Forno', 'Praia do Pontal',
+      'Praia dos Anjos', 'Prainhas do Pontal do Atalaia', 'Marina dos Pescadores'
+    ]
+  },
+  'cabo frio': {
+    center: { lat: -22.8894, lng: -42.0286 },
+    airport: { code: 'CFB', lat: -22.9217, lng: -42.0743, name: 'Cabo Frio International' },
+    popularDistricts: [
+      'Centro', 'Praia do Forte', 'Praia das Dunas', 'Peró', 'Praia do Foguete',
+      'Passagem', 'Braga', 'São Cristóvão', 'Boulevard Canal', 'Rua dos Biquínis'
+    ]
+  },
+
+  // São Paulo State - Tourism
+  'campos do jordao': {
+    center: { lat: -22.7296, lng: -45.5833 },
+    airport: { code: 'GRU', lat: -23.4356, lng: -46.4731, name: 'Guarulhos (São Paulo)' },
+    popularDistricts: [
+      'Capivari', 'Vila Abernéssia', 'Jaguaribe', 'Vila Inglesa', 'Alto da Boa Vista',
+      'Morro do Elefante', 'Horto Florestal', 'Pico do Itapeva', 'Ducha de Prata'
+    ]
+  },
+  'ilhabela': {
+    center: { lat: -23.7785, lng: -45.3581 },
+    airport: { code: 'GRU', lat: -23.4356, lng: -46.4731, name: 'Guarulhos (São Paulo)' },
+    popularDistricts: [
+      'Centro', 'Perequê', 'Praia do Curral', 'Praia de Castelhanos', 'Saco da Capela',
+      'Vila', 'Itaquanduba', 'Praia do Julião', 'Praia Grande', 'Cachoeira do Gato'
+    ]
+  },
+  'guaruja': {
+    center: { lat: -23.9932, lng: -46.2564 },
+    airport: { code: 'GRU', lat: -23.4356, lng: -46.4731, name: 'Guarulhos (São Paulo)' },
+    popularDistricts: [
+      'Pitangueiras', 'Enseada', 'Pernambuco', 'Praia do Tombo', 'Astúrias',
+      'Praia da Enseada', 'Mar Casado', 'Praia Branca', 'Guaiúba', 'Centro'
+    ]
+  },
+  'ubatuba': {
+    center: { lat: -23.4340, lng: -45.0838 },
+    airport: { code: 'GRU', lat: -23.4356, lng: -46.4731, name: 'Guarulhos (São Paulo)' },
+    popularDistricts: [
+      'Centro', 'Praia Grande', 'Itaguá', 'Praia do Félix', 'Praia do Lázaro',
+      'Praia de Itamambuca', 'Praia Vermelha do Norte', 'Ilha Anchieta', 'Prumirim', 'Almada'
+    ]
+  },
+
+  // Bahia - Tourism
+  'porto seguro': {
+    center: { lat: -16.4435, lng: -39.0643 },
+    airport: { code: 'BPS', lat: -16.4386, lng: -39.0808, name: 'Porto Seguro' },
+    popularDistricts: [
+      'Centro Histórico', 'Passarela do Álcool', 'Praia do Mutá', 'Praia de Taperapuã',
+      'Arraial d\'Ajuda', 'Trancoso', 'Coroa Vermelha', 'Caraíva', 'Praia do Espelho'
+    ]
+  },
+  'trancoso': {
+    center: { lat: -16.5894, lng: -39.0947 },
+    airport: { code: 'BPS', lat: -16.4386, lng: -39.0808, name: 'Porto Seguro' },
+    popularDistricts: [
+      'Quadrado', 'Praia dos Nativos', 'Praia dos Coqueiros', 'Praia do Rio Verde',
+      'Praia de Itapororoca', 'Centro', 'Alto do Trancoso', 'Praia do Espelho'
+    ]
+  },
+  'morro de sao paulo': {
+    center: { lat: -13.3861, lng: -38.9136 },
+    airport: { code: 'SSA', lat: -12.9086, lng: -38.3225, name: 'Salvador' },
+    popularDistricts: [
+      'Primeira Praia', 'Segunda Praia', 'Terceira Praia', 'Quarta Praia', 'Quinta Praia',
+      'Gamboa', 'Centro', 'Farol', 'Toca do Morcego', 'Piscinas Naturais'
+    ]
+  },
+  'praia do forte': {
+    center: { lat: -12.5794, lng: -38.0019 },
+    airport: { code: 'SSA', lat: -12.9086, lng: -38.3225, name: 'Salvador' },
+    popularDistricts: [
+      'Centro', 'Vila', 'Praia do Lord', 'Praia da Sereia', 'Projeto Tamar',
+      'Castelo Garcia d\'Ávila', 'Reserva Sapiranga', 'Papa Gente'
+    ]
+  },
+
+  // Ceará - Tourism
+  'jericoacoara': {
+    center: { lat: -2.7967, lng: -40.5136 },
+    airport: { code: 'JJD', lat: -2.9064, lng: -40.3581, name: 'Jericoacoara Regional' },
+    popularDistricts: [
+      'Centro', 'Praia de Jericoacoara', 'Duna do Pôr do Sol', 'Pedra Furada',
+      'Lagoa do Paraíso', 'Lagoa Azul', 'Praia da Malhada', 'Preá', 'Árvore da Preguiça'
+    ]
+  },
+  'canoa quebrada': {
+    center: { lat: -4.4253, lng: -37.8786 },
+    airport: { code: 'FOR', lat: -3.7763, lng: -38.5326, name: 'Fortaleza' },
+    popularDistricts: [
+      'Centro', 'Broadway', 'Praia de Canoa Quebrada', 'Falésias', 'Lagoa do Mato',
+      'Majorlândia', 'Quixaba', 'Praia das Fontes'
+    ]
+  },
+
+  // Pernambuco - Tourism
+  'porto de galinhas': {
+    center: { lat: -8.5028, lng: -35.0056 },
+    airport: { code: 'REC', lat: -8.1265, lng: -34.9236, name: 'Recife' },
+    popularDistricts: [
+      'Centro', 'Praia de Porto de Galinhas', 'Piscinas Naturais', 'Praia do Cupe',
+      'Praia de Muro Alto', 'Praia de Maracaípe', 'Pontal de Maracaípe', 'Vila de Todos os Santos'
+    ]
+  },
+  'fernando de noronha': {
+    center: { lat: -3.8558, lng: -32.4286 },
+    airport: { code: 'FEN', lat: -3.8549, lng: -32.4233, name: 'Fernando de Noronha' },
+    popularDistricts: [
+      'Vila dos Remédios', 'Praia do Sancho', 'Baía dos Porcos', 'Praia do Leão',
+      'Praia da Cacimba do Padre', 'Praia do Boldró', 'Baía do Sueste', 'Praia da Atalaia',
+      'Mirante dos Golfinhos', 'Forte dos Remédios', 'Morro Dois Irmãos'
+    ]
+  },
+
+  // Maranhão - Tourism
+  'barreirinhas': {
+    center: { lat: -2.7581, lng: -42.8256 },
+    airport: { code: 'BRB', lat: -2.7447, lng: -42.8186, name: 'Barreirinhas' },
+    popularDistricts: [
+      'Centro', 'Lençóis Maranhenses', 'Lagoa Azul', 'Lagoa Bonita', 'Lagoa da Esperança',
+      'Atins', 'Caburé', 'Rio Preguiças', 'Mandacaru', 'Vassouras'
+    ]
+  },
+
+  // Minas Gerais - Historic Towns
+  'ouro preto': {
+    center: { lat: -20.3856, lng: -43.5035 },
+    airport: { code: 'CNF', lat: -19.6244, lng: -43.9719, name: 'Belo Horizonte' },
+    popularDistricts: [
+      'Centro Histórico', 'Praça Tiradentes', 'Antônio Dias', 'Pilar', 'Rosário',
+      'São Cristóvão', 'Cabeças', 'Alto da Cruz', 'Igreja de São Francisco', 'Mina do Chico Rei'
+    ]
+  },
+  'tiradentes': {
+    center: { lat: -21.1125, lng: -44.1706 },
+    airport: { code: 'CNF', lat: -19.6244, lng: -43.9719, name: 'Belo Horizonte' },
+    popularDistricts: [
+      'Centro Histórico', 'Largo das Forras', 'Rua Direita', 'Matriz de Santo Antônio',
+      'Chafariz de São José', 'Serra de São José', 'Bichinho', 'Santíssima Trindade'
+    ]
+  },
+  'diamantina': {
+    center: { lat: -18.2491, lng: -43.6011 },
+    airport: { code: 'DTI', lat: -18.2322, lng: -43.6503, name: 'Diamantina' },
+    popularDistricts: [
+      'Centro Histórico', 'Praça JK', 'Casa de Juscelino', 'Mercado Velho',
+      'Beco da Tecla', 'Igreja do Carmo', 'Passadiço da Glória', 'Vesperata'
+    ]
+  },
+
+  // Mato Grosso do Sul - Ecotourism
+  'bonito': {
+    center: { lat: -21.1261, lng: -56.4836 },
+    airport: { code: 'BYO', lat: -21.2472, lng: -56.4525, name: 'Bonito Regional' },
+    popularDistricts: [
+      'Centro', 'Rio da Prata', 'Gruta do Lago Azul', 'Rio Sucuri', 'Aquário Natural',
+      'Nascente Azul', 'Buraco das Araras', 'Boca da Onça', 'Lagoa Misteriosa', 'Abismo Anhumas'
+    ]
+  },
+
+  // Rio Grande do Sul - Tourism
+  'gramado': {
+    center: { lat: -29.3783, lng: -50.8761 },
+    airport: { code: 'POA', lat: -29.9944, lng: -51.1714, name: 'Porto Alegre' },
+    popularDistricts: [
+      'Centro', 'Rua Coberta', 'Lago Negro', 'Mini Mundo', 'Snowland', 'Aldeia do Papai Noel',
+      'Avenida Borges de Medeiros', 'Le Jardin', 'Serra Gaúcha', 'Morro Calçado'
+    ]
+  },
+  'canela': {
+    center: { lat: -29.3636, lng: -50.8125 },
+    airport: { code: 'POA', lat: -29.9944, lng: -51.1714, name: 'Porto Alegre' },
+    popularDistricts: [
+      'Centro', 'Catedral de Pedra', 'Parque do Caracol', 'Cascata do Caracol',
+      'Mundo a Vapor', 'Alpen Park', 'Parque da Ferradura', 'Bondinhos Aéreos'
+    ]
+  },
+  'bento goncalves': {
+    center: { lat: -29.1699, lng: -51.5186 },
+    airport: { code: 'POA', lat: -29.9944, lng: -51.1714, name: 'Porto Alegre' },
+    popularDistricts: [
+      'Centro', 'Vale dos Vinhedos', 'Pinto Bandeira', 'Maria da Fé', 'Caminhos de Pedra',
+      'Epopeia do Vinho', 'Casa Valduga', 'Vinícola Miolo', 'Estação Ferroviária'
+    ]
+  },
+
+  // Santa Catarina - Tourism
+  'balneario camboriu': {
+    center: { lat: -26.9906, lng: -48.6348 },
+    airport: { code: 'NVT', lat: -26.8794, lng: -48.6514, name: 'Navegantes' },
+    popularDistricts: [
+      'Centro', 'Praia Central', 'Barra Sul', 'Barra Norte', 'Avenida Atlântica',
+      'Cristo Luz', 'Parque Unipraias', 'Praia dos Amores', 'Laranjeiras', 'Taquaras'
+    ]
+  },
+  'bombinhas': {
+    center: { lat: -27.1386, lng: -48.5147 },
+    airport: { code: 'NVT', lat: -26.8794, lng: -48.6514, name: 'Navegantes' },
+    popularDistricts: [
+      'Centro', 'Praia de Bombinhas', 'Praia de Bombas', 'Praia de Quatro Ilhas',
+      'Praia de Mariscal', 'Praia da Sepultura', 'Praia da Lagoinha', 'Mirante Eco 360'
+    ]
+  },
+  'blumenau': {
+    center: { lat: -26.9195, lng: -49.0661 },
+    airport: { code: 'NVT', lat: -26.8794, lng: -48.6514, name: 'Navegantes' },
+    popularDistricts: [
+      'Centro', 'Pomerode', 'Vila Germânica', 'Rua XV de Novembro', 'Parque Vila Germânica',
+      'Cervejarias', 'Ostradamus', 'Oktoberfest', 'Museu da Cerveja', 'Vale Europeu'
+    ]
+  },
+
+  // Pará - Amazon Tourism
+  'alter do chao': {
+    center: { lat: -2.5031, lng: -54.9500 },
+    airport: { code: 'STM', lat: -2.4225, lng: -54.7858, name: 'Santarém' },
+    popularDistricts: [
+      'Centro', 'Praia do Amor', 'Ilha do Amor', 'Lago Verde', 'Ponta do Cururu',
+      'Floresta Nacional do Tapajós', 'Canal do Jari', 'Ponta de Pedras', 'Aramanã'
+    ]
+  },
+
+  // Chapada Regions
+  'chapada dos veadeiros': {
+    center: { lat: -14.0975, lng: -47.5233 },
+    airport: { code: 'BSB', lat: -15.8711, lng: -47.9186, name: 'Brasília' },
+    popularDistricts: [
+      'Alto Paraíso de Goiás', 'São Jorge', 'Cavalcante', 'Cachoeira Santa Bárbara',
+      'Vale da Lua', 'Cachoeira do Segredo', 'Mirante da Janela', 'Catarata dos Couros'
+    ]
+  },
+  'chapada diamantina': {
+    center: { lat: -12.5275, lng: -41.3897 },
+    airport: { code: 'LEC', lat: -12.4822, lng: -41.2770, name: 'Lençóis' },
+    popularDistricts: [
+      'Lençóis', 'Morro do Pai Inácio', 'Cachoeira da Fumaça', 'Poço Encantado', 'Poço Azul',
+      'Vale do Capão', 'Mucugê', 'Igatu', 'Gruta da Lapa Doce', 'Cachoeira do Buracão'
+    ]
   },
 
   // Europe
@@ -659,6 +1209,11 @@ export function estimateDriveTime(km: number): string {
 /**
  * Parse address to extract district/neighborhood
  * Prioritizes matching against known popular districts for better accuracy
+ *
+ * IMPORTANT: Handles international address formats including:
+ * - Brazilian: "Rua Augusta, 123, Consolação, São Paulo"
+ * - US: "123 Main St, Midtown, New York"
+ * - European: "Via Roma 45, Centro, Rome"
  */
 export function extractDistrict(address: string, city: string): string | null {
   if (!address) return null;
@@ -678,10 +1233,88 @@ export function extractDistrict(address: string, city: string): string | null {
     }
   }
 
+  // ============================================================================
+  // STREET PREFIX PATTERNS - Used to filter out street names from district detection
+  // ============================================================================
+
+  // Brazilian/Portuguese street prefixes (most common cause of duplicate display)
+  const brazilianStreetPrefixes = [
+    'rua', 'avenida', 'av', 'av.', 'alameda', 'al', 'al.', 'travessa', 'tv', 'tv.',
+    'praça', 'praca', 'largo', 'estrada', 'rodovia', 'rod', 'rod.', 'viela',
+    'beco', 'passagem', 'ladeira', 'boulevard', 'blvd'
+  ];
+
+  // Spanish street prefixes (Mexico, Spain, Latin America)
+  const spanishStreetPrefixes = [
+    'calle', 'avenida', 'av', 'av.', 'carrera', 'cra', 'paseo', 'camino',
+    'boulevard', 'blvd', 'callejón', 'callejon', 'plaza', 'plazuela'
+  ];
+
+  // Italian street prefixes
+  const italianStreetPrefixes = [
+    'via', 'viale', 'corso', 'piazza', 'piazzale', 'largo', 'vicolo', 'strada'
+  ];
+
+  // French street prefixes
+  const frenchStreetPrefixes = [
+    'rue', 'avenue', 'av', 'av.', 'boulevard', 'blvd', 'place', 'passage',
+    'allée', 'allee', 'impasse', 'chemin'
+  ];
+
+  // German street prefixes
+  const germanStreetPrefixes = [
+    'straße', 'strasse', 'str', 'str.', 'weg', 'platz', 'allee', 'gasse', 'ring'
+  ];
+
+  // English street suffixes (detected differently - at end of string)
+  const englishStreetSuffixes = [
+    'street', 'st', 'st.', 'avenue', 'ave', 'ave.', 'road', 'rd', 'rd.',
+    'boulevard', 'blvd', 'blvd.', 'drive', 'dr', 'dr.', 'lane', 'ln', 'ln.',
+    'way', 'place', 'pl', 'pl.', 'court', 'ct', 'ct.', 'circle', 'cir',
+    'highway', 'hwy', 'parkway', 'pkwy', 'terrace', 'ter'
+  ];
+
+  // Combine all street prefixes
+  const allStreetPrefixes = [
+    ...brazilianStreetPrefixes,
+    ...spanishStreetPrefixes,
+    ...italianStreetPrefixes,
+    ...frenchStreetPrefixes,
+    ...germanStreetPrefixes
+  ];
+
+  /**
+   * Check if a string looks like a street name
+   */
+  const isStreetName = (str: string): boolean => {
+    const strLower = str.toLowerCase().trim();
+
+    // Check if starts with a street prefix (e.g., "Rua Augusta", "Via Roma")
+    for (const prefix of allStreetPrefixes) {
+      if (strLower.startsWith(prefix + ' ') || strLower === prefix) {
+        return true;
+      }
+    }
+
+    // Check if ends with an English street suffix (e.g., "Main Street", "5th Avenue")
+    for (const suffix of englishStreetSuffixes) {
+      if (strLower.endsWith(' ' + suffix) || strLower.endsWith('.' + suffix)) {
+        return true;
+      }
+    }
+
+    // Check for numbered streets (e.g., "123 Main", "45-A")
+    if (/^\d+[\s\-]/.test(str) || /^[a-z]\d+/i.test(str)) {
+      return true;
+    }
+
+    return false;
+  };
+
   // Fallback: Extract from address parts
   const parts = address.split(',').map(p => p.trim());
 
-  // Try to find a meaningful district name (not street number, not city, not country)
+  // Try to find a meaningful district name (not street, not city, not country)
   for (const part of parts) {
     const partLower = part.toLowerCase();
 
@@ -691,13 +1324,20 @@ export function extractDistrict(address: string, city: string): string | null {
     // Skip if it looks like a street number or postal code
     if (/^\d+/.test(part) || /^\d{4,}/.test(part)) continue;
 
+    // Skip if it looks like a street name (NEW - fixes Brazilian duplicate issue)
+    if (isStreetName(part)) continue;
+
+    // Skip if it's a state/province code (e.g., "SP", "RJ", "CA", "NY")
+    if (/^[A-Z]{2}$/.test(part.trim())) continue;
+
     // Skip if it's a country
-    const countries = ['brazil', 'uae', 'united arab emirates', 'france', 'uk', 'usa', 'spain', 'italy', 'germany',
-                       'united states', 'united kingdom', 'australia', 'canada', 'mexico', 'japan', 'china', 'india',
-                       'thailand', 'indonesia', 'singapore', 'malaysia', 'portugal', 'netherlands', 'belgium'];
+    const countries = ['brazil', 'brasil', 'uae', 'united arab emirates', 'france', 'uk', 'usa', 'spain', 'italy', 'germany',
+                       'united states', 'united kingdom', 'australia', 'canada', 'mexico', 'méxico', 'japan', 'china', 'india',
+                       'thailand', 'indonesia', 'singapore', 'malaysia', 'portugal', 'netherlands', 'belgium', 'argentina',
+                       'colombia', 'chile', 'peru', 'perú', 'ecuador', 'venezuela'];
     if (countries.some(c => partLower.includes(c))) continue;
 
-    // This is likely the district
+    // This is likely the district (must be reasonably sized name)
     if (part.length > 2 && part.length < 50) {
       return part;
     }

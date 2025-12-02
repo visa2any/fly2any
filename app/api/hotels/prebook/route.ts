@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { liteAPI } from '@/lib/api/liteapi';
+import { checkRateLimit, prebookRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiter';
 
 /**
  * Hotel Prebook API Endpoint
@@ -46,6 +47,22 @@ import { liteAPI } from '@/lib/api/liteapi';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting to prevent abuse
+    const rateLimitResult = await checkRateLimit(request, prebookRateLimit);
+    if (!rateLimitResult.success) {
+      const headers = new Headers();
+      addRateLimitHeaders(headers, rateLimitResult);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many prebook attempts',
+          message: 'Please wait before trying again.',
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { status: 429, headers }
+      );
+    }
+
     const body = await request.json();
     const { offerId, hotelId, checkIn, checkOut } = body;
 

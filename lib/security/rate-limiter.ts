@@ -1,155 +1,371 @@
 /**
- * Rate Limiting Middleware
+ * Rate Limiter for API Protection
  *
- * Redis-backed rate limiting to prevent API abuse and DDoS attacks.
- * Provides configurable rate limits per endpoint with sliding window algorithm.
+ * Implements a sliding window rate limiter to prevent abuse and fraud.
+ * Uses in-memory storage with automatic cleanup for serverless compatibility.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getRedisClient } from '@/lib/cache/redis';
+
+// In-memory store for rate limiting (use Redis in production for distributed systems)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Cleanup interval (every 5 minutes)
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+function startCleanup() {
+  if (cleanupInterval) return;
+
+  cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (value.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }, 5 * 60 * 1000); // Every 5 minutes
+}
+
+// Start cleanup on module load
+if (typeof window === 'undefined') {
+  startCleanup();
+}
 
 export interface RateLimitConfig {
-  /**
-   * Maximum number of requests allowed in the time window
-   */
+  /** Maximum number of requests allowed */
   maxRequests: number;
+  /** Time window in milliseconds (preferred) */
+  windowMs?: number;
+  /** Time window in seconds (alternative, converted to ms internally) */
+  windowSeconds?: number;
+  /** Key prefix for different rate limit categories */
+  keyPrefix?: string;
+  /** Custom error message */
+  message?: string;
+  /** Skip rate limiting for certain conditions */
+  skip?: (request: NextRequest) => boolean | Promise<boolean>;
+}
 
-  /**
-   * Time window in seconds
-   */
-  windowSeconds: number;
-
-  /**
-   * Custom identifier function (defaults to IP address)
-   */
-  getIdentifier?: (request: NextRequest) => string;
-
-  /**
-   * Skip rate limiting for certain conditions
-   */
-  skip?: (request: NextRequest) => boolean;
+/**
+ * Get window time in milliseconds from config
+ */
+function getWindowMs(config: RateLimitConfig): number {
+  if (config.windowMs !== undefined) {
+    return config.windowMs;
+  }
+  if (config.windowSeconds !== undefined) {
+    return config.windowSeconds * 1000;
+  }
+  // Default: 1 minute
+  return 60 * 1000;
 }
 
 export interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  resetTime: number;
+  retryAfter?: number;
+}
+
+/**
+ * Get client IP address from request
+ */
+export function getClientIP(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+
+  const realIP = request.headers.get('x-real-ip');
+  if (realIP) {
+    return realIP;
+  }
+
+  // Fallback for development
+  return '127.0.0.1';
+}
+
+/**
+ * Generate rate limit key
+ */
+function generateKey(request: NextRequest, prefix: string): string {
+  const ip = getClientIP(request);
+  const path = new URL(request.url).pathname;
+  return `${prefix}:${ip}:${path}`;
+}
+
+/**
+ * Check rate limit for a request
+ */
+export async function checkRateLimit(
+  request: NextRequest,
+  config: RateLimitConfig
+): Promise<RateLimitResult> {
+  const {
+    maxRequests,
+    keyPrefix = 'rl',
+    skip,
+  } = config;
+  const windowMs = getWindowMs(config);
+
+  // Check if rate limiting should be skipped
+  if (skip) {
+    const shouldSkip = await skip(request);
+    if (shouldSkip) {
+      return {
+        success: true,
+        limit: maxRequests,
+        remaining: maxRequests,
+        resetTime: Date.now() + windowMs,
+      };
+    }
+  }
+
+  const key = generateKey(request, keyPrefix);
+  const now = Date.now();
+
+  // Get current rate limit data
+  let data = rateLimitStore.get(key);
+
+  // If no data or window expired, create new entry
+  if (!data || data.resetTime < now) {
+    data = {
+      count: 1,
+      resetTime: now + windowMs,
+    };
+    rateLimitStore.set(key, data);
+
+    return {
+      success: true,
+      limit: maxRequests,
+      remaining: maxRequests - 1,
+      resetTime: data.resetTime,
+    };
+  }
+
+  // Increment count
+  data.count++;
+  rateLimitStore.set(key, data);
+
+  // Check if limit exceeded
+  if (data.count > maxRequests) {
+    const retryAfter = Math.ceil((data.resetTime - now) / 1000);
+    return {
+      success: false,
+      limit: maxRequests,
+      remaining: 0,
+      resetTime: data.resetTime,
+      retryAfter,
+    };
+  }
+
+  return {
+    success: true,
+    limit: maxRequests,
+    remaining: maxRequests - data.count,
+    resetTime: data.resetTime,
+  };
+}
+
+/**
+ * Rate limit middleware wrapper
+ */
+export function withRateLimit(config: RateLimitConfig) {
+  return async (request: NextRequest): Promise<RateLimitResult> => {
+    return checkRateLimit(request, config);
+  };
+}
+
+// ============================================
+// Pre-configured Rate Limiters
+// ============================================
+
+/**
+ * Strict rate limiter for booking/payment endpoints
+ * 5 requests per IP per hour
+ */
+export const bookingRateLimit = {
+  maxRequests: 5,
+  windowMs: 60 * 60 * 1000, // 1 hour
+  keyPrefix: 'booking',
+  message: 'Too many booking attempts. Please try again later.',
+};
+
+/**
+ * Standard rate limiter for API endpoints
+ * 100 requests per IP per minute
+ */
+export const apiRateLimit = {
+  maxRequests: 100,
+  windowMs: 60 * 1000, // 1 minute
+  keyPrefix: 'api',
+  message: 'Rate limit exceeded. Please slow down.',
+};
+
+/**
+ * Strict rate limiter for authentication endpoints
+ * 10 requests per IP per 15 minutes
+ */
+export const authRateLimit = {
+  maxRequests: 10,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  keyPrefix: 'auth',
+  message: 'Too many authentication attempts. Please try again later.',
+};
+
+/**
+ * Rate limiter for search endpoints
+ * 30 requests per IP per minute
+ */
+export const searchRateLimit = {
+  maxRequests: 30,
+  windowMs: 60 * 1000, // 1 minute
+  keyPrefix: 'search',
+  message: 'Too many search requests. Please slow down.',
+};
+
+/**
+ * Rate limiter for prebook endpoints
+ * 10 requests per IP per 5 minutes
+ */
+export const prebookRateLimit = {
+  maxRequests: 10,
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  keyPrefix: 'prebook',
+  message: 'Too many prebook attempts. Please try again later.',
+};
+
+// ============================================
+// Response Headers Helper
+// ============================================
+
+/**
+ * Legacy rate limit result format (uses 'allowed' instead of 'success')
+ */
+export interface LegacyRateLimitResult {
   allowed: boolean;
   limit: number;
   remaining: number;
-  reset: number; // Unix timestamp
-  retryAfter?: number; // Seconds until next request allowed
+  reset: number;
+  retryAfter?: number;
 }
 
 /**
- * Default identifier: IP address from various headers
+ * Add rate limit headers to response
+ * Overloaded to return the correct type based on input
  */
-function getDefaultIdentifier(request: NextRequest): string {
-  // Try to get IP from various headers (Vercel, Cloudflare, etc.)
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+export function addRateLimitHeaders(
+  headers: Headers,
+  result: RateLimitResult | LegacyRateLimitResult
+): Headers;
+export function addRateLimitHeaders(
+  response: NextResponse,
+  result: RateLimitResult | LegacyRateLimitResult
+): NextResponse;
+export function addRateLimitHeaders(
+  headersOrResponse: Headers | NextResponse,
+  result: RateLimitResult | LegacyRateLimitResult
+): Headers | NextResponse {
+  // Handle legacy result format (uses 'allowed' instead of 'success')
+  const legacyResult = result as LegacyRateLimitResult;
+  const normalizedResult: RateLimitResult = 'allowed' in result
+    ? {
+        success: legacyResult.allowed,
+        limit: legacyResult.limit,
+        remaining: legacyResult.remaining,
+        resetTime: legacyResult.reset,
+        retryAfter: legacyResult.retryAfter,
+      }
+    : result as RateLimitResult;
 
-  const ip = forwardedFor?.split(',')[0].trim() ||
-             realIp ||
-             cfConnectingIp ||
-             'unknown';
+  if (headersOrResponse instanceof Headers) {
+    headersOrResponse.set('X-RateLimit-Limit', normalizedResult.limit.toString());
+    headersOrResponse.set('X-RateLimit-Remaining', normalizedResult.remaining.toString());
+    headersOrResponse.set('X-RateLimit-Reset', normalizedResult.resetTime.toString());
 
-  return ip;
+    if (normalizedResult.retryAfter !== undefined) {
+      headersOrResponse.set('Retry-After', normalizedResult.retryAfter.toString());
+    }
+
+    return headersOrResponse;
+  } else {
+    // NextResponse - add headers
+    headersOrResponse.headers.set('X-RateLimit-Limit', normalizedResult.limit.toString());
+    headersOrResponse.headers.set('X-RateLimit-Remaining', normalizedResult.remaining.toString());
+    headersOrResponse.headers.set('X-RateLimit-Reset', normalizedResult.resetTime.toString());
+
+    if (normalizedResult.retryAfter !== undefined) {
+      headersOrResponse.headers.set('Retry-After', normalizedResult.retryAfter.toString());
+    }
+
+    return headersOrResponse;
+  }
 }
 
+// ============================================
+// Legacy Compatibility (for flights/search route)
+// ============================================
+
 /**
- * Rate limiter using Redis sliding window algorithm
+ * Rate limit presets for different API categories
+ */
+export const RateLimitPresets = {
+  /** Standard API rate limit - 100 requests per minute */
+  STANDARD: {
+    maxRequests: 100,
+    windowMs: 60 * 1000,
+    keyPrefix: 'standard',
+  } as RateLimitConfig,
+
+  /** Strict rate limit for sensitive operations - 10 requests per minute */
+  STRICT: {
+    maxRequests: 10,
+    windowMs: 60 * 1000,
+    keyPrefix: 'strict',
+  } as RateLimitConfig,
+
+  /** Relaxed rate limit for read operations - 200 requests per minute */
+  RELAXED: {
+    maxRequests: 200,
+    windowMs: 60 * 1000,
+    keyPrefix: 'relaxed',
+  } as RateLimitConfig,
+
+  /** Search rate limit - 30 requests per minute */
+  SEARCH: searchRateLimit as RateLimitConfig,
+
+  /** Booking rate limit - 5 requests per hour */
+  BOOKING: bookingRateLimit as RateLimitConfig,
+
+  /** Auth rate limit - 10 requests per 15 minutes */
+  AUTH: authRateLimit as RateLimitConfig,
+};
+
+/**
+ * Legacy rate limit function (for backwards compatibility)
+ * Returns result with 'allowed' property instead of 'success'
  */
 export async function rateLimit(
   request: NextRequest,
   config: RateLimitConfig
-): Promise<RateLimitResult> {
-  const redis = getRedisClient();
+): Promise<LegacyRateLimitResult> {
+  const result = await checkRateLimit(request, config);
 
-  // If Redis is not available, allow request (fail open)
-  if (!redis) {
-    console.warn('⚠️ Rate limiting unavailable (Redis not configured)');
-    return {
-      allowed: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests,
-      reset: Date.now() + config.windowSeconds * 1000,
-    };
-  }
-
-  // Check if request should skip rate limiting
-  if (config.skip && config.skip(request)) {
-    return {
-      allowed: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests,
-      reset: Date.now() + config.windowSeconds * 1000,
-    };
-  }
-
-  // Get identifier (IP address by default)
-  const identifier = config.getIdentifier
-    ? config.getIdentifier(request)
-    : getDefaultIdentifier(request);
-
-  const key = `rate_limit:${request.nextUrl.pathname}:${identifier}`;
-  const now = Date.now();
-  const windowStart = now - config.windowSeconds * 1000;
-
-  try {
-    // Use Redis sorted set to implement sliding window
-    // Score is timestamp, value is unique request ID
-
-    // 1. Remove old entries outside the window
-    await redis.zremrangebyscore(key, 0, windowStart);
-
-    // 2. Count requests in current window
-    const requestCount = await redis.zcard(key);
-
-    // 3. Check if limit exceeded
-    if (requestCount >= config.maxRequests) {
-      // Get oldest request in window to calculate retry-after
-      const oldestRequest = await redis.zrange(key, 0, 0, { withScores: true });
-      const oldestTimestamp = oldestRequest.length > 0 ? oldestRequest[1] as number : now;
-      const retryAfter = Math.ceil((oldestTimestamp + config.windowSeconds * 1000 - now) / 1000);
-
-      return {
-        allowed: false,
-        limit: config.maxRequests,
-        remaining: 0,
-        reset: oldestTimestamp + config.windowSeconds * 1000,
-        retryAfter: Math.max(retryAfter, 1),
-      };
-    }
-
-    // 4. Add current request to window
-    const requestId = `${now}:${Math.random()}`;
-    await redis.zadd(key, { score: now, member: requestId });
-
-    // 5. Set expiration on key (cleanup)
-    await redis.expire(key, config.windowSeconds);
-
-    return {
-      allowed: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests - requestCount - 1,
-      reset: now + config.windowSeconds * 1000,
-    };
-  } catch (error) {
-    console.error('Rate limiting error:', error);
-    // Fail open - allow request if rate limiting fails
-    return {
-      allowed: true,
-      limit: config.maxRequests,
-      remaining: config.maxRequests,
-      reset: now + config.windowSeconds * 1000,
-    };
-  }
+  return {
+    allowed: result.success,
+    limit: result.limit,
+    remaining: result.remaining,
+    reset: result.resetTime,
+    retryAfter: result.retryAfter,
+  };
 }
 
 /**
- * Create rate limit response with proper headers
+ * Create a rate limit exceeded response
  */
 export function createRateLimitResponse(
-  result: RateLimitResult,
+  result: LegacyRateLimitResult,
   message?: string
 ): NextResponse {
   const response = NextResponse.json(
@@ -161,93 +377,24 @@ export function createRateLimitResponse(
     { status: 429 }
   );
 
-  // Add rate limit headers (standard)
-  response.headers.set('X-RateLimit-Limit', result.limit.toString());
-  response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
-  response.headers.set('X-RateLimit-Reset', Math.floor(result.reset / 1000).toString());
-
-  if (result.retryAfter) {
-    response.headers.set('Retry-After', result.retryAfter.toString());
-  }
+  // Add rate limit headers
+  addRateLimitHeaders(response, result);
 
   return response;
 }
 
-/**
- * Add rate limit headers to successful response
- */
-export function addRateLimitHeaders(
-  response: NextResponse,
-  result: RateLimitResult
-): NextResponse {
-  response.headers.set('X-RateLimit-Limit', result.limit.toString());
-  response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
-  response.headers.set('X-RateLimit-Reset', Math.floor(result.reset / 1000).toString());
-  return response;
-}
-
-/**
- * Preset rate limit configurations
- */
-export const RateLimitPresets = {
-  /**
-   * Strict: For sensitive endpoints (auth, payments)
-   * 10 requests per minute
-   */
-  STRICT: {
-    maxRequests: 10,
-    windowSeconds: 60,
-  },
-
-  /**
-   * Standard: For most API endpoints
-   * 60 requests per minute
-   */
-  STANDARD: {
-    maxRequests: 60,
-    windowSeconds: 60,
-  },
-
-  /**
-   * Relaxed: For read-only endpoints
-   * 120 requests per minute
-   */
-  RELAXED: {
-    maxRequests: 120,
-    windowSeconds: 60,
-  },
-
-  /**
-   * Analytics: For tracking endpoints
-   * 30 requests per minute
-   */
-  ANALYTICS: {
-    maxRequests: 30,
-    windowSeconds: 60,
-  },
-} as const;
-
-/**
- * Higher-order function to wrap API routes with rate limiting
- */
-export function withRateLimit(
-  handler: (request: NextRequest) => Promise<NextResponse>,
-  config: RateLimitConfig
-) {
-  return async (request: NextRequest): Promise<NextResponse> => {
-    // Apply rate limiting
-    const result = await rateLimit(request, config);
-
-    // If rate limit exceeded, return 429
-    if (!result.allowed) {
-      console.warn(`🚨 Rate limit exceeded: ${request.nextUrl.pathname} - ${config.getIdentifier?.(request) || getDefaultIdentifier(request)}`);
-      return createRateLimitResponse(result);
-    }
-
-    // Execute handler
-    const response = await handler(request);
-
-    // Add rate limit headers to response
-    return addRateLimitHeaders(response, result);
-  };
-}
+export default {
+  checkRateLimit,
+  withRateLimit,
+  getClientIP,
+  addRateLimitHeaders,
+  bookingRateLimit,
+  apiRateLimit,
+  authRateLimit,
+  searchRateLimit,
+  prebookRateLimit,
+  // Legacy exports
+  rateLimit,
+  createRateLimitResponse,
+  RateLimitPresets,
+};

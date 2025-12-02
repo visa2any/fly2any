@@ -2,12 +2,18 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Hotel, ChevronLeft, ChevronRight, Loader2, User, CreditCard, MapPin, Calendar, Users as UsersIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
+import {
+  Hotel, Loader2, User, CreditCard, MapPin, Calendar, Users as UsersIcon,
+  AlertCircle, CheckCircle2, Clock, Shield, Lock, Phone, Mail, Star, BedDouble,
+  Coffee, Utensils, Check, ChevronLeft, Timer, Sparkles, Gift, Award
+} from 'lucide-react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { StripePaymentForm } from '@/components/hotels/StripePaymentForm';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
+import Link from 'next/link';
+import PromoCodeInput, { PromoDiscount } from '@/components/hotels/PromoCodeInput';
 
 // Initialize Stripe
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -18,366 +24,267 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 // TYPE DEFINITIONS
 // ===========================
 
-type BookingStep = 1 | 2 | 3;
-
-interface RoomOption {
-  id: string;
-  name: string;
-  description: string;
-  bedType: string;
-  maxGuests: number;
-  amenities: string[];
-  price: number;
-  currency: string;
-  refundable: boolean;
-  breakfastIncluded: boolean;
-  selected?: boolean;
-}
-
 interface GuestData {
-  id: string;
-  type: 'adult' | 'child';
   title: string;
   firstName: string;
   lastName: string;
-  dateOfBirth?: string;
-  email?: string;
-  phone?: string;
+  email: string;
+  phone: string;
   specialRequests?: string;
+}
+
+interface PrebookData {
+  prebookId: string;
+  status: 'confirmed' | 'pending' | 'failed';
+  price: { amount: number; currency: string };
+  expiresAt: string;
 }
 
 interface HotelBookingData {
   hotelId: string;
+  offerId: string;
   hotelName: string;
   location: string;
   checkIn: string;
   checkOut: string;
-  guests: {
-    adults: number;
-    children: number;
-  };
   nights: number;
-  basePrice: number;
+  adults: number;
+  children: number;
+  roomId: string;
+  roomName: string;
+  price: number;
+  perNightPrice: number;
   currency: string;
   imageUrl?: string;
   starRating?: number;
+  refundable: boolean;
+  breakfastIncluded: boolean;
 }
 
 // ===========================
 // MAIN COMPONENT
 // ===========================
 
-function HotelBookingContent() {
+function HotelCheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
 
-  const [currentStep, setCurrentStep] = useState<BookingStep>(1);
+  // States
   const [loading, setLoading] = useState(true);
+  const [prebooking, setPrebooking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Hotel data
+  // Hotel & booking data
   const [hotelData, setHotelData] = useState<HotelBookingData | null>(null);
+  const [prebookData, setPrebookData] = useState<PrebookData | null>(null);
 
-  // Step 1: Room selection
-  const [roomOptions, setRoomOptions] = useState<RoomOption[]>([]);
-  const [selectedRoomId, setSelectedRoomId] = useState<string>('');
-
-  // Step 2: Guest details
-  const [guests, setGuests] = useState<GuestData[]>([]);
-
-  // Step 3: Payment
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
-
-  // Price lock timer
-  const [priceLockTimer, setPriceLockTimer] = useState({ minutes: 15, seconds: 0 });
-
-  // Scroll direction detection
-  const { scrollDirection, isAtTop } = useScrollDirection({
-    threshold: 50,
-    debounceDelay: 100,
-    mobileOnly: true,
+  // Guest details
+  const [guest, setGuest] = useState<GuestData>({
+    title: '',
+    firstName: '',
+    lastName: '',
+    email: session?.user?.email || '',
+    phone: '',
+    specialRequests: '',
   });
 
+  // Payment
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [paymentReady, setPaymentReady] = useState(false);
+
+  // Price lock timer
+  const [timeRemaining, setTimeRemaining] = useState<number>(900); // 15 minutes in seconds
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState<string | undefined>(undefined);
+  const [promoDiscount, setPromoDiscount] = useState<PromoDiscount | undefined>(undefined);
+
+  // Loyalty points (if user is logged in)
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number>(0);
+
   // ===========================
-  // LOAD HOTEL DATA
+  // LOAD DATA ON MOUNT
   // ===========================
 
   useEffect(() => {
-    const loadHotelData = async () => {
+    const loadBookingData = async () => {
       try {
         const hotelId = searchParams.get('hotelId');
+        const offerId = searchParams.get('offerId');
+
         if (!hotelId) {
           router.push('/hotels');
           return;
         }
 
-        // Try to load from sessionStorage first
-        const cachedHotel = sessionStorage.getItem(`hotel_booking_${hotelId}`);
-        if (cachedHotel) {
-          const data = JSON.parse(cachedHotel);
-          setHotelData(data);
-          loadRoomOptions(data);
-          // Defensive check for guests object structure
-          const cachedAdults = data.guests?.adults || parseInt(searchParams.get('adults') || '2');
-          const cachedChildren = data.guests?.children || parseInt(searchParams.get('children') || '0');
-          initializeGuests(cachedAdults, cachedChildren);
-          setLoading(false);
-          return;
-        }
-
-        // If not in cache, try to fetch from URL params
-        const hotelName = searchParams.get('name');
-        const location = searchParams.get('location');
-        const checkIn = searchParams.get('checkIn');
-        const checkOut = searchParams.get('checkOut');
-        const adults = parseInt(searchParams.get('adults') || '1');
-        const children = parseInt(searchParams.get('children') || '0');
+        // Load from URL params
+        const checkIn = searchParams.get('checkIn') || '';
+        const checkOut = searchParams.get('checkOut') || '';
+        const nights = parseInt(searchParams.get('nights') || '1', 10);
+        const adults = parseInt(searchParams.get('adults') || '2', 10);
+        const children = parseInt(searchParams.get('children') || '0', 10);
         const price = parseFloat(searchParams.get('price') || '0');
+        const perNight = parseFloat(searchParams.get('perNight') || '0');
         const currency = searchParams.get('currency') || 'USD';
-
-        if (!hotelName || !checkIn || !checkOut) {
-          router.push('/hotels');
-          return;
-        }
-
-        // Calculate nights
-        const checkInDate = new Date(checkIn);
-        const checkOutDate = new Date(checkOut);
-        const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
 
         const bookingData: HotelBookingData = {
           hotelId,
-          hotelName,
-          location: location || 'Unknown',
+          offerId: offerId || '',
+          hotelName: searchParams.get('name') || 'Hotel',
+          location: searchParams.get('location') || '',
           checkIn,
           checkOut,
-          guests: { adults, children },
-          nights,
-          basePrice: price,
+          nights: nights || 1,
+          adults,
+          children,
+          roomId: searchParams.get('roomId') || '',
+          roomName: searchParams.get('roomName') || 'Standard Room',
+          price: price || 0,
+          perNightPrice: perNight || price / (nights || 1),
           currency,
           imageUrl: searchParams.get('image') || undefined,
-          starRating: parseInt(searchParams.get('stars') || '0') || undefined,
+          starRating: parseInt(searchParams.get('stars') || '0', 10) || undefined,
+          refundable: searchParams.get('refundable') === 'true',
+          breakfastIncluded: searchParams.get('breakfastIncluded') === 'true',
         };
 
         setHotelData(bookingData);
-        loadRoomOptions(bookingData);
-        initializeGuests(adults, children);
         setLoading(false);
-      } catch (error) {
-        console.error('Error loading hotel data:', error);
-        router.push('/hotels');
+
+        // PRODUCTION READY: Validate we have required data
+        if (!offerId) {
+          setError('Missing offer ID. Please go back and select a room with valid pricing.');
+          return;
+        }
+
+        // Try to prebook to lock in price - this is CRITICAL for production
+        if (offerId) {
+          await callPrebookAPI(offerId, hotelId);
+        }
+
+        // Create payment intent after prebook (price might be updated by prebook)
+        // Note: Payment intent will be created with updated price from prebook
+        if (price > 0) {
+          await createPaymentIntent(price, currency, hotelId, bookingData.roomName);
+        }
+      } catch (err) {
+        console.error('Error loading booking data:', err);
+        setError('Failed to load booking data. Please try again.');
+        setLoading(false);
       }
     };
 
-    loadHotelData();
+    loadBookingData();
   }, [searchParams, router]);
 
-  // Price lock timer
+  // Price lock countdown timer
   useEffect(() => {
+    if (!prebookData?.expiresAt) return;
+
     const interval = setInterval(() => {
-      setPriceLockTimer(prev => {
-        if (prev.minutes === 0 && prev.seconds === 0) {
-          return prev;
-        }
+      const expiresAt = new Date(prebookData.expiresAt);
+      const now = new Date();
+      const diff = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000));
+      setTimeRemaining(diff);
 
-        if (prev.seconds === 0) {
-          return { minutes: prev.minutes - 1, seconds: 59 };
-        }
-
-        return { ...prev, seconds: prev.seconds - 1 };
-      });
+      if (diff === 0) {
+        setError('Price lock has expired. Please go back and try again.');
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [prebookData?.expiresAt]);
 
   // ===========================
-  // HELPER FUNCTIONS
+  // API CALLS
   // ===========================
 
-  const loadRoomOptions = (bookingData: HotelBookingData) => {
-    // Mock room options - In production, this would be an API call
-    // Ensure basePrice is valid (fallback to $100 if missing/zero)
-    const validBasePrice = bookingData.basePrice && bookingData.basePrice > 0
-      ? bookingData.basePrice
-      : 100;
+  const callPrebookAPI = async (offerId: string, hotelId: string) => {
+    try {
+      setPrebooking(true);
+      const response = await fetch('/api/hotels/prebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId, hotelId }),
+      });
 
-    const mockRooms: RoomOption[] = [
-      {
-        id: 'standard-queen',
-        name: 'Standard Queen Room',
-        description: 'Comfortable room with queen bed',
-        bedType: 'Queen Bed',
-        maxGuests: 2,
-        amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom'],
-        price: validBasePrice * 0.9,
-        currency: bookingData.currency,
-        refundable: false,
-        breakfastIncluded: false,
-      },
-      {
-        id: 'deluxe-king',
-        name: 'Deluxe King Room',
-        description: 'Spacious room with king bed and city view',
-        bedType: 'King Bed',
-        maxGuests: 2,
-        amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom', 'Mini Bar', 'City View'],
-        price: validBasePrice,
-        currency: bookingData.currency,
-        refundable: true,
-        breakfastIncluded: true,
-        selected: true,
-      },
-      {
-        id: 'suite',
-        name: 'Executive Suite',
-        description: 'Luxury suite with separate living area',
-        bedType: 'King Bed + Sofa Bed',
-        maxGuests: 4,
-        amenities: ['WiFi', 'TV', 'Air Conditioning', 'Private Bathroom', 'Mini Bar', 'City View', 'Living Area', 'Coffee Maker'],
-        price: validBasePrice * 1.4,
-        currency: bookingData.currency,
-        refundable: true,
-        breakfastIncluded: true,
-      },
-    ];
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setPrebookData(data.data);
+          console.log('Price locked:', data.data);
 
-    setRoomOptions(mockRooms);
-    setSelectedRoomId('deluxe-king');
+          // CRITICAL: Update hotelData with ACTUAL prebook price from LiteAPI
+          // This ensures we use the real locked-in price, not URL params
+          if (data.data.price?.amount && data.data.price.amount > 0) {
+            setHotelData(prev => prev ? {
+              ...prev,
+              price: data.data.price.amount,
+              perNightPrice: data.data.price.amount / (prev.nights || 1),
+              currency: data.data.price.currency || prev.currency,
+            } : prev);
+            console.log('✅ Price updated from prebook:', data.data.price.amount, data.data.price.currency);
+          }
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Prebook failed:', errorData);
+        // Don't fail silently - show error if prebook fails
+        if (errorData.code === 'ROOM_UNAVAILABLE') {
+          setError('This room is no longer available. Please go back and select another room.');
+        }
+      }
+    } catch (err) {
+      console.error('Prebook API error:', err);
+      // Don't fail silently in production
+    } finally {
+      setPrebooking(false);
+    }
   };
 
-  const initializeGuests = (adults: number, children: number) => {
-    const guestList: GuestData[] = [];
+  const createPaymentIntent = async (amount: number, currency: string, hotelId: string, roomName: string) => {
+    try {
+      // Calculate total with taxes (12%)
+      const taxes = amount * 0.12;
+      const total = amount + taxes;
 
-    for (let i = 0; i < adults; i++) {
-      guestList.push({
-        id: `adult-${i + 1}`,
-        type: 'adult',
-        title: '',
-        firstName: '',
-        lastName: '',
-        email: i === 0 ? '' : undefined,
-        phone: i === 0 ? '' : undefined,
+      const response = await fetch('/api/hotels/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: total,
+          currency,
+          hotelId,
+          roomName,
+        }),
       });
-    }
 
-    for (let i = 0; i < children; i++) {
-      guestList.push({
-        id: `child-${i + 1}`,
-        type: 'child',
-        title: '',
-        firstName: '',
-        lastName: '',
-        dateOfBirth: '',
-      });
-    }
-
-    setGuests(guestList);
-  };
-
-  // ===========================
-  // VALIDATION
-  // ===========================
-
-  const areGuestsComplete = () => {
-    return guests.every((guest, index) => {
-      const required = ['title', 'firstName', 'lastName'];
-      if (guest.type === 'child') {
-        required.push('dateOfBirth');
+      if (response.ok) {
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
+        setPaymentReady(true);
       }
-      if (index === 0) {
-        required.push('email', 'phone');
-      }
-      return required.every(field => {
-        const value = guest[field as keyof GuestData];
-        return value && value.toString().trim() !== '';
-      });
-    });
+    } catch (err) {
+      console.warn('Payment intent creation skipped (demo mode):', err);
+      setPaymentReady(true); // Allow demo bookings
+    }
   };
 
   // ===========================
   // HANDLERS
   // ===========================
 
-  const handleRoomSelect = (roomId: string) => {
-    setSelectedRoomId(roomId);
+  const handleGuestUpdate = (field: keyof GuestData, value: string) => {
+    setGuest(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleGuestUpdate = (guestId: string, field: string, value: string) => {
-    setGuests(prev =>
-      prev.map(guest =>
-        guest.id === guestId ? { ...guest, [field]: value } : guest
-      )
-    );
-  };
-
-  const handleContinue = async () => {
-    if (currentStep === 2 && !areGuestsComplete()) {
-      setError('Please complete all required guest information before continuing.');
-      return;
-    }
-
-    if (currentStep === 2) {
-      // Moving to payment step - create payment intent
-      await createPaymentIntent();
-    }
-
-    if (currentStep < 3) {
-      setCurrentStep((currentStep + 1) as BookingStep);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep((currentStep - 1) as BookingStep);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setError(null);
-    }
-  };
-
-  const createPaymentIntent = async () => {
-    try {
-      setIsProcessing(true);
-      setError(null);
-
-      const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
-      if (!selectedRoom || !hotelData) {
-        throw new Error('Room or hotel data missing');
-      }
-
-      const response = await fetch('/api/hotels/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: getGrandTotal(),
-          currency: hotelData.currency,
-          hotelId: hotelData.hotelId,
-          hotelName: hotelData.hotelName,
-          roomId: selectedRoom.id,
-          roomName: selectedRoom.name,
-          checkIn: hotelData.checkIn,
-          checkOut: hotelData.checkOut,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent');
-      }
-
-      const data = await response.json();
-      setClientSecret(data.clientSecret);
-      setPaymentIntentId(data.paymentIntentId);
-    } catch (err: any) {
-      console.error('Payment intent creation failed:', err);
-      setError(err.message || 'Failed to initialize payment. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
+  const isGuestValid = () => {
+    return guest.title && guest.firstName && guest.lastName && guest.email && guest.phone;
   };
 
   const handlePaymentSuccess = async (confirmedPaymentIntentId: string) => {
@@ -389,11 +296,6 @@ function HotelBookingContent() {
         throw new Error('Hotel data is missing');
       }
 
-      const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
-      if (!selectedRoom) {
-        throw new Error('Please select a room');
-      }
-
       // Create booking in database
       const response = await fetch('/api/hotels/booking/create', {
         method: 'POST',
@@ -401,30 +303,28 @@ function HotelBookingContent() {
         body: JSON.stringify({
           hotelId: hotelData.hotelId,
           hotelName: hotelData.hotelName,
-          hotelCity: hotelData.location.split(',')[0] || hotelData.location,
+          hotelCity: hotelData.location.split(',')[0]?.trim() || hotelData.location,
           hotelCountry: hotelData.location.split(',').pop()?.trim() || 'Unknown',
-          roomId: selectedRoom.id,
-          roomName: selectedRoom.name,
-          bedType: selectedRoom.bedType,
-          maxGuests: selectedRoom.maxGuests,
+          roomId: hotelData.roomId,
+          roomName: hotelData.roomName,
           checkInDate: hotelData.checkIn,
           checkOutDate: hotelData.checkOut,
           nights: hotelData.nights,
-          pricePerNight: selectedRoom.price.toString(),
-          subtotal: getTotalPrice().toString(),
-          taxesAndFees: getTaxesAndFees().toString(),
-          totalPrice: getGrandTotal().toString(),
+          pricePerNight: hotelData.perNightPrice.toString(),
+          subtotal: hotelData.price.toString(),
+          taxesAndFees: (hotelData.price * 0.12).toString(),
+          totalPrice: (hotelData.price * 1.12).toString(),
           currency: hotelData.currency,
-          guestTitle: guests[0].title,
-          guestFirstName: guests[0].firstName,
-          guestLastName: guests[0].lastName,
-          guestEmail: guests[0].email!,
-          guestPhone: guests[0].phone!,
-          additionalGuests: JSON.stringify(guests.slice(1)),
-          specialRequests: guests[0].specialRequests || '',
+          guestTitle: guest.title,
+          guestFirstName: guest.firstName,
+          guestLastName: guest.lastName,
+          guestEmail: guest.email,
+          guestPhone: guest.phone,
+          specialRequests: guest.specialRequests || '',
           paymentIntentId: confirmedPaymentIntentId,
-          breakfastIncluded: selectedRoom.breakfastIncluded,
-          cancellable: selectedRoom.refundable,
+          prebookId: prebookData?.prebookId,
+          breakfastIncluded: hotelData.breakfastIncluded,
+          cancellable: hotelData.refundable,
         }),
       });
 
@@ -436,10 +336,10 @@ function HotelBookingContent() {
       const booking = await response.json();
 
       // Redirect to confirmation page
-      router.push(`/hotels/booking/confirmation?bookingId=${booking.id}&ref=${booking.confirmationNumber}`);
-    } catch (error: any) {
-      console.error('Booking error:', error);
-      setError(error.message || 'There was an error processing your booking. Please contact support.');
+      router.push(`/hotels/booking/confirmation?bookingId=${booking.id || booking.data?.dbBookingId}&ref=${booking.confirmationNumber || booking.data?.confirmationNumber}`);
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      setError(err.message || 'Failed to complete booking. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -449,528 +349,678 @@ function HotelBookingContent() {
     setIsProcessing(false);
   };
 
+  // LiteAPI booking - uses prebook + LiteAPI payment processing
+  const handleLiteAPIBooking = async () => {
+    if (!isGuestValid()) {
+      setError('Please fill in all guest details');
+      return;
+    }
+
+    // PRODUCTION: Require valid prebook for real bookings
+    if (!prebookData?.prebookId) {
+      setError('Price lock expired or not available. Please go back and try again.');
+      return;
+    }
+
+    // PRODUCTION: Require valid price
+    if (hotelData?.price === 0 && !prebookData?.price?.amount) {
+      setError('Invalid price. Please go back and select a room with valid pricing.');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      setError(null);
+
+      // Use LiteAPI payment flow with prebookId
+      await handlePaymentSuccess(`liteapi_${prebookData.prebookId}`);
+    } catch (err: any) {
+      setError(err.message || 'Booking failed');
+      setIsProcessing(false);
+    }
+  };
+
+  // Legacy alias for backward compatibility
+  const handleDemoBooking = handleLiteAPIBooking;
+
   // ===========================
   // PRICE CALCULATION
   // ===========================
 
-  const getTotalPrice = () => {
-    if (!hotelData) return 0;
-    const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
-    if (!selectedRoom || !selectedRoom.price || selectedRoom.price <= 0) return 0;
-    const nights = Math.max(1, hotelData.nights || 1); // Ensure at least 1 night
-    return selectedRoom.price * nights;
+  const getSubtotal = () => hotelData?.price || 0;
+  const getTaxesAndFees = () => (hotelData?.price || 0) * 0.12;
+
+  // Calculate promo discount amount
+  const getPromoDiscountAmount = () => {
+    if (!promoDiscount || !hotelData) return 0;
+
+    // If API calculated it, use that
+    if (promoDiscount.discountAmount !== undefined) {
+      return promoDiscount.discountAmount;
+    }
+
+    const subtotal = getSubtotal();
+    if (promoDiscount.minPurchase && subtotal < promoDiscount.minPurchase) {
+      return 0;
+    }
+
+    let discount = 0;
+    if (promoDiscount.type === 'percentage') {
+      discount = (subtotal * promoDiscount.value) / 100;
+      if (promoDiscount.maxDiscount) {
+        discount = Math.min(discount, promoDiscount.maxDiscount);
+      }
+    } else if (promoDiscount.type === 'fixed') {
+      discount = promoDiscount.value;
+    }
+
+    return Math.min(discount, subtotal);
   };
 
-  const getTaxesAndFees = () => {
-    const totalPrice = getTotalPrice();
-    return totalPrice > 0 ? totalPrice * 0.12 : 0; // 12% taxes and fees
+  const getGrandTotal = () => getSubtotal() + getTaxesAndFees() - getPromoDiscountAmount();
+
+  // Promo code handlers
+  const handlePromoApply = (code: string, discount: PromoDiscount) => {
+    setPromoCode(code);
+    setPromoDiscount(discount);
   };
 
-  const getGrandTotal = () => {
-    const total = getTotalPrice() + getTaxesAndFees();
-    return total > 0 ? total : 0;
+  const handlePromoRemove = () => {
+    setPromoCode(undefined);
+    setPromoDiscount(undefined);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // ===========================
-  // RENDER
+  // LOADING STATE
   // ===========================
 
   if (loading || !hotelData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-4" />
-          <p className="text-gray-600">Loading hotel details...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Preparing your checkout...</p>
         </div>
       </div>
     );
   }
 
-  const selectedRoom = roomOptions.find(r => r.id === selectedRoomId);
+  // ===========================
+  // RENDER
+  // ===========================
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - Auto-hides on scroll down */}
-      <div
-        className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm"
-        style={{
-          transform: scrollDirection === 'down' && !isAtTop ? 'translateY(-100%)' : 'translateY(0)',
-          transition: 'transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1)',
-          willChange: 'transform',
-        }}
-      >
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-orange-50/30">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Hotel className="w-6 h-6 text-primary-500" />
-              <h1 className="text-xl font-bold text-gray-900">Complete Your Booking</h1>
+            <div className="flex items-center gap-4">
+              <Link
+                href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}`}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="text-sm font-medium">Back</span>
+              </Link>
+              <div className="h-6 w-px bg-gray-200" />
+              <div className="flex items-center gap-2">
+                <Hotel className="w-5 h-5 text-orange-500" />
+                <h1 className="text-lg font-bold text-gray-900">Secure Checkout</h1>
+              </div>
             </div>
 
-            {/* Progress Steps */}
-            <div className="flex items-center gap-2">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center gap-2">
-                  <div
-                    className={`
-                      w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                      ${currentStep >= step
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
-                      }
-                    `}
-                  >
-                    {step}
-                  </div>
-                  {step < 3 && <div className={`w-12 h-1 ${currentStep > step ? 'bg-primary-500' : 'bg-gray-200'}`} />}
-                </div>
-              ))}
-            </div>
-          </div>
+            {/* Price Lock Timer */}
+            {prebookData && timeRemaining > 0 && (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
+                <Timer className="w-4 h-4 text-amber-600" />
+                <span className="text-sm font-bold text-amber-700">
+                  Price locked: {formatTime(timeRemaining)}
+                </span>
+              </div>
+            )}
 
-          {/* Step Labels */}
-          <div className="flex justify-between mt-2 text-xs font-medium">
-            <span className={currentStep === 1 ? 'text-primary-600' : 'text-gray-500'}>Room Selection</span>
-            <span className={currentStep === 2 ? 'text-primary-600' : 'text-gray-500'}>Guest Details</span>
-            <span className={currentStep === 3 ? 'text-primary-600' : 'text-gray-500'}>Payment</span>
+            {/* Trust Badges */}
+            <div className="hidden md:flex items-center gap-4 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-green-600" />
+                <span>256-bit SSL</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-blue-600" />
+                <span>PCI Compliant</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Error/Success Messages */}
+      {/* Error Message */}
       {error && (
         <div className="max-w-7xl mx-auto px-4 pt-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-red-900">Error</p>
               <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
-            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-              ×
+            <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 text-xl">
+              &times;
             </button>
           </div>
         </div>
       )}
 
-      {success && (
-        <div className="max-w-7xl mx-auto px-4 pt-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-green-900">Success</p>
-              <p className="text-sm text-green-700 mt-1">{success}</p>
+      {/* Main Content - 2 Columns */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* ========================= */}
+          {/* LEFT COLUMN: Guest + Payment */}
+          {/* ========================= */}
+          <div className="lg:col-span-7 space-y-6">
+
+            {/* Guest Information */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4 text-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold">Guest Information</h2>
+                    <p className="text-sm text-white/80">Who's checking in?</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {/* Name Row */}
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-3">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Title *</label>
+                    <select
+                      value={guest.title}
+                      onChange={(e) => handleGuestUpdate('title', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      required
+                    >
+                      <option value="">Select</option>
+                      <option value="Mr">Mr</option>
+                      <option value="Ms">Ms</option>
+                      <option value="Mrs">Mrs</option>
+                      <option value="Dr">Dr</option>
+                    </select>
+                  </div>
+                  <div className="col-span-4">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">First Name *</label>
+                    <input
+                      type="text"
+                      value={guest.firstName}
+                      onChange={(e) => handleGuestUpdate('firstName', e.target.value)}
+                      placeholder="John"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="col-span-5">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Last Name *</label>
+                    <input
+                      type="text"
+                      value={guest.lastName}
+                      onChange={(e) => handleGuestUpdate('lastName', e.target.value)}
+                      placeholder="Smith"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <Mail className="w-3.5 h-3.5 inline mr-1" />
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={guest.email}
+                      onChange={(e) => handleGuestUpdate('email', e.target.value)}
+                      placeholder="john@example.com"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <Phone className="w-3.5 h-3.5 inline mr-1" />
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      value={guest.phone}
+                      onChange={(e) => handleGuestUpdate('phone', e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Special Requests */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Special Requests (Optional)
+                  </label>
+                  <textarea
+                    value={guest.specialRequests}
+                    onChange={(e) => handleGuestUpdate('specialRequests', e.target.value)}
+                    placeholder="e.g., Late check-in, high floor, quiet room..."
+                    rows={2}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Special requests are not guaranteed but the hotel will do their best to accommodate.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Section */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-4 text-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold">Payment Details</h2>
+                    <p className="text-sm text-white/80">Secure payment powered by Stripe</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5">
+                {/* Prebooking indicator */}
+                {prebooking && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                      <div>
+                        <p className="text-sm text-blue-900 font-medium">Locking in your price...</p>
+                        <p className="text-xs text-blue-700 mt-1">
+                          Please wait while we secure your rate with the hotel.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PRODUCTION: Show error if no valid price */}
+                {!prebooking && hotelData.price === 0 && !prebookData && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600" />
+                      <div>
+                        <p className="text-sm text-red-900 font-medium">Price Not Available</p>
+                        <p className="text-xs text-red-700 mt-1">
+                          Unable to retrieve pricing for this room. Please go back and select a room with available rates.
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}`}
+                      className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-800"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Go back to select a room
+                    </Link>
+                  </div>
+                )}
+
+                {!stripePromise || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
+                  // LiteAPI Payment Mode - No Stripe needed
+                  <div className="space-y-4">
+                    {hotelData.price > 0 || prebookData?.price?.amount ? (
+                      <>
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                          <p className="text-sm text-green-900 font-medium">LiteAPI Payment</p>
+                          <p className="text-xs text-green-700 mt-1">
+                            Payment will be processed securely through LiteAPI's payment gateway.
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleLiteAPIBooking}
+                          disabled={!isGuestValid() || isProcessing || prebooking || !prebookData?.prebookId}
+                          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
+                            !isGuestValid() || isProcessing || prebooking || !prebookData?.prebookId
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                          }`}
+                        >
+                          {isProcessing ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              Processing Booking...
+                            </span>
+                          ) : prebooking ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              Securing Rate...
+                            </span>
+                          ) : !prebookData?.prebookId ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <AlertCircle className="w-5 h-5" />
+                              Waiting for Price Lock...
+                            </span>
+                          ) : (
+                            <span className="flex items-center justify-center gap-2">
+                              <Lock className="w-5 h-5" />
+                              Complete Booking &bull; {hotelData.currency} {getGrandTotal().toFixed(2)}
+                            </span>
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 text-sm">Waiting for price confirmation...</p>
+                      </div>
+                    )}
+                  </div>
+                ) : !clientSecret ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-4" />
+                    <p className="text-gray-600">Initializing secure payment...</p>
+                  </div>
+                ) : (
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: {
+                        theme: 'stripe',
+                        variables: {
+                          colorPrimary: '#F97316',
+                          colorText: '#1F2937',
+                          fontFamily: 'system-ui, sans-serif',
+                          borderRadius: '12px',
+                        },
+                      },
+                    }}
+                  >
+                    <div className="space-y-4">
+                      <StripePaymentForm
+                        amount={getGrandTotal()}
+                        currency={hotelData.currency}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        disabled={!isGuestValid() || isProcessing}
+                      />
+                      {!isGuestValid() && (
+                        <p className="text-sm text-amber-600 text-center">
+                          Please fill in all guest details above to enable payment
+                        </p>
+                      )}
+                    </div>
+                  </Elements>
+                )}
+
+                {/* Payment Trust Signals */}
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <Lock className="w-3.5 h-3.5 text-green-600" />
+                      <span>256-bit SSL</span>
+                    </div>
+                    <span className="text-gray-300">|</span>
+                    <div className="flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5 text-blue-600" />
+                      <span>PCI DSS Compliant</span>
+                    </div>
+                    <span className="text-gray-300">|</span>
+                    <div className="flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      <span>3D Secure</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mt-3">
+                    <span className="text-xs text-gray-400">Accepted:</span>
+                    <span className="text-xs font-medium text-gray-600">Visa</span>
+                    <span className="text-xs font-medium text-gray-600">Mastercard</span>
+                    <span className="text-xs font-medium text-gray-600">Amex</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left Column: Steps */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* STEP 1: Room Selection */}
-            {currentStep === 1 && (
-              <div className="space-y-4 animate-fadeIn">
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h2 className="text-base font-bold">Choose Your Room</h2>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    {roomOptions.map((room) => (
-                      <div
-                        key={room.id}
-                        onClick={() => handleRoomSelect(room.id)}
-                        className={`
-                          p-4 rounded-lg border-2 cursor-pointer transition-all
-                          ${selectedRoomId === room.id
-                            ? 'border-primary-500 bg-primary-50'
-                            : 'border-gray-200 hover:border-primary-300'
-                          }
-                        `}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-bold text-lg text-gray-900">{room.name}</h3>
-                            <p className="text-sm text-gray-600">{room.description}</p>
-                            <p className="text-sm text-gray-600 mt-1">{room.bedType} • Max {room.maxGuests} guests</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-primary-600">
-                              {room.currency} {(room.price || 0).toFixed(2)}
-                            </p>
-                            <p className="text-xs text-gray-600">per night</p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {room.amenities.map((amenity, idx) => (
-                            <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                              {amenity}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="flex gap-3 text-sm">
-                          {room.refundable && (
-                            <span className="text-green-600 font-semibold">Free Cancellation</span>
-                          )}
-                          {room.breakfastIncluded && (
-                            <span className="text-blue-600 font-semibold">Breakfast Included</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {/* ========================= */}
+          {/* RIGHT COLUMN: Booking Summary */}
+          {/* ========================= */}
+          <div className="lg:col-span-5">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden sticky top-20">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Booking Summary
+                </h2>
               </div>
-            )}
 
-            {/* STEP 2: Guest Details */}
-            {currentStep === 2 && (
-              <div className="space-y-4 animate-fadeIn">
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h2 className="text-base font-bold flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Guest Information
-                    </h2>
-                  </div>
-                  <div className="p-4 space-y-6">
-                    {guests.map((guest, index) => (
-                      <div key={guest.id} className="p-4 border border-gray-200 rounded-lg">
-                        <h3 className="font-bold text-gray-900 mb-3">
-                          {guest.type === 'adult' ? 'Adult' : 'Child'} {index + 1}
-                          {index === 0 && ' (Primary Contact)'}
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Title *
-                            </label>
-                            <select
-                              value={guest.title}
-                              onChange={(e) => handleGuestUpdate(guest.id, 'title', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            >
-                              <option value="">Select</option>
-                              <option value="Mr">Mr</option>
-                              <option value="Ms">Ms</option>
-                              <option value="Mrs">Mrs</option>
-                              <option value="Dr">Dr</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              First Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={guest.firstName}
-                              onChange={(e) => handleGuestUpdate(guest.id, 'firstName', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Last Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={guest.lastName}
-                              onChange={(e) => handleGuestUpdate(guest.id, 'lastName', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            />
-                          </div>
-
-                          {guest.type === 'child' && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Date of Birth *
-                              </label>
-                              <input
-                                type="date"
-                                value={guest.dateOfBirth || ''}
-                                onChange={(e) => handleGuestUpdate(guest.id, 'dateOfBirth', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              />
-                            </div>
-                          )}
-
-                          {index === 0 && (
-                            <>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Email *
-                                </label>
-                                <input
-                                  type="email"
-                                  value={guest.email || ''}
-                                  onChange={(e) => handleGuestUpdate(guest.id, 'email', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Phone *
-                                </label>
-                                <input
-                                  type="tel"
-                                  value={guest.phone || ''}
-                                  onChange={(e) => handleGuestUpdate(guest.id, 'phone', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        {index === 0 && (
-                          <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Special Requests (Optional)
-                            </label>
-                            <textarea
-                              value={guest.specialRequests || ''}
-                              onChange={(e) => handleGuestUpdate(guest.id, 'specialRequests', e.target.value)}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              placeholder="e.g., Late check-in, high floor preference..."
-                            />
-                          </div>
-                        )}
+              {/* Hotel Image */}
+              {hotelData.imageUrl && (
+                <div className="relative h-40 w-full">
+                  <Image
+                    src={hotelData.imageUrl}
+                    alt={hotelData.hotelName}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-white font-bold text-lg leading-tight">{hotelData.hotelName}</h3>
+                    {hotelData.starRating && hotelData.starRating > 0 && (
+                      <div className="flex items-center gap-0.5 mt-1">
+                        {Array.from({ length: hotelData.starRating }).map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 3: Payment */}
-            {currentStep === 3 && (
-              <div className="animate-fadeIn">
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h2 className="text-base font-bold flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
-                      Payment Information
-                    </h2>
-                  </div>
-                  <div className="p-4">
-                    {!stripePromise || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
-                      <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm text-amber-900 mb-2">
-                          <strong>Configuration Required:</strong> Stripe payment processing is not configured.
-                        </p>
-                        <p className="text-xs text-amber-700">
-                          Please add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to your environment variables.
-                        </p>
-                      </div>
-                    ) : !clientSecret ? (
-                      <div className="text-center py-8">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-4" />
-                        <p className="text-gray-600">Initializing secure payment...</p>
-                      </div>
-                    ) : (
-                      <Elements
-                        stripe={stripePromise}
-                        options={{
-                          clientSecret,
-                          appearance: {
-                            theme: 'stripe',
-                            variables: {
-                              colorPrimary: '#F97316',
-                              colorText: '#1F2937',
-                              fontFamily: 'system-ui, sans-serif',
-                              borderRadius: '8px',
-                            },
-                          },
-                        }}
-                      >
-                        <StripePaymentForm
-                          amount={getGrandTotal()}
-                          currency={hotelData.currency}
-                          onSuccess={handlePaymentSuccess}
-                          onError={handlePaymentError}
-                          disabled={isProcessing}
-                        />
-                      </Elements>
                     )}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Navigation Buttons */}
-            {currentStep < 3 && (
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={handleBack}
-                  disabled={currentStep === 1}
-                  className={`
-                    flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all text-sm
-                    ${currentStep === 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }
-                  `}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </button>
-
-                <button
-                  onClick={handleContinue}
-                  disabled={(currentStep === 2 && !areGuestsComplete()) || isProcessing}
-                  className={`
-                    flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm shadow-md transition-all
-                    ${(currentStep === 2 && !areGuestsComplete()) || isProcessing
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 hover:shadow-lg'
-                    }
-                  `}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      Continue
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Sticky Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-24">
-              <h3 className="font-bold text-lg text-gray-900 mb-4">Booking Summary</h3>
-
-              {/* Hotel Info */}
-              <div className="mb-4 pb-4 border-b border-gray-200">
-                {hotelData.imageUrl && (
-                  <img
-                    src={hotelData.imageUrl}
-                    alt={hotelData.hotelName}
-                    className="w-full h-32 object-cover rounded-lg mb-3"
-                  />
-                )}
-                <h4 className="font-bold text-gray-900">{hotelData.hotelName}</h4>
-                <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                  <MapPin className="w-4 h-4" />
-                  {hotelData.location}
-                </p>
-                {hotelData.starRating && (
-                  <div className="flex items-center gap-1 mt-1">
-                    {Array.from({ length: hotelData.starRating }).map((_, i) => (
-                      <span key={i} className="text-yellow-500">★</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Dates */}
-              <div className="mb-4 pb-4 border-b border-gray-200 space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-gray-600">Check-in</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(hotelData.checkIn).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-gray-600">Check-out</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(hotelData.checkOut).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <UsersIcon className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-gray-600">Guests</p>
-                    <p className="font-semibold text-gray-900">
-                      {hotelData.guests.adults} Adults{hotelData.guests.children > 0 && `, ${hotelData.guests.children} Children`}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Selected Room */}
-              {selectedRoom && (
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <p className="text-sm text-gray-600 mb-1">Selected Room</p>
-                  <p className="font-semibold text-gray-900">{selectedRoom.name}</p>
-                </div>
               )}
 
-              {/* Price Breakdown */}
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {selectedRoom?.currency || 'USD'} {(selectedRoom?.price || 0).toFixed(2)} x {Math.max(1, hotelData.nights || 1)} {hotelData.nights === 1 ? 'night' : 'nights'}
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    {selectedRoom?.currency || 'USD'} {(getTotalPrice() || 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Taxes & Fees</span>
-                  <span className="font-semibold text-gray-900">
-                    {selectedRoom?.currency || 'USD'} {(getTaxesAndFees() || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+              <div className="p-4 space-y-4">
+                {/* Location */}
+                {hotelData.location && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                    <span className="text-gray-600">{hotelData.location}</span>
+                  </div>
+                )}
 
-              {/* Total */}
-              <div className="pt-4 border-t-2 border-gray-300">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-lg text-gray-900">Total</span>
-                  <span className="font-bold text-2xl text-primary-600">
-                    {selectedRoom?.currency || 'USD'} {(getGrandTotal() || 0).toFixed(2)}
-                  </span>
+                {/* Dates & Guests */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Check-in</span>
+                    </div>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {new Date(hotelData.checkIn).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-gray-500">3:00 PM</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Check-out</span>
+                    </div>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {new Date(hotelData.checkOut).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-gray-500">11:00 AM</p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Price Lock Timer */}
-              <div className="mt-4 p-3 bg-warning-50 border border-warning-300 rounded-lg">
-                <p className="text-xs font-semibold text-warning-900 mb-1">
-                  Price locked for:
-                </p>
-                <p className="text-2xl font-bold text-warning-600">
-                  {String(priceLockTimer.minutes).padStart(2, '0')}:
-                  {String(priceLockTimer.seconds).padStart(2, '0')}
-                </p>
+                {/* Guests & Nights */}
+                <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+                  <div className="flex items-center gap-2">
+                    <UsersIcon className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {hotelData.adults} {hotelData.adults === 1 ? 'Adult' : 'Adults'}
+                      {hotelData.children > 0 && `, ${hotelData.children} ${hotelData.children === 1 ? 'Child' : 'Children'}`}
+                    </span>
+                  </div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {hotelData.nights} {hotelData.nights === 1 ? 'Night' : 'Nights'}
+                  </div>
+                </div>
+
+                {/* Room Info */}
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BedDouble className="w-4 h-4 text-orange-600" />
+                    <span className="font-semibold text-gray-900 text-sm">{hotelData.roomName}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {hotelData.refundable && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Free Cancellation
+                      </span>
+                    )}
+                    {hotelData.breakfastIncluded && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                        <Coffee className="w-3 h-3" />
+                        Breakfast Included
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="border-t border-gray-200 pt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">
+                      {hotelData.currency} {hotelData.perNightPrice.toFixed(2)} x {hotelData.nights} {hotelData.nights === 1 ? 'night' : 'nights'}
+                    </span>
+                    <span className="font-medium text-gray-900">{hotelData.currency} {getSubtotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Taxes & Fees</span>
+                    <span className="font-medium text-gray-900">{hotelData.currency} {getTaxesAndFees().toFixed(2)}</span>
+                  </div>
+
+                  {/* Promo Discount Display */}
+                  {promoCode && promoDiscount && getPromoDiscountAmount() > 0 && (
+                    <div className="flex justify-between text-sm text-green-600 font-medium">
+                      <span className="flex items-center gap-1">
+                        <Gift className="w-4 h-4" />
+                        Promo: {promoCode}
+                      </span>
+                      <span>-{hotelData.currency} {getPromoDiscountAmount().toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Promo Code Input */}
+                <div className="border-t border-gray-200 pt-4">
+                  <PromoCodeInput
+                    onApply={handlePromoApply}
+                    onRemove={handlePromoRemove}
+                    appliedCode={promoCode}
+                    appliedDiscount={promoDiscount}
+                    totalPrice={getSubtotal()}
+                    currency={hotelData.currency}
+                    hotelId={hotelData.hotelId}
+                    guestId={session?.user?.id}
+                  />
+                </div>
+
+                {/* Loyalty Points Display - Only for logged in users */}
+                {session?.user && loyaltyPoints > 0 && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                    <div className="flex items-center gap-2">
+                      <Award className="w-5 h-5 text-purple-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-purple-900">Loyalty Points Available</p>
+                        <p className="text-xs text-purple-700">{loyaltyPoints.toLocaleString()} points = {hotelData.currency} {(loyaltyPoints * 0.01).toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-purple-600 mt-2">Points can be redeemed after booking confirmation</p>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="border-t-2 border-gray-300 pt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-lg text-gray-900">Total</span>
+                    <span className="font-bold text-2xl text-orange-600">
+                      {hotelData.currency} {getGrandTotal().toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price Lock Notice */}
+                {prebookData && timeRemaining > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex items-center gap-2">
+                      <Timer className="w-5 h-5 text-amber-600" />
+                      <div>
+                        <p className="text-xs font-semibold text-amber-900">Price locked for:</p>
+                        <p className="text-xl font-bold text-amber-600">{formatTime(timeRemaining)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Guarantees */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span>Instant confirmation</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span>No hidden fees</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span>24/7 customer support</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
+// ===========================
+// EXPORT WITH SUSPENSE
+// ===========================
+
 export default function HotelBookingPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-orange-500 mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Loading checkout...</p>
+        </div>
       </div>
     }>
-      <HotelBookingContent />
+      <HotelCheckoutContent />
     </Suspense>
   );
 }

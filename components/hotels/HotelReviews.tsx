@@ -75,6 +75,52 @@ const travelTypeLabels = {
   solo: 'Solo',
 };
 
+// Country code to name mapping
+const countryNames: Record<string, string> = {
+  us: 'United States', usa: 'United States', 'united states': 'United States',
+  br: 'Brazil', bra: 'Brazil', brazil: 'Brazil',
+  gb: 'United Kingdom', uk: 'United Kingdom', 'united kingdom': 'United Kingdom',
+  ca: 'Canada', can: 'Canada',
+  de: 'Germany', deu: 'Germany',
+  fr: 'France', fra: 'France',
+  es: 'Spain', esp: 'Spain',
+  it: 'Italy', ita: 'Italy',
+  pt: 'Portugal', prt: 'Portugal',
+  au: 'Australia', aus: 'Australia',
+  jp: 'Japan', jpn: 'Japan',
+  mx: 'Mexico', mex: 'Mexico',
+  ar: 'Argentina', arg: 'Argentina',
+  cl: 'Chile', chl: 'Chile',
+  co: 'Colombia', col: 'Colombia',
+  nl: 'Netherlands', nld: 'Netherlands',
+  be: 'Belgium', bel: 'Belgium',
+  ch: 'Switzerland', che: 'Switzerland',
+  at: 'Austria', aut: 'Austria',
+  se: 'Sweden', swe: 'Sweden',
+  no: 'Norway', nor: 'Norway',
+  dk: 'Denmark', dnk: 'Denmark',
+  fi: 'Finland', fin: 'Finland',
+  ie: 'Ireland', irl: 'Ireland',
+  nz: 'New Zealand', nzl: 'New Zealand',
+  sg: 'Singapore', sgp: 'Singapore',
+  hk: 'Hong Kong', hkg: 'Hong Kong',
+  kr: 'South Korea', kor: 'South Korea',
+  cn: 'China', chn: 'China',
+  in: 'India', ind: 'India',
+  ae: 'UAE', are: 'UAE',
+  sa: 'Saudi Arabia', sau: 'Saudi Arabia',
+  za: 'South Africa', zaf: 'South Africa',
+  ru: 'Russia', rus: 'Russia',
+  pl: 'Poland', pol: 'Poland',
+  cz: 'Czech Republic', cze: 'Czech Republic',
+};
+
+const getCountryName = (code: string | undefined): string => {
+  if (!code) return '';
+  const normalized = code.toLowerCase().trim();
+  return countryNames[normalized] || code.toUpperCase();
+};
+
 function RatingStars({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' | 'lg' }) {
   const sizeClasses = {
     sm: 'w-3.5 h-3.5',
@@ -172,7 +218,7 @@ function ReviewCard({ review, index }: { review: Review; index: number }) {
               {review.authorCountry && (
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  {review.authorCountry}
+                  {getCountryName(review.authorCountry)}
                 </span>
               )}
               <span className="flex items-center gap-1">
@@ -446,8 +492,40 @@ export function HotelReviews({
     );
   }
 
+  // Show empty state with call to action when no reviews exist
   if (error || reviews.length === 0) {
-    return null; // Silently hide if no reviews
+    return (
+      <div className="space-y-6">
+        {/* AI Sentiment Analysis - Show even with no individual reviews */}
+        {showSummary && sentiment && (
+          <AISentimentSection sentiment={sentiment} />
+        )}
+
+        {/* No Reviews Yet State */}
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 border border-slate-200 text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Star className="w-8 h-8 text-orange-500" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            No Reviews Yet
+          </h3>
+          <p className="text-gray-600 mb-4 max-w-md mx-auto">
+            Be the first to share your experience at {hotelName || 'this hotel'}!
+            Guest reviews help other travelers make informed decisions.
+          </p>
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              <span>Verified stays only</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ThumbsUp className="w-4 h-4 text-blue-500" />
+              <span>Helpful ratings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const displayedReviews = showAll ? reviews : reviews.slice(0, compact ? 2 : 3);
