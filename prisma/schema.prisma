@@ -50,6 +50,11 @@ model User {
   fly2anyPointsLifetime Int @default(0) // Total earned (all-time)
   fly2anyPointsRedeemed Int @default(0) // Total spent (all-time)
 
+  // LiteAPI Integration (Hotels Loyalty)
+  liteApiGuestId        String? @unique // LiteAPI guest ID for hotel loyalty sync
+  hotelPointsBalance    Int     @default(0) // Points from hotel bookings (via LiteAPI)
+  hotelPointsPending    Int     @default(0) // Pending hotel points (before checkout)
+
   // Referral Network
   referralCode         String? @unique // User's unique referral code
   referredBy           String? // ID of user who referred them
@@ -437,8 +442,14 @@ model WishlistItem {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Flight details (stored as JSON for flexibility)
-  flightData Json // Complete flight information
+  // Product type (supports multiple products)
+  productType String @default("flight") // flight, hotel, car, activity
+  productId   String? // External product ID (hotel ID, etc.)
+
+  // Product details (stored as JSON for flexibility)
+  flightData Json? // Flight information (legacy + new flights)
+  hotelData  Json? // Hotel information (new)
+  productData Json? // Generic product data
 
   // User customization
   notes        String? @db.Text
@@ -450,8 +461,108 @@ model WishlistItem {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, productType])
   @@index([userId, createdAt])
   @@map("wishlist_items")
+}
+
+// ==========================================
+// Loyalty & Voucher System
+// ==========================================
+
+model LoyaltyTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+
+  // Transaction details
+  type        String   // earn, redeem, expire, adjust, welcome_bonus
+  source      String   // hotel, flight, car, activity, referral, promo, admin
+  points      Int      // Positive for earn, negative for redeem
+  description String
+
+  // Booking reference (if applicable)
+  bookingType      String?  // hotel, flight, etc.
+  bookingReference String?  // Booking ID or reference
+  bookingAmount    Float?   // Original booking amount
+
+  // LiteAPI sync (for hotel transactions)
+  liteApiTransactionId String? @unique
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([userId, source])
+  @@index([userId, createdAt])
+  @@map("loyalty_transactions")
+}
+
+model VoucherRedemption {
+  id        String   @id @default(cuid())
+  userId    String?  // Null for guest redemptions
+
+  // Voucher details
+  voucherCode    String
+  voucherType    String   // percentage, fixed, freeNight
+  discountValue  Float    // Original voucher value
+  discountAmount Float    // Actual discount applied
+  currency       String   @default("USD")
+
+  // Booking reference
+  bookingType      String   // hotel, flight, car, activity
+  bookingReference String
+  bookingAmount    Float    // Amount before discount
+  finalAmount      Float    // Amount after discount
+
+  // LiteAPI sync (for hotel vouchers)
+  liteApiVoucherId String?
+
+  // Metadata
+  redeemedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([voucherCode])
+  @@index([bookingReference])
+  @@map("voucher_redemptions")
+}
+
+model PromoCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+
+  // Discount configuration
+  type        String   // percentage, fixed, freeNight
+  value       Float    // Percentage (0-100) or fixed amount
+  currency    String   @default("USD")
+
+  // Restrictions
+  minSpend       Float?   // Minimum booking amount
+  maxDiscount    Float?   // Maximum discount cap
+  usageLimit     Int?     // Total usage limit (null = unlimited)
+  usageCount     Int      @default(0) // Current usage count
+  perUserLimit   Int      @default(1) // Max uses per user
+
+  // Targeting
+  applicableProducts String[] // ["hotel", "flight", "all"]
+  applicableHotels   String[] // Specific hotel IDs (empty = all)
+  newUsersOnly       Boolean  @default(false)
+
+  // Validity
+  validFrom DateTime
+  validUntil DateTime
+  isActive   Boolean  @default(true)
+
+  // Metadata
+  description  String?
+  internalNote String?
+  createdBy    String?  // Admin user ID
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive, validFrom, validUntil])
+  @@map("promo_codes")
 }
 
 // ==========================================

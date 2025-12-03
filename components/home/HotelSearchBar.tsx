@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed, Globe, Check, Navigation, Dog, Baby, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCityData } from '@/lib/data/city-locations';
+import { DateRangePicker } from '@/components/shared/DateRangePicker';
 
 interface HotelSearchBarProps {
   lang?: 'en' | 'pt' | 'es';
@@ -125,7 +126,6 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [childAges, setChildAges] = useState<number[]>([]); // Array of child ages
   const [rooms, setRooms] = useState(1);
   const [petFriendly, setPetFriendly] = useState(false); // Pet-friendly filter
-  const [minDate, setMinDate] = useState('');
 
   // UI State
   const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
@@ -169,67 +169,14 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
 
   // Set default dates (tomorrow and day after) - client-side only to prevent hydration errors
   useEffect(() => {
-    const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dayAfter = new Date();
     dayAfter.setDate(dayAfter.getDate() + 2);
 
-    setMinDate(today.toISOString().split('T')[0]);
     setCheckIn(tomorrow.toISOString().split('T')[0]);
     setCheckOut(dayAfter.toISOString().split('T')[0]);
   }, []);
-
-  // ROBUST DATE VALIDATION HANDLERS
-  // Prevents past date selection and ensures checkout > checkin
-  const handleCheckInChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    const today = new Date().toISOString().split('T')[0];
-
-    // Reject past dates
-    if (selectedDate < today) {
-      return; // Don't update - invalid selection
-    }
-
-    setCheckIn(selectedDate);
-
-    // Auto-adjust checkout if it's now before or equal to check-in
-    if (checkOut && selectedDate >= checkOut) {
-      const newCheckOut = new Date(selectedDate);
-      newCheckOut.setDate(newCheckOut.getDate() + 1);
-      setCheckOut(newCheckOut.toISOString().split('T')[0]);
-    }
-  }, [checkOut]);
-
-  const handleCheckOutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    const today = new Date().toISOString().split('T')[0];
-
-    // Reject past dates
-    if (selectedDate < today) {
-      return; // Don't update - invalid selection
-    }
-
-    // Reject checkout before or on check-in
-    if (checkIn && selectedDate <= checkIn) {
-      return; // Don't update - checkout must be after check-in
-    }
-
-    setCheckOut(selectedDate);
-  }, [checkIn]);
-
-  // Calculate minimum checkout date (day after check-in)
-  const minCheckOutDate = useCallback(() => {
-    if (checkIn) {
-      const nextDay = new Date(checkIn);
-      nextDay.setDate(nextDay.getDate() + 1);
-      return nextDay.toISOString().split('T')[0];
-    }
-    // If no check-in, use tomorrow as minimum
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
-  }, [checkIn]);
 
   // Fetch popular destinations on mount
   useEffect(() => {
@@ -546,9 +493,9 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Destination */}
-        <div ref={destinationRef} className="relative lg:col-span-2">
+        <div ref={destinationRef} className="relative">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             <MapPin className="w-4 h-4 inline mr-1" />
             {t.destination}
@@ -783,33 +730,18 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
 
         </div>
 
-        {/* Check-in */}
+        {/* Date Range Picker - Premium Calendar Experience */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             <Calendar className="w-4 h-4 inline mr-1" />
-            {t.checkIn}
+            {t.checkIn} - {t.checkOut}
           </label>
-          <input
-            type="date"
-            value={checkIn}
-            onChange={handleCheckInChange}
-            min={minDate}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
-          />
-        </div>
-
-        {/* Check-out */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            <Calendar className="w-4 h-4 inline mr-1" />
-            {t.checkOut}
-          </label>
-          <input
-            type="date"
-            value={checkOut}
-            onChange={handleCheckOutChange}
-            min={minCheckOutDate()}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
+          <DateRangePicker
+            checkIn={checkIn}
+            checkOut={checkOut}
+            onCheckInChange={setCheckIn}
+            onCheckOutChange={setCheckOut}
+            lang={lang}
           />
         </div>
       </div>

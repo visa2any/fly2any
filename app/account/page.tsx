@@ -10,9 +10,13 @@ import {
   Sparkles,
   Calendar,
   MapPin,
-  MessageCircle
+  MessageCircle,
+  Heart,
+  Star,
+  Gift,
 } from 'lucide-react';
 import Link from 'next/link';
+import LoyaltyPointsWidget from '@/components/loyalty/LoyaltyPointsWidget';
 
 // Force Node.js runtime (required for Prisma database access)
 export const runtime = 'nodejs';
@@ -140,8 +144,27 @@ export default async function AccountPage() {
         </div>
       )}
 
+      {/* Loyalty Points Widget - Full Width */}
+      <div className="mb-8">
+        <LoyaltyPointsWidget showRedeemButton={true} />
+      </div>
+
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <Link
+          href="/account/wishlist"
+          className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-pink-400"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-pink-50 rounded-lg">
+              <Heart className="w-6 h-6 text-pink-600" />
+            </div>
+            <span className="text-3xl font-bold text-gray-900">0</span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Wishlist</h3>
+          <p className="text-sm text-gray-600">Saved flights & hotels</p>
+        </Link>
+
         <Link
           href="/account/searches"
           className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-blue-400"

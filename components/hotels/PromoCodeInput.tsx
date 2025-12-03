@@ -27,6 +27,7 @@ export interface PromoDiscount {
 
 // Fallback demo codes (only used when API fails or in development)
 const FALLBACK_PROMO_CODES: Record<string, PromoDiscount> = {
+  'WELCOME5': { type: 'percentage', value: 5, description: '5% off your first booking - New customer offer!' },
   'WELCOME10': { type: 'percentage', value: 10, description: '10% off your first booking' },
   'SAVE20': { type: 'percentage', value: 20, maxDiscount: 100, description: '20% off (max $100)' },
   'HOTEL50': { type: 'fixed', value: 50, minPurchase: 200, description: '$50 off hotels over $200' },

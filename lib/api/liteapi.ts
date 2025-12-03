@@ -2461,6 +2461,26 @@ class LiteAPI {
   }
 
   /**
+   * Update loyalty program configuration (admin only)
+   */
+  async updateLoyaltyConfig(params: { status?: string; cashbackRate?: number }): Promise<LoyaltyConfig> {
+    try {
+      console.log('🔍 LiteAPI: Updating loyalty program configuration');
+
+      const response = await axios.put(
+        `${this.baseUrl}/loyalties`,
+        params,
+        { headers: this.getHeaders(), timeout: 10000 }
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ LiteAPI: Error updating loyalty config:', error.message);
+      throw new Error(error.response?.data?.error?.message || 'Failed to update loyalty config');
+    }
+  }
+
+  /**
    * Get guest loyalty points balance
    */
   async getGuestLoyaltyPoints(guestId: string): Promise<GuestLoyaltyPoints> {
@@ -2513,6 +2533,24 @@ class LiteAPI {
       console.error('❌ LiteAPI: Error redeeming points:', error.message);
       throw new Error(error.response?.data?.error?.message || 'Failed to redeem points');
     }
+  }
+
+  /**
+   * Alias for redeemLoyaltyPoints - for simplified API
+   */
+  async redeemPoints(params: RedeemPointsParams): Promise<{
+    success: boolean;
+    redemptionId: string;
+    pointsRedeemed: number;
+    valueReceived: number;
+    newBalance: number;
+    code?: string;
+  }> {
+    const result = await this.redeemLoyaltyPoints(params);
+    return {
+      ...result,
+      code: `REDEEM-${result.redemptionId}`,
+    };
   }
 
   /**
