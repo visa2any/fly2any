@@ -2096,150 +2096,143 @@ export default function EnhancedSearchBar({
                 </div>
               </button>
 
-              {/* Guests & Rooms Dropdown */}
+              {/* Guests & Rooms Dropdown - ULTRA COMPACT */}
               {showPassengerDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4 max-h-[500px] overflow-y-auto">
-                  {/* Adults */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Adults</span>
-                      <p className="text-[10px] text-gray-400">Age 18+</p>
+                <div className="absolute top-full left-0 right-0 mt-2 p-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-2.5">
+                  {/* Adults & Infants Row - Compact Horizontal */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Adults */}
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg px-2.5 py-2">
+                      <span className="text-xs font-medium text-gray-700">Adults</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">{hotelAdults}</span>
+                        <button
+                          type="button"
+                          onClick={() => setHotelAdults(hotelAdults + 1)}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setHotelAdults(Math.max(1, hotelAdults - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{hotelAdults}</span>
-                      <button
-                        type="button"
-                        onClick={() => setHotelAdults(hotelAdults + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
+
+                    {/* Infants - Side by side with adults */}
+                    <div className="flex items-center justify-between bg-emerald-50 rounded-lg px-2.5 py-2">
+                      <div>
+                        <span className="text-xs font-medium text-gray-700">Infants</span>
+                        <p className="text-[9px] text-emerald-600 font-medium leading-tight">0-2 FREE!</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setHotelInfants(Math.max(0, hotelInfants - 1))}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">{hotelInfants}</span>
+                        <button
+                          type="button"
+                          onClick={() => setHotelInfants(hotelInfants + 1)}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Children */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Children</span>
-                      <p className="text-[10px] text-gray-400">Age 3-17</p>
+                  {/* Children & Rooms Row */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Children */}
+                    <div className="flex items-center justify-between bg-violet-50 rounded-lg px-2.5 py-2">
+                      <span className="text-xs font-medium text-gray-700">Children</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCount = Math.max(0, hotelChildren - 1);
+                            setHotelChildren(newCount);
+                            setHotelChildAges(prev => prev.slice(0, newCount));
+                          }}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-violet-500 hover:bg-violet-100 flex items-center justify-center transition-all"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">{hotelChildren}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newCount = hotelChildren + 1;
+                            setHotelChildren(newCount);
+                            setHotelChildAges(prev => [...prev, 8]);
+                          }}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-violet-500 hover:bg-violet-100 flex items-center justify-center transition-all"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newCount = Math.max(0, hotelChildren - 1);
-                          setHotelChildren(newCount);
-                          // Remove last child age when decreasing
-                          setHotelChildAges(prev => prev.slice(0, newCount));
-                        }}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{hotelChildren}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newCount = hotelChildren + 1;
-                          setHotelChildren(newCount);
-                          // Add default age for new child
-                          setHotelChildAges(prev => [...prev, 8]);
-                        }}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
+
+                    {/* Rooms */}
+                    <div className="flex items-center justify-between bg-blue-50 rounded-lg px-2.5 py-2">
+                      <span className="text-xs font-medium text-gray-700">Rooms</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-100 flex items-center justify-center transition-all"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">{hotelRooms}</span>
+                        <button
+                          type="button"
+                          onClick={() => setHotelRooms(hotelRooms + 1)}
+                          className="w-6 h-6 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-100 flex items-center justify-center transition-all"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Child Ages - Show when children > 0 */}
+                  {/* Child Ages - ULTRA COMPACT Grid Layout */}
                   {hotelChildren > 0 && (
-                    <div className="pl-4 border-l-2 border-violet-200 space-y-2">
-                      <p className="text-xs font-medium text-violet-700 mb-2">Child Ages (required for accurate pricing)</p>
-                      {Array.from({ length: hotelChildren }).map((_, index) => (
-                        <div key={index} className="flex items-center justify-between gap-3">
-                          <label className="text-xs text-gray-600">Child {index + 1}</label>
+                    <div className="bg-violet-50/50 rounded-lg p-2 border border-violet-100">
+                      <p className="text-[10px] font-medium text-violet-700 mb-1.5">Child Ages (for pricing)</p>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {Array.from({ length: hotelChildren }).map((_, index) => (
                           <select
+                            key={index}
                             value={hotelChildAges[index] || 8}
                             onChange={(e) => {
                               const newAges = [...hotelChildAges];
                               newAges[index] = parseInt(e.target.value);
                               setHotelChildAges(newAges);
                             }}
-                            className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                            className="px-2 py-1 border border-violet-200 rounded text-[10px] font-medium focus:outline-none focus:ring-1 focus:ring-violet-500 bg-white"
                           >
                             {Array.from({ length: 15 }, (_, i) => i + 3).map(age => (
-                              <option key={age} value={age}>
-                                {age} {age === 1 ? 'year' : 'years'} old
-                              </option>
+                              <option key={age} value={age}>{age}y</option>
                             ))}
                           </select>
-                        </div>
-                      ))}
-                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
-                        <span>💡</span> Accurate ages ensure correct pricing
-                      </p>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Infants */}
-                  <div className="flex items-center justify-between bg-emerald-50 -mx-4 px-4 py-3">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Infants</span>
-                      <p className="text-[10px] text-emerald-600 font-medium">Age 0-2 (FREE at most hotels!)</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setHotelInfants(Math.max(0, hotelInfants - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{hotelInfants}</span>
-                      <button
-                        type="button"
-                        onClick={() => setHotelInfants(hotelInfants + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Rooms */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Rooms</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setHotelRooms(Math.max(1, hotelRooms - 1))}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center font-semibold">{hotelRooms}</span>
-                      <button
-                        type="button"
-                        onClick={() => setHotelRooms(hotelRooms + 1)}
-                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Done Button */}
+                  {/* Done Button - Compact */}
                   <button
                     onClick={() => setShowPassengerDropdown(false)}
-                    className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all duration-200 ease-in-out text-xs shadow-sm hover:shadow-md"
+                    className="w-full py-1.5 bg-[#0087FF] hover:bg-[#0077E6] text-white font-semibold rounded-lg transition-all text-xs"
                   >
                     Done
                   </button>
