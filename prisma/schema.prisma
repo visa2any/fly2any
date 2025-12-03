@@ -90,6 +90,7 @@ model User {
   agentClient       AgentClient?          @relation("UserAgentClient")
   worldCupBookings  WorldCupBooking[]
   tripMatchProfile  TripMatchUserProfile? @relation("TripMatchProfile")
+  promoCodeUsages   PromoCodeUsage[]
 
   @@map("users")
 }
@@ -559,6 +560,9 @@ model PromoCode {
   createdBy    String?  // Admin user ID
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Relations
+  usages PromoCodeUsage[]
 
   @@index([code])
   @@index([isActive, validFrom, validUntil])
@@ -4310,4 +4314,41 @@ enum AirlineExclusionType {
 enum RoutingChannel {
   DUFFEL         // Book via Duffel API
   CONSOLIDATOR   // Book via Downtown Travel GDS
+}
+
+// ==========================================
+// Admin System Configuration
+// ==========================================
+
+// System-wide configuration storage
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique  // Config key (e.g., "loyalty_config", "hotel_settings")
+  value       Json     // JSON configuration value
+  description String?  // Description of what this config controls
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@map("system_configs")
+}
+
+// Promo Code Usage Tracking
+model PromoCodeUsage {
+  id              String    @id @default(cuid())
+  promoCodeId     String
+  promoCode       PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  userId          String?   // Null for guest bookings
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  bookingId       String?   // Reference to the booking
+  bookingType     String    // hotel, flight, car, activity
+  discountApplied Float     // Actual discount amount applied
+  orderTotal      Float     // Total order value before discount
+  currency        String    @default("USD")
+  usedAt          DateTime  @default(now())
+
+  @@index([promoCodeId])
+  @@index([userId])
+  @@index([usedAt])
+  @@map("promo_code_usages")
 }

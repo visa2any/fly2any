@@ -28,6 +28,7 @@ import {
   PiggyBank,
   GitBranch,
   Ticket,
+  Star,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -125,6 +126,12 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
       label: 'Vouchers & Promos',
       href: '/admin/vouchers',
       icon: Ticket,
+      roles: ['super_admin', 'admin']
+    },
+    {
+      label: 'Loyalty & Rewards',
+      href: '/admin/rewards',
+      icon: Star,
       roles: ['super_admin', 'admin']
     },
     {
