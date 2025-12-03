@@ -180,7 +180,7 @@ export async function PUT(
     if (body.type !== undefined) updateData.type = body.type;
     if (body.value !== undefined) updateData.value = parseFloat(body.value);
     if (body.currency !== undefined) updateData.currency = body.currency;
-    if (body.minBookingAmount !== undefined) updateData.minBookingAmount = body.minBookingAmount ? parseFloat(body.minBookingAmount) : null;
+    if (body.minSpend !== undefined) updateData.minSpend = body.minSpend ? parseFloat(body.minSpend) : null;
     if (body.maxDiscount !== undefined) updateData.maxDiscount = body.maxDiscount ? parseFloat(body.maxDiscount) : null;
     if (body.validFrom !== undefined) updateData.validFrom = new Date(body.validFrom);
     if (body.validUntil !== undefined) updateData.validUntil = new Date(body.validUntil);
