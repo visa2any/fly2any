@@ -9,7 +9,6 @@ import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex }
 import PremiumDatePicker from './PremiumDatePicker';
 import { InlineAirportAutocomplete } from './InlineAirportAutocomplete';
 import MultiAirportSelector, { Airport as MultiAirport } from '@/components/common/MultiAirportSelector';
-import MultiDatePicker from '@/components/common/MultiDatePicker';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 
 type ServiceType = 'flights' | 'hotels' | 'cars' | 'tours' | 'activities' | 'packages' | 'insurance';
@@ -214,7 +213,6 @@ export default function EnhancedSearchBar({
   const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
   const [directFlights, setDirectFlights] = useState(false);
   const [includeSeparateTickets, setIncludeSeparateTickets] = useState(true); // "Hacker Fares" - default ON for best prices
-  const [openMultiDatePicker, setOpenMultiDatePicker] = useState<'departure' | 'return' | null>(null); // Track which multi-date picker is open
 
   // Independent nonstop filters for outbound and return flights
   const [fromNonstop, setFromNonstop] = useState(false);
@@ -1303,20 +1301,17 @@ export default function EnhancedSearchBar({
                 </span>
               </button>
             ) : (
-              <MultiDatePicker
-                key="departure-dates"
-                selectedDates={departureDates}
-                onDatesChange={setDepartureDates}
-                maxDates={3}
-                minDate={new Date()}
-                label=""
-                headerLabel="Select Departure Dates"
-                placeholder="Select up to 3 dates"
-                isOpen={openMultiDatePicker === 'departure'}
-                onOpenChange={(isOpen) => {
-                  setOpenMultiDatePicker(isOpen ? 'departure' : null);
-                }}
-              />
+              <button
+                ref={departureDateRef}
+                type="button"
+                onClick={() => handleOpenDatePicker('departure')}
+                className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+              >
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <span className="block pl-8 text-base font-medium text-gray-900">
+                  {departureDate ? formatDateForDisplay(departureDate) : 'Select date'}
+                </span>
+              </button>
             )}
 
             {errors.departureDate && (
@@ -1367,20 +1362,17 @@ export default function EnhancedSearchBar({
                   </span>
                 </button>
               ) : (
-                <MultiDatePicker
-                  key="return-dates"
-                  selectedDates={returnDates}
-                  onDatesChange={setReturnDates}
-                  maxDates={3}
-                  minDate={new Date()}
-                  label=""
-                  headerLabel="Select Return Dates"
-                  placeholder="Select up to 3 dates"
-                  isOpen={openMultiDatePicker === 'return'}
-                  onOpenChange={(isOpen) => {
-                    setOpenMultiDatePicker(isOpen ? 'return' : null);
-                  }}
-                />
+                <button
+                  ref={returnDateRef}
+                  type="button"
+                  onClick={() => handleOpenDatePicker('return')}
+                  className="w-full relative px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-[#0087FF] transition-all cursor-pointer"
+                >
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <span className="block pl-8 text-base font-medium text-gray-900">
+                    {returnDate ? formatDateForDisplay(returnDate) : 'Select date'}
+                  </span>
+                </button>
               )
             ) : (
               <div className="relative w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
@@ -2884,7 +2876,11 @@ export default function EnhancedSearchBar({
           value={checkInDate}
           onChange={(date) => {
             setCheckInDate(date);
+            setCheckOutDate(''); // Clear checkout when changing check-in
+            // DON'T close the picker yet - automatically switch to checkout selection
             setShowHotelCheckInPicker(false);
+            // Open checkout picker so user can complete the date range
+            setTimeout(() => setShowHotelCheckOutPicker(true), 100);
           }}
           type="single"
           anchorEl={hotelCheckInRef.current}
@@ -2896,9 +2892,11 @@ export default function EnhancedSearchBar({
           value={checkOutDate}
           onChange={(date) => {
             setCheckOutDate(date);
+            // ONLY NOW close the picker - after both dates selected
             setShowHotelCheckOutPicker(false);
           }}
           type="single"
+          minDate={checkInDate ? new Date(new Date(checkInDate).getTime() + 24 * 60 * 60 * 1000) : undefined} // Prevent selecting same day or earlier for checkout
           anchorEl={hotelCheckOutRef.current}
         />
 

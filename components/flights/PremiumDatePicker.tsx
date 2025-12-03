@@ -41,7 +41,7 @@ export default function PremiumDatePicker({
   value,
   returnValue,
   onChange,
-  minDate = new Date(),
+  minDate, // No default - allow selecting any date unless explicitly restricted
   type = 'range',
   isOpen,
   onClose,
