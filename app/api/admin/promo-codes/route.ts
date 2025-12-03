@@ -18,10 +18,18 @@ export async function GET(request: NextRequest) {
     // Check if user is admin
     const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
-      select: { role: true },
+      select: { id: true },
     });
 
-    if (user?.role !== 'admin') {
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const adminUser = await getPrismaClient().adminUser.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!adminUser || !['admin', 'super_admin'].includes(adminUser.role)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -115,10 +123,18 @@ export async function POST(request: NextRequest) {
     // Check if user is admin
     const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
-      select: { role: true },
+      select: { id: true },
     });
 
-    if (user?.role !== 'admin') {
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const adminUser = await getPrismaClient().adminUser.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!adminUser || !['admin', 'super_admin'].includes(adminUser.role)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
