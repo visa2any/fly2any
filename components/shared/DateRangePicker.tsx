@@ -112,26 +112,30 @@ export function DateRangePicker({
       if (range.from) {
         setTempRange({ from: range.from, to: undefined });
         onCheckInChange(format(range.from, 'yyyy-MM-dd'));
-        // Automatically switch to checkout selection - calendar stays open!
+        onCheckOutChange(''); // Clear checkout when changing check-in
+        // Automatically switch to checkout selection - calendar STAYS OPEN!
         setSelectionMode('checkOut');
+        // DO NOT CLOSE CALENDAR - user must select checkout
       }
     } else {
       // User is selecting check-out date
-      if (range.to && range.from) {
+      // The user must pick a date AFTER check-in
+      if (range.from && !range.to) {
+        // User clicked a single date while in checkout mode
+        const clickedDate = range.from;
+        if (tempRange?.from && isAfter(clickedDate, tempRange.from)) {
+          // Valid checkout date selected
+          setTempRange({ from: tempRange.from, to: clickedDate });
+          onCheckOutChange(format(clickedDate, 'yyyy-MM-dd'));
+          // ONLY NOW close the calendar - after both dates selected
+          setTimeout(() => setIsOpen(false), 200);
+        }
+      } else if (range.to && range.from) {
         // Ensure checkout is after checkin
         if (isAfter(range.to, range.from)) {
           setTempRange(range);
           onCheckOutChange(format(range.to, 'yyyy-MM-dd'));
           // Close calendar after both dates selected
-          setTimeout(() => setIsOpen(false), 200);
-        }
-      } else if (range.from && !range.to) {
-        // User clicked a single date while in checkout mode
-        // If it's after the checkin, use it as checkout
-        const clickedDate = range.from;
-        if (tempRange?.from && isAfter(clickedDate, tempRange.from)) {
-          setTempRange({ from: tempRange.from, to: clickedDate });
-          onCheckOutChange(format(clickedDate, 'yyyy-MM-dd'));
           setTimeout(() => setIsOpen(false), 200);
         }
       }
@@ -142,12 +146,17 @@ export function DateRangePicker({
   const disabledDays = useCallback(() => {
     const disabled: any[] = [];
 
-    // Always disable dates before today
+    // Always disable dates before today (no past dates ever)
     disabled.push({ before: effectiveMinDate });
 
-    // In checkout mode, disable dates <= checkin
+    // CRITICAL: In checkout mode, disable dates ON OR BEFORE checkin
+    // This prevents selecting same day or earlier for checkout
     if (selectionMode === 'checkOut' && tempRange?.from) {
+      // Disable everything up to and including check-in date
+      // Only dates AFTER check-in are selectable
       disabled.push({ before: addDays(tempRange.from, 1) });
+      // Also explicitly disable the check-in date itself
+      disabled.push(tempRange.from);
     }
 
     // Disable dates after maxDate if specified
