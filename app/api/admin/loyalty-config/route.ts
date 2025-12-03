@@ -164,13 +164,13 @@ export async function PUT(request: NextRequest) {
       where: { key: 'loyalty_config' },
     });
 
-    let configValue = currentConfig?.value || DEFAULT_LOYALTY_CONFIG;
+    let configValue = (currentConfig?.value || DEFAULT_LOYALTY_CONFIG) as Record<string, any>;
 
     // Update specific section or entire config
     if (section && updates) {
       // Update specific section (hotels, flights, global, liteApiIntegration)
-      (configValue as any)[section] = {
-        ...(configValue as any)[section],
+      configValue[section] = {
+        ...configValue[section],
         ...updates,
       };
     } else if (updates) {
