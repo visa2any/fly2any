@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // Default loyalty configuration
 const DEFAULT_LOYALTY_CONFIG = {
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -80,13 +80,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Try to get config from database
-    let config = await prisma.systemConfig.findUnique({
+    let config = await getPrismaClient().systemConfig.findUnique({
       where: { key: 'loyalty_config' },
     });
 
     if (!config) {
       // Create default config if doesn't exist
-      config = await prisma.systemConfig.create({
+      config = await getPrismaClient().systemConfig.create({
         data: {
           key: 'loyalty_config',
           value: DEFAULT_LOYALTY_CONFIG as any,
@@ -131,7 +131,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest) {
     const { section, updates } = body;
 
     // Get current config
-    let currentConfig = await prisma.systemConfig.findUnique({
+    let currentConfig = await getPrismaClient().systemConfig.findUnique({
       where: { key: 'loyalty_config' },
     });
 
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Save updated config
-    const config = await prisma.systemConfig.upsert({
+    const config = await getPrismaClient().systemConfig.upsert({
       where: { key: 'loyalty_config' },
       update: {
         value: configValue as any,
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
     const { action } = body;
 
     if (action === 'reset') {
-      const config = await prisma.systemConfig.upsert({
+      const config = await getPrismaClient().systemConfig.upsert({
         where: { key: 'loyalty_config' },
         update: {
           value: DEFAULT_LOYALTY_CONFIG as any,
@@ -249,8 +249,8 @@ export async function POST(request: NextRequest) {
 async function getLoyaltyStats() {
   try {
     // Get user stats
-    const totalUsers = await prisma.user.count();
-    const usersWithPoints = await prisma.user.count({
+    const totalUsers = await getPrismaClient().user.count();
+    const usersWithPoints = await getPrismaClient().user.count({
       where: {
         OR: [
           { hotelPointsBalance: { gt: 0 } },
@@ -260,7 +260,7 @@ async function getLoyaltyStats() {
     });
 
     // Get points stats
-    const pointsStats = await prisma.user.aggregate({
+    const pointsStats = await getPrismaClient().user.aggregate({
       _sum: {
         hotelPointsBalance: true,
         hotelPointsPending: true,
@@ -268,11 +268,11 @@ async function getLoyaltyStats() {
     });
 
     // Get promo code stats
-    const promoStats = await prisma.promoCode.aggregate({
+    const promoStats = await getPrismaClient().promoCode.aggregate({
       _count: true,
     });
 
-    const activePromos = await prisma.promoCode.count({
+    const activePromos = await getPrismaClient().promoCode.count({
       where: {
         isActive: true,
         validUntil: { gte: new Date() },
@@ -280,7 +280,7 @@ async function getLoyaltyStats() {
     });
 
     // Get usage stats
-    const totalPromoUsages = await prisma.promoCodeUsage.count();
+    const totalPromoUsages = await getPrismaClient().promoCodeUsage.count();
 
     return {
       users: {

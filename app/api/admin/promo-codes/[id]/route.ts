@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // GET - Get single promo code with detailed stats
 export async function GET(
@@ -18,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -29,7 +29,7 @@ export async function GET(
 
     const { id } = await params;
 
-    const promoCode = await prisma.promoCode.findUnique({
+    const promoCode = await getPrismaClient().promoCode.findUnique({
       where: { id },
       include: {
         usages: {
@@ -56,7 +56,7 @@ export async function GET(
     }
 
     // Get usage statistics
-    const usageStats = await prisma.promoCodeUsage.aggregate({
+    const usageStats = await getPrismaClient().promoCodeUsage.aggregate({
       where: { promoCodeId: id },
       _sum: { discountApplied: true },
       _avg: { discountApplied: true },
@@ -64,7 +64,7 @@ export async function GET(
     });
 
     // Get usage by day for chart
-    const usageByDay = await prisma.promoCodeUsage.groupBy({
+    const usageByDay = await getPrismaClient().promoCodeUsage.groupBy({
       by: ['usedAt'],
       where: { promoCodeId: id },
       _count: true,
@@ -105,7 +105,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -118,7 +118,7 @@ export async function PUT(
     const body = await request.json();
 
     // Check if promo code exists
-    const existingCode = await prisma.promoCode.findUnique({
+    const existingCode = await getPrismaClient().promoCode.findUnique({
       where: { id },
     });
 
@@ -128,7 +128,7 @@ export async function PUT(
 
     // If code is being changed, check for duplicates
     if (body.code && body.code.toUpperCase() !== existingCode.code) {
-      const duplicateCode = await prisma.promoCode.findUnique({
+      const duplicateCode = await getPrismaClient().promoCode.findUnique({
         where: { code: body.code.toUpperCase() },
       });
 
@@ -175,7 +175,7 @@ export async function PUT(
     if (body.description !== undefined) updateData.description = body.description;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
-    const promoCode = await prisma.promoCode.update({
+    const promoCode = await getPrismaClient().promoCode.update({
       where: { id },
       data: updateData,
     });
@@ -206,7 +206,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -218,7 +218,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if promo code exists
-    const existingCode = await prisma.promoCode.findUnique({
+    const existingCode = await getPrismaClient().promoCode.findUnique({
       where: { id },
       include: {
         _count: {
@@ -233,7 +233,7 @@ export async function DELETE(
 
     // If promo code has been used, deactivate instead of delete
     if (existingCode._count.usages > 0) {
-      const promoCode = await prisma.promoCode.update({
+      const promoCode = await getPrismaClient().promoCode.update({
         where: { id },
         data: { isActive: false },
       });
@@ -246,7 +246,7 @@ export async function DELETE(
     }
 
     // Delete if never used
-    await prisma.promoCode.delete({
+    await getPrismaClient().promoCode.delete({
       where: { id },
     });
 

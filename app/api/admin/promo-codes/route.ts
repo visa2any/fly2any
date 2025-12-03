@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getPrismaClient } from '@/lib/prisma';
 
 // GET - List all promo codes with usage statistics
 export async function GET(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       where.applicableProducts = { has: product };
     }
 
-    const promoCodes = await prisma.promoCode.findMany({
+    const promoCodes = await getPrismaClient().promoCode.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const promoCodesWithStats = await Promise.all(
       promoCodes.map(async (promo) => {
         // Get total discount given
-        const usages = await prisma.promoCodeUsage.aggregate({
+        const usages = await getPrismaClient().promoCodeUsage.aggregate({
           where: { promoCodeId: promo.id },
           _sum: { discountApplied: true },
           _count: true,
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is admin
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email: session.user.email },
       select: { role: true },
     });
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate code
-    const existingCode = await prisma.promoCode.findUnique({
+    const existingCode = await getPrismaClient().promoCode.findUnique({
       where: { code: code.toUpperCase() },
     });
 
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const promoCode = await prisma.promoCode.create({
+    const promoCode = await getPrismaClient().promoCode.create({
       data: {
         code: code.toUpperCase(),
         type,
