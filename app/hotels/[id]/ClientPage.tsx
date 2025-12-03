@@ -1126,10 +1126,12 @@ export default function HotelDetailPage() {
                   <span className="text-orange-100 text-lg mb-1">{roomsNum > 1 ? '/room/night' : '/night'}</span>
                 </div>
                 {checkIn && checkOut && (
-                  <div className="mt-2 flex items-center gap-2">
+                  <div className="mt-2 flex flex-col">
                     <span className="text-white/90 text-sm">
                       {activeRoom?.isFallback ? '~' : ''}<span className="font-bold">${activeRoomPrice.toFixed(0)}</span> total {roomsNum > 1 ? `(${roomsNum} rooms × ${nights} nights)` : `for ${nights} ${nights === 1 ? 'night' : 'nights'}`}
                     </span>
+                    {/* Transparent pricing indicator */}
+                    <span className="text-white/60 text-xs mt-0.5">+ taxes &amp; fees at checkout</span>
                   </div>
                 )}
                 {activeRoom?.refundable && !activeRoom?.isFallback && (
@@ -1332,6 +1334,7 @@ export default function HotelDetailPage() {
                   </span>
                   <span className="text-sm text-gray-600">/night</span>
                 </div>
+                <p className="text-[10px] text-gray-400">+ taxes &amp; fees</p>
               </div>
               <button
                 onClick={() => {

@@ -576,9 +576,13 @@ export function HotelCard({
                 <span className="text-sm font-medium text-slate-500">{t.perNight}</span>
               </div>
 
-              {/* Total Price with Guest Info */}
+              {/* Total Price with Guest Info - Now includes taxes notice */}
               <div className="text-xs text-slate-500 mt-0.5">
                 {currencySymbol}{Math.round(totalPrice).toLocaleString()} {t.total} · {nights} {t.nights}
+              </div>
+              {/* Transparent pricing indicator */}
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                + taxes &amp; fees
               </div>
 
               {/* Guest Count Badge */}
