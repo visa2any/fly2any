@@ -671,11 +671,59 @@ class LiteAPI {
       }
 
       // Step 2: Get rates for those hotels
+      // LiteAPI expects children as array of AGES, not count
+      // Age-based pricing from hotels:
+      // - Infants (0-2): FREE at most hotels
+      // - Children (3-11): Reduced rate
+      // - Teens (12-17): May be charged as adults
+      const DEFAULT_CHILD_AGE = 8; // Fallback if no ages provided
+      const rooms = params.rooms || 1;
+
+      // Use provided childAges if available, otherwise generate defaults
+      const providedAges = params.childAges && params.childAges.length > 0 ? params.childAges : null;
+      const allChildAges = providedAges || (children > 0 ? Array(children).fill(DEFAULT_CHILD_AGE) : []);
+
+      console.log('👶 Child ages for rate request:', { providedAges, allChildAges, children });
+
+      // Build occupancies array for multiple rooms - distribute guests across rooms
+      const occupancies: Array<{ adults: number; children?: number[] }> = [];
+
+      if (rooms === 1) {
+        // Single room - all guests in one occupancy
+        occupancies.push({
+          adults,
+          ...(allChildAges.length > 0 && { children: allChildAges })
+        });
+      } else {
+        // Multiple rooms - distribute guests across rooms for accurate pricing
+        const adultsPerRoom = Math.floor(adults / rooms);
+        const extraAdults = adults % rooms;
+
+        // Distribute child ages across rooms (preserving actual ages)
+        const childrenPerRoom = Math.floor(allChildAges.length / rooms);
+        const extraChildren = allChildAges.length % rooms;
+
+        let childAgeIndex = 0;
+        for (let i = 0; i < rooms; i++) {
+          const roomAdults = adultsPerRoom + (i < extraAdults ? 1 : 0);
+          const roomChildCount = childrenPerRoom + (i < extraChildren ? 1 : 0);
+
+          // Get actual child ages for this room
+          const roomChildAges = allChildAges.slice(childAgeIndex, childAgeIndex + roomChildCount);
+          childAgeIndex += roomChildCount;
+
+          occupancies.push({
+            adults: roomAdults || 1, // At least 1 adult per room
+            ...(roomChildAges.length > 0 && { children: roomChildAges })
+          });
+        }
+      }
+
       const ratesData = await this.getHotelRates({
         hotelIds: activeHotelIds,
         checkin: checkIn,
         checkout: checkOut,
-        occupancies: [{ adults, children: children ? [children] : undefined }],
+        occupancies,
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
       });
@@ -815,17 +863,60 @@ class LiteAPI {
       // Step 2: Get MINIMUM rates (fast!)
       const adults = params.adults || params.guests?.adults || 2; // Default to 2 adults
       const children = params.children || (Array.isArray(params.guests?.children) ? params.guests.children.length : 0);
+      const rooms = params.rooms || 1; // Default to 1 room
+
+      // CRITICAL FIX: Build occupancies array for multiple rooms
+      // Distribute guests across rooms for accurate pricing
+      // Age-based pricing from hotels:
+      // - Infants (0-2): FREE at most hotels
+      // - Children (3-11): Reduced rate
+      // - Teens (12-17): May be charged as adults
+      const DEFAULT_CHILD_AGE = 8; // Fallback if no ages provided
+      const providedAges = params.childAges && params.childAges.length > 0 ? params.childAges : null;
+      const allChildAges = providedAges || (children > 0 ? Array(children).fill(DEFAULT_CHILD_AGE) : []);
+
+      console.log('👶 MinRates child ages:', { providedAges, allChildAges, children });
+
+      const occupancies: Array<{ adults: number; children?: number[] }> = [];
+
+      if (rooms === 1) {
+        // Single room - all guests in one occupancy
+        occupancies.push({
+          adults,
+          ...(allChildAges.length > 0 && { children: allChildAges })
+        });
+      } else {
+        // Multiple rooms - distribute guests and child ages across rooms
+        const adultsPerRoom = Math.floor(adults / rooms);
+        const extraAdults = adults % rooms;
+
+        // Distribute child ages across rooms (preserving actual ages)
+        const childrenPerRoom = Math.floor(allChildAges.length / rooms);
+        const extraChildren = allChildAges.length % rooms;
+
+        let childAgeIndex = 0;
+        for (let i = 0; i < rooms; i++) {
+          const roomAdults = adultsPerRoom + (i < extraAdults ? 1 : 0);
+          const roomChildCount = childrenPerRoom + (i < extraChildren ? 1 : 0);
+
+          // Get actual child ages for this room
+          const roomChildAges = allChildAges.slice(childAgeIndex, childAgeIndex + roomChildCount);
+          childAgeIndex += roomChildCount;
+
+          occupancies.push({
+            adults: roomAdults || 1, // At least 1 adult per room
+            ...(roomChildAges.length > 0 && { children: roomChildAges })
+          });
+        }
+      }
+
+      console.log(`🏨 [SEARCH] Occupancies for ${rooms} rooms:`, JSON.stringify(occupancies));
 
       const minRatesData = await this.getHotelMinimumRates({
         hotelIds: activeHotelIds,
         checkin: checkIn,
         checkout: checkOut,
-        occupancies: [{
-          adults,
-          // CRITICAL FIX: LiteAPI expects children as array of ages, not count
-          // If children count is provided but no ages, use default age of 10 for all
-          ...(children > 0 && { children: Array(children).fill(10) })
-        }],
+        occupancies,
         currency: params.currency || 'USD',
         guestNationality: params.guestNationality || 'US',
       });
@@ -1318,7 +1409,7 @@ class LiteAPI {
       const response = await axios.post(
         `${this.baseUrl}/rates/prebook`,
         {
-          offerId,
+          offerId, // String format
           usePaymentSdk, // Enable User Payment SDK flow
         },
         { headers: this.getHeaders(), timeout: 30000 }
@@ -1326,25 +1417,90 @@ class LiteAPI {
 
       const data = response.data.data;
 
-      console.log(`✅ LiteAPI: Pre-book successful (ID: ${data.prebookId})`);
-      console.log(`   Status: ${data.status}`);
-      console.log(`   Price: ${data.price?.amount} ${data.price?.currency}`);
-      console.log(`   Expires: ${data.expiresAt}`);
-      if (data.secretKey) {
-        console.log(`   Payment SDK: Enabled (secretKey received)`);
+      // 🔍 DEBUG: Log raw response structure
+      console.log('🔍 DEBUG: Raw prebook response keys:', Object.keys(data));
+      console.log('🔍 DEBUG: Full response data:', JSON.stringify(data, null, 2));
+
+      // LiteAPI returns DIFFERENT structures based on usePaymentSdk flag:
+      //
+      // usePaymentSdk: true (simplified payment-focused):
+      // {
+      //   prebookId: string,
+      //   secretKey: string,
+      //   transactionId: string,
+      //   price: number (total amount),
+      //   voucherTotalAmount?: number
+      // }
+      //
+      // usePaymentSdk: false (full booking details):
+      // {
+      //   prebookId: string,
+      //   hotelId: string,
+      //   offerId: string,
+      //   status: string,
+      //   price: { amount: number, currency: string },
+      //   expiresAt: string,
+      //   hotelConfirmationCode?: string
+      // }
+
+      // Detect which structure we got:
+      // Payment SDK: price is a number OR missing/empty object
+      // Standard: price is an object with amount/currency fields
+      const isPaymentSdkResponse =
+        typeof data.price === 'number' ||
+        !data.price ||
+        (typeof data.price === 'object' && !data.price.amount);
+
+      let priceAmount: number;
+      let priceCurrency: string;
+      let statusValue: 'confirmed' | 'pending' | 'failed';
+      let expiresAtValue: string;
+
+      if (isPaymentSdkResponse) {
+        // Payment SDK mode: price is a number
+        priceAmount = data.price || 0;
+        priceCurrency = 'USD'; // Payment SDK doesn't return currency
+        statusValue = 'confirmed'; // Assume confirmed if SDK returned secretKey
+        // Generate expiry time (LiteAPI typically gives 15 minutes)
+        const expiryDate = new Date();
+        expiryDate.setMinutes(expiryDate.getMinutes() + 15);
+        expiresAtValue = expiryDate.toISOString();
+
+        console.log(`✅ LiteAPI: Pre-book successful (Payment SDK mode)`);
+        console.log(`   Prebook ID: ${data.prebookId}`);
+        console.log(`   Price: ${priceAmount} ${priceCurrency} (from Payment SDK)`);
+        console.log(`   Status: ${statusValue} (assumed - Payment SDK active)`);
+        console.log(`   Expires: ${expiresAtValue} (estimated +15min)`);
+        console.log(`   Secret Key: ${data.secretKey ? 'Received' : 'Missing'}`);
         console.log(`   Transaction ID: ${data.transactionId}`);
+      } else {
+        // Standard mode: price is an object
+        priceAmount = data.price?.amount || 0;
+        priceCurrency = data.price?.currency || 'USD';
+        statusValue = (data.status || 'pending') as 'confirmed' | 'pending' | 'failed';
+        expiresAtValue = data.expiresAt || new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+        console.log(`✅ LiteAPI: Pre-book successful (Standard mode)`);
+        console.log(`   Prebook ID: ${data.prebookId}`);
+        console.log(`   Status: ${statusValue}`);
+        console.log(`   Price: ${priceAmount} ${priceCurrency}`);
+        console.log(`   Expires: ${expiresAtValue}`);
+        if (data.secretKey) {
+          console.log(`   Payment SDK: Enabled (secretKey received)`);
+          console.log(`   Transaction ID: ${data.transactionId}`);
+        }
       }
 
       return {
         prebookId: data.prebookId,
-        hotelId: data.hotelId,
-        offerId: data.offerId,
-        status: data.status,
+        hotelId: data.hotelId || offerId, // Use offerId as fallback
+        offerId: data.offerId || offerId,
+        status: statusValue,
         price: {
-          amount: data.price?.amount || 0,
-          currency: data.price?.currency || 'USD',
+          amount: priceAmount,
+          currency: priceCurrency,
         },
-        expiresAt: data.expiresAt,
+        expiresAt: expiresAtValue,
         hotelConfirmationCode: data.hotelConfirmationCode,
         // User Payment SDK fields
         secretKey: data.secretKey,

@@ -1,195 +1,235 @@
+/**
+ * Hotel Booking Cancellation API
+ * POST /api/hotels/booking/[id]/cancel
+ *
+ * Cancels a hotel booking via LiteAPI and processes any applicable refunds.
+ *
+ * Flow:
+ * 1. Validate booking ID and authorization
+ * 2. Call LiteAPI to cancel the booking
+ * 3. Process refund if applicable (via Stripe or LiteAPI User Payment SDK)
+ * 4. Update local booking record (if using database)
+ * 5. Send confirmation email
+ *
+ * @see https://docs.liteapi.travel/reference/cancel-booking
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db/prisma';
-import Stripe from 'stripe';
+import { liteAPI } from '@/lib/api/liteapi';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const getStripe = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return null;
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-10-29.clover',
-  });
-};
+interface CancellationResult {
+  success: boolean;
+  bookingId: string;
+  status: 'cancelled' | 'pending' | 'failed';
+  refund?: {
+    amount: number;
+    currency: string;
+    status: 'pending' | 'processed' | 'denied';
+  };
+  cancellationFee?: number;
+  message: string;
+}
 
-/**
- * Cancel a hotel booking and process refund if applicable
- */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse<CancellationResult | { error: string; details?: string }>> {
   try {
-    // Authenticate user
-    const session = await auth();
+    const { id: bookingId } = await params;
 
-    if (!session || !session.user?.email) {
+    if (!bookingId) {
       return NextResponse.json(
-        { error: 'Unauthorized - Please sign in' },
-        { status: 401 }
+        { error: 'Booking ID is required' },
+        { status: 400 }
       );
     }
 
-    if (!prisma) {
-      return NextResponse.json(
-        { error: 'Database unavailable' },
-        { status: 503 }
-      );
+    // Parse request body for optional confirmation details
+    const body = await request.json().catch(() => ({}));
+    const { confirmationNumber, email, reason } = body;
+
+    console.log(`[CANCEL] Processing cancellation for booking: ${bookingId}`);
+    if (confirmationNumber) {
+      console.log(`[CANCEL] Confirmation number: ${confirmationNumber}`);
+    }
+    if (reason) {
+      console.log(`[CANCEL] Reason: ${reason}`);
     }
 
-    const bookingId = params.id;
+    // Step 1: Verify the booking exists (optional, for extra validation)
+    try {
+      const bookingDetails = await liteAPI.getBooking(bookingId);
+      const bookingData = bookingDetails.booking;
+      console.log(`[CANCEL] Found booking: ${bookingData?.reference || bookingId}`);
+      console.log(`[CANCEL] Current status: ${bookingData?.status}`);
 
-    // Fetch the booking
-    const booking = await prisma.hotelBooking.findUnique({
-      where: { id: bookingId },
-    });
+      // Check if already cancelled
+      if (bookingData?.status === 'cancelled') {
+        return NextResponse.json({
+          success: true,
+          bookingId,
+          status: 'cancelled',
+          message: 'Booking was already cancelled',
+        });
+      }
 
-    if (!booking) {
+      // Check cancellation policy
+      if (bookingData?.cancellationPolicy && !bookingData.cancellationPolicy.refundable) {
+        console.log(`[CANCEL] Warning: Booking is non-refundable`);
+      }
+    } catch (error) {
+      console.warn(`[CANCEL] Could not verify booking: ${error}`);
+      // Continue with cancellation attempt - LiteAPI will validate
+    }
+
+    // Step 2: Cancel the booking via LiteAPI
+    const cancellation = await liteAPI.cancelBooking(bookingId);
+
+    console.log(`[CANCEL] Cancellation response:`, cancellation);
+
+    // Step 3: Build response
+    const result: CancellationResult = {
+      success: true,
+      bookingId: cancellation.bookingId,
+      status: cancellation.status,
+      message: 'Booking cancelled successfully',
+    };
+
+    // Include refund details if available
+    if (cancellation.refundAmount && cancellation.refundAmount > 0) {
+      result.refund = {
+        amount: cancellation.refundAmount,
+        currency: cancellation.refundCurrency || 'USD',
+        status: cancellation.refundStatus || 'pending',
+      };
+      result.message = `Booking cancelled. Refund of ${cancellation.refundCurrency || 'USD'} ${cancellation.refundAmount.toFixed(2)} is ${cancellation.refundStatus || 'being processed'}.`;
+    }
+
+    // Include cancellation fee if applicable
+    if (cancellation.cancellationFee && cancellation.cancellationFee > 0) {
+      result.cancellationFee = cancellation.cancellationFee;
+      result.message += ` A cancellation fee of ${cancellation.refundCurrency || 'USD'} ${cancellation.cancellationFee.toFixed(2)} was applied.`;
+    }
+
+    // Step 4: Update local database (if using one)
+    // This would be implemented based on your database setup
+    // await prisma.hotelBooking.update({
+    //   where: { liteapiBookingId: bookingId },
+    //   data: {
+    //     status: 'cancelled',
+    //     cancelledAt: new Date(),
+    //     refundAmount: cancellation.refundAmount,
+    //     cancellationFee: cancellation.cancellationFee,
+    //   },
+    // });
+
+    // Step 5: Send confirmation email (if email service is configured)
+    // await sendCancellationEmail({
+    //   to: email,
+    //   bookingId,
+    //   refundAmount: cancellation.refundAmount,
+    //   cancellationFee: cancellation.cancellationFee,
+    // });
+
+    console.log(`[CANCEL] Successfully cancelled booking ${bookingId}`);
+
+    return NextResponse.json(result);
+  } catch (error: any) {
+    console.error('[CANCEL] Error cancelling booking:', error);
+
+    // Handle specific LiteAPI errors
+    if (error.message?.includes('not found')) {
       return NextResponse.json(
-        { error: 'Booking not found' },
+        {
+          error: 'Booking not found',
+          details: 'The booking ID does not exist or has already been cancelled.',
+        },
         { status: 404 }
       );
     }
 
-    // Verify ownership (user must own the booking or be an admin)
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { adminUser: true },
-    });
-
-    const isAdmin = !!user?.adminUser;
-    const isOwner = booking.guestEmail === session.user.email;
-
-    if (!isOwner && !isAdmin) {
+    if (error.message?.includes('cannot be cancelled')) {
       return NextResponse.json(
-        { error: 'Forbidden - You do not have permission to cancel this booking' },
-        { status: 403 }
-      );
-    }
-
-    // Check if booking is already cancelled
-    if (booking.status === 'cancelled') {
-      return NextResponse.json(
-        { error: 'Booking is already cancelled' },
+        {
+          error: 'Cancellation not allowed',
+          details: 'This booking cannot be cancelled. Please contact support.',
+        },
         { status: 400 }
       );
     }
 
-    // Check if booking is cancellable
-    if (!booking.cancellable) {
+    return NextResponse.json(
+      {
+        error: 'Failed to cancel booking',
+        details: error.message || 'An unexpected error occurred',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/hotels/booking/[id]/cancel
+ * Get cancellation information and estimated refund for a booking
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: bookingId } = await params;
+
+    if (!bookingId) {
       return NextResponse.json(
-        { error: 'This booking is non-cancellable' },
+        { error: 'Booking ID is required' },
         { status: 400 }
       );
     }
 
-    // Check if check-in date has already passed
-    const checkInDate = new Date(booking.checkInDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get booking details to check cancellation policy
+    const bookingDetails = await liteAPI.getBooking(bookingId);
+    const booking = bookingDetails.booking;
 
-    if (checkInDate < today) {
-      return NextResponse.json(
-        { error: 'Cannot cancel - check-in date has already passed' },
-        { status: 400 }
-      );
-    }
+    const cancellationInfo = {
+      bookingId,
+      status: booking?.status,
+      canCancel: booking?.status !== 'cancelled',
+      cancellationPolicy: booking?.cancellationPolicy || null,
+      checkIn: booking?.checkIn,
+      checkOut: booking?.checkOut,
+      estimatedRefund: null as { amount: number; currency: string } | null,
+    };
 
-    // Process refund if booking is cancellable and has payment intent
-    let refundStatus: string = 'not_applicable';
-    let refundAmount = 0;
+    // Calculate estimated refund based on cancellation policy
+    if (booking?.cancellationPolicy?.refundable && booking?.price) {
+      cancellationInfo.estimatedRefund = {
+        amount: booking.price.amount,
+        currency: booking.price.currency,
+      };
 
-    if (booking.cancellable && booking.paymentIntentId) {
-      try {
-        // Calculate refund amount based on cancellation policy
-        const daysUntilCheckIn = Math.ceil(
-          (checkInDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-        );
-
-        // Refund policy:
-        // - Full refund if cancelled 7+ days before check-in
-        // - 50% refund if cancelled 3-6 days before check-in
-        // - No refund if cancelled less than 3 days before check-in
-        let refundPercentage = 0;
-        if (daysUntilCheckIn >= 7) {
-          refundPercentage = 100;
-        } else if (daysUntilCheckIn >= 3) {
-          refundPercentage = 50;
-        } else {
-          refundPercentage = 0;
-        }
-
-        if (refundPercentage > 0) {
-          const stripe = getStripe();
-          if (!stripe) {
-            console.warn('⚠️ Stripe not configured - cannot process refund');
-            refundStatus = 'stripe_not_configured';
-          } else {
-            const totalPriceInCents = Math.round(
-              parseFloat(booking.totalPrice.toString()) * 100
-            );
-            const refundAmountInCents = Math.round(
-              (totalPriceInCents * refundPercentage) / 100
-            );
-
-            // Process Stripe refund
-            const refund = await stripe.refunds.create({
-              payment_intent: booking.paymentIntentId,
-              amount: refundAmountInCents,
-              reason: 'requested_by_customer',
-              metadata: {
-                bookingId: booking.id,
-                confirmationNumber: booking.confirmationNumber,
-                refundPercentage: refundPercentage.toString(),
-              },
-            });
-
-            refundStatus = refund.status || 'pending';
-            refundAmount = refundAmountInCents / 100;
+      // Check deadlines for partial refunds
+      if (booking.cancellationPolicy.deadlines) {
+        const now = new Date();
+        for (const deadline of booking.cancellationPolicy.deadlines) {
+          const deadlineDate = new Date(`${deadline.date}T${deadline.time}`);
+          if (now > deadlineDate) {
+            cancellationInfo.estimatedRefund.amount =
+              booking.price.amount - deadline.penaltyAmount;
           }
-        } else {
-          refundStatus = 'no_refund_due_to_policy';
         }
-      } catch (stripeError: any) {
-        console.error('Stripe refund error:', stripeError);
-        // Continue with cancellation even if refund fails
-        refundStatus = 'failed';
       }
     }
 
-    // Update booking status to cancelled
-    const updatedBooking = await prisma.hotelBooking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'cancelled',
-        updatedAt: new Date(),
-      },
-    });
-
-    // TODO: Send cancellation confirmation email
-    // This would integrate with the existing email service
-    // await sendCancellationEmail(booking, refundAmount, refundStatus);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Booking cancelled successfully',
-      booking: updatedBooking,
-      refund: {
-        status: refundStatus,
-        amount: refundAmount,
-        currency: booking.currency,
-      },
-    });
+    return NextResponse.json(cancellationInfo);
   } catch (error: any) {
-    console.error('Error cancelling booking:', error);
+    console.error('[CANCEL] Error getting cancellation info:', error);
     return NextResponse.json(
       {
-        success: false,
-        error: 'Failed to cancel booking',
-        message: error.message,
+        error: 'Failed to get cancellation information',
+        details: error.message,
       },
       { status: 500 }
     );

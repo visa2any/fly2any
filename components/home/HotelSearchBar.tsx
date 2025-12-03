@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed, Globe, Check, Navigation } from 'lucide-react';
+import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed, Globe, Check, Navigation, Dog, Baby, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCityData } from '@/lib/data/city-locations';
 
@@ -48,9 +48,16 @@ const translations = {
     search: 'Search Hotels',
     adults: 'Adults',
     children: 'Children',
+    childAge: 'Age',
+    childAgeHint: 'Age at check-in',
+    infant: 'Infant (0-2)',
+    infantFree: 'Usually FREE',
+    child: 'Child',
     rooms: 'Rooms',
     done: 'Done',
     popularDestinations: 'Popular Destinations',
+    pets: 'Traveling with pets?',
+    petFriendly: 'Pet-friendly hotels',
   },
   pt: {
     title: 'Encontre Seu Hotel Perfeito',
@@ -61,9 +68,16 @@ const translations = {
     search: 'Buscar Hotéis',
     adults: 'Adultos',
     children: 'Crianças',
+    childAge: 'Idade',
+    childAgeHint: 'Idade no check-in',
+    infant: 'Bebê (0-2)',
+    infantFree: 'Geralmente GRÁTIS',
+    child: 'Criança',
     rooms: 'Quartos',
     done: 'Concluído',
     popularDestinations: 'Destinos Populares',
+    pets: 'Viajando com pets?',
+    petFriendly: 'Hotéis pet-friendly',
   },
   es: {
     title: 'Encuentra Tu Hotel Perfecto',
@@ -74,9 +88,16 @@ const translations = {
     search: 'Buscar Hoteles',
     adults: 'Adultos',
     children: 'Niños',
+    childAge: 'Edad',
+    childAgeHint: 'Edad al registrarse',
+    infant: 'Bebé (0-2)',
+    infantFree: 'Generalmente GRATIS',
+    child: 'Niño',
     rooms: 'Habitaciones',
     done: 'Listo',
     popularDestinations: 'Destinos Populares',
+    pets: '¿Viaja con mascotas?',
+    petFriendly: 'Hoteles pet-friendly',
   },
 };
 
@@ -101,7 +122,9 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
   const [checkOut, setCheckOut] = useState('');
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [childAges, setChildAges] = useState<number[]>([]); // Array of child ages
   const [rooms, setRooms] = useState(1);
+  const [petFriendly, setPetFriendly] = useState(false); // Pet-friendly filter
   const [minDate, setMinDate] = useState('');
 
   // UI State
@@ -156,6 +179,44 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     setCheckIn(tomorrow.toISOString().split('T')[0]);
     setCheckOut(dayAfter.toISOString().split('T')[0]);
   }, []);
+
+  // ROBUST DATE VALIDATION HANDLERS
+  // Prevents past date selection and ensures checkout > checkin
+  const handleCheckInChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Reject past dates
+    if (selectedDate < today) {
+      return; // Don't update - invalid selection
+    }
+
+    setCheckIn(selectedDate);
+
+    // Auto-adjust checkout if it's now before or equal to check-in
+    if (checkOut && selectedDate >= checkOut) {
+      const newCheckOut = new Date(selectedDate);
+      newCheckOut.setDate(newCheckOut.getDate() + 1);
+      setCheckOut(newCheckOut.toISOString().split('T')[0]);
+    }
+  }, [checkOut]);
+
+  const handleCheckOutChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    // Reject past dates
+    if (selectedDate < today) {
+      return; // Don't update - invalid selection
+    }
+
+    // Reject checkout before or on check-in
+    if (checkIn && selectedDate <= checkIn) {
+      return; // Don't update - checkout must be after check-in
+    }
+
+    setCheckOut(selectedDate);
+  }, [checkIn]);
 
   // Fetch popular destinations on mount
   useEffect(() => {
@@ -380,6 +441,21 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       return;
     }
 
+    // SAFETY CHECK: Validate dates before search
+    const today = new Date().toISOString().split('T')[0];
+    if (checkIn < today) {
+      alert(lang === 'en' ? 'Check-in date cannot be in the past' :
+            lang === 'pt' ? 'A data de check-in não pode estar no passado' :
+            'La fecha de check-in no puede estar en el pasado');
+      return;
+    }
+    if (checkOut <= checkIn) {
+      alert(lang === 'en' ? 'Check-out must be after check-in' :
+            lang === 'pt' ? 'O check-out deve ser após o check-in' :
+            'El check-out debe ser después del check-in');
+      return;
+    }
+
     setIsSearching(true);
 
     // Build search query with advanced filters
@@ -391,6 +467,16 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
       children: children.toString(),
       rooms: rooms.toString(),
     };
+
+    // Add child ages if children are present (critical for accurate pricing)
+    if (children > 0 && childAges.length > 0) {
+      queryParams.childAges = childAges.join(',');
+    }
+
+    // Add pet-friendly filter
+    if (petFriendly) {
+      queryParams.petFriendly = 'true';
+    }
 
     // Add location coordinates if available
     if (selectedLocation) {
@@ -693,7 +779,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           <input
             type="date"
             value={checkIn}
-            onChange={(e) => setCheckIn(e.target.value)}
+            onChange={handleCheckInChange}
             min={minDate}
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
           />
@@ -708,7 +794,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
           <input
             type="date"
             value={checkOut}
-            onChange={(e) => setCheckOut(e.target.value)}
+            onChange={handleCheckOutChange}
             min={checkIn || minDate}
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
           />
@@ -759,23 +845,113 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
                 </div>
 
                 {/* Children */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-semibold text-gray-900">{t.children}</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setChildren(Math.max(0, children - 1))}
-                      className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-gray-700"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-bold text-gray-900">{children}</span>
-                    <button
-                      onClick={() => setChildren(Math.min(10, children + 1))}
-                      className="w-10 h-10 rounded-full bg-orange-600 hover:bg-orange-700 transition-colors flex items-center justify-center font-bold text-white"
-                    >
-                      +
-                    </button>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-gray-900">{t.children}</span>
+                      <p className="text-xs text-gray-500">{t.childAgeHint}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newCount = Math.max(0, children - 1);
+                          setChildren(newCount);
+                          setChildAges(prev => prev.slice(0, newCount));
+                        }}
+                        className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-bold text-gray-700"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-bold text-gray-900">{children}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newCount = Math.min(10, children + 1);
+                          setChildren(newCount);
+                          setChildAges(prev => [...prev, 8]); // Default age 8
+                        }}
+                        className="w-10 h-10 rounded-full bg-orange-600 hover:bg-orange-700 transition-colors flex items-center justify-center font-bold text-white"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Child Age Selectors */}
+                  {children > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                        <Info className="w-3.5 h-3.5" />
+                        <span>{t.infant}: {t.infantFree}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Array.from({ length: children }).map((_, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-center gap-1.5">
+                              {(childAges[idx] ?? 8) <= 2 ? (
+                                <Baby className="w-4 h-4 text-pink-500" />
+                              ) : (
+                                <Users className="w-4 h-4 text-blue-500" />
+                              )}
+                              <span className="text-sm font-medium text-gray-700">
+                                {t.child} {idx + 1}
+                              </span>
+                            </div>
+                            <select
+                              value={childAges[idx] ?? 8}
+                              onChange={(e) => {
+                                const newAges = [...childAges];
+                                newAges[idx] = parseInt(e.target.value);
+                                setChildAges(newAges);
+                              }}
+                              className="flex-1 px-2 py-1 text-sm rounded border border-gray-200 focus:border-orange-500 focus:outline-none bg-white"
+                            >
+                              <option value={0}>0 {lang === 'en' ? 'yr' : lang === 'pt' ? 'ano' : 'año'}</option>
+                              <option value={1}>1 {lang === 'en' ? 'yr' : lang === 'pt' ? 'ano' : 'año'}</option>
+                              <option value={2}>2 {lang === 'en' ? 'yrs' : lang === 'pt' ? 'anos' : 'años'}</option>
+                              {[3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].map(age => (
+                                <option key={age} value={age}>{age} {lang === 'en' ? 'yrs' : lang === 'pt' ? 'anos' : 'años'}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Show infant count if any */}
+                      {childAges.filter(age => age <= 2).length > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2 py-1.5 rounded-lg">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>
+                            {childAges.filter(age => age <= 2).length} {lang === 'en' ? 'infant(s) - usually stay FREE!' : lang === 'pt' ? 'bebê(s) - geralmente ficam GRÁTIS!' : 'bebé(s) - generalmente gratis!'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pet-Friendly Toggle */}
+                <div className="flex items-center justify-between mb-4 py-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Dog className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <span className="font-semibold text-gray-900">{t.pets}</span>
+                      <p className="text-xs text-gray-500">{t.petFriendly}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPetFriendly(!petFriendly)}
+                    className={`relative w-14 h-7 rounded-full transition-colors ${
+                      petFriendly ? 'bg-orange-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform ${
+                        petFriendly ? 'translate-x-7' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 {/* Rooms */}

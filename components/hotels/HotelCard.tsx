@@ -8,8 +8,9 @@ import {
   Waves, ParkingCircle, UtensilsCrossed, Bed, Clock, Flame, ThumbsUp, Zap, BadgePercent, Loader2,
   ChevronDown, ChevronUp, Tv, Wind, Bath, Refrigerator, Mountain, Cigarette, CigaretteOff,
   Baby, Dog, Accessibility, CalendarCheck, CalendarX, AlertCircle, Info, Ban, CheckCircle2,
-  LogIn, LogOut, Timer
+  LogIn, LogOut, Timer, BarChart2
 } from 'lucide-react';
+import { useHotelCompare } from '@/contexts/HotelCompareContext';
 import { getBlurDataURL } from '@/lib/utils/image-optimization';
 import { getHotelLocationContext } from '@/lib/data/city-locations';
 import type { LiteAPIHotel, LiteAPIHotelRate } from '@/lib/hotels/types';
@@ -21,6 +22,7 @@ export interface HotelCardProps {
   checkOut: string;
   adults: number;
   children?: number;
+  rooms?: number;
   nights: number;
   onSelect: (hotelId: string, rateId: string, offerId: string) => void;
   onViewDetails: (hotelId: string) => void;
@@ -113,6 +115,7 @@ export function HotelCard({
   checkOut,
   adults,
   children = 0,
+  rooms = 1,
   nights,
   onSelect,
   onViewDetails,
@@ -129,6 +132,19 @@ export function HotelCard({
   const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const t = translations[lang];
+
+  // Hotel comparison
+  const { addToCompare, removeFromCompare, isInCompare, canAddMore } = useHotelCompare();
+  const isComparing = isInCompare(hotel.id);
+
+  const handleCompare = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isComparing) {
+      removeFromCompare(hotel.id);
+    } else if (canAddMore) {
+      addToCompare(hotel);
+    }
+  }, [hotel, isComparing, addToCompare, removeFromCompare, canAddMore]);
 
   // Fetch full image gallery when user hovers on the image
   const fetchImages = useCallback(async () => {
@@ -417,8 +433,24 @@ export function HotelCard({
         className="relative w-[280px] min-w-[280px] h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200"
         onMouseEnter={fetchImages}
       >
-        {/* Favorite & Share Buttons */}
+        {/* Favorite, Compare & Share Buttons */}
         <div className="absolute top-3 right-3 z-20 flex gap-2">
+          {/* Compare Button */}
+          <button
+            onClick={handleCompare}
+            disabled={!canAddMore && !isComparing}
+            className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg ${
+              isComparing
+                ? 'bg-blue-500 text-white scale-110'
+                : canAddMore
+                  ? 'bg-white/90 text-slate-600 hover:bg-white hover:scale-110 hover:text-blue-500'
+                  : 'bg-gray-100/80 text-gray-400 cursor-not-allowed'
+            }`}
+            aria-label={isComparing ? 'Remove from compare' : 'Add to compare'}
+            title={isComparing ? 'Remove from compare' : canAddMore ? 'Add to compare' : 'Compare list full (max 4)'}
+          >
+            <BarChart2 className={`w-4 h-4 ${isComparing ? 'fill-current' : ''}`} />
+          </button>
           <button
             onClick={handleFavorite}
             className={`p-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-lg ${
@@ -555,6 +587,7 @@ export function HotelCard({
                 <span>
                   {adults} {adults === 1 ? 'adult' : 'adults'}
                   {children > 0 && `, ${children} ${children === 1 ? 'child' : 'children'}`}
+                  {rooms > 1 && <span className="text-slate-500 ml-1">({rooms} rooms)</span>}
                 </span>
               </div>
 

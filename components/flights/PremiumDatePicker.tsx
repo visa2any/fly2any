@@ -203,11 +203,13 @@ export default function PremiumDatePicker({
         setSelectedDeparture(newDate);
         setSelectedReturn(null);
       } else {
+        // Return date must be after departure date (at least 1 day)
         if (newDate > selectedDeparture) {
           setSelectedReturn(newDate);
         } else {
-          setSelectedReturn(selectedDeparture);
+          // Invalid return date - start new selection
           setSelectedDeparture(newDate);
+          setSelectedReturn(null);
         }
       }
     }
@@ -332,32 +334,29 @@ export default function PremiumDatePicker({
         setSelectedDeparture(day.date);
         setSelectedReturn(null);
       } else {
-        // Complete the range
-        let finalDeparture = selectedDeparture;
-        let finalReturn = day.date;
-
+        // Complete the range - checkout must be at least 1 day after checkin
+        // Clicking on departure date or earlier starts a new selection
         if (day.date > selectedDeparture) {
+          // Valid return date - at least 1 day after departure
           setSelectedReturn(day.date);
-        } else if (day.date < selectedDeparture) {
-          // Swap dates if return is before departure
-          setSelectedReturn(selectedDeparture);
-          setSelectedDeparture(day.date);
-          finalDeparture = day.date;
-          finalReturn = selectedDeparture;
+
+          const finalDeparture = selectedDeparture;
+          const finalReturn = day.date;
+
+          // Round-trip mode: Auto-apply and close after selecting both dates
+          setTimeout(() => {
+            const departureStr = formatDateString(finalDeparture);
+            const returnStr = formatDateString(finalReturn);
+            onChange(departureStr, returnStr);
+            onClose();
+          }, 100);
         } else {
-          // Same date clicked - start new selection
+          // Invalid return date (same day or earlier) - start new selection
+          // This prevents customers from accidentally selecting checkout before checkin
           setSelectedDeparture(day.date);
           setSelectedReturn(null);
-          return; // Don't auto-close
+          // Don't auto-close - user needs to select return date
         }
-
-        // Round-trip mode: Auto-apply and close after selecting both dates
-        setTimeout(() => {
-          const departureStr = formatDateString(finalDeparture);
-          const returnStr = formatDateString(finalReturn);
-          onChange(departureStr, returnStr);
-          onClose();
-        }, 100);
       }
     }
   };

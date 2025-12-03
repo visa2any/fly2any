@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Hotel, Loader2, User, CreditCard, MapPin, Calendar, Users as UsersIcon,
@@ -15,6 +15,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import PromoCodeInput, { PromoDiscount } from '@/components/hotels/PromoCodeInput';
+import { BNPLPromotion } from '@/components/hotels/BNPLPromotion';
 
 // Initialize Stripe
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -54,6 +55,7 @@ interface HotelBookingData {
   nights: number;
   adults: number;
   children: number;
+  rooms: number;
   roomId: string;
   roomName: string;
   price: number;
@@ -98,6 +100,9 @@ function HotelCheckoutContent() {
   // Payment
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+
+  // Ref to prevent duplicate prebook calls (important for React Strict Mode / Fast Refresh)
+  const prebookCalledRef = useRef(false);
   const [paymentReady, setPaymentReady] = useState(false);
 
   // LiteAPI Payment SDK
@@ -120,6 +125,27 @@ function HotelCheckoutContent() {
   useEffect(() => {
     const loadBookingData = async () => {
       try {
+        // Clear old prebook caches (cache version 1) on page load
+        // This ensures Payment SDK fix takes effect immediately
+        const CACHE_VERSION = 3; // Incremented: Fixed SDK publicKey matching
+        try {
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key?.startsWith('prebook_')) {
+              const data = sessionStorage.getItem(key);
+              if (data) {
+                const parsed = JSON.parse(data);
+                if ((parsed._cacheVersion || 1) < CACHE_VERSION) {
+                  console.log(`🧹 Clearing old cache: ${key}`);
+                  sessionStorage.removeItem(key);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore cache cleanup errors
+        }
+
         const hotelId = searchParams.get('hotelId');
         const offerId = searchParams.get('offerId');
 
@@ -134,6 +160,7 @@ function HotelCheckoutContent() {
         const nights = parseInt(searchParams.get('nights') || '1', 10);
         const adults = parseInt(searchParams.get('adults') || '2', 10);
         const children = parseInt(searchParams.get('children') || '0', 10);
+        const rooms = parseInt(searchParams.get('rooms') || '1', 10);
         const price = parseFloat(searchParams.get('price') || '0');
         const perNight = parseFloat(searchParams.get('perNight') || '0');
         const currency = searchParams.get('currency') || 'USD';
@@ -148,6 +175,7 @@ function HotelCheckoutContent() {
           nights: nights || 1,
           adults,
           children,
+          rooms: rooms || 1,
           roomId: searchParams.get('roomId') || '',
           roomName: searchParams.get('roomName') || 'Standard Room',
           price: price || 0,
@@ -169,13 +197,15 @@ function HotelCheckoutContent() {
         }
 
         // Try to prebook to lock in price - this is CRITICAL for production
-        if (offerId) {
+        // Use ref to prevent duplicate calls (React Strict Mode / Fast Refresh)
+        if (offerId && !prebookCalledRef.current) {
+          prebookCalledRef.current = true;
           await callPrebookAPI(offerId, hotelId);
         }
 
-        // Create payment intent after prebook (price might be updated by prebook)
-        // Note: Payment intent will be created with updated price from prebook
-        if (price > 0) {
+        // Create Stripe payment intent ONLY if Stripe is configured
+        // When using LiteAPI User Payment SDK, this is NOT needed
+        if (price > 0 && stripePromise && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
           await createPaymentIntent(price, currency, hotelId, bookingData.roomName);
         }
       } catch (err) {
@@ -206,11 +236,115 @@ function HotelCheckoutContent() {
     return () => clearInterval(interval);
   }, [prebookData?.expiresAt]);
 
+  // Store pending booking data for redirect-based payments (3D Secure, BNPL, etc.)
+  // This data is retrieved by /hotels/booking/confirm after redirect
+  useEffect(() => {
+    if (!hotelData || !prebookData) return;
+
+    // Store booking display data (for confirmation page UI)
+    const pendingBookingData = {
+      hotelName: hotelData.hotelName,
+      hotelImage: hotelData.imageUrl,
+      location: hotelData.location,
+      roomName: hotelData.roomName,
+      checkIn: hotelData.checkIn,
+      checkOut: hotelData.checkOut,
+      nights: hotelData.nights,
+      adults: hotelData.adults,
+      totalPrice: getGrandTotal(),
+      currency: hotelData.currency,
+      guestName: guest.firstName && guest.lastName ? `${guest.firstName} ${guest.lastName}` : undefined,
+      guestEmail: guest.email,
+    };
+
+    try {
+      sessionStorage.setItem('pending_booking_data', JSON.stringify(pendingBookingData));
+    } catch (e) {
+      console.warn('Could not store pending booking data');
+    }
+
+    // Store full booking details (for API call after redirect)
+    if (isGuestValid()) {
+      const pendingBookingDetails = {
+        hotelId: hotelData.hotelId,
+        hotelName: hotelData.hotelName,
+        hotelCity: hotelData.location.split(',')[0]?.trim() || hotelData.location,
+        hotelCountry: hotelData.location.split(',').pop()?.trim() || 'Unknown',
+        roomId: hotelData.roomId,
+        roomName: hotelData.roomName,
+        checkInDate: hotelData.checkIn,
+        checkOutDate: hotelData.checkOut,
+        nights: hotelData.nights,
+        pricePerNight: hotelData.perNightPrice.toString(),
+        subtotal: hotelData.price.toString(),
+        taxesAndFees: (hotelData.price * 0.12).toString(),
+        totalPrice: getGrandTotal().toString(),
+        currency: hotelData.currency,
+        guestTitle: guest.title,
+        guestFirstName: guest.firstName,
+        guestLastName: guest.lastName,
+        guestEmail: guest.email,
+        guestPhone: guest.phone,
+        specialRequests: guest.specialRequests || '',
+        prebookId: prebookData?.prebookId,
+        breakfastIncluded: hotelData.breakfastIncluded,
+        cancellable: hotelData.refundable,
+      };
+
+      try {
+        sessionStorage.setItem('pending_booking_details', JSON.stringify(pendingBookingDetails));
+      } catch (e) {
+        console.warn('Could not store pending booking details');
+      }
+    }
+  }, [hotelData, prebookData, guest, promoDiscount]);
+
   // ===========================
   // API CALLS
   // ===========================
 
   const callPrebookAPI = async (offerId: string, hotelId: string) => {
+    // Cache version - increment when prebook response structure changes
+    const CACHE_VERSION = 3; // Incremented: Fixed SDK publicKey matching
+
+    // Check if we have cached prebook data from a previous successful call (survives Fast Refresh)
+    const cacheKey = `prebook_${offerId}`;
+    try {
+      const cachedData = sessionStorage.getItem(cacheKey);
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+
+        // Invalidate cache if version mismatch or expired
+        const cacheVersion = parsed._cacheVersion || 1;
+        if (cacheVersion !== CACHE_VERSION) {
+          console.log(`🔄 Cache version mismatch (${cacheVersion} !== ${CACHE_VERSION}), clearing old cache`);
+          sessionStorage.removeItem(cacheKey);
+        } else {
+          // Verify cache is still valid (not expired)
+          const expiresAt = new Date(parsed.expiresAt);
+          if (expiresAt > new Date()) {
+            console.log('📦 Using cached prebook data:', parsed);
+            setPrebookData(parsed);
+            if (parsed.price?.amount && parsed.price.amount > 0) {
+              setHotelData(prev => prev ? {
+                ...prev,
+                price: parsed.price.amount,
+                perNightPrice: parsed.price.amount / (prev.nights || 1),
+                currency: parsed.price.currency || prev.currency,
+              } : prev);
+            }
+            setPrebooking(false);
+            return;
+          } else {
+            // Cache expired, remove it
+            sessionStorage.removeItem(cacheKey);
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore cache errors
+    }
+
     try {
       setPrebooking(true);
       const response = await fetch('/api/hotels/prebook', {
@@ -223,7 +357,17 @@ function HotelCheckoutContent() {
         const data = await response.json();
         if (data.success && data.data) {
           setPrebookData(data.data);
-          console.log('Price locked:', data.data);
+          console.log('🔒 Price locked:', data.data);
+
+          // Cache the successful prebook data to survive Fast Refresh
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+              ...data.data,
+              _cacheVersion: CACHE_VERSION // Add version for cache invalidation
+            }));
+          } catch (e) {
+            // Ignore storage errors
+          }
 
           // CRITICAL: Update hotelData with ACTUAL prebook price from LiteAPI
           // This ensures we use the real locked-in price, not URL params
@@ -505,7 +649,7 @@ function HotelCheckoutContent() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}`}
+                href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}&children=${hotelData.children}&rooms=1`}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -559,38 +703,38 @@ function HotelCheckoutContent() {
         </div>
       )}
 
-      {/* Main Content - 2 Columns */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Main Content - 2 Columns (Compact) */}
+      <main className="max-w-7xl mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
           {/* ========================= */}
-          {/* LEFT COLUMN: Guest + Payment */}
+          {/* LEFT COLUMN: Guest + Payment (Compact) */}
           {/* ========================= */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4">
 
-            {/* Guest Information */}
+            {/* Guest Information - Compact */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                    <User className="w-5 h-5" />
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <User className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold">Guest Information</h2>
-                    <p className="text-sm text-white/80">Who's checking in?</p>
+                    <h2 className="text-base font-bold">Guest Information</h2>
+                    <p className="text-xs text-white/80">Who's checking in?</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-5 space-y-4">
-                {/* Name Row */}
-                <div className="grid grid-cols-12 gap-3">
+              <div className="p-4 space-y-3">
+                {/* Name Row - Compact */}
+                <div className="grid grid-cols-12 gap-2.5">
                   <div className="col-span-3">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Title *</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Title *</label>
                     <select
                       value={guest.title}
                       onChange={(e) => handleGuestUpdate('title', e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
                       required
                     >
                       <option value="">Select</option>
@@ -601,34 +745,34 @@ function HotelCheckoutContent() {
                     </select>
                   </div>
                   <div className="col-span-4">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">First Name *</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">First Name *</label>
                     <input
                       type="text"
                       value={guest.firstName}
                       onChange={(e) => handleGuestUpdate('firstName', e.target.value)}
                       placeholder="John"
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
                       required
                     />
                   </div>
                   <div className="col-span-5">
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Last Name *</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Last Name *</label>
                     <input
                       type="text"
                       value={guest.lastName}
                       onChange={(e) => handleGuestUpdate('lastName', e.target.value)}
                       placeholder="Smith"
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
                       required
                     />
                   </div>
                 </div>
 
-                {/* Contact Row */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Contact Row - Compact */}
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      <Mail className="w-3.5 h-3.5 inline mr-1" />
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Mail className="w-3 h-3 inline mr-1" />
                       Email *
                     </label>
                     <input
@@ -636,13 +780,13 @@ function HotelCheckoutContent() {
                       value={guest.email}
                       onChange={(e) => handleGuestUpdate('email', e.target.value)}
                       placeholder="john@example.com"
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      <Phone className="w-3.5 h-3.5 inline mr-1" />
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      <Phone className="w-3 h-3 inline mr-1" />
                       Phone *
                     </label>
                     <input
@@ -650,15 +794,15 @@ function HotelCheckoutContent() {
                       value={guest.phone}
                       onChange={(e) => handleGuestUpdate('phone', e.target.value)}
                       placeholder="+1 555 123 4567"
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                      className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
                       required
                     />
                   </div>
                 </div>
 
-                {/* Special Requests */}
+                {/* Special Requests - Compact */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Special Requests (Optional)
                   </label>
                   <textarea
@@ -666,80 +810,80 @@ function HotelCheckoutContent() {
                     onChange={(e) => handleGuestUpdate('specialRequests', e.target.value)}
                     placeholder="e.g., Late check-in, high floor, quiet room..."
                     rows={2}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+                    className="w-full px-2.5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Special requests are not guaranteed but the hotel will do their best to accommodate.</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Requests not guaranteed but hotel will try to accommodate.</p>
                 </div>
               </div>
             </div>
 
-            {/* Payment Section */}
+            {/* Payment Section - Compact */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-4 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                    <CreditCard className="w-5 h-5" />
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-3 text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-4 h-4" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold">Payment Details</h2>
-                    <p className="text-sm text-white/80">Secure payment powered by Stripe</p>
+                    <h2 className="text-base font-bold">Payment Details</h2>
+                    <p className="text-xs text-white/80">Secure checkout with bank-level encryption</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-5">
-                {/* Prebooking indicator */}
+              <div className="p-4">
+                {/* Prebooking indicator - Compact */}
                 {prebooking && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div className="flex items-center gap-2.5">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                       <div>
                         <p className="text-sm text-blue-900 font-medium">Locking in your price...</p>
-                        <p className="text-xs text-blue-700 mt-1">
-                          Please wait while we secure your rate with the hotel.
+                        <p className="text-xs text-blue-700 mt-0.5">
+                          Securing your rate with the hotel.
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* PRODUCTION: Show error if no valid price */}
+                {/* PRODUCTION: Show error if no valid price - Compact */}
                 {!prebooking && hotelData.price === 0 && !prebookData && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-center gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
                       <div>
                         <p className="text-sm text-red-900 font-medium">Price Not Available</p>
-                        <p className="text-xs text-red-700 mt-1">
-                          Unable to retrieve pricing for this room. Please go back and select a room with available rates.
+                        <p className="text-xs text-red-700 mt-0.5">
+                          Unable to retrieve pricing. Please go back and select a room.
                         </p>
                       </div>
                     </div>
                     <Link
-                      href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}`}
-                      className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-800"
+                      href={`/hotels/${hotelData.hotelId}?checkIn=${hotelData.checkIn}&checkOut=${hotelData.checkOut}&adults=${hotelData.adults}&children=${hotelData.children}&rooms=1`}
+                      className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-red-700 hover:text-red-800"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-3.5 h-3.5" />
                       Go back to select a room
                     </Link>
                   </div>
                 )}
 
                 {!stripePromise || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
-                  // LiteAPI Payment Mode - Using User Payment SDK
-                  <div className="space-y-4">
+                  // LiteAPI Payment Mode - Using User Payment SDK (Compact)
+                  <div className="space-y-3">
                     {prebooking ? (
-                      // Loading state while prebook is in progress
-                      <div className="text-center py-8">
-                        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                        <p className="text-gray-600">Securing your rate...</p>
-                        <p className="text-sm text-gray-500 mt-1">Locking in your price and preparing payment</p>
+                      // Loading state while prebook is in progress - Compact
+                      <div className="text-center py-6">
+                        <Loader2 className="w-7 h-7 animate-spin text-blue-600 mx-auto mb-3" />
+                        <p className="text-gray-600 text-sm">Securing your rate...</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Locking in your price</p>
                       </div>
                     ) : prebookData?.secretKey ? (
                       // LiteAPI Payment SDK available - render secure payment form
                       <>
                         {!isGuestValid() && (
-                          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-4">
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl mb-3">
                             <p className="text-sm text-amber-800 font-medium flex items-center gap-2">
                               <AlertCircle className="w-4 h-4" />
                               Please fill in all guest details above to enable payment
@@ -757,22 +901,25 @@ function HotelCheckoutContent() {
                         />
                       </>
                     ) : (hotelData.price > 0 || prebookData?.price?.amount) ? (
-                      // Fallback: Simple button when SDK is not available
+                      // Secure Payment - Ready to process (Compact)
                       <>
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-                          <p className="text-sm text-green-900 font-medium">LiteAPI Payment</p>
-                          <p className="text-xs text-green-700 mt-1">
-                            Payment will be processed securely through LiteAPI's payment gateway.
+                        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <Shield className="w-4 h-4 text-orange-600" />
+                            <p className="text-sm text-orange-900 font-medium">Secure Payment Ready</p>
+                          </div>
+                          <p className="text-xs text-orange-700">
+                            Protected with bank-level encryption and fraud protection.
                           </p>
                         </div>
 
                         <button
                           onClick={handleLiteAPIBooking}
                           disabled={!isGuestValid() || isProcessing || prebooking || !prebookData?.prebookId}
-                          className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
+                          className={`w-full py-3.5 rounded-xl font-bold text-base shadow-lg transition-all transform ${
                             !isGuestValid() || isProcessing || prebooking || !prebookData?.prebookId
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                              : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
                           }`}
                         >
                           {isProcessing ? (
@@ -799,15 +946,15 @@ function HotelCheckoutContent() {
                         </button>
                       </>
                     ) : (
-                      <div className="text-center py-4">
+                      <div className="text-center py-3">
                         <p className="text-gray-500 text-sm">Waiting for price confirmation...</p>
                       </div>
                     )}
                   </div>
                 ) : !clientSecret ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Initializing secure payment...</p>
+                  <div className="text-center py-6">
+                    <Loader2 className="w-7 h-7 animate-spin text-orange-500 mx-auto mb-3" />
+                    <p className="text-gray-600 text-sm">Initializing secure payment...</p>
                   </div>
                 ) : (
                   <Elements
@@ -825,7 +972,7 @@ function HotelCheckoutContent() {
                       },
                     }}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <StripePaymentForm
                         amount={getGrandTotal()}
                         currency={hotelData.currency}
@@ -842,29 +989,25 @@ function HotelCheckoutContent() {
                   </Elements>
                 )}
 
-                {/* Payment Trust Signals */}
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                {/* Payment Trust Signals - Compact */}
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
-                      <Lock className="w-3.5 h-3.5 text-green-600" />
+                      <Lock className="w-3 h-3 text-green-600" />
                       <span>256-bit SSL</span>
                     </div>
                     <span className="text-gray-300">|</span>
                     <div className="flex items-center gap-1">
-                      <Shield className="w-3.5 h-3.5 text-blue-600" />
-                      <span>PCI DSS Compliant</span>
+                      <Shield className="w-3 h-3 text-blue-600" />
+                      <span>PCI DSS</span>
                     </div>
                     <span className="text-gray-300">|</span>
                     <div className="flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      <Check className="w-3 h-3 text-green-600" />
                       <span>3D Secure</span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 mt-3">
-                    <span className="text-xs text-gray-400">Accepted:</span>
-                    <span className="text-xs font-medium text-gray-600">Visa</span>
-                    <span className="text-xs font-medium text-gray-600">Mastercard</span>
-                    <span className="text-xs font-medium text-gray-600">Amex</span>
+                    <span className="text-gray-300 hidden sm:inline">|</span>
+                    <span className="text-xs text-gray-400">Visa, Mastercard, Amex</span>
                   </div>
                 </div>
               </div>
@@ -884,104 +1027,118 @@ function HotelCheckoutContent() {
                 </h2>
               </div>
 
-              {/* Hotel Image */}
+              {/* Booking Details at Top + Hotel Image - Compact */}
               {hotelData.imageUrl && (
-                <div className="relative h-40 w-full">
-                  <Image
-                    src={hotelData.imageUrl}
-                    alt={hotelData.hotelName}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-white font-bold text-lg leading-tight">{hotelData.hotelName}</h3>
-                    {hotelData.starRating && hotelData.starRating > 0 && (
-                      <div className="flex items-center gap-0.5 mt-1">
-                        {Array.from({ length: hotelData.starRating }).map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                        ))}
+                <div className="relative">
+                  {/* Booking Details Overlay at Top */}
+                  <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent px-3 py-2">
+                    <div className="flex items-center gap-x-2 text-xs whitespace-nowrap overflow-x-auto">
+                      {/* Check-in */}
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-blue-300 flex-shrink-0" />
+                        <span className="font-semibold text-white text-xs">
+                          {new Date(hotelData.checkIn).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-blue-200 text-xs font-medium">· 3PM</span>
                       </div>
-                    )}
+
+                      <span className="text-blue-300 mx-1">→</span>
+
+                      {/* Check-out */}
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-indigo-300 flex-shrink-0" />
+                        <span className="font-semibold text-white text-xs">
+                          {new Date(hotelData.checkOut).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-blue-200 text-xs font-medium">· 11AM</span>
+                      </div>
+
+                      <span className="text-blue-300">|</span>
+
+                      {/* Guests & Rooms */}
+                      <div className="flex items-center gap-1">
+                        <UsersIcon className="w-3 h-3 text-blue-300 flex-shrink-0" />
+                        <span className="text-white text-xs">
+                          {hotelData.adults} {hotelData.adults === 1 ? 'Adult' : 'Adults'}
+                          {hotelData.children > 0 && `, ${hotelData.children} ${hotelData.children === 1 ? 'Child' : 'Children'}`}
+                          {hotelData.rooms > 1 && <span className="text-blue-200 ml-1">({hotelData.rooms} rooms)</span>}
+                        </span>
+                      </div>
+
+                      <span className="text-blue-300">|</span>
+
+                      {/* Nights */}
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-indigo-300 flex-shrink-0" />
+                        <span className="font-bold text-white text-xs">
+                          {hotelData.nights} {hotelData.nights === 1 ? 'Night' : 'Nights'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hotel Image */}
+                  <div className="relative h-32 w-full">
+                    <Image
+                      src={hotelData.imageUrl}
+                      alt={hotelData.hotelName}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3">
+                      <h3 className="text-white font-bold text-base leading-tight">{hotelData.hotelName}</h3>
+                      {hotelData.starRating && hotelData.starRating > 0 && (
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          {Array.from({ length: hotelData.starRating }).map((_, i) => (
+                            <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="p-4 space-y-4">
-                {/* Location */}
+              <div className="p-4 space-y-3">
+                {/* Location & Address - Single Row */}
                 {hotelData.location && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                    <span className="text-gray-600">{hotelData.location}</span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <p className="text-gray-600 font-medium">{hotelData.location}</p>
                   </div>
                 )}
 
-                {/* Dates & Guests */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Check-in</span>
+                {/* Room Info - Compact */}
+                <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <BedDouble className="w-4 h-4 text-orange-600" />
+                      <span className="font-semibold text-gray-900 text-sm">{hotelData.roomName}</span>
                     </div>
-                    <p className="font-semibold text-gray-900 text-sm">
-                      {new Date(hotelData.checkIn).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
-                    <p className="text-xs text-gray-500">3:00 PM</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Check-out</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {hotelData.refundable && (
+                        <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Free Cancellation
+                        </span>
+                      )}
+                      {hotelData.breakfastIncluded && (
+                        <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                          <Coffee className="w-3 h-3" />
+                          Breakfast
+                        </span>
+                      )}
                     </div>
-                    <p className="font-semibold text-gray-900 text-sm">
-                      {new Date(hotelData.checkOut).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
-                    <p className="text-xs text-gray-500">11:00 AM</p>
                   </div>
                 </div>
 
-                {/* Guests & Nights */}
-                <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
-                  <div className="flex items-center gap-2">
-                    <UsersIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {hotelData.adults} {hotelData.adults === 1 ? 'Adult' : 'Adults'}
-                      {hotelData.children > 0 && `, ${hotelData.children} ${hotelData.children === 1 ? 'Child' : 'Children'}`}
-                    </span>
-                  </div>
-                  <div className="text-sm font-medium text-gray-900">
-                    {hotelData.nights} {hotelData.nights === 1 ? 'Night' : 'Nights'}
-                  </div>
-                </div>
-
-                {/* Room Info */}
-                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BedDouble className="w-4 h-4 text-orange-600" />
-                    <span className="font-semibold text-gray-900 text-sm">{hotelData.roomName}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {hotelData.refundable && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Free Cancellation
-                      </span>
-                    )}
-                    {hotelData.breakfastIncluded && (
-                      <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                        <Coffee className="w-3 h-3" />
-                        Breakfast Included
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Price Breakdown */}
-                <div className="border-t border-gray-200 pt-4 space-y-2">
+                {/* Price Breakdown - Clear & Consistent */}
+                <div className="border-t border-gray-200 pt-3 space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      {hotelData.currency} {hotelData.perNightPrice.toFixed(2)} x {hotelData.nights} {hotelData.nights === 1 ? 'night' : 'nights'}
+                      {hotelData.currency} {hotelData.perNightPrice.toFixed(2)}/room {hotelData.rooms > 1 ? `× ${hotelData.rooms} rooms` : ''} × {hotelData.nights} {hotelData.nights === 1 ? 'night' : 'nights'}
                     </span>
                     <span className="font-medium text-gray-900">{hotelData.currency} {getSubtotal().toFixed(2)}</span>
                   </div>
@@ -994,7 +1151,7 @@ function HotelCheckoutContent() {
                   {promoCode && promoDiscount && getPromoDiscountAmount() > 0 && (
                     <div className="flex justify-between text-sm text-green-600 font-medium">
                       <span className="flex items-center gap-1">
-                        <Gift className="w-4 h-4" />
+                        <Gift className="w-3.5 h-3.5" />
                         Promo: {promoCode}
                       </span>
                       <span>-{hotelData.currency} {getPromoDiscountAmount().toFixed(2)}</span>
@@ -1002,8 +1159,8 @@ function HotelCheckoutContent() {
                   )}
                 </div>
 
-                {/* Promo Code Input */}
-                <div className="border-t border-gray-200 pt-4">
+                {/* Promo Code Input - Reduced spacing */}
+                <div className="border-t border-gray-200 pt-3">
                   <PromoCodeInput
                     onApply={handlePromoApply}
                     onRemove={handlePromoRemove}
@@ -1016,22 +1173,23 @@ function HotelCheckoutContent() {
                   />
                 </div>
 
-                {/* Loyalty Points Display - Only for logged in users */}
+                {/* Loyalty Points Display - Compact */}
                 {session?.user && loyaltyPoints > 0 && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-5 h-5 text-purple-600" />
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-purple-900">Loyalty Points Available</p>
-                        <p className="text-xs text-purple-700">{loyaltyPoints.toLocaleString()} points = {hotelData.currency} {(loyaltyPoints * 0.01).toFixed(2)}</p>
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-purple-600" />
+                        <div>
+                          <p className="text-xs font-semibold text-purple-900">Loyalty Points: {loyaltyPoints.toLocaleString()}</p>
+                          <p className="text-xs text-purple-600">≈ {hotelData.currency} {(loyaltyPoints * 0.01).toFixed(2)}</p>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-xs text-purple-600 mt-2">Points can be redeemed after booking confirmation</p>
                   </div>
                 )}
 
-                {/* Total */}
-                <div className="border-t-2 border-gray-300 pt-3">
+                {/* Total - Compact */}
+                <div className="border-t-2 border-gray-300 pt-2.5">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg text-gray-900">Total</span>
                     <span className="font-bold text-2xl text-orange-600">
@@ -1040,32 +1198,40 @@ function HotelCheckoutContent() {
                   </div>
                 </div>
 
-                {/* Price Lock Notice */}
+                {/* BNPL Promotion for high-value bookings */}
+                <BNPLPromotion
+                  totalAmount={getGrandTotal()}
+                  currency={hotelData.currency}
+                  minAmount={200}
+                  installments={4}
+                />
+
+                {/* Price Lock Notice - Compact */}
                 {prebookData && timeRemaining > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <Timer className="w-5 h-5 text-amber-600" />
-                      <div>
-                        <p className="text-xs font-semibold text-amber-900">Price locked for:</p>
-                        <p className="text-xl font-bold text-amber-600">{formatTime(timeRemaining)}</p>
+                      <Timer className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-amber-900">Price locked:</span>
+                        <span className="text-lg font-bold text-amber-600">{formatTime(timeRemaining)}</span>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Guarantees */}
-                <div className="space-y-2 pt-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                {/* Guarantees - Compact, All in One Row */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                     <span>Instant confirmation</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
                     <span>No hidden fees</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <span>24/7 customer support</span>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                    <span>24/7 support</span>
                   </div>
                 </div>
               </div>

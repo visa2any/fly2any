@@ -9,7 +9,7 @@ import { HotelUrgencySignals } from '@/components/hotels/HotelUrgencySignals';
 import { HotelTrustBadges } from '@/components/hotels/HotelTrustBadges';
 import { HotelQABot } from '@/components/hotels/HotelQABot';
 import { CompactRoomCard } from '@/components/hotels/CompactRoomCard';
-import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, X, Filter, ArrowUpDown, Clock, Wind, Tv, Bath, Snowflake, Waves, Sparkles, Utensils, Wine, ConciergeBell, DoorOpen, ParkingCircle, Phone, Wifi as WifiIcon, Globe, ChevronLeft, ChevronRight, Building2, ArrowRight, LogIn, LogOut } from 'lucide-react';
+import { MapPin, Star, Wifi, Coffee, Dumbbell, UtensilsCrossed, Car, ArrowLeft, Calendar, Users, User, Shield, Info, AlertCircle, RefreshCw, BedDouble, CheckCircle2, CheckCircle, Hotel, X, Filter, ArrowUpDown, Clock, Wind, Tv, Bath, Snowflake, Waves, Sparkles, Utensils, Wine, ConciergeBell, DoorOpen, ParkingCircle, Phone, Wifi as WifiIcon, Globe, ChevronLeft, ChevronRight, Building2, ArrowRight, LogIn, LogOut } from 'lucide-react';
 
 export default function HotelDetailPage() {
   const params = useParams();
@@ -22,6 +22,10 @@ export default function HotelDetailPage() {
   const checkOut = searchParams.get('checkOut');
   const adults = searchParams.get('adults') || '2';
   const children = searchParams.get('children') || '0';
+  const rooms = searchParams.get('rooms') || '1';
+
+  // Calculate total guests for display
+  const totalGuests = parseInt(adults, 10) + parseInt(children, 10);
 
   const [hotel, setHotel] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -70,9 +74,10 @@ export default function HotelDetailPage() {
         setError(null); // Clear previous errors
 
         // Build URL with optional date params for rates
+        // CRITICAL: Include children and rooms for accurate pricing!
         let apiUrl = `/api/hotels/${hotelId}`;
         if (checkIn && checkOut) {
-          apiUrl += `?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}`;
+          apiUrl += `?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}`;
         }
 
         const response = await fetch(apiUrl);
@@ -107,7 +112,7 @@ export default function HotelDetailPage() {
     if (hotelId) {
       fetchHotelDetails();
     }
-  }, [hotelId, retrying, checkIn, checkOut, adults]);
+  }, [hotelId, retrying, checkIn, checkOut, adults, children, rooms]);
 
   // Initialize selectedRoom with lowest rate when hotel loads
   useEffect(() => {
@@ -290,10 +295,159 @@ export default function HotelDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading hotel details...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50">
+        {/* Header Skeleton */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '16px 24px' }}>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+              <div className="w-32 h-5 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Search Context Banner - Shows what user is searching for */}
+        <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+          <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '12px 24px' }}>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-white/80" />
+                <span className="font-medium">
+                  {checkIn && checkOut
+                    ? `${new Date(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                    : 'Loading dates...'}
+                </span>
+              </div>
+              <span className="text-white/50">|</span>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-white/80" />
+                <span className="font-medium">
+                  {totalGuests} {totalGuests === 1 ? 'Guest' : 'Guests'}
+                  {parseInt(children) > 0 && ` (${children} child${parseInt(children) > 1 ? 'ren' : ''})`}
+                </span>
+              </div>
+              <span className="text-white/50">|</span>
+              <div className="flex items-center gap-2">
+                <BedDouble className="w-4 h-4 text-white/80" />
+                <span className="font-medium">{rooms} {parseInt(rooms) === 1 ? 'Room' : 'Rooms'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px' }}>
+          {/* Progress Indicator */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center animate-pulse">
+                  <Hotel className="w-8 h-8 text-white" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Finding the perfect room for you...</h2>
+              <p className="text-gray-600 text-sm mb-4">We're loading hotel details and checking availability</p>
+
+              {/* Progress Steps */}
+              <div className="flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-green-700 font-medium">Hotel found</span>
+                </div>
+                <div className="w-8 h-0.5 bg-gradient-to-r from-green-500 to-orange-400" />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-orange-600 font-medium">Loading details</span>
+                </div>
+                <div className="w-8 h-0.5 bg-gray-200" />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full" />
+                  <span className="text-gray-400">Checking rates</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Skeleton Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content Skeleton */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Image Gallery Skeleton */}
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="aspect-[16/9] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer" />
+                <div className="flex gap-2 p-3">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="w-20 h-16 bg-gray-200 rounded-lg animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Hotel Info Skeleton */}
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="space-y-4">
+                  <div className="h-8 bg-gray-200 rounded-lg w-3/4 animate-pulse" />
+                  <div className="flex gap-2">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-5 bg-gray-100 rounded-full w-20 animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
+                    <div className="h-4 bg-gray-100 rounded w-5/6 animate-pulse" style={{ animationDelay: '0.1s' }} />
+                    <div className="h-4 bg-gray-100 rounded w-4/6 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Room Options Skeleton */}
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="h-6 bg-gray-200 rounded w-48 mb-4 animate-pulse" />
+                <div className="space-y-4">
+                  {[1, 2].map(i => (
+                    <div key={i} className="border border-gray-100 rounded-xl p-4 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>
+                      <div className="flex gap-4">
+                        <div className="w-32 h-24 bg-gray-200 rounded-lg" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-5 bg-gray-200 rounded w-2/3" />
+                          <div className="h-4 bg-gray-100 rounded w-1/2" />
+                          <div className="flex gap-2">
+                            <div className="h-6 bg-gray-100 rounded-full w-16" />
+                            <div className="h-6 bg-gray-100 rounded-full w-20" />
+                          </div>
+                        </div>
+                        <div className="text-right space-y-2">
+                          <div className="h-6 bg-orange-100 rounded w-20" />
+                          <div className="h-4 bg-gray-100 rounded w-16" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
+                <div className="space-y-4">
+                  <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+                  <div className="border-t border-gray-100 pt-4 space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="flex justify-between animate-pulse" style={{ animationDelay: `${i * 0.1}s` }}>
+                        <div className="h-4 bg-gray-100 rounded w-24" />
+                        <div className="h-4 bg-gray-200 rounded w-20" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="h-12 bg-gradient-to-r from-orange-200 to-amber-200 rounded-xl animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -359,15 +513,19 @@ export default function HotelDetailPage() {
     ? parseFloat(lowestRate.totalPrice?.amount || lowestRate.total_amount || '0')
     : 0;
 
-  // Calculate per-night price (nights is calculated earlier before early returns)
-  const perNightPrice = totalPrice > 0 ? totalPrice / nights : 0;
+  // Calculate per-room per-night price for consistent display across the journey
+  // LiteAPI totalPrice.amount = TOTAL for all rooms × all nights
+  // We need PER-ROOM PER-NIGHT for user-friendly display
+  const roomsNum = parseInt(rooms, 10) || 1;
+  const perNightPrice = totalPrice > 0 ? totalPrice / nights / roomsNum : 0;
 
   // Selected room details for sidebar display
   const activeRoom = selectedRoom || lowestRate;
   const activeRoomPrice = activeRoom
     ? parseFloat(activeRoom.totalPrice?.amount || activeRoom.total_amount || '0')
     : totalPrice;
-  const activeRoomPerNight = activeRoomPrice > 0 ? activeRoomPrice / nights : perNightPrice;
+  // PER-ROOM per-night for the selected room
+  const activeRoomPerNight = activeRoomPrice > 0 ? activeRoomPrice / nights / roomsNum : perNightPrice;
   const activeRoomName = activeRoom?.name || activeRoom?.room_type || activeRoom?.roomType || 'Standard Room';
 
   return (
@@ -842,6 +1000,74 @@ export default function HotelDetailPage() {
               </div>
             )}
 
+            {/* Rates Unavailable Section - Show when API fails but we have fallback price */}
+            {(!hotel.rates || hotel.rates.length === 0 || (hotel as any).ratesUnavailable) && (
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-amber-200">
+                {/* Info Header */}
+                <div className="flex items-start gap-4 mb-5">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-100 flex-shrink-0">
+                    <Info className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-800">Room Rates Temporarily Unavailable</h2>
+                    <p className="text-sm text-slate-600 mt-1">
+                      {(hotel as any).ratesFallbackReason || 'We\'re having trouble fetching room rates right now. Please try again in a moment.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Estimated Price from Search (if available) */}
+                {hotel.rates && hotel.rates.length > 0 && hotel.rates[0]?.isFallback && (
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 mb-4 border border-amber-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Estimated Price</p>
+                        <p className="text-2xl font-bold text-slate-800 mt-1">
+                          ${parseFloat(hotel.rates[0].totalPrice?.amount || '0').toFixed(0)}
+                          <span className="text-sm font-normal text-slate-500 ml-1">total for {nights} nights</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-orange-600">
+                          ~${(parseFloat(hotel.rates[0].totalPrice?.amount || '0') / nights).toFixed(0)}
+                        </p>
+                        <p className="text-xs text-slate-500">per night</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                      <Info className="w-3 h-3" />
+                      This is an estimated price from your search. Final price may vary.
+                    </p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Try Again
+                  </button>
+                  <button
+                    onClick={() => router.back()}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Search
+                  </button>
+                </div>
+
+                {/* Contact Info */}
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                  <p className="text-xs text-slate-500 text-center">
+                    If the problem persists, you can contact the hotel directly or try searching for alternative dates.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Enhanced Reviews Section - Premium Styling */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden mt-6">
               {/* Section Header */}
@@ -876,7 +1102,16 @@ export default function HotelDetailPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 sticky top-24 overflow-hidden">
               {/* Premium Price Header - Shows Selected Room */}
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-5">
+              <div className={`p-5 ${activeRoom?.isFallback || (hotel as any).ratesUnavailable ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`}>
+                {/* Estimated Price Warning Badge */}
+                {(activeRoom?.isFallback || (hotel as any).ratesUnavailable) && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/25 backdrop-blur-sm text-white rounded-lg text-xs font-semibold">
+                      <Info className="w-3 h-3" />
+                      Estimated Price
+                    </span>
+                  </div>
+                )}
                 {/* Room Name Badge */}
                 <div className="flex items-center gap-2 mb-2">
                   <BedDouble className="w-4 h-4 text-white/80" />
@@ -886,18 +1121,18 @@ export default function HotelDetailPage() {
                 </div>
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-bold text-white">
-                    ${activeRoomPerNight.toFixed(0)}
+                    {activeRoom?.isFallback ? '~' : ''}${activeRoomPerNight.toFixed(0)}
                   </span>
-                  <span className="text-orange-100 text-lg mb-1">/night</span>
+                  <span className="text-orange-100 text-lg mb-1">{roomsNum > 1 ? '/room/night' : '/night'}</span>
                 </div>
                 {checkIn && checkOut && (
                   <div className="mt-2 flex items-center gap-2">
                     <span className="text-white/90 text-sm">
-                      <span className="font-bold">${activeRoomPrice.toFixed(0)}</span> total for {nights} {nights === 1 ? 'night' : 'nights'}
+                      {activeRoom?.isFallback ? '~' : ''}<span className="font-bold">${activeRoomPrice.toFixed(0)}</span> total {roomsNum > 1 ? `(${roomsNum} rooms × ${nights} nights)` : `for ${nights} ${nights === 1 ? 'night' : 'nights'}`}
                     </span>
                   </div>
                 )}
-                {activeRoom?.refundable && (
+                {activeRoom?.refundable && !activeRoom?.isFallback && (
                   <div className="mt-3">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-xs font-semibold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
@@ -947,7 +1182,10 @@ export default function HotelDetailPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Guests</p>
-                        <p className="text-xs font-semibold text-slate-800 truncate">{parseInt(adults)} {parseInt(adults) === 1 ? 'Guest' : 'Guests'}</p>
+                        <p className="text-xs font-semibold text-slate-800 truncate">
+                          {totalGuests} {totalGuests === 1 ? 'Guest' : 'Guests'}
+                          {parseInt(children) > 0 && <span className="text-[9px] text-slate-500 ml-0.5">({children} child{parseInt(children) > 1 ? 'ren' : ''})</span>}
+                        </p>
                       </div>
                     </div>
 
@@ -969,13 +1207,17 @@ export default function HotelDetailPage() {
                   onClick={() => {
                     const roomCurrency = activeRoom?.totalPrice?.currency || activeRoom?.currency || 'USD';
                     const roomOfferId = activeRoom?.offerId || activeRoom?.id || '';
+                    const adultsNum = parseInt(adults, 10) || 2;
+                    const childrenNum = parseInt(children, 10) || 0;
+                    const roomsNum = parseInt(rooms, 10) || 1;
                     const bookingData = {
                       hotelId: hotelId,
                       name: hotel.name,
                       location: `${hotel.address?.city}, ${hotel.address?.country}`,
                       checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
                       checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                      guests: { adults: parseInt(adults, 10) || 2, children: 0 },
+                      guests: { adults: adultsNum, children: childrenNum },
+                      rooms: roomsNum,
                       roomId: activeRoom?.id || 'default_room',
                       offerId: roomOfferId,
                       roomName: activeRoomName,
@@ -990,7 +1232,7 @@ export default function HotelDetailPage() {
                       nights: nights,
                     };
                     sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${bookingData.guests.adults}&children=${children}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
+                    router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
                   }}
                   className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all mb-4 flex items-center justify-center gap-2"
                 >
@@ -1094,20 +1336,24 @@ export default function HotelDetailPage() {
               <button
                 onClick={() => {
                   // Use the same booking logic as desktop button
+                  const adultsNum = parseInt(adults, 10) || 2;
+                  const childrenNum = parseInt(children, 10) || 0;
+                  const roomsNum = parseInt(rooms, 10) || 1;
                   const bookingData = {
                     hotelId: hotelId,
                     name: hotel.name,
                     location: `${hotel.address?.city}, ${hotel.address?.country}`,
                     checkIn: checkIn || new Date(Date.now() + 86400000).toISOString().split('T')[0],
                     checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                    guests: { adults: parseInt(adults, 10) || 2, children: 0 },
+                    guests: { adults: adultsNum, children: childrenNum },
+                    rooms: roomsNum,
                     price: totalPrice,
                     currency: lowestRate?.totalPrice?.currency || 'USD',
                     image: mainImage,
                     stars: hotel.starRating,
                   };
                   sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&adults=${bookingData.guests.adults}&children=${children}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
+                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
                 }}
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
               >

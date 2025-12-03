@@ -355,6 +355,9 @@ export async function POST(request: NextRequest) {
     const searchPromises = [];
 
     // 1. LiteAPI Search (Primary - Fast with minimum rates)
+    // CRITICAL: Include rooms param for accurate multi-room pricing
+    const roomCount = body.rooms || 1;
+    console.log(`🏨 [POST SEARCH] ${searchParams.guests?.adults || 2} adults, ${Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0} children, ${roomCount} rooms`);
     const liteAPIPromise = liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
@@ -362,9 +365,10 @@ export async function POST(request: NextRequest) {
       checkoutDate: searchParams.checkOut!,
       adults: searchParams.guests?.adults || 2,
       children: Array.isArray(searchParams.guests?.children) ? searchParams.guests.children.length : 0,
+      rooms: roomCount,
       currency: searchParams.currency || 'USD',
       guestNationality: 'US',
-      limit: searchParams.limit || 30, // Reduced from 50 to 30 for faster initial response
+      limit: searchParams.limit || 30,
     }).catch(err => {
       console.error('⚠️ LiteAPI search failed:', err.message);
       return { hotels: [], meta: { usedMinRates: true, error: err.message } };
@@ -694,13 +698,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate cache key
+    // Parse room count and children
+    const rooms = searchParams.get('rooms') ? parseInt(searchParams.get('rooms')!) : 1;
+    const children = searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0;
+
+    // Parse child ages from comma-separated string (e.g., "2,5,8" for actual infant/child ages)
+    // CRITICAL: Infants (age 0-2) often stay FREE at hotels!
+    const childAgesParam = searchParams.get('childAges');
+    const childAges: number[] = childAgesParam
+      ? childAgesParam.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age) && age >= 0 && age <= 17)
+      : [];
+
+    console.log('👶 Child ages for search:', { childAgesParam, childAges, children });
+
+    // Generate cache key (include ALL params for accurate pricing)
     const cacheKey = generateCacheKey('hotels:liteapi:search:get', {
       latitude,
       longitude,
       checkIn,
       checkOut,
       adults,
+      children,
+      childAges: childAges.join(',') || 'default', // Include actual ages in cache key
+      rooms,
     });
 
     // Try cache first
@@ -719,17 +739,20 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Searching hotels with LiteAPI (GET - FAST MODE)...', { latitude, longitude });
 
     // Search hotels using MINIMUM rates (5x faster and more reliable!)
-    // OPTIMIZED LIMIT: Get up to 50 hotels for fast initial load (user can load more)
+    // CRITICAL: Pass rooms param AND childAges for accurate multi-room pricing
+    console.log(`🏨 [SEARCH] Searching with: ${adults} adults, ${children} children (ages: ${childAges.length > 0 ? childAges.join(',') : 'default'}), ${rooms} rooms`);
     const results = await liteAPI.searchHotelsWithMinRates({
       latitude,
       longitude,
       checkIn,
       checkOut,
       adults: parseInt(adults),
-      children: searchParams.get('children') ? parseInt(searchParams.get('children')!) : 0,
+      children,
+      childAges: childAges.length > 0 ? childAges : undefined, // Pass actual ages for accurate pricing (infants 0-2 often FREE!)
+      rooms,
       currency: searchParams.get('currency') || 'USD',
       guestNationality: 'US',
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50, // Reduced from 200 to 50 for faster response
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
     });
 
     // Map to expected format

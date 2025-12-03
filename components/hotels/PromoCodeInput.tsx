@@ -241,14 +241,15 @@ export function PromoCodeInput({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Tag className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Have a promo code?</span>
-              </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+              {/* Inline Promo Code - All in One Row */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Tag className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Have a promo code?</span>
+                </div>
 
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
+                <div className="flex-1 min-w-[140px] relative">
                   <input
                     type="text"
                     value={code}
@@ -257,14 +258,14 @@ export function PromoCodeInput({
                       setError(null);
                     }}
                     placeholder="Enter code"
-                    className={`w-full px-4 py-2.5 border rounded-lg text-sm font-mono uppercase placeholder:normal-case placeholder:font-sans
+                    className={`w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase placeholder:normal-case placeholder:font-sans
                       ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-orange-500 focus:border-orange-500'}
                     `}
                     disabled={loading}
                     onKeyDown={(e) => e.key === 'Enter' && handleApply()}
                   />
                   {error && (
-                    <p className="absolute -bottom-5 left-0 text-xs text-red-500 flex items-center gap-1">
+                    <p className="absolute -bottom-5 left-0 text-xs text-red-500 flex items-center gap-1 whitespace-nowrap">
                       <XCircle className="w-3 h-3" />
                       {error}
                     </p>
@@ -274,14 +275,14 @@ export function PromoCodeInput({
                 <button
                   onClick={handleApply}
                   disabled={loading || !code.trim()}
-                  className="px-5 py-2.5 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[100px] justify-center"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 flex-shrink-0"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <Percent className="w-4 h-4" />
-                      Apply
+                      <Percent className="w-3.5 h-3.5" />
+                      <span>Apply</span>
                     </>
                   )}
                 </button>

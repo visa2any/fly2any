@@ -277,20 +277,26 @@ async function destinationsHandler(request: NextRequest) {
 
     console.log(`Searching ${routesToSearch.length} routes for continent: ${continent}`);
 
-    // Search each route with Duffel API in parallel
+    // Search each route with Duffel API in parallel (with timeout)
     const searchPromises = routesToSearch.map(async (route) => {
       try {
-        // Removed verbose per-route logging
+        // ✅ PERFORMANCE FIX: Add 8-second timeout to prevent hanging
+        const timeoutPromise = new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 8000)
+        );
 
-        const searchResult = await duffelAPI.searchFlights({
-          origin: route.from,
-          destination: route.to,
-          departureDate: departureDateStr,
-          returnDate: returnDateStr,
-          adults: 1,
-          cabinClass: 'economy',
-          maxResults: 1, // Only need cheapest offer
-        });
+        const searchResult = await Promise.race([
+          duffelAPI.searchFlights({
+            origin: route.from,
+            destination: route.to,
+            departureDate: departureDateStr,
+            returnDate: returnDateStr,
+            adults: 1,
+            cabinClass: 'economy',
+            maxResults: 1, // Only need cheapest offer
+          }),
+          timeoutPromise
+        ]) as Awaited<ReturnType<typeof duffelAPI.searchFlights>>;
 
         if (!searchResult.data || searchResult.data.length === 0) {
           // Silent - will log summary at end
@@ -334,7 +340,10 @@ async function destinationsHandler(request: NextRequest) {
           isDemo: false,
         };
       } catch (error) {
-        console.error(`❌ Error searching ${route.from} -> ${route.to}:`, error);
+        // ✅ PERFORMANCE FIX: Silent timeout handling for cleaner logs
+        if (error instanceof Error && error.message !== 'Timeout') {
+          console.error(`❌ Error searching ${route.from} -> ${route.to}:`, error);
+        }
 
         // FALLBACK: Generate synthetic demo data even on error
         const routeSeed = `${route.from}-${route.to}`;

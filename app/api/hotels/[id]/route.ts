@@ -3,7 +3,7 @@ import { duffelStaysAPI } from '@/lib/api/duffel-stays';
 import { mockDuffelStaysAPI } from '@/lib/api/mock-duffel-stays';
 import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
-import { isDemoHotelId, generateDemoHotelDetails } from '@/lib/utils/demo-hotels';
+import { isDemoHotelId } from '@/lib/utils/demo-hotels';
 
 /**
  * Check if hotel ID is from LiteAPI (starts with 'lp' prefix)
@@ -42,36 +42,18 @@ export async function GET(
       );
     }
 
-    // ✅ EMERGENCY FIX: Handle demo hotel IDs
-    // Demo hotels are generated as fallback data when real API fails
-    // Format: demo-hotel-{city}-{index}
+    // REJECT demo hotel IDs - only real API data allowed
+    // Demo hotels should never reach production
     if (isDemoHotelId(accommodationId)) {
-      console.log(`🏨 [DEMO] Generating demo hotel details for ${accommodationId}`);
-
-      try {
-        const demoHotel = generateDemoHotelDetails(accommodationId);
-
-        return NextResponse.json({
-          data: demoHotel,
-          meta: {
-            lastUpdated: new Date().toISOString(),
-            source: 'Demo Data',
-            isDemoData: true,
-            message: 'This is demo data. Configure real APIs for production use.',
-          },
-        }, {
-          headers: {
-            'X-Data-Source': 'DEMO',
-            'Cache-Control': 'public, max-age=3600', // Cache demo data for 1 hour
-          }
-        });
-      } catch (error: any) {
-        console.error(`❌ [DEMO] Failed to generate demo hotel:`, error);
-        return NextResponse.json(
-          { error: 'Invalid demo hotel ID format' },
-          { status: 400 }
-        );
-      }
+      console.warn(`⚠️ [REJECTED] Demo hotel ID requested: ${accommodationId}`);
+      return NextResponse.json(
+        {
+          error: 'Invalid hotel ID',
+          message: 'This hotel is no longer available. Please search for hotels again.',
+          code: 'DEMO_HOTEL_REJECTED',
+        },
+        { status: 404 }
+      );
     }
 
     // Check if this is a LiteAPI hotel
@@ -83,12 +65,17 @@ export async function GET(
       const checkIn = searchParams.get('checkIn');
       const checkOut = searchParams.get('checkOut');
       const adults = parseInt(searchParams.get('adults') || '2', 10);
+      const children = parseInt(searchParams.get('children') || '0', 10);
+      const rooms = parseInt(searchParams.get('rooms') || '1', 10);
 
-      // Generate cache key for LiteAPI (include dates if provided)
+      // Generate cache key for LiteAPI (include all params for accurate pricing)
       const cacheKey = generateCacheKey('hotels:liteapi:details', {
         id: accommodationId,
         checkIn: checkIn || 'none',
         checkOut: checkOut || 'none',
+        adults: adults,
+        children: children,
+        rooms: rooms,
       });
 
       // Try to get from cache (30 minutes TTL)
@@ -329,18 +316,90 @@ export async function GET(
           },
         };
 
+        // Get fallback price from URL params (passed from search results)
+        const fallbackPrice = parseFloat(searchParams.get('price') || '0');
+        const fallbackPerNight = parseFloat(searchParams.get('perNight') || '0');
+        const fallbackCurrency = searchParams.get('currency') || 'USD';
+
+        // Helper function to fetch rates with retry
+        const fetchRatesWithRetry = async (maxRetries = 2, delayMs = 1500): Promise<any[]> => {
+          let lastError: Error | null = null;
+
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              console.log(`🏨 [LITEAPI] Fetching rates for ${accommodationId} (attempt ${attempt}/${maxRetries})`);
+              console.log(`   Adults: ${adults}, Children: ${children}, Rooms: ${rooms}`);
+
+              // Build occupancies array - one per room with adults/children distribution
+              // LiteAPI requires children as array of ages (not just count)
+              // Since we don't have specific ages, we'll default to 10 years old
+              const DEFAULT_CHILD_AGE = 10;
+
+              // Helper to create children ages array
+              const createChildrenAges = (count: number): number[] => {
+                return Array(count).fill(DEFAULT_CHILD_AGE);
+              };
+
+              const occupancies: Array<{ adults: number; children?: number[] }> = [];
+
+              if (rooms === 1) {
+                // Single room - all guests in one room
+                occupancies.push({
+                  adults,
+                  ...(children > 0 ? { children: createChildrenAges(children) } : {})
+                });
+              } else {
+                // Multiple rooms - distribute guests across rooms
+                const adultsPerRoom = Math.floor(adults / rooms);
+                const childrenPerRoom = Math.floor(children / rooms);
+                const extraAdults = adults % rooms;
+                const extraChildren = children % rooms;
+
+                for (let i = 0; i < rooms; i++) {
+                  const roomAdults = adultsPerRoom + (i < extraAdults ? 1 : 0);
+                  const roomChildren = childrenPerRoom + (i < extraChildren ? 1 : 0);
+                  occupancies.push({
+                    adults: roomAdults || 1, // At least 1 adult per room
+                    ...(roomChildren > 0 ? { children: createChildrenAges(roomChildren) } : {})
+                  });
+                }
+              }
+
+              console.log(`   Occupancies:`, JSON.stringify(occupancies));
+
+              const ratesData = await liteAPI.getHotelRates({
+                hotelIds: [accommodationId],
+                checkin: checkIn!,
+                checkout: checkOut!,
+                occupancies,
+                currency: 'USD',
+                guestNationality: 'US',
+              });
+              return ratesData;
+            } catch (error: any) {
+              lastError = error;
+              console.warn(`⚠️ [LITEAPI] Rates fetch attempt ${attempt} failed:`, error.message);
+
+              // Only retry on transient errors (not 404 or auth errors)
+              const errorMsg = error.message?.toLowerCase() || '';
+              if (errorMsg.includes('not found') || errorMsg.includes('unauthorized') || errorMsg.includes('forbidden')) {
+                throw error; // Don't retry on these
+              }
+
+              if (attempt < maxRetries) {
+                console.log(`⏳ [LITEAPI] Waiting ${delayMs}ms before retry...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                delayMs *= 1.5; // Exponential backoff
+              }
+            }
+          }
+          throw lastError || new Error('Failed to fetch rates after retries');
+        };
+
         // Fetch rates if check-in/check-out dates provided
         if (checkIn && checkOut) {
           try {
-            console.log(`🏨 [LITEAPI] Fetching rates for ${accommodationId} (${checkIn} - ${checkOut})`);
-            const ratesData = await liteAPI.getHotelRates({
-              hotelIds: [accommodationId],
-              checkin: checkIn,
-              checkout: checkOut,
-              occupancies: [{ adults }],
-              currency: 'USD',
-              guestNationality: 'US',
-            });
+            const ratesData = await fetchRatesWithRetry();
 
             // Transform rates to match expected format - GROUP BY UNIQUE ROOM TYPE
             if (ratesData && ratesData.length > 0) {
@@ -457,8 +516,45 @@ export async function GET(
               console.log(`✅ [LITEAPI] Found ${rates.length} unique room types (from ${hotelRates.roomTypes?.length || 0} total)`);
             }
           } catch (ratesError) {
-            console.error('⚠️ [LITEAPI] Failed to fetch rates:', ratesError);
-            // Continue without rates - basic info is still useful
+            console.error('⚠️ [LITEAPI] Failed to fetch rates after retries:', ratesError);
+
+            // Create fallback rate from search results price if available
+            if (fallbackPrice > 0 || fallbackPerNight > 0) {
+              const calculatedTotal = fallbackPrice > 0 ? fallbackPrice :
+                (fallbackPerNight * Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))));
+
+              console.log(`🔄 [LITEAPI] Using fallback price from search: $${calculatedTotal} ${fallbackCurrency}`);
+
+              formattedResponse.data.rates = [{
+                id: 'fallback-rate',
+                offerId: '',
+                roomName: 'Standard Room',
+                name: 'Standard Room',
+                bedType: 'Standard Bed',
+                maxGuests: adults + children,
+                totalPrice: {
+                  amount: String(calculatedTotal),
+                  currency: fallbackCurrency,
+                },
+                refundable: false,
+                breakfastIncluded: false,
+                amenities: [],
+                images: images.length > 1 ? [images[1]] : [],
+                rateOptions: 1,
+                isFallback: true, // Flag to indicate this is estimated pricing
+                allRates: [],
+                // Include guest breakdown for display
+                adults: adults,
+                children: children,
+                rooms: rooms,
+              }];
+              (formattedResponse.data as any).ratesUnavailable = true;
+              (formattedResponse.data as any).ratesFallbackReason = 'Rates temporarily unavailable. Showing estimated price from search.';
+            } else {
+              // No fallback - add flag so UI can show appropriate message
+              (formattedResponse.data as any).ratesUnavailable = true;
+              (formattedResponse.data as any).ratesFallbackReason = 'Room rates are temporarily unavailable. Please try again or contact the hotel directly.';
+            }
           }
         }
 

@@ -1,27 +1,28 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { CreditCard, Shield, Lock, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import {
+  Shield, Lock, AlertCircle, Loader2, CreditCard, RefreshCw, CheckCircle,
+  Sparkles, Clock, Calendar, BadgeCheck, Zap, ShieldCheck, Info
+} from 'lucide-react';
+import { loadStripe, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 
-// Declare the global LiteAPI Payment SDK type
-declare global {
-  interface Window {
-    liteAPIPayment?: {
-      init: (config: {
-        publicKey: string;
-        secretKey: string;
-        returnUrl: string;
-        onSuccess?: (data: { transactionId: string }) => void;
-        onError?: (error: { message: string }) => void;
-        onCancel?: () => void;
-      }) => void;
-      render: (containerId: string) => void;
-    };
-  }
-}
+/**
+ * LiteAPI Payment Form Component
+ *
+ * Uses direct Stripe integration with the secretKey (PaymentIntent client_secret) from prebook.
+ * The secretKey format is: pi_xxx_secret_xxx (standard Stripe PaymentIntent client_secret)
+ *
+ * The publishable key is LiteAPI's Stripe account key, obtained from their /config endpoint.
+ * This allows us to process payments through LiteAPI's Stripe account.
+ */
+
+// LiteAPI's Stripe publishable key (from their /config endpoint)
+// This is LiteAPI's account - payments go through their Stripe Connect setup
+const LITEAPI_STRIPE_PUBLISHABLE_KEY = 'pk_live_51OyYnVA4FXPoRk9YKY2X48OOO0Dr8mjk4LngAtzHnb8vOoN6sbCY1MKPlqkqcHEK0hzkR7v2tQtveNapXcBBGEkh00qZt4s1FA';
 
 interface LiteAPIPaymentFormProps {
-  /** Secret key from prebook response */
+  /** Secret key from prebook response (Stripe PaymentIntent client_secret) */
   secretKey: string;
   /** Transaction ID from prebook response */
   transactionId: string;
@@ -39,19 +40,63 @@ interface LiteAPIPaymentFormProps {
   isProcessing?: boolean;
 }
 
-/**
- * LiteAPI Payment Form Component
- *
- * Integrates with LiteAPI's User Payment SDK to process payments directly.
- * The customer pays the full amount (including markup) via LiteAPI's secure portal.
- *
- * Flow:
- * 1. Prebook returns secretKey + transactionId
- * 2. SDK renders payment form using secretKey
- * 3. User enters card details and pays
- * 4. SDK returns transactionId on success
- * 5. Use transactionId in book API with method: TRANSACTION_ID
- */
+// BNPL Payment method configurations
+const BNPL_METHODS: Record<string, {
+  name: string;
+  color: string;
+  bgColor: string;
+  textColor: string;
+  icon: string;
+  tagline: string;
+  benefits: string[];
+}> = {
+  klarna: {
+    name: 'Klarna',
+    color: 'pink',
+    bgColor: 'bg-pink-50',
+    textColor: 'text-pink-700',
+    icon: 'K',
+    tagline: 'Pay in 4 interest-free installments',
+    benefits: ['No interest ever', 'Instant approval', 'Soft credit check only'],
+  },
+  afterpay_clearpay: {
+    name: 'Afterpay',
+    color: 'teal',
+    bgColor: 'bg-teal-50',
+    textColor: 'text-teal-700',
+    icon: 'A',
+    tagline: 'Split into 4 payments, every 2 weeks',
+    benefits: ['Always 0% interest', 'No impact on credit', 'Pay on your schedule'],
+  },
+  affirm: {
+    name: 'Affirm',
+    color: 'blue',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    icon: 'a',
+    tagline: 'Monthly payments that fit your budget',
+    benefits: ['0% APR available', 'No hidden fees', 'Pay early & save'],
+  },
+  cashapp: {
+    name: 'Cash App Pay',
+    color: 'green',
+    bgColor: 'bg-green-50',
+    textColor: 'text-green-700',
+    icon: '$',
+    tagline: 'Fast & secure payment with Cash App',
+    benefits: ['Instant payment', 'Linked to your Cash App', 'Boost rewards eligible'],
+  },
+  amazon_pay: {
+    name: 'Amazon Pay',
+    color: 'orange',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-700',
+    icon: 'a',
+    tagline: 'Use your Amazon account to pay',
+    benefits: ['No new accounts needed', 'A-to-z Guarantee', 'Quick checkout'],
+  },
+};
+
 export function LiteAPIPaymentForm({
   secretKey,
   transactionId,
@@ -62,110 +107,201 @@ export function LiteAPIPaymentForm({
   onPaymentCancel,
   isProcessing = false,
 }: LiteAPIPaymentFormProps) {
-  const [sdkLoaded, setSdkLoaded] = useState(false);
-  const [sdkError, setSdkError] = useState<string | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'loading' | 'ready' | 'processing' | 'success' | 'error'>('idle');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sdkInitialized = useRef(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'processing' | 'success' | 'error'>('loading');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [stripe, setStripe] = useState<Stripe | null>(null);
+  const [elements, setElements] = useState<StripeElements | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [paymentMethodComplete, setPaymentMethodComplete] = useState(false);
 
-  // Get the return URL for post-payment redirect
+  const paymentElementRef = useRef<HTMLDivElement>(null);
+  const paymentElement = useRef<StripePaymentElement | null>(null);
+  const initialized = useRef(false);
+
+  // Build return URL for redirect-based payments (like 3D Secure)
   const returnUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/hotels/booking/confirm`
+    ? `${window.location.origin}/hotels/booking/confirm?tid=${transactionId}&status=success`
     : '';
 
-  // Load the LiteAPI Payment SDK script
+  // Initialize Stripe and create Payment Element
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (initialized.current || !secretKey || typeof window === 'undefined') return;
+    initialized.current = true;
 
-    // Check if script is already loaded
-    const existingScript = document.querySelector('script[src*="liteAPIPayment.js"]');
-    if (existingScript) {
-      setSdkLoaded(true);
-      return;
-    }
-
-    setPaymentStatus('loading');
-
-    const script = document.createElement('script');
-    script.src = 'https://payment-wrapper.liteapi.travel/dist/liteAPIPayment.js?v=a1';
-    script.async = true;
-
-    script.onload = () => {
-      console.log('[LiteAPI Payment] SDK loaded successfully');
-      setSdkLoaded(true);
-      setPaymentStatus('ready');
-    };
-
-    script.onerror = () => {
-      console.error('[LiteAPI Payment] Failed to load SDK');
-      setSdkError('Failed to load payment system. Please refresh and try again.');
-      setPaymentStatus('error');
-    };
-
-    document.head.appendChild(script);
-
-    return () => {
-      // Don't remove script on unmount as it might be reused
-    };
-  }, []);
-
-  // Initialize the payment SDK when loaded
-  useEffect(() => {
-    if (!sdkLoaded || !secretKey || sdkInitialized.current) return;
-
-    // Wait for SDK to be available on window
-    const initSDK = () => {
-      if (!window.liteAPIPayment) {
-        console.warn('[LiteAPI Payment] SDK not yet available, retrying...');
-        setTimeout(initSDK, 100);
-        return;
-      }
-
+    const initStripe = async () => {
       try {
-        console.log('[LiteAPI Payment] Initializing SDK...');
-        console.log('  Secret Key:', secretKey.substring(0, 10) + '...');
-        console.log('  Transaction ID:', transactionId);
-        console.log('  Return URL:', returnUrl);
+        console.log('[LiteAPI Payment] Initializing Stripe...');
+        console.log('[LiteAPI Payment] SecretKey prefix:', secretKey.substring(0, 20));
 
-        // Determine environment based on API key or env var
-        const isProduction = process.env.NODE_ENV === 'production' ||
-          process.env.NEXT_PUBLIC_LITEAPI_ENV === 'live';
+        // Load Stripe with LiteAPI's publishable key
+        const stripeInstance = await loadStripe(LITEAPI_STRIPE_PUBLISHABLE_KEY);
 
-        window.liteAPIPayment.init({
-          publicKey: isProduction ? 'live' : 'sandbox',
-          secretKey: secretKey,
-          returnUrl: returnUrl,
-          onSuccess: (data) => {
-            console.log('[LiteAPI Payment] Payment successful!', data);
-            setPaymentStatus('success');
-            onPaymentSuccess(data.transactionId || transactionId);
-          },
-          onError: (error) => {
-            console.error('[LiteAPI Payment] Payment error:', error);
-            setPaymentStatus('error');
-            onPaymentError(error.message || 'Payment failed');
-          },
-          onCancel: () => {
-            console.log('[LiteAPI Payment] Payment cancelled');
-            setPaymentStatus('ready');
-            onPaymentCancel?.();
+        if (!stripeInstance) {
+          throw new Error('Failed to load Stripe');
+        }
+
+        console.log('[LiteAPI Payment] Stripe loaded successfully');
+        setStripe(stripeInstance);
+
+        // Create Elements instance with the PaymentIntent client_secret
+        const elementsInstance = stripeInstance.elements({
+          clientSecret: secretKey,
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#F97316', // Orange
+              colorBackground: '#ffffff',
+              colorText: '#1f2937',
+              colorDanger: '#ef4444',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              borderRadius: '8px',
+              spacingUnit: '4px',
+            },
+            rules: {
+              '.Input': {
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              },
+              '.Input:focus': {
+                border: '1px solid #F97316',
+                boxShadow: '0 0 0 3px rgba(249,115,22,0.1)',
+              },
+              '.Label': {
+                fontWeight: '500',
+                marginBottom: '6px',
+              },
+            },
           },
         });
 
-        // Render the payment form
-        window.liteAPIPayment.render('liteapi-payment-container');
-        sdkInitialized.current = true;
-        setPaymentStatus('ready');
+        console.log('[LiteAPI Payment] Elements instance created');
+        setElements(elementsInstance);
 
-      } catch (err) {
-        console.error('[LiteAPI Payment] SDK initialization error:', err);
-        setSdkError('Failed to initialize payment form');
-        setPaymentStatus('error');
+        // Wait for container to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Create and mount Payment Element
+        if (paymentElementRef.current) {
+          const paymentElementInstance = elementsInstance.create('payment', {
+            layout: {
+              type: 'tabs',
+              defaultCollapsed: false,
+            },
+          });
+
+          paymentElementInstance.mount(paymentElementRef.current);
+          console.log('[LiteAPI Payment] Payment Element mounted');
+
+          // Listen for ready event
+          paymentElementInstance.on('ready', () => {
+            console.log('[LiteAPI Payment] Payment Element ready');
+            setStatus('ready');
+          });
+
+          // Listen for change events (validation & payment method detection)
+          paymentElementInstance.on('change', (event: any) => {
+            console.log('[LiteAPI Payment] Change event:', event);
+
+            // Track completion status
+            setPaymentMethodComplete(event.complete);
+
+            if (event.complete) {
+              setErrorMessage(null);
+            }
+
+            // Detect selected payment method
+            if (event.value?.type) {
+              const methodType = event.value.type;
+              console.log('[LiteAPI Payment] Payment method selected:', methodType);
+              setSelectedPaymentMethod(methodType);
+            }
+          });
+
+          // Store reference for cleanup
+          paymentElement.current = paymentElementInstance;
+        } else {
+          throw new Error('Payment container not found');
+        }
+      } catch (error: any) {
+        console.error('[LiteAPI Payment] Initialization error:', error);
+        setErrorMessage(error.message || 'Failed to initialize payment form');
+        setStatus('error');
       }
     };
 
-    initSDK();
-  }, [sdkLoaded, secretKey, transactionId, returnUrl, onPaymentSuccess, onPaymentError, onPaymentCancel]);
+    initStripe();
+
+    // Cleanup
+    return () => {
+      if (elements) {
+        // Stripe Elements cleanup is automatic
+      }
+    };
+  }, [secretKey]);
+
+  // Handle payment submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus('processing');
+    setErrorMessage(null);
+
+    try {
+      console.log('[LiteAPI Payment] Confirming payment...');
+
+      // Confirm the payment
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: returnUrl,
+        },
+        redirect: 'if_required', // Only redirect if 3D Secure or similar is needed
+      });
+
+      if (error) {
+        console.error('[LiteAPI Payment] Payment error:', error);
+
+        // Handle specific error types
+        if (error.type === 'card_error' || error.type === 'validation_error') {
+          setErrorMessage(error.message || 'Payment failed. Please check your card details.');
+        } else {
+          setErrorMessage('An unexpected error occurred. Please try again.');
+        }
+        setStatus('error');
+        onPaymentError(error.message || 'Payment failed');
+      } else if (paymentIntent) {
+        console.log('[LiteAPI Payment] Payment successful:', paymentIntent.status);
+
+        if (paymentIntent.status === 'succeeded') {
+          setStatus('success');
+          onPaymentSuccess(transactionId);
+        } else if (paymentIntent.status === 'processing') {
+          // Payment is processing - treat as success for now
+          setStatus('success');
+          onPaymentSuccess(transactionId);
+        } else if (paymentIntent.status === 'requires_action') {
+          // 3D Secure or additional action needed - Stripe will handle redirect
+          console.log('[LiteAPI Payment] Requires action - redirecting...');
+        } else {
+          setErrorMessage(`Payment status: ${paymentIntent.status}`);
+          setStatus('error');
+        }
+      }
+    } catch (err: any) {
+      console.error('[LiteAPI Payment] Submit error:', err);
+      setErrorMessage(err.message || 'Payment submission failed');
+      setStatus('error');
+      onPaymentError(err.message || 'Payment failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Format currency
   const formatCurrency = (amount: number, curr: string) => {
@@ -175,119 +311,222 @@ export function LiteAPIPaymentForm({
     }).format(amount);
   };
 
-  // Error state
-  if (sdkError) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-red-800">Payment Error</h3>
-            <p className="text-red-600 mt-1">{sdkError}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Success state
-  if (paymentStatus === 'success') {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-        <div className="flex items-center gap-3">
-          <CheckCircle className="w-6 h-6 text-green-600" />
-          <div>
-            <h3 className="font-semibold text-green-800">Payment Successful!</h3>
-            <p className="text-green-600 mt-1">Processing your booking...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Retry initialization
+  const handleRetry = () => {
+    initialized.current = false;
+    setErrorMessage(null);
+    setStatus('loading');
+    window.location.reload();
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white">
-            <CreditCard className="w-5 h-5" />
-            <span className="font-semibold">Secure Payment</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-blue-200" />
-            <span className="text-sm text-blue-100">256-bit SSL</span>
-          </div>
-        </div>
-      </div>
-
       {/* Amount Display */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">Total Amount</span>
-          <span className="text-2xl font-bold text-gray-900">
+          <span className="text-gray-600 font-medium">Total Amount</span>
+          <span className="text-2xl font-bold text-orange-600">
             {formatCurrency(displayAmount, currency)}
           </span>
         </div>
       </div>
 
-      {/* Payment Form Container */}
-      <div className="p-6">
-        {paymentStatus === 'loading' && (
+      {/* Payment Form */}
+      <form onSubmit={handleSubmit} className="p-6">
+        {/* Error Message */}
+        {errorMessage && status === 'error' && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Payment Error</p>
+              <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="mt-2 text-sm text-red-700 hover:text-red-800 font-medium flex items-center gap-1"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {status === 'success' && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-green-800">Payment Successful!</p>
+              <p className="text-sm text-green-600 mt-1">Your booking is being confirmed...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {status === 'loading' && (
           <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+            <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-3" />
             <p className="text-gray-600">Loading secure payment form...</p>
           </div>
         )}
 
-        {/* LiteAPI Payment SDK will render here */}
+        {/* Stripe Payment Element Container */}
         <div
-          id="liteapi-payment-container"
-          ref={containerRef}
-          className={paymentStatus === 'loading' ? 'hidden' : ''}
+          ref={paymentElementRef}
+          className="min-h-[200px]"
+          style={{ display: status === 'loading' ? 'none' : 'block' }}
         />
 
-        {isProcessing && (
-          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-            <div className="flex flex-col items-center">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
-              <p className="text-gray-600">Processing payment...</p>
+        {/* BNPL Contextual Info - Shows when BNPL method is selected */}
+        {selectedPaymentMethod && BNPL_METHODS[selectedPaymentMethod] && status !== 'success' && (
+          <div className={`mt-4 p-4 rounded-xl border ${BNPL_METHODS[selectedPaymentMethod].bgColor} border-${BNPL_METHODS[selectedPaymentMethod].color}-200 animate-fadeIn`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${BNPL_METHODS[selectedPaymentMethod].bgColor} border border-${BNPL_METHODS[selectedPaymentMethod].color}-200`}>
+                <span className={`font-bold text-lg ${BNPL_METHODS[selectedPaymentMethod].textColor}`}>
+                  {BNPL_METHODS[selectedPaymentMethod].icon}
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">
+                    {BNPL_METHODS[selectedPaymentMethod].name}
+                  </p>
+                  <span className="text-[10px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> 0% APR
+                  </span>
+                </div>
+                <p className={`text-sm ${BNPL_METHODS[selectedPaymentMethod].textColor} mt-0.5`}>
+                  {BNPL_METHODS[selectedPaymentMethod].tagline}
+                </p>
+
+                {/* Benefits */}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {BNPL_METHODS[selectedPaymentMethod].benefits.map((benefit, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 text-xs text-gray-600 bg-white px-2 py-1 rounded-full border border-gray-200"
+                    >
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      {benefit}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Payment Schedule Preview for BNPL */}
+                {(selectedPaymentMethod === 'klarna' || selectedPaymentMethod === 'afterpay_clearpay' || selectedPaymentMethod === 'affirm') && (
+                  <div className="mt-3 pt-3 border-t border-gray-200/50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <span className="text-xs font-medium text-gray-700">Payment Schedule</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[0, 1, 2, 3].map((i) => {
+                        const paymentAmount = displayAmount / 4;
+                        const date = new Date();
+                        date.setDate(date.getDate() + (i * 14));
+                        return (
+                          <div key={i} className="text-center">
+                            <p className={`text-sm font-bold ${i === 0 ? 'text-purple-700' : 'text-gray-600'}`}>
+                              {formatCurrency(paymentAmount, currency)}
+                            </p>
+                            <p className="text-[10px] text-gray-500">
+                              {i === 0 ? 'Today' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Security Badges */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <Lock className="w-4 h-4" />
-            <span>Secure Checkout</span>
+        {/* Submit Button */}
+        {status !== 'loading' && status !== 'success' && (
+          <button
+            type="submit"
+            disabled={status !== 'ready' || isSubmitting || isProcessing}
+            className={`w-full mt-6 py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform ${
+              status !== 'ready' || isSubmitting || isProcessing
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]'
+            }`}
+          >
+            {isSubmitting || isProcessing || status === 'processing' ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Processing Payment...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <Lock className="w-5 h-5" />
+                Pay {formatCurrency(displayAmount, currency)}
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* Security Badges */}
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          {/* Main Trust Indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <Lock className="w-4 h-4 text-green-600" />
+              <span>Secure Checkout</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Shield className="w-4 h-4 text-blue-600" />
+              <span>PCI Compliant</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <BadgeCheck className="w-4 h-4 text-purple-600" />
+              <span>3D Secure</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-orange-600" />
+              <span>256-bit SSL</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Shield className="w-4 h-4" />
-            <span>PCI Compliant</span>
+
+          {/* Payment Methods Accepted */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span className="text-xs text-gray-400">Accepted:</span>
+            <div className="flex items-center gap-2">
+              {/* Visa */}
+              <div className="w-10 h-6 bg-white border border-gray-200 rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-blue-700">VISA</span>
+              </div>
+              {/* Mastercard */}
+              <div className="w-10 h-6 bg-white border border-gray-200 rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-orange-600">MC</span>
+              </div>
+              {/* Amex */}
+              <div className="w-10 h-6 bg-white border border-gray-200 rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-blue-500">AMEX</span>
+              </div>
+              {/* Klarna */}
+              <div className="w-10 h-6 bg-pink-50 border border-pink-200 rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-pink-600">K.</span>
+              </div>
+              {/* Afterpay */}
+              <div className="w-10 h-6 bg-teal-50 border border-teal-200 rounded flex items-center justify-center">
+                <span className="text-[10px] font-bold text-teal-600">AP</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Powered by Stripe */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <span className="text-xs text-gray-400">Powered by</span>
+            <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
+              <span>Stripe</span>
+            </div>
           </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-2">
-          Powered by LiteAPI - Your payment is processed securely
-        </p>
-      </div>
-
-      {/* Test Card Info (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="px-6 py-3 bg-yellow-50 border-t border-yellow-200">
-          <p className="text-xs text-yellow-700 text-center">
-            <strong>Test Mode:</strong> Use card 4242 4242 4242 4242, any future date, any CVC
-          </p>
-        </div>
-      )}
+      </form>
     </div>
   );
 }

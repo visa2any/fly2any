@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { duffelStaysAPI } from '@/lib/api/duffel-stays';
+import { liteAPI } from '@/lib/api/liteapi';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('hotels:featured-enhanced', {
       continent: continentFilter,
       limit,
-      version: 'v2-deterministic', // Cache bust for deterministic data
+      version: 'v3-liteapi-only', // Cache bust - no more demo data
     });
 
     // Try cache (1 hour TTL)
@@ -122,40 +122,63 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Fetching ${filteredDestinations.length} featured hotels for ${continentFilter}...`);
 
-    // Fetch hotels from each destination
+    // City coordinates for LiteAPI search
+    const cityCoordinates: Record<string, { lat: number; lng: number }> = {
+      'Times Square, New York': { lat: 40.7580, lng: -73.9855 },
+      'South Beach, Miami': { lat: 25.7907, lng: -80.1300 },
+      'Downtown Los Angeles': { lat: 34.0522, lng: -118.2437 },
+      'Toronto Downtown': { lat: 43.6532, lng: -79.3832 },
+      'Cancun Hotel Zone': { lat: 21.1619, lng: -86.8515 },
+      'Central Paris': { lat: 48.8566, lng: 2.3522 },
+      'Rome City Center': { lat: 41.9028, lng: 12.4964 },
+      'Barcelona Gothic Quarter': { lat: 41.3851, lng: 2.1734 },
+      'London West End': { lat: 51.5074, lng: -0.1278 },
+      'Amsterdam Central': { lat: 52.3676, lng: 4.9041 },
+      'Tokyo Shibuya': { lat: 35.6580, lng: 139.7016 },
+      'Singapore Marina Bay': { lat: 1.2834, lng: 103.8607 },
+      'Bali Seminyak': { lat: -8.6913, lng: 115.1681 },
+      'Sydney Harbour': { lat: -33.8688, lng: 151.2093 },
+      'Bangkok Sukhumvit': { lat: 13.7563, lng: 100.5018 },
+      'Maldives Resort': { lat: 4.1755, lng: 73.5093 },
+      'Phuket Beach': { lat: 7.9519, lng: 98.3381 },
+      'Honolulu Waikiki': { lat: 21.2793, lng: -157.8292 },
+      'Dubai Marina': { lat: 25.0657, lng: 55.1404 },
+    };
+
+    // Fetch hotels from each destination using LiteAPI
     const hotelPromises = filteredDestinations.map(async (dest) => {
       try {
-        const results = await duffelStaysAPI.searchAccommodations({
-          location: { query: dest.query },
-          checkIn: checkInStr,
-          checkOut: checkOutStr,
-          guests: { adults: 2 },
-          radius: 5,
-          limit: 3,
+        const coords = cityCoordinates[dest.query] || { lat: 40.7128, lng: -74.0060 }; // Default to NYC
+
+        const results = await liteAPI.searchHotelsWithMinRates({
+          latitude: coords.lat,
+          longitude: coords.lng,
+          checkinDate: checkInStr,
+          checkoutDate: checkOutStr,
+          adults: 2,
+          children: 0,
           currency: 'USD',
+          guestNationality: 'US',
+          limit: 3,
         });
 
-        if (results && results.data && Array.isArray(results.data) && results.data.length > 0) {
+        if (results && results.hotels && results.hotels.length > 0) {
           // Get best hotel with ML scoring
-          const hotel = results.data[0]; // Take first (usually best) result
+          const hotel = results.hotels[0]; // Take first (usually best) result
 
           if (!hotel) return null;
 
-          const lowestRate = hotel.rates && Array.isArray(hotel.rates) && hotel.rates.length > 0
-            ? hotel.rates[0]
-            : null;
-
-          const price = lowestRate && lowestRate.totalPrice && lowestRate.totalPrice.amount
-            ? parseFloat(lowestRate.totalPrice.amount)
-            : 0;
+          // LiteAPI hotel structure
+          const price = hotel.lowestPricePerNight || hotel.lowestPrice || 0;
 
           // ML Value Score Calculation (deterministic)
           const hotelSeed = dest.city + hotel.id;
+          const hotelAny = hotel as any;
           const valueScore = calculateValueScore({
             price: price || 150,
             marketAvgPrice: (price || 150) * 1.4,
-            rating: hotel.starRating || 4,
-            reviewCount: hotel.reviewCount || 500,
+            rating: hotelAny.starRating || hotelAny.stars || 4,
+            reviewCount: hotelAny.reviewCount || 500,
             demandLevel: Math.floor(seededRandom(hotelSeed, 0) * 40) + 60, // 60-100
             availabilityLevel: Math.floor(seededRandom(hotelSeed, 1) * 60) + 20, // 20-80
           });
@@ -177,8 +200,8 @@ export async function GET(request: NextRequest) {
             continent: dest.continent,
             category: dest.category || [],
 
-            // Pricing
-            lowestRate,
+            // Pricing - use hotel's rate data
+            lowestRate: hotelAny.lowestRate || price,
             pricePerNight: Math.round(price),
             originalPrice: priceDropRecent ? Math.round(price * 1.25) : undefined,
 
@@ -200,12 +223,12 @@ export async function GET(request: NextRequest) {
             mainImage: hotel.images && hotel.images.length > 0 ? hotel.images[0].url : null,
 
             // Additional data
-            starRating: hotel.starRating,
-            reviewRating: hotel.reviewRating,
-            reviewCount: hotel.reviewCount || 0,
+            starRating: hotelAny.starRating || hotelAny.stars,
+            reviewRating: hotelAny.reviewRating || hotelAny.rating,
+            reviewCount: hotelAny.reviewCount || 0,
             amenities: hotel.amenities || [],
             address: hotel.address,
-            location: hotel.location,
+            location: hotelAny.location || { latitude: hotel.latitude, longitude: hotel.longitude },
           };
         }
         return null;
@@ -216,81 +239,11 @@ export async function GET(request: NextRequest) {
     });
 
     const hotels = await Promise.all(hotelPromises);
-    let validHotels = hotels.filter(h => h !== null);
+    const validHotels = hotels.filter(h => h !== null);
 
-    // FALLBACK: Generate demo data if Duffel returns empty results
+    // Log if no hotels found (no demo fallback - only real API data)
     if (validHotels.length === 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`⚠️  Duffel API returned no hotels - using demo fallback data`);
-      }
-
-      validHotels = filteredDestinations.map((dest, index) => {
-        const demoSeed = dest.city;
-        const basePrice = 120 + (index * 30);
-        const priceVariation = Math.floor(seededRandom(demoSeed, 10) * 50);
-        const pricePerNight = basePrice + priceVariation;
-        const priceDropRecent = seededRandom(demoSeed, 11) > 0.6;
-
-        const valueScore = calculateValueScore({
-          price: pricePerNight,
-          marketAvgPrice: pricePerNight * 1.4,
-          rating: 4 + seededRandom(demoSeed, 12),
-          reviewCount: 500 + Math.floor(seededRandom(demoSeed, 13) * 1000),
-          demandLevel: 60 + Math.floor(seededRandom(demoSeed, 14) * 30),
-          availabilityLevel: 30 + Math.floor(seededRandom(demoSeed, 15) * 40),
-        });
-
-        return {
-          id: `demo-hotel-${dest.city.toLowerCase().replace(/\s+/g, '-')}-${index}`,
-          name: `${['Grand', 'Luxury', 'Premier', 'Elite', 'Boutique', 'Royal'][index % 6]} Hotel ${dest.city}`,
-          city: dest.city,
-          country: dest.country,
-          continent: dest.continent,
-          category: dest.category || [],
-
-          // Pricing
-          pricePerNight,
-          originalPrice: priceDropRecent ? Math.round(pricePerNight * 1.25) : undefined,
-
-          // ML Features
-          valueScore,
-
-          // Marketing Signals (deterministic)
-          demandLevel: 60 + Math.floor(seededRandom(demoSeed, 16) * 35),
-          availableRooms: 2 + Math.floor(seededRandom(demoSeed, 17) * 10),
-          trending: seededRandom(demoSeed, 18) > 0.7,
-          priceDropRecent,
-
-          // Social Proof (deterministic)
-          viewersLast24h: 50 + Math.floor(seededRandom(demoSeed, 19) * 150),
-          bookingsLast24h: 5 + Math.floor(seededRandom(demoSeed, 20) * 20),
-
-          // Photos - using placeholder
-          images: [{
-            url: `https://images.unsplash.com/photo-${['1566073771930-edb4b96bc1d3', '1582719508461-905c673771fd', '1551882547-ff40c63fe5fa', '1564501049412-61c2a3083791', '1571896349842-33c89424058d'][index % 5]}?w=800&q=80`
-          }],
-          mainImage: `https://images.unsplash.com/photo-${['1566073771930-edb4b96bc1d3', '1582719508461-905c673771fd', '1551882547-ff40c63fe5fa', '1564501049412-61c2a3083791', '1571896349842-33c89424058d'][index % 5]}?w=800&q=80`,
-
-          // Additional data (deterministic)
-          starRating: 4 + Math.floor(seededRandom(demoSeed, 21) * 2), // 4-5 stars
-          reviewRating: 4.0 + seededRandom(demoSeed, 22) * 0.9, // 4.0-4.9
-          reviewCount: 500 + Math.floor(seededRandom(demoSeed, 23) * 1000),
-          amenities: ['WiFi', 'Pool', 'Gym', 'Restaurant', 'Spa'].slice(0, 3 + Math.floor(seededRandom(demoSeed, 24) * 3)),
-          address: {
-            line1: `${100 + index} Main Street`,
-            city: dest.city,
-            country: dest.country,
-          },
-          location: {
-            lat: 0,
-            lng: 0,
-          },
-        };
-      });
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ Generated ${validHotels.length} demo hotels for ${continentFilter}`);
-      }
+      console.log(`⚠️ LiteAPI returned no hotels for ${continentFilter} - returning empty array`);
     }
 
     // Sort by value score

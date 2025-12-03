@@ -40,7 +40,8 @@ export interface HotelSearchParams {
   // Guests (supports both nested and flat structures)
   guests?: HotelGuests; // Nested structure used by POST handler
   adults?: number; // Flat structure used by LiteAPI
-  children?: number;
+  children?: number; // Count of children
+  childAges?: number[]; // Actual ages of children (for accurate pricing - infants 0-2 often FREE)
 
   rooms?: number; // Number of rooms (default: 1)
   radius?: number; // Search radius in km (default: 5, max: 50)

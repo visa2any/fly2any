@@ -492,7 +492,7 @@ function FlightResultsContent() {
   const [selectedFlightForAlert, setSelectedFlightForAlert] = useState<ScoredFlight | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingFlightForAlert, setPendingFlightForAlert] = useState<ScoredFlight | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('best');
+  const [sortBy, setSortBy] = useState<SortOption>('cheapest'); // Default to lowest price first
   const [showPriceInsights, setShowPriceInsights] = useState(true);
   const [displayCount, setDisplayCount] = useState(20); // Increased from 10 to show more results (Design Rule #7)
   const [marketAverage, setMarketAverage] = useState<number | null>(null);

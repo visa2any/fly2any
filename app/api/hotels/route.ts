@@ -92,6 +92,14 @@ export async function GET(request: NextRequest) {
     checkInDate = searchParams.get('checkInDate');
     checkOutDate = searchParams.get('checkOutDate');
     const adults = searchParams.get('adults');
+    const children = searchParams.get('children') || '0';
+    const rooms = searchParams.get('rooms') || '1';
+
+    // Parse child ages from comma-separated string (e.g., "2,5,8")
+    const childAgesParam = searchParams.get('childAges');
+    const childAges: number[] = childAgesParam
+      ? childAgesParam.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age) && age >= 0 && age <= 17)
+      : [];
 
     if (!cityCode || !checkInDate || !checkOutDate || !adults) {
       return NextResponse.json(
@@ -155,6 +163,9 @@ export async function GET(request: NextRequest) {
       checkInDate,
       checkOutDate,
       adults,
+      children,
+      childAges: childAges.join(',') || 'default',
+      rooms,
     });
 
     const cached = await getCached<any>(cacheKey);
@@ -195,12 +206,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Search hotels using LiteAPI
+    // If childAges provided, use them; otherwise let LiteAPI use defaults
     const results = await liteAPI.searchHotelsWithRates({
       latitude: coords.lat,
       longitude: coords.lng,
       checkinDate: checkInDate,
       checkoutDate: checkOutDate,
       adults: parseInt(adults),
+      children: parseInt(children),
+      childAges: childAges.length > 0 ? childAges : undefined, // Pass actual ages if provided
+      rooms: parseInt(rooms),
       currency: 'USD',
       guestNationality: 'US',
       limit: 30,

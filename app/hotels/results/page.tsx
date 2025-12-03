@@ -8,7 +8,7 @@ import HotelFilters, { type HotelFiltersType } from '@/components/hotels/HotelFi
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import type { LiteAPIHotel } from '@/lib/hotels/types';
-import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clock, Users } from 'lucide-react';
+import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Hotel, TrendingUp, Clock, Users, Calendar, MapPin, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MobileFilterSheet, FilterButton } from '@/components/mobile';
 import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
@@ -16,6 +16,9 @@ import { usePullToRefresh, RefreshButton } from '@/lib/hooks/usePullToRefresh';
 import { useScrollMinimize } from '@/lib/hooks/useScrollDirection';
 import EnhancedSearchBar from '@/components/flights/EnhancedSearchBar';
 import { CollapsibleSearchBar } from '@/components/mobile/CollapsibleSearchBar';
+import { HotelCompareProvider } from '@/contexts/HotelCompareContext';
+import CompareBar from '@/components/hotels/CompareBar';
+import CompareModal from '@/components/hotels/CompareModal';
 
 // ===========================
 // TYPE DEFINITIONS
@@ -27,11 +30,13 @@ interface SearchParams {
   checkOut: string;
   adults: number;
   children: number;
+  childAges: number[]; // Actual ages for accurate pricing (infants 0-2 often FREE)
   rooms: number;
   currency: string;
   lat?: string;
   lng?: string;
   districts?: string;
+  petFriendly?: boolean;
 }
 
 type SortOption = 'best' | 'cheapest' | 'rating' | 'distance' | 'popular' | 'deals' | 'topRated' | 'refundable';
@@ -236,6 +241,49 @@ const applyFilters = (hotels: LiteAPIHotel[], filters: HotelFiltersType): LiteAP
       if (!hasMatchingPolicy) return false;
     }
 
+    // Accessibility features - match against amenities
+    const accessibilityFilters = filters.accessibility || [];
+    if (accessibilityFilters.length > 0) {
+      const hotelAmenities = (hotel.amenities || []).map(a => a?.toLowerCase?.() ?? '');
+      const accessibilityKeywords: Record<string, string[]> = {
+        'wheelchair': ['wheelchair', 'accessible', 'mobility', 'disabled'],
+        'accessible-rooms': ['accessible room', 'handicap room', 'mobility room', 'ada room'],
+        'accessible-bathroom': ['roll-in shower', 'accessible bathroom', 'grab bar', 'walk-in shower'],
+        'elevator': ['elevator', 'lift', 'accessible floor'],
+        'visual-aids': ['braille', 'audio', 'visual aid', 'screen reader'],
+        'hearing-accessible': ['hearing', 'deaf', 'visual alarm', 'closed caption'],
+        'service-animals': ['service animal', 'service dog', 'pet friendly', 'assistance animal'],
+      };
+      const hasAccessibility = accessibilityFilters.every(feature => {
+        const keywords = accessibilityKeywords[feature] || [feature];
+        return keywords.some(keyword =>
+          hotelAmenities.some(amenity => amenity.includes(keyword))
+        );
+      });
+      if (!hasAccessibility) return false;
+    }
+
+    // Inclusive travel preferences - match against amenities and property attributes
+    const inclusiveFilters = filters.inclusiveTravel || [];
+    if (inclusiveFilters.length > 0) {
+      const hotelAmenities = (hotel.amenities || []).map(a => a?.toLowerCase?.() ?? '');
+      const hotelDescription = ((hotel as any).description || '').toLowerCase();
+      const inclusiveKeywords: Record<string, string[]> = {
+        'lgbtq-friendly': ['lgbtq', 'gay friendly', 'pride', 'inclusive', 'diversity'],
+        'family-friendly': ['family', 'kids', 'children', 'baby', 'cribs', 'playground', 'kids club'],
+        'solo-traveler': ['solo', 'single', 'workspace', 'coworking', 'lounge'],
+        'senior-friendly': ['senior', 'elderly', 'accessibility', 'quiet', 'elevator', 'handrails'],
+      };
+      const hasInclusiveFeature = inclusiveFilters.every(preference => {
+        const keywords = inclusiveKeywords[preference] || [preference];
+        return keywords.some(keyword =>
+          hotelAmenities.some(amenity => amenity.includes(keyword)) ||
+          hotelDescription.includes(keyword)
+        );
+      });
+      if (!hasInclusiveFeature) return false;
+    }
+
     return true;
   });
 };
@@ -298,17 +346,25 @@ function HotelResultsContent() {
   const t = translations[lang];
 
   // Extract search parameters
+  // Parse childAges from comma-separated string (e.g., "2,5,8" for infants/children ages)
+  const childAgesParam = searchParams.get('childAges');
+  const childAges: number[] = childAgesParam
+    ? childAgesParam.split(',').map(age => parseInt(age.trim())).filter(age => !isNaN(age) && age >= 0 && age <= 17)
+    : [];
+
   const searchData: SearchParams = {
     destination: searchParams.get('destination') || searchParams.get('location') || searchParams.get('query') || '',
     checkIn: searchParams.get('checkIn') || '',
     checkOut: searchParams.get('checkOut') || '',
     adults: parseInt(searchParams.get('adults') || '2'),
     children: parseInt(searchParams.get('children') || '0'),
+    childAges, // Actual ages for accurate infant/child pricing
     rooms: parseInt(searchParams.get('rooms') || '1'),
     currency: searchParams.get('currency') || 'USD',
     lat: searchParams.get('lat') || undefined,
     lng: searchParams.get('lng') || undefined,
     districts: searchParams.get('districts') || undefined,
+    petFriendly: searchParams.get('petFriendly') === 'true',
   };
 
   // Debug: Log search data to verify districts are being extracted
@@ -343,6 +399,8 @@ function HotelResultsContent() {
     mealPlans: [],
     propertyTypes: [],
     cancellationPolicy: [],
+    accessibility: [],
+    inclusiveTravel: [],
   });
 
   // Smart scroll behavior
@@ -365,8 +423,16 @@ function HotelResultsContent() {
 
   // Fetch hotels function
   const fetchHotels = async () => {
-    if (!searchData.destination || !searchData.checkIn || !searchData.checkOut) {
-      setError('Missing required search parameters');
+    // Check for missing parameters and provide specific error messages
+    const missingParams: string[] = [];
+    if (!searchData.destination) missingParams.push('destination');
+    if (!searchData.checkIn) missingParams.push('check-in date');
+    if (!searchData.checkOut) missingParams.push('check-out date');
+
+    if (missingParams.length > 0) {
+      const errorMsg = `Missing required search parameters: ${missingParams.join(', ')}. Please use the search bar above to search for hotels.`;
+      console.error('🚫 Hotel search error:', errorMsg, { searchData });
+      setError(errorMsg);
       setLoading(false);
       return;
     }
@@ -384,9 +450,18 @@ function HotelResultsContent() {
         limit: '200', // Increased from 50 to get more hotel options
       };
 
-      // Add children if present
+      // Add children if present with their actual ages for accurate pricing
       if (searchData.children > 0) {
         queryParams.children = searchData.children.toString();
+        // Pass child ages if available (critical for infant pricing - ages 0-2 often FREE)
+        if (searchData.childAges.length > 0) {
+          queryParams.childAges = searchData.childAges.join(',');
+        }
+      }
+
+      // Add pet-friendly filter
+      if (searchData.petFriendly) {
+        queryParams.petFriendly = 'true';
       }
 
       // Use lat/lng for district-based search (more precise), or query for city-based search
@@ -452,7 +527,9 @@ function HotelResultsContent() {
     (filters.propertyTypes.length > 0 ? 1 : 0) +
     (filters.mealPlans.length > 0 ? 1 : 0) +
     (filters.cancellationPolicy.length > 0 ? 1 : 0) +
-    (filters.guestRating > 0 ? 1 : 0);
+    (filters.guestRating > 0 ? 1 : 0) +
+    ((filters.accessibility?.length || 0) > 0 ? 1 : 0) +
+    ((filters.inclusiveTravel?.length || 0) > 0 ? 1 : 0);
 
   // Calculate average price
   const avgPrice = sortedHotels.length > 0
@@ -474,30 +551,82 @@ function HotelResultsContent() {
   const handleSelectHotel = (hotelId: string, rateId: string, offerId: string) => {
     setSelectedHotelId(hotelId);
     setIsNavigating(true);
-    router.push(`/hotels/${hotelId}?rateId=${rateId}&offerId=${offerId}&checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}`);
+
+    // Look up hotel to get price info for fallback
+    const hotel = hotels.find(h => h.id === hotelId);
+    const totalPrice = hotel ? getLowestPrice(hotel) * nights : 0;
+    const perNightPrice = hotel ? getLowestPrice(hotel) : 0;
+    const currency = hotel?.lowestPrice?.currency || 'USD';
+
+    // Build URL with price fallback params and child ages for accurate pricing
+    const childAgesParam = searchData.childAges.length > 0 ? `&childAges=${searchData.childAges.join(',')}` : '';
+    const url = `/hotels/${hotelId}?rateId=${rateId}&offerId=${offerId}&checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}&price=${totalPrice}&perNight=${perNightPrice}&currency=${currency}${childAgesParam}`;
+    router.push(url);
   };
 
   const handleViewDetails = (hotelId: string) => {
+    // Look up hotel to get price info for fallback
+    const hotel = hotels.find(h => h.id === hotelId);
+    const totalPrice = hotel ? getLowestPrice(hotel) * nights : 0;
+    const perNightPrice = hotel ? getLowestPrice(hotel) : 0;
+    const currency = hotel?.lowestPrice?.currency || 'USD';
+
+    // Build URL with price fallback params and child ages for accurate pricing
+    const childAgesParam = searchData.childAges.length > 0 ? `&childAges=${searchData.childAges.join(',')}` : '';
+    const url = `/hotels/${hotelId}?checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}&price=${totalPrice}&perNight=${perNightPrice}&currency=${currency}${childAgesParam}`;
+
     // Open hotel details in a new tab
-    window.open(`/hotels/${hotelId}?checkIn=${searchData.checkIn}&checkOut=${searchData.checkOut}&adults=${searchData.adults}&children=${searchData.children}&rooms=${searchData.rooms}`, '_blank');
+    window.open(url, '_blank');
   };
 
   // Loading state with skeleton
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
-        {/* Search Bar - VISIBLE during loading */}
-        <EnhancedSearchBar
-          lang={lang}
-          defaultService="hotels"
-        />
+        {/* Search Bar - VISIBLE during loading with FULL search params for consistency */}
+        <div className="relative">
+          <EnhancedSearchBar
+            lang={lang}
+            defaultService="hotels"
+            hotelDestination={searchData.destination}
+            hotelCheckIn={searchData.checkIn}
+            hotelCheckOut={searchData.checkOut}
+            hotelAdults={searchData.adults}
+            hotelChildren={searchData.children}
+            hotelRooms={searchData.rooms}
+            hotelLat={searchData.lat ? parseFloat(searchData.lat) : undefined}
+            hotelLng={searchData.lng ? parseFloat(searchData.lng) : undefined}
+            hotelDistricts={searchData.districts}
+          />
+          {/* Subtle loading indicator overlay on search bar */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer pointer-events-none rounded-2xl" />
+        </div>
 
-        {/* Loading skeleton cards */}
+        {/* Enhanced Loading State - State-of-the-art design */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
+            {/* Animated search indicator */}
+            <div className="relative inline-flex items-center justify-center mb-4">
+              <div className="absolute w-16 h-16 bg-orange-100 rounded-full animate-ping opacity-30" />
+              <div className="relative w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
+                <Hotel className="w-7 h-7 text-white animate-pulse" />
+              </div>
+            </div>
+
             <h2 className="text-2xl font-bold text-slate-900">{t.searching}</h2>
-            <p className="text-slate-600 mt-2">Finding the perfect stay in {searchData.destination}...</p>
-            <p className="text-sm text-slate-500 mt-1">{searchData.checkIn} - {searchData.checkOut} · {nights} {nights === 1 ? 'night' : 'nights'}</p>
+            <p className="text-slate-600 mt-2">Finding the perfect stay in <span className="font-semibold text-orange-600">{searchData.destination}</span>...</p>
+
+            {/* Visual search params confirmation */}
+            <div className="mt-4 inline-flex items-center gap-3 px-4 py-2 bg-orange-50 rounded-full border border-orange-200">
+              <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                <Calendar className="w-4 h-4 text-orange-500" />
+                {searchData.checkIn} → {searchData.checkOut}
+              </span>
+              <span className="w-1 h-1 bg-orange-300 rounded-full" />
+              <span className="text-sm font-medium text-orange-600">{nights} {nights === 1 ? 'night' : 'nights'}</span>
+              <span className="w-1 h-1 bg-orange-300 rounded-full" />
+              <span className="text-sm text-slate-600">{searchData.adults + searchData.children} guests</span>
+            </div>
           </div>
           <HotelCardsSkeletonList count={5} />
         </div>
@@ -507,27 +636,52 @@ function HotelResultsContent() {
 
   // Error state
   if (error) {
+    // Check if it's a missing params error to show appropriate UI
+    const isMissingParams = error.includes('Missing required search parameters');
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
         <EnhancedSearchBar
           lang={lang}
           defaultService="hotels"
+          hotelDestination={searchData.destination}
+          hotelCheckIn={searchData.checkIn}
+          hotelCheckOut={searchData.checkOut}
+          hotelAdults={searchData.adults}
+          hotelChildren={searchData.children}
+          hotelRooms={searchData.rooms}
         />
 
         <div className="flex items-center justify-center p-4 pt-20">
-          <div className="max-w-md w-full bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border-2 border-red-100/70 p-10 text-center">
+          <div className="max-w-lg w-full bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border-2 border-red-100/70 p-10 text-center">
             <div className="w-24 h-24 bg-red-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-12 h-12 text-red-600" />
             </div>
             <h2 className="text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.error}</h2>
-            <p className="text-base text-slate-600 mb-8 leading-relaxed">{error}</p>
-            <button
-              onClick={() => fetchHotels()}
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
-            >
-              <RefreshCcw className="w-5 h-5" />
-              {t.retry}
-            </button>
+            <p className="text-base text-slate-600 mb-6 leading-relaxed">{error}</p>
+
+            {isMissingParams ? (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-500">
+                  Please enter a destination in the search bar above and click &quot;Search Hotels&quot; to find available hotels.
+                </p>
+                <button
+                  onClick={() => router.push('/')}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+                >
+                  <Hotel className="w-5 h-5" />
+                  Go to Home Page
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fetchHotels()}
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
+              >
+                <RefreshCcw className="w-5 h-5" />
+                {t.retry}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -538,18 +692,82 @@ function HotelResultsContent() {
   if (hotels.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50">
+        {/* Search Bar - with FULL search params for easy modification */}
         <EnhancedSearchBar
           lang={lang}
           defaultService="hotels"
+          hotelDestination={searchData.destination}
+          hotelCheckIn={searchData.checkIn}
+          hotelCheckOut={searchData.checkOut}
+          hotelAdults={searchData.adults}
+          hotelChildren={searchData.children}
+          hotelRooms={searchData.rooms}
+          hotelLat={searchData.lat ? parseFloat(searchData.lat) : undefined}
+          hotelLng={searchData.lng ? parseFloat(searchData.lng) : undefined}
+          hotelDistricts={searchData.districts}
         />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 p-12">
-            <div className="w-24 h-24 bg-slate-100/80 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Hotel className="w-12 h-12 text-slate-400" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+          <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/60 p-8 md:p-12">
+            {/* Animated empty state illustration */}
+            <div className="relative w-28 h-28 mx-auto mb-6">
+              <div className="absolute inset-0 bg-orange-100/50 rounded-full animate-pulse" />
+              <div className="absolute inset-2 bg-slate-100/80 rounded-full flex items-center justify-center">
+                <Hotel className="w-12 h-12 text-slate-400" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center border-2 border-white">
+                <Search className="w-4 h-4 text-orange-500" />
+              </div>
             </div>
-            <h2 className="text-3xl font-semibold text-slate-900 mb-4 leading-tight tracking-tight">{t.noResults}</h2>
-            <p className="text-base text-slate-600 mb-8 leading-relaxed">{t.noResultsDesc}</p>
+
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-3 leading-tight tracking-tight">{t.noResults}</h2>
+            <p className="text-base text-slate-600 mb-6 leading-relaxed max-w-md mx-auto">{t.noResultsDesc}</p>
+
+            {/* Search params summary for context */}
+            <div className="mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100">
+              <p className="text-sm text-slate-600 mb-2">Your search:</p>
+              <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
+                  <MapPin className="w-3.5 h-3.5 text-orange-500" />
+                  {searchData.destination || 'Any destination'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
+                  <Calendar className="w-3.5 h-3.5 text-orange-500" />
+                  {searchData.checkIn} → {searchData.checkOut}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200">
+                  <Users className="w-3.5 h-3.5 text-orange-500" />
+                  {searchData.adults + searchData.children} guests, {searchData.rooms} room
+                </span>
+              </div>
+            </div>
+
+            {/* Suggestions */}
+            <div className="text-left space-y-2 max-w-sm mx-auto mb-6">
+              <p className="text-sm font-medium text-slate-700 mb-2">Try these suggestions:</p>
+              <ul className="text-sm text-slate-600 space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 mt-0.5">•</span>
+                  Expand your search to nearby areas
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 mt-0.5">•</span>
+                  Try different dates for more availability
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 mt-0.5">•</span>
+                  Adjust guest count or room requirements
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => fetchHotels()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              {t.retry}
+            </button>
           </div>
         </div>
       </div>
@@ -691,6 +909,8 @@ function HotelResultsContent() {
                     mealPlans: [],
                     propertyTypes: [],
                     cancellationPolicy: [],
+                    accessibility: [],
+                    inclusiveTravel: [],
                   })}
                   className="text-sm font-semibold text-orange-700 hover:text-orange-800 underline leading-relaxed"
                 >
@@ -709,6 +929,7 @@ function HotelResultsContent() {
                   checkOut={searchData.checkOut}
                   adults={searchData.adults}
                   children={searchData.children}
+                  rooms={searchData.rooms}
                   nights={nights}
                   onSelect={handleSelectHotel}
                   onViewDetails={handleViewDetails}
@@ -766,6 +987,8 @@ function HotelResultsContent() {
                     mealPlans: [],
                     propertyTypes: [],
                     cancellationPolicy: [],
+                    accessibility: [],
+                    inclusiveTravel: [],
                   })}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg leading-relaxed"
                 >
@@ -853,6 +1076,8 @@ function HotelResultsContent() {
             mealPlans: [],
             propertyTypes: [],
             cancellationPolicy: [],
+            accessibility: [],
+            inclusiveTravel: [],
           });
         }}
         resultCount={sortedHotels.length}
@@ -872,23 +1097,28 @@ function HotelResultsContent() {
 
 export default function HotelResultsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="relative w-28 h-28 mx-auto mb-8">
-              <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
-              <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
-                <Hotel className="w-10 h-10 text-orange-600" />
+    <HotelCompareProvider>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="relative w-28 h-28 mx-auto mb-8">
+                <div className="absolute inset-0 border-4 border-orange-200/70 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-orange-600 rounded-full border-t-transparent animate-spin"></div>
+                <div className="absolute inset-4 bg-slate-50 rounded-full flex items-center justify-center shadow-lg">
+                  <Hotel className="w-10 h-10 text-orange-600" />
+                </div>
               </div>
+              <h2 className="text-3xl font-semibold text-slate-900 leading-tight tracking-tight">Loading hotels...</h2>
             </div>
-            <h2 className="text-3xl font-semibold text-slate-900 leading-tight tracking-tight">Loading hotels...</h2>
           </div>
-        </div>
-      }
-    >
-      <HotelResultsContent />
-    </Suspense>
+        }
+      >
+        <HotelResultsContent />
+      </Suspense>
+      {/* Hotel Comparison UI */}
+      <CompareBar />
+      <CompareModal />
+    </HotelCompareProvider>
   );
 }

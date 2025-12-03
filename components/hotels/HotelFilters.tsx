@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, DollarSign, Check, X } from 'lucide-react';
+import { Star, DollarSign, Check, X, Accessibility, Heart, Dog, Wifi, Car, Dumbbell, UtensilsCrossed, Waves, Sparkles, Plane, Baby, Users, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface HotelFiltersType {
   priceRange: [number, number];
@@ -11,6 +11,8 @@ export interface HotelFiltersType {
   mealPlans: string[];
   propertyTypes: string[];
   cancellationPolicy: string[];
+  accessibility: string[]; // Accessibility features
+  inclusiveTravel: string[]; // Inclusive travel preferences
 }
 
 interface HotelFiltersProps {
@@ -40,6 +42,7 @@ const translations = {
     spa: 'Spa',
     restaurant: 'Restaurant',
     airportShuttle: 'Airport Shuttle',
+    petFriendly: 'Pet Friendly 🐕',
     roomOnly: 'Room Only',
     breakfastIncluded: 'Breakfast Included',
     halfBoard: 'Half Board',
@@ -53,6 +56,21 @@ const translations = {
     freeCancellation: 'Free Cancellation',
     partialRefund: 'Partial Refund',
     nonRefundable: 'Non-refundable',
+    // Accessibility
+    accessibility: 'Accessibility',
+    wheelchairAccessible: 'Wheelchair Accessible',
+    accessibleRooms: 'Accessible Rooms',
+    accessibleBathroom: 'Roll-in Shower/Accessible Bathroom',
+    elevatorAccess: 'Elevator Access',
+    visualAids: 'Visual Aids (Braille, Audio)',
+    hearingAccessible: 'Hearing Accessible',
+    serviceAnimals: 'Service Animals Welcome',
+    // Inclusive Travel
+    inclusiveTravel: 'Inclusive Travel',
+    lgbtqFriendly: 'LGBTQ+ Friendly',
+    familyFriendly: 'Family Friendly',
+    soloTraveler: 'Solo Traveler Friendly',
+    seniorFriendly: 'Senior Friendly',
   },
   pt: {
     filters: 'Filtros',
@@ -73,6 +91,7 @@ const translations = {
     spa: 'Spa',
     restaurant: 'Restaurante',
     airportShuttle: 'Transfer Aeroporto',
+    petFriendly: 'Pet Friendly 🐕',
     roomOnly: 'Apenas Quarto',
     breakfastIncluded: 'Café Incluído',
     halfBoard: 'Meia Pensão',
@@ -86,6 +105,21 @@ const translations = {
     freeCancellation: 'Cancelamento Grátis',
     partialRefund: 'Reembolso Parcial',
     nonRefundable: 'Não reembolsável',
+    // Accessibility
+    accessibility: 'Acessibilidade',
+    wheelchairAccessible: 'Acessível para Cadeirantes',
+    accessibleRooms: 'Quartos Acessíveis',
+    accessibleBathroom: 'Chuveiro/Banheiro Acessível',
+    elevatorAccess: 'Acesso por Elevador',
+    visualAids: 'Recursos Visuais (Braille, Áudio)',
+    hearingAccessible: 'Acessível para Surdos',
+    serviceAnimals: 'Animais de Serviço Bem-vindos',
+    // Inclusive Travel
+    inclusiveTravel: 'Viagem Inclusiva',
+    lgbtqFriendly: 'LGBTQ+ Friendly',
+    familyFriendly: 'Família Bem-vinda',
+    soloTraveler: 'Ideal para Viajante Solo',
+    seniorFriendly: 'Ideal para Idosos',
   },
   es: {
     filters: 'Filtros',
@@ -106,6 +140,7 @@ const translations = {
     spa: 'Spa',
     restaurant: 'Restaurante',
     airportShuttle: 'Transporte Aeropuerto',
+    petFriendly: 'Pet Friendly 🐕',
     roomOnly: 'Solo Habitación',
     breakfastIncluded: 'Desayuno Incluido',
     halfBoard: 'Media Pensión',
@@ -119,6 +154,21 @@ const translations = {
     freeCancellation: 'Cancelación Gratis',
     partialRefund: 'Reembolso Parcial',
     nonRefundable: 'No reembolsable',
+    // Accessibility
+    accessibility: 'Accesibilidad',
+    wheelchairAccessible: 'Accesible para Sillas de Ruedas',
+    accessibleRooms: 'Habitaciones Accesibles',
+    accessibleBathroom: 'Ducha/Baño Accesible',
+    elevatorAccess: 'Acceso por Ascensor',
+    visualAids: 'Ayudas Visuales (Braille, Audio)',
+    hearingAccessible: 'Accesible para Sordos',
+    serviceAnimals: 'Animales de Servicio Bienvenidos',
+    // Inclusive Travel
+    inclusiveTravel: 'Viaje Inclusivo',
+    lgbtqFriendly: 'LGBTQ+ Friendly',
+    familyFriendly: 'Apto para Familias',
+    soloTraveler: 'Ideal para Viajero Solo',
+    seniorFriendly: 'Ideal para Mayores',
   },
 };
 
@@ -184,6 +234,20 @@ export default function HotelFilters({
     onFiltersChange({ ...filters, cancellationPolicy: newPolicies });
   };
 
+  const toggleAccessibility = (feature: string) => {
+    const newFeatures = filters.accessibility?.includes(feature)
+      ? filters.accessibility.filter((f) => f !== feature)
+      : [...(filters.accessibility || []), feature];
+    onFiltersChange({ ...filters, accessibility: newFeatures });
+  };
+
+  const toggleInclusiveTravel = (preference: string) => {
+    const newPreferences = filters.inclusiveTravel?.includes(preference)
+      ? filters.inclusiveTravel.filter((p) => p !== preference)
+      : [...(filters.inclusiveTravel || []), preference];
+    onFiltersChange({ ...filters, inclusiveTravel: newPreferences });
+  };
+
   const clearAllFilters = () => {
     onFiltersChange({
       priceRange: [0, 1000],
@@ -193,10 +257,13 @@ export default function HotelFilters({
       mealPlans: [],
       propertyTypes: [],
       cancellationPolicy: [],
+      accessibility: [],
+      inclusiveTravel: [],
     });
   };
 
   const amenityOptions = [
+    { value: 'pets', label: t.petFriendly }, // Pet-friendly first for visibility
     { value: 'wifi', label: t.wifi },
     { value: 'parking', label: t.parking },
     { value: 'breakfast', label: t.breakfastIncluded },
@@ -227,6 +294,23 @@ export default function HotelFilters({
     { value: 'free', label: t.freeCancellation },
     { value: 'partial', label: t.partialRefund },
     { value: 'non-refundable', label: t.nonRefundable },
+  ];
+
+  const accessibilityOptions = [
+    { value: 'wheelchair', label: t.wheelchairAccessible, icon: <Accessibility className="w-4 h-4 text-blue-500" /> },
+    { value: 'accessible-rooms', label: t.accessibleRooms, icon: <Accessibility className="w-4 h-4 text-blue-500" /> },
+    { value: 'accessible-bathroom', label: t.accessibleBathroom, icon: <Waves className="w-4 h-4 text-blue-500" /> },
+    { value: 'elevator', label: t.elevatorAccess, icon: <ChevronUp className="w-4 h-4 text-blue-500" /> },
+    { value: 'visual-aids', label: t.visualAids, icon: <Sparkles className="w-4 h-4 text-blue-500" /> },
+    { value: 'hearing-accessible', label: t.hearingAccessible, icon: <Shield className="w-4 h-4 text-blue-500" /> },
+    { value: 'service-animals', label: t.serviceAnimals, icon: <Dog className="w-4 h-4 text-blue-500" /> },
+  ];
+
+  const inclusiveTravelOptions = [
+    { value: 'lgbtq-friendly', label: t.lgbtqFriendly, icon: <Heart className="w-4 h-4 text-pink-500" /> },
+    { value: 'family-friendly', label: t.familyFriendly, icon: <Baby className="w-4 h-4 text-purple-500" /> },
+    { value: 'solo-traveler', label: t.soloTraveler, icon: <Users className="w-4 h-4 text-indigo-500" /> },
+    { value: 'senior-friendly', label: t.seniorFriendly, icon: <Heart className="w-4 h-4 text-teal-500" /> },
   ];
 
   return (
@@ -373,7 +457,7 @@ export default function HotelFilters({
       </div>
 
       {/* Cancellation Policy */}
-      <div>
+      <div className="mb-6">
         <h4 className="text-sm font-semibold text-gray-900 mb-3">{t.cancellation}</h4>
         <div className="space-y-2">
           {cancellationOptions.map((policy) => (
@@ -388,6 +472,57 @@ export default function HotelFilters({
             </label>
           ))}
         </div>
+      </div>
+
+      {/* Accessibility - Important for travelers with disabilities */}
+      <div className="mb-6 pt-4 border-t border-gray-200">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Accessibility className="w-4 h-4 text-blue-500" />
+          {t.accessibility}
+        </h4>
+        <div className="space-y-2">
+          {accessibilityOptions.map((option) => (
+            <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={filters.accessibility?.includes(option.value) || false}
+                onChange={() => toggleAccessibility(option.value)}
+                className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="flex items-center gap-2 text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                {option.icon}
+                {option.label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Inclusive Travel - LGBTQ+ and diverse travelers */}
+      <div className="pt-4 border-t border-gray-200">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Heart className="w-4 h-4 text-pink-500" />
+          {t.inclusiveTravel}
+        </h4>
+        <div className="space-y-2">
+          {inclusiveTravelOptions.map((option) => (
+            <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={filters.inclusiveTravel?.includes(option.value) || false}
+                onChange={() => toggleInclusiveTravel(option.value)}
+                className="w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-500"
+              />
+              <span className="flex items-center gap-2 text-sm text-gray-700 group-hover:text-pink-600 transition-colors">
+                {option.icon}
+                {option.label}
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-gray-500 bg-pink-50 p-2 rounded-lg">
+          🏳️‍🌈 Hotels marked LGBTQ+ friendly have policies welcoming all guests
+        </p>
       </div>
     </div>
   );
