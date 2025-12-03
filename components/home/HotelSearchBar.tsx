@@ -218,6 +218,19 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
     setCheckOut(selectedDate);
   }, [checkIn]);
 
+  // Calculate minimum checkout date (day after check-in)
+  const minCheckOutDate = useCallback(() => {
+    if (checkIn) {
+      const nextDay = new Date(checkIn);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return nextDay.toISOString().split('T')[0];
+    }
+    // If no check-in, use tomorrow as minimum
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }, [checkIn]);
+
   // Fetch popular destinations on mount
   useEffect(() => {
     const fetchPopular = async () => {
@@ -795,7 +808,7 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             type="date"
             value={checkOut}
             onChange={handleCheckOutChange}
-            min={checkIn || minDate}
+            min={minCheckOutDate()}
             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors text-gray-900 font-medium"
           />
         </div>
