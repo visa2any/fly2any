@@ -266,7 +266,7 @@ export default function PremiumDatePicker({
   ): CalendarDay => {
     const dateStr = formatDateString(date);
     const isToday = date.getTime() === today.getTime();
-    const isDisabled = date < minDate;
+    const isDisabled = minDate ? date < minDate : false;
     const isWeekend = date.getDay() === 0 || date.getDay() === 6; // Sunday or Saturday
 
     let isSelected = false;
