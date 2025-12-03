@@ -194,7 +194,7 @@ export default function PremiumDatePicker({
     const newDate = new Date(baseDate);
     newDate.setDate(newDate.getDate() + days);
 
-    if (newDate < minDate) return;
+    if (minDate && newDate < minDate) return;
 
     if (type === 'single') {
       setSelectedDeparture(newDate);
