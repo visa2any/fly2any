@@ -228,6 +228,8 @@ export default function EnhancedSearchBar({
   const [checkOutDate, setCheckOutDate] = useState(initialHotelCheckOut);
   const [hotelAdults, setHotelAdults] = useState(initialHotelAdults);
   const [hotelChildren, setHotelChildren] = useState(initialHotelChildren);
+  const [hotelChildAges, setHotelChildAges] = useState<number[]>([]); // Ages for accurate pricing (0-17)
+  const [hotelInfants, setHotelInfants] = useState(0); // Infants 0-2 (FREE at most hotels!)
   const [hotelRooms, setHotelRooms] = useState(initialHotelRooms);
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
@@ -768,18 +770,32 @@ export default function EnhancedSearchBar({
 
       setIsLoading(true);
 
+      // Build comprehensive guest data including child ages and infants
+      // CRITICAL: Accurate ages are required for correct pricing
+      // - Infants (0-2): FREE at most hotels
+      // - Children (3-17): Age-based pricing
+      const allChildAges = [
+        ...Array(hotelInfants).fill(1), // Infants: default to age 1 (0-2 range, FREE!)
+        ...hotelChildAges.slice(0, hotelChildren) // Actual child ages from selectors
+      ];
+
       const hotelParams = new URLSearchParams({
         destination: hotelDestination,
         checkIn: checkInDate,
         checkOut: checkOutDate,
         adults: hotelAdults.toString(),
-        children: hotelChildren.toString(),
+        children: (hotelChildren + hotelInfants).toString(), // Total count
         rooms: hotelRooms.toString(),
         ...(hotelLocation && hotelLocation.lat && hotelLocation.lng && {
           lat: hotelLocation.lat.toString(),
           lng: hotelLocation.lng.toString(),
         }),
       });
+
+      // Add child ages as comma-separated string for accurate pricing
+      if (allChildAges.length > 0) {
+        hotelParams.set('childAges', allChildAges.join(','));
+      }
 
       // Add selected districts if any (multi-select)
       if (selectedDistricts.length > 0) {
@@ -2068,12 +2084,12 @@ export default function EnhancedSearchBar({
                   </div>
                   <div className="flex-1">
                     <div className="font-bold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
-                      {hotelAdults + hotelChildren} guest{hotelAdults + hotelChildren > 1 ? 's' : ''}
+                      {hotelAdults + hotelChildren + hotelInfants} guest{(hotelAdults + hotelChildren + hotelInfants) > 1 ? 's' : ''}
                       <Check className="w-3.5 h-3.5 text-violet-600" />
                     </div>
                     <div className="text-[11px] text-gray-500 flex items-center gap-1">
                       <BedDouble className="w-3 h-3" />
-                      {hotelRooms} room{hotelRooms > 1 ? 's' : ''} · {hotelChildren > 0 ? `${hotelChildren} child${hotelChildren > 1 ? 'ren' : ''}` : `${hotelAdults} adult${hotelAdults > 1 ? 's' : ''}`}
+                      {hotelRooms} room{hotelRooms > 1 ? 's' : ''} · {hotelAdults} adult{hotelAdults > 1 ? 's' : ''}{hotelChildren > 0 ? `, ${hotelChildren} child${hotelChildren > 1 ? 'ren' : ''}` : ''}{hotelInfants > 0 ? `, ${hotelInfants} infant${hotelInfants > 1 ? 's' : ''}` : ''}
                     </div>
                   </div>
                   <ChevronDown size={18} className={`text-violet-500 transition-transform ${showPassengerDropdown ? 'rotate-180' : ''}`} />
@@ -2082,10 +2098,13 @@ export default function EnhancedSearchBar({
 
               {/* Guests & Rooms Dropdown */}
               {showPassengerDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4">
+                <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-white border border-gray-200 rounded-xl shadow-xl z-50 space-y-4 max-h-[500px] overflow-y-auto">
                   {/* Adults */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Adults</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Adults</span>
+                      <p className="text-[10px] text-gray-400">Age 18+</p>
+                    </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
@@ -2107,11 +2126,19 @@ export default function EnhancedSearchBar({
 
                   {/* Children */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Children</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Children</span>
+                      <p className="text-[10px] text-gray-400">Age 3-17</p>
+                    </div>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        onClick={() => setHotelChildren(Math.max(0, hotelChildren - 1))}
+                        onClick={() => {
+                          const newCount = Math.max(0, hotelChildren - 1);
+                          setHotelChildren(newCount);
+                          // Remove last child age when decreasing
+                          setHotelChildAges(prev => prev.slice(0, newCount));
+                        }}
                         className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
                       >
                         <Minus size={16} />
@@ -2119,8 +2146,68 @@ export default function EnhancedSearchBar({
                       <span className="w-8 text-center font-semibold">{hotelChildren}</span>
                       <button
                         type="button"
-                        onClick={() => setHotelChildren(hotelChildren + 1)}
+                        onClick={() => {
+                          const newCount = hotelChildren + 1;
+                          setHotelChildren(newCount);
+                          // Add default age for new child
+                          setHotelChildAges(prev => [...prev, 8]);
+                        }}
                         className="w-8 h-8 rounded-full border border-gray-300 hover:border-[#0087FF] hover:bg-blue-50 flex items-center justify-center transition-all"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Child Ages - Show when children > 0 */}
+                  {hotelChildren > 0 && (
+                    <div className="pl-4 border-l-2 border-violet-200 space-y-2">
+                      <p className="text-xs font-medium text-violet-700 mb-2">Child Ages (required for accurate pricing)</p>
+                      {Array.from({ length: hotelChildren }).map((_, index) => (
+                        <div key={index} className="flex items-center justify-between gap-3">
+                          <label className="text-xs text-gray-600">Child {index + 1}</label>
+                          <select
+                            value={hotelChildAges[index] || 8}
+                            onChange={(e) => {
+                              const newAges = [...hotelChildAges];
+                              newAges[index] = parseInt(e.target.value);
+                              setHotelChildAges(newAges);
+                            }}
+                            className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                          >
+                            {Array.from({ length: 15 }, (_, i) => i + 3).map(age => (
+                              <option key={age} value={age}>
+                                {age} {age === 1 ? 'year' : 'years'} old
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <span>💡</span> Accurate ages ensure correct pricing
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Infants */}
+                  <div className="flex items-center justify-between bg-emerald-50 -mx-4 px-4 py-3">
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Infants</span>
+                      <p className="text-[10px] text-emerald-600 font-medium">Age 0-2 (FREE at most hotels!)</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHotelInfants(Math.max(0, hotelInfants - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center font-semibold">{hotelInfants}</span>
+                      <button
+                        type="button"
+                        onClick={() => setHotelInfants(hotelInfants + 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 hover:border-emerald-500 hover:bg-emerald-100 flex items-center justify-center transition-all"
                       >
                         <Plus size={16} />
                       </button>
