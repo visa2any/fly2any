@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Users, Search, X, Loader2, Building2, Plane, Landmark, Star, Filter, ChevronDown, ChevronUp, DollarSign, Wifi, Car, Dumbbell, UtensilsCrossed, Globe, Check, Navigation, Dog, Baby, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCityData } from '@/lib/data/city-locations';
-import { DateRangePicker } from '@/components/shared/DateRangePicker';
 
 interface HotelSearchBarProps {
   lang?: 'en' | 'pt' | 'es';
@@ -736,13 +735,23 @@ export function HotelSearchBar({ lang = 'en' }: HotelSearchBarProps) {
             <Calendar className="w-4 h-4 inline mr-1" />
             {t.checkIn} - {t.checkOut}
           </label>
-          <DateRangePicker
-            checkIn={checkIn}
-            checkOut={checkOut}
-            onCheckInChange={setCheckIn}
-            onCheckOutChange={setCheckOut}
-            lang={lang}
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="date"
+              value={checkIn}
+              onChange={(e) => setCheckIn(e.target.value)}
+              className="px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-orange-500 focus:outline-none transition-colors"
+              placeholder={t.checkIn}
+            />
+            <input
+              type="date"
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              min={checkIn}
+              className="px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-orange-500 focus:outline-none transition-colors"
+              placeholder={t.checkOut}
+            />
+          </div>
         </div>
       </div>
 
