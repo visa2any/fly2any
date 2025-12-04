@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { AirportAutocomplete } from './AirportAutocomplete';
 import MultiAirportSelector, { Airport } from '@/components/common/MultiAirportSelector';
-import MultiDatePicker from '@/components/common/MultiDatePicker';
-import { PlaneTakeoff, PlaneLanding, Calendar, Users } from 'lucide-react';
+import { PlaneTakeoff, PlaneLanding, Calendar, Users, Plus, X } from 'lucide-react';
 
 // Types
 type Language = 'en' | 'pt' | 'es';
@@ -573,15 +572,63 @@ export default function FlightSearchForm({
                 </div>
               </div>
             ) : (
-              /* Multi-Date Mode */
-              <MultiDatePicker
-                selectedDates={formData.departureDates}
-                onDatesChange={(dates) => setFormData({ ...formData, departureDates: dates })}
-                maxDates={7}
-                minDate={new Date()}
-                label=""
-                placeholder="Select departure dates"
-              />
+              /* Multi-Date Mode - Inline Native Implementation */
+              <div className="space-y-2">
+                {/* Selected Dates Display */}
+                {formData.departureDates.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.departureDates.map((date, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                      >
+                        {format(date, 'MMM d, yyyy')}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newDates = formData.departureDates.filter((_, i) => i !== index);
+                            setFormData({ ...formData, departureDates: newDates });
+                          }}
+                          className="ml-1 hover:text-blue-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Add Date Input */}
+                {formData.departureDates.length < 7 && (
+                  <div className="relative">
+                    <Calendar className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 pointer-events-none z-10" />
+                    <input
+                      type="date"
+                      min={getMinDate()}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const newDate = new Date(e.target.value + 'T00:00:00');
+                          const exists = formData.departureDates.some(d =>
+                            format(d, 'yyyy-MM-dd') === format(newDate, 'yyyy-MM-dd')
+                          );
+                          if (!exists) {
+                            setFormData({
+                              ...formData,
+                              departureDates: [...formData.departureDates, newDate].sort((a, b) => a.getTime() - b.getTime())
+                            });
+                          }
+                          e.target.value = '';
+                        }
+                      }}
+                      className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-3.5 md:py-4 min-h-[48px] md:min-h-[56px] border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-base md:text-lg font-semibold bg-white cursor-pointer"
+                      style={{ colorScheme: 'light' }}
+                      placeholder="Add departure date"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                      {formData.departureDates.length}/7 dates
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
 
             {errors.departureDate && (
