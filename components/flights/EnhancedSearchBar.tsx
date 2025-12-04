@@ -229,7 +229,7 @@ export default function EnhancedSearchBar({
   const [hotelAdults, setHotelAdults] = useState(initialHotelAdults);
   const [hotelChildren, setHotelChildren] = useState(initialHotelChildren);
   const [hotelChildAges, setHotelChildAges] = useState<number[]>([]); // Ages for accurate pricing (0-17)
-  const [hotelInfants, setHotelInfants] = useState(0); // Infants 0-2 (FREE at most hotels!)
+  const [hotelInfants, setHotelInfants] = useState(0); // Infants under 2 (0-1 years, FREE at most hotels!)
   const [hotelRooms, setHotelRooms] = useState(initialHotelRooms);
   const [hotelSuggestions, setHotelSuggestions] = useState<any[]>([]);
   const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
@@ -775,7 +775,7 @@ export default function EnhancedSearchBar({
       // - Infants (0-2): FREE at most hotels
       // - Children (3-17): Age-based pricing
       const allChildAges = [
-        ...Array(hotelInfants).fill(1), // Infants: default to age 1 (0-2 range, FREE!)
+        ...Array(hotelInfants).fill(1), // Infants under 2: default to age 1 (FREE at most hotels!)
         ...hotelChildAges.slice(0, hotelChildren) // Actual child ages from selectors
       ];
 
@@ -2189,7 +2189,7 @@ export default function EnhancedSearchBar({
                             }}
                             className="px-2 py-1 border border-violet-300 rounded text-xs font-medium focus:ring-2 focus:ring-violet-500 bg-white"
                           >
-                            {Array.from({ length: 15 }, (_, i) => i + 3).map(age => (
+                            {Array.from({ length: 16 }, (_, i) => i + 2).map(age => (
                               <option key={age} value={age}>{age}y</option>
                             ))}
                           </select>
