@@ -7,6 +7,9 @@ import { paymentService } from '@/lib/payments/payment-service';
 import { getPrismaClient } from '@/lib/prisma';
 import type { Booking, FlightData, Passenger, SeatSelection, PaymentInfo, ContactInfo } from '@/lib/bookings/types';
 
+// CRITICAL: Import flight markup to ensure customer is charged correct amount
+import { applyFlightMarkup } from '@/lib/config/flight-markup';
+
 /**
  * Flight Create Orders API - Complete Flight Booking
  *
@@ -97,11 +100,45 @@ export async function POST(request: NextRequest) {
     let confirmedOffer: any;
     const flightSource = flightOffer.source || 'GDS';
 
+    // Extract NET price (before markup) from the offer - this is what we pay the API
+    // The frontend sends the marked-up price in price.total, but we stored _netPrice
+    const originalNetPrice = parseFloat(flightOffer.price?._netPrice || flightOffer.price?.total || '0');
+    const originalCustomerPrice = parseFloat(flightOffer.price?.total || '0');
+
+    console.log(`   Original NET price: $${originalNetPrice.toFixed(2)}`);
+    console.log(`   Original Customer price: $${originalCustomerPrice.toFixed(2)}`);
+
     // Only Amadeus/GDS flights support price confirmation API
     // Duffel offers are already live-priced at search time
     if (flightSource === 'Duffel') {
       console.log('🎫 Duffel flight - using offer directly (already live-priced)');
-      confirmedOffer = flightOffer;
+
+      // CRITICAL: Ensure Duffel offer has markup applied
+      // If _netPrice exists, markup was applied in search; if not, apply it now
+      const hasMarkupApplied = !!flightOffer.price?._netPrice;
+
+      if (hasMarkupApplied) {
+        console.log(`   Markup already applied: NET $${flightOffer.price._netPrice} → Customer $${flightOffer.price.total}`);
+        confirmedOffer = flightOffer;
+      } else {
+        // Apply markup now (fallback for old cached offers or direct API calls)
+        console.log('   ⚠️ No markup found - applying markup to Duffel offer');
+        const duffelNetPrice = parseFloat(flightOffer.price.total);
+        const duffelMarkup = applyFlightMarkup(duffelNetPrice);
+
+        confirmedOffer = {
+          ...flightOffer,
+          price: {
+            ...flightOffer.price,
+            total: duffelMarkup.customerPrice.toString(),
+            grandTotal: duffelMarkup.customerPrice.toString(),
+            _netPrice: duffelNetPrice.toString(),
+            _markupAmount: duffelMarkup.markupAmount.toString(),
+            _markupPercentage: duffelMarkup.markupPercentage,
+          },
+        };
+        console.log(`   Applied markup: NET $${duffelNetPrice.toFixed(2)} → Customer $${duffelMarkup.customerPrice.toFixed(2)}`);
+      }
     } else {
       // Amadeus price confirmation
       try {
@@ -117,27 +154,58 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        confirmedOffer = priceConfirmation.data[0];
+        const confirmedNetOffer = priceConfirmation.data[0];
+        const confirmedNetPrice = parseFloat(confirmedNetOffer.price.total);
 
-        // Check if price has changed
-        const originalPrice = parseFloat(flightOffer.price.total);
-        const currentPrice = parseFloat(confirmedOffer.price.total);
+        // Check if NET price has changed (compare API prices, not marked-up prices)
+        if (Math.abs(confirmedNetPrice - originalNetPrice) > 1.00) { // $1 tolerance
+          console.log(`⚠️  NET Price changed: $${originalNetPrice.toFixed(2)} -> $${confirmedNetPrice.toFixed(2)}`);
 
-        if (Math.abs(currentPrice - originalPrice) > 0.01) {
-          console.log(`⚠️  Price changed: ${originalPrice} -> ${currentPrice}`);
+          // Apply markup to the NEW net price for customer display
+          const newMarkup = applyFlightMarkup(confirmedNetPrice);
+          const newCustomerPrice = newMarkup.customerPrice;
+
           return NextResponse.json(
             {
               error: 'PRICE_CHANGED',
               message: 'The price for this flight has changed. Please review the new price.',
-              originalPrice,
-              currentPrice,
-              newOffer: confirmedOffer,
+              originalPrice: originalCustomerPrice,
+              currentPrice: newCustomerPrice, // Show customer the new marked-up price
+              newOffer: {
+                ...confirmedNetOffer,
+                price: {
+                  ...confirmedNetOffer.price,
+                  total: newCustomerPrice.toString(),
+                  grandTotal: newCustomerPrice.toString(),
+                  _netPrice: confirmedNetPrice.toString(),
+                },
+              },
             },
             { status: 409 }
           );
         }
 
-        console.log('✅ Price confirmed, proceeding with booking...');
+        // CRITICAL: Apply markup to the confirmed NET price
+        // The API returns NET price, but we charge customer the marked-up price
+        const confirmedMarkup = applyFlightMarkup(confirmedNetPrice);
+
+        confirmedOffer = {
+          ...confirmedNetOffer,
+          price: {
+            ...confirmedNetOffer.price,
+            // Customer-facing price (with markup)
+            total: confirmedMarkup.customerPrice.toString(),
+            grandTotal: confirmedMarkup.customerPrice.toString(),
+            // Internal tracking (NET price for margin calculation)
+            _netPrice: confirmedNetPrice.toString(),
+            _markupAmount: confirmedMarkup.markupAmount.toString(),
+            _markupPercentage: confirmedMarkup.markupPercentage,
+          },
+        };
+
+        console.log(`✅ Price confirmed with markup:`);
+        console.log(`   NET (API): $${confirmedNetPrice.toFixed(2)}`);
+        console.log(`   Customer: $${confirmedMarkup.customerPrice.toFixed(2)} (+$${confirmedMarkup.markupAmount.toFixed(2)} markup)`);
       } catch (error: any) {
         console.error('Price confirmation error:', error);
 
@@ -205,6 +273,11 @@ export async function POST(request: NextRequest) {
     let bookingStatus: 'confirmed' | 'pending' = 'pending';
     let paymentStatus: 'pending' | 'paid' = 'pending';
 
+    // PRE-GENERATE booking reference BEFORE payment intent creation
+    // This ensures the webhook can find the booking after payment succeeds
+    const preGeneratedBookingRef = await bookingStorage.generateBookingReference();
+    console.log(`📋 Pre-generated booking reference: ${preGeneratedBookingRef}`);
+
     if (isHold) {
       // HOLD BOOKING: Reserve without immediate payment
       console.log('⏸️  Creating hold booking (pay later)...');
@@ -240,11 +313,12 @@ export async function POST(request: NextRequest) {
         console.log(`   Add-ons: ${addOnsAmount}`);
         console.log(`   Total: ${totalAmount} ${confirmedOffer.price.currency}`);
 
-        // Create payment intent with Stripe
+        // Create payment intent with Stripe using PRE-GENERATED booking reference
+        // CRITICAL: This ensures the webhook can match payment to booking!
         paymentIntent = await paymentService.createPaymentIntent({
           amount: totalAmount,
           currency: confirmedOffer.price.currency,
-          bookingReference: `TEMP-${Date.now()}`, // Temporary, will be updated
+          bookingReference: preGeneratedBookingRef, // Use pre-generated reference
           customerEmail: contactInfo?.email || passengers[0]?.email,
           customerName: `${passengers[0]?.firstName} ${passengers[0]?.lastName}`,
           description: `Flight booking: ${flightOffer.itineraries[0].segments[0].departure.iataCode} → ${flightOffer.itineraries[0].segments[flightOffer.itineraries[0].segments.length - 1].arrival.iataCode}`,
@@ -252,11 +326,13 @@ export async function POST(request: NextRequest) {
             flightOfferId: confirmedOffer.id,
             passengerCount: passengers.length.toString(),
             source: flightSource,
+            bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
           },
         });
 
         console.log('✅ Payment intent created successfully');
         console.log(`   Payment Intent ID: ${paymentIntent.paymentIntentId}`);
+        console.log(`   Booking Reference: ${preGeneratedBookingRef}`);
 
         // For now, booking stays pending until payment is confirmed by client
         bookingStatus = 'pending';
@@ -333,63 +409,71 @@ export async function POST(request: NextRequest) {
         throw error; // Re-throw to be caught by outer error handler
       }
     } else {
-      // ========== AMADEUS BOOKING ==========
-      console.log('✈️  Creating flight order with Amadeus...');
+      // ========== AMADEUS/GDS RESERVATION (MANUAL TICKETING WORKFLOW) ==========
+      // Amadeus flights are NOT booked through the API
+      // Instead, we create a RESERVATION in our system for manual ticketing via consolidator
+      console.log('✈️  Creating RESERVATION for Amadeus/GDS flight (manual ticketing)...');
       sourceApi = 'Amadeus';
 
-      // Ensure flight offer has valid source for Amadeus API
-      // Amadeus requires source to be 'GDS' for booking
-      const bookingOffer = {
-        ...confirmedOffer,
-        source: 'GDS', // Override source to valid Amadeus value
+      // Generate a unique reservation ID for tracking
+      // NOTE: This is NOT an actual airline booking yet - it's our internal reference
+      const reservationId = `RES-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Store flight offer details for manual ticketing
+      flightOrder = {
+        data: {
+          type: 'reservation-pending-ticketing',
+          id: reservationId,
+          flightOffer: confirmedOffer,
+          travelers: travelers,
+          // No PNR yet - will be assigned after manual ticketing
+          associatedRecords: [{
+            reference: 'PENDING', // Will be updated after manual issuance
+            creationDate: new Date().toISOString(),
+            originSystemCode: 'FLY2ANY',
+            status: 'pending_ticketing',
+          }],
+        },
+        meta: {
+          isReservation: true,
+          requiresManualTicketing: true,
+          message: 'This reservation requires manual ticketing through your consolidator.',
+        },
       };
 
-      flightOrder = await amadeusAPI.createFlightOrder({
-        flightOffers: [bookingOffer],
-        travelers,
-        remarks: {
-          general: [
-            {
-              subType: 'GENERAL_MISCELLANEOUS',
-              text: 'Booked via FLY2ANY',
-            },
-          ],
-        },
-        contacts: [
-          {
-            addresseeName: {
-              firstName: travelers[0].name.firstName,
-              lastName: travelers[0].name.lastName,
-            },
-            companyName: 'FLY2ANY',
-            purpose: 'STANDARD',
-            phones: [
-              {
-                deviceType: 'MOBILE',
-                countryCallingCode: '1',
-                number: travelers[0].contact.phones[0].number,
-              },
-            ],
-            emailAddress: travelers[0].contact.emailAddress,
-            address: {
-              lines: ['123 Main Street'], // Mock address line for Amadeus requirement
-              postalCode: '10001',
-              cityName: 'New York',
-              countryCode: travelers[0].documents?.[0]?.nationality || 'US',
-            },
-          },
-        ],
-      });
+      bookingId = reservationId;
+      pnr = 'PENDING'; // Will be updated after consolidator issues the ticket
+      isMockBooking = false; // This is a real reservation (pending ticketing)
 
-      // Extract booking details
-      bookingId = flightOrder.data?.id;
-      pnr = flightOrder.data?.associatedRecords?.[0]?.reference;
-      isMockBooking = flightOrder.meta?.mockData || false;
+      // Set booking status to pending_ticketing for Amadeus flights
+      bookingStatus = 'pending';
 
-      console.log('✅ Amadeus order created successfully!');
-      console.log(`   Booking ID: ${bookingId}`);
-      console.log(`   PNR: ${pnr}`);
-      console.log(`   Mock Booking: ${isMockBooking ? 'Yes (development mode)' : 'No (real booking)'}`);
+      console.log('✅ Amadeus/GDS RESERVATION created!');
+      console.log(`   Reservation ID: ${reservationId}`);
+      console.log(`   Status: PENDING TICKETING`);
+      console.log(`   ⚠️  Action Required: Manual ticket issuance via consolidator`);
+      console.log(`   Flight: ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}`);
+      console.log(`   Price: ${confirmedOffer.price?.total} ${confirmedOffer.price?.currency}`);
+
+      // Notify admin about new reservation requiring manual ticketing
+      try {
+        const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+        await notifyTelegramAdmins(`
+🎫 *NEW RESERVATION - Manual Ticketing Required*
+
+📋 *Reservation:* \`${reservationId}\`
+✈️ *Route:* ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.iataCode} → ${confirmedOffer.itineraries[0]?.segments[confirmedOffer.itineraries[0]?.segments.length - 1]?.arrival?.iataCode}
+📅 *Date:* ${confirmedOffer.itineraries[0]?.segments[0]?.departure?.at?.split('T')[0]}
+💰 *Price:* ${confirmedOffer.price?.currency} ${confirmedOffer.price?.total}
+✈️ *Airline:* ${confirmedOffer.validatingAirlineCodes?.[0] || 'N/A'}
+👤 *Passengers:* ${passengers.length}
+📧 *Contact:* ${contactInfo?.email || travelers[0]?.contact?.emailAddress}
+
+⏰ *Action:* Issue ticket via consolidator within 24h
+        `.trim());
+      } catch (notifyError) {
+        console.error('⚠️ Failed to send admin notification:', notifyError);
+      }
     }
 
     if (!bookingId) {
@@ -488,7 +572,13 @@ export async function POST(request: NextRequest) {
         cardBrand: payment.cardBrand || 'unknown',
       };
 
-      // Create booking in database
+      // Determine ticketing status based on source
+      // - Duffel: May auto-issue or require manual (depends on airline)
+      // - Amadeus/GDS: ALWAYS requires manual ticketing via consolidator
+      const ticketingStatusForBooking = sourceApi === 'Amadeus' ? 'pending_ticketing' : undefined;
+
+      // Create booking in database WITH PRE-GENERATED REFERENCE
+      // CRITICAL: Use preGeneratedBookingRef so webhook can find booking after payment
       const savedBooking = await bookingStorage.create({
         status: bookingStatus,
         contactInfo: bookingContactInfo,
@@ -515,7 +605,12 @@ export async function POST(request: NextRequest) {
         amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
         duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
         duffelBookingReference: sourceApi === 'Duffel' ? pnr : undefined,
-      });
+        // Manual Ticketing Workflow (Amadeus/GDS flights)
+        ticketingStatus: ticketingStatusForBooking,
+        airlineRecordLocator: sourceApi === 'Amadeus' ? 'PENDING' : pnr,
+        // Store customer vs consolidator pricing for margin tracking
+        customerPrice: totalAmount,
+      }, preGeneratedBookingRef); // Pass pre-generated reference for webhook matching
 
       console.log('✅ Booking saved to database!');
       console.log(`   Database ID: ${savedBooking.id}`);
@@ -637,6 +732,10 @@ Requires manual review.
         // Don't fail the booking if email fails
       }
 
+      // Determine booking status for response
+      const requiresManualTicketing = sourceApi === 'Amadeus';
+      const responseStatus = isHold ? 'HOLD' : (requiresManualTicketing ? 'PENDING_TICKETING' : 'PENDING_PAYMENT');
+
       // Return successful booking response
       return NextResponse.json(
         {
@@ -648,7 +747,7 @@ Requires manual review.
             amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
             duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
             pnr,
-            status: isHold ? 'HOLD' : 'PENDING_PAYMENT',
+            status: responseStatus,
             isMockBooking,
             flightDetails: confirmedOffer,
             travelers,
@@ -664,40 +763,82 @@ Requires manual review.
             holdPrice: holdPricing?.price,
             holdExpiresAt: holdPricing?.expiresAt?.toISOString(),
             holdTier: holdPricing?.tier,
+            // Manual Ticketing Workflow (Amadeus/GDS)
+            requiresManualTicketing,
+            ticketingStatus: requiresManualTicketing ? 'pending_ticketing' : 'auto',
           },
           message: isHold
             ? `Hold booking created via ${sourceApi}! Your booking is reserved for ${holdPricing?.duration} hours. Reference: ${savedBooking.bookingReference}`
-            : `Booking created via ${sourceApi}! Please complete payment. Your booking reference is ${savedBooking.bookingReference}`,
+            : requiresManualTicketing
+              ? `Reservation created! Your booking reference is ${savedBooking.bookingReference}. Your confirmation and e-ticket will be sent within 24 hours.`
+              : `Booking created via ${sourceApi}! Please complete payment. Your booking reference is ${savedBooking.bookingReference}`,
+          // Additional info for manual ticketing
+          ...(requiresManualTicketing && {
+            ticketingInfo: {
+              estimatedTicketingTime: '24 hours',
+              note: 'Our team will issue your ticket and send confirmation to your email.',
+            },
+          }),
         },
         { status: 201 }
       );
     } catch (dbError: any) {
-      console.error('❌ Database error:', dbError);
-      // Even if database save fails, the booking was created with the API
-      // Return success but note the database issue
+      // CRITICAL: Database save failed - booking exists in airline system but NOT in our DB!
+      // This is a CRITICAL error - we cannot manage/track/cancel this booking
+      console.error('❌ CRITICAL DATABASE ERROR - ORPHANED BOOKING:', dbError);
+      console.error(`   API Booking ID: ${bookingId}`);
+      console.error(`   PNR: ${pnr}`);
+      console.error(`   Source: ${sourceApi}`);
+
+      // Notify admins immediately about orphaned booking
+      try {
+        const { notifyTelegramAdmins } = await import('@/lib/notifications/notification-service');
+        await notifyTelegramAdmins(`
+🚨 *CRITICAL: ORPHANED BOOKING*
+
+A booking was created with ${sourceApi} but FAILED to save to database!
+
+📋 *Details:*
+• PNR: \`${pnr}\`
+• Order ID: \`${bookingId}\`
+• API: ${sourceApi}
+• Amount: ${confirmedOffer.price.currency} ${confirmedOffer.price.total}
+• Customer: ${contactInfo?.email || passengers[0]?.email}
+
+⚠️ *Action Required:*
+This booking EXISTS in the airline system but is NOT in our database.
+Manual intervention required to:
+1. Add booking to database manually
+2. Contact customer with confirmation
+3. Ensure payment is captured
+
+*Error:* ${dbError.message}
+        `.trim());
+      } catch (notifyError) {
+        console.error('Failed to send orphaned booking notification:', notifyError);
+      }
+
+      // RETURN ERROR - This is NOT a success!
+      // Customer needs to know there's a problem and contact support
       return NextResponse.json(
         {
-          success: true,
+          success: false,
+          error: 'DATABASE_SAVE_FAILED',
+          message: 'Your booking was created but we encountered an error saving it. Please contact support immediately with your confirmation number.',
+          // Include critical info so customer can reference it
           booking: {
-            id: bookingId,
-            sourceApi,
-            amadeusBookingId: sourceApi === 'Amadeus' ? bookingId : undefined,
-            duffelOrderId: sourceApi === 'Duffel' ? duffelOrderId : undefined,
             pnr,
-            status: 'CONFIRMED',
-            isMockBooking,
-            flightDetails: confirmedOffer,
-            travelers,
-            createdAt: new Date().toISOString(),
+            sourceApi,
+            apiBookingId: bookingId,
             totalPrice: confirmedOffer.price.total,
             currency: confirmedOffer.price.currency,
           },
-          warning: 'Booking created but database save failed. Please contact support.',
-          message: isMockBooking
-            ? `Mock booking created for development via ${sourceApi} (no real reservation made)`
-            : `Booking confirmed via ${sourceApi}! Your PNR is ${pnr}`,
+          supportInfo: {
+            email: 'support@fly2any.com',
+            urgency: 'Please contact us within 24 hours to ensure your booking is properly recorded.',
+          },
         },
-        { status: 201 }
+        { status: 500 }
       );
     }
   } catch (error: any) {

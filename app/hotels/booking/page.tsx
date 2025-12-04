@@ -196,11 +196,28 @@ function HotelCheckoutContent() {
           return;
         }
 
-        // Try to prebook to lock in price - this is CRITICAL for production
-        // Use ref to prevent duplicate calls (React Strict Mode / Fast Refresh)
-        if (offerId && !prebookCalledRef.current) {
-          prebookCalledRef.current = true;
-          await callPrebookAPI(offerId, hotelId);
+        // Check if this is a fallback rate (estimated pricing, no real-time API data)
+        const isFallbackRate = offerId.startsWith('fallback-');
+
+        if (isFallbackRate) {
+          // For fallback rates, skip prebook but show warning
+          console.warn('⚠️ Using fallback pricing - real-time rates unavailable');
+          // Set a mock prebook with the URL price
+          setPrebookData({
+            prebookId: `estimated-${hotelId}`,
+            status: 'pending',
+            price: { amount: price, currency: currency },
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 min from now
+          });
+          setError('Price Not Available. Unable to retrieve real-time pricing. The displayed price is an estimate from your search. Please go back and refresh rates, or contact the hotel directly to confirm availability and pricing.');
+          setPrebooking(false);
+        } else {
+          // Try to prebook to lock in price - this is CRITICAL for production
+          // Use ref to prevent duplicate calls (React Strict Mode / Fast Refresh)
+          if (offerId && !prebookCalledRef.current) {
+            prebookCalledRef.current = true;
+            await callPrebookAPI(offerId, hotelId);
+          }
         }
 
         // Create Stripe payment intent ONLY if Stripe is configured

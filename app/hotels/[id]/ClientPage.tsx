@@ -24,6 +24,11 @@ export default function HotelDetailPage() {
   const children = searchParams.get('children') || '0';
   const rooms = searchParams.get('rooms') || '1';
 
+  // FALLBACK: Get price from URL if API returns empty rates
+  const urlPrice = parseFloat(searchParams.get('price') || '0');
+  const urlPerNight = parseFloat(searchParams.get('perNight') || '0');
+  const urlCurrency = searchParams.get('currency') || 'USD';
+
   // Calculate total guests for display
   const totalGuests = parseInt(adults, 10) + parseInt(children, 10);
 
@@ -509,24 +514,36 @@ export default function HotelDetailPage() {
     : null;
   const lowestRate = hotel.rates && hotel.rates.length > 0 ? hotel.rates[0] : null;
   // Handle both Duffel API structure (totalPrice.amount) and mock data structure (total_amount)
-  const totalPrice = lowestRate
+  // CRITICAL: Use URL price as fallback if API returned no rates
+  const apiTotalPrice = lowestRate
     ? parseFloat(lowestRate.totalPrice?.amount || lowestRate.total_amount || '0')
     : 0;
+
+  // Use API price if available, otherwise fall back to URL params from search results
+  const totalPrice = apiTotalPrice > 0 ? apiTotalPrice : urlPrice;
+  const isUsingFallbackPrice = apiTotalPrice === 0 && urlPrice > 0;
 
   // Calculate per-room per-night price for consistent display across the journey
   // LiteAPI totalPrice.amount = TOTAL for all rooms × all nights
   // We need PER-ROOM PER-NIGHT for user-friendly display
   const roomsNum = parseInt(rooms, 10) || 1;
-  const perNightPrice = totalPrice > 0 ? totalPrice / nights / roomsNum : 0;
+  const perNightPrice = totalPrice > 0 ? totalPrice / nights / roomsNum : (urlPerNight / roomsNum || 0);
 
   // Selected room details for sidebar display
   const activeRoom = selectedRoom || lowestRate;
-  const activeRoomPrice = activeRoom
+  const activeRoomApiPrice = activeRoom
     ? parseFloat(activeRoom.totalPrice?.amount || activeRoom.total_amount || '0')
-    : totalPrice;
-  // PER-ROOM per-night for the selected room
-  const activeRoomPerNight = activeRoomPrice > 0 ? activeRoomPrice / nights / roomsNum : perNightPrice;
+    : 0;
+  // Use API price if available, otherwise fall back to calculated totalPrice (which includes URL fallback)
+  const activeRoomPrice = activeRoomApiPrice > 0 ? activeRoomApiPrice : totalPrice;
+  // PER-ROOM per-night for the selected room - use URL fallback if needed
+  const activeRoomPerNight = activeRoomPrice > 0
+    ? activeRoomPrice / nights / roomsNum
+    : (perNightPrice || (urlPerNight / roomsNum) || 0);
   const activeRoomName = activeRoom?.name || activeRoom?.room_type || activeRoom?.roomType || 'Standard Room';
+
+  // Flag for fallback pricing (either from API fallback or URL params)
+  const usingEstimatedPricing = isUsingFallbackPrice || activeRoomApiPrice === 0 || lowestRate?.isFallback || (hotel as any).ratesUnavailable;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -958,6 +975,7 @@ export default function HotelDetailPage() {
                             key={room.id || index}
                             room={transformedRoom}
                             nights={nights}
+                            rooms={roomsNum}  // Pass rooms for accurate per-room pricing
                             currency={currency}
                             isSelected={isThisRoomSelected}
                             onSelect={() => {
@@ -1102,9 +1120,9 @@ export default function HotelDetailPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 sticky top-24 overflow-hidden">
               {/* Premium Price Header - Shows Selected Room */}
-              <div className={`p-5 ${activeRoom?.isFallback || (hotel as any).ratesUnavailable ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`}>
+              <div className={`p-5 ${usingEstimatedPricing ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`}>
                 {/* Estimated Price Warning Badge */}
-                {(activeRoom?.isFallback || (hotel as any).ratesUnavailable) && (
+                {usingEstimatedPricing && (
                   <div className="mb-3">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/25 backdrop-blur-sm text-white rounded-lg text-xs font-semibold">
                       <Info className="w-3 h-3" />
@@ -1207,8 +1225,9 @@ export default function HotelDetailPage() {
                 {/* Primary CTA - Book Now (uses selected room) */}
                 <button
                   onClick={() => {
-                    const roomCurrency = activeRoom?.totalPrice?.currency || activeRoom?.currency || 'USD';
-                    const roomOfferId = activeRoom?.offerId || activeRoom?.id || '';
+                    const roomCurrency = activeRoom?.totalPrice?.currency || activeRoom?.currency || urlCurrency || 'USD';
+                    // Use fallback offerId when no valid offerId from API
+                    const roomOfferId = activeRoom?.offerId || activeRoom?.id || (usingEstimatedPricing ? `fallback-${hotelId}` : '');
                     const adultsNum = parseInt(adults, 10) || 2;
                     const childrenNum = parseInt(children, 10) || 0;
                     const roomsNum = parseInt(rooms, 10) || 1;

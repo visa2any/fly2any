@@ -47,6 +47,9 @@ import {
 } from '@/lib/routing';
 import type { CabinClass, RoutingChannel } from '@prisma/client';
 
+// Flight Markup System - Apply markup to all flights for revenue
+import { applyFlightMarkup, FLIGHT_MARKUP, determineRoutingChannel } from '@/lib/config/flight-markup';
+
 // Routing info added to each flight
 interface FlightRoutingInfo {
   channel: RoutingChannel;
@@ -169,8 +172,18 @@ function flightOfferToRoutingSegments(flight: FlightOffer | ScoredFlight): Routi
 /**
  * Extract base fare from flight offer
  * Base fare = total - taxes
+ *
+ * IMPORTANT: Uses NET price (before markup) if available for accurate
+ * commission/routing calculations. Customer-facing prices include markup.
  */
 function extractBaseFare(flight: FlightOffer | ScoredFlight): number {
+  // CRITICAL: Use NET price if markup was applied (for accurate commission calculation)
+  const netPrice = parseFloat(String((flight.price as any)?._netPrice || '0'));
+  if (netPrice > 0) {
+    // If we have net price, use it as base for routing calculations
+    return netPrice * 0.85; // Estimate base as ~85% of net total
+  }
+
   const total = parseFloat(String(flight.price?.total || '0'));
 
   // Try to get base from traveler pricing first (more accurate)
@@ -187,6 +200,20 @@ function extractBaseFare(flight: FlightOffer | ScoredFlight): number {
 
   // Estimate base as ~85% of total if no base available
   return total * 0.85;
+}
+
+/**
+ * Extract NET total fare (before markup) for routing calculations
+ */
+function extractNetFare(flight: FlightOffer | ScoredFlight): number {
+  // CRITICAL: Use NET price if markup was applied
+  const netPrice = parseFloat(String((flight.price as any)?._netPrice || '0'));
+  if (netPrice > 0) {
+    return netPrice;
+  }
+
+  // Fall back to total if no markup was applied
+  return parseFloat(String(flight.price?.total || '0'));
 }
 
 /**
@@ -212,7 +239,8 @@ async function enrichFlightsWithRouting(
         try {
           const segments = flightOfferToRoutingSegments(flight);
           const baseFare = extractBaseFare(flight);
-          const totalFare = parseFloat(String(flight.price?.total || '0'));
+          // CRITICAL: Use NET fare (before markup) for routing/commission calculations
+          const totalFare = extractNetFare(flight);
 
           // Skip if no segments or invalid fare
           if (!segments.length || totalFare <= 0) {
@@ -1093,9 +1121,70 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Apply AI scoring to all flights
-    let scoredFlights: ScoredFlight[] = flights.map(flight =>
-      calculateFlightScore(flight, flights)
+    // ============================================================================
+    // 💰 APPLY FLIGHT MARKUP TO ALL PRICES
+    // ============================================================================
+    // Markup Strategy:
+    // - Duffel/Amadeus flights: MAX($22 minimum, 7% of price), capped at $200
+    // - Consolidator flights: No markup (commission-based)
+    //
+    // NOTE: We apply the same markup to both Amadeus and Duffel prices since
+    // both are used for customer display. The routing decision (which channel
+    // to book through) uses NET prices stored internally.
+    // ============================================================================
+    console.log('💰 Applying flight markup to all prices...');
+
+    const markedUpFlights = flights.map((flight: FlightOffer) => {
+      const netPrice = parseFloat(String(flight.price?.total || '0'));
+      const source = flight.source?.toLowerCase() || 'unknown';
+
+      // Skip markup for consolidator flights (they have built-in commission)
+      // Consolidator flights would have source='consolidator' if coming from that channel
+      if (source === 'consolidator') {
+        console.log(`  ✓ ${flight.id}: $${netPrice.toFixed(2)} (Consolidator - no markup)`);
+        return flight;
+      }
+
+      // Apply markup using the flight markup config
+      const markupResult = applyFlightMarkup(netPrice);
+
+      // Update flight price with customer-facing price (including markup)
+      const markedUpFlight = {
+        ...flight,
+        price: {
+          ...flight.price,
+          total: markupResult.customerPrice.toString(),
+          grandTotal: markupResult.customerPrice.toString(),
+          // Store net price internally for routing/commission calculations
+          _netPrice: netPrice.toString(),
+          _markupAmount: markupResult.markupAmount.toString(),
+          _markupPercentage: markupResult.markupPercentage,
+        },
+        // Update traveler pricing if exists
+        travelerPricings: flight.travelerPricings?.map((tp: any) => ({
+          ...tp,
+          price: {
+            ...tp.price,
+            total: markupResult.customerPrice.toString(),
+          },
+        })),
+      };
+
+      console.log(`  ✓ ${flight.id?.slice(-8)} (${source}): $${netPrice.toFixed(2)} → $${markupResult.customerPrice.toFixed(2)} (+$${markupResult.markupAmount.toFixed(2)} / ${markupResult.markupPercentage}%)`);
+
+      return markedUpFlight;
+    });
+
+    // Calculate and log total markup applied
+    const totalNetPrice = flights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
+    const totalMarkedUpPrice = markedUpFlights.reduce((sum: number, f: FlightOffer) => sum + parseFloat(String(f.price?.total || '0')), 0);
+    const totalMarkup = totalMarkedUpPrice - totalNetPrice;
+
+    console.log(`💰 Markup Summary: ${flights.length} flights | Net: $${totalNetPrice.toFixed(2)} | Marked Up: $${totalMarkedUpPrice.toFixed(2)} | Total Markup: $${totalMarkup.toFixed(2)}`);
+
+    // Apply AI scoring to all flights (using marked-up prices)
+    let scoredFlights: ScoredFlight[] = markedUpFlights.map(flight =>
+      calculateFlightScore(flight, markedUpFlights)
     );
 
     // Add persuasion badges

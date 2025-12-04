@@ -5,6 +5,7 @@ import { Users, Utensils, Shield, X, BedDouble, Maximize2, Coffee, Star, Sparkle
 export interface CompactRoomCardProps {
   room: any;
   nights: number;
+  rooms?: number;  // Number of rooms for accurate per-room pricing
   currency: string;
   onSelect: () => void;
   isSelected?: boolean;
@@ -59,6 +60,7 @@ const getCurrencySymbol = (curr: string) => {
 export function CompactRoomCard({
   room,
   nights,
+  rooms = 1,  // Default to 1 room for backwards compatibility
   currency,
   onSelect,
   isSelected = false,
@@ -67,8 +69,11 @@ export function CompactRoomCard({
   const t = translations[lang];
   const currencySymbol = getCurrencySymbol(currency);
 
-  const perNightPrice = parseFloat(room.totalPrice?.amount || '0') / nights;
-  const totalPrice = parseFloat(room.totalPrice?.amount || '0');
+  // CRITICAL: LiteAPI totalPrice.amount is TOTAL for all rooms × all nights
+  // Divide by BOTH nights AND rooms to get per-room-per-night price
+  const totalPriceAll = parseFloat(room.totalPrice?.amount || '0');
+  const perNightPrice = totalPriceAll / nights / (rooms || 1);
+  const totalPrice = totalPriceAll; // Keep original for total display
 
   // Get bed type - now properly extracted from room name by API
   const bedType = room.bedType || 'Standard Bed';
@@ -177,10 +182,10 @@ export function CompactRoomCard({
                 <span className="font-black text-slate-900 text-xl leading-none">
                   {currencySymbol}{Math.round(perNightPrice)}
                 </span>
-                <span className="text-slate-500 text-xs">/night</span>
+                <span className="text-slate-500 text-xs">{rooms > 1 ? '/room/night' : '/night'}</span>
               </div>
               <div className="text-slate-500 text-xs mt-0.5">
-                {nights} nights: <span className="font-bold text-slate-800">{currencySymbol}{Math.round(totalPrice).toLocaleString()}</span>
+                {rooms > 1 ? `${rooms} rooms × ${nights} nights` : `${nights} nights`}: <span className="font-bold text-slate-800">{currencySymbol}{Math.round(totalPrice).toLocaleString()}</span>
               </div>
             </div>
           </div>

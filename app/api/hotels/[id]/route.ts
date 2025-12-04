@@ -79,16 +79,26 @@ export async function GET(
       });
 
       // Try to get from cache (30 minutes TTL)
+      // IMPORTANT: Skip cache if it has empty rates (stale data)
       const cached = await getCached<any>(cacheKey);
       if (cached) {
-        console.log(`✅ Returning cached LiteAPI hotel details for ${accommodationId}`);
-        return NextResponse.json(cached, {
-          headers: {
-            'X-Cache-Status': 'HIT',
-            'X-API-Source': 'LITEAPI',
-            'Cache-Control': 'public, max-age=1800',
-          }
-        });
+        // Only use cache if it has valid rates data
+        const hasValidRates = cached?.data?.rates?.length > 0 &&
+                              !cached?.data?.ratesUnavailable &&
+                              cached?.data?.rates?.[0]?.totalPrice?.amount > 0;
+
+        if (hasValidRates) {
+          console.log(`✅ Returning cached LiteAPI hotel details for ${accommodationId}`);
+          return NextResponse.json(cached, {
+            headers: {
+              'X-Cache-Status': 'HIT',
+              'X-API-Source': 'LITEAPI',
+              'Cache-Control': 'public, max-age=1800',
+            }
+          });
+        } else {
+          console.log(`⚠️ Cached data has empty/invalid rates, fetching fresh data for ${accommodationId}`);
+        }
       }
 
       try {
@@ -515,19 +525,59 @@ export async function GET(
               formattedResponse.data.rates = rates;
               console.log(`✅ [LITEAPI] Found ${rates.length} unique room types (from ${hotelRates.roomTypes?.length || 0} total)`);
             }
+
+            // CRITICAL FIX: If API succeeded but returned no rates, create fallback
+            if (formattedResponse.data.rates.length === 0) {
+              console.warn(`⚠️ [LITEAPI] API returned empty rates for ${accommodationId}`);
+
+              if (fallbackPrice > 0 || fallbackPerNight > 0) {
+                const calculatedTotal = fallbackPrice > 0 ? fallbackPrice :
+                  (fallbackPerNight * Math.max(1, Math.ceil((new Date(checkOut!).getTime() - new Date(checkIn!).getTime()) / (1000 * 60 * 60 * 24))));
+
+                console.log(`🔄 [LITEAPI] Using fallback price from search: $${calculatedTotal} ${fallbackCurrency}`);
+
+                formattedResponse.data.rates = [{
+                  id: 'fallback-rate',
+                  offerId: `fallback-${accommodationId}`, // Use a fallback offerId for prebook
+                  roomName: 'Standard Room',
+                  name: 'Standard Room',
+                  bedType: 'Standard Bed',
+                  maxGuests: adults + children,
+                  totalPrice: {
+                    amount: String(calculatedTotal),
+                    currency: fallbackCurrency,
+                  },
+                  refundable: false,
+                  breakfastIncluded: false,
+                  amenities: [],
+                  images: images.length > 1 ? [images[1]] : [],
+                  rateOptions: 1,
+                  isFallback: true,
+                  allRates: [],
+                  adults: adults,
+                  children: children,
+                  rooms: rooms,
+                }];
+                (formattedResponse.data as any).ratesUnavailable = true;
+                (formattedResponse.data as any).ratesFallbackReason = 'Live rates temporarily unavailable. Showing estimated price from search.';
+              } else {
+                (formattedResponse.data as any).ratesUnavailable = true;
+                (formattedResponse.data as any).ratesFallbackReason = 'Room rates are temporarily unavailable. Please try again.';
+              }
+            }
           } catch (ratesError) {
             console.error('⚠️ [LITEAPI] Failed to fetch rates after retries:', ratesError);
 
             // Create fallback rate from search results price if available
             if (fallbackPrice > 0 || fallbackPerNight > 0) {
               const calculatedTotal = fallbackPrice > 0 ? fallbackPrice :
-                (fallbackPerNight * Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))));
+                (fallbackPerNight * Math.max(1, Math.ceil((new Date(checkOut!).getTime() - new Date(checkIn!).getTime()) / (1000 * 60 * 60 * 24))));
 
-              console.log(`🔄 [LITEAPI] Using fallback price from search: $${calculatedTotal} ${fallbackCurrency}`);
+              console.log(`🔄 [LITEAPI] Using fallback price from search (error recovery): $${calculatedTotal} ${fallbackCurrency}`);
 
               formattedResponse.data.rates = [{
                 id: 'fallback-rate',
-                offerId: '',
+                offerId: `fallback-${accommodationId}`, // Use a fallback offerId for prebook
                 roomName: 'Standard Room',
                 name: 'Standard Room',
                 bedType: 'Standard Bed',

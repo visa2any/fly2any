@@ -45,8 +45,13 @@ class BookingStorage {
 
   /**
    * Create a new booking
+   * @param booking - Booking data without id/timestamps
+   * @param preGeneratedRef - Optional pre-generated booking reference (for payment intent matching)
    */
-  async create(booking: Omit<Booking, 'id' | 'bookingReference' | 'createdAt' | 'updatedAt'>): Promise<Booking> {
+  async create(
+    booking: Omit<Booking, 'id' | 'bookingReference' | 'createdAt' | 'updatedAt'>,
+    preGeneratedRef?: string
+  ): Promise<Booking> {
     if (!sql) {
       throw new Error('Database not configured');
     }
@@ -54,7 +59,8 @@ class BookingStorage {
     try {
       const now = new Date().toISOString();
       const id = this.generateBookingId();
-      const bookingReference = await this.generateBookingReference();
+      // Use pre-generated reference if provided, otherwise generate new one
+      const bookingReference = preGeneratedRef || await this.generateBookingReference();
 
       const newBooking: Booking = {
         ...booking,

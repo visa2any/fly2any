@@ -1544,10 +1544,17 @@ class AmadeusAPI {
     contacts?: any[];
   }) {
     // Validate that we have credentials (avoid calling API without auth)
-    if (!this.apiKey || !this.apiSecret) {
-      console.warn('⚠️  Amadeus API credentials not configured - cannot create booking');
+    if (!this.isValidCredentials) {
+      console.error('❌ Amadeus API credentials not configured - CANNOT create booking');
 
-      // Return mock booking for development
+      // CRITICAL: In production, NEVER create mock bookings
+      // Customers would think they have real reservations!
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('API_ERROR: Flight booking system unavailable. Please try again or contact support.');
+      }
+
+      // Only in development: Return mock booking for testing
+      console.warn('⚠️  Development mode: Using mock booking data');
       return this.getMockFlightOrder(payload);
     }
 
@@ -1653,8 +1660,14 @@ class AmadeusAPI {
         throw new Error('API_ERROR: The booking system is experiencing issues. Please try again in a few moments.');
       }
 
-      // Fallback to mock data for development
-      console.log('🧪 Falling back to mock flight order for development');
+      // CRITICAL: In production, NEVER fall back to mock data
+      // This would create fake bookings that customers think are real!
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(`API_ERROR: Failed to create booking - ${error.message || 'Unknown error'}. Please try again or contact support.`);
+      }
+
+      // Only in development: Fallback to mock data for testing
+      console.log('🧪 Development mode: Falling back to mock flight order');
       return this.getMockFlightOrder(payload);
     }
   }
