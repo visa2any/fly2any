@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, TrendingUp, Users } from 'lucide-react';
+import { Check, TrendingUp, Users, X, AlertCircle } from 'lucide-react';
 import { colors, spacing, typography, dimensions } from '@/lib/design-system';
 
 interface FareOption {
@@ -101,16 +101,12 @@ export function FareSelector({
         </div>
       )}
 
-      {/* Fare Cards Grid - adjust columns based on fare count */}
+      {/* Fare Cards Grid - compact 2-column layout for more fares */}
       <div
         className={`grid gap-2 ${
           isSingleFare
-            ? 'grid-cols-1 max-w-md'
-            : fares.length === 2
-              ? 'grid-cols-1 md:grid-cols-2'
-              : fares.length === 3
-                ? 'grid-cols-1 md:grid-cols-3'
-                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+            ? 'grid-cols-1 max-w-sm'
+            : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
         }`}
         role="radiogroup"
         aria-label="Select fare option"
@@ -127,55 +123,75 @@ export function FareSelector({
               aria-checked={isSelected}
               aria-label={`${fare.name} fare, ${fare.currency} ${typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}`}
               className={`
-                relative p-3 rounded-lg border-2 text-left transition-all duration-300 transform hover:-translate-y-1
+                relative p-2.5 rounded-lg border-2 text-left transition-all duration-200 transform hover:-translate-y-0.5
                 ${isSelected
-                  ? 'border-primary-500 bg-primary-50 shadow-md scale-[1.02]'
+                  ? 'border-primary-500 bg-primary-50 shadow-md'
                   : 'border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm'
                 }
-                ${isRecommended ? 'ring-2 ring-primary-200 ring-offset-2' : ''}
+                ${isRecommended ? 'ring-2 ring-primary-200 ring-offset-1' : ''}
               `}
             >
               {/* Recommended Badge */}
               {isRecommended && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                  <span>⭐</span> RECOMMENDED
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                  <span>⭐</span> BEST
                 </div>
               )}
 
               {/* Selected Checkmark */}
               {isSelected && (
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center shadow-md">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center shadow-sm">
+                  <Check className="w-3 h-3 text-white" />
                 </div>
               )}
 
               {/* Fare Name & Price */}
-              <div className="mb-2 mt-1.5">
-                <h3 className="text-sm font-bold text-gray-900 mb-0.5">{fare.name}</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {fare.currency} {typeof fare.price === 'number' ? fare.price.toFixed(2) : fare.price}
+              <div className="mb-1.5 mt-1">
+                <h3 className="text-xs font-bold text-gray-900 mb-0.5 truncate">{fare.name}</h3>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-lg font-bold text-gray-900">
+                    {fare.currency} {typeof fare.price === 'number' ? fare.price.toFixed(0) : fare.price}
                   </span>
                   {fare.popularityPercent && fare.popularityPercent > 50 && (
-                    <span className="text-xs text-primary-600 font-medium">POPULAR</span>
+                    <span className="text-[9px] text-primary-600 font-medium">★</span>
                   )}
                 </div>
               </div>
 
-              {/* Features List */}
-              <ul className="space-y-1 mb-1.5">
-                {fare.features.slice(0, 4).map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-700">
-                    <Check className="w-3.5 h-3.5 text-success-500 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
+              {/* Features List - compact */}
+              <ul className="space-y-0.5 mb-1">
+                {fare.features.slice(0, 3).map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-1 text-[10px] text-gray-600">
+                    <Check className="w-3 h-3 text-success-500 flex-shrink-0" />
+                    <span className="truncate">{feature}</span>
                   </li>
                 ))}
+                {fare.features.length > 3 && (
+                  <li className="text-[9px] text-gray-400 pl-4">+{fare.features.length - 3} more</li>
+                )}
               </ul>
 
-              {/* Restrictions (if any) */}
+              {/* Restrictions (if any) - clear policy display */}
               {fare.restrictions && fare.restrictions.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">{fare.restrictions[0]}</p>
+                <div className="pt-1.5 mt-1 border-t border-gray-100">
+                  <div className="space-y-0.5">
+                    {fare.restrictions.slice(0, 2).map((restriction, idx) => (
+                      <div key={idx} className="flex items-center gap-1 text-[9px]">
+                        <X className="w-2.5 h-2.5 text-red-400 flex-shrink-0" />
+                        <span className="text-red-500 font-medium">{restriction}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Show positive flexibility for fares without restrictions */}
+              {(!fare.restrictions || fare.restrictions.length === 0) && (
+                <div className="pt-1.5 mt-1 border-t border-gray-100">
+                  <div className="flex items-center gap-1 text-[9px]">
+                    <Check className="w-2.5 h-2.5 text-green-500 flex-shrink-0" />
+                    <span className="text-green-600 font-medium">Flexible booking</span>
+                  </div>
                 </div>
               )}
             </button>

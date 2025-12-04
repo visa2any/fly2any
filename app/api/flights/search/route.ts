@@ -846,17 +846,54 @@ export async function POST(request: NextRequest) {
             fareVariants: variants.map((v, idx) => {
               const price = parseFloat(String(v.price?.total || '0'));
               const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
-              const fareName = fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
+              const brandedFare = (fareDetails?.brandedFareLabel || fareDetails?.brandedFare || '').toUpperCase();
+              const cabin = fareDetails?.cabin || 'ECONOMY';
+
+              // Map cabin class to display-friendly name
+              const cabinDisplayName: Record<string, string> = {
+                'ECONOMY': 'Economy',
+                'PREMIUM_ECONOMY': 'Premium Economy',
+                'BUSINESS': 'Business',
+                'FIRST': 'First Class',
+              };
+              const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
+
+              // Determine fare type from branded fare
+              let fareType = 'Standard';
+              if (brandedFare.includes('BASIC') || brandedFare.includes('LIGHT') || brandedFare.includes('SAVER')) {
+                fareType = 'Basic';
+              } else if (brandedFare.includes('FLEX') || brandedFare.includes('FLEXI') || brandedFare.includes('FULL')) {
+                fareType = 'Flex';
+              } else if (brandedFare.includes('PLUS') || brandedFare.includes('PREMIUM') || brandedFare.includes('COMFORT')) {
+                fareType = 'Plus';
+              } else if (idx === 0 && variants.length > 1) {
+                fareType = 'Basic';
+              } else if (idx === variants.length - 1 && variants.length > 2 && cabin === 'ECONOMY') {
+                fareType = 'Flex';
+              }
+
+              // Combine cabin class + fare type for clear display
+              const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
+
+              // Extract restrictions for clear policies
+              const conditions = (v as any).conditions;
+              const restrictions: string[] = [];
+              if (!conditions?.changeable) restrictions.push('No changes allowed');
+              if (!conditions?.refundable) restrictions.push('Non-refundable');
+              if (conditions?.changeable && conditions?.changePenalty) restrictions.push(`Change fee: ${conditions.changePenalty}`);
+              if (conditions?.refundable && conditions?.refundPenalty) restrictions.push(`Cancel fee: ${conditions.refundPenalty}`);
 
               return {
                 id: v.id,
-                name: fareName.toUpperCase(),
+                name: displayName,
                 price: price,
                 currency: v.price?.currency || 'USD',
                 originalOffer: v, // Store full offer for booking
                 features: extractFareFeatures(v, fareDetails),
+                restrictions: restrictions.length > 0 ? restrictions : undefined,
                 recommended: idx === 1 && variants.length > 1, // Second option usually best value
                 popularityPercent: idx === 0 ? 26 : idx === 1 ? 74 : 18,
+                cabinClass: cabin, // Store cabin class for reference
               };
             }),
             fareVariantCount: variants.length,

@@ -167,10 +167,11 @@ function BookingPageContent() {
 
           realFares = flight.fareVariants.map((variant: any, index: number) => ({
             id: variant.id,
-            name: variant.name || 'ECONOMY',
+            name: variant.name || 'Economy Standard',
             price: variant.price,
             currency: variant.currency || 'USD',
             features: variant.features || ['Economy seat', 'Carry-on included'],
+            restrictions: variant.restrictions || undefined, // Include restrictions from search API
             recommended: variant.recommended || false,
             popularityPercent: variant.popularityPercent || (index === 0 ? 26 : index === 1 ? 74 : 18),
             originalOffer: variant.originalOffer, // Keep original offer for booking
@@ -207,16 +208,35 @@ function BookingPageContent() {
                   // Extract baggage info
                   const baggage = fareDetails?.includedCheckedBags?.quantity || 0;
 
-                  // Determine fare name from branded fare or cabin
-                  let fareName = brandedFare || cabin;
-                  if (fareName.includes('BASIC')) fareName = 'BASIC';
-                  else if (fareName.includes('ECONOMY') && index === 0) fareName = 'BASIC';
-                  else if (fareName.includes('FLEX') || fareName.includes('FLEXI')) fareName = 'FLEX';
-                  else if (fareName.includes('BUSINESS')) fareName = 'BUSINESS';
-                  else if (fareName.includes('FIRST')) fareName = 'FIRST CLASS';
-                  else if (index === 0) fareName = 'BASIC';
-                  else if (index === upsellingData.fareOptions.length - 1) fareName = 'PREMIUM';
-                  else fareName = 'STANDARD';
+                  // Map cabin class to display-friendly name
+                  const cabinDisplayName: Record<string, string> = {
+                    'ECONOMY': 'Economy',
+                    'PREMIUM_ECONOMY': 'Premium Economy',
+                    'BUSINESS': 'Business',
+                    'FIRST': 'First Class',
+                  };
+                  const cabinPrefix = cabinDisplayName[cabin] || 'Economy';
+
+                  // Determine fare type from branded fare
+                  let fareType = '';
+                  const brandedFareUpper = (brandedFare || '').toUpperCase();
+                  if (brandedFareUpper.includes('BASIC') || brandedFareUpper.includes('LIGHT') || brandedFareUpper.includes('SAVER')) {
+                    fareType = 'Basic';
+                  } else if (brandedFareUpper.includes('FLEX') || brandedFareUpper.includes('FLEXI') || brandedFareUpper.includes('FULL')) {
+                    fareType = 'Flex';
+                  } else if (brandedFareUpper.includes('PREMIUM') || brandedFareUpper.includes('PLUS')) {
+                    fareType = 'Plus';
+                  } else if (index === 0) {
+                    fareType = 'Basic';
+                  } else if (index === upsellingData.fareOptions.length - 1 && cabin === 'ECONOMY') {
+                    fareType = 'Flex';
+                  } else {
+                    fareType = 'Standard';
+                  }
+
+                  // Combine cabin class + fare type for clear display
+                  // e.g., "Economy Basic", "Premium Economy Standard", "Business Flex"
+                  const fareName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
 
                   // Build features list from fare details
                   const features: string[] = [];
@@ -245,16 +265,20 @@ function BookingPageContent() {
                     features.push('Economy seat');
                   }
 
+                  // Build restrictions list based on fare type
+                  const restrictions: string[] = [];
+
                   // Add generic benefits based on fare type
-                  if (fareName === 'FLEX' || fareName === 'PREMIUM') {
+                  if (fareType === 'Flex' || fareType === 'Plus') {
                     features.push('Free changes');
-                    features.push('Refundable (-25% fee)');
-                  } else if (fareName === 'STANDARD') {
+                    features.push('Refundable');
+                  } else if (fareType === 'Standard') {
                     features.push('Changes allowed (+fee)');
-                  } else if (fareName === 'BASIC') {
+                    restrictions.push('Cancellation fee applies');
+                  } else if (fareType === 'Basic') {
                     features.push('Seat assignment fee');
-                    features.push('No changes');
-                    features.push('No refunds');
+                    restrictions.push('No changes allowed');
+                    restrictions.push('Non-refundable');
                   }
 
                   return {
@@ -263,6 +287,7 @@ function BookingPageContent() {
                     price: parseFloat(fareOffer.price.total),
                     currency: fareOffer.price.currency,
                     features: features.slice(0, 5), // Limit to 5 features for UI
+                    restrictions: restrictions.length > 0 ? restrictions : undefined,
                     recommended: index === 1, // Second option usually best value
                     popularityPercent: index === 0 ? 26 : index === 1 ? 74 : index === 2 ? 18 : 4,
                   };
