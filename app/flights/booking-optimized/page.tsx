@@ -391,24 +391,25 @@ function BookingPageContent() {
                 });
               }
 
-              // SEATS - Real from Duffel seat map
-              if (data.seats?.hasRealData && data.seats?.options?.length > 0) {
-                ancillaryCategories.push({
-                  id: 'seats',
-                  name: 'SEAT SELECTION',
-                  icon: 'seat' as const,
-                  subtitle: 'Choose your seat',
-                  proTip: '✅ Real seat availability • Interactive seat map available',
-                  items: data.seats.options.map((seat: any) => ({
-                    id: seat.id,
-                    name: seat.name,
-                    description: seat.description,
-                    price: seat.price,
-                    currency: seat.currency,
-                    selected: false,
-                  })),
-                });
-              }
+              // SEATS - Always show seat selection tab with interactive seat map button
+              // Seat selection is done via the seat map modal, not individual seat options
+              ancillaryCategories.push({
+                id: 'seats',
+                name: 'SEAT SELECTION',
+                icon: 'seat' as const,
+                subtitle: 'Choose your preferred seat',
+                proTip: '✅ Interactive seat map • Select exact seat for each passenger',
+                items: data.seats?.options?.length > 0
+                  ? data.seats.options.map((seat: any) => ({
+                      id: seat.id,
+                      name: seat.name,
+                      description: seat.description,
+                      price: seat.price,
+                      currency: seat.currency,
+                      selected: false,
+                    }))
+                  : [], // Empty items - seats selected via seat map modal
+              });
 
               // NOTE: Insurance, WiFi, Meals, Lounge, Priority are NOT available via airline APIs
               // These require third-party integrations which are not yet implemented

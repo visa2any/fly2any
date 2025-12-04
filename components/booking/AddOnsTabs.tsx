@@ -154,6 +154,14 @@ export function AddOnsTabs({ categories, onAddOnToggle, onViewSeatMap }: AddOnsT
 
           {/* Add-On Items (Grid for compactness) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+            {/* Special message for seats category when using seat map */}
+            {activeCategory.id === 'seats' && activeCategory.items.length === 0 && onViewSeatMap && (
+              <div className="col-span-full text-center py-4">
+                <Armchair className="w-8 h-8 text-primary-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-700 font-medium">Select your seats using our interactive seat map</p>
+                <p className="text-xs text-gray-500 mt-1">See real-time availability and prices for each seat</p>
+              </div>
+            )}
             {activeCategory.items.map((item) => {
               const isBaggage = activeCategory.id === 'baggage' && item.quantity;
               const currentQuantity = itemQuantities[item.id] || item.quantity?.selected || 0;
