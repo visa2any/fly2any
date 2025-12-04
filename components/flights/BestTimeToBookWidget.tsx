@@ -171,8 +171,9 @@ const BestTimeToBookWidget: React.FC<BestTimeToBookWidgetProps> = ({
 
       try {
         // Calculate days until departure
+        // Append T00:00:00 to ensure date is parsed as local midnight, not UTC
         const today = new Date();
-        const departure = new Date(departureDate);
+        const departure = new Date(departureDate + 'T00:00:00');
         const daysUntilDeparture = Math.ceil((departure.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
         // Simulate historical data analysis

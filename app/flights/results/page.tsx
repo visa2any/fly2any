@@ -155,16 +155,16 @@ const applyFilters = (flights: ScoredFlight[], filters: FlightFiltersType): Scor
       return false;
     }
 
-    // 2. ✅ FIXED: Stops filter - Check BOTH outbound AND return flights
+    // 2. ✅ FIXED: Stops filter - Check OUTBOUND flight only (most user-friendly behavior)
+    // For round-trips, users typically filter by outbound stops. Return flight is secondary.
+    // Use the separate "From Nonstop" / "To Nonstop" checkboxes for granular control.
     if (filters.stops.length > 0) {
-      // For round-trip, BOTH flights must match the stops criteria
-      const allItinerariesMatch = itineraries.every(itinerary => {
-        const stopsCategory = getStopsCategory(itinerary.segments.length);
-        return filters.stops.includes(stopsCategory);
-      });
-
-      if (!allItinerariesMatch) {
-        return false;
+      const outboundItinerary = itineraries[0];
+      if (outboundItinerary) {
+        const outboundStopsCategory = getStopsCategory(outboundItinerary.segments.length);
+        if (!filters.stops.includes(outboundStopsCategory)) {
+          return false;
+        }
       }
     }
 

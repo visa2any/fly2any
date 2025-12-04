@@ -79,7 +79,10 @@ const getCabinClassName = (cabin: string, lang: 'en' | 'pt' | 'es'): string => {
 
 const formatCompactDate = (dateString: string): string => {
   try {
-    return format(new Date(dateString), 'MMM d');
+    // Append T00:00:00 to ensure date is parsed as local midnight, not UTC
+    // This prevents timezone shifts where "2026-03-06" becomes March 7th
+    const localDate = new Date(dateString + 'T00:00:00');
+    return format(localDate, 'MMM d');
   } catch {
     return dateString;
   }

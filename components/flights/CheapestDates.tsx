@@ -144,7 +144,8 @@ export default function CheapestDates({ origin, destination, onSelectDate }: Che
             textColor = 'text-yellow-700';
           }
 
-          const date = new Date(datePrice.departureDate);
+          // Append T00:00:00 to ensure date is parsed as local midnight, not UTC
+          const date = new Date(datePrice.departureDate + 'T00:00:00');
 
           return (
             <button

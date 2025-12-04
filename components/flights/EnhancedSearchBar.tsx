@@ -681,9 +681,11 @@ export default function EnhancedSearchBar({
       ? additionalFlights[additionalFlights.length - 1].departureDate
       : departureDate;
 
-    const newDate = new Date(lastDate || new Date());
+    // Append T00:00:00 to ensure date is parsed as local midnight, not UTC
+    const newDate = lastDate ? new Date(lastDate + 'T00:00:00') : new Date();
     newDate.setDate(newDate.getDate() + 3);
-    const newDateString = newDate.toISOString().split('T')[0];
+    // Format as YYYY-MM-DD without timezone conversion
+    const newDateString = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
 
     const newFlight: AdditionalFlight = {
       id: `flight-${Date.now()}`,
