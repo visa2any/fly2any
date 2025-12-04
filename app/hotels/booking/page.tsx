@@ -1037,7 +1037,7 @@ function HotelCheckoutContent() {
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-blue-300 flex-shrink-0" />
                         <span className="font-semibold text-white text-xs">
-                          {new Date(hotelData.checkIn).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          {(() => { const [y, m, d] = hotelData.checkIn.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); })()}
                         </span>
                         <span className="text-blue-200 text-xs font-medium">· 3PM</span>
                       </div>
@@ -1048,7 +1048,7 @@ function HotelCheckoutContent() {
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-indigo-300 flex-shrink-0" />
                         <span className="font-semibold text-white text-xs">
-                          {new Date(hotelData.checkOut).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          {(() => { const [y, m, d] = hotelData.checkOut.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); })()}
                         </span>
                         <span className="text-blue-200 text-xs font-medium">· 11AM</span>
                       </div>

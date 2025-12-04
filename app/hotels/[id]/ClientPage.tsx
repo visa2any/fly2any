@@ -1157,7 +1157,7 @@ export default function HotelDetailPage() {
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Check-in</p>
                         <p className="text-xs font-semibold text-slate-800 truncate">
-                          {checkIn ? new Date(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Select'}
+                          {checkIn ? (() => { const [y, m, d] = checkIn.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })() : 'Select'}
                         </p>
                         <p className="text-[9px] text-slate-400">{hotel.checkInTime || '3:00 PM'}</p>
                       </div>
@@ -1171,7 +1171,7 @@ export default function HotelDetailPage() {
                       <div className="min-w-0">
                         <p className="text-[10px] text-slate-500 leading-tight">Check-out</p>
                         <p className="text-xs font-semibold text-slate-800 truncate">
-                          {checkOut ? new Date(checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Select'}
+                          {checkOut ? (() => { const [y, m, d] = checkOut.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); })() : 'Select'}
                         </p>
                         <p className="text-[9px] text-slate-400">{hotel.checkOutTime || '11:00 AM'}</p>
                       </div>

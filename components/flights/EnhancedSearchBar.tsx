@@ -2170,6 +2170,33 @@ export default function EnhancedSearchBar({
                       </div>
                     </div>
                   </div>
+                  {/* Child Ages - Inside Dropdown */}
+                  {hotelChildren > 0 && (
+                    <div className="mb-3 bg-violet-50/70 rounded-lg p-2 border border-violet-200">
+                      <p className="text-[10px] font-semibold text-violet-700 mb-1 flex items-center gap-1">
+                        <Baby size={12} className="text-violet-600" />
+                        Child Ages
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {Array.from({ length: hotelChildren }).map((_, index) => (
+                          <select
+                            key={index}
+                            value={hotelChildAges[index] || 8}
+                            onChange={(e) => {
+                              const newAges = [...hotelChildAges];
+                              newAges[index] = parseInt(e.target.value);
+                              setHotelChildAges(newAges);
+                            }}
+                            className="px-2 py-1 border border-violet-300 rounded text-xs font-medium focus:ring-2 focus:ring-violet-500 bg-white"
+                          >
+                            {Array.from({ length: 15 }, (_, i) => i + 3).map(age => (
+                              <option key={age} value={age}>{age}y</option>
+                            ))}
+                          </select>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {/* Done Button */}
                   <button onClick={() => setShowPassengerDropdown(false)} className="w-full py-2 bg-[#0087FF] hover:bg-[#0077E6] text-white font-medium rounded-lg transition-colors text-sm">
                     Done
@@ -2177,33 +2204,6 @@ export default function EnhancedSearchBar({
                 </div>
               )}
 
-              {/* Child Ages - INLINE ALWAYS VISIBLE (outside dropdown) */}
-              {hotelChildren > 0 && (
-                <div className="mt-1.5 bg-violet-50/50 rounded-lg p-2 border border-violet-200">
-                  <p className="text-[10px] font-semibold text-violet-700 mb-1.5 flex items-center gap-1">
-                    <Baby size={12} className="text-violet-600" />
-                    Child Ages (for accurate pricing)
-                  </p>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {Array.from({ length: hotelChildren }).map((_, index) => (
-                      <select
-                        key={index}
-                        value={hotelChildAges[index] || 8}
-                        onChange={(e) => {
-                          const newAges = [...hotelChildAges];
-                          newAges[index] = parseInt(e.target.value);
-                          setHotelChildAges(newAges);
-                        }}
-                        className="px-2 py-1 border border-violet-300 rounded-md text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white hover:border-violet-400 transition-colors"
-                      >
-                        {Array.from({ length: 15 }, (_, i) => i + 3).map(age => (
-                          <option key={age} value={age}>{age} years</option>
-                        ))}
-                      </select>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Search Button */}
