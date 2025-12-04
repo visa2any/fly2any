@@ -1,8 +1,90 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Check, TrendingUp, Users, X, AlertCircle } from 'lucide-react';
+import { useState, useEffect, ReactNode } from 'react';
+import {
+  Check,
+  TrendingUp,
+  Users,
+  X,
+  AlertCircle,
+  Briefcase,
+  Luggage,
+  Armchair,
+  Crown,
+  Sparkles,
+  RefreshCw,
+  BadgeDollarSign,
+  Plane,
+  Coffee,
+  Wine,
+  Clock,
+  Shield,
+  Utensils,
+  Wifi,
+  ChefHat
+} from 'lucide-react';
 import { colors, spacing, typography, dimensions } from '@/lib/design-system';
+
+/**
+ * Get the appropriate icon for a feature based on its text content
+ */
+function getFeatureIcon(feature: string): ReactNode {
+  const featureLower = feature.toLowerCase();
+
+  // Baggage related
+  if (featureLower.includes('carry-on') || featureLower.includes('cabin')) {
+    return <Briefcase className="w-3 h-3 text-blue-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('checked') || featureLower.includes('bag')) {
+    return <Luggage className="w-3 h-3 text-indigo-500 flex-shrink-0" />;
+  }
+
+  // Seat related
+  if (featureLower.includes('business class') || featureLower.includes('business seat')) {
+    return <Crown className="w-3 h-3 text-amber-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('first class') || featureLower.includes('suite')) {
+    return <Sparkles className="w-3 h-3 text-purple-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('premium economy') || featureLower.includes('extra legroom')) {
+    return <Armchair className="w-3 h-3 text-teal-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('economy seat') || featureLower.includes('seat')) {
+    return <Armchair className="w-3 h-3 text-gray-500 flex-shrink-0" />;
+  }
+
+  // Flexibility related
+  if (featureLower.includes('refund') || featureLower.includes('cancel')) {
+    return <BadgeDollarSign className="w-3 h-3 text-green-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('change') || featureLower.includes('flexible')) {
+    return <RefreshCw className="w-3 h-3 text-blue-500 flex-shrink-0" />;
+  }
+
+  // Priority/Premium benefits
+  if (featureLower.includes('priority')) {
+    return <Plane className="w-3 h-3 text-orange-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('lounge')) {
+    return <Coffee className="w-3 h-3 text-amber-600 flex-shrink-0" />;
+  }
+
+  // Food & Drinks
+  if (featureLower.includes('meal') || featureLower.includes('food') || featureLower.includes('gourmet')) {
+    return <Utensils className="w-3 h-3 text-rose-500 flex-shrink-0" />;
+  }
+  if (featureLower.includes('champagne') || featureLower.includes('drink') || featureLower.includes('premium')) {
+    return <Wine className="w-3 h-3 text-pink-500 flex-shrink-0" />;
+  }
+
+  // Other
+  if (featureLower.includes('wifi')) {
+    return <Wifi className="w-3 h-3 text-cyan-500 flex-shrink-0" />;
+  }
+
+  // Default check icon
+  return <Check className="w-3 h-3 text-green-500 flex-shrink-0" />;
+}
 
 interface FareOption {
   id: string;
@@ -158,11 +240,11 @@ export function FareSelector({
                 </div>
               </div>
 
-              {/* Features List - compact */}
+              {/* Features List - compact with dynamic icons */}
               <ul className="space-y-0.5 mb-1">
                 {fare.features.slice(0, 3).map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-1 text-[10px] text-gray-600">
-                    <Check className="w-3 h-3 text-success-500 flex-shrink-0" />
+                  <li key={idx} className="flex items-start gap-1.5 text-[10px] text-gray-700">
+                    {getFeatureIcon(feature)}
                     <span className="truncate">{feature}</span>
                   </li>
                 ))}
