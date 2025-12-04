@@ -847,10 +847,11 @@ class AmadeusAPI {
    * Use this to show users upgrade options after initial search
    */
   async getUpsellingFares(flightOffer: any) {
-    const token = await this.getAccessToken();
-
     try {
       console.log('🎫 Fetching all fare families for flight...');
+      console.log(`   Flight ID: ${flightOffer.id}`);
+      console.log(`   Source: ${flightOffer.source}`);
+      console.log(`   Price: ${flightOffer.price?.total} ${flightOffer.price?.currency}`);
 
       // Clean the flight offer - remove custom fields that Amadeus won't accept
       const cleanedOffer = this.cleanFlightOfferForAPI(flightOffer);
@@ -859,6 +860,8 @@ class AmadeusAPI {
       // Duffel API doesn't have upselling, so we return the original offer only
       if (flightOffer.source === 'Duffel') {
         console.log('🎫 Duffel flight detected - returning original fare (no synthetic data)');
+        console.log('   ℹ️  Duffel API does not support fare family upselling');
+        console.log('   ℹ️  Competitors show multiple fares by having direct airline integrations');
         // Return original offer only - DO NOT generate fake fare options
         return {
           data: [flightOffer],
@@ -879,7 +882,17 @@ class AmadeusAPI {
         };
       }
 
+      // Check if Amadeus is in test mode - upselling may be limited
+      if (this.isTestMode()) {
+        console.log('⚠️  Amadeus TEST mode - upselling API may return limited/fake data');
+        console.log('   💡 For real fare families, set AMADEUS_ENVIRONMENT=production');
+      }
+
+      // Get auth token - this validates credentials are configured
+      const token = await this.getAccessToken();
+
       console.log(`🎫 Amadeus/GDS flight (source: ${flightOffer.source}) - calling upselling API...`);
+      console.log(`   API URL: ${this.baseUrl}/v1/shopping/flight-offers/upselling`);
 
       const response = await axios.post(
         `${this.baseUrl}/v1/shopping/flight-offers/upselling`,
@@ -898,21 +911,47 @@ class AmadeusAPI {
         }
       );
 
-      console.log(`✅ Found ${response.data.data?.length || 0} fare families`);
+      const fareCount = response.data.data?.length || 0;
+      console.log(`✅ Found ${fareCount} fare families from Amadeus upselling API`);
+
+      if (fareCount <= 1) {
+        console.log('   ℹ️  Only 1 fare returned - this airline/route may not offer multiple fare families');
+        console.log('   ℹ️  Common for low-cost carriers or specific routes');
+      } else {
+        // Log each fare family found
+        response.data.data?.forEach((fare: any, idx: number) => {
+          const brandedFare = fare.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.brandedFare || 'UNKNOWN';
+          const price = fare.price?.total;
+          console.log(`   ${idx + 1}. ${brandedFare}: ${fare.price?.currency} ${price}`);
+        });
+      }
+
       return response.data;
     } catch (error: any) {
-      console.error('Error getting upselling fares:', error.response?.data || error);
+      console.error('❌ Error getting upselling fares:', this.formatError(error));
+
+      // Log more details for debugging
+      if (error.response?.data?.errors) {
+        console.error('   Amadeus API errors:', JSON.stringify(error.response.data.errors, null, 2));
+      }
 
       // If upselling not available, return original offer as single option
       if (error.response?.status === 404 || error.response?.status === 400) {
         console.log('⚠️  Upselling not available for this flight, returning original fare');
+        console.log('   This is normal for some airlines/routes that don\'t support branded fares');
         return {
           data: [flightOffer],
-          meta: { count: 1 }
+          meta: { count: 1, reason: 'Upselling API returned ' + error.response?.status }
         };
       }
 
-      throw new Error('Failed to get fare families');
+      // For other errors (timeout, auth, etc.), still return original fare
+      // Don't break the booking flow due to upselling failure
+      console.log('⚠️  Upselling API error - returning original fare as fallback');
+      return {
+        data: [flightOffer],
+        meta: { count: 1, error: error.message }
+      };
     }
   }
 

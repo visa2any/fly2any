@@ -58,10 +58,30 @@ export function FareSelector({
     );
   }
 
+  // Handle single fare option - show informative message
+  const isSingleFare = fares.length === 1;
+
   return (
     <div className="space-y-2">
-      {/* ML Recommendation Banner */}
-      {recommendedFare && (
+      {/* Single Fare Info Banner */}
+      {isSingleFare && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex items-center gap-2">
+          <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+            <Check className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              This is the available fare for your flight
+            </p>
+            <p className="text-xs text-gray-600 mt-0.5">
+              ✈️ Some airlines offer a single fare type • All features included below
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ML Recommendation Banner - only show when multiple fares available */}
+      {!isSingleFare && recommendedFare && (
         <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-2.5 flex items-center gap-2">
           <div className="flex-shrink-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
             <TrendingUp className="w-4 h-4 text-white" />
@@ -80,8 +100,20 @@ export function FareSelector({
         </div>
       )}
 
-      {/* Fare Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" role="radiogroup" aria-label="Select fare option">
+      {/* Fare Cards Grid - adjust columns based on fare count */}
+      <div
+        className={`grid gap-2 ${
+          isSingleFare
+            ? 'grid-cols-1 max-w-md'
+            : fares.length === 2
+              ? 'grid-cols-1 md:grid-cols-2'
+              : fares.length === 3
+                ? 'grid-cols-1 md:grid-cols-3'
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+        }`}
+        role="radiogroup"
+        aria-label="Select fare option"
+      >
         {fares.map((fare) => {
           const isSelected = selected === fare.id;
           const isRecommended = fare.recommended;
