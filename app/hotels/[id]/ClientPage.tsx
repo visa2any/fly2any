@@ -1029,9 +1029,9 @@ export default function HotelDetailPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-orange-600">
-                          ~${(parseFloat(hotel.rates[0].totalPrice?.amount || '0') / nights).toFixed(0)}
+                          ~${(parseFloat(hotel.rates[0].totalPrice?.amount || '0') / nights / roomsNum).toFixed(0)}
                         </p>
-                        <p className="text-xs text-slate-500">per night</p>
+                        <p className="text-xs text-slate-500">{roomsNum > 1 ? 'per room/night' : 'per night'}</p>
                       </div>
                     </div>
                     <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">

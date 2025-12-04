@@ -259,12 +259,14 @@ export function HotelCard({
       })
     : null;
 
+  // CRITICAL: LiteAPI returns TOTAL price for ALL rooms × ALL nights
+  // We MUST divide by both nights AND rooms to get per-room-per-night price
   const perNightPrice = hotel.lowestPricePerNight
-    ? hotel.lowestPricePerNight
+    ? hotel.lowestPricePerNight / (rooms || 1) // lowestPricePerNight is per-night for all rooms, divide by rooms
     : hotel.lowestPrice?.amount
-      ? parseFloat(hotel.lowestPrice.amount) / nights
+      ? parseFloat(hotel.lowestPrice.amount) / nights / (rooms || 1)
       : bestRate?.totalPrice?.amount
-        ? parseFloat(bestRate.totalPrice.amount) / nights
+        ? parseFloat(bestRate.totalPrice.amount) / nights / (rooms || 1)
         : 0;
 
   const totalPrice = hotel.lowestPrice?.amount
@@ -573,7 +575,9 @@ export function HotelCard({
                 <span className="text-3xl font-black text-slate-900 tracking-tight">
                   {currencySymbol}{Math.round(perNightPrice).toLocaleString()}
                 </span>
-                <span className="text-sm font-medium text-slate-500">{t.perNight}</span>
+                <span className="text-sm font-medium text-slate-500">
+                  {rooms > 1 ? '/room/night' : t.perNight}
+                </span>
               </div>
 
               {/* Total Price with Guest Info - Now includes taxes notice */}
@@ -903,7 +907,8 @@ export function HotelCard({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {rates.map((rate) => {
-              const ratePerNight = parseFloat(rate.totalPrice.amount) / nights;
+              // LiteAPI total is for ALL rooms × ALL nights - divide by both
+              const ratePerNight = parseFloat(rate.totalPrice.amount) / nights / (rooms || 1);
               const rateTotal = parseFloat(rate.totalPrice.amount);
               return (
                 <div
@@ -943,7 +948,7 @@ export function HotelCard({
                         <span className="font-black text-slate-900 text-xl">
                           {currencySymbol}{Math.round(ratePerNight)}
                         </span>
-                        <span className="text-slate-500 text-xs">/night</span>
+                        <span className="text-slate-500 text-xs">{rooms > 1 ? '/room/night' : '/night'}</span>
                       </div>
                       <div className="text-slate-500 text-[10px]">
                         {currencySymbol}{Math.round(rateTotal).toLocaleString()} total
