@@ -1338,7 +1338,9 @@ export default function HotelDetailPage() {
               </div>
               <button
                 onClick={() => {
-                  // Use the same booking logic as desktop button
+                  // Use the same booking logic as desktop button - MUST include offerId, roomId, perNight for prebook
+                  const roomCurrency = activeRoom?.totalPrice?.currency || activeRoom?.currency || 'USD';
+                  const roomOfferId = activeRoom?.offerId || activeRoom?.id || '';
                   const adultsNum = parseInt(adults, 10) || 2;
                   const childrenNum = parseInt(children, 10) || 0;
                   const roomsNum = parseInt(rooms, 10) || 1;
@@ -1350,13 +1352,20 @@ export default function HotelDetailPage() {
                     checkOut: checkOut || new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
                     guests: { adults: adultsNum, children: childrenNum },
                     rooms: roomsNum,
-                    price: totalPrice,
-                    currency: lowestRate?.totalPrice?.currency || 'USD',
+                    roomId: activeRoom?.id || 'default_room',
+                    offerId: roomOfferId,
+                    roomName: activeRoomName,
+                    price: activeRoomPrice,
+                    perNightPrice: activeRoomPerNight,
+                    currency: roomCurrency,
                     image: mainImage,
                     stars: hotel.starRating,
+                    refundable: activeRoom?.refundable || false,
+                    breakfastIncluded: activeRoom?.breakfastIncluded || false,
+                    nights: nights,
                   };
                   sessionStorage.setItem(`hotel_booking_${hotelId}`, JSON.stringify(bookingData));
-                  router.push(`/hotels/booking?hotelId=${hotelId}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&price=${totalPrice}&currency=${bookingData.currency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}`);
+                  router.push(`/hotels/booking?hotelId=${hotelId}&offerId=${encodeURIComponent(roomOfferId)}&name=${encodeURIComponent(hotel.name)}&location=${encodeURIComponent(bookingData.location)}&checkIn=${bookingData.checkIn}&checkOut=${bookingData.checkOut}&nights=${nights}&adults=${adultsNum}&children=${childrenNum}&rooms=${roomsNum}&roomId=${encodeURIComponent(bookingData.roomId)}&roomName=${encodeURIComponent(activeRoomName)}&price=${activeRoomPrice}&perNight=${activeRoomPerNight}&currency=${roomCurrency}&image=${encodeURIComponent(mainImage || '')}&stars=${hotel.starRating || 0}&refundable=${bookingData.refundable}&breakfastIncluded=${bookingData.breakfastIncluded}`);
                 }}
                 className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition-all"
               >

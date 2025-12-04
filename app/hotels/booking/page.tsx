@@ -179,7 +179,7 @@ function HotelCheckoutContent() {
           roomId: searchParams.get('roomId') || '',
           roomName: searchParams.get('roomName') || 'Standard Room',
           price: price || 0,
-          perNightPrice: perNight || price / (nights || 1),
+          perNightPrice: perNight || price / (nights || 1) / (rooms || 1),
           currency,
           imageUrl: searchParams.get('image') || undefined,
           starRating: parseInt(searchParams.get('stars') || '0', 10) || undefined,
@@ -329,7 +329,7 @@ function HotelCheckoutContent() {
               setHotelData(prev => prev ? {
                 ...prev,
                 price: parsed.price.amount,
-                perNightPrice: parsed.price.amount / (prev.nights || 1),
+                perNightPrice: parsed.price.amount / (prev.nights || 1) / (prev.rooms || 1),
                 currency: parsed.price.currency || prev.currency,
               } : prev);
             }
@@ -375,7 +375,7 @@ function HotelCheckoutContent() {
             setHotelData(prev => prev ? {
               ...prev,
               price: data.data.price.amount,
-              perNightPrice: data.data.price.amount / (prev.nights || 1),
+              perNightPrice: data.data.price.amount / (prev.nights || 1) / (prev.rooms || 1),
               currency: data.data.price.currency || prev.currency,
             } : prev);
             console.log('✅ Price updated from prebook:', data.data.price.amount, data.data.price.currency);
