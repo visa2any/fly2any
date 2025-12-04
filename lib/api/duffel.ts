@@ -358,6 +358,15 @@ class DuffelAPI {
    * Convert Duffel offer format to our standardized format
    */
   private convertDuffelOffer(duffelOffer: any) {
+    // ENHANCED: Extract ALL available baggage data from Duffel API
+    const extractedBaggage = this.extractFullBaggageDetails(duffelOffer);
+
+    // ENHANCED: Extract fare conditions (refund/change policies)
+    const conditions = this.extractConditions(duffelOffer);
+
+    // ENHANCED: Extract branded fare label from passengers
+    const brandedFareLabel = this.extractBrandedFareLabel(duffelOffer);
+
     return {
       id: duffelOffer.id,
       source: 'Duffel',
@@ -426,37 +435,219 @@ class DuffelAPI {
         duffelOffer.owner?.iata_code || duffelOffer.slices[0].segments[0].marketing_carrier.iata_code,
       ],
 
-      // Traveler pricings
+      // ENHANCED: Traveler pricings with FULL baggage details from API
       travelerPricings: duffelOffer.passengers?.map((passenger: any) => ({
         travelerId: passenger.id,
-        fareOption: 'STANDARD',
+        fareOption: brandedFareLabel || 'STANDARD',
         travelerType: passenger.type.toUpperCase(),
         price: {
           currency: duffelOffer.total_currency,
           total: duffelOffer.total_amount,
           base: duffelOffer.base_amount,
         },
-        fareDetailsBySegment: duffelOffer.slices.flatMap((slice: any) =>
-          slice.segments.map((segment: any) => ({
-            segmentId: segment.id,
-            cabin: this.mapDuffelCabin(segment.passengers?.[0]?.cabin_class_marketing_name),
-            fareBasis: segment.passengers?.[0]?.fare_basis_code || 'ECONOMY',
-            brandedFare: segment.passengers?.[0]?.cabin_class || undefined,
-            class: segment.passengers?.[0]?.cabin_class?.[0] || 'Y',
-            includedCheckedBags: {
-              quantity: this.extractBaggageQuantity(duffelOffer.available_services),
-            },
-          }))
+        fareDetailsBySegment: duffelOffer.slices.flatMap((slice: any, sliceIndex: number) =>
+          slice.segments.map((segment: any) => {
+            // Get passenger data for this segment
+            const passengerData = segment.passengers?.[0];
+            const cabinClassName = passengerData?.cabin_class_marketing_name || '';
+
+            return {
+              segmentId: segment.id,
+              cabin: this.mapDuffelCabin(cabinClassName),
+              fareBasis: passengerData?.fare_basis_code || 'ECONOMY',
+              brandedFare: passengerData?.cabin_class || undefined,
+              // CRITICAL: Use real branded fare label for accurate baggage display
+              brandedFareLabel: cabinClassName || brandedFareLabel || undefined,
+              class: passengerData?.cabin_class?.[0] || 'Y',
+              // ENHANCED: Full baggage details from Duffel API
+              includedCheckedBags: extractedBaggage.checked,
+              includedCabinBags: extractedBaggage.cabin,
+              // ENHANCED: Amenities from conditions
+              amenities: conditions.amenities,
+            };
+          })
         ),
       })) || [],
+
+      // ENHANCED: Fare conditions (refundability, changes)
+      conditions: {
+        refundable: conditions.refundable,
+        changeable: conditions.changeable,
+        refundPenalty: conditions.refundPenalty,
+        changePenalty: conditions.changePenalty,
+      },
 
       // Duffel-specific metadata
       duffelMetadata: {
         expires_at: duffelOffer.expires_at,
         live_mode: duffelOffer.live_mode,
         owner: duffelOffer.owner,
+        // Store raw baggage for debugging
+        raw_passengers: duffelOffer.passengers,
+        raw_services: duffelOffer.available_services,
       },
     };
+  }
+
+  /**
+   * Extract FULL baggage details from Duffel offer
+   * Duffel provides baggage in multiple places - extract ALL
+   */
+  private extractFullBaggageDetails(duffelOffer: any): {
+    checked: { quantity: number; weight?: number; weightUnit?: string };
+    cabin: { quantity: number; weight?: number; weightUnit?: string };
+  } {
+    let checkedBags = 0;
+    let checkedWeight: number | undefined;
+    let cabinBags = 0;
+    let cabinWeight: number | undefined;
+
+    // Method 1: Check passengers' included baggage (most reliable)
+    const passengers = duffelOffer.passengers || [];
+    for (const passenger of passengers) {
+      // Checked bags
+      const baggages = passenger.baggages || [];
+      for (const bag of baggages) {
+        if (bag.type === 'checked') {
+          checkedBags = Math.max(checkedBags, bag.quantity || 1);
+          checkedWeight = bag.weight_kg;
+        } else if (bag.type === 'carry_on') {
+          cabinBags = Math.max(cabinBags, bag.quantity || 1);
+          cabinWeight = bag.weight_kg;
+        }
+      }
+
+      // Also check cabin_baggage and checked_baggage fields
+      if (passenger.cabin_baggage) {
+        cabinBags = Math.max(cabinBags, passenger.cabin_baggage.quantity || 1);
+        cabinWeight = passenger.cabin_baggage.weight_kg;
+      }
+      if (passenger.checked_baggage) {
+        checkedBags = Math.max(checkedBags, passenger.checked_baggage.quantity || 1);
+        checkedWeight = passenger.checked_baggage.weight_kg;
+      }
+    }
+
+    // Method 2: Check slices for included baggage
+    const slices = duffelOffer.slices || [];
+    for (const slice of slices) {
+      for (const segment of slice.segments || []) {
+        for (const passengerData of segment.passengers || []) {
+          if (passengerData.baggages) {
+            for (const bag of passengerData.baggages) {
+              if (bag.type === 'checked') {
+                checkedBags = Math.max(checkedBags, bag.quantity || 1);
+              } else if (bag.type === 'carry_on') {
+                cabinBags = Math.max(cabinBags, bag.quantity || 1);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Method 3: Check available_services for included bags (less common)
+    const services = duffelOffer.available_services || [];
+    const includedBagServices = services.filter((s: any) =>
+      s.type === 'baggage' && s.total_amount === '0' // Free = included
+    );
+    if (includedBagServices.length > 0) {
+      for (const service of includedBagServices) {
+        if (service.metadata?.type === 'checked') {
+          checkedBags = Math.max(checkedBags, 1);
+        } else if (service.metadata?.type === 'carry_on') {
+          cabinBags = Math.max(cabinBags, 1);
+        }
+      }
+    }
+
+    console.log(`🧳 Duffel baggage extraction: checked=${checkedBags}, cabin=${cabinBags}`);
+
+    return {
+      checked: {
+        quantity: checkedBags,
+        weight: checkedWeight,
+        weightUnit: checkedWeight ? 'kg' : undefined,
+      },
+      cabin: {
+        quantity: cabinBags || 1, // At minimum personal item
+        weight: cabinWeight,
+        weightUnit: cabinWeight ? 'kg' : undefined,
+      },
+    };
+  }
+
+  /**
+   * Extract fare conditions (refund/change policies) from Duffel offer
+   */
+  private extractConditions(duffelOffer: any): {
+    refundable: boolean;
+    changeable: boolean;
+    refundPenalty?: string;
+    changePenalty?: string;
+    amenities: any[];
+  } {
+    const conditions = duffelOffer.conditions || {};
+
+    // Check refund before departure
+    const refundBefore = conditions.refund_before_departure;
+    const refundable = refundBefore?.allowed === true;
+    const refundPenalty = refundBefore?.penalty_amount
+      ? `${refundBefore.penalty_currency} ${refundBefore.penalty_amount}`
+      : undefined;
+
+    // Check change before departure
+    const changeBefore = conditions.change_before_departure;
+    const changeable = changeBefore?.allowed === true;
+    const changePenalty = changeBefore?.penalty_amount
+      ? `${changeBefore.penalty_currency} ${changeBefore.penalty_amount}`
+      : undefined;
+
+    // Build amenities array based on conditions
+    const amenities: any[] = [];
+    if (refundable) {
+      amenities.push({
+        description: refundPenalty ? `Refundable (${refundPenalty} fee)` : 'Fully Refundable',
+        amenityType: 'REFUND',
+        isChargeable: !!refundPenalty,
+      });
+    }
+    if (changeable) {
+      amenities.push({
+        description: changePenalty ? `Changes allowed (${changePenalty} fee)` : 'Free Changes',
+        amenityType: 'CHANGE',
+        isChargeable: !!changePenalty,
+      });
+    }
+
+    return {
+      refundable,
+      changeable,
+      refundPenalty,
+      changePenalty,
+      amenities,
+    };
+  }
+
+  /**
+   * Extract branded fare label from Duffel offer
+   */
+  private extractBrandedFareLabel(duffelOffer: any): string | undefined {
+    // Try to get from first segment's first passenger
+    const firstSlice = duffelOffer.slices?.[0];
+    const firstSegment = firstSlice?.segments?.[0];
+    const firstPassenger = firstSegment?.passengers?.[0];
+
+    if (firstPassenger?.cabin_class_marketing_name) {
+      return firstPassenger.cabin_class_marketing_name;
+    }
+
+    // Fallback to fare_brand_name if available
+    if (firstPassenger?.fare_brand_name) {
+      return firstPassenger.fare_brand_name;
+    }
+
+    return undefined;
   }
 
   /**
