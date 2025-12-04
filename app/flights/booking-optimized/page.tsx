@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Plane, ChevronLeft, ChevronRight, Loader2, User } from 'lucide-react';
 import { FareSelector } from '@/components/booking/FareSelector';
-import { SmartBundles } from '@/components/booking/SmartBundles';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
+import { FlightCardCompact } from '@/components/flights/FlightCardCompact';
 import { StickySummary } from '@/components/booking/StickySummary';
 import { CompactPassengerForm } from '@/components/booking/CompactPassengerForm';
 import { ReviewAndPay } from '@/components/booking/ReviewAndPay';
@@ -29,18 +29,6 @@ interface FareOption {
   restrictions?: string[];
   recommended?: boolean;
   popularityPercent?: number;
-}
-
-interface Bundle {
-  id: string;
-  name: string;
-  icon: 'business' | 'vacation' | 'traveler';
-  description: string;
-  items: { name: string; included: boolean }[];
-  price: number;
-  savings: number;
-  currency: string;
-  recommended?: boolean;
 }
 
 interface AddOn {
@@ -111,9 +99,7 @@ function BookingPageContent() {
   // Step 1: Customize Flight
   const [fareOptions, setFareOptions] = useState<FareOption[]>([]);
   const [selectedFareId, setSelectedFareId] = useState<string>('');
-  const [selectedBundleId, setSelectedBundleId] = useState<string | null>(null);
   const [addOnCategories, setAddOnCategories] = useState<AddOnCategory[]>([]);
-  const [bundles, setBundles] = useState<Bundle[]>([]);
 
   // Step 2: Passenger Details
   const [passengers, setPassengers] = useState<PassengerData[]>([]);
@@ -314,266 +300,81 @@ function BookingPageContent() {
               const data = ancillariesData.data;
               realAncillaryData = data; // Save for bundle generation
 
-              // Build categories from API response with safe access
-              ancillaryCategories = [
-                // SEATS - Real data from Amadeus!
-                {
-                  id: 'seats',
-                  name: 'SEATS',
-                  icon: 'seat' as const,
-                  subtitle: data.seats?.hasRealData
-                    ? `Choose your perfect spot ($${data.seats?.priceRange?.min || 15}-$${data.seats?.priceRange?.max || 45})`
-                    : 'Choose your perfect spot',
-                  proTip: data.seats?.hasRealData
-                    ? `✅ Real prices from ${flight.validatingAirlineCodes?.[0] || 'airline'} • Booking now saves $10 vs. airport`
-                    : 'Pro tip: Booking seats now saves $10 vs. airport pricing',
-                  items: (data.seats?.options || []).map((seat: any) => ({
-                    id: seat.id,
-                    name: seat.name,
-                    description: seat.description + (seat.isReal ? ' ✅' : ''),
-                    price: seat.price,
-                    currency: seat.currency,
+              // Build categories from API response - ONLY REAL DATA
+              // CFAR (Cancel For Any Reason) - Real from Duffel
+              if (data.cfar?.hasRealData && data.cfar?.options?.length > 0) {
+                ancillaryCategories.push({
+                  id: 'cfar',
+                  name: 'CANCEL FOR ANY REASON',
+                  icon: 'insurance' as const,
+                  subtitle: 'Full flexibility to cancel',
+                  proTip: '✅ Real airline protection • Cancel anytime for refund',
+                  items: data.cfar.options.map((cfar: any) => ({
+                    id: cfar.id,
+                    name: cfar.name,
+                    description: `${cfar.description} • ${cfar.refundPercentage || 80}% refund`,
+                    price: cfar.price,
+                    currency: cfar.currency,
                     selected: false,
                   })),
-                },
+                });
+              }
 
-                // BAGGAGE - Extracted from fare details
-                {
+              // BAGGAGE - Real from Duffel/Amadeus
+              if (data.baggage?.hasRealData && data.baggage?.options?.length > 0) {
+                ancillaryCategories.push({
                   id: 'baggage',
-                  name: 'BAGGAGE',
+                  name: 'EXTRA BAGGAGE',
                   icon: 'baggage' as const,
-                  subtitle: 'Add extra bags ($35-$65 per bag)',
-                  proTip: data.baggage?.hasRealData
-                    ? '✅ Prices from fare rules • Cheaper than airport'
-                    : 'Adding bags now saves $10 vs airport',
-                  items: (data.baggage?.options || []).map((bag: any) => ({
+                  subtitle: 'Add checked bags',
+                  proTip: '✅ Real airline prices • Cheaper than airport',
+                  items: data.baggage.options.map((bag: any) => ({
                     id: bag.id,
                     name: bag.name,
-                    description: bag.description + (bag.isReal ? ' ✅' : ''),
+                    description: bag.weight ? `${bag.description} (${bag.weight}kg)` : bag.description,
                     price: bag.price,
                     currency: bag.currency,
                     selected: false,
                   })),
-                },
+                });
+              }
 
-                // INSURANCE - Mock data (requires 3rd party)
-                {
-                  id: 'insurance',
-                  name: 'INSURANCE',
-                  icon: 'insurance' as const,
-                  subtitle: 'Protect your trip',
-                  proTip: data.insurance?.hasRealData
-                    ? 'Real-time pricing from insurance partner'
-                    : 'This flight is non-refundable. Protect your investment.',
-                  items: (data.insurance?.options || []).map((ins: any) => ({
-                    id: ins.id,
-                    name: ins.name,
-                    description: ins.description + (!ins.isReal ? ' (Demo)' : ''),
-                    price: ins.price,
-                    currency: ins.currency,
+              // SEATS - Real from Duffel seat map
+              if (data.seats?.hasRealData && data.seats?.options?.length > 0) {
+                ancillaryCategories.push({
+                  id: 'seats',
+                  name: 'SEAT SELECTION',
+                  icon: 'seat' as const,
+                  subtitle: 'Choose your seat',
+                  proTip: '✅ Real seat availability • Interactive seat map available',
+                  items: data.seats.options.map((seat: any) => ({
+                    id: seat.id,
+                    name: seat.name,
+                    description: seat.description,
+                    price: seat.price,
+                    currency: seat.currency,
                     selected: false,
                   })),
-                },
+                });
+              }
 
-                // EXTRAS - Mix of real and mock
-                {
-                  id: 'extras',
-                  name: 'MORE OPTIONS',
-                  icon: 'priority' as const,
-                  subtitle: 'Enhance your journey',
-                  items: [
-                    ...(data.priority?.options || []).map((p: any) => ({
-                      id: p.id,
-                      name: p.name,
-                      description: p.description + (!p.isReal ? ' (Demo)' : ''),
-                      price: p.price,
-                      currency: p.currency,
-                      selected: false,
-                    })),
-                    ...(data.lounge?.options || []).map((l: any) => ({
-                      id: l.id,
-                      name: l.name,
-                      description: l.description + (!l.isReal ? ' (Demo)' : ''),
-                      price: l.price,
-                      currency: l.currency,
-                      selected: false,
-                    })),
-                    ...(data.wifi?.options || []).map((w: any) => ({
-                      id: w.id,
-                      name: w.name,
-                      description: w.description + (!w.isReal ? ' (Demo)' : ''),
-                      price: w.price,
-                      currency: w.currency,
-                      selected: false,
-                    })),
-                    ...(data.meals?.options || []).slice(0, 1).map((m: any) => ({
-                      id: m.id,
-                      name: m.name,
-                      description: m.description + (!m.isReal ? ' (Demo)' : ''),
-                      price: m.price,
-                      currency: m.currency,
-                      selected: false,
-                    })),
-                  ],
-                },
-              ];
-
-              // Filter out categories with no items
-              ancillaryCategories = ancillaryCategories.filter(cat => cat.items.length > 0);
+              // NOTE: Insurance, WiFi, Meals, Lounge, Priority are NOT available via airline APIs
+              // These require third-party integrations which are not yet implemented
             }
           }
         } catch (error) {
           console.error('⚠️  Failed to fetch ancillaries, using fallback:', error);
         }
 
-        // FALLBACK: If API failed, use minimal mock data
+        // NO FALLBACK - Only show real data from API
         if (ancillaryCategories.length === 0) {
-          console.log('⚠️  Using fallback ancillary data');
-          ancillaryCategories = [
-            {
-              id: 'seats',
-              name: 'SEATS',
-              icon: 'seat' as const,
-              subtitle: 'Choose your perfect spot',
-              proTip: 'Pro tip: Booking seats now saves $10 vs. airport pricing',
-              items: [
-                { id: 'aisle', name: 'Aisle Seat', description: 'Easy access', price: 15, currency: flight.price.currency, selected: false },
-                { id: 'window', name: 'Window Seat', description: 'Great views', price: 15, currency: flight.price.currency, selected: false },
-                { id: 'extra-legroom', name: 'Extra Legroom', description: '35" pitch', price: 45, currency: flight.price.currency, selected: false },
-              ],
-            },
-          ];
+          console.log('ℹ️  No ancillary services available from airline API');
         } else {
-          console.log(`✅ Successfully loaded ${ancillaryCategories.length} ancillary categories`);
+          console.log(`✅ Successfully loaded ${ancillaryCategories.length} real ancillary categories`);
         }
 
         setAddOnCategories(ancillaryCategories);
         console.log('🎁 Ancillary categories set in state:', ancillaryCategories.length, 'categories');
-
-        // ===========================
-        // GENERATE ML-POWERED SMART BUNDLES
-        // ===========================
-        console.log('🤖 Generating ML-powered smart bundles...');
-
-        // Get user segment from sessionStorage (set by results page)
-        const userSegmentData = sessionStorage.getItem('userSegment');
-        const userSegment = userSegmentData ? JSON.parse(userSegmentData).segment : 'leisure';
-        console.log('👤 User segment:', userSegment);
-
-        // Extract route information from flight data
-        const fromCode = search.from;
-        const toCode = search.to;
-        const isInternational = isInternationalRoute(fromCode, toCode);
-
-        // Calculate flight duration from itinerary
-        const durationMinutes = flight.itineraries?.[0]?.duration
-          ? parseInt(flight.itineraries[0].duration.replace('PT', '').replace('H', '').replace('M', ''))
-          : 180;
-
-        // Build route profile
-        const routeProfile = {
-          from: fromCode,
-          to: toCode,
-          distance: isInternational ? 2500 : 1000, // Rough estimate
-          duration: durationMinutes,
-          international: isInternational,
-        };
-
-        // Build passenger profile
-        const adultCount = parseInt(searchParams.get('adults') || '1');
-        const childCount = parseInt(searchParams.get('children') || '0');
-        const hasChildren = childCount > 0;
-        const totalPassengers = adultCount + childCount;
-
-        const passengerProfile = {
-          type: userSegment as 'business' | 'leisure' | 'family' | 'budget',
-          count: totalPassengers,
-          hasChildren,
-          priceElasticity: userSegment === 'budget' ? 0.8 : userSegment === 'business' ? 0.3 : 0.5,
-        };
-
-        // Call ML Bundle Generator API
-        let mlBundles: Bundle[] = [];
-
-        try {
-          const bundleResponse = await fetch('/api/bundles/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              route: routeProfile,
-              passenger: passengerProfile,
-              basePrice: parseFloat(flight.price.total),
-              currency: flight.price.currency,
-            }),
-          });
-
-          if (bundleResponse.ok) {
-            const bundleData = await bundleResponse.json();
-            if (bundleData.success && bundleData.bundles) {
-              mlBundles = bundleData.bundles;
-              console.log(`✅ Generated ${mlBundles.length} ML-powered bundles for ${userSegment} traveler`);
-              console.log('📊 Bundle ML scores:', mlBundles.map(b => `${b.name}: ${Math.round((b as any).mlScore * 100)}%`));
-            }
-          }
-        } catch (error) {
-          console.error('⚠️  ML bundle generation failed, using fallback:', error);
-        }
-
-        // FALLBACK: If ML generation failed, use static bundles
-        if (mlBundles.length === 0) {
-          console.log('⚠️  Using fallback static bundles');
-          mlBundles = [
-            {
-              id: 'business-plus',
-              name: 'BUSINESS PLUS',
-              icon: 'business',
-              description: 'Perfect for work trips',
-              items: [
-                { name: 'Extra legroom seat', included: true },
-                { name: 'Priority boarding', included: true },
-                { name: 'Airport lounge access', included: true },
-                { name: 'WiFi included', included: true },
-              ],
-              price: 89,
-              savings: 28,
-              currency: flight.price.currency,
-            },
-            {
-              id: 'vacation-pkg',
-              name: 'VACATION PKG',
-              icon: 'vacation',
-              description: 'Great for family trips',
-              items: [
-                { name: 'Window seat', included: true },
-                { name: '2 checked bags', included: true },
-                { name: 'Travel protection', included: true },
-                { name: 'Seat together guarantee', included: true },
-              ],
-              price: 65,
-              savings: 42,
-              currency: flight.price.currency,
-              recommended: true,
-            },
-            {
-              id: 'traveler',
-              name: 'TRAVELER',
-              icon: 'traveler',
-              description: 'Essential add-ons',
-              items: [
-                { name: 'Aisle seat', included: true },
-                { name: '1 checked bag', included: true },
-                { name: 'Travel insurance', included: true },
-              ],
-              price: 35,
-              savings: 15,
-              currency: flight.price.currency,
-            },
-          ];
-        }
-
-        // Set ML-powered bundles in state
-        setBundles(mlBundles);
-        console.log('✨ ML-powered smart bundles set in state:', mlBundles.length, 'bundles');
 
         // Initialize passengers
         const passengerCount = parseInt(searchParams.get('adults') || '1');
@@ -593,7 +394,6 @@ function BookingPageContent() {
         console.log('✅ ========================================');
         console.log('✅ BOOKING DATA LOADED SUCCESSFULLY');
         console.log('✅ - Fare Options:', realFares.length);
-        console.log('✅ - Smart Bundles:', mlBundles.length);
         console.log('✅ - Ancillary Categories:', ancillaryCategories.length);
         console.log('✅ - Passengers:', passengerCount);
         console.log('✅ ========================================');
@@ -654,10 +454,6 @@ function BookingPageContent() {
 
   const handleFareSelect = (fareId: string) => {
     setSelectedFareId(fareId);
-  };
-
-  const handleBundleSelect = (bundleId: string | null) => {
-    setSelectedBundleId(bundleId);
   };
 
   const handleAddOnToggle = (categoryId: string, addOnId: string, selected: boolean) => {
@@ -792,16 +588,6 @@ function BookingPageContent() {
         benefits: selectedFare.features, // FareOption uses 'features' property
       } : undefined;
 
-      // Get selected bundle
-      const selectedBundle = bundles.find(b => b.id === selectedBundleId);
-      const bundle = selectedBundle ? {
-        bundleId: selectedBundle.id,
-        bundleName: selectedBundle.name,
-        price: selectedBundle.price,
-        description: selectedBundle.description,
-        includes: selectedBundle.items.filter(item => item.included).map(item => item.name), // Bundle uses 'items' property
-      } : undefined;
-
       // Get selected add-ons
       const selectedAddOns: any[] = [];
       addOnCategories.forEach(category => {
@@ -838,7 +624,6 @@ function BookingPageContent() {
           phone: passengers[0]?.email || '',
         },
         fareUpgrade, // Include fare upgrade if selected
-        bundle, // Include bundle if selected
         addOns: selectedAddOns, // Include all add-ons
         seats: [], // Seat selection will be added later
       };
@@ -879,17 +664,11 @@ function BookingPageContent() {
     const selectedFare = fareOptions.find(f => f.id === selectedFareId);
     const farePrice = selectedFare?.price || parseFloat(flightData.price.total);
 
-    let bundlePrice = 0;
-    if (selectedBundleId) {
-      const bundle = bundles.find(b => b.id === selectedBundleId);
-      bundlePrice = bundle?.price || 0;
-    }
-
     const addOnsPrice = addOnCategories.reduce((total, category) => {
       return total + category.items.filter(item => item.selected).reduce((sum, item) => sum + item.price, 0);
     }, 0);
 
-    return farePrice + bundlePrice + addOnsPrice;
+    return farePrice + addOnsPrice;
   };
 
   const getPriceBreakdown = () => {
@@ -900,18 +679,6 @@ function BookingPageContent() {
     const farePrice = selectedFare?.price || parseFloat(flightData.price.total);
 
     const addOns: { label: string; amount: number; subtext?: string }[] = [];
-
-    // Add bundle if selected
-    if (selectedBundleId) {
-      const bundle = bundles.find(b => b.id === selectedBundleId);
-      if (bundle) {
-        addOns.push({
-          label: `${bundle.name} Bundle`,
-          amount: bundle.price,
-          subtext: `Save ${bundle.currency} ${bundle.savings}`,
-        });
-      }
-    }
 
     // Add individual add-ons
     addOnCategories.forEach(category => {
@@ -1048,6 +815,19 @@ function BookingPageContent() {
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
               <div className="space-y-4 animate-fadeIn">
+                {/* Flight Summary Card - Compact vertical display */}
+                {flightData && (
+                  <FlightCardCompact
+                    id={flightData.id}
+                    itineraries={flightData.itineraries}
+                    price={flightData.price}
+                    numberOfBookableSeats={flightData.numberOfBookableSeats}
+                    validatingAirlineCodes={flightData.validatingAirlineCodes}
+                    travelerPricings={flightData.travelerPricings}
+                    showExpanded={true}
+                  />
+                )}
+
                 {/* Fare Selection */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
@@ -1065,23 +845,7 @@ function BookingPageContent() {
                   </div>
                 </div>
 
-                {/* Smart Bundles */}
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
-                    <h3 className="text-base font-bold flex items-center gap-2">
-                      ✨ Smart Bundles
-                    </h3>
-                  </div>
-                  <div className="p-4">
-                    <SmartBundles
-                      bundles={bundles}
-                      selectedBundleId={selectedBundleId}
-                      onSelect={handleBundleSelect}
-                    />
-                  </div>
-                </div>
-
-                {/* Individual Add-Ons */}
+                {/* Individual Add-Ons - Real airline services only */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                   <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-3 text-white">
                     <h3 className="text-base font-bold flex items-center gap-2">
