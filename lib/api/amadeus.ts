@@ -830,20 +830,31 @@ class AmadeusAPI {
       // Clean the flight offer - remove custom fields that Amadeus won't accept
       const cleanedOffer = this.cleanFlightOfferForAPI(flightOffer);
 
-      // Handle Duffel flights - generate synthetic fare families
+      // Handle Duffel flights - NO synthetic fare families (real data only)
+      // Duffel API doesn't have upselling, so we return the original offer only
       if (flightOffer.source === 'Duffel') {
-        console.log('🎫 Duffel flight detected - generating fare families');
-        return this.generateDuffelFareFamilies(flightOffer);
+        console.log('🎫 Duffel flight detected - returning original fare (no synthetic data)');
+        // Return original offer only - DO NOT generate fake fare options
+        return {
+          data: [flightOffer],
+          meta: { count: 1, note: 'Duffel API does not support fare family upselling' }
+        };
       }
 
+      // Normalize source detection - Amadeus flights can have source 'GDS' or 'Amadeus'
+      const source = flightOffer.source?.toLowerCase() || 'unknown';
+      const isAmadeusGDS = source === 'gds' || source === 'amadeus' || source === 'unknown';
+
       // Only Amadeus/GDS flights support upselling API
-      if (flightOffer.source !== 'GDS') {
+      if (!isAmadeusGDS) {
         console.log('⚠️  Non-GDS flight (source: ' + flightOffer.source + ') - upselling not available, returning original fare');
         return {
           data: [flightOffer],
           meta: { count: 1 }
         };
       }
+
+      console.log(`🎫 Amadeus/GDS flight (source: ${flightOffer.source}) - calling upselling API...`);
 
       const response = await axios.post(
         `${this.baseUrl}/v1/shopping/flight-offers/upselling`,

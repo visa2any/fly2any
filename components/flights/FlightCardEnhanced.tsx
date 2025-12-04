@@ -383,12 +383,13 @@ export function FlightCardEnhanced({
 
   // NEW: Get baggage and amenities BY ITINERARY (not just first segment!)
   const getBaggageByItinerary = (itineraryIndex: number) => {
-    // Default fallback
+    // Default fallback - CRITICAL: Set checked to 0 to avoid misleading customers
+    // Only show checked bags if API explicitly confirms them
     const defaultBaggage = {
       carryOn: true,
       carryOnWeight: '10kg',
       carryOnQuantity: 2,
-      checked: 1,
+      checked: 0, // FIXED: Default to 0 - only show bags if API confirms
       checkedWeight: '23kg',
       fareType: 'STANDARD',
       brandedFareLabel: undefined as string | undefined,
@@ -415,8 +416,69 @@ export function FlightCardEnhanced({
         return defaultBaggage;
       }
 
-      // Checked baggage from API
-      const checkedBags = fareDetails.includedCheckedBags?.quantity || 0;
+      // Get fare details FIRST (needed for baggage validation)
+      const cabin = fareDetails.cabin || 'ECONOMY';
+      const fareOption = fareDetails.fareOption || fareDetails.brandedFare || fareDetails.fareBasis || 'STANDARD';
+      const brandedLabel = fareDetails.brandedFareLabel; // e.g., "Blue Basic"
+
+      // Determine fare class - Enhanced detection for all airline branded fares
+      // JetBlue: Blue Basic, Blue, Blue Plus, Blue Extra, Mint
+      // American: Basic Economy, Main Cabin, Main Cabin Extra, Premium Economy, Business, First
+      // Delta: Basic Economy, Main Cabin, Comfort+, Premium Select, Delta One, First
+      // United: Basic Economy, Economy, Economy Plus, Premium Plus, Business, First
+      // Southwest: Wanna Get Away, Wanna Get Away Plus, Anytime, Business Select
+      const fareNameLower = fareOption.toLowerCase();
+      const brandedNameLower = brandedLabel?.toLowerCase() || '';
+
+      const isBasicEconomy =
+        fareNameLower.includes('basic') ||
+        fareNameLower.includes('light') ||
+        fareNameLower.includes('saver') ||
+        fareNameLower.includes('wanna get away') ||
+        brandedNameLower.includes('basic') ||
+        brandedNameLower.includes('light') ||
+        brandedNameLower.includes('saver') ||
+        // JetBlue "Blue Basic" specifically = NO bags
+        (brandedNameLower === 'blue basic') ||
+        // Specific codes that indicate basic/no-frills fares
+        ['DN', 'AN', 'ECOLIGHT', 'ECOBAS'].some(code => fareOption.includes(code));
+
+      const isPremium = cabin === 'PREMIUM_ECONOMY' || cabin === 'BUSINESS' || cabin === 'FIRST' ||
+        brandedNameLower.includes('mint') || // JetBlue Mint
+        brandedNameLower.includes('first') ||
+        brandedNameLower.includes('business') ||
+        brandedNameLower.includes('premium') ||
+        brandedNameLower.includes('comfort+') ||
+        brandedNameLower.includes('delta one');
+
+      // DEBUG: Log fare detection
+      console.log(`🎫 Fare Detection: ${fareOption} | ${brandedLabel} | isBasic=${isBasicEconomy} | isPremium=${isPremium}`);
+
+      // Checked baggage from API - CRITICAL: Validate against fare class
+      // Basic economy typically has 0 bags unless API explicitly says otherwise
+      let checkedBags = fareDetails.includedCheckedBags?.quantity;
+
+      // CRITICAL FIX: Override baggage based on fare class knowledge
+      // Basic Economy fares on most US airlines do NOT include checked bags
+      // even if API sometimes returns incorrect data
+      if (isBasicEconomy) {
+        // Basic economy = NO checked bags (override API if needed)
+        if (checkedBags === undefined || checkedBags === null || checkedBags > 0) {
+          console.log(`⚠️ Basic economy fare "${brandedLabel || fareOption}" - setting bags to 0 (API returned: ${checkedBags})`);
+          checkedBags = 0;
+        }
+      } else if (checkedBags === undefined || checkedBags === null) {
+        // No API data - use fare-based defaults
+        if (isPremium) {
+          checkedBags = 2; // Premium cabins usually get 2 bags
+        } else {
+          checkedBags = 0; // Standard economy - don't assume bags without API confirmation
+        }
+      }
+
+      // DEBUG: Final baggage determination
+      console.log(`💼 Baggage for "${brandedLabel || fareOption}": API=${fareDetails.includedCheckedBags?.quantity}, Final=${checkedBags}`);
+
       const checkedWeight = fareDetails.includedCheckedBags?.weight
         ? `${fareDetails.includedCheckedBags.weight}${fareDetails.includedCheckedBags.weightUnit || 'kg'}`
         : '23kg';
@@ -425,17 +487,8 @@ export function FlightCardEnhanced({
       const cabinBagsData = fareDetails.includedCabinBags;
       const cabinQuantity = cabinBagsData?.quantity || 0;
 
-      // Get fare details
-      const cabin = fareDetails.cabin || 'ECONOMY';
-      const fareOption = fareDetails.fareOption || fareDetails.brandedFare || fareDetails.fareBasis || 'STANDARD';
-      const brandedLabel = fareDetails.brandedFareLabel; // e.g., "Blue Basic"
-
-      // Determine baggage rules
-      const isBasicEconomy = fareOption.includes('BASIC') || fareOption.includes('LIGHT') || fareOption.includes('SAVER');
-      const isPremium = cabin === 'PREMIUM_ECONOMY' || cabin === 'BUSINESS' || cabin === 'FIRST';
-
-      // Determine carry-on rules
-      const hasCarryOn = cabinQuantity >= 2 || !isBasicEconomy; // 2 = carry-on + personal item
+      // Determine carry-on rules - Basic economy usually restricted
+      const hasCarryOn = cabinQuantity >= 2 || (!isBasicEconomy && cabin !== 'BASIC');
       const carryOnWeight = isPremium ? '18kg' : '10kg';
 
       // Parse amenities array (with aircraft-based fallback)
@@ -615,8 +668,9 @@ export function FlightCardEnhanced({
     }
   };
 
-  // Use provided viewing count or generate mock
-  const currentViewingCount = viewingCount ?? Math.floor(Math.random() * 50) + 20;
+  // Use provided viewing count - NO fake data
+  // If no real viewing count is available, don't show any
+  const currentViewingCount = viewingCount;
 
   // Calculate loyalty miles earning
   const flightDurationMins = durationToMinutes(itineraries[0].duration);
@@ -1240,9 +1294,10 @@ export function FlightCardEnhanced({
           {/* REMOVED: Fake discount display - real prices should not show artificial markups */}
         </div>
 
-        {/* Center: Baggage Icons (Google Flights 2025 Standard) */}
-        <div className="flex items-center gap-1.5 flex-shrink-0 px-2 py-1 bg-gray-100 rounded-md">
-          <div className="flex items-center gap-0.5" title={`${baggageInfo.carryOn ? 'Carry-on included' : 'No carry-on'}`}>
+        {/* Center: Baggage Icons (Google Flights 2025 Standard) - CLEAR INDICATION */}
+        <div className="flex items-center gap-1.5 flex-shrink-0 px-2 py-1 bg-gray-100 rounded-md" title="Baggage included in fare">
+          {/* Carry-on Bag */}
+          <div className="flex items-center gap-0.5" title={baggageInfo.carryOn ? 'Carry-on bag included' : 'No carry-on bag (personal item only)'}>
             <span style={{ fontSize: '14px' }}>🎒</span>
             {baggageInfo.carryOn ? (
               <span className="text-green-600 font-bold" style={{ fontSize: '10px' }}>✓</span>
@@ -1250,11 +1305,14 @@ export function FlightCardEnhanced({
               <span className="text-red-600 font-bold" style={{ fontSize: '10px' }}>✗</span>
             )}
           </div>
-          <div className="flex items-center gap-0.5" title={`${baggageInfo.checked} checked bag(s)`}>
+          {/* Checked Bags - CRITICAL: Show clearly if NO bags included */}
+          <div className="flex items-center gap-0.5" title={baggageInfo.checked > 0 ? `${baggageInfo.checked} checked bag(s) included` : 'No checked bags included - fee applies'}>
             <span style={{ fontSize: '14px' }}>💼</span>
-            <span className={`font-semibold text-[10px] ${baggageInfo.checked > 0 ? 'text-green-700' : 'text-red-600'}`}>
-              {baggageInfo.checked}
-            </span>
+            {baggageInfo.checked > 0 ? (
+              <span className="font-bold text-[10px] text-green-700">{baggageInfo.checked}</span>
+            ) : (
+              <span className="font-bold text-[10px] text-red-600">✗</span>
+            )}
           </div>
         </div>
 
