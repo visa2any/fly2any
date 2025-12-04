@@ -1422,6 +1422,250 @@ class DuffelAPI {
   }
 
   /**
+   * Pay For Hold Order - Complete payment for a previously held order
+   *
+   * This method is used to finalize payment for orders created with type='pay_later'.
+   * The payment must be made before the `payment_required_by` deadline.
+   *
+   * IMPORTANT: Before calling this method:
+   * 1. Retrieve the latest order to get current price (prices may change)
+   * 2. Verify the order hasn't expired (check payment_required_by)
+   * 3. Ensure customer has paid via Stripe first
+   *
+   * @see https://duffel.com/docs/api/payments/create-payment
+   *
+   * @param orderId - The Duffel order ID (ord_xxxxx)
+   * @param amount - The payment amount (must match order total)
+   * @param currency - The currency code (must match order currency)
+   * @returns Payment confirmation object
+   */
+  async payForHoldOrder(
+    orderId: string,
+    amount: string,
+    currency: string
+  ): Promise<{
+    success: boolean;
+    paymentId: string;
+    status: 'succeeded' | 'failed' | 'pending';
+    orderId: string;
+    amount: string;
+    currency: string;
+    error?: string;
+  }> {
+    // SAFETY GUARD: Prevent accidental payments in read-only mode
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      console.error('❌ SAFETY: Duffel payments disabled. Set DUFFEL_ENABLE_ORDERS=true to enable.');
+      throw new Error('SAFETY_ERROR: Duffel payments are disabled in configuration');
+    }
+
+    if (!this.isInitialized) {
+      throw new Error('Duffel API not initialized - check DUFFEL_ACCESS_TOKEN');
+    }
+
+    try {
+      console.log('💳 Processing Duffel hold order payment...');
+      console.log(`   Order ID: ${orderId}`);
+      console.log(`   Amount: ${currency} ${amount}`);
+
+      // STEP 1: Verify order exists and check current price
+      console.log('📋 Step 1: Verifying order status and price...');
+      const order = await this.client.orders.get(orderId);
+      const orderData = order.data as any;
+
+      // Check if order is already paid
+      if (orderData.payment_status?.awaiting_payment === false) {
+        console.log('⚠️  Order appears to already be paid');
+        return {
+          success: true,
+          paymentId: 'already_paid',
+          status: 'succeeded',
+          orderId,
+          amount,
+          currency,
+        };
+      }
+
+      // Check if payment deadline has passed
+      const paymentDeadline = orderData.payment_required_by;
+      if (paymentDeadline) {
+        const deadlineDate = new Date(paymentDeadline);
+        const now = new Date();
+
+        if (now > deadlineDate) {
+          console.error('❌ Payment deadline has passed');
+          throw new Error('PAYMENT_EXPIRED: The hold order has expired. Please create a new booking.');
+        }
+
+        const hoursRemaining = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+        console.log(`   ⏰ Payment deadline: ${paymentDeadline} (${hoursRemaining.toFixed(1)}h remaining)`);
+      }
+
+      // Verify price hasn't changed significantly
+      const currentTotal = orderData.total_amount;
+      const currentCurrency = orderData.total_currency;
+
+      if (currentCurrency !== currency) {
+        console.error(`❌ Currency mismatch: expected ${currentCurrency}, got ${currency}`);
+        throw new Error(`CURRENCY_MISMATCH: Order currency is ${currentCurrency}, not ${currency}`);
+      }
+
+      // Allow small price differences (rounding)
+      const priceDiff = Math.abs(parseFloat(currentTotal) - parseFloat(amount));
+      if (priceDiff > 1.00) { // More than $1 difference
+        console.warn(`⚠️  Price changed: ${currentTotal} vs ${amount}`);
+        // For now, use the current price from Duffel
+        console.log(`   Using current Duffel price: ${currentTotal}`);
+      }
+
+      // STEP 2: Create payment via Duffel Payments API
+      console.log('💰 Step 2: Creating Duffel payment...');
+
+      const payment = await this.client.payments.create({
+        order_id: orderId,
+        payment: {
+          type: 'balance', // Use Duffel balance (pre-funded)
+          amount: currentTotal, // Use current order total
+          currency: currentCurrency,
+        },
+      });
+
+      const paymentData = payment.data as any;
+
+      console.log('✅ Duffel payment created successfully!');
+      console.log(`   Payment ID: ${paymentData.id}`);
+      console.log(`   Status: ${paymentData.status}`);
+      console.log(`   Amount: ${paymentData.currency} ${paymentData.amount}`);
+
+      // Check payment status
+      if (paymentData.status === 'failed') {
+        console.error('❌ Payment failed:', paymentData.failure_reason);
+        throw new Error(`PAYMENT_FAILED: ${paymentData.failure_reason || 'Payment processing failed'}`);
+      }
+
+      return {
+        success: paymentData.status === 'succeeded',
+        paymentId: paymentData.id,
+        status: paymentData.status,
+        orderId: paymentData.order_id,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+      };
+    } catch (error: any) {
+      console.error('❌ Duffel payment error:', error);
+
+      // Parse Duffel API error
+      if (error.errors && Array.isArray(error.errors)) {
+        const duffelError = error.errors[0];
+        const errorCode = duffelError.code || 'unknown';
+        const errorMessage = duffelError.message || 'Payment failed';
+
+        // Handle specific error codes
+        if (errorCode === 'already_paid') {
+          return {
+            success: true,
+            paymentId: 'already_paid',
+            status: 'succeeded',
+            orderId,
+            amount,
+            currency,
+          };
+        }
+
+        if (errorCode === 'already_cancelled') {
+          throw new Error('ORDER_CANCELLED: This order has been cancelled');
+        }
+
+        if (errorCode === 'past_payment_required_by_date') {
+          throw new Error('PAYMENT_EXPIRED: The hold order has expired');
+        }
+
+        if (errorCode === 'price_changed') {
+          throw new Error(`PRICE_CHANGED: The price has changed. Please refresh and try again.`);
+        }
+
+        throw new Error(`DUFFEL_ERROR: ${errorCode} - ${errorMessage}`);
+      }
+
+      // Re-throw safety errors
+      if (error.message?.startsWith('SAFETY_ERROR:') ||
+          error.message?.startsWith('PAYMENT_EXPIRED:') ||
+          error.message?.startsWith('CURRENCY_MISMATCH:') ||
+          error.message?.startsWith('PAYMENT_FAILED:')) {
+        throw error;
+      }
+
+      throw new Error(`Duffel payment failed: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Verify Hold Order Status - Check if hold order is still valid
+   *
+   * Use this before attempting payment to ensure the order hasn't expired
+   * or been cancelled.
+   *
+   * @param orderId - The Duffel order ID
+   * @returns Object with validity status and details
+   */
+  async verifyHoldOrderStatus(orderId: string): Promise<{
+    valid: boolean;
+    expired: boolean;
+    alreadyPaid: boolean;
+    cancelled: boolean;
+    paymentDeadline?: string;
+    hoursRemaining?: number;
+    currentPrice: string;
+    currency: string;
+    reason?: string;
+  }> {
+    if (!this.isInitialized) {
+      throw new Error('Duffel API not initialized');
+    }
+
+    try {
+      const order = await this.client.orders.get(orderId);
+      const orderData = order.data as any;
+
+      const paymentDeadline = orderData.payment_required_by;
+      const now = new Date();
+      let expired = false;
+      let hoursRemaining: number | undefined;
+
+      if (paymentDeadline) {
+        const deadlineDate = new Date(paymentDeadline);
+        expired = now > deadlineDate;
+        hoursRemaining = expired ? 0 : (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      }
+
+      // Check payment status
+      const awaitingPayment = orderData.payment_status?.awaiting_payment !== false;
+      const alreadyPaid = !awaitingPayment;
+
+      // Check if cancelled (would have no slices or different status)
+      const cancelled = orderData.cancelled_at != null;
+
+      const valid = !expired && !cancelled && !alreadyPaid;
+
+      return {
+        valid,
+        expired,
+        alreadyPaid,
+        cancelled,
+        paymentDeadline,
+        hoursRemaining: hoursRemaining ? Math.floor(hoursRemaining * 10) / 10 : undefined,
+        currentPrice: orderData.total_amount,
+        currency: orderData.total_currency,
+        reason: !valid
+          ? (expired ? 'Hold has expired' : cancelled ? 'Order was cancelled' : alreadyPaid ? 'Already paid' : 'Unknown')
+          : undefined,
+      };
+    } catch (error: any) {
+      console.error('Error verifying hold order:', error);
+      throw new Error(`Failed to verify order: ${error.message}`);
+    }
+  }
+
+  /**
    * Transform passenger data from our format to Duffel format
    *
    * Duffel requires specific passenger data structure:

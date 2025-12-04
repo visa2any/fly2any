@@ -3,7 +3,7 @@
  * Comprehensive type definitions for the booking system
  */
 
-export type BookingStatus = 'confirmed' | 'pending' | 'pending_ticketing' | 'ticketed' | 'cancelled' | 'completed';
+export type BookingStatus = 'confirmed' | 'pending' | 'pending_ticketing' | 'ticketed' | 'cancelled' | 'completed' | 'hold' | 'expired';
 export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed';
 export type PaymentMethod = 'credit_card' | 'debit_card' | 'paypal' | 'bank_transfer';
 export type PassengerType = 'adult' | 'child' | 'infant';
@@ -82,6 +82,11 @@ export interface PaymentInfo {
   paidAt?: string; // ISO datetime
   refundedAt?: string; // ISO datetime
   refundAmount?: number;
+  // Hold Capture Payment Fields
+  duffelPaymentId?: string; // Duffel payment ID for hold orders
+  netAmount?: number; // Net amount paid to Duffel (before markup)
+  markup?: number; // Our markup amount
+  capturedAt?: string; // ISO datetime - when hold was captured
 }
 
 export interface ContactInfo {

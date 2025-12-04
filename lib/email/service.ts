@@ -13,6 +13,119 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@fly2any.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
+
+// Email failure tracking (for retry logic)
+interface EmailFailure {
+  type: string;
+  recipient: string;
+  error: string;
+  timestamp: Date;
+  bookingReference?: string;
+}
+
+// In-memory failure queue (in production, use Redis or database)
+const emailFailureQueue: EmailFailure[] = [];
+
+/**
+ * Notify admin when critical email fails
+ * This ensures booking-related email failures don't go unnoticed
+ */
+async function notifyAdminOfEmailFailure(
+  emailType: string,
+  recipient: string,
+  error: string,
+  bookingReference?: string
+): Promise<void> {
+  const failure: EmailFailure = {
+    type: emailType,
+    recipient,
+    error,
+    timestamp: new Date(),
+    bookingReference,
+  };
+
+  // Add to failure queue
+  emailFailureQueue.push(failure);
+
+  // Log prominently
+  console.error('🚨 ==========================================');
+  console.error('🚨 CRITICAL: EMAIL DELIVERY FAILURE');
+  console.error('🚨 ==========================================');
+  console.error(`   Type: ${emailType}`);
+  console.error(`   Recipient: ${recipient}`);
+  console.error(`   Booking: ${bookingReference || 'N/A'}`);
+  console.error(`   Error: ${error}`);
+  console.error(`   Time: ${failure.timestamp.toISOString()}`);
+  console.error('🚨 ==========================================');
+
+  // Try to notify admin
+  if (!resend || !process.env.RESEND_API_KEY) {
+    console.error('⚠️  Cannot send admin notification - RESEND_API_KEY not configured');
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ADMIN_EMAIL,
+      subject: `🚨 Email Delivery Failed - ${emailType}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px;">
+          <div style="background: #fee2e2; border: 2px solid #ef4444; padding: 15px; border-radius: 8px;">
+            <h2 style="color: #dc2626; margin-top: 0;">🚨 Email Delivery Failed</h2>
+            <p><strong>Type:</strong> ${emailType}</p>
+            <p><strong>Recipient:</strong> ${recipient}</p>
+            ${bookingReference ? `<p><strong>Booking Reference:</strong> ${bookingReference}</p>` : ''}
+            <p><strong>Time:</strong> ${failure.timestamp.toISOString()}</p>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 15px; margin-top: 15px; border-radius: 8px;">
+            <h3 style="margin-top: 0;">Error Details</h3>
+            <pre style="background: #1f2937; color: #f9fafb; padding: 10px; border-radius: 4px; overflow-x: auto;">${error}</pre>
+          </div>
+
+          <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+            <p style="margin: 0;"><strong>Action Required:</strong> Please manually send the email or investigate the failure.</p>
+          </div>
+        </div>
+      `,
+      text: `
+Email Delivery Failed
+
+Type: ${emailType}
+Recipient: ${recipient}
+${bookingReference ? `Booking Reference: ${bookingReference}` : ''}
+Time: ${failure.timestamp.toISOString()}
+
+Error:
+${error}
+
+Action Required: Please manually send the email or investigate the failure.
+      `,
+    });
+
+    console.log('✅ Admin notification sent successfully');
+  } catch (notifyError) {
+    console.error('❌ Failed to notify admin:', notifyError);
+    // At this point, we've done everything we can
+    // In production, this should trigger a monitoring alert (Sentry, PagerDuty, etc.)
+  }
+}
+
+/**
+ * Get pending email failures for admin dashboard
+ */
+export function getEmailFailures(): EmailFailure[] {
+  return [...emailFailureQueue];
+}
+
+/**
+ * Clear email failure queue (after manual resolution)
+ */
+export function clearEmailFailures(): void {
+  emailFailureQueue.length = 0;
+}
 
 /**
  * Email Templates
@@ -307,8 +420,17 @@ export async function sendPaymentInstructionsEmail(booking: Booking): Promise<bo
     console.log(`   Email ID: ${result.data?.id}`);
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error sending payment instructions email:', error);
+
+    // CRITICAL: Notify admin of failure - don't let email failures go unnoticed
+    await notifyAdminOfEmailFailure(
+      'Payment Instructions',
+      booking.contactInfo?.email || 'unknown',
+      error?.message || String(error),
+      booking.bookingReference
+    );
+
     return false;
   }
 }
@@ -339,8 +461,17 @@ export async function sendBookingConfirmationEmail(booking: Booking): Promise<bo
     console.log(`   Email ID: ${result.data?.id}`);
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error sending booking confirmation email:', error);
+
+    // CRITICAL: Notify admin of failure
+    await notifyAdminOfEmailFailure(
+      'Booking Confirmation',
+      booking.contactInfo?.email || 'unknown',
+      error?.message || String(error),
+      booking.bookingReference
+    );
+
     return false;
   }
 }
@@ -507,8 +638,16 @@ export async function sendPriceAlertEmail(
     console.log(`   Email ID: ${result.data?.id}`);
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error sending price alert email:', error);
+
+    // Notify admin of failure (price alerts are important for customer retention)
+    await notifyAdminOfEmailFailure(
+      'Price Alert',
+      email,
+      error?.message || String(error)
+    );
+
     return false;
   }
 }
@@ -704,8 +843,17 @@ export async function sendTicketedConfirmationEmail(booking: Booking): Promise<b
     console.log(`   Email ID: ${result.data?.id}`);
 
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error sending e-ticket confirmation email:', error);
+
+    // CRITICAL: E-ticket emails are essential - customer needs their ticket!
+    await notifyAdminOfEmailFailure(
+      'E-Ticket Confirmation',
+      booking.contactInfo?.email || 'unknown',
+      error?.message || String(error),
+      booking.bookingReference
+    );
+
     return false;
   }
 }
@@ -713,6 +861,10 @@ export async function sendTicketedConfirmationEmail(booking: Booking): Promise<b
 export const emailService = {
   sendPaymentInstructions: sendPaymentInstructionsEmail,
   sendBookingConfirmation: sendBookingConfirmationEmail,
+  sendFlightConfirmation: sendBookingConfirmationEmail, // Alias for capture endpoint
   sendPriceAlert: sendPriceAlertEmail,
   sendTicketedConfirmation: sendTicketedConfirmationEmail,
+  // Admin functions
+  getEmailFailures,
+  clearEmailFailures,
 };
