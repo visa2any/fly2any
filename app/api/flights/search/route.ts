@@ -777,8 +777,149 @@ export async function POST(request: NextRequest) {
         ).catch(console.error); // Don't block on logging
       }
 
-      // Merge results
-      let allFlightsFromBothSources = [...amadeusFlights, ...duffelFlights];
+      // ============================================================================
+      // 🎫 GROUP DUFFEL FARE FAMILIES
+      // ============================================================================
+      // Duffel returns multiple offers for the same physical flight with different
+      // fare classes (e.g., Basic $432, Economy $589). We need to group these as
+      // fare variants of the same flight, not as separate flights.
+      //
+      // Strategy:
+      // 1. Create a flight signature (carrier + flight number + departure time)
+      // 2. Group Duffel offers by this signature
+      // 3. Pick the cheapest as the representative flight
+      // 4. Store all variants in fareVariants array for the booking page
+      // ============================================================================
+
+      const groupDuffelFareVariants = (duffelOffers: FlightOffer[]): FlightOffer[] => {
+        if (duffelOffers.length === 0) return [];
+
+        // Helper: Create unique flight signature
+        const getFlightSignature = (offer: FlightOffer): string => {
+          const segments = offer.itineraries?.flatMap(itin => itin.segments || []) || [];
+          if (segments.length === 0) return offer.id; // Fallback to ID if no segments
+
+          // Build signature from all segments: carrier+flightNum+depTime+arrTime
+          const sigParts = segments.map(seg =>
+            `${seg.carrierCode || 'XX'}${seg.number || '000'}_${seg.departure?.at?.slice(0, 16) || ''}_${seg.arrival?.at?.slice(0, 16) || ''}`
+          );
+          return sigParts.join('|');
+        };
+
+        // Group offers by signature
+        const fareGroups = new Map<string, FlightOffer[]>();
+
+        for (const offer of duffelOffers) {
+          const sig = getFlightSignature(offer);
+          if (!fareGroups.has(sig)) {
+            fareGroups.set(sig, []);
+          }
+          fareGroups.get(sig)!.push(offer);
+        }
+
+        console.log(`  🎫 Duffel Fare Grouping: ${duffelOffers.length} offers → ${fareGroups.size} unique flights`);
+
+        // For each group, pick cheapest and store variants
+        const groupedFlights: FlightOffer[] = [];
+
+        for (const [signature, variants] of fareGroups.entries()) {
+          // Sort by price (cheapest first)
+          variants.sort((a, b) => {
+            const priceA = parseFloat(String(a.price?.total || '999999'));
+            const priceB = parseFloat(String(b.price?.total || '999999'));
+            return priceA - priceB;
+          });
+
+          // Pick the cheapest as the representative flight
+          const cheapest = variants[0];
+
+          // Extract fare names for logging
+          const fareNames = variants.map(v => {
+            const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+            return fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
+          });
+
+          // Add all variants to the cheapest flight
+          const flightWithVariants = {
+            ...cheapest,
+            // Store ALL fare variants (including the cheapest itself)
+            fareVariants: variants.map((v, idx) => {
+              const price = parseFloat(String(v.price?.total || '0'));
+              const fareDetails = v.travelerPricings?.[0]?.fareDetailsBySegment?.[0] as any;
+              const fareName = fareDetails?.brandedFareLabel || fareDetails?.brandedFare || fareDetails?.cabin || 'ECONOMY';
+
+              return {
+                id: v.id,
+                name: fareName.toUpperCase(),
+                price: price,
+                currency: v.price?.currency || 'USD',
+                originalOffer: v, // Store full offer for booking
+                features: extractFareFeatures(v, fareDetails),
+                recommended: idx === 1 && variants.length > 1, // Second option usually best value
+                popularityPercent: idx === 0 ? 26 : idx === 1 ? 74 : 18,
+              };
+            }),
+            fareVariantCount: variants.length,
+          };
+
+          if (variants.length > 1) {
+            const priceRange = `$${parseFloat(String(variants[0].price?.total)).toFixed(0)} - $${parseFloat(String(variants[variants.length - 1].price?.total)).toFixed(0)}`;
+            console.log(`    ✓ ${fareNames.join(' → ')} (${priceRange})`);
+          }
+
+          groupedFlights.push(flightWithVariants);
+        }
+
+        return groupedFlights;
+      };
+
+      // Helper: Extract fare features from Duffel offer
+      const extractFareFeatures = (offer: FlightOffer, fareDetails: any): string[] => {
+        const features: string[] = [];
+
+        // Baggage
+        const checkedBags = fareDetails?.includedCheckedBags?.quantity || 0;
+        if (checkedBags === 0) {
+          features.push('Carry-on only');
+        } else if (checkedBags === 1) {
+          features.push('Carry-on + 1 checked bag');
+        } else if (checkedBags >= 2) {
+          features.push(`Carry-on + ${checkedBags} checked bags`);
+        }
+
+        // Conditions from Duffel
+        const conditions = (offer as any).conditions;
+        if (conditions?.refundable) {
+          features.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
+        } else {
+          features.push('No refunds');
+        }
+
+        if (conditions?.changeable) {
+          features.push(conditions.changePenalty ? `Changes allowed (${conditions.changePenalty} fee)` : 'Free changes');
+        } else {
+          features.push('No changes');
+        }
+
+        // Cabin class
+        const cabin = fareDetails?.cabin || 'ECONOMY';
+        if (cabin === 'BUSINESS') {
+          features.push('Business class seat');
+          features.push('Priority boarding');
+        } else if (cabin === 'FIRST') {
+          features.push('First class seat');
+        } else {
+          features.push('Economy seat');
+        }
+
+        return features.slice(0, 5); // Limit to 5 features
+      };
+
+      // Apply fare grouping to Duffel flights
+      const groupedDuffelFlights = groupDuffelFareVariants(duffelFlights);
+
+      // Merge results (Amadeus flights + grouped Duffel flights)
+      let allFlightsFromBothSources = [...amadeusFlights, ...groupedDuffelFlights];
 
       // 🚫 NO DEMO/FALLBACK FLIGHTS - Only real API results
       if (allFlightsFromBothSources.length === 0) {

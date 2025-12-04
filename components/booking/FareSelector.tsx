@@ -13,6 +13,7 @@ interface FareOption {
   restrictions?: string[];
   recommended?: boolean;
   popularityPercent?: number;
+  originalOffer?: any; // For Duffel fare variants - contains the full offer for booking
 }
 
 interface FareSelectorProps {

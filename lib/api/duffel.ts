@@ -2294,6 +2294,567 @@ class DuffelAPI {
       throw new Error(`Failed to confirm order change: ${error.message || 'Unknown error'}`);
     }
   }
+
+  // ============================================================================
+  // POST-BOOKING SERVICES - Add bags/seats to EXISTING orders
+  // ============================================================================
+
+  /**
+   * Get Available Services for an Existing Order
+   *
+   * Retrieves baggage, seats, and other services that can be added
+   * to an order AFTER it has been created.
+   *
+   * @param orderId - The Duffel order ID
+   * @returns Available services with pricing
+   */
+  async getOrderAvailableServices(orderId: string): Promise<{
+    success: boolean;
+    data: {
+      baggage: any[];
+      seats: any[];
+      other: any[];
+    };
+    meta?: any;
+    error?: string;
+  }> {
+    if (!this.isInitialized) {
+      return {
+        success: false,
+        data: { baggage: [], seats: [], other: [] },
+        error: 'Duffel API not initialized',
+      };
+    }
+
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) {
+      return {
+        success: false,
+        data: { baggage: [], seats: [], other: [] },
+        error: 'DUFFEL_ACCESS_TOKEN not configured',
+      };
+    }
+
+    try {
+      console.log('🎒 ========================================');
+      console.log(`🎒 FETCHING POST-BOOKING SERVICES`);
+      console.log(`🎒 Order ID: ${orderId}`);
+
+      const response = await axios.get(
+        `https://api.duffel.com/air/orders/${orderId}/available_services`,
+        {
+          headers: {
+            'Accept-Encoding': 'gzip',
+            'Accept': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+          timeout: 30000,
+        }
+      );
+
+      const services = response.data?.data || [];
+      console.log(`✅ Found ${services.length} available post-booking services`);
+
+      // Categorize services
+      const baggage: any[] = [];
+      const seats: any[] = [];
+      const other: any[] = [];
+
+      for (const service of services) {
+        const baseService = {
+          id: service.id,
+          type: service.type,
+          totalAmount: service.total_amount,
+          totalCurrency: service.total_currency,
+          segmentIds: service.segment_ids || [],
+          passengerIds: service.passenger_ids || [],
+          metadata: service.metadata || {},
+        };
+
+        if (service.type === 'baggage') {
+          baggage.push({
+            ...baseService,
+            name: service.metadata?.title || `Checked Bag (${service.metadata?.maximum_weight_kg || 23}kg)`,
+            weight: {
+              value: service.metadata?.maximum_weight_kg || 23,
+              unit: 'kg',
+            },
+            dimensions: service.metadata?.maximum_length_cm ? {
+              length: service.metadata.maximum_length_cm,
+              width: service.metadata.maximum_width_cm,
+              height: service.metadata.maximum_height_cm,
+            } : undefined,
+            maxQuantity: service.maximum_quantity || 5,
+          });
+        } else if (service.type === 'seat') {
+          seats.push({
+            ...baseService,
+            designator: service.metadata?.designator,
+            disclosures: service.metadata?.disclosures || [],
+          });
+        } else {
+          other.push(baseService);
+        }
+      }
+
+      console.log(`   🧳 Baggage options: ${baggage.length}`);
+      console.log(`   💺 Seat options: ${seats.length}`);
+      console.log(`   📦 Other services: ${other.length}`);
+      console.log('🎒 ========================================');
+
+      return {
+        success: true,
+        data: { baggage, seats, other },
+        meta: {
+          orderId,
+          totalServices: services.length,
+          currency: services[0]?.total_currency || 'USD',
+        },
+      };
+    } catch (error: any) {
+      console.error('❌ Error fetching post-booking services:', error.message);
+
+      if (axios.isAxiosError(error)) {
+        console.error('   HTTP Status:', error.response?.status);
+        console.error('   Response:', error.response?.data);
+      }
+
+      return {
+        success: false,
+        data: { baggage: [], seats: [], other: [] },
+        error: error.message || 'Failed to fetch post-booking services',
+      };
+    }
+  }
+
+  /**
+   * Add Services to an Existing Order (Post-Booking)
+   *
+   * Allows adding bags, seats, or other services to an order
+   * that has already been created.
+   *
+   * @param orderId - The Duffel order ID
+   * @param services - Array of services to add { id, quantity }
+   * @param paymentAmount - Total payment amount
+   * @param paymentCurrency - Payment currency
+   * @returns Order with added services
+   */
+  async addServicesToOrder(
+    orderId: string,
+    services: Array<{ id: string; quantity: number }>,
+    paymentAmount: string,
+    paymentCurrency: string
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    // SAFETY GUARD
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      return {
+        success: false,
+        error: 'ORDER_CREATION_DISABLED: Adding services is disabled. Set DUFFEL_ENABLE_ORDERS=true',
+      };
+    }
+
+    if (!this.isInitialized) {
+      return { success: false, error: 'Duffel API not initialized' };
+    }
+
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) {
+      return { success: false, error: 'DUFFEL_ACCESS_TOKEN not configured' };
+    }
+
+    try {
+      console.log('➕ ========================================');
+      console.log(`➕ ADDING SERVICES TO ORDER`);
+      console.log(`➕ Order ID: ${orderId}`);
+      console.log(`➕ Services: ${services.length}`);
+      console.log(`➕ Payment: ${paymentCurrency} ${paymentAmount}`);
+
+      const response = await axios.post(
+        `https://api.duffel.com/air/orders/${orderId}/services`,
+        {
+          data: {
+            payment: {
+              type: 'balance',
+              currency: paymentCurrency,
+              amount: paymentAmount,
+            },
+            add_services: services.map(s => ({
+              id: s.id,
+              quantity: s.quantity,
+            })),
+          },
+        },
+        {
+          headers: {
+            'Accept-Encoding': 'gzip',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+          timeout: 60000,
+        }
+      );
+
+      console.log('✅ Services added successfully!');
+      console.log(`   Order ID: ${response.data?.data?.id || orderId}`);
+      console.log('➕ ========================================');
+
+      return {
+        success: true,
+        data: response.data?.data,
+      };
+    } catch (error: any) {
+      console.error('❌ Error adding services to order:', error.message);
+
+      if (axios.isAxiosError(error)) {
+        console.error('   HTTP Status:', error.response?.status);
+        console.error('   Response:', error.response?.data);
+
+        // Parse specific errors
+        const duffelErrors = error.response?.data?.errors || [];
+        if (duffelErrors.length > 0) {
+          const firstError = duffelErrors[0];
+          return {
+            success: false,
+            error: `DUFFEL_ERROR: ${firstError.code || 'unknown'} - ${firstError.message || firstError.title || 'Unknown error'}`,
+          };
+        }
+      }
+
+      return {
+        success: false,
+        error: error.message || 'Failed to add services',
+      };
+    }
+  }
+
+  // ============================================================================
+  // LOYALTY PROGRAMME ACCOUNTS - Frequent Flyer Integration
+  // ============================================================================
+
+  /**
+   * Update Offer Passenger with Loyalty Programme
+   *
+   * Adds frequent flyer information to a passenger in an offer.
+   * This can unlock discounted fares and additional benefits.
+   *
+   * IMPORTANT: After updating, re-fetch the offer to see price changes.
+   *
+   * @param offerId - The Duffel offer ID
+   * @param passengerId - The passenger ID within the offer
+   * @param loyaltyAccounts - Array of loyalty programme accounts
+   * @returns Updated passenger data
+   */
+  async updateOfferPassengerLoyalty(
+    offerId: string,
+    passengerId: string,
+    loyaltyAccounts: Array<{
+      airline_iata_code: string;
+      account_number: string;
+    }>
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    priceChanged?: boolean;
+    error?: string;
+  }> {
+    if (!this.isInitialized) {
+      return { success: false, error: 'Duffel API not initialized' };
+    }
+
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) {
+      return { success: false, error: 'DUFFEL_ACCESS_TOKEN not configured' };
+    }
+
+    try {
+      console.log('🎖️  ========================================');
+      console.log(`🎖️  UPDATING LOYALTY PROGRAMME`);
+      console.log(`🎖️  Offer ID: ${offerId}`);
+      console.log(`🎖️  Passenger ID: ${passengerId}`);
+      console.log(`🎖️  Loyalty Accounts: ${loyaltyAccounts.length}`);
+
+      // Get current offer price for comparison
+      const beforeOffer = await axios.get(
+        `https://api.duffel.com/air/offers/${offerId}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      const priceBefore = parseFloat(beforeOffer.data?.data?.total_amount || '0');
+
+      // Update passenger with loyalty accounts
+      const response = await axios.patch(
+        `https://api.duffel.com/air/offers/${offerId}/passengers/${passengerId}`,
+        {
+          data: {
+            loyalty_programme_accounts: loyaltyAccounts,
+          },
+        },
+        {
+          headers: {
+            'Accept-Encoding': 'gzip',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+          timeout: 30000,
+        }
+      );
+
+      // Get updated offer to check for price changes
+      const afterOffer = await axios.get(
+        `https://api.duffel.com/air/offers/${offerId}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      const priceAfter = parseFloat(afterOffer.data?.data?.total_amount || '0');
+      const priceChanged = Math.abs(priceAfter - priceBefore) > 0.01;
+
+      console.log('✅ Loyalty programme updated!');
+      if (priceChanged) {
+        const discount = priceBefore - priceAfter;
+        console.log(`   💰 DISCOUNT APPLIED: ${discount > 0 ? '-' : '+'}$${Math.abs(discount).toFixed(2)}`);
+        console.log(`   📊 Price: $${priceBefore.toFixed(2)} → $${priceAfter.toFixed(2)}`);
+      } else {
+        console.log(`   ℹ️  No price change (loyalty points will be accrued)`);
+      }
+      console.log('🎖️  ========================================');
+
+      return {
+        success: true,
+        data: {
+          passenger: response.data?.data,
+          updatedOffer: afterOffer.data?.data,
+          priceBefore,
+          priceAfter,
+          discount: priceBefore - priceAfter,
+        },
+        priceChanged,
+      };
+    } catch (error: any) {
+      console.error('❌ Error updating loyalty programme:', error.message);
+
+      if (axios.isAxiosError(error)) {
+        console.error('   HTTP Status:', error.response?.status);
+        console.error('   Response:', error.response?.data);
+      }
+
+      return {
+        success: false,
+        error: error.message || 'Failed to update loyalty programme',
+      };
+    }
+  }
+
+  /**
+   * Get Supported Loyalty Programmes for an Offer
+   *
+   * Returns which airlines support loyalty programmes for this offer.
+   *
+   * @param offerId - The Duffel offer ID
+   * @returns List of supported airline loyalty programmes
+   */
+  async getSupportedLoyaltyProgrammes(offerId: string): Promise<{
+    success: boolean;
+    data: string[]; // Array of airline IATA codes
+    error?: string;
+  }> {
+    if (!this.isInitialized) {
+      return { success: false, data: [], error: 'Duffel API not initialized' };
+    }
+
+    const token = process.env.DUFFEL_ACCESS_TOKEN?.trim();
+    if (!token) {
+      return { success: false, data: [], error: 'DUFFEL_ACCESS_TOKEN not configured' };
+    }
+
+    try {
+      const response = await axios.get(
+        `https://api.duffel.com/air/offers/${offerId}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Duffel-Version': 'v2',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      const offer = response.data?.data;
+      const supportedProgrammes = offer?.supported_loyalty_programmes || [];
+
+      return {
+        success: true,
+        data: supportedProgrammes,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: [],
+        error: error.message || 'Failed to get supported loyalty programmes',
+      };
+    }
+  }
+
+  // ============================================================================
+  // CO2 EMISSIONS - Environmental Impact Data
+  // ============================================================================
+
+  /**
+   * Extract CO2 Emissions from Offer
+   *
+   * Duffel provides carbon footprint data for flights.
+   * This method extracts and formats it for display.
+   *
+   * @param offer - Duffel offer object (raw or converted)
+   * @returns CO2 emissions data
+   */
+  extractCO2Emissions(offer: any): {
+    available: boolean;
+    totalKg?: number;
+    perPassenger?: number;
+    comparison?: string;
+    carbonClass?: 'low' | 'medium' | 'high';
+  } {
+    // Try multiple locations where emissions might be stored
+    const totalEmissions =
+      offer.total_emissions_kg ||
+      offer.duffelMetadata?.total_emissions_kg ||
+      offer._raw?.total_emissions_kg;
+
+    if (!totalEmissions) {
+      return { available: false };
+    }
+
+    const totalKg = parseFloat(totalEmissions);
+    const passengerCount = offer.travelerPricings?.length || offer.passengers?.length || 1;
+    const perPassenger = totalKg / passengerCount;
+
+    // Determine carbon class based on per-passenger emissions
+    // Average flight produces ~100-200kg CO2 per passenger
+    let carbonClass: 'low' | 'medium' | 'high' = 'medium';
+    let comparison = '';
+
+    if (perPassenger < 100) {
+      carbonClass = 'low';
+      comparison = 'Lower than average flight emissions';
+    } else if (perPassenger < 200) {
+      carbonClass = 'medium';
+      comparison = 'Average flight emissions';
+    } else {
+      carbonClass = 'high';
+      comparison = 'Higher than average flight emissions';
+    }
+
+    // Fun comparisons
+    const treeDays = Math.round(totalKg / 0.06); // A tree absorbs ~22kg CO2/year = 0.06kg/day
+    const carKm = Math.round(totalKg / 0.12); // Average car emits ~120g CO2/km
+
+    return {
+      available: true,
+      totalKg,
+      perPassenger: Math.round(perPassenger * 10) / 10,
+      comparison: `${comparison}. Equivalent to driving ${carKm}km or ${treeDays} tree-days of absorption.`,
+      carbonClass,
+    };
+  }
+
+  // ============================================================================
+  // BOOK WITH SERVICES - Create order with seats/bags in single call
+  // ============================================================================
+
+  /**
+   * Create Order with Services
+   *
+   * Creates a booking with seats and bags included in a single API call.
+   * More efficient than adding services post-booking.
+   *
+   * @param offerId - The Duffel offer ID
+   * @param passengers - Passenger details
+   * @param services - Services to book { id, quantity }
+   * @param loyaltyAccounts - Optional loyalty accounts per passenger
+   * @returns Created order with all services
+   */
+  async createOrderWithServices(
+    offerId: string,
+    passengers: any[],
+    services: Array<{ id: string; quantity: number }>,
+    loyaltyAccounts?: Map<string, Array<{ airline_iata_code: string; account_number: string }>>
+  ) {
+    // SAFETY GUARD
+    if (process.env.DUFFEL_ENABLE_ORDERS !== 'true') {
+      throw new Error('ORDER_CREATION_DISABLED: Set DUFFEL_ENABLE_ORDERS=true to enable bookings.');
+    }
+
+    if (!this.isInitialized) {
+      throw new Error('Duffel API not initialized - check DUFFEL_ACCESS_TOKEN');
+    }
+
+    try {
+      console.log('🎫 ========================================');
+      console.log(`🎫 CREATING ORDER WITH SERVICES`);
+      console.log(`🎫 Offer ID: ${offerId}`);
+      console.log(`🎫 Passengers: ${passengers.length}`);
+      console.log(`🎫 Services: ${services.length}`);
+
+      // Transform passengers to Duffel format
+      const duffelPassengers = this.transformPassengersToDuffel(passengers);
+
+      // Add loyalty accounts if provided
+      if (loyaltyAccounts) {
+        duffelPassengers.forEach((passenger: any, index: number) => {
+          const passengerLoyalty = loyaltyAccounts.get(`passenger_${index}`);
+          if (passengerLoyalty && passengerLoyalty.length > 0) {
+            passenger.loyalty_programme_accounts = passengerLoyalty;
+          }
+        });
+      }
+
+      // Build order payload
+      const orderPayload: any = {
+        selected_offers: [offerId],
+        passengers: duffelPassengers,
+        type: 'instant',
+      };
+
+      // Add services if any
+      if (services.length > 0) {
+        orderPayload.services = services;
+        console.log(`   📦 Including ${services.length} service(s) in order`);
+      }
+
+      // Create the order
+      const order = await this.client.orders.create(orderPayload);
+
+      console.log('✅ Order with services created successfully!');
+      console.log(`   Order ID: ${order.data.id}`);
+      console.log(`   Booking Reference: ${order.data.booking_reference}`);
+      console.log(`   Services Booked: ${(order.data as any).services?.length || 0}`);
+      console.log('🎫 ========================================');
+
+      return order;
+    } catch (error: any) {
+      console.error('❌ Error creating order with services:', error);
+      throw new Error(`Failed to create order with services: ${error.message || 'Unknown error'}`);
+    }
+  }
 }
 
 // Export singleton instance

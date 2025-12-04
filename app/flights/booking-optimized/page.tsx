@@ -31,6 +31,7 @@ interface FareOption {
   restrictions?: string[];
   recommended?: boolean;
   popularityPercent?: number;
+  originalOffer?: any; // For Duffel fare variants - contains the full offer for booking
 }
 
 interface AddOn {
@@ -154,102 +155,126 @@ function BookingPageContent() {
         setFlightData({ ...flight, search });
 
         // ===========================
-        // FETCH REAL BRANDED FARES FROM AMADEUS API
+        // GET FARE OPTIONS: DUFFEL VARIANTS OR AMADEUS UPSELLING
         // ===========================
-        console.log('🎫 Fetching branded fares from Amadeus API...');
-
         let realFares: FareOption[] = [];
 
-        try {
-          const upsellingResponse = await fetch('/api/flights/upselling', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ flightOffer: flight }),
-          });
+        // Check if flight already has fare variants from search (Duffel flights)
+        // Duffel returns multiple offers for the same physical flight with different fare classes
+        // These are grouped during search and stored as fareVariants
+        if (flight.fareVariants && flight.fareVariants.length > 0) {
+          console.log(`🎫 Using ${flight.fareVariants.length} fare variants from Duffel search`);
 
-          if (upsellingResponse.ok) {
-            const upsellingData = await upsellingResponse.json();
+          realFares = flight.fareVariants.map((variant: any, index: number) => ({
+            id: variant.id,
+            name: variant.name || 'ECONOMY',
+            price: variant.price,
+            currency: variant.currency || 'USD',
+            features: variant.features || ['Economy seat', 'Carry-on included'],
+            recommended: variant.recommended || false,
+            popularityPercent: variant.popularityPercent || (index === 0 ? 26 : index === 1 ? 74 : 18),
+            originalOffer: variant.originalOffer, // Keep original offer for booking
+          }));
 
-            if (upsellingData.success && upsellingData.fareOptions?.length > 0) {
-              console.log(`✅ Found ${upsellingData.fareOptions.length} real fare families from Amadeus`);
+          console.log(`✅ Fare variants loaded:`, realFares.map(f => `${f.name}: $${f.price}`).join(', '));
 
-              // Transform Amadeus fare families to our FareOption interface
-              realFares = upsellingData.fareOptions.map((fareOffer: any, index: number) => {
-                const fareDetails = fareOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
-                const fareBasis = fareDetails?.fareBasis || '';
-                const brandedFare = fareDetails?.brandedFare || '';
-                const cabin = fareDetails?.cabin || 'ECONOMY';
+          // Set default to recommended (index 1) or cheapest (index 0)
+          setSelectedFareId(realFares[1]?.id || realFares[0]?.id);
+        } else {
+          // Amadeus flights: Fetch branded fares from upselling API
+          console.log('🎫 Fetching branded fares from Amadeus API...');
 
-                // Extract baggage info
-                const baggage = fareDetails?.includedCheckedBags?.quantity || 0;
+          try {
+            const upsellingResponse = await fetch('/api/flights/upselling', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ flightOffer: flight }),
+            });
 
-                // Determine fare name from branded fare or cabin
-                let fareName = brandedFare || cabin;
-                if (fareName.includes('BASIC')) fareName = 'BASIC';
-                else if (fareName.includes('ECONOMY') && index === 0) fareName = 'BASIC';
-                else if (fareName.includes('FLEX') || fareName.includes('FLEXI')) fareName = 'FLEX';
-                else if (fareName.includes('BUSINESS')) fareName = 'BUSINESS';
-                else if (fareName.includes('FIRST')) fareName = 'FIRST CLASS';
-                else if (index === 0) fareName = 'BASIC';
-                else if (index === upsellingData.fareOptions.length - 1) fareName = 'PREMIUM';
-                else fareName = 'STANDARD';
+            if (upsellingResponse.ok) {
+              const upsellingData = await upsellingResponse.json();
 
-                // Build features list from fare details
-                const features: string[] = [];
+              if (upsellingData.success && upsellingData.fareOptions?.length > 0) {
+                console.log(`✅ Found ${upsellingData.fareOptions.length} real fare families from Amadeus`);
 
-                // Baggage
-                if (baggage === 0) features.push('Carry-on only');
-                else if (baggage === 1) features.push('Carry-on + 1 checked bag');
-                else if (baggage >= 2) features.push(`Carry-on + ${baggage} checked bags`);
+                // Transform Amadeus fare families to our FareOption interface
+                realFares = upsellingData.fareOptions.map((fareOffer: any, index: number) => {
+                  const fareDetails = fareOffer.travelerPricings?.[0]?.fareDetailsBySegment?.[0];
+                  const fareBasis = fareDetails?.fareBasis || '';
+                  const brandedFare = fareDetails?.brandedFare || '';
+                  const cabin = fareDetails?.cabin || 'ECONOMY';
 
-                // Cabin class
-                if (cabin === 'BUSINESS') {
-                  features.push('Business class seat');
-                  features.push('Priority boarding');
-                  features.push('Lounge access');
-                  features.push('Premium meals & drinks');
-                } else if (cabin === 'FIRST') {
-                  features.push('First class suite');
-                  features.push('Priority everything');
-                  features.push('Lounge access');
-                  features.push('Gourmet meals & champagne');
-                } else if (cabin === 'PREMIUM_ECONOMY') {
-                  features.push('Premium economy seat');
-                  features.push('Extra legroom');
-                  features.push('Priority boarding');
-                } else {
-                  features.push('Economy seat');
-                }
+                  // Extract baggage info
+                  const baggage = fareDetails?.includedCheckedBags?.quantity || 0;
 
-                // Add generic benefits based on fare type
-                if (fareName === 'FLEX' || fareName === 'PREMIUM') {
-                  features.push('Free changes');
-                  features.push('Refundable (-25% fee)');
-                } else if (fareName === 'STANDARD') {
-                  features.push('Changes allowed (+fee)');
-                } else if (fareName === 'BASIC') {
-                  features.push('Seat assignment fee');
-                  features.push('No changes');
-                  features.push('No refunds');
-                }
+                  // Determine fare name from branded fare or cabin
+                  let fareName = brandedFare || cabin;
+                  if (fareName.includes('BASIC')) fareName = 'BASIC';
+                  else if (fareName.includes('ECONOMY') && index === 0) fareName = 'BASIC';
+                  else if (fareName.includes('FLEX') || fareName.includes('FLEXI')) fareName = 'FLEX';
+                  else if (fareName.includes('BUSINESS')) fareName = 'BUSINESS';
+                  else if (fareName.includes('FIRST')) fareName = 'FIRST CLASS';
+                  else if (index === 0) fareName = 'BASIC';
+                  else if (index === upsellingData.fareOptions.length - 1) fareName = 'PREMIUM';
+                  else fareName = 'STANDARD';
 
-                return {
-                  id: fareOffer.id || `fare-${index}`,
-                  name: fareName,
-                  price: parseFloat(fareOffer.price.total),
-                  currency: fareOffer.price.currency,
-                  features: features.slice(0, 5), // Limit to 5 features for UI
-                  recommended: index === 1, // Second option usually best value
-                  popularityPercent: index === 0 ? 26 : index === 1 ? 74 : index === 2 ? 18 : 4,
-                };
-              });
+                  // Build features list from fare details
+                  const features: string[] = [];
 
-              setSelectedFareId(realFares[1]?.id || realFares[0]?.id); // Default to second option (best value)
+                  // Baggage
+                  if (baggage === 0) features.push('Carry-on only');
+                  else if (baggage === 1) features.push('Carry-on + 1 checked bag');
+                  else if (baggage >= 2) features.push(`Carry-on + ${baggage} checked bags`);
+
+                  // Cabin class
+                  if (cabin === 'BUSINESS') {
+                    features.push('Business class seat');
+                    features.push('Priority boarding');
+                    features.push('Lounge access');
+                    features.push('Premium meals & drinks');
+                  } else if (cabin === 'FIRST') {
+                    features.push('First class suite');
+                    features.push('Priority everything');
+                    features.push('Lounge access');
+                    features.push('Gourmet meals & champagne');
+                  } else if (cabin === 'PREMIUM_ECONOMY') {
+                    features.push('Premium economy seat');
+                    features.push('Extra legroom');
+                    features.push('Priority boarding');
+                  } else {
+                    features.push('Economy seat');
+                  }
+
+                  // Add generic benefits based on fare type
+                  if (fareName === 'FLEX' || fareName === 'PREMIUM') {
+                    features.push('Free changes');
+                    features.push('Refundable (-25% fee)');
+                  } else if (fareName === 'STANDARD') {
+                    features.push('Changes allowed (+fee)');
+                  } else if (fareName === 'BASIC') {
+                    features.push('Seat assignment fee');
+                    features.push('No changes');
+                    features.push('No refunds');
+                  }
+
+                  return {
+                    id: fareOffer.id || `fare-${index}`,
+                    name: fareName,
+                    price: parseFloat(fareOffer.price.total),
+                    currency: fareOffer.price.currency,
+                    features: features.slice(0, 5), // Limit to 5 features for UI
+                    recommended: index === 1, // Second option usually best value
+                    popularityPercent: index === 0 ? 26 : index === 1 ? 74 : index === 2 ? 18 : 4,
+                  };
+                });
+
+                setSelectedFareId(realFares[1]?.id || realFares[0]?.id); // Default to second option (best value)
+              }
             }
+          } catch (error) {
+            console.error('⚠️  Failed to fetch branded fares:', error);
           }
-        } catch (error) {
-          console.error('⚠️  Failed to fetch branded fares:', error);
-        }
+        } // End of Amadeus upselling else block
 
         // FALLBACK: If no real fares found, use original offer as single option
         if (realFares.length === 0) {
@@ -590,6 +615,10 @@ function BookingPageContent() {
         benefits: selectedFare.features, // FareOption uses 'features' property
       } : undefined;
 
+      // For Duffel fare variants, use the originalOffer from the selected fare
+      // This ensures we book the correct fare class (Basic vs Economy, etc.)
+      const offerToBook = selectedFare?.originalOffer || flightData;
+
       // Get selected add-ons
       const selectedAddOns: any[] = [];
       addOnCategories.forEach(category => {
@@ -606,8 +635,9 @@ function BookingPageContent() {
       });
 
       // Prepare booking request with ALL data
+      // For Duffel fare variants, offerToBook contains the selected fare's original offer
       const bookingRequest = {
-        flightOffer: flightData,
+        flightOffer: offerToBook,
         passengers: passengers.map(p => ({
           type: p.type,
           title: p.title,
