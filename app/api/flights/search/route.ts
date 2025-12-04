@@ -963,6 +963,7 @@ export async function POST(request: NextRequest) {
     }
 
     let flights = allFlights;
+    const originalFlightCount = allFlights.length; // 🛡️ SAFETY: Track original count
 
     // 🎫 SMART MIXED-CARRIER "HACKER FARE" SEARCH
     // Uses zero-cost heuristic to decide when to search for cheaper combinations
@@ -973,6 +974,7 @@ export async function POST(request: NextRequest) {
 
     if (body.returnDate && originCodes.length > 0 && destinationCodes.length > 0) {
       console.log('\n🎫 Smart Mixed-Carrier Search: Analyzing round-trip data for savings potential...');
+      console.log(`   📊 Input: ${originalFlightCount} round-trip flights from main search`);
 
       try {
         const origin = originCodes[0];
@@ -1060,14 +1062,11 @@ export async function POST(request: NextRequest) {
           }
         );
 
-        // Use the smart results
-        mixedCarrierFares = smartMixedResult.mixedFares;
-        flights = smartMixedResult.flights as FlightOffer[];
-
         // Log summary
         console.log(`   📊 Smart Decision: ${smartMixedResult.mixedSearchPerformed ? 'SEARCHED' : 'SKIPPED'}`);
         console.log(`   📝 Reason: ${smartMixedResult.mixedSearchReason}`);
         console.log(`   📈 Stats: ${smartMixedResult.stats.totalRoundTrips} round-trips, ${smartMixedResult.stats.totalMixedFares} mixed fares`);
+        console.log(`   📤 Output: ${smartMixedResult.flights.length} total flights in result`);
 
         if (smartMixedResult.stats.bestSavings) {
           console.log(`   💰 Best savings: $${smartMixedResult.stats.bestSavings.amount.toFixed(0)} (${smartMixedResult.stats.bestSavings.percentage.toFixed(0)}%)`);
@@ -1075,8 +1074,26 @@ export async function POST(request: NextRequest) {
         if (smartMixedResult.stats.apiCallsSaved > 0) {
           console.log(`   ⚡ API calls saved: ${smartMixedResult.stats.apiCallsSaved} (from cache)`);
         }
+
+        // 🛡️ CRITICAL SAFETY CHECK: Never return fewer flights than we started with
+        // The smart search should ONLY ADD mixed fares, never remove round-trip flights
+        const smartResultCount = smartMixedResult.flights.length;
+
+        if (smartResultCount >= originalFlightCount) {
+          // Use the smart results - they have at least as many flights
+          mixedCarrierFares = smartMixedResult.mixedFares;
+          flights = smartMixedResult.flights as FlightOffer[];
+          console.log(`   ✅ Using smart results: ${smartResultCount} flights (original: ${originalFlightCount})`);
+        } else {
+          // SAFETY: Smart result has fewer flights - something went wrong!
+          console.error(`   🚨 SAFETY VIOLATION: Smart result has ${smartResultCount} flights, but original had ${originalFlightCount}!`);
+          console.error(`   🚨 Falling back to original flights to prevent data loss`);
+          // Keep flights = allFlights (unchanged from line 965)
+          mixedCarrierFares = []; // Clear any partial mixed fares
+        }
       } catch (mixedError) {
         console.error('   ⚠️ Smart mixed-carrier search error (non-fatal):', mixedError);
+        console.error(`   🛡️ FALLBACK: Keeping original ${originalFlightCount} flights`);
         // Continue with regular results - mixed search failure shouldn't break the main search
       }
     }

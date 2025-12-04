@@ -663,6 +663,9 @@ export async function smartMixedCarrierSearch(
   config: Partial<SmartMixedCarrierConfig> = {}
 ): Promise<SmartMixedCarrierResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
+  const inputFlightCount = roundTripFlights.length; // 🛡️ Track input count
+
+  console.log(`   🔬 smartMixedCarrierSearch: Received ${inputFlightCount} round-trip flights`);
 
   // Step 1: Determine if we should search
   const decision = await shouldSearchMixedCarriers(
@@ -684,6 +687,7 @@ export async function smartMixedCarrierSearch(
 
   // If no search needed, return round-trips only
   if (!decision.should) {
+    console.log(`   🔬 SKIP path: Returning original ${inputFlightCount} round-trip flights unchanged`);
     return {
       flights: roundTripFlights,
       mixedFares: [],
@@ -691,7 +695,7 @@ export async function smartMixedCarrierSearch(
       mixedSearchReason: decision.reason,
       analysis: decision.analysis,
       stats: {
-        totalRoundTrips: roundTripFlights.length,
+        totalRoundTrips: inputFlightCount,
         totalMixedFares: 0,
         cheapestRoundTrip,
         cheapestMixed: null,
@@ -738,8 +742,35 @@ export async function smartMixedCarrierSearch(
   console.log(`   ✨ Combined ${mixedFares.length} mixed-carrier fares`);
 
   // Step 4: Merge and sort
+  console.log(`   🔬 MERGE: ${inputFlightCount} round-trips + ${mixedFares.length} mixed fares`);
   const mergedFlights = mergeAndSortByPrice(roundTripFlights, mixedFares);
+  console.log(`   🔬 After merge: ${mergedFlights.length} total flights`);
+
   const badgedFlights = addCheapestBadges(mergedFlights);
+  console.log(`   🔬 After badges: ${badgedFlights.length} total flights`);
+
+  // 🛡️ SAFETY CHECK: Verify we haven't lost any flights
+  if (badgedFlights.length < inputFlightCount) {
+    console.error(`   🚨 INTERNAL ERROR: Merge produced ${badgedFlights.length} flights but received ${inputFlightCount} round-trips!`);
+    console.error(`   🚨 This indicates a bug in mergeAndSortByPrice or addCheapestBadges`);
+    // Return original flights + any valid mixed fares to prevent data loss
+    console.log(`   🛡️ RECOVERY: Returning original ${inputFlightCount} round-trips`);
+    return {
+      flights: roundTripFlights,
+      mixedFares: [],
+      mixedSearchPerformed: true,
+      mixedSearchReason: `${decision.reason} (RECOVERY: merge error)`,
+      analysis: decision.analysis,
+      stats: {
+        totalRoundTrips: inputFlightCount,
+        totalMixedFares: 0,
+        cheapestRoundTrip,
+        cheapestMixed: null,
+        bestSavings: null,
+        apiCallsSaved: 0,
+      },
+    };
+  }
 
   // Calculate stats
   const cheapestMixed = mixedFares.length > 0
@@ -756,6 +787,8 @@ export async function smartMixedCarrierSearch(
     console.log(`   💸 Best savings: $${bestSavings.amount.toFixed(0)} (${bestSavings.percentage.toFixed(0)}%)`);
   }
 
+  console.log(`   🔬 SEARCH path: Returning ${badgedFlights.length} flights (${inputFlightCount} round-trips + ${mixedFares.length} mixed)`);
+
   return {
     flights: badgedFlights,
     mixedFares,
@@ -763,7 +796,7 @@ export async function smartMixedCarrierSearch(
     mixedSearchReason: decision.reason,
     analysis: decision.analysis,
     stats: {
-      totalRoundTrips: roundTripFlights.length,
+      totalRoundTrips: inputFlightCount,
       totalMixedFares: mixedFares.length,
       cheapestRoundTrip,
       cheapestMixed,
