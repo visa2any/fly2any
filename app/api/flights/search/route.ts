@@ -35,7 +35,14 @@ import {
   rankMixedFares,
   type MixedCarrierFare,
 } from '@/lib/flights/mixed-carrier-combiner';
-import { normalizePrice } from '@/lib/flights/types';
+import { normalizePrice, type FlightOffer as TypedFlightOffer } from '@/lib/flights/types';
+
+// Smart Mixed-Carrier System - Zero-cost heuristic + unified cheapest-first sorting
+import {
+  smartMixedCarrierSearch,
+  type SmartMixedCarrierResult,
+  type OneWaySearchFunction,
+} from '@/lib/flights/smart-mixed-carrier';
 
 // Hybrid Routing Engine - Consolidator vs Duffel optimization
 import {
@@ -957,13 +964,15 @@ export async function POST(request: NextRequest) {
 
     let flights = allFlights;
 
-    // 🎫 MIXED-CARRIER "HACKER FARE" SEARCH
-    // When enabled and this is a round-trip search, also run one-way searches
-    // to find cheaper combinations across different airlines
+    // 🎫 SMART MIXED-CARRIER "HACKER FARE" SEARCH
+    // Uses zero-cost heuristic to decide when to search for cheaper combinations
+    // Only runs additional API calls when savings are likely
+    // Results are unified and sorted with cheapest first (mixed or traditional)
     let mixedCarrierFares: MixedCarrierFare[] = [];
+    let smartMixedResult: SmartMixedCarrierResult | null = null;
 
-    if (includeSeparateTickets && body.returnDate && originCodes.length > 0 && destinationCodes.length > 0) {
-      console.log('\n🎫 Mixed-Carrier Search: Running parallel one-way searches for cheaper combinations...');
+    if (body.returnDate && originCodes.length > 0 && destinationCodes.length > 0) {
+      console.log('\n🎫 Smart Mixed-Carrier Search: Analyzing round-trip data for savings potential...');
 
       try {
         const origin = originCodes[0];
@@ -974,125 +983,100 @@ export async function POST(request: NextRequest) {
         // Map travel class for Duffel (lowercase format)
         const mixedDuffelCabinClass = travelClass?.toLowerCase().replace('_', '_') as 'economy' | 'premium_economy' | 'business' | 'first' | undefined;
 
-        // Run one-way searches in parallel (outbound + return)
         // Skip Amadeus if in test mode (fake prices)
         const useAmadeus = amadeusAPI.isProductionMode();
-        if (!useAmadeus) {
-          console.log('   ⚠️  AMADEUS TEST MODE - Skipping for mixed-carrier search');
+
+        // Create one-way search adapter for the smart algorithm
+        const oneWaySearchFunction: OneWaySearchFunction = async (params) => {
+          const searchResults: FlightOffer[] = [];
+
+          // Run Amadeus + Duffel in parallel for each one-way search
+          const [amadeusResult, duffelResult] = await Promise.allSettled([
+            useAmadeus
+              ? amadeusAPI.searchFlights({
+                  origin: params.origin,
+                  destination: params.destination,
+                  departureDate: params.date,
+                  adults: params.adults || body.adults || 1,
+                  children: params.children || body.children,
+                  infants: params.infants || body.infants,
+                  travelClass: travelClass,
+                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+                  currencyCode: body.currencyCode || 'USD',
+                  max: params.maxResults || 30,
+                })
+              : Promise.resolve({ data: [] }),
+            duffelAPI.isAvailable()
+              ? duffelAPI.searchFlights({
+                  origin: params.origin,
+                  destination: params.destination,
+                  departureDate: params.date,
+                  adults: params.adults || body.adults || 1,
+                  children: params.children || body.children,
+                  infants: params.infants || body.infants,
+                  cabinClass: mixedDuffelCabinClass || 'economy',
+                  maxResults: params.maxResults || 30,
+                  nonStop: params.nonStop || body.nonStop === true ? true : undefined,
+                })
+              : Promise.resolve({ data: [], meta: { count: 0 } }),
+          ]);
+
+          if (amadeusResult.status === 'fulfilled' && amadeusResult.value.data) {
+            searchResults.push(...amadeusResult.value.data);
+          }
+          if (duffelResult.status === 'fulfilled' && duffelResult.value.data) {
+            searchResults.push(...duffelResult.value.data);
+          }
+
+          return searchResults as TypedFlightOffer[];
+        };
+
+        // Execute smart mixed-carrier search
+        // This analyzes round-trip data FIRST (zero cost) then decides if one-way searches are worth it
+        smartMixedResult = await smartMixedCarrierSearch(
+          flights as TypedFlightOffer[],
+          {
+            origin,
+            destination,
+            departureDate: depDate,
+            returnDate: retDate,
+            adults: body.adults,
+            children: body.children,
+            infants: body.infants,
+            cabinClass: travelClass,
+            nonStop: body.nonStop,
+            includeSeparateTickets,
+          },
+          oneWaySearchFunction,
+          {
+            // Auto-enable for Economy/Premium Economy (price-sensitive travelers)
+            autoEnable: true,
+            autoEnableCabinClasses: ['ECONOMY', 'PREMIUM_ECONOMY'],
+            // Minimum 5% or $20 savings to run extra API calls
+            minEstimatedSavingsPercent: 5,
+            minEstimatedSavingsAmount: 20,
+            // Cache one-way results for 30 minutes
+            oneWayCacheTTL: 1800,
+          }
+        );
+
+        // Use the smart results
+        mixedCarrierFares = smartMixedResult.mixedFares;
+        flights = smartMixedResult.flights as FlightOffer[];
+
+        // Log summary
+        console.log(`   📊 Smart Decision: ${smartMixedResult.mixedSearchPerformed ? 'SEARCHED' : 'SKIPPED'}`);
+        console.log(`   📝 Reason: ${smartMixedResult.mixedSearchReason}`);
+        console.log(`   📈 Stats: ${smartMixedResult.stats.totalRoundTrips} round-trips, ${smartMixedResult.stats.totalMixedFares} mixed fares`);
+
+        if (smartMixedResult.stats.bestSavings) {
+          console.log(`   💰 Best savings: $${smartMixedResult.stats.bestSavings.amount.toFixed(0)} (${smartMixedResult.stats.bestSavings.percentage.toFixed(0)}%)`);
         }
-
-        const [outboundResult, returnResult] = await Promise.allSettled([
-          // Outbound one-way search
-          Promise.all([
-            useAmadeus
-              ? amadeusAPI.searchFlights({
-                  origin,
-                  destination,
-                  departureDate: depDate,
-                  adults: body.adults || 1,
-                  children: body.children,
-                  infants: body.infants,
-                  travelClass: travelClass,
-                  nonStop: body.nonStop === true ? true : undefined,
-                  currencyCode: body.currencyCode || 'USD',
-                  max: 30,
-                })
-              : Promise.resolve({ data: [] }),
-            duffelAPI.isAvailable()
-              ? duffelAPI.searchFlights({
-                  origin,
-                  destination,
-                  departureDate: depDate,
-                  adults: body.adults || 1,
-                  children: body.children,
-                  infants: body.infants,
-                  cabinClass: mixedDuffelCabinClass || 'economy',
-                  maxResults: 30,
-                  nonStop: body.nonStop === true ? true : undefined,
-                })
-              : Promise.resolve({ data: [], meta: { count: 0 } }),
-          ]).then(([amadeus, duffel]) => [...(amadeus.data || []), ...(duffel.data || [])]),
-
-          // Return one-way search (swap origin/destination)
-          Promise.all([
-            useAmadeus
-              ? amadeusAPI.searchFlights({
-                  origin: destination,
-                  destination: origin,
-                  departureDate: retDate,
-                  adults: body.adults || 1,
-                  children: body.children,
-                  infants: body.infants,
-                  travelClass: travelClass,
-                  nonStop: body.nonStop === true ? true : undefined,
-                  currencyCode: body.currencyCode || 'USD',
-                  max: 30,
-                })
-              : Promise.resolve({ data: [] }),
-            duffelAPI.isAvailable()
-              ? duffelAPI.searchFlights({
-                  origin: destination,
-                  destination: origin,
-                  departureDate: retDate,
-                  adults: body.adults || 1,
-                  children: body.children,
-                  infants: body.infants,
-                  cabinClass: mixedDuffelCabinClass || 'economy',
-                  maxResults: 30,
-                  nonStop: body.nonStop === true ? true : undefined,
-                })
-              : Promise.resolve({ data: [], meta: { count: 0 } }),
-          ]).then(([amadeus, duffel]) => [...(amadeus.data || []), ...(duffel.data || [])]),
-        ]);
-
-        // Extract one-way flight results
-        const outboundFlights = outboundResult.status === 'fulfilled' ? outboundResult.value : [];
-        const returnFlights = returnResult.status === 'fulfilled' ? returnResult.value : [];
-
-        console.log(`   📤 Outbound one-way: ${outboundFlights.length} flights`);
-        console.log(`   📥 Return one-way: ${returnFlights.length} flights`);
-
-        // Get cheapest round-trip price for comparison
-        const cheapestRoundTrip = flights.length > 0
-          ? Math.min(...flights.map(f => normalizePrice(f.price.total)))
-          : undefined;
-
-        console.log(`   💰 Cheapest round-trip: ${cheapestRoundTrip ? `$${cheapestRoundTrip.toFixed(0)}` : 'N/A'}`);
-
-        // Combine fares to find cheaper mixed-carrier options
-        if (outboundFlights.length > 0 && returnFlights.length > 0) {
-          mixedCarrierFares = combineMixedCarrierFares(
-            outboundFlights,
-            returnFlights,
-            cheapestRoundTrip,
-            {
-              maxCombinations: 15,
-              minSavingsPercent: 0, // Show all, let UI filter
-              includeSameAirline: true,
-            }
-          );
-
-          // Rank by savings vs traditional round-trips
-          if (flights.length > 0) {
-            mixedCarrierFares = rankMixedFares(mixedCarrierFares, flights);
-          }
-
-          console.log(`   ✨ Found ${mixedCarrierFares.length} mixed-carrier combinations`);
-
-          if (mixedCarrierFares.length > 0) {
-            const bestMixed = mixedCarrierFares[0];
-            console.log(`   🏆 Best hacker fare: $${bestMixed.combinedPrice.total.toFixed(0)} (${bestMixed.airlines.outbound[0]} + ${bestMixed.airlines.return[0]})`);
-            if (bestMixed.savings) {
-              console.log(`   💸 Savings: $${bestMixed.savings.amount.toFixed(0)} (${bestMixed.savings.percentage.toFixed(0)}% off)`);
-            }
-          }
-
-          // Convert mixed fares to FlightOffer format and add to results
-          const mixedFlightOffers = mixedCarrierFares.map(mixedFare => mixedFareToFlightOffer(mixedFare));
-          flights = [...flights, ...mixedFlightOffers];
+        if (smartMixedResult.stats.apiCallsSaved > 0) {
+          console.log(`   ⚡ API calls saved: ${smartMixedResult.stats.apiCallsSaved} (from cache)`);
         }
       } catch (mixedError) {
-        console.error('   ⚠️ Mixed-carrier search error (non-fatal):', mixedError);
+        console.error('   ⚠️ Smart mixed-carrier search error (non-fatal):', mixedError);
         // Continue with regular results - mixed search failure shouldn't break the main search
       }
     }
@@ -1262,15 +1246,25 @@ export async function POST(request: NextRequest) {
         origins: originCodes,
         destinations: destinationCodes,
         limitedResults: limitedResultsInfo,
-        // Mixed-carrier "Hacker Fare" metadata
-        separateTickets: includeSeparateTickets ? {
+        // Smart Mixed-Carrier "Hacker Fare" metadata
+        separateTickets: smartMixedResult ? {
           enabled: true,
+          searched: smartMixedResult.mixedSearchPerformed,
+          reason: smartMixedResult.mixedSearchReason,
+          count: smartMixedResult.stats.totalMixedFares,
+          bestSavings: smartMixedResult.stats.bestSavings,
+          stats: {
+            roundTrips: smartMixedResult.stats.totalRoundTrips,
+            mixedFares: smartMixedResult.stats.totalMixedFares,
+            cheapestRoundTrip: smartMixedResult.stats.cheapestRoundTrip,
+            cheapestMixed: smartMixedResult.stats.cheapestMixed,
+            apiCallsSaved: smartMixedResult.stats.apiCallsSaved,
+          },
+        } : (body.returnDate ? {
+          enabled: false,
+          reason: 'Smart mixed-carrier not triggered',
           count: mixedCarrierFares.length,
-          bestSavings: mixedCarrierFares.length > 0 && mixedCarrierFares[0].savings ? {
-            amount: mixedCarrierFares[0].savings.amount,
-            percentage: mixedCarrierFares[0].savings.percentage,
-          } : null,
-        } : undefined,
+        } : undefined),
         ml: {
           cacheTTL: cachePrediction.recommendedTTL,
           cacheConfidence: cachePrediction.confidence,
