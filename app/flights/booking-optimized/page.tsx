@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, Loader2, User } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, Loader2, User, Clock, CheckCircle2, Star } from 'lucide-react';
+import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
 import { getAirlineData } from '@/lib/flights/airline-data';
@@ -816,7 +817,7 @@ function BookingPageContent() {
             {/* STEP 1: Customize Flight */}
             {currentStep === 1 && (
               <div className="space-y-4 animate-fadeIn">
-                {/* Minimal Flight Confirmation Header */}
+                {/* Premium Flight Confirmation Card */}
                 {flightData && (() => {
                   const airline = flightData.validatingAirlineCodes?.[0] || flightData.itineraries?.[0]?.segments?.[0]?.carrierCode || 'XX';
                   const airlineData = getAirlineData(airline);
@@ -825,51 +826,154 @@ function BookingPageContent() {
                   const flightNum = outbound?.segments?.[0]?.number?.replace(/^[A-Z]{2}\s*/, '') || '';
 
                   const formatTime = (dateStr: string) => new Date(dateStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                  const getStops = (segments: any[]) => segments?.length === 1 ? 'Direct' : `${segments.length - 1} stop${segments.length > 2 ? 's' : ''}`;
+                  const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                  const parseDuration = (duration: string) => {
+                    const match = duration?.match(/PT(\d+H)?(\d+M)?/);
+                    if (!match) return '';
+                    const hours = match[1] ? match[1].replace('H', 'h ') : '';
+                    const minutes = match[2] ? match[2].replace('M', 'm') : '';
+                    return `${hours}${minutes}`.trim();
+                  };
+                  const getStopsInfo = (segments: any[]) => {
+                    const stops = segments?.length - 1 || 0;
+                    return { count: stops, text: stops === 0 ? 'Direct' : `${stops} stop${stops > 1 ? 's' : ''}` };
+                  };
 
                   return (
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <AirlineLogo code={airline} size="md" />
-                        <div>
-                          <div className="font-bold text-gray-900">{airlineData.name}</div>
-                          <div className="text-xs text-gray-500">Flight {airline} {flightNum}</div>
-                        </div>
-                        <div className="ml-auto text-right">
-                          <div className="text-xs text-green-600 font-semibold">✓ Selected</div>
-                        </div>
-                      </div>
-
-                      {/* Outbound */}
-                      <div className="flex items-center gap-3 py-2 border-t border-gray-100">
-                        <span className="text-[10px] font-bold text-blue-600 uppercase w-16">→ Outbound</span>
-                        <div className="flex-1 flex items-center gap-2 text-sm">
-                          <span className="font-semibold">{formatDate(outbound?.segments?.[0]?.departure?.at)}</span>
-                          <span className="text-gray-500">{formatTime(outbound?.segments?.[0]?.departure?.at)}</span>
-                          <span className="text-gray-400">→</span>
-                          <span className="text-gray-500">{formatTime(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.at)}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded ${outbound?.segments?.length === 1 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
-                            {getStops(outbound?.segments)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Return (if round trip) */}
-                      {inbound && (
-                        <div className="flex items-center gap-3 py-2 border-t border-gray-100">
-                          <span className="text-[10px] font-bold text-gray-500 uppercase w-16">← Return</span>
-                          <div className="flex-1 flex items-center gap-2 text-sm">
-                            <span className="font-semibold">{formatDate(inbound?.segments?.[0]?.departure?.at)}</span>
-                            <span className="text-gray-500">{formatTime(inbound?.segments?.[0]?.departure?.at)}</span>
-                            <span className="text-gray-400">→</span>
-                            <span className="text-gray-500">{formatTime(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.at)}</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${inbound?.segments?.length === 1 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>
-                              {getStops(inbound?.segments)}
-                            </span>
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+                      {/* Premium Header with Gradient */}
+                      <div className="bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 px-4 py-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-1.5">
+                              <AirlineLogo code={airline} size="md" className="shadow-md" />
+                            </div>
+                            <div className="text-white">
+                              <div className="font-bold text-lg">{airlineData.name}</div>
+                              <div className="text-white/80 text-xs flex items-center gap-2">
+                                <span>Flight {airline} {flightNum}</span>
+                                <span className="flex items-center gap-0.5">
+                                  <Star className="w-3 h-3 fill-yellow-300 text-yellow-300" />
+                                  <span>{airlineData.rating}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-md">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Selected</span>
                           </div>
                         </div>
-                      )}
+                      </div>
+
+                      {/* Flight Details */}
+                      <div className="p-4 space-y-4">
+                        {/* Outbound Flight */}
+                        <div className="relative">
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 to-primary-300 rounded-full" />
+                          <div className="pl-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-[10px] font-bold text-primary-600 uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded">
+                                Outbound
+                              </span>
+                              <span className="text-xs text-gray-500">{formatDate(outbound?.segments?.[0]?.departure?.at)}</span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              {/* Departure */}
+                              <div className="text-center min-w-[70px]">
+                                <div className="text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[0]?.departure?.at)}</div>
+                                <div className="text-xs font-semibold text-gray-600">{outbound?.segments?.[0]?.departure?.iataCode}</div>
+                                <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[0]?.departure?.iataCode)}</div>
+                              </div>
+
+                              {/* Flight Path Visualization */}
+                              <div className="flex-1 px-2">
+                                <div className="relative">
+                                  <div className="h-[2px] bg-gradient-to-r from-primary-400 via-primary-500 to-primary-400 rounded-full" />
+                                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <div className="bg-white border-2 border-primary-500 rounded-full p-1 shadow-md">
+                                      <Plane className="w-3 h-3 text-primary-600 rotate-90" />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-center gap-2 mt-1.5">
+                                  <Clock className="w-3 h-3 text-gray-400" />
+                                  <span className="text-xs text-gray-500">{parseDuration(outbound?.duration)}</span>
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    getStopsInfo(outbound?.segments).count === 0
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-orange-100 text-orange-700'
+                                  }`}>
+                                    {getStopsInfo(outbound?.segments).text}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Arrival */}
+                              <div className="text-center min-w-[70px]">
+                                <div className="text-xl font-bold text-gray-900">{formatTime(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.at)}</div>
+                                <div className="text-xs font-semibold text-gray-600">{outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode}</div>
+                                <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(outbound?.segments?.[outbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Return Flight (if round trip) */}
+                        {inbound && (
+                          <div className="relative">
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary-500 to-secondary-300 rounded-full" />
+                            <div className="pl-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-[10px] font-bold text-secondary-600 uppercase tracking-wider bg-secondary-50 px-2 py-0.5 rounded">
+                                  Return
+                                </span>
+                                <span className="text-xs text-gray-500">{formatDate(inbound?.segments?.[0]?.departure?.at)}</span>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                {/* Departure */}
+                                <div className="text-center min-w-[70px]">
+                                  <div className="text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[0]?.departure?.at)}</div>
+                                  <div className="text-xs font-semibold text-gray-600">{inbound?.segments?.[0]?.departure?.iataCode}</div>
+                                  <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[0]?.departure?.iataCode)}</div>
+                                </div>
+
+                                {/* Flight Path Visualization */}
+                                <div className="flex-1 px-2">
+                                  <div className="relative">
+                                    <div className="h-[2px] bg-gradient-to-r from-secondary-400 via-secondary-500 to-secondary-400 rounded-full" />
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                      <div className="bg-white border-2 border-secondary-500 rounded-full p-1 shadow-md">
+                                        <Plane className="w-3 h-3 text-secondary-600 -rotate-90" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center justify-center gap-2 mt-1.5">
+                                    <Clock className="w-3 h-3 text-gray-400" />
+                                    <span className="text-xs text-gray-500">{parseDuration(inbound?.duration)}</span>
+                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                      getStopsInfo(inbound?.segments).count === 0
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-orange-100 text-orange-700'
+                                    }`}>
+                                      {getStopsInfo(inbound?.segments).text}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Arrival */}
+                                <div className="text-center min-w-[70px]">
+                                  <div className="text-xl font-bold text-gray-900">{formatTime(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.at)}</div>
+                                  <div className="text-xs font-semibold text-gray-600">{inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode}</div>
+                                  <div className="text-[10px] text-gray-400 truncate max-w-[80px]">{formatCityCode(inbound?.segments?.[inbound?.segments?.length - 1]?.arrival?.iataCode)}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
