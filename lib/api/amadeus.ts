@@ -34,7 +34,24 @@ class AmadeusAPI {
   constructor() {
     this.apiKey = process.env.AMADEUS_API_KEY || '';
     this.apiSecret = process.env.AMADEUS_API_SECRET || '';
-    this.environment = process.env.AMADEUS_ENVIRONMENT || 'test';
+
+    // Smart environment detection:
+    // 1. Explicit AMADEUS_ENVIRONMENT takes priority
+    // 2. If in Vercel production (NODE_ENV=production), default to production
+    // 3. Otherwise default to test
+    const explicitEnv = process.env.AMADEUS_ENVIRONMENT;
+    const isVercelProduction = process.env.NODE_ENV === 'production' && process.env.VERCEL === '1';
+
+    if (explicitEnv) {
+      this.environment = explicitEnv;
+    } else if (isVercelProduction) {
+      // IMPORTANT: Default to production in Vercel production environment
+      // This prevents test mode from being accidentally used with production keys
+      this.environment = 'production';
+    } else {
+      this.environment = 'test';
+    }
+
     this.baseUrl = this.environment === 'production'
       ? 'https://api.amadeus.com'
       : 'https://test.api.amadeus.com';
@@ -45,16 +62,24 @@ class AmadeusAPI {
     // Show startup banner (only once)
     showStartupBanner();
 
-    // Debug: Log API configuration (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      if (!this.isValidCredentials) {
-        console.warn('⚠️  Amadeus API not configured - will use demo data');
-        console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
-      } else {
-        console.log(`✅ Amadeus API configured (${this.environment} environment)`);
-        console.log(`   API Key: ${this.apiKey.substring(0, 10)}...`);
-      }
+    // Log API configuration with environment details
+    console.log('\n🔌 ========== AMADEUS API CONFIGURATION ==========');
+    console.log(`   Environment: ${this.environment.toUpperCase()}`);
+    console.log(`   Base URL: ${this.baseUrl}`);
+    console.log(`   Credentials configured: ${this.isValidCredentials ? '✅ YES' : '❌ NO'}`);
+    if (this.isValidCredentials) {
+      console.log(`   API Key: ${this.apiKey.substring(0, 8)}...${this.apiKey.slice(-4)}`);
     }
+    console.log(`   Detection method: ${explicitEnv ? 'AMADEUS_ENVIRONMENT=' + explicitEnv : (isVercelProduction ? 'Vercel Production (auto)' : 'Default (test)')}`);
+
+    if (!this.isValidCredentials) {
+      console.warn('   ⚠️  WARNING: Amadeus API not properly configured');
+      console.warn('   📖 See: SETUP_REAL_APIS.md for setup instructions');
+    } else if (this.environment === 'test') {
+      console.warn('   ⚠️  WARNING: Using TEST environment (fake prices)');
+      console.warn('   💡 Set AMADEUS_ENVIRONMENT=production for real prices');
+    }
+    console.log('🔌 ================================================\n');
   }
 
   /**

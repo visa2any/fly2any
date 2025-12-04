@@ -641,7 +641,12 @@ export async function POST(request: NextRequest) {
       if (amadeusAPI.isTestMode()) {
         console.log('  ⚠️  AMADEUS TEST MODE DETECTED - Skipping Amadeus (fake prices)');
         console.log('  ✅ Using Duffel LIVE API only for real market prices');
+        console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
+        console.log('  💡 To enable Amadeus: Set AMADEUS_ENVIRONMENT=production in Vercel');
         apiSelection = { strategy: 'duffel', confidence: 1.0, reason: 'Amadeus in test mode - using Duffel only', estimatedSavings: 0 };
+      } else if (amadeusAPI.isProductionMode()) {
+        console.log('  ✅ AMADEUS PRODUCTION MODE - Both APIs available');
+        console.log(`  📍 Route: ${origin} → ${destination} | Date: ${dateToSearch} | ${returnDateToSearch ? 'Round-trip' : 'One-way'}`);
       }
 
       // 🎯 OPTIMIZATION: For far-future dates or important routes, always query both APIs to maximize results
@@ -1216,18 +1221,75 @@ export async function POST(request: NextRequest) {
 
     console.log(`  ⏱️  Smart Cache: ${cachePrediction.recommendedTTL}min (${(cachePrediction.confidence * 100).toFixed(0)}% confidence) - ${cachePrediction.reason}`);
 
-    // Check if results are limited and add helpful message
+    // Check if results are limited and add helpful message with detailed diagnostics
     const daysToDeparture = Math.ceil((new Date(departureDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+    // Detect if this is an international route (different country codes in origin/destination)
+    const isInternationalRoute = originCodes[0]?.length === 3 && destinationCodes[0]?.length === 3 &&
+      !['US', 'CA'].every(region => {
+        // Major US/Canada airports - if one is domestic and one is international, it's international
+        const usCanadaAirports = ['JFK', 'LAX', 'ORD', 'ATL', 'DFW', 'DEN', 'SFO', 'MIA', 'SEA', 'BOS', 'EWR', 'IAH', 'MSP', 'DTW', 'PHL', 'LGA', 'FLL', 'SAN', 'TPA', 'PDX', 'YYZ', 'YVR', 'YUL', 'YYC'];
+        return usCanadaAirports.includes(originCodes[0]) && usCanadaAirports.includes(destinationCodes[0]);
+      });
+
+    // Determine API sources used
+    const apiSourcesUsed = {
+      amadeus: amadeusAPI.isProductionMode(),
+      duffel: duffelAPI.isAvailable(),
+      amadeusSkipped: amadeusAPI.isTestMode(),
+    };
+
+    // Build comprehensive limited results info
+    let limitedResultsReason = '';
+    let limitedResultsTip = '';
+
+    if (sortedFlights.length < 10 && sortedFlights.length > 0) {
+      // Determine primary reason for limited results
+      if (daysToDeparture > 330) {
+        limitedResultsReason = `Very limited inventory for dates more than 11 months out (${daysToDeparture} days). Airlines typically release schedules 6-11 months in advance.`;
+        limitedResultsTip = 'Try searching for dates 2-6 months from now for significantly more options.';
+      } else if (daysToDeparture > 180 && isInternationalRoute) {
+        limitedResultsReason = `Limited inventory for far-future international flights (${daysToDeparture} days out). Airlines release international schedules gradually.`;
+        limitedResultsTip = 'International routes typically have more availability 3-6 months before departure.';
+      } else if (daysToDeparture > 180) {
+        limitedResultsReason = `Limited airline inventory for far-future dates (${daysToDeparture} days out). Airlines typically release full schedules 6-9 months in advance.`;
+        limitedResultsTip = 'Try searching for dates closer to departure (2-6 months out) for more options.';
+      } else if (apiSourcesUsed.amadeusSkipped) {
+        limitedResultsReason = 'Search using available airline connections. Some carriers may have additional inventory.';
+        limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+      } else {
+        limitedResultsReason = 'Limited flights available for this route/date combination.';
+        limitedResultsTip = 'Try adjusting your travel dates or check nearby airports for more options.';
+      }
+    }
+
     const limitedResultsInfo = sortedFlights.length < 10 && sortedFlights.length > 0 ? {
       limited: true,
       count: sortedFlights.length,
-      reason: daysToDeparture > 180
-        ? `Limited airline inventory for far-future dates (${daysToDeparture} days out). Airlines typically release full schedules 6-9 months in advance.`
-        : 'Limited flights available for this route/date combination.',
-      tip: daysToDeparture > 180
-        ? 'Try searching for dates closer to departure (2-6 months out) for more options.'
-        : 'Try adjusting your travel dates or check nearby airports for more options.'
+      reason: limitedResultsReason,
+      tip: limitedResultsTip,
+      // Include diagnostic info for debugging (only in response, not displayed to user)
+      _diagnostics: {
+        daysToDeparture,
+        isInternationalRoute,
+        apiSources: apiSourcesUsed,
+        route: `${originCodes[0]} → ${destinationCodes[0]}`,
+      },
     } : undefined;
+
+    // Log detailed diagnostics for limited results
+    if (limitedResultsInfo) {
+      console.log('\n📊 ========== LIMITED RESULTS DIAGNOSTICS ==========');
+      console.log(`   Route: ${originCodes[0]} → ${destinationCodes[0]}`);
+      console.log(`   Days to departure: ${daysToDeparture}`);
+      console.log(`   International route: ${isInternationalRoute}`);
+      console.log(`   Results found: ${sortedFlights.length}`);
+      console.log(`   API Sources:`);
+      console.log(`     - Amadeus: ${apiSourcesUsed.amadeus ? 'PRODUCTION' : (apiSourcesUsed.amadeusSkipped ? 'TEST MODE (skipped)' : 'unavailable')}`);
+      console.log(`     - Duffel: ${apiSourcesUsed.duffel ? 'LIVE' : 'unavailable'}`);
+      console.log(`   Reason: ${limitedResultsReason}`);
+      console.log('📊 ==================================================\n');
+    }
 
     // 🔒 INTERNAL: Store routing data separately (NOT sent to customer)
     // This data is used by booking flow to route to correct channel
