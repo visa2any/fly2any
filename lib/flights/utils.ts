@@ -71,10 +71,12 @@ export function parseDurationToMinutes(duration: string): number {
  * formatTime('2024-03-15T14:30:00', true) // Returns '14:30:00'
  */
 export function formatTime(isoDate: string, includeSeconds: boolean = false): string {
-  if (!isoDate) return 'N/A';
+  if (!isoDate) return '--:--';
 
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return '--:--';
+
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
 
@@ -85,7 +87,7 @@ export function formatTime(isoDate: string, includeSeconds: boolean = false): st
 
     return `${hours}:${minutes}`;
   } catch {
-    return 'Invalid Date';
+    return '--:--';
   }
 }
 
@@ -99,10 +101,12 @@ export function formatTime(isoDate: string, includeSeconds: boolean = false): st
  * formatTime12Hour('2024-03-15T09:15:00') // Returns '9:15 AM'
  */
 export function formatTime12Hour(isoDate: string): string {
-  if (!isoDate) return 'N/A';
+  if (!isoDate) return '--:-- --';
 
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return '--:-- --';
+
     let hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -112,7 +116,7 @@ export function formatTime12Hour(isoDate: string): string {
 
     return `${hours}:${minutes} ${ampm}`;
   } catch {
-    return 'Invalid Date';
+    return '--:-- --';
   }
 }
 
@@ -131,10 +135,11 @@ export function formatDate(
   isoDate: string,
   format: 'short' | 'medium' | 'long' = 'medium'
 ): string {
-  if (!isoDate) return 'N/A';
+  if (!isoDate) return 'TBD';
 
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return 'TBD';
 
     switch (format) {
       case 'short':
@@ -158,7 +163,7 @@ export function formatDate(
         });
     }
   } catch {
-    return 'Invalid Date';
+    return 'TBD';
   }
 }
 
@@ -171,17 +176,19 @@ export function formatDate(
  * formatDateWithWeekday('2024-03-15T14:30:00') // Returns 'Fri, Mar 15'
  */
 export function formatDateWithWeekday(isoDate: string): string {
-  if (!isoDate) return 'N/A';
+  if (!isoDate) return 'TBD';
 
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return 'TBD';
+
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric'
     });
   } catch {
-    return 'Invalid Date';
+    return 'TBD';
   }
 }
 
