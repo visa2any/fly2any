@@ -271,19 +271,69 @@ function generateContextConfirmation(
 }
 
 /**
- * Format date for display
+ * Format date for display with graceful fallback
  */
-function formatDate(dateString: string): string {
+function formatDate(dateString: string | undefined | null): string {
+  if (!dateString) return 'TBD';
+
   try {
     const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      // Try to extract date from common patterns before giving up
+      const dateFromString = parseNaturalDate(dateString);
+      if (dateFromString) {
+        return dateFromString.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
+      return 'TBD';
+    }
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
   } catch {
-    return dateString;
+    return 'TBD';
   }
+}
+
+/**
+ * Parse natural language date string as fallback
+ */
+function parseNaturalDate(dateString: string): Date | null {
+  const months: Record<string, number> = {
+    january: 0, jan: 0, february: 1, feb: 1, march: 2, mar: 2,
+    april: 3, apr: 3, may: 4, june: 5, jun: 5, july: 6, jul: 6,
+    august: 7, aug: 7, september: 8, sep: 8, sept: 8,
+    october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11
+  };
+
+  const lower = dateString.toLowerCase();
+
+  // Pattern: "dec 20", "december 20th", etc.
+  const monthDayPattern = /\b(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)\s+(\d{1,2})(?:st|nd|rd|th)?\b/i;
+  const match = lower.match(monthDayPattern);
+
+  if (match) {
+    const month = months[match[1].toLowerCase()];
+    const day = parseInt(match[2]);
+    const now = new Date();
+    let year = now.getFullYear();
+
+    // If date is in the past, assume next year
+    const testDate = new Date(year, month, day);
+    if (testDate < now) {
+      year++;
+    }
+
+    return new Date(year, month, day);
+  }
+
+  return null;
 }
 
 /**

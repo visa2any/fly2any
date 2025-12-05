@@ -756,5 +756,341 @@ export function getContextLoadingMessage(intentType?: IntentType | string, consu
   }
 }
 
+/**
+ * Advanced sentiment analysis with intensity scoring
+ */
+export function analyzeSentiment(message: string): {
+  sentiment: 'very_positive' | 'positive' | 'neutral' | 'negative' | 'very_negative';
+  confidence: number;
+  emotionalCues: string[];
+} {
+  const msg = message.toLowerCase();
+  const emotionalCues: string[] = [];
+  let score = 0;
+
+  // Very positive patterns (+2 each)
+  const veryPositivePatterns = [
+    /\b(amazing|awesome|excellent|fantastic|wonderful|perfect|love|best)\b/gi,
+    /\b(can't wait|so excited|really happy|absolutely|definitely)\b/gi,
+    /\b(thank you so much|greatly appreciate|you're the best)\b/gi,
+    /!{2,}/g,  // Multiple exclamation marks
+  ];
+
+  // Positive patterns (+1 each)
+  const positivePatterns = [
+    /\b(good|great|nice|happy|helpful|thanks|please)\b/gi,
+    /\b(like|enjoy|appreciate|glad|looking forward)\b/gi,
+    /\b(sounds good|that works|makes sense)\b/gi,
+    /(:\)|😊|🙂|👍|✈️|🎉|❤️)/g,
+  ];
+
+  // Negative patterns (-1 each)
+  const negativePatterns = [
+    /\b(bad|poor|disappointed|unhappy|confused|worried)\b/gi,
+    /\b(problem|issue|trouble|difficult|complicated)\b/gi,
+    /\b(don't understand|not sure|can't find)\b/gi,
+    /(:\(|😞|😕|👎)/g,
+  ];
+
+  // Very negative patterns (-2 each)
+  const veryNegativePatterns = [
+    /\b(terrible|horrible|awful|worst|hate|angry|furious)\b/gi,
+    /\b(unacceptable|ridiculous|waste|scam|rip-off)\b/gi,
+    /\b(never again|completely useless|absolutely terrible)\b/gi,
+    /!{3,}/g,  // Multiple exclamation marks (in negative context)
+  ];
+
+  // Calculate score
+  veryPositivePatterns.forEach(pattern => {
+    const matches = msg.match(pattern);
+    if (matches) {
+      score += matches.length * 2;
+      emotionalCues.push(...matches.map(m => m.toLowerCase()));
+    }
+  });
+
+  positivePatterns.forEach(pattern => {
+    const matches = msg.match(pattern);
+    if (matches) {
+      score += matches.length;
+      emotionalCues.push(...matches.map(m => m.toLowerCase()));
+    }
+  });
+
+  negativePatterns.forEach(pattern => {
+    const matches = msg.match(pattern);
+    if (matches) {
+      score -= matches.length;
+      emotionalCues.push(...matches.map(m => m.toLowerCase()));
+    }
+  });
+
+  veryNegativePatterns.forEach(pattern => {
+    const matches = msg.match(pattern);
+    if (matches) {
+      score -= matches.length * 2;
+      emotionalCues.push(...matches.map(m => m.toLowerCase()));
+    }
+  });
+
+  // Determine sentiment category
+  let sentiment: 'very_positive' | 'positive' | 'neutral' | 'negative' | 'very_negative';
+  if (score >= 3) sentiment = 'very_positive';
+  else if (score >= 1) sentiment = 'positive';
+  else if (score <= -3) sentiment = 'very_negative';
+  else if (score <= -1) sentiment = 'negative';
+  else sentiment = 'neutral';
+
+  // Confidence based on emotional cues found
+  const confidence = Math.min(0.95, 0.5 + (emotionalCues.length * 0.1));
+
+  return {
+    sentiment,
+    confidence,
+    emotionalCues: [...new Set(emotionalCues)]  // Remove duplicates
+  };
+}
+
+/**
+ * Detect buying signals and purchase intent
+ */
+export function detectBuyingSignals(message: string): {
+  hasBuyingIntent: boolean;
+  signals: string[];
+  intentStrength: 'strong' | 'moderate' | 'weak' | 'none';
+} {
+  const msg = message.toLowerCase();
+  const signals: string[] = [];
+
+  // Strong buying signals
+  const strongSignals = [
+    { pattern: /\b(book|buy|purchase|reserve|confirm|pay)\b/i, signal: 'direct purchase action' },
+    { pattern: /\bi('ll| will) (take|book|get) (it|this|that)/i, signal: 'commitment phrase' },
+    { pattern: /\bhow (can|do) i (pay|book|complete)/i, signal: 'payment inquiry' },
+    { pattern: /\b(credit card|payment|checkout)/i, signal: 'payment mention' },
+    { pattern: /\blet's (go|do it|proceed)/i, signal: 'action phrase' },
+  ];
+
+  // Moderate buying signals
+  const moderateSignals = [
+    { pattern: /\b(sounds good|this one|that works)/i, signal: 'agreement' },
+    { pattern: /\bhow much (is|does|would|will)/i, signal: 'price inquiry' },
+    { pattern: /\b(when|what time) (can|do|does)/i, signal: 'timing inquiry' },
+    { pattern: /\b(available|availability)/i, signal: 'availability check' },
+    { pattern: /\bwhat('s| is) included/i, signal: 'value inquiry' },
+  ];
+
+  // Weak buying signals
+  const weakSignals = [
+    { pattern: /\b(interested|considering|thinking about)/i, signal: 'interest expression' },
+    { pattern: /\b(tell me more|more details|more info)/i, signal: 'information request' },
+    { pattern: /\b(options|alternatives|choices)/i, signal: 'option exploration' },
+    { pattern: /\b(compare|comparison|versus|vs)/i, signal: 'comparison shopping' },
+  ];
+
+  let strongCount = 0;
+  let moderateCount = 0;
+  let weakCount = 0;
+
+  strongSignals.forEach(({ pattern, signal }) => {
+    if (pattern.test(msg)) {
+      signals.push(signal);
+      strongCount++;
+    }
+  });
+
+  moderateSignals.forEach(({ pattern, signal }) => {
+    if (pattern.test(msg)) {
+      signals.push(signal);
+      moderateCount++;
+    }
+  });
+
+  weakSignals.forEach(({ pattern, signal }) => {
+    if (pattern.test(msg)) {
+      signals.push(signal);
+      weakCount++;
+    }
+  });
+
+  // Calculate intent strength
+  let intentStrength: 'strong' | 'moderate' | 'weak' | 'none';
+  if (strongCount > 0) intentStrength = 'strong';
+  else if (moderateCount >= 2) intentStrength = 'strong';
+  else if (moderateCount > 0) intentStrength = 'moderate';
+  else if (weakCount > 0) intentStrength = 'weak';
+  else intentStrength = 'none';
+
+  return {
+    hasBuyingIntent: signals.length > 0,
+    signals,
+    intentStrength
+  };
+}
+
+/**
+ * Detect customer needs and pain points
+ */
+export function detectCustomerNeeds(message: string): {
+  needs: string[];
+  painPoints: string[];
+  priorities: ('price' | 'time' | 'comfort' | 'convenience' | 'flexibility')[];
+} {
+  const msg = message.toLowerCase();
+  const needs: string[] = [];
+  const painPoints: string[] = [];
+  const priorities: ('price' | 'time' | 'comfort' | 'convenience' | 'flexibility')[] = [];
+
+  // Price needs
+  if (/\b(cheap|budget|affordable|save|discount|deal|best price|lowest)/i.test(msg)) {
+    needs.push('budget-friendly options');
+    priorities.push('price');
+  }
+
+  // Time needs
+  if (/\b(quick|fast|soon|urgent|asap|early|late|red-eye|morning|evening)/i.test(msg)) {
+    needs.push('time-specific travel');
+    priorities.push('time');
+  }
+
+  // Comfort needs
+  if (/\b(comfortable|comfort|business class|first class|legroom|seat|upgrade|premium)/i.test(msg)) {
+    needs.push('comfort and quality');
+    priorities.push('comfort');
+  }
+
+  // Convenience needs
+  if (/\b(direct|non-stop|no layover|convenient|easy|simple|near|close)/i.test(msg)) {
+    needs.push('convenience');
+    priorities.push('convenience');
+  }
+
+  // Flexibility needs
+  if (/\b(flexible|change|cancel|refund|reschedule|open)/i.test(msg)) {
+    needs.push('booking flexibility');
+    priorities.push('flexibility');
+  }
+
+  // Pain points detection
+  if (/\b(problem|issue|trouble|difficult|hard|confusing|frustrat)/i.test(msg)) {
+    painPoints.push('experiencing difficulties');
+  }
+  if (/\b(expensive|too much|overpriced|cost)/i.test(msg)) {
+    painPoints.push('price concerns');
+  }
+  if (/\b(delayed|cancelled|missed|late)/i.test(msg)) {
+    painPoints.push('travel disruption concerns');
+  }
+  if (/\b(not sure|confused|don't understand|help)/i.test(msg)) {
+    painPoints.push('need guidance');
+  }
+
+  return { needs, painPoints, priorities };
+}
+
+/**
+ * Detect communication style preferences
+ */
+export function detectCommunicationStyle(messages: { role: string; content: string }[]): {
+  preferredStyle: 'formal' | 'casual' | 'direct' | 'detailed';
+  responseLength: 'brief' | 'moderate' | 'detailed';
+  useEmojis: boolean;
+} {
+  const userMessages = messages.filter(m => m.role === 'user');
+  if (userMessages.length === 0) {
+    return { preferredStyle: 'casual', responseLength: 'moderate', useEmojis: false };
+  }
+
+  const allUserText = userMessages.map(m => m.content).join(' ');
+  const avgLength = allUserText.length / userMessages.length;
+
+  // Detect formal vs casual
+  const formalIndicators = /\b(dear|kindly|would you|could you please|regards|sincerely)\b/gi;
+  const casualIndicators = /\b(hey|hi|yo|thanks|cool|awesome|lol|haha)\b/gi;
+
+  const formalCount = (allUserText.match(formalIndicators) || []).length;
+  const casualCount = (allUserText.match(casualIndicators) || []).length;
+
+  // Detect direct vs detailed
+  const detailedIndicators = /\b(because|therefore|however|additionally|specifically)\b/gi;
+  const detailedCount = (allUserText.match(detailedIndicators) || []).length;
+
+  // Check for emoji usage
+  const emojiPattern = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
+  const useEmojis = emojiPattern.test(allUserText);
+
+  let preferredStyle: 'formal' | 'casual' | 'direct' | 'detailed';
+  if (formalCount > casualCount + 1) preferredStyle = 'formal';
+  else if (casualCount > formalCount + 1) preferredStyle = 'casual';
+  else if (detailedCount > 2 || avgLength > 150) preferredStyle = 'detailed';
+  else preferredStyle = 'direct';
+
+  let responseLength: 'brief' | 'moderate' | 'detailed';
+  if (avgLength < 30) responseLength = 'brief';
+  else if (avgLength > 100) responseLength = 'detailed';
+  else responseLength = 'moderate';
+
+  return { preferredStyle, responseLength, useEmojis };
+}
+
+/**
+ * Comprehensive behavior analysis combining all signals
+ */
+export function analyzeConversationBehavior(
+  messages: { role: string; content: string }[],
+  currentMessage: string
+): {
+  sentiment: ReturnType<typeof analyzeSentiment>;
+  buyingSignals: ReturnType<typeof detectBuyingSignals>;
+  customerNeeds: ReturnType<typeof detectCustomerNeeds>;
+  communicationStyle: ReturnType<typeof detectCommunicationStyle>;
+  urgency: boolean;
+  frustration: boolean;
+  engagementScore: number;
+  recommendedApproach: string;
+} {
+  const sentiment = analyzeSentiment(currentMessage);
+  const buyingSignals = detectBuyingSignals(currentMessage);
+  const customerNeeds = detectCustomerNeeds(currentMessage);
+  const communicationStyle = detectCommunicationStyle(messages);
+  const urgency = detectUrgency(currentMessage);
+  const frustration = detectFrustration(currentMessage);
+
+  // Calculate engagement score (0-100)
+  let engagementScore = 50; // Base score
+  engagementScore += messages.length * 5; // More messages = more engaged
+  engagementScore += (sentiment.sentiment === 'positive' || sentiment.sentiment === 'very_positive') ? 15 : 0;
+  engagementScore += buyingSignals.hasBuyingIntent ? 20 : 0;
+  engagementScore -= frustration ? 15 : 0;
+  engagementScore = Math.min(100, Math.max(0, engagementScore));
+
+  // Generate recommended approach
+  let recommendedApproach = '';
+  if (frustration) {
+    recommendedApproach = 'Empathetic and solution-focused. Acknowledge their concerns and provide immediate assistance.';
+  } else if (buyingSignals.intentStrength === 'strong') {
+    recommendedApproach = 'Direct and action-oriented. Facilitate the booking process efficiently.';
+  } else if (urgency) {
+    recommendedApproach = 'Quick and efficient. Prioritize speed and provide immediate solutions.';
+  } else if (sentiment.sentiment === 'very_positive') {
+    recommendedApproach = 'Enthusiastic and engaging. Match their excitement and build rapport.';
+  } else if (customerNeeds.priorities.includes('price')) {
+    recommendedApproach = 'Value-focused. Highlight deals, discounts, and cost-effective options.';
+  } else {
+    recommendedApproach = 'Warm and helpful. Build trust while guiding toward appropriate solutions.';
+  }
+
+  return {
+    sentiment,
+    buyingSignals,
+    customerNeeds,
+    communicationStyle,
+    urgency,
+    frustration,
+    engagementScore,
+    recommendedApproach
+  };
+}
+
 export { ConversationContext } from './conversation-context';
 export type { IntentType } from './conversation-context';

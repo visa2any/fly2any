@@ -2425,6 +2425,140 @@ function extractBookingReference(userMessage: string): string | null {
 }
 
 /**
+ * Extract flight dates from user message with comprehensive pattern matching
+ * Handles: "from dec 20th until jan 5th", "on december 20", "dec 20 - jan 5", etc.
+ */
+function extractFlightDates(msg: string): { departureDate: string | null; returnDate: string | null } {
+  const months: Record<string, number> = {
+    january: 0, jan: 0, february: 1, feb: 1, march: 2, mar: 2,
+    april: 3, apr: 3, may: 4, june: 5, jun: 5, july: 6, jul: 6,
+    august: 7, aug: 7, september: 8, sep: 8, sept: 8,
+    october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11
+  };
+
+  const monthPattern = '(?:january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sep|sept|october|oct|november|nov|december|dec)';
+  const dayPattern = '(\\d{1,2})(?:st|nd|rd|th)?';
+  const yearPattern = '(?:,?\\s*(\\d{4}))?';
+
+  // Helper to parse date and handle year rollover
+  function parseDate(monthStr: string, dayStr: string, yearStr?: string, referenceDate?: Date): string | null {
+    const month = months[monthStr.toLowerCase()];
+    if (month === undefined) return null;
+
+    const day = parseInt(dayStr);
+    if (day < 1 || day > 31) return null;
+
+    const now = new Date();
+    let year = yearStr ? parseInt(yearStr) : now.getFullYear();
+
+    // If date is in the past (or reference date is provided for return dates)
+    const testDate = new Date(year, month, day);
+    const compareDate = referenceDate || now;
+
+    if (testDate < compareDate) {
+      year++;
+    }
+
+    // Format as ISO date
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  let departureDate: string | null = null;
+  let returnDate: string | null = null;
+
+  // Pattern 1: "from [date] until/to/through [date]" or "[date] - [date]"
+  const rangePatterns = [
+    // "from dec 20th until jan 5th" or "from dec 20 to jan 5"
+    new RegExp(`from\\s+${monthPattern}\\s+${dayPattern}${yearPattern}\\s+(?:until|to|through|till|-|–)\\s+${monthPattern}\\s+${dayPattern}${yearPattern}`, 'i'),
+    // "dec 20th until jan 5th" or "dec 20 - jan 5"
+    new RegExp(`${monthPattern}\\s+${dayPattern}${yearPattern}\\s+(?:until|to|through|till|thru|-|–)\\s+${monthPattern}\\s+${dayPattern}${yearPattern}`, 'i'),
+    // "20th dec until 5th jan"
+    new RegExp(`${dayPattern}\\s+${monthPattern}${yearPattern}\\s+(?:until|to|through|till|-|–)\\s+${dayPattern}\\s+${monthPattern}${yearPattern}`, 'i'),
+  ];
+
+  for (const pattern of rangePatterns) {
+    const match = msg.match(pattern);
+    if (match) {
+      // Extract based on pattern structure
+      if (pattern.source.startsWith('from')) {
+        // "from month day year until month day year"
+        const depMonth = match[1] || match[0].match(new RegExp(monthPattern, 'i'))?.[0];
+        const depDay = match[2];
+        const depYear = match[3];
+
+        // Find the second date after "until/to/through"
+        const afterKeyword = msg.substring(msg.search(/until|to|through|till|-|–/i)).toLowerCase();
+        const secondDateMatch = afterKeyword.match(new RegExp(`(${monthPattern})\\s+${dayPattern}${yearPattern}`, 'i'));
+
+        if (depMonth && depDay && secondDateMatch) {
+          departureDate = parseDate(depMonth, depDay, depYear);
+          const depDateObj = departureDate ? new Date(departureDate) : undefined;
+          returnDate = parseDate(secondDateMatch[1], secondDateMatch[2], secondDateMatch[3], depDateObj);
+        }
+      }
+      break;
+    }
+  }
+
+  // If no range found, try single date patterns
+  if (!departureDate) {
+    const singlePatterns = [
+      // "on december 20th" or "on dec 20"
+      new RegExp(`(?:on|for|departing|leaving|flying)\\s+(${monthPattern})\\s+${dayPattern}${yearPattern}`, 'i'),
+      // "december 20th" or "dec 20" (standalone)
+      new RegExp(`\\b(${monthPattern})\\s+${dayPattern}${yearPattern}\\b`, 'i'),
+      // "20th december"
+      new RegExp(`\\b${dayPattern}\\s+(${monthPattern})${yearPattern}\\b`, 'i'),
+      // MM/DD or MM/DD/YYYY
+      /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/,
+    ];
+
+    for (const pattern of singlePatterns) {
+      const match = msg.match(pattern);
+      if (match) {
+        if (pattern.source.includes('\\/')) {
+          // MM/DD format
+          const month = parseInt(match[1]) - 1;
+          const day = parseInt(match[2]);
+          const year = match[3] ? (match[3].length === 2 ? 2000 + parseInt(match[3]) : parseInt(match[3])) : new Date().getFullYear();
+          if (month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+            departureDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          }
+        } else if (pattern.source.startsWith('\\b\\d')) {
+          // day month format
+          departureDate = parseDate(match[2], match[1], match[3]);
+        } else {
+          // month day format
+          departureDate = parseDate(match[1], match[2], match[3]);
+        }
+        break;
+      }
+    }
+  }
+
+  // If we have departure but no return, check for return date separately
+  if (departureDate && !returnDate) {
+    const returnPatterns = [
+      // "returning on jan 5th" or "return jan 5"
+      new RegExp(`(?:return(?:ing)?|back|coming back)\\s+(?:on\\s+)?(${monthPattern})\\s+${dayPattern}${yearPattern}`, 'i'),
+      // "until jan 5th" (if not already matched as range)
+      new RegExp(`(?:until|till|through|thru)\\s+(${monthPattern})\\s+${dayPattern}${yearPattern}`, 'i'),
+    ];
+
+    for (const pattern of returnPatterns) {
+      const match = msg.match(pattern);
+      if (match) {
+        const depDateObj = new Date(departureDate);
+        returnDate = parseDate(match[1], match[2], match[3], depDateObj);
+        break;
+      }
+    }
+  }
+
+  return { departureDate, returnDate };
+}
+
+/**
  * Extract search context from user message for handoff
  * Parses key information (locations, dates, guests) to pass to new agent
  */
@@ -2433,12 +2567,18 @@ function extractSearchContext(userMessage: string, team: string): any {
 
   // Flight context extraction
   if (team === 'flight-operations') {
-    // Try to extract origin and destination
-    const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to|\s+on|\s+in|\s*$)/i);
-    const toMatch = msg.match(/to\s+([a-z\s]+?)(?:\s+on|\s+in|\s+from|\s*$)/i);
+    // Try to extract origin and destination (handle "nonstop" etc in destination)
+    const fromMatch = msg.match(/from\s+([a-z\s]+?)(?:\s+to\s+|\s+on\s+|\s+in\s+|\s+from\s+|\s*$)/i);
+    const toMatch = msg.match(/to\s+([a-z\s]+?)(?:\s+nonstop|\s+non-stop|\s+direct|\s+on\s+|\s+in\s+|\s+from\s+|\s+for\s+|\s*$)/i);
 
-    // Try to extract dates
-    const dateMatch = msg.match(/(?:on|in|for)\s+([a-z]+\s+\d+|\d+\/\d+|next\s+\w+|tomorrow|today)/i);
+    // Clean destination (remove "nonstop" etc if captured)
+    let destination = toMatch ? toMatch[1].trim() : undefined;
+    if (destination) {
+      destination = destination.replace(/\s*(nonstop|non-stop|direct|business|economy|first class).*$/i, '').trim();
+    }
+
+    // Enhanced date extraction with comprehensive patterns
+    const { departureDate, returnDate } = extractFlightDates(msg);
 
     // Try to extract passengers
     const passengersMatch = msg.match(/(\d+)\s+(?:passenger|person|people|traveler)/i);
@@ -2449,8 +2589,9 @@ function extractSearchContext(userMessage: string, team: string): any {
 
     const context: any = {};
     if (fromMatch) context.origin = fromMatch[1].trim();
-    if (toMatch) context.destination = toMatch[1].trim();
-    if (dateMatch) context.departureDate = dateMatch[1].trim();
+    if (destination) context.destination = destination;
+    if (departureDate) context.departureDate = departureDate;
+    if (returnDate) context.returnDate = returnDate;
     if (passengersMatch) context.passengers = parseInt(passengersMatch[1]);
     if (hasBusinessClass) context.cabinClass = 'business';
     else if (hasEconomyClass) context.cabinClass = 'economy';
