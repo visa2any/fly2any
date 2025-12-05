@@ -172,6 +172,7 @@ function BookingPageContent() {
             currency: variant.currency || 'USD',
             features: variant.features || ['Economy seat', 'Carry-on included'],
             restrictions: variant.restrictions || undefined, // Include restrictions from search API
+            positives: variant.positives || undefined, // Include positive policies (Free changes, Refundable)
             recommended: variant.recommended || false,
             popularityPercent: variant.popularityPercent || (index === 0 ? 26 : index === 1 ? 74 : 18),
             originalOffer: variant.originalOffer, // Keep original offer for booking
@@ -265,16 +266,17 @@ function BookingPageContent() {
                     features.push('Economy seat');
                   }
 
-                  // Build restrictions list based on fare type
+                  // Build restrictions and positives lists based on fare type
                   const restrictions: string[] = [];
+                  const positives: string[] = [];
 
-                  // Add generic benefits based on fare type
+                  // Add policies based on fare type - positives in green, restrictions in red
                   if (fareType === 'Flex' || fareType === 'Plus') {
-                    features.push('Free changes');
-                    features.push('Refundable');
+                    positives.push('Free changes');
+                    positives.push('Fully refundable');
                   } else if (fareType === 'Standard') {
-                    features.push('Changes allowed (+fee)');
-                    restrictions.push('Cancellation fee applies');
+                    positives.push('Changes allowed (+fee)');
+                    restrictions.push('Non-refundable');
                   } else if (fareType === 'Basic') {
                     features.push('Seat assignment fee');
                     restrictions.push('No changes allowed');
@@ -288,6 +290,7 @@ function BookingPageContent() {
                     currency: fareOffer.price.currency,
                     features: features.slice(0, 5), // Limit to 5 features for UI
                     restrictions: restrictions.length > 0 ? restrictions : undefined,
+                    positives: positives.length > 0 ? positives : undefined, // Positive policies in green
                     recommended: index === 1, // Second option usually best value
                     popularityPercent: index === 0 ? 26 : index === 1 ? 74 : index === 2 ? 18 : 4,
                   };
