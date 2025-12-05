@@ -43,6 +43,11 @@ Sentry.init({
     /^https:\/\/.*\.fly2any\.com/,
   ],
 
+  // Enable structured logging
+  _experiments: {
+    enableLogs: true,
+  },
+
   // Integrations
   integrations: [
     // Session Replay integration
@@ -53,6 +58,8 @@ Sentry.init({
     }),
     // Browser Tracing integration
     Sentry.browserTracingIntegration(),
+    // Console logging integration - capture errors/warnings
+    Sentry.consoleLoggingIntegration({ levels: ['error', 'warn'] }),
   ],
 
   // Before send hook - filter or modify events before sending to Sentry

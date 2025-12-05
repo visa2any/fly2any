@@ -14,7 +14,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 
 // Get GA4 Measurement ID from environment
-const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || '';
 
 // Event tracking types
 export interface FlightSearchEvent {

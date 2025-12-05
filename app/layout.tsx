@@ -16,7 +16,9 @@ import {
   getTravelAgencySchema,
 } from "@/lib/seo/metadata";
 import { NextIntlClientProvider } from 'next-intl';
+import { GoogleAnalytics } from "@/lib/analytics/google-analytics";
 import { getMessages } from 'next-intl/server';
+import { Suspense } from 'react';
 
 // Optimized font loading with display swap for better FCP
 const inter = Inter({
@@ -145,6 +147,10 @@ export default async function RootLayout({
         <PWAProvider />
         <InstallPrompt />
         <OfflineIndicator />
+        {/* Google Analytics 4 */}
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
       </body>
     </html>
   );

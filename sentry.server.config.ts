@@ -27,10 +27,17 @@ Sentry.init({
   // Debug mode (logs to console)
   debug: SENTRY_ENVIRONMENT === 'development',
 
+  // Enable structured logging
+  _experiments: {
+    enableLogs: true,
+  },
+
   // Integrations
   integrations: [
     // HTTP integration for tracing HTTP requests
     Sentry.httpIntegration(),
+    // Console logging integration - capture server errors/warnings
+    Sentry.consoleLoggingIntegration({ levels: ['error', 'warn'] }),
   ],
 
   // Before send hook - filter or modify events before sending to Sentry
