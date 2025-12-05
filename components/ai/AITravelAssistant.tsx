@@ -46,6 +46,20 @@ import {
   ConversationContext,
   type IntentType
 } from '@/lib/ai/conversational-intelligence';
+// SALES CONVERSION ENGINE - State of the Art
+import {
+  analyzeCustomerBehavior,
+  determineConversionStage,
+  generateConversionResponse,
+  identifyUpsellOpportunities,
+  getHumanFiller,
+  generateUrgencyMessage,
+  generateCTA,
+  getAdaptedTone,
+  type CustomerBehaviorProfile,
+  type ConversionStage,
+  type UpsellOpportunity
+} from '@/lib/ai/sales-conversion-engine';
 import {
   generateHandoffMessage,
   needsHandoff,
@@ -181,6 +195,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
   // CONVERSATION CONTEXT TRACKING
   const [conversationContext] = useState(() => new ConversationContext());
+
+  // SALES CONVERSION: Customer behavior tracking
+  const [customerBehavior, setCustomerBehavior] = useState<CustomerBehaviorProfile | null>(null);
+  const [conversionStage, setConversionStage] = useState<ConversionStage>('awareness');
+  const [upsellOpportunities, setUpsellOpportunities] = useState<UpsellOpportunity[]>([]);
 
   // CONVERSATION PERSISTENCE
   const [conversation, setConversation] = useState<ConversationState | null>(null);
@@ -566,6 +585,23 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
     const analysis = analyzeConversationIntent(queryText, messageHistory);
 
+    // SALES CONVERSION: Analyze customer behavior for conversion optimization
+    const behaviorHistory = messages.map(m => ({
+      role: m.role,
+      content: m.content
+    }));
+    const newBehavior = analyzeCustomerBehavior(behaviorHistory, queryText);
+    setCustomerBehavior(newBehavior);
+
+    // Determine conversion stage based on search results and user intent
+    const hasSearchResults = messages.some(m => m.flightResults || m.hotelResults);
+    const hasSelectedOption = /\b(book|select|this one|choose|i'll take|sounds good)\b/i.test(queryText);
+    const newStage = determineConversionStage(behaviorHistory, hasSearchResults, hasSelectedOption);
+    setConversionStage(newStage);
+
+    // Adapt tone based on customer behavior
+    const adaptedTone = getAdaptedTone(newBehavior);
+
     const consultantTeam = determineConsultantTeam(queryText);
     const consultant = getConsultant(consultantTeam);
 
@@ -694,22 +730,71 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         if (data.success && data.flights && data.flights.length > 0) {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          // Warm, natural response from Lisa
+          // SALES CONVERSION: Update upsell opportunities based on flight search
+          const opportunities = identifyUpsellOpportunities(newBehavior, 'flight', data.searchParams);
+          setUpsellOpportunities(opportunities);
+
+          // Warm, natural response from Lisa with conversion optimization
           const tripType = data.searchParams?.returnDate ? 'round-trip' : 'one-way';
           const cabinClass = data.searchParams?.cabinClass || 'economy';
           const isBusinessClass = cabinClass === 'business' || cabinClass === 'first';
 
-          const resultsContent = language === 'en'
-            ? `Oh wonderful, sweetie! ✈️ I found ${data.flights.length} fantastic ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options for your ${tripType} journey! Let me show you the best ones:`
-            : language === 'pt'
-            ? `Que maravilha, querido! ✈️ Encontrei ${data.flights.length} opções fantásticas ${isBusinessClass ? 'em ' + cabinClass : ''} para sua viagem ${tripType === 'round-trip' ? 'ida e volta' : 'só ida'}! Deixe-me mostrar as melhores:`
-            : `¡Qué maravilloso, cariño! ✈️ Encontré ${data.flights.length} opciones fantásticas ${isBusinessClass ? 'en ' + cabinClass : ''} para tu viaje de ${tripType === 'round-trip' ? 'ida y vuelta' : 'solo ida'}! Déjame mostrarte las mejores:`;
+          // Get urgency message if applicable (ethical scarcity)
+          const topFlight = data.flights[0];
+          const urgencyMsg = generateUrgencyMessage(topFlight?.seatsAvailable);
 
-          const followUpContent = language === 'en'
-            ? "Which of these catches your eye, hon? I'm here to help you with the booking or we can adjust the search if you'd like! 💕"
-            : language === 'pt'
-            ? "Qual desses chamou sua atenção, querido? Estou aqui para ajudá-lo com a reserva ou podemos ajustar a busca se você quiser! 💕"
-            : "¿Cuál de estos te llama la atención, cariño? ¡Estoy aquí para ayudarte con la reserva o podemos ajustar la búsqueda si quieres! 💕";
+          // SALES CONVERSION: Generate behavior-adapted response
+          const conversionPrefix = generateConversionResponse(newStage, newBehavior, {
+            agentName: consultant.name,
+            serviceName: 'flights',
+            destination: data.searchParams?.destination
+          });
+
+          // Build results message based on customer behavior
+          let resultsContent = '';
+          if (newBehavior.emotionalState === 'excited') {
+            resultsContent = language === 'en'
+              ? `How exciting! ✈️ I found ${data.flights.length} fantastic ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options for your ${tripType} journey!`
+              : language === 'pt'
+              ? `Que emocionante! ✈️ Encontrei ${data.flights.length} opções fantásticas ${isBusinessClass ? 'em ' + cabinClass : ''} para sua viagem!`
+              : `¡Qué emocionante! ✈️ Encontré ${data.flights.length} opciones fantásticas ${isBusinessClass ? 'en ' + cabinClass : ''} para tu viaje!`;
+          } else if (newBehavior.emotionalState === 'stressed' || newBehavior.urgency === 'immediate') {
+            resultsContent = language === 'en'
+              ? `Don't worry, I've got you covered! ✈️ Found ${data.flights.length} available ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options. Let me show you the best ones:`
+              : language === 'pt'
+              ? `Não se preocupe, estou aqui para ajudar! ✈️ Encontrei ${data.flights.length} opções disponíveis. Deixe-me mostrar as melhores:`
+              : `¡No te preocupes, aquí estoy para ayudarte! ✈️ Encontré ${data.flights.length} opciones disponibles. Déjame mostrarte las mejores:`;
+          } else if (newBehavior.budget === 'price_sensitive') {
+            resultsContent = language === 'en'
+              ? `Great news! ✈️ I found ${data.flights.length} excellent deals for your ${tripType} journey. These are the best value options I could find:`
+              : language === 'pt'
+              ? `Ótimas notícias! ✈️ Encontrei ${data.flights.length} ótimas ofertas para sua viagem. Estas são as melhores opções com melhor custo-benefício:`
+              : `¡Buenas noticias! ✈️ Encontré ${data.flights.length} excelentes ofertas para tu viaje. Estas son las mejores opciones en relación calidad-precio:`;
+          } else {
+            resultsContent = language === 'en'
+              ? `Wonderful! ✈️ I found ${data.flights.length} fantastic ${isBusinessClass ? cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1) + ' Class' : ''} options for your ${tripType} journey! Let me show you the best ones:`
+              : language === 'pt'
+              ? `Maravilha! ✈️ Encontrei ${data.flights.length} opções fantásticas ${isBusinessClass ? 'em ' + cabinClass : ''} para sua viagem ${tripType === 'round-trip' ? 'ida e volta' : 'só ida'}!`
+              : `¡Maravilloso! ✈️ Encontré ${data.flights.length} opciones fantásticas ${isBusinessClass ? 'en ' + cabinClass : ''} para tu viaje de ${tripType === 'round-trip' ? 'ida y vuelta' : 'solo ida'}!`;
+          }
+
+          // Generate behavior-adapted follow-up with urgency if applicable
+          let followUpContent = '';
+          if (urgencyMsg && newBehavior.urgency !== 'comparison_shopping') {
+            followUpContent = language === 'en'
+              ? `${urgencyMsg} Which one catches your eye? I can secure your booking right away!`
+              : language === 'pt'
+              ? `${urgencyMsg} Qual chamou sua atenção? Posso garantir sua reserva agora mesmo!`
+              : `${urgencyMsg} ¿Cuál te llama la atención? ¡Puedo asegurar tu reserva ahora mismo!`;
+          } else {
+            // Use CTA based on conversion stage
+            const cta = generateCTA(newStage, newBehavior);
+            followUpContent = language === 'en'
+              ? cta
+              : language === 'pt'
+              ? "Qual desses te agrada? Estou aqui para ajudar com a reserva ou ajustar a busca! 💕"
+              : "¿Cuál de estos te gusta? ¡Estoy aquí para ayudarte con la reserva o ajustar la búsqueda! 💕";
+          }
 
           await sendMultipleAIResponses([
             {
@@ -770,26 +855,85 @@ export function AITravelAssistant({ language = 'en' }: Props) {
         if (data.success && data.hotels && data.hotels.length > 0) {
           setMessages(prev => prev.filter(m => !m.isSearching));
 
-          // Marcus's warm, hospitable response with hotel cards
+          // SALES CONVERSION: Update upsell opportunities for hotels
+          const hotelOpportunities = identifyUpsellOpportunities(newBehavior, 'hotel', data.searchParams);
+          setUpsellOpportunities(prev => [...prev, ...hotelOpportunities]);
+
+          // Marcus's warm, hospitable response with conversion optimization
           const hotelCount = data.hotels.length;
           const nights = data.searchParams.checkOut && data.searchParams.checkIn
             ? Math.ceil((new Date(data.searchParams.checkOut).getTime() - new Date(data.searchParams.checkIn).getTime()) / (1000 * 60 * 60 * 24))
             : 0;
 
-          const resultsContent = language === 'en'
-            ? `Perfect! 🏨 I found ${hotelCount} wonderful hotels in ${data.searchParams.city} for you! ` +
-              `You'll be staying for ${nights} night${nights > 1 ? 's' : ''} with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}. Here are the best options:`
-            : language === 'pt'
-            ? `Perfeito! 🏨 Encontrei ${hotelCount} hotéis maravilhosos em ${data.searchParams.city} para você! ` +
-              `Você ficará por ${nights} noite${nights > 1 ? 's' : ''} com ${data.searchParams.guests} hóspede${data.searchParams.guests > 1 ? 's' : ''}. Aqui estão as melhores opções:`
-            : `¡Perfecto! 🏨 Encontré ${hotelCount} hoteles maravillosos en ${data.searchParams.city} para ti! ` +
-              `Te quedarás por ${nights} noche${nights > 1 ? 's' : ''} con ${data.searchParams.guests} huésped${data.searchParams.guests > 1 ? 'es' : ''}. Aquí están las mejores opciones:`;
+          // Get urgency message if applicable (ethical scarcity)
+          const topHotel = data.hotels[0];
+          const hotelUrgencyMsg = generateUrgencyMessage(undefined, topHotel?.roomsAvailable);
 
-          const followUpContent = language === 'en'
-            ? "Which one catches your eye? I can help you book any of these or search for different options if you'd like! 🏨"
-            : language === 'pt'
-            ? "Qual desses te agrada? Posso ajudá-lo a reservar qualquer um deles ou procurar opções diferentes se desejar! 🏨"
-            : "¿Cuál te gusta más? ¡Puedo ayudarte a reservar cualquiera de estos o buscar diferentes opciones si lo deseas! 🏨";
+          // Build behavior-adapted results message
+          let resultsContent = '';
+          if (newBehavior.travelPurpose === 'romantic') {
+            resultsContent = language === 'en'
+              ? `How lovely! 🏨 I found ${hotelCount} perfect hotels in ${data.searchParams.city} for your romantic getaway! ` +
+                `${nights} night${nights > 1 ? 's' : ''} of pure bliss awaits:`
+              : language === 'pt'
+              ? `Que lindo! 🏨 Encontrei ${hotelCount} hotéis perfeitos em ${data.searchParams.city} para sua escapada romântica! ` +
+                `${nights} noite${nights > 1 ? 's' : ''} de pura felicidade espera por vocês:`
+              : `¡Qué hermoso! 🏨 Encontré ${hotelCount} hoteles perfectos en ${data.searchParams.city} para tu escapada romántica! ` +
+                `${nights} noche${nights > 1 ? 's' : ''} de pura felicidad te esperan:`;
+          } else if (newBehavior.travelPurpose === 'family') {
+            resultsContent = language === 'en'
+              ? `Wonderful! 🏨 I found ${hotelCount} family-friendly hotels in ${data.searchParams.city}! ` +
+                `Perfect for ${data.searchParams.guests} guests over ${nights} night${nights > 1 ? 's' : ''}:`
+              : language === 'pt'
+              ? `Maravilha! 🏨 Encontrei ${hotelCount} hotéis perfeitos para famílias em ${data.searchParams.city}! ` +
+                `Ideal para ${data.searchParams.guests} hóspedes durante ${nights} noite${nights > 1 ? 's' : ''}:`
+              : `¡Maravilloso! 🏨 Encontré ${hotelCount} hoteles familiares en ${data.searchParams.city}! ` +
+                `Perfectos para ${data.searchParams.guests} huéspedes durante ${nights} noche${nights > 1 ? 's' : ''}:`;
+          } else if (newBehavior.budget === 'price_sensitive') {
+            resultsContent = language === 'en'
+              ? `Great news! 🏨 I found ${hotelCount} excellent value hotels in ${data.searchParams.city}! ` +
+                `Best deals for ${nights} night${nights > 1 ? 's' : ''} with ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}:`
+              : language === 'pt'
+              ? `Ótimas notícias! 🏨 Encontrei ${hotelCount} hotéis com ótimo custo-benefício em ${data.searchParams.city}! ` +
+                `Melhores ofertas para ${nights} noite${nights > 1 ? 's' : ''}:`
+              : `¡Buenas noticias! 🏨 Encontré ${hotelCount} hoteles con excelente relación calidad-precio en ${data.searchParams.city}! ` +
+                `Mejores ofertas para ${nights} noche${nights > 1 ? 's' : ''}:`;
+          } else if (newBehavior.budget === 'luxury') {
+            resultsContent = language === 'en'
+              ? `Exquisite! 🏨 I've curated ${hotelCount} premium hotels in ${data.searchParams.city} just for you! ` +
+                `${nights} night${nights > 1 ? 's' : ''} of luxury await:`
+              : language === 'pt'
+              ? `Requintado! 🏨 Selecionei ${hotelCount} hotéis premium em ${data.searchParams.city} especialmente para você! ` +
+                `${nights} noite${nights > 1 ? 's' : ''} de luxo aguardam:`
+              : `¡Exquisito! 🏨 He seleccionado ${hotelCount} hoteles premium en ${data.searchParams.city} solo para ti! ` +
+                `${nights} noche${nights > 1 ? 's' : ''} de lujo te esperan:`;
+          } else {
+            resultsContent = language === 'en'
+              ? `Perfect! 🏨 I found ${hotelCount} wonderful hotels in ${data.searchParams.city}! ` +
+                `${nights} night${nights > 1 ? 's' : ''} for ${data.searchParams.guests} guest${data.searchParams.guests > 1 ? 's' : ''}:`
+              : language === 'pt'
+              ? `Perfeito! 🏨 Encontrei ${hotelCount} hotéis maravilhosos em ${data.searchParams.city}! ` +
+                `${nights} noite${nights > 1 ? 's' : ''} para ${data.searchParams.guests} hóspede${data.searchParams.guests > 1 ? 's' : ''}:`
+              : `¡Perfecto! 🏨 Encontré ${hotelCount} hoteles maravillosos en ${data.searchParams.city}! ` +
+                `${nights} noche${nights > 1 ? 's' : ''} para ${data.searchParams.guests} huésped${data.searchParams.guests > 1 ? 'es' : ''}:`;
+          }
+
+          // Generate behavior-adapted follow-up with urgency if applicable
+          let followUpContent = '';
+          if (hotelUrgencyMsg && newBehavior.urgency !== 'comparison_shopping') {
+            followUpContent = language === 'en'
+              ? `${hotelUrgencyMsg} Which one would you like to book? I can secure your room instantly!`
+              : language === 'pt'
+              ? `${hotelUrgencyMsg} Qual você gostaria de reservar? Posso garantir seu quarto instantaneamente!`
+              : `${hotelUrgencyMsg} ¿Cuál te gustaría reservar? ¡Puedo asegurar tu habitación al instante!`;
+          } else {
+            const hotelCta = generateCTA(newStage, newBehavior);
+            followUpContent = language === 'en'
+              ? hotelCta
+              : language === 'pt'
+              ? "Qual desses te agrada? Posso ajudar com a reserva ou buscar outras opções! 🏨"
+              : "¿Cuál te gusta más? ¡Puedo ayudarte con la reserva o buscar otras opciones! 🏨";
+          }
 
           await sendMultipleAIResponses([
             {
