@@ -31,8 +31,41 @@ import {
 } from 'lucide-react';
 
 // ===========================
+// HELPER FUNCTIONS
+// ===========================
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return date.toLocaleDateString();
+}
+
+// ===========================
 // TYPE DEFINITIONS
 // ===========================
+
+interface RecentBooking {
+  id: string;
+  confirmationNumber: string;
+  hotelName: string;
+  hotelCity: string | null;
+  totalPrice: number;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentUser {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt: string;
+}
 
 interface DashboardMetrics {
   revenue: {
@@ -73,6 +106,10 @@ interface DashboardMetrics {
     amadeus: boolean;
     duffel: boolean;
     database: boolean;
+  };
+  recentActivity?: {
+    bookings: RecentBooking[];
+    users: RecentUser[];
   };
 }
 
@@ -189,59 +226,62 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      // Fetch ML analytics
-      const mlResponse = await fetch('/api/ml/analytics?period=7d');
+      // Fetch real stats from the admin stats API
+      const [statsResponse, mlResponse] = await Promise.all([
+        fetch('/api/admin/stats?period=week'),
+        fetch('/api/ml/analytics?period=7d'),
+      ]);
 
-      if (!mlResponse.ok) {
-        throw new Error(`Analytics API returned ${mlResponse.status}`);
-      }
+      const statsData = statsResponse.ok ? await statsResponse.json() : null;
+      const mlData = mlResponse.ok ? await mlResponse.json() : null;
 
-      const mlData = await mlResponse.json();
+      const stats = statsData?.stats;
 
-      // Mock other metrics (in production, these would come from real APIs)
-      const mockMetrics: DashboardMetrics = {
+      // Build metrics from real data
+      const realMetrics: DashboardMetrics = {
         revenue: {
-          total: 125000,
-          change: 12.5,
-          thisMonth: 45000,
-          lastMonth: 40000,
+          total: stats?.revenue?.total || 0,
+          change: stats?.revenue?.change || 0,
+          thisMonth: stats?.revenue?.thisMonth || 0,
+          lastMonth: stats?.revenue?.lastMonth || 0,
         },
         bookings: {
-          total: 1250,
-          change: 8.3,
-          pending: 45,
-          confirmed: 1100,
-          cancelled: 105,
+          total: stats?.bookings?.total || 0,
+          change: stats?.bookings?.change || 0,
+          pending: stats?.bookings?.pending || 0,
+          confirmed: stats?.bookings?.confirmed || 0,
+          cancelled: stats?.bookings?.cancelled || 0,
         },
         users: {
-          total: 5420,
-          change: 15.2,
-          active: 3200,
-          new: 320,
+          total: stats?.users?.total || 0,
+          change: stats?.users?.change || 0,
+          active: stats?.users?.active || 0,
+          new: stats?.users?.new || 0,
         },
         searches: {
-          total: mlData.overview?.totalSearches || 0,
-          change: 25.3,
-          flights: mlData.overview?.totalSearches || 0,
-          hotels: 1200,
-          cars: 450,
+          total: stats?.searches?.total || mlData?.overview?.totalSearches || 0,
+          change: stats?.searches?.change || 0,
+          flights: stats?.searches?.flights || 0,
+          hotels: stats?.searches?.hotels || 0,
+          cars: stats?.searches?.cars || 0,
         },
         ml: {
-          totalSavings: mlData.costSavings?.totalSavings || 0,
-          savingsPercentage: mlData.costSavings?.savingsPercentage || 0,
-          cacheHitRate: mlData.costSavings?.cacheHitRate || 0,
-          apiCallsSaved: mlData.apiEfficiency?.callsSaved || 0,
-          mlReadiness: mlData.health?.mlReadiness || 'warming_up',
+          totalSavings: mlData?.costSavings?.totalSavings || 0,
+          savingsPercentage: mlData?.costSavings?.savingsPercentage || 0,
+          cacheHitRate: mlData?.costSavings?.cacheHitRate || 0,
+          apiCallsSaved: mlData?.apiEfficiency?.callsSaved || 0,
+          mlReadiness: mlData?.health?.mlReadiness || 'warming_up',
         },
         systemHealth: {
-          redis: mlData.health?.redisConnected || false,
+          redis: mlData?.health?.redisConnected || false,
           amadeus: true,
           duffel: true,
           database: true,
         },
+        recentActivity: stats?.recentActivity || { bookings: [], users: [] },
       };
 
-      setMetrics(mockMetrics);
+      setMetrics(realMetrics);
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
@@ -550,35 +590,70 @@ export default function AdminDashboard() {
           </h3>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="rounded-full bg-green-100 p-2">
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">New booking confirmed</p>
-                <p className="text-xs text-gray-600">JFK → LAX · $450 · 2 minutes ago</p>
-              </div>
-            </div>
+            {/* Recent Bookings */}
+            {metrics?.recentActivity?.bookings && metrics.recentActivity.bookings.length > 0 ? (
+              metrics.recentActivity.bookings.slice(0, 3).map((booking) => (
+                <div key={booking.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className={`rounded-full p-2 ${
+                    booking.status === 'confirmed' ? 'bg-green-100' :
+                    booking.status === 'pending' ? 'bg-yellow-100' : 'bg-gray-100'
+                  }`}>
+                    <CheckCircle2 className={`w-4 h-4 ${
+                      booking.status === 'confirmed' ? 'text-green-600' :
+                      booking.status === 'pending' ? 'text-yellow-600' : 'text-gray-600'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {booking.status === 'confirmed' ? 'Booking confirmed' :
+                       booking.status === 'pending' ? 'New booking (pending)' : 'Booking update'}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {booking.hotelName} {booking.hotelCity ? `· ${booking.hotelCity}` : ''} · ${Number(booking.totalPrice).toLocaleString()} · {formatTimeAgo(booking.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : null}
 
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="rounded-full bg-blue-100 p-2">
-                <Brain className="w-4 h-4 text-blue-600" />
+            {/* Recent Users */}
+            {metrics?.recentActivity?.users && metrics.recentActivity.users.length > 0 ? (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-full bg-purple-100 p-2">
+                  <Users className="w-4 h-4 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {metrics.recentActivity.users.length} new user registration{metrics.recentActivity.users.length !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-gray-600">This week</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">ML pre-fetch completed</p>
-                <p className="text-xs text-gray-600">50 routes cached · $12.50 saved · 15 minutes ago</p>
-              </div>
-            </div>
+            ) : null}
 
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="rounded-full bg-purple-100 p-2">
-                <Users className="w-4 h-4 text-purple-600" />
+            {/* ML Savings Info */}
+            {metrics?.ml && metrics.ml.totalSavings > 0 && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-full bg-blue-100 p-2">
+                  <Brain className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">ML cost optimization active</p>
+                  <p className="text-xs text-gray-600">
+                    ${metrics.ml.totalSavings.toLocaleString()} saved · {metrics.ml.cacheHitRate.toFixed(0)}% cache hit rate
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">15 new user registrations</p>
-                <p className="text-xs text-gray-600">Last hour</p>
+            )}
+
+            {/* Empty state */}
+            {(!metrics?.recentActivity?.bookings || metrics.recentActivity.bookings.length === 0) &&
+             (!metrics?.recentActivity?.users || metrics.recentActivity.users.length === 0) &&
+             (!metrics?.ml || metrics.ml.totalSavings === 0) && (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                No recent activity to display
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
