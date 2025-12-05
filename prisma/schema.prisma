@@ -4352,3 +4352,38 @@ model PromoCodeUsage {
   @@index([usedAt])
   @@map("promo_code_usages")
 }
+
+// ==========================================
+// Newsletter Subscribers
+// ==========================================
+
+model NewsletterSubscriber {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  firstName       String?
+  source          String    @default("website") // website, world-cup, modal, footer, etc.
+  status          String    @default("ACTIVE") // ACTIVE, UNSUBSCRIBED, BOUNCED
+  subscribedAt    DateTime  @default(now())
+  unsubscribedAt  DateTime?
+  reactivatedAt   DateTime?
+  lastEmailSentAt DateTime?
+  emailsSent      Int       @default(0)
+  emailsOpened    Int       @default(0)
+  emailsClicked   Int       @default(0)
+
+  // Preferences
+  dealAlerts       Boolean @default(true)
+  newRoutes        Boolean @default(true)
+  weeklyDigest     Boolean @default(true)
+  worldCupUpdates  Boolean @default(true)
+
+  // Metadata
+  ipAddress        String?
+  userAgent        String?
+  country          String?
+
+  @@index([status])
+  @@index([subscribedAt])
+  @@index([source])
+  @@map("newsletter_subscribers")
+}

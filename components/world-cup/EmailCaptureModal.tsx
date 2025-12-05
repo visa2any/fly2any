@@ -21,14 +21,31 @@ export function EmailCaptureModal({ isOpen, onClose, source = 'world-cup', incen
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Track the signup
-    trackWorldCupEmailSignup(source);
+    try {
+      // Track the signup
+      trackWorldCupEmailSignup(source);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real newsletter API
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source }),
+      });
 
-    setIsSuccess(true);
-    setIsSubmitting(false);
+      const data = await response.json();
+
+      if (!response.ok && !data.alreadySubscribed) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setIsSuccess(true);
+    } catch (error) {
+      console.error('Newsletter signup error:', error);
+      // Still show success to user (graceful degradation)
+      setIsSuccess(true);
+    } finally {
+      setIsSubmitting(false);
+    }
 
     // Close after 2 seconds
     setTimeout(() => {
