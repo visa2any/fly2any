@@ -83,7 +83,7 @@ export async function POST(
     try {
       if (resend) {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "noreply@fly2any.com",
+          from: process.env.EMAIL_FROM || "support@fly2any.com",
           to: quote.agent.user.email,
           subject: `Quote Declined: ${quote.quoteNumber}`,
           html: `

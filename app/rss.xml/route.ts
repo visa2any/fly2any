@@ -36,7 +36,7 @@ function generateRSSFeed(): string {
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
       <description><![CDATA[${post.description}]]></description>
       <pubDate>${new Date(post.publishedDate).toUTCString()}</pubDate>
-      <author>noreply@fly2any.com (${post.author.name})</author>
+      <author>support@fly2any.com (${post.author.name})</author>
       <category>${post.category}</category>
       ${post.tags.map(tag => `<category>${tag}</category>`).join('\n      ')}
       ${post.featuredImage ? `<enclosure url="${SITE_URL}${post.featuredImage}" type="image/jpeg" />` : ''}

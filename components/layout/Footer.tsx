@@ -402,6 +402,24 @@ export function Footer({
                   WhatsApp
                 </a>
               </li>
+              <li>
+                <a
+                  href="mailto:support@fly2any.com"
+                  className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  <span className="text-blue-400 text-xs">✉️</span>
+                  support@fly2any.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="tel:+13322200838"
+                  className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  <span className="text-yellow-400 text-xs">📞</span>
+                  1-332-220-0838
+                </a>
+              </li>
             </ul>
           </div>
 

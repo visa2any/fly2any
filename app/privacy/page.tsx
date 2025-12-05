@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
                 <li><strong>Email:</strong> support@fly2any.com</li>
-                <li><strong>Phone:</strong> 1-800-FLY-2ANY (1-800-359-2269)</li>
+                <li><strong>Phone:</strong> 1-332-220-0838</li>
                 <li><strong>Hours:</strong> Monday-Friday, 9 AM - 6 PM EST</li>
               </ul>
 

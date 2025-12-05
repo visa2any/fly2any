@@ -117,7 +117,7 @@ export class EmailService {
   // Configuration
   private static apiKey = process.env.MAILGUN_API_KEY;
   private static domain = process.env.MAILGUN_DOMAIN || 'mg.fly2any.com';
-  private static fromEmail = process.env.EMAIL_FROM || 'Fly2Any <noreply@fly2any.com>';
+  private static fromEmail = process.env.EMAIL_FROM || 'Fly2Any <support@fly2any.com>';
   private static baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
   private static isProduction = process.env.NODE_ENV === 'production';
 

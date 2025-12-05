@@ -46,7 +46,7 @@ export default function AdminSettingsPage() {
       siteName: 'Fly2Any',
       siteDescription: 'Book flights, hotels, and travel packages',
       contactEmail: 'support@fly2any.com',
-      supportPhone: '+1 (555) 123-4567',
+      supportPhone: '1-332-220-0838',
       maintenanceMode: false,
     },
     api: {
@@ -55,7 +55,7 @@ export default function AdminSettingsPage() {
       cacheTTL: 3600,
     },
     email: {
-      fromEmail: 'noreply@fly2any.com',
+      fromEmail: 'support@fly2any.com',
       fromName: 'Fly2Any',
       smtpConfigured: true,
     },

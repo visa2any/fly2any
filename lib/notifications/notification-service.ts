@@ -18,7 +18,7 @@ import type { BookingNotificationPayload } from './types';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Configuration
-const FROM_EMAIL = process.env.FROM_EMAIL || 'bookings@fly2any.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Fly2Any <support@fly2any.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@fly2any.com';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'support@fly2any.com';

@@ -179,7 +179,7 @@ export default function TermsAndConditionsPage() {
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
                 <li>Texting <strong>STOP</strong>, <strong>UNSUBSCRIBE</strong>, <strong>CANCEL</strong>, <strong>END</strong>, or <strong>QUIT</strong> to any Fly2Any SMS</li>
                 <li>Disabling SMS notifications in your account settings</li>
-                <li>Contacting customer support at support@fly2any.com or 1-800-FLY-2ANY</li>
+                <li>Contacting customer support at support@fly2any.com or 1-332-220-0838</li>
               </ul>
               <p className="text-gray-700 mb-4">
                 After opting out, you will receive one final confirmation message: <em>"You have successfully unsubscribed from Fly2Any SMS notifications. You will no longer receive messages from us. Reply JOIN to resubscribe."</em>
@@ -193,14 +193,14 @@ export default function TermsAndConditionsPage() {
                 For help with SMS messages, text <strong>HELP</strong> or <strong>INFO</strong> to any Fly2Any SMS. You will receive:
               </p>
               <p className="text-gray-700 mb-4 bg-white p-3 rounded border italic">
-                "Fly2Any: For help, email support@fly2any.com or call 1-800-FLY-2ANY (1-800-359-2269). Reply STOP to unsubscribe. Msg&Data rates may apply."
+                "Fly2Any: For help, email support@fly2any.com or call 1-332-220-0838. Reply STOP to unsubscribe. Msg&Data rates may apply."
               </p>
               <p className="text-gray-700 mb-4">
                 You can also contact:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
                 <li><strong>Email:</strong> support@fly2any.com</li>
-                <li><strong>Phone:</strong> 1-800-FLY-2ANY (1-800-359-2269)</li>
+                <li><strong>Phone:</strong> 1-332-220-0838</li>
                 <li><strong>Hours:</strong> Monday-Friday, 9 AM - 6 PM EST</li>
               </ul>
 
@@ -441,7 +441,7 @@ export default function TermsAndConditionsPage() {
                 <p><strong>Fly2Any Legal Department</strong></p>
                 <p><strong>Email:</strong> legal@fly2any.com</p>
                 <p><strong>Customer Support:</strong> support@fly2any.com</p>
-                <p><strong>Phone:</strong> 1-800-FLY-2ANY (1-800-359-2269)</p>
+                <p><strong>Phone:</strong> 1-332-220-0838</p>
                 <p className="mt-4"><strong>Mailing Address:</strong><br />
                 Fly2Any Legal Department<br />
                 [Your Business Address]<br />
