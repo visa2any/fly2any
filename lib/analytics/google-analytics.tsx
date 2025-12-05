@@ -46,24 +46,29 @@ export interface BookingEvent {
 /**
  * Google Analytics Script Component
  * Add this to your root layout
+ *
+ * IMPORTANT: Wrapped in Suspense for useSearchParams compatibility
  */
 export function GoogleAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Track page views
+  // Track page views on route change
   useEffect(() => {
     if (!GA_ID) return;
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
 
-    // Send pageview event
-    gtag('config', GA_ID, {
+    // Send pageview event for SPA navigation
+    gtag('event', 'page_view', {
       page_path: url,
+      page_title: document.title,
+      page_location: window.location.href,
     });
   }, [pathname, searchParams]);
 
   if (!GA_ID) {
+    console.log('[GA4] No measurement ID configured');
     return null;
   }
 
@@ -81,8 +86,13 @@ export function GoogleAnalytics() {
 
           gtag('config', '${GA_ID}', {
             page_path: window.location.pathname,
-            send_page_view: false
+            send_page_view: true,
+            cookie_flags: 'SameSite=None;Secure',
+            anonymize_ip: true
           });
+
+          // Log GA initialization
+          console.log('[GA4] Initialized with ID: ${GA_ID}');
         `}
       </Script>
     </>
