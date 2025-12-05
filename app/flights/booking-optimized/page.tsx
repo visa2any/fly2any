@@ -375,7 +375,7 @@ function BookingPageContent() {
                 });
               }
 
-              // BAGGAGE - Real from Duffel/Amadeus
+              // BAGGAGE - Real from Duffel/Amadeus with full data mapping
               if (data.baggage?.hasRealData && data.baggage?.options?.length > 0) {
                 ancillaryCategories.push({
                   id: 'baggage',
@@ -386,10 +386,20 @@ function BookingPageContent() {
                   items: data.baggage.options.map((bag: any) => ({
                     id: bag.id,
                     name: bag.name,
-                    description: bag.weight ? `${bag.description} (${bag.weight}kg)` : bag.description,
+                    description: bag.description,
                     price: bag.price,
                     currency: bag.currency,
                     selected: false,
+                    // Full data mapping for AddOnsTabs UI features
+                    weight: bag.weight, // {value: number, unit: string} for weight display
+                    quantity: bag.quantity, // {min, max} for quantity selector
+                    metadata: {
+                      type: bag.metadata?.type || 'checked',
+                      isReal: bag.metadata?.isReal || bag.isReal || true,
+                      isMock: false,
+                      perPassenger: bag.metadata?.perPassenger || true,
+                      perSegment: bag.metadata?.perSegment || false,
+                    },
                   })),
                 });
               }
@@ -754,47 +764,6 @@ function BookingPageContent() {
 
     return { farePrice, addOns, taxesAndFees };
   };
-
-  // ===========================
-  // MOCK DATA (will be moved to API)
-  // ===========================
-
-  const mockFares: FareOption[] = [
-    {
-      id: 'basic',
-      name: 'BASIC',
-      price: flightData ? parseFloat(flightData.price.total) * 0.85 : 239,
-      currency: flightData?.price.currency || 'USD',
-      features: ['Carry-on only', 'Seat assignment fee', 'No refunds', 'No changes'],
-      restrictions: ['No carry-on bag', 'Basic seat'],
-      popularityPercent: 26,
-    },
-    {
-      id: 'standard',
-      name: 'STANDARD',
-      price: flightData ? parseFloat(flightData.price.total) : 289,
-      currency: flightData?.price.currency || 'USD',
-      features: ['Carry-on + 1 bag', 'Standard seat', 'Changes allowed (+fee)', 'Priority boarding'],
-      recommended: true,
-      popularityPercent: 74,
-    },
-    {
-      id: 'flex',
-      name: 'FLEX',
-      price: flightData ? parseFloat(flightData.price.total) * 1.35 : 389,
-      currency: flightData?.price.currency || 'USD',
-      features: ['Carry-on + 2 bags', 'Seat choice', 'Refundable (-25%)', 'Free changes', 'Priority boarding'],
-      popularityPercent: 18,
-    },
-    {
-      id: 'business',
-      name: 'BUSINESS',
-      price: flightData ? parseFloat(flightData.price.total) * 2.5 : 589,
-      currency: flightData?.price.currency || 'USD',
-      features: ['Premium cabin', '2 bags + carry-on', 'Lounge access', 'Fully refundable', 'Extra legroom'],
-      popularityPercent: 4,
-    },
-  ];
 
   // ===========================
   // RENDER
