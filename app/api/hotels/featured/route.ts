@@ -19,14 +19,14 @@ export async function GET() {
   try {
     const cacheKey = generateCacheKey('hotels:featured', {});
 
-    // Try to get from cache (1 hour TTL)
+    // Try to get from cache (24 hour TTL) - refresh daily
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       console.log('✅ Returning cached featured hotels');
       return NextResponse.json(cached, {
         headers: {
           'X-Cache-Status': 'HIT',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'public, max-age=86400', // 24 hours
         }
       });
     }
@@ -119,15 +119,15 @@ export async function GET() {
       },
     };
 
-    // Store in cache (1 hour TTL)
-    await setCache(cacheKey, response, 3600);
+    // Store in cache (24 hour TTL) - refresh daily with real API prices
+    await setCache(cacheKey, response, 86400);
 
     console.log(`✅ Fetched ${validHotels.length} featured hotels`);
 
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=86400', // 24 hours
       }
     });
   } catch (error: any) {

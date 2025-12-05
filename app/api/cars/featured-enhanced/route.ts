@@ -458,8 +458,8 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Cache for 1 hour
-    await setCache(cacheKey, response, 3600);
+    // Cache for 24 hours (86400 seconds) - refresh daily with real API prices
+    await setCache(cacheKey, response, 86400);
 
     return NextResponse.json(response);
   } catch (error) {

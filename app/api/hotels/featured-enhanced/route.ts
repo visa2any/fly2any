@@ -98,14 +98,14 @@ export async function GET(request: NextRequest) {
       version: 'v4-improved-images', // Cache bust - improved image extraction
     });
 
-    // Try cache (1 hour TTL)
+    // Try cache (24 hour TTL - refresh once daily)
     const cached = await getCached<any>(cacheKey);
     if (cached) {
       console.log(`✅ Returning cached featured hotels for ${continentFilter}`);
       return NextResponse.json(cached, {
         headers: {
           'X-Cache-Status': 'HIT',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'public, max-age=86400', // 24 hours
         }
       });
     }
@@ -300,15 +300,15 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Cache for 1 hour
-    await setCache(cacheKey, response, 3600);
+    // Cache for 24 hours (86400 seconds) - refresh daily with real API prices
+    await setCache(cacheKey, response, 86400);
 
     console.log(`✅ Fetched ${validHotels.length} featured hotels for ${continentFilter}`);
 
     return NextResponse.json(response, {
       headers: {
         'X-Cache-Status': 'MISS',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'public, max-age=86400', // 24 hours
       }
     });
   } catch (error: any) {
