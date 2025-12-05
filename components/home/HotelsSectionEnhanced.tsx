@@ -157,27 +157,28 @@ const HotelCard = memo(({
   >
     {/* Hotel Photo - COMPACT with Error Handling */}
     <div className="relative h-36 overflow-hidden bg-gradient-to-br from-primary-100 via-secondary-100 to-accent-100">
-      {hotel.mainImage ? (
+      {/* Fallback Icon - Always present behind image */}
+      <div className="absolute inset-0 flex items-center justify-center z-0">
+        <span className="text-6xl">🏨</span>
+      </div>
+      {hotel.mainImage && (
         <>
           <img
             src={hotel.mainImage}
             alt={hotel.name}
-            className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+            className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110 z-10"
             crossOrigin="anonymous"
             loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
+              // Also hide the gradient overlay
+              const overlay = target.nextElementSibling as HTMLElement;
+              if (overlay) overlay.style.display = 'none';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
         </>
-      ) : null}
-      {/* Fallback Icon - Always present, hidden if image loads */}
-      {(!hotel.mainImage) && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-6xl">🏨</span>
-        </div>
       )}
 
       {/* Value Score Badge - Top Right */}

@@ -450,7 +450,7 @@ export class EmailService {
         </p>
         <p>&copy; ${new Date().getFullYear()} Fly2Any Travel. All rights reserved.</p>
         <p style="margin-top: 8px; font-size: 11px; color: #9ca3af;">
-          Based in Miami, FL | 24/7 Support: +1 (305) 797-1087
+          24/7 Support: 1-332-220-0838
         </p>
       </div>
     `;
