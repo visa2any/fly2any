@@ -3,6 +3,7 @@ import { duffelAPI } from '@/lib/api/duffel';
 import { withTimeBucketedCache } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 import { AIRLINES } from '@/lib/data/airlines';
+import { getNextLowSeasonDate, getLowSeasonReturnDate, formatDateISO } from '@/lib/utils/low-season';
 
 // Changed from 'edge' to 'nodejs' - Duffel SDK requires Node.js runtime
 export const runtime = 'nodejs';
@@ -159,16 +160,16 @@ async function fetchRouteDeals(
   routeIndex: number
 ): Promise<FlashDeal | null> {
   try {
-    // Calculate departure date (10+ days from now, varying by route)
-    const daysFromNow = 10 + (routeIndex * 2);
-    const departureDate = new Date();
-    departureDate.setDate(departureDate.getDate() + daysFromNow);
-    const departureDateStr = departureDate.toISOString().split('T')[0];
+    // Calculate LOW SEASON departure date for lowest prices
+    // Uses destination-specific low season periods (hurricane season for Caribbean,
+    // post-holiday for Europe, monsoon for Asia, etc.)
+    const minDaysFromNow = 7 + (routeIndex * 2); // Stagger searches
+    const departureDate = getNextLowSeasonDate(route.to, minDaysFromNow, routeIndex % 3);
+    const departureDateStr = formatDateISO(departureDate);
 
     // Calculate return date (7 days later for week-long trip)
-    const returnDate = new Date(departureDate);
-    returnDate.setDate(returnDate.getDate() + 7);
-    const returnDateStr = returnDate.toISOString().split('T')[0];
+    const returnDate = getLowSeasonReturnDate(departureDate, 7);
+    const returnDateStr = formatDateISO(returnDate);
 
     // ✅ PERFORMANCE FIX: Add 8-second timeout to prevent hanging
     const timeoutPromise = new Promise<null>((_, reject) =>
@@ -277,8 +278,6 @@ async function fetchRouteDeals(
 
 // Generate fallback demo deals when API returns empty
 function generateFallbackDeals(): FlashDeal[] {
-  const now = new Date();
-
   const fallbackRoutes = [
     { from: 'JFK', to: 'LHR', price: 489, typical: 750, carrier: 'BA', carrierName: 'British Airways' },
     { from: 'LAX', to: 'NRT', price: 699, typical: 1100, carrier: 'JL', carrierName: 'Japan Airlines' },
@@ -292,15 +291,15 @@ function generateFallbackDeals(): FlashDeal[] {
     const savings = route.typical - route.price;
     const savingsPercent = Math.round((savings / route.typical) * 100);
 
-    // Departure 10-20 days from now
-    const departureDate = new Date(now);
-    departureDate.setDate(departureDate.getDate() + 10 + (index * 2));
+    // Use LOW SEASON dates for fallback deals too
+    const minDaysFromNow = 10 + (index * 2);
+    const departureDate = getNextLowSeasonDate(route.to, minDaysFromNow, index % 3);
 
     // Return 7 days after departure
-    const returnDate = new Date(departureDate);
-    returnDate.setDate(returnDate.getDate() + 7);
+    const returnDate = getLowSeasonReturnDate(departureDate, 7);
 
     // Expires in 2-8 hours
+    const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setHours(expiresAt.getHours() + 2 + index);
 

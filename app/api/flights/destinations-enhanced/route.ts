@@ -3,6 +3,7 @@ import { duffelAPI } from '@/lib/api/duffel';
 import { withQueryCache } from '@/lib/cache';
 import { calculateValueScore } from '@/lib/ml/value-scorer';
 import { AIRLINES } from '@/lib/data/airlines';
+import { getNextLowSeasonDate, getLowSeasonReturnDate, formatDateISO } from '@/lib/utils/low-season';
 
 // Changed from 'edge' to 'nodejs' - Duffel SDK requires Node.js runtime
 export const runtime = 'nodejs';
@@ -247,15 +248,8 @@ async function destinationsHandler(request: NextRequest) {
     const continent = searchParams.get('continent') || 'all';
     const limit = parseInt(searchParams.get('limit') || '8', 10);
 
-    // Calculate dates (14 days from now for departure, 21 days from now for return = 7-day trip)
-    const now = new Date();
-    const departureDate = new Date(now);
-    departureDate.setDate(departureDate.getDate() + 14);
-    const returnDate = new Date(now);
-    returnDate.setDate(returnDate.getDate() + 21);
-
-    const departureDateStr = departureDate.toISOString().split('T')[0];
-    const returnDateStr = returnDate.toISOString().split('T')[0];
+    // Note: Low season dates are calculated per-destination in the search loop
+    // This ensures each route gets its optimal low season period
 
     // Determine which routes to search based on continent filter
     let routesToSearch: Array<{ from: string; to: string }> = [];
@@ -278,8 +272,18 @@ async function destinationsHandler(request: NextRequest) {
     console.log(`Searching ${routesToSearch.length} routes for continent: ${continent}`);
 
     // Search each route with Duffel API in parallel (with timeout)
-    const searchPromises = routesToSearch.map(async (route) => {
+    // Each route gets its own LOW SEASON dates for lowest prices
+    const searchPromises = routesToSearch.map(async (route, routeIndex) => {
       try {
+        // Calculate LOW SEASON dates for this specific destination
+        // Uses destination-specific low season periods (hurricane season for Caribbean,
+        // post-holiday for Europe, monsoon for Asia, etc.)
+        const minDaysFromNow = 7 + (routeIndex % 7); // Stagger by 0-6 days
+        const departureDate = getNextLowSeasonDate(route.to, minDaysFromNow, routeIndex % 3);
+        const returnDate = getLowSeasonReturnDate(departureDate, 7);
+        const departureDateStr = formatDateISO(departureDate);
+        const returnDateStr = formatDateISO(returnDate);
+
         // ✅ PERFORMANCE FIX: Add 8-second timeout to prevent hanging
         const timeoutPromise = new Promise<null>((_, reject) =>
           setTimeout(() => reject(new Error('Timeout')), 8000)
@@ -322,12 +326,16 @@ async function destinationsHandler(request: NextRequest) {
                 ],
               },
             ],
+            // Store dates for later use
+            lowSeasonDates: { departure: departureDateStr, return: returnDateStr },
           };
 
           return {
             route,
             offer: syntheticOffer,
             isDemo: true,
+            departureDateStr,
+            returnDateStr,
           };
         }
 
@@ -338,6 +346,8 @@ async function destinationsHandler(request: NextRequest) {
           route,
           offer: cheapestOffer,
           isDemo: false,
+          departureDateStr,
+          returnDateStr,
         };
       } catch (error) {
         // ✅ PERFORMANCE FIX: Silent timeout handling for cleaner logs
@@ -345,12 +355,19 @@ async function destinationsHandler(request: NextRequest) {
           console.error(`❌ Error searching ${route.from} -> ${route.to}:`, error);
         }
 
+        // Calculate LOW SEASON dates for fallback (same logic as above)
+        const fallbackMinDays = 7 + (routeIndex % 7);
+        const fallbackDeparture = getNextLowSeasonDate(route.to, fallbackMinDays, routeIndex % 3);
+        const fallbackReturn = getLowSeasonReturnDate(fallbackDeparture, 7);
+        const fallbackDepartureDateStr = formatDateISO(fallbackDeparture);
+        const fallbackReturnDateStr = formatDateISO(fallbackReturn);
+
         // FALLBACK: Generate synthetic demo data even on error
         const routeSeed = `${route.from}-${route.to}`;
         const basePrice = 200 + (seededRandom(routeSeed, 10) * 600); // $200-$800
 
         const syntheticOffer = {
-          id: `demo-${routeSeed}-${departureDateStr}`,
+          id: `demo-${routeSeed}-${fallbackDepartureDateStr}`,
           price: {
             total: basePrice.toFixed(2),
             currency: 'USD',
@@ -371,6 +388,8 @@ async function destinationsHandler(request: NextRequest) {
           route,
           offer: syntheticOffer,
           isDemo: true,
+          departureDateStr: fallbackDepartureDateStr,
+          returnDateStr: fallbackReturnDateStr,
         };
       }
     });
@@ -388,13 +407,12 @@ async function destinationsHandler(request: NextRequest) {
 
     // Process and enhance destinations
     const enhancedDestinations: EnhancedDestination[] = validResults.map((result) => {
-      const { route, offer } = result;
+      const { route, offer, departureDateStr, returnDateStr } = result;
       const destinationCode = route.to;
       const originCode = route.from;
 
       // Extract price from Duffel offer format
       const price = parseFloat(offer.price.total);
-      const currency = offer.price.currency;
 
       // Get location info
       const locationInfo = LOCATION_INFO[destinationCode] || {
@@ -461,8 +479,8 @@ async function destinationsHandler(request: NextRequest) {
         limit,
         continent,
         routesQueried: routesToSearch.length,
-        departureDate: departureDateStr,
-        returnDate: returnDateStr,
+        // Each destination has its own low season dates - no global date needed
+        lowSeasonPricing: true,
         duration: '7 days',
         source: 'Duffel',
         cached: false,
@@ -484,8 +502,7 @@ async function destinationsHandler(request: NextRequest) {
           limit: 6,
           continent: 'all',
           routesQueried: 0,
-          departureDate: new Date().toISOString().split('T')[0],
-          returnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          lowSeasonPricing: true,
           duration: '7 days',
           source: 'Error',
           cached: false,

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
 import { CountdownTimer } from '@/components/shared/CountdownTimer';
-import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Clock, TrendingUp, Users, Flame, Eye, ShoppingCart, Loader2, AlertCircle, Sparkles, Calendar } from 'lucide-react';
 import { getAirportCity } from '@/lib/data/airports';
 import { getAirlineData } from '@/lib/flights/airline-data';
 import { saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
@@ -288,10 +288,16 @@ export function FlashDealsSectionEnhanced({ lang = 'en' }: FlashDealsSectionEnha
                         <ValueScoreBadge score={deal.valueScore} size="sm" showLabel={false} />
                       </div>
 
-                      {/* Row 2: Airline */}
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <span className="text-base">{airline.logo}</span>
-                        <span className="text-sm font-medium text-gray-700">{airline.name}</span>
+                      {/* Row 2: Airline + Date */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">{airline.logo}</span>
+                          <span className="text-sm font-medium text-gray-700">{airline.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <Calendar className="w-3 h-3" />
+                          <span>{new Date(deal.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        </div>
                       </div>
 
                       {/* Row 3: Price + Savings Percentage */}

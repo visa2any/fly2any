@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ValueScoreBadge } from '@/components/shared/ValueScoreBadge';
-import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart, MapPin } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Flame, Sparkles, Eye, ShoppingCart, AlertCircle, Loader2, ArrowRight, Plane, Heart, MapPin, Calendar } from 'lucide-react';
 import { AIRLINE_DATABASE } from '@/lib/flights/airline-data';
 import { useFavorites, saveToRecentlyViewed } from '@/lib/hooks/useFavorites';
 import { useClientCache } from '@/lib/hooks/useClientCache';
@@ -208,8 +208,8 @@ const DestinationCard = memo(({
       {/* TripMATCH Gradient - Exact Match */}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
 
-      {/* TOP LEFT - Airline Badge (TripMATCH style) */}
-      <div className="absolute top-3 left-3">
+      {/* TOP LEFT - Airline Badge + Date Badge (TripMATCH style) */}
+      <div className="absolute top-3 left-3 flex flex-col gap-1.5">
         {(() => {
           const airline = getAirlineInfo(destination.carrier);
           return (
@@ -219,6 +219,11 @@ const DestinationCard = memo(({
             </div>
           );
         })()}
+        {/* Date Badge - Low Season Date */}
+        <div className="bg-emerald-500/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
+          <Calendar className="w-3 h-3" />
+          <span>{new Date(destination.departureDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+        </div>
       </div>
 
       {/* TOP RIGHT - Value Score + Favorite (TripMATCH style) */}
@@ -249,9 +254,9 @@ const DestinationCard = memo(({
         </button>
       </div>
 
-      {/* CENTER - Urgency Badge (if critical) */}
+      {/* CENTER - Urgency Badge (if critical) - positioned below date badge */}
       {destination.seatsAvailable <= 8 && (
-        <div className="absolute top-14 left-3">
+        <div className="absolute top-20 left-3">
           <div className="bg-orange-500 px-2 py-1 rounded-lg flex items-center gap-1 text-white text-xs font-bold">
             <Flame className="w-3 h-3" />
             <span>{destination.seatsAvailable} seats left</span>
