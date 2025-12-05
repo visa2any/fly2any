@@ -96,6 +96,67 @@
 }
 
 @layer utilities {
+  /* ===== CORE WEB VITALS - CLS PREVENTION ===== */
+  /* Reserve space for images to prevent layout shift */
+  .aspect-card {
+    aspect-ratio: 16 / 9;
+  }
+
+  .aspect-hero {
+    aspect-ratio: 21 / 9;
+  }
+
+  .aspect-thumbnail {
+    aspect-ratio: 4 / 3;
+  }
+
+  .aspect-avatar {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Content visibility for below-fold performance */
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+  }
+
+  /* Skeleton loading placeholder - prevents CLS */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Fixed height containers for common elements */
+  .h-card-fixed {
+    min-height: 280px;
+  }
+
+  .h-hero-fixed {
+    min-height: 400px;
+  }
+
+  /* Font display optimization */
+  .font-display-swap {
+    font-display: swap;
+  }
+
+  /* GPU acceleration for smooth animations (use sparingly) */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

@@ -21,13 +21,14 @@ const nextConfig = {
     ];
   },
 
-  // Production Security Headers
+  // Production Security & Performance Headers
   async headers() {
     return [
       {
         // Apply to all routes
         source: '/:path*',
         headers: [
+          // ===== SECURITY HEADERS =====
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on',
@@ -58,6 +59,46 @@ const nextConfig = {
           },
         ],
       },
+      // ===== STATIC ASSETS - AGGRESSIVE CACHING =====
+      {
+        source: '/(.*)\\.(ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2|ttf|eot)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // ===== JAVASCRIPT & CSS - LONG CACHE =====
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // ===== API ROUTES - NO CACHE FOR FRESH DATA =====
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, must-revalidate',
+          },
+        ],
+      },
+      // ===== HTML PAGES - SHORT CACHE WITH REVALIDATION =====
+      {
+        source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      },
     ];
   },
 
@@ -79,10 +120,19 @@ const nextConfig = {
   // Enable SWC minification (faster than Terser)
   swcMinify: true,
 
-  // Experimental optimizations
+  // Experimental optimizations for Core Web Vitals
   experimental: {
-    optimizePackageImports: ['lucide-react', '@/components'], // Tree-shake icons and components
+    optimizePackageImports: [
+      'lucide-react',      // Tree-shake icons (reduces bundle by ~50KB)
+      '@/components',      // Component tree-shaking
+      'date-fns',          // Date utility tree-shaking
+      'lodash',            // Utility tree-shaking
+    ],
+    optimizeCss: true,     // CSS optimization for reduced CLS
   },
+
+  // Enable Partial Pre-Rendering for faster initial load (when available)
+  // ppr: 'incremental',
 
   // Webpack configuration (Phase 8 - Quick Win 1D + Performance Optimization)
   webpack: (config, { dev, isServer }) => {

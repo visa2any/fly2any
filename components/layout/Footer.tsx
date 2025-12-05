@@ -405,7 +405,7 @@ export function Footer({
             </ul>
           </div>
 
-          {/* Destinations Column */}
+          {/* Popular Destinations Column */}
           <div>
             <h4 className="font-semibold text-sm mb-3 text-gray-300">
               {t('destinations')}
@@ -419,6 +419,39 @@ export function Footer({
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Popular Routes Column - SEO Internal Links */}
+          <div className="col-span-2 md:col-span-3 lg:col-span-5 mt-4 pt-4 border-t border-gray-700/50">
+            <h4 className="font-semibold text-sm mb-3 text-gray-300">
+              Popular Flight Routes
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              <a href="/flights/new-york-to-los-angeles" className="text-xs text-gray-500 hover:text-white transition-colors">NYC → LAX</a>
+              <a href="/flights/new-york-to-miami" className="text-xs text-gray-500 hover:text-white transition-colors">NYC → MIA</a>
+              <a href="/flights/los-angeles-to-new-york" className="text-xs text-gray-500 hover:text-white transition-colors">LAX → NYC</a>
+              <a href="/flights/chicago-to-new-york" className="text-xs text-gray-500 hover:text-white transition-colors">ORD → NYC</a>
+              <a href="/flights/new-york-to-london" className="text-xs text-gray-500 hover:text-white transition-colors">NYC → LHR</a>
+              <a href="/flights/los-angeles-to-tokyo" className="text-xs text-gray-500 hover:text-white transition-colors">LAX → NRT</a>
+              <a href="/flights/miami-to-cancun" className="text-xs text-gray-500 hover:text-white transition-colors">MIA → CUN</a>
+              <a href="/flights/new-york-to-paris" className="text-xs text-gray-500 hover:text-white transition-colors">NYC → CDG</a>
+              <a href="/flights/san-francisco-to-new-york" className="text-xs text-gray-500 hover:text-white transition-colors">SFO → NYC</a>
+              <a href="/flights/dallas-to-los-angeles" className="text-xs text-gray-500 hover:text-white transition-colors">DFW → LAX</a>
+              <a href="/flights/atlanta-to-new-york" className="text-xs text-gray-500 hover:text-white transition-colors">ATL → NYC</a>
+              <a href="/flights/boston-to-miami" className="text-xs text-gray-500 hover:text-white transition-colors">BOS → MIA</a>
+            </div>
+            {/* World Cup 2026 Section */}
+            <div className="mt-4 pt-3 border-t border-gray-700/30">
+              <h5 className="font-medium text-xs mb-2 text-yellow-500/80">FIFA World Cup 2026</h5>
+              <div className="flex flex-wrap gap-2">
+                <a href="/world-cup-2026" className="text-xs text-gray-500 hover:text-white transition-colors">World Cup Hub</a>
+                <a href="/world-cup-2026/stadiums" className="text-xs text-gray-500 hover:text-white transition-colors">Host Stadiums</a>
+                <a href="/world-cup-2026/teams" className="text-xs text-gray-500 hover:text-white transition-colors">Qualified Teams</a>
+                <a href="/flights?destination=MEX" className="text-xs text-gray-500 hover:text-white transition-colors">Flights to Mexico</a>
+                <a href="/flights?destination=USA" className="text-xs text-gray-500 hover:text-white transition-colors">Flights to USA</a>
+                <a href="/flights?destination=CAN" className="text-xs text-gray-500 hover:text-white transition-colors">Flights to Canada</a>
+              </div>
+            </div>
           </div>
 
           {/* Legal Column */}
