@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'password_reset':
-        success = await EmailService.sendPasswordResetEmail(testEmail, {
+        success = await EmailService.sendPasswordReset(testEmail, {
           userName: 'Test User',
           resetUrl: 'https://www.fly2any.com/auth/reset-password?token=test-token',
           expiresIn: '1 hour',
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'credits':
-        success = await EmailService.sendCreditsEarnedEmail(testEmail, {
+        success = await EmailService.sendCreditsEarned(testEmail, {
           userName: 'Test User',
           creditsEarned: 250,
           usdValue: 25.00,
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'trip_booking':
-        success = await EmailService.sendTripBookingEmail(testEmail, {
+        success = await EmailService.sendTripBookingConfirmation(testEmail, {
           userName: 'Test User',
           tripTitle: 'Romantic Paris Getaway',
           tripDestination: 'Paris, France',
