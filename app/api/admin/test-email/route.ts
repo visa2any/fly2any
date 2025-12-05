@@ -21,21 +21,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const user = await prisma?.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true, email: true },
+    // Check if user is admin via AdminUser table
+    const adminUser = await prisma?.adminUser.findUnique({
+      where: { userId: session.user.id },
+      include: { user: { select: { email: true } } },
     });
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!adminUser) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
+
+    const userEmail = adminUser.user.email;
 
     const body = await request.json();
     const { type, email: targetEmail } = body;
 
     // Use provided email or admin's email
-    const testEmail = targetEmail || user.email;
+    const testEmail = targetEmail || userEmail;
 
     if (!testEmail) {
       return NextResponse.json({ error: 'Email address required' }, { status: 400 });
