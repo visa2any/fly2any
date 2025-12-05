@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'price_alert':
-        success = await EmailService.sendPriceAlertEmail(testEmail, {
+        success = await EmailService.sendPriceAlert(testEmail, {
           userName: 'Test User',
           origin: 'New York (JFK)',
           destination: 'Paris (CDG)',
