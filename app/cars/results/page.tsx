@@ -585,7 +585,7 @@ function CarResultsContent() {
               </p>
             </div>
             <button
-              onClick={() => router.push('/home-new')}
+              onClick={() => router.push('/')}
               className={`text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all px-4 rounded-lg hover:bg-blue-50/80 flex-shrink-0 ${
                 shouldMinimize ? 'py-1.5 md:py-2' : 'py-2'
               }`}

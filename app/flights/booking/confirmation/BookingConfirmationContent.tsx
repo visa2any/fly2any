@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import CancelOrderDialog from '@/components/booking/CancelOrderDialog';
 import ModifyOrderDialog from '@/components/booking/ModifyOrderDialog';
+import { PostPaymentVerification } from '@/components/booking/PostPaymentVerification';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -396,6 +397,8 @@ export default function BookingConfirmationContent() {
   const [loading, setLoading] = useState(true);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showModifyDialog, setShowModifyDialog] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = content[lang];
@@ -436,6 +439,35 @@ export default function BookingConfirmationContent() {
 
     fetchBooking();
   }, [searchParams]);
+
+  // Fetch verification status
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      if (!bookingData?.bookingReference) return;
+
+      try {
+        const response = await fetch(`/api/booking-flow/verify-documents?ref=${bookingData.bookingReference}`);
+        if (response.ok) {
+          const data = await response.json();
+          setVerificationStatus(data.status);
+
+          // Auto-open verification modal if documents not yet uploaded
+          // and booking is recent (within last hour) and not yet verified
+          if (data.status === 'NOT_STARTED' || (data.status === 'PENDING' && !data.documentsUploaded)) {
+            const bookingAge = Date.now() - new Date(bookingData.createdAt).getTime();
+            const isRecent = bookingAge < 60 * 60 * 1000; // 1 hour
+            if (isRecent) {
+              setShowVerificationModal(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      }
+    };
+
+    checkVerificationStatus();
+  }, [bookingData]);
 
   useEffect(() => {
     // Stop confetti after 5 seconds
@@ -634,6 +666,31 @@ export default function BookingConfirmationContent() {
         />
       )}
 
+      {/* Post-Payment Verification Modal */}
+      {bookingData && (
+        <PostPaymentVerification
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          booking={{
+            bookingReference: bookingData.bookingReference,
+            amount: bookingData.totalPrice || bookingData.payment?.total || 0,
+            currency: bookingData.payment?.currency || 'USD',
+            route: `${bookingData.outboundFlight?.from?.code || ''} → ${bookingData.outboundFlight?.to?.code || ''}`,
+            passengerName: bookingData.passengers?.[0]
+              ? `${bookingData.passengers[0].firstName} ${bookingData.passengers[0].lastName}`
+              : 'Guest',
+          }}
+          uploadToken={`${bookingData.bookingReference}-${Date.now().toString(36)}`}
+          onComplete={() => {
+            setVerificationStatus('PENDING');
+            setShowVerificationModal(false);
+          }}
+          onSkip={() => {
+            setShowVerificationModal(false);
+          }}
+        />
+      )}
+
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden print:hidden">
@@ -810,6 +867,87 @@ export default function BookingConfirmationContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   Check your email for updates
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Verification Status Banner */}
+        {bookingData && verificationStatus && verificationStatus !== 'VERIFIED' && (
+          <div className="max-w-2xl mx-auto mb-8 print:hidden">
+            <div className={`rounded-2xl p-6 shadow-lg border-2 ${
+              verificationStatus === 'PENDING'
+                ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300'
+                : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300'
+            }`}>
+              <div className="flex items-start gap-4">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                  verificationStatus === 'PENDING'
+                    ? 'bg-blue-100'
+                    : 'bg-purple-100'
+                }`}>
+                  {verificationStatus === 'PENDING' ? (
+                    <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  {verificationStatus === 'PENDING' ? (
+                    <>
+                      <h3 className="text-lg font-bold text-blue-800 mb-1">
+                        Documents Submitted - Under Review
+                      </h3>
+                      <p className="text-blue-700 text-sm">
+                        Thank you! Your verification documents have been submitted and are being reviewed.
+                        You'll receive confirmation via email shortly.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-bold text-purple-800 mb-1">
+                        Quick Verification Required
+                      </h3>
+                      <p className="text-purple-700 text-sm mb-4">
+                        Complete a quick ID verification to secure your booking.
+                        It only takes 2 minutes!
+                      </p>
+                      <button
+                        onClick={() => setShowVerificationModal(true)}
+                        className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-purple-200"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Complete Verification
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Verified Customer Badge */}
+        {verificationStatus === 'VERIFIED' && (
+          <div className="max-w-2xl mx-auto mb-8 print:hidden">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <span className="text-green-800 font-bold text-lg">Verified Customer</span>
+                  <span className="text-green-600 text-sm ml-2">Your identity has been confirmed</span>
                 </div>
               </div>
             </div>

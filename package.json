@@ -63,6 +63,7 @@
     "@types/react-window": "^1.8.8",
     "@types/uuid": "^10.0.0",
     "@upstash/redis": "^1.35.4",
+    "@vercel/blob": "^2.0.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",

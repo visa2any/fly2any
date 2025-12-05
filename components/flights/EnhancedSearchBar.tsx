@@ -1095,89 +1095,86 @@ export default function EnhancedSearchBar({
             )}
           </button>
 
-          {/* Cars Tab - THIRD */}
+          {/* ============================================
+              COMING SOON TABS - With "Soon" badge
+              Cars, Tours, Packages, Insurance
+              ============================================ */}
+
+          {/* Cars Tab - COMING SOON */}
           <button
             type="button"
-            onClick={() => setServiceType('cars')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'cars'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
+            onClick={() => {
+              // Show coming soon toast/notification
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
+                toast.innerHTML = '🚗 Car Rentals coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
           >
-            <Car size={18} className={serviceType === 'cars' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <Car size={16} className="text-gray-400" />
             <span className="text-xs sm:text-sm">{t('cars')}</span>
-            {serviceType === 'cars' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
+            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
           </button>
 
-          {/* Tours Tab - FOURTH */}
+          {/* Tours Tab - COMING SOON */}
           <button
             type="button"
-            onClick={() => setServiceType('tours')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'tours'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
+                toast.innerHTML = '🗺️ Tours coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
           >
-            <Map size={18} className={serviceType === 'tours' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <Map size={16} className="text-gray-400" />
             <span className="text-xs sm:text-sm">{t('tours')}</span>
-            {serviceType === 'tours' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
+            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
           </button>
 
-          {/* Activities Tab - FIFTH */}
+          {/* Packages Tab - COMING SOON */}
           <button
             type="button"
-            onClick={() => setServiceType('activities')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'activities'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
+                toast.innerHTML = '📦 Travel Packages coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
           >
-            <Activity size={18} className={serviceType === 'activities' ? 'text-[#0087FF]' : 'text-gray-500'} />
-            <span className="text-xs sm:text-sm">{t('activities')}</span>
-            {serviceType === 'activities' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
-          </button>
-
-          {/* Packages Tab - SIXTH */}
-          <button
-            type="button"
-            onClick={() => setServiceType('packages')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'packages'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
-          >
-            <Package size={18} className={serviceType === 'packages' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <Package size={16} className="text-gray-400" />
             <span className="text-xs sm:text-sm">{t('packages')}</span>
-            {serviceType === 'packages' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
+            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
           </button>
 
-          {/* Insurance Tab - SEVENTH */}
+          {/* Insurance Tab - COMING SOON */}
           <button
             type="button"
-            onClick={() => setServiceType('insurance')}
-            className={`flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 relative ${
-              serviceType === 'insurance'
-                ? 'text-[#0087FF]'
-                : 'text-gray-600 hover:text-[#0087FF]'
-            }`}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
+                toast.innerHTML = '🛡️ Travel Insurance coming soon!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+              }
+            }}
+            className="flex items-center gap-1.5 pb-3 text-sm font-medium transition-all duration-200 relative text-gray-400 hover:text-gray-500 cursor-pointer"
           >
-            <Shield size={18} className={serviceType === 'insurance' ? 'text-[#0087FF]' : 'text-gray-500'} />
+            <Shield size={16} className="text-gray-400" />
             <span className="text-xs sm:text-sm">{t('insurance')}</span>
-            {serviceType === 'insurance' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0087FF] rounded-t-sm" />
-            )}
+            <span className="text-[8px] bg-orange-400 text-white px-1 py-px rounded font-medium ml-0.5 leading-tight">Soon</span>
           </button>
         </div>
 

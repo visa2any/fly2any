@@ -277,7 +277,54 @@ export function Header({
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
 
-            {/* Cars */}
+            {/* Deals - Promoted to main nav */}
+            <a
+              href="/deals"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+                  🔥
+                </span>
+                {t('deals')}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Destinations - Promoted to main nav */}
+            <a
+              href="/destinations"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+                  🏙️
+                </span>
+                {t('destinations')}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* Airlines - Promoted to main nav */}
+            <a
+              href="/airlines"
+              className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
+            >
+              <span className="flex items-center gap-1 xl:gap-1.5">
+                <span className="text-base xl:text-lg transition-transform group-hover:scale-110">
+                  ✈️
+                </span>
+                {t('airlines')}
+              </span>
+              <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
+            </a>
+
+            {/* ============================================
+                TEMPORARILY HIDDEN - Uncomment when ready to launch
+                Cars, Tours, Activities, Packages, Insurance nav links
+                ============================================ */}
+
+            {/* Cars - TEMPORARILY HIDDEN
             <a
               href="/cars"
               className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
@@ -290,8 +337,9 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+            */}
 
-            {/* Tours */}
+            {/* Tours - TEMPORARILY HIDDEN
             <a
               href="/tours"
               className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
@@ -304,8 +352,9 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+            */}
 
-            {/* Activities */}
+            {/* Activities - TEMPORARILY HIDDEN
             <a
               href="/activities"
               className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
@@ -318,8 +367,9 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+            */}
 
-            {/* Packages */}
+            {/* Packages - TEMPORARILY HIDDEN
             <a
               href="/packages"
               className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
@@ -332,8 +382,9 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+            */}
 
-            {/* Travel Insurance */}
+            {/* Travel Insurance - TEMPORARILY HIDDEN
             <a
               href="/travel-insurance"
               className="group relative px-2 xl:px-3 py-2 xl:py-2.5 text-gray-700 hover:text-primary-600 transition-all duration-300 font-semibold text-xs xl:text-sm rounded-lg hover:bg-primary-50/50"
@@ -347,6 +398,7 @@ export function Header({
               </span>
               <span className="absolute bottom-1 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
             </a>
+            */}
 
             {/* Discover Dropdown */}
             <div className="relative discover-dropdown">
@@ -391,28 +443,6 @@ export function Header({
                   >
                     <span className="text-xl">✍️</span>
                     <span className="font-semibold text-sm">{t('blog')}</span>
-                  </a>
-                  <a
-                    href="/destinations/new-york"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">🏙️</span>
-                    <span className="font-semibold text-sm">{t('destinations')}</span>
-                  </a>
-                  <a
-                    href="/airlines/delta-air-lines"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">✈️</span>
-                    <span className="font-semibold text-sm">{t('airlines')}</span>
-                  </a>
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <a
-                    href="/deals"
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-primary-50/50 text-gray-700 transition-all duration-200"
-                  >
-                    <span className="text-xl">🔥</span>
-                    <span className="font-semibold text-sm">{t('deals')}</span>
                   </a>
                   <a
                     href="/explore"

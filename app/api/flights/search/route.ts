@@ -876,12 +876,52 @@ export async function POST(request: NextRequest) {
               const displayName = cabin === 'FIRST' ? 'First Class' : `${cabinPrefix} ${fareType}`;
 
               // Extract restrictions for clear policies
+              // IMPORTANT: Duffel partial offers may not include conditions object
+              // When conditions are missing, derive policies from fare brand name
               const conditions = (v as any).conditions;
               const restrictions: string[] = [];
-              if (!conditions?.changeable) restrictions.push('No changes allowed');
-              if (!conditions?.refundable) restrictions.push('Non-refundable');
-              if (conditions?.changeable && conditions?.changePenalty) restrictions.push(`Change fee: ${conditions.changePenalty}`);
-              if (conditions?.refundable && conditions?.refundPenalty) restrictions.push(`Cancel fee: ${conditions.refundPenalty}`);
+              const positives: string[] = [];
+
+              // Check if we have actual conditions data from API
+              const hasConditionsData = conditions && (
+                typeof conditions.changeable === 'boolean' ||
+                typeof conditions.refundable === 'boolean'
+              );
+
+              if (hasConditionsData) {
+                // Use actual API data
+                if (!conditions.changeable) restrictions.push('No changes allowed');
+                if (!conditions.refundable) restrictions.push('Non-refundable');
+                if (conditions.changeable) {
+                  positives.push(conditions.changePenalty ? `Changes (${conditions.changePenalty} fee)` : 'Free changes');
+                }
+                if (conditions.refundable) {
+                  positives.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
+                }
+              } else {
+                // Derive from fare brand name - industry standard fare policies
+                const isBasicFare = fareType === 'Basic' || brandedFare.includes('LIGHT') || brandedFare.includes('SAVER');
+                const isFlexFare = fareType === 'Flex' || brandedFare.includes('FLEXI') || brandedFare.includes('FULL') || brandedFare.includes('MAX');
+                const isPlusFare = fareType === 'Plus' || brandedFare.includes('COMFORT') || brandedFare.includes('PREMIUM');
+
+                if (isFlexFare) {
+                  // Flex fares typically allow changes and refunds
+                  positives.push('Free changes');
+                  positives.push('Fully refundable');
+                } else if (isPlusFare) {
+                  // Plus/Comfort fares typically allow changes with fee
+                  positives.push('Changes allowed');
+                  restrictions.push('Non-refundable');
+                } else if (isBasicFare) {
+                  // Basic fares are most restrictive
+                  restrictions.push('No changes allowed');
+                  restrictions.push('Non-refundable');
+                } else {
+                  // Standard fares - middle ground
+                  positives.push('Changes (fee applies)');
+                  restrictions.push('Non-refundable');
+                }
+              }
 
               return {
                 id: v.id,
@@ -891,6 +931,7 @@ export async function POST(request: NextRequest) {
                 originalOffer: v, // Store full offer for booking
                 features: extractFareFeatures(v, fareDetails),
                 restrictions: restrictions.length > 0 ? restrictions : undefined,
+                positives: positives.length > 0 ? positives : undefined, // Positive policies (changes, refunds)
                 recommended: idx === 1 && variants.length > 1, // Second option usually best value
                 popularityPercent: idx === 0 ? 26 : idx === 1 ? 74 : 18,
                 cabinClass: cabin, // Store cabin class for reference
@@ -911,8 +952,26 @@ export async function POST(request: NextRequest) {
       };
 
       // Helper: Extract fare features from Duffel offer
+      // NOTE: Refund/change policies are now shown separately in the policies section
       const extractFareFeatures = (offer: FlightOffer, fareDetails: any): string[] => {
         const features: string[] = [];
+
+        // Cabin class - most important, show first
+        const cabin = fareDetails?.cabin || 'ECONOMY';
+        if (cabin === 'BUSINESS') {
+          features.push('Business class seat');
+          features.push('Priority boarding');
+          features.push('Lounge access');
+        } else if (cabin === 'FIRST') {
+          features.push('First class suite');
+          features.push('Priority boarding');
+          features.push('Premium lounge');
+        } else if (cabin === 'PREMIUM_ECONOMY') {
+          features.push('Premium economy seat');
+          features.push('Extra legroom');
+        } else {
+          features.push('Economy seat');
+        }
 
         // Baggage
         const checkedBags = fareDetails?.includedCheckedBags?.quantity || 0;
@@ -924,32 +983,10 @@ export async function POST(request: NextRequest) {
           features.push(`Carry-on + ${checkedBags} checked bags`);
         }
 
-        // Conditions from Duffel
-        const conditions = (offer as any).conditions;
-        if (conditions?.refundable) {
-          features.push(conditions.refundPenalty ? `Refundable (${conditions.refundPenalty} fee)` : 'Fully refundable');
-        } else {
-          features.push('No refunds');
-        }
+        // NOTE: Refund/change info now shown in separate policies section
+        // to avoid duplication with positives/restrictions
 
-        if (conditions?.changeable) {
-          features.push(conditions.changePenalty ? `Changes allowed (${conditions.changePenalty} fee)` : 'Free changes');
-        } else {
-          features.push('No changes');
-        }
-
-        // Cabin class
-        const cabin = fareDetails?.cabin || 'ECONOMY';
-        if (cabin === 'BUSINESS') {
-          features.push('Business class seat');
-          features.push('Priority boarding');
-        } else if (cabin === 'FIRST') {
-          features.push('First class seat');
-        } else {
-          features.push('Economy seat');
-        }
-
-        return features.slice(0, 5); // Limit to 5 features
+        return features.slice(0, 4); // Limit to 4 features (policies shown separately)
       };
 
       // Apply fare grouping to Duffel flights

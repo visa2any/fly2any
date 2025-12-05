@@ -235,6 +235,34 @@ export function NavigationDrawer({
                 <span className="text-base">{translations.hotels}</span>
               </a>
               <a
+                href="/deals"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🔥</span>
+                <span className="text-base">{translations.deals}</span>
+              </a>
+              <a
+                href="/destinations"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">🏙️</span>
+                <span className="text-base">{translations.destinations}</span>
+              </a>
+              <a
+                href="/airlines"
+                onClick={onClose}
+                className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
+              >
+                <span className="text-2xl">✈️</span>
+                <span className="text-base">{translations.airlines}</span>
+              </a>
+              {/* ============================================
+                  TEMPORARILY HIDDEN - Uncomment when ready to launch
+                  Cars, Tours, Activities, Packages, Insurance mobile nav links
+                  ============================================ */}
+              {/* <a
                 href="/cars"
                 onClick={onClose}
                 className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-all duration-200 font-semibold"
@@ -273,7 +301,7 @@ export function NavigationDrawer({
               >
                 <span className="text-2xl">🛡️</span>
                 <span className="text-base">{translations.travelInsurance}</span>
-              </a>
+              </a> */}
               <a
                 href="/world-cup-2026"
                 onClick={onClose}

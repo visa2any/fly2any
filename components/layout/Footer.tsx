@@ -118,7 +118,7 @@ export function Footer({
   showSocial = true,
   showPayments = true,
   showNewsletter = true,
-  showTestimonials = true,
+  showTestimonials = false, // Temporarily hidden - set to true when reviews are ready
   showAppDownload = false,
   className = '',
 }: FooterProps) {
@@ -272,6 +272,25 @@ export function Footer({
                 </a>
               </li>
               <li>
+                <a href="/deals" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  {t('deals')}
+                </a>
+              </li>
+              <li>
+                <a href="/destinations" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  {t('destinations')}
+                </a>
+              </li>
+              <li>
+                <a href="/airlines" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  {t('airlines')}
+                </a>
+              </li>
+              {/* ============================================
+                  TEMPORARILY HIDDEN - Uncomment when ready to launch
+                  Cars, Packages, Tours, Activities, Insurance footer links
+                  ============================================ */}
+              {/* <li>
                 <a href="/cars" className="text-sm text-gray-400 hover:text-white transition-colors">
                   {t('cars')}
                 </a>
@@ -295,7 +314,7 @@ export function Footer({
                 <a href="/insurance" className="text-sm text-gray-400 hover:text-white transition-colors">
                   {t('travelInsurance')}
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 

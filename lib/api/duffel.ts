@@ -561,7 +561,8 @@ class DuffelAPI {
       }
     }
 
-    console.log(`🧳 Duffel baggage extraction: checked=${checkedBags}, cabin=${cabinBags}`);
+    // Debug only when needed (removed from production for performance)
+    // console.log(`🧳 Duffel baggage extraction: checked=${checkedBags}, cabin=${cabinBags}`);
 
     return {
       checked: {
@@ -839,69 +840,116 @@ class DuffelAPI {
    * Transforms Duffel's seat map structure to match Amadeus format
    */
   private convertDuffelSeatMap(duffelSeatMap: any) {
-    const cabins = (duffelSeatMap.cabins || []).map((cabin: any) => {
+    const cabins = (duffelSeatMap.cabins || []).map((cabin: any, cabinIndex: number) => {
       // Group seats by row
       const rowMap = new Map<number, any[]>();
 
-      (cabin.rows || []).forEach((row: any) => {
-        const rowNumber = row.row_number || 0;
+      console.log(`🪑 Processing cabin ${cabinIndex}: ${cabin.cabin_class || 'unknown'}, rows: ${cabin.rows?.length || 0}`);
 
-        (row.sections || []).forEach((section: any) => {
+      (cabin.rows || []).forEach((row: any, rowIndex: number) => {
+        // Extract row number - try row.row_number first, then from first seat designator
+        let rowNumber = row.row_number;
+
+        // If row_number is not set, try to get it from the first seat designator
+        if (rowNumber === undefined || rowNumber === null) {
+          const firstSeat = row.sections?.[0]?.elements?.find((el: any) => el.type === 'seat');
+          if (firstSeat?.designator) {
+            const match = firstSeat.designator.match(/^(\d+)/);
+            rowNumber = match ? parseInt(match[1], 10) : rowIndex + 1;
+          } else {
+            rowNumber = rowIndex + 1; // Fallback to index + 1
+          }
+        }
+
+        // Ensure rowNumber is a valid positive integer
+        rowNumber = typeof rowNumber === 'number' ? rowNumber : parseInt(rowNumber, 10);
+        if (isNaN(rowNumber) || rowNumber < 1) {
+          rowNumber = rowIndex + 1;
+        }
+
+        (row.sections || []).forEach((section: any, sectionIndex: number) => {
           (section.elements || []).forEach((element: any) => {
             if (element.type === 'seat') {
-              if (!rowMap.has(rowNumber)) {
-                rowMap.set(rowNumber, []);
+              // Extract row number from designator as backup validation
+              const designatorMatch = element.designator?.match(/^(\d+)([A-Z]+)$/);
+              const seatRowFromDesignator = designatorMatch ? parseInt(designatorMatch[1], 10) : rowNumber;
+              const finalRowNumber = seatRowFromDesignator || rowNumber;
+
+              if (!rowMap.has(finalRowNumber)) {
+                rowMap.set(finalRowNumber, []);
               }
+
+              // Check availability - seat is available if it has available_services with pricing
+              const hasAvailableServices = Array.isArray(element.available_services) && element.available_services.length > 0;
 
               // Convert Duffel seat to Amadeus-like format
               // Apply 25% markup to seat prices
               const seat = {
                 number: element.designator, // e.g., "12A"
-                column: element.designator?.match(/[A-Z]+/)?.[0] || '',
-                travelerPricing: element.available_services?.map((service: any) => {
-                  // Apply 25% markup to seat prices
-                  if (service.total_amount) {
-                    const netPrice = parseFloat(service.total_amount);
-                    const markup = applyMarkup(netPrice, 'seats');
-                    return {
-                      seatAvailabilityStatus: element.available_services.length > 0 ? 'AVAILABLE' : 'BLOCKED',
-                      price: {
-                        total: markup.customerPrice.toFixed(2), // Customer price with markup
-                        currency: service.total_currency,
-                        netPrice: markup.netPrice, // Internal tracking
-                        markupApplied: true,
-                        markupPercentage: markup.markupPercentage,
-                      },
-                    };
-                  }
-                  return {
-                    seatAvailabilityStatus: element.available_services.length > 0 ? 'AVAILABLE' : 'BLOCKED',
-                    price: null,
-                  };
-                }) || [{
-                  seatAvailabilityStatus: 'BLOCKED',
-                  price: null,
-                }],
+                column: element.designator?.match(/[A-Z]+$/)?.[0] || String.fromCharCode(65 + sectionIndex),
+                travelerPricing: hasAvailableServices
+                  ? element.available_services.map((service: any) => {
+                      // Apply 25% markup to seat prices
+                      if (service.total_amount) {
+                        const netPrice = parseFloat(service.total_amount);
+                        const markup = applyMarkup(netPrice, 'seats');
+                        return {
+                          seatAvailabilityStatus: 'AVAILABLE',
+                          price: {
+                            total: markup.customerPrice.toFixed(2),
+                            currency: service.total_currency || 'USD',
+                            netPrice: markup.netPrice,
+                            markupApplied: true,
+                            markupPercentage: markup.markupPercentage,
+                          },
+                        };
+                      }
+                      return {
+                        seatAvailabilityStatus: 'AVAILABLE',
+                        price: null,
+                      };
+                    })
+                  : [{
+                      seatAvailabilityStatus: 'BLOCKED',
+                      price: null,
+                    }],
                 characteristicsCodes: this.extractDuffelSeatCharacteristics(element),
                 coordinates: {
-                  x: element.designator?.match(/[A-Z]+/)?.[0] || '',
-                  y: rowNumber.toString(),
+                  x: element.designator?.match(/[A-Z]+$/)?.[0] || '',
+                  y: finalRowNumber.toString(),
+                },
+                // Additional metadata for debugging
+                _duffelData: {
+                  hasServices: hasAvailableServices,
+                  serviceCount: element.available_services?.length || 0,
                 },
               };
 
-              rowMap.get(rowNumber)!.push(seat);
+              rowMap.get(finalRowNumber)!.push(seat);
             }
           });
         });
       });
 
-      // Convert row map to array format
+      // Convert row map to array format - filter out invalid rows
       const seatRows = Array.from(rowMap.entries())
+        .filter(([rowNum]) => rowNum > 0) // Only valid row numbers
         .sort(([a], [b]) => a - b)
         .map(([rowNumber, seats]) => ({
           rowNumber: rowNumber.toString(),
-          seats: seats.sort((a, b) => a.column.localeCompare(b.column)),
+          seats: seats.sort((a, b) => {
+            // Sort by column letter
+            const colA = a.column || '';
+            const colB = b.column || '';
+            return colA.localeCompare(colB);
+          }),
+          hasExitRow: seats.some((s: any) =>
+            s.characteristicsCodes?.includes('E') ||
+            s.characteristicsCodes?.includes('L')
+          ),
         }));
+
+      console.log(`🪑 Cabin ${cabinIndex} processed: ${seatRows.length} rows, sample row seats: ${seatRows[0]?.seats?.length || 0}`);
 
       return {
         cabin: cabin.cabin_class || 'economy',

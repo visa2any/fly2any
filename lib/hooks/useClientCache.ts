@@ -204,23 +204,28 @@ export function useClientCache<T = any>(
   }, [autoRefresh, url, timeUntilExpiry, fetchData]);
 
   /**
-   * Update cache age every 10 seconds
+   * Update cache age every 30 seconds (reduced from 10s for performance)
+   * Only updates if component is visible to prevent background re-renders
    */
   useEffect(() => {
     if (!url) return;
 
     const interval = setInterval(() => {
+      // Skip updates if document is hidden (tab not active)
+      if (typeof document !== 'undefined' && document.hidden) return;
+
       const age = getCacheAge(url);
       const expiry = getTimeUntilExpiry(url);
 
-      setCacheAge(age);
-      setTimeUntilExpiry(expiry);
+      // Only update state if values actually changed (prevents unnecessary re-renders)
+      setCacheAge(prev => prev === age ? prev : age);
+      setTimeUntilExpiry(prev => prev === expiry ? prev : expiry);
 
       // Auto-refresh if enabled and expired
       if (autoRefresh && expiry !== null && expiry <= 0) {
         fetchData(true);
       }
-    }, 10000); // Update every 10 seconds
+    }, 30000); // Update every 30 seconds (reduced frequency)
 
     return () => clearInterval(interval);
   }, [url, autoRefresh, fetchData]);
@@ -243,15 +248,26 @@ export function useClientCache<T = any>(
 
 /**
  * Hook for cache statistics
+ * Only updates when tab is visible and values change
  */
 export function useCacheStats() {
   const [stats, setStats] = useState(getClientCacheStats());
 
   useEffect(() => {
-    // Update stats every 5 seconds
+    // Update stats every 30 seconds (reduced from 5s)
     const interval = setInterval(() => {
-      setStats(getClientCacheStats());
-    }, 5000);
+      // Skip if document is hidden
+      if (typeof document !== 'undefined' && document.hidden) return;
+
+      const newStats = getClientCacheStats();
+      // Only update if stats actually changed
+      setStats(prev => {
+        if (prev.hits === newStats.hits && prev.misses === newStats.misses) {
+          return prev;
+        }
+        return newStats;
+      });
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);

@@ -122,8 +122,8 @@ const DESTINATION_IMAGES: Record<string, string> = {
   // South America - Iconic city landmarks
   'GRU': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&h=600&fit=crop&crop=entropy&v=5', // São Paulo - Skyline at sunset
   'EZE': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800&h=600&fit=crop&crop=entropy&v=5', // Buenos Aires - Obelisco
-  'LIM': 'https://images.unsplash.com/photo-1531968455429-749562d22f32?w=800&h=600&fit=crop&crop=entropy&v=5', // Lima - Historic Center
-  'BOG': 'https://images.unsplash.com/photo-1568632234816-7c8db8372f27?w=800&h=600&fit=crop&crop=entropy&v=5', // Bogotá - Cityscape with mountains
+  'LIM': 'https://images.unsplash.com/photo-1531968455001-5705f6c778d3?w=800&h=600&fit=crop&crop=entropy&v=5', // Lima - Plaza de Armas historic center
+  'BOG': 'https://images.unsplash.com/photo-1536702456330-f8bcd58c0e2a?w=800&h=600&fit=crop&crop=entropy&v=5', // Bogotá - Monserrate view with city skyline
 
   // Europe - Famous landmarks centered and fully visible
   'LHR': 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=600&fit=crop&crop=entropy&v=5', // London - Big Ben

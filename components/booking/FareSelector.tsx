@@ -94,6 +94,7 @@ interface FareOption {
   currency: string;
   features: string[];
   restrictions?: string[];
+  positives?: string[]; // Positive policies like "Free changes", "Fully refundable"
   recommended?: boolean;
   popularityPercent?: number;
   originalOffer?: any; // For Duffel fare variants - contains the full offer for booking
@@ -274,42 +275,42 @@ export function FareSelector({
                 </div>
               </div>
 
-              {/* Features List - improved readability with dynamic icons */}
+              {/* Features List - show ALL features with dynamic icons */}
               <ul className="space-y-1 mb-1.5">
-                {fare.features.slice(0, 3).map((feature, idx) => (
+                {fare.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-700">
                     {getFeatureIcon(feature)}
-                    <span className="truncate">{feature}</span>
+                    <span className="leading-tight">{feature}</span>
                   </li>
                 ))}
-                {fare.features.length > 3 && (
-                  <li className="text-[10px] text-gray-400 pl-5">+{fare.features.length - 3} more</li>
-                )}
               </ul>
 
-              {/* Restrictions (if any) - clear policy display */}
-              {fare.restrictions && fare.restrictions.length > 0 && (
-                <div className="pt-1.5 mt-1.5 border-t border-gray-100">
-                  <div className="space-y-0.5">
-                    {fare.restrictions.slice(0, 2).map((restriction, idx) => (
-                      <div key={idx} className="flex items-center gap-1 text-[10px]">
-                        <X className="w-3 h-3 text-red-400 flex-shrink-0" />
-                        <span className="text-red-500 font-medium">{restriction}</span>
-                      </div>
-                    ))}
+              {/* Policies Section - show both positives (green) and restrictions (red) */}
+              <div className="pt-1.5 mt-1.5 border-t border-gray-100 space-y-0.5">
+                {/* Positive policies (green) */}
+                {fare.positives && fare.positives.map((positive, idx) => (
+                  <div key={`pos-${idx}`} className="flex items-center gap-1 text-[10px]">
+                    <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
+                    <span className="text-green-600 font-medium">{positive}</span>
                   </div>
-                </div>
-              )}
+                ))}
 
-              {/* Show positive flexibility for fares without restrictions */}
-              {(!fare.restrictions || fare.restrictions.length === 0) && (
-                <div className="pt-1.5 mt-1.5 border-t border-gray-100">
+                {/* Restrictions (red) */}
+                {fare.restrictions && fare.restrictions.map((restriction, idx) => (
+                  <div key={`neg-${idx}`} className="flex items-center gap-1 text-[10px]">
+                    <X className="w-3 h-3 text-red-400 flex-shrink-0" />
+                    <span className="text-red-500 font-medium">{restriction}</span>
+                  </div>
+                ))}
+
+                {/* Fallback when no policies */}
+                {(!fare.positives || fare.positives.length === 0) && (!fare.restrictions || fare.restrictions.length === 0) && (
                   <div className="flex items-center gap-1 text-[10px]">
                     <Check className="w-3 h-3 text-green-500 flex-shrink-0" />
                     <span className="text-green-600 font-medium">Flexible booking</span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </button>
           );
         })}

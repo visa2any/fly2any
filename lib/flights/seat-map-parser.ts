@@ -1,5 +1,5 @@
 /**
- * Parser for Amadeus Seat Map API responses
+ * Parser for Amadeus and Duffel Seat Map API responses
  * Converts seat map data into user-friendly format
  */
 
@@ -48,8 +48,46 @@ export interface ParsedSeatMap {
 }
 
 /**
+ * Determine seat type based on column letter and row layout
+ */
+function determineSeatType(column: string, characteristicsCodes: string[], totalSeatsInRow: number): {
+  type: 'window' | 'aisle' | 'middle';
+  hasWindow: boolean;
+  hasAisle: boolean;
+} {
+  // Check characteristic codes first
+  const hasWindowCode = characteristicsCodes.includes('W');
+  const hasAisleCode = characteristicsCodes.includes('A');
+
+  if (hasWindowCode) {
+    return { type: 'window', hasWindow: true, hasAisle: false };
+  }
+  if (hasAisleCode) {
+    return { type: 'aisle', hasWindow: false, hasAisle: true };
+  }
+
+  // Infer from column letter and layout
+  const colUpper = column.toUpperCase();
+
+  // Common window seats (first and last letter per section)
+  const windowLetters = ['A', 'F', 'K', 'L']; // A, F for 3-3; K, L for wide bodies
+  // Common aisle seats
+  const aisleLetters = ['C', 'D', 'G', 'H'];  // C, D for 3-3; G, H for wide bodies
+
+  if (windowLetters.includes(colUpper)) {
+    return { type: 'window', hasWindow: true, hasAisle: false };
+  }
+  if (aisleLetters.includes(colUpper)) {
+    return { type: 'aisle', hasWindow: false, hasAisle: true };
+  }
+
+  // Everything else is middle
+  return { type: 'middle', hasWindow: false, hasAisle: false };
+}
+
+/**
  * Parse Amadeus or Duffel seat map response
- * Supports both API formats (unified via conversion)
+ * Supports both API formats (Duffel is pre-converted to Amadeus-like format)
  */
 export function parseSeatMap(
   seatMapResponse: any,
@@ -58,6 +96,13 @@ export function parseSeatMap(
   const data = seatMapResponse?.data || [];
   const hasRealData = Array.isArray(data) && data.length > 0;
   const source = seatMapResponse?.meta?.source || 'amadeus';
+
+  console.log('🪑 Parsing seat map:', {
+    hasData: hasRealData,
+    dataLength: data.length,
+    source,
+    firstItemKeys: data[0] ? Object.keys(data[0]) : [],
+  });
 
   if (!hasRealData) {
     return {
@@ -80,41 +125,87 @@ export function parseSeatMap(
   const decksData = seatMapData?.decks || [];
   const aircraftCode = seatMapData?.aircraftCabinAmenities?.seat?.aircraftCabinCode || '';
 
+  console.log('🪑 Seat map structure:', {
+    decksCount: decksData.length,
+    aircraftCode,
+    firstDeckRows: decksData[0]?.seatRows?.length || 0,
+  });
+
   const decks: SeatMapDeck[] = [];
   const allSeats: Seat[] = [];
   let totalSeats = 0;
   let availableSeats = 0;
 
   // Parse each deck (main cabin, upper deck, etc.)
-  decksData.forEach((deck: any) => {
+  decksData.forEach((deck: any, deckIndex: number) => {
     const rows: SeatRow[] = [];
     const seatRowsData = deck?.seatRows || [];
 
-    seatRowsData.forEach((seatRow: any) => {
-      const rowNumber = parseInt(seatRow.rowNumber || '0', 10);
+    console.log(`🪑 Processing deck ${deckIndex}: ${seatRowsData.length} rows`);
+
+    seatRowsData.forEach((seatRow: any, rowIdx: number) => {
+      // Handle row number - can be string or number
+      let rowNumber = seatRow.rowNumber;
+      if (typeof rowNumber === 'string') {
+        rowNumber = parseInt(rowNumber, 10);
+      }
+      if (isNaN(rowNumber) || rowNumber < 1) {
+        rowNumber = rowIdx + 1;
+      }
+
       const seatsData = seatRow?.seats || [];
-      const hasExitRow = seatRow?.exitRow === true;
+      const hasExitRow = seatRow?.hasExitRow === true || seatRow?.exitRow === true;
+
+      if (seatsData.length === 0) {
+        console.log(`🪑 Row ${rowNumber}: No seats data`);
+        return;
+      }
 
       const seats: Seat[] = [];
 
-      seatsData.forEach((seatData: any, index: number) => {
-        const seatNumber = `${rowNumber}${seatData.column || String.fromCharCode(65 + index)}`;
-        const available = seatData.travelerPricing?.[0]?.seatAvailabilityStatus === 'AVAILABLE';
-        const priceStr = seatData.travelerPricing?.[0]?.price?.total;
-        const price = priceStr ? parseFloat(priceStr) : null;
-        const currency = seatData.travelerPricing?.[0]?.price?.currency || 'USD';
+      seatsData.forEach((seatData: any, seatIndex: number) => {
+        // Extract seat number - try multiple formats
+        const designator = seatData.number || seatData.designator || '';
+        const seatNumber = designator || `${rowNumber}${seatData.column || String.fromCharCode(65 + seatIndex)}`;
+
+        // Check availability - handle multiple formats
+        let available = false;
+        if (seatData.travelerPricing?.[0]) {
+          const status = seatData.travelerPricing[0].seatAvailabilityStatus;
+          available = status === 'AVAILABLE' || status === 'available';
+        } else if (seatData.available !== undefined) {
+          available = seatData.available === true;
+        } else if (seatData._duffelData?.hasServices) {
+          available = true;
+        }
+
+        // Extract price - handle multiple formats
+        let price: number | null = null;
+        let currency = 'USD';
+
+        if (seatData.travelerPricing?.[0]?.price) {
+          const priceData = seatData.travelerPricing[0].price;
+          const priceStr = priceData.total || priceData.amount;
+          price = priceStr ? parseFloat(priceStr) : null;
+          currency = priceData.currency || 'USD';
+        } else if (seatData.price) {
+          price = typeof seatData.price === 'number' ? seatData.price : parseFloat(seatData.price);
+        }
+
+        // Extract characteristics
         const characteristicsCodes: string[] = seatData.characteristicsCodes || [];
 
-        // Determine seat type
-        const column = seatData.column || String.fromCharCode(65 + index);
-        const hasWindow = characteristicsCodes.includes('W') || column === 'A' || column === 'F';
-        const hasAisle = characteristicsCodes.includes('A');
-        const hasExtraLegroom = characteristicsCodes.includes('L') || characteristicsCodes.includes('E');
-        const hasPower = characteristicsCodes.includes('Q');
+        // Determine seat column
+        const column = seatData.column ||
+          designator.match(/[A-Z]+$/)?.[0] ||
+          String.fromCharCode(65 + seatIndex);
 
-        let type: 'window' | 'aisle' | 'middle' = 'middle';
-        if (hasWindow) type = 'window';
-        else if (hasAisle) type = 'aisle';
+        // Determine seat type
+        const seatTypeInfo = determineSeatType(column, characteristicsCodes, seatsData.length);
+        const hasExtraLegroom = characteristicsCodes.includes('L') ||
+          characteristicsCodes.includes('E') ||
+          hasExitRow;
+        const hasPower = characteristicsCodes.includes('Q');
 
         const seat: Seat = {
           number: seatNumber,
@@ -122,9 +213,9 @@ export function parseSeatMap(
           price,
           currency,
           characteristicsCodes,
-          type,
-          hasWindow,
-          hasAisle,
+          type: seatTypeInfo.type,
+          hasWindow: seatTypeInfo.hasWindow,
+          hasAisle: seatTypeInfo.hasAisle,
           hasExtraLegroom,
           hasPower,
           row: rowNumber,
@@ -137,18 +228,31 @@ export function parseSeatMap(
         if (available) availableSeats++;
       });
 
-      rows.push({
-        rowNumber,
-        seats,
-        hasExitRow,
-      });
+      // Only add rows with seats
+      if (seats.length > 0) {
+        rows.push({
+          rowNumber,
+          seats,
+          hasExitRow,
+        });
+      }
     });
 
-    decks.push({
-      deckName: deck.deckConfiguration?.deckName || 'MAIN',
-      rows,
-      layout: deck.deckConfiguration?.width || '3-3',
-    });
+    // Only add decks with rows
+    if (rows.length > 0) {
+      decks.push({
+        deckName: deck.deckConfiguration?.deckName || 'MAIN',
+        rows: rows.sort((a, b) => a.rowNumber - b.rowNumber),
+        layout: deck.deckConfiguration?.width || calculateLayout(rows),
+      });
+    }
+  });
+
+  console.log('🪑 Parsing complete:', {
+    decksCount: decks.length,
+    totalSeats,
+    availableSeats,
+    rowsCount: decks[0]?.rows?.length || 0,
   });
 
   // Calculate price statistics
@@ -170,19 +274,26 @@ export function parseSeatMap(
   const windowSeats = seatsWithPrice.filter(s => s.hasWindow);
   const cheapestSeat = windowSeats.length > 0
     ? windowSeats.reduce((min, seat) => (seat.price! < min.price! ? seat : min))
-    : null;
+    : seatsWithPrice[0] || null;
 
-  // Find recommended seat (window, cheap, good location - rows 10-20)
+  // Find recommended seat (window, cheap, good location)
+  const avgRow = allSeats.length > 0
+    ? allSeats.reduce((sum, s) => sum + s.row, 0) / allSeats.length
+    : 15;
+
   const recommendedSeats = windowSeats.filter(s =>
-    s.row >= 10 && s.row <= 20 && s.price! <= (averagePrice || 100)
+    s.row >= Math.floor(avgRow * 0.4) &&
+    s.row <= Math.ceil(avgRow * 1.3) &&
+    s.price! <= (averagePrice || 100)
   );
+
   const recommendedSeat = recommendedSeats.length > 0
     ? recommendedSeats.sort((a, b) => a.price! - b.price!)[0]
     : cheapestSeat;
 
   return {
     decks,
-    hasRealData: true,
+    hasRealData: decks.length > 0 && totalSeats > 0,
     averagePrice: averagePrice ? Math.round(averagePrice) : null,
     cheapestSeat,
     priceRange: priceRange ? {
@@ -199,6 +310,23 @@ export function parseSeatMap(
 }
 
 /**
+ * Calculate layout string from row data
+ */
+function calculateLayout(rows: SeatRow[]): string {
+  if (rows.length === 0) return '3-3';
+
+  const maxSeats = Math.max(...rows.map(r => r.seats.length));
+
+  if (maxSeats <= 4) return '2-2';
+  if (maxSeats === 6) return '3-3';
+  if (maxSeats === 8) return '2-4-2';
+  if (maxSeats === 9) return '3-3-3';
+  if (maxSeats === 10) return '3-4-3';
+
+  return `${Math.floor(maxSeats / 2)}-${Math.ceil(maxSeats / 2)}`;
+}
+
+/**
  * Format seat map for display in compact single-line view
  */
 export function formatSeatMapCompact(parsedSeatMap: ParsedSeatMap): {
@@ -212,10 +340,18 @@ export function formatSeatMapCompact(parsedSeatMap: ParsedSeatMap): {
     };
   }
 
-  const { recommendedSeat, averagePrice } = parsedSeatMap;
+  const { recommendedSeat, averagePrice, priceRange } = parsedSeatMap;
+
+  const priceText = recommendedSeat.price
+    ? `$${Math.round(recommendedSeat.price)}`
+    : 'Included';
+
+  const rangeText = priceRange
+    ? `$${priceRange.min}-$${priceRange.max}`
+    : '';
 
   return {
-    displayText: `${recommendedSeat.number} Window $${recommendedSeat.price} • $${averagePrice}-${parsedSeatMap.priceRange?.max} avg`,
+    displayText: `${recommendedSeat.number} ${recommendedSeat.type} ${priceText}${rangeText ? ` • ${rangeText} range` : ''}`,
     hasData: true,
   };
 }

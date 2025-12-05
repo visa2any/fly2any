@@ -14,6 +14,9 @@ interface WorldCupHeroSectionProps {
 
 const content = {
   en: {
+    sectionTitle: '⚽ FIFA World Cup 2026',
+    sectionSubtitle: 'Book your travel packages for the biggest sporting event in history',
+    viewAll: 'View All Packages',
     badge: '🏆 FIFA WORLD CUP 2026',
     title: 'Experience History in North America',
     subtitle: 'The biggest World Cup ever',
@@ -36,6 +39,9 @@ const content = {
     urgency: '⚡ Early Bird: Save up to 20% | Limited Availability',
   },
   pt: {
+    sectionTitle: '⚽ Copa do Mundo FIFA 2026',
+    sectionSubtitle: 'Reserve seus pacotes de viagem para o maior evento esportivo da história',
+    viewAll: 'Ver Todos os Pacotes',
     badge: '🏆 COPA DO MUNDO FIFA 2026',
     title: 'Experimente a História na América do Norte',
     subtitle: 'A maior Copa do Mundo de todos os tempos',
@@ -58,6 +64,9 @@ const content = {
     urgency: '⚡ Desconto Antecipado: Economize até 20% | Disponibilidade Limitada',
   },
   es: {
+    sectionTitle: '⚽ Copa Mundial FIFA 2026',
+    sectionSubtitle: 'Reserva tus paquetes de viaje para el evento deportivo más grande de la historia',
+    viewAll: 'Ver Todos los Paquetes',
     badge: '🏆 COPA MUNDIAL FIFA 2026',
     title: 'Experimenta la Historia en América del Norte',
     subtitle: 'La Copa del Mundo más grande',
@@ -143,9 +152,32 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
   }
 
   return (
-    <div className="relative">
+    <section className="py-4" style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
+      {/* Section Header - Consistent with other sections */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {/* Trophy Icon on the left */}
+          <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+            <TrophyIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{t.sectionTitle}</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{t.sectionSubtitle}</p>
+          </div>
+        </div>
+        <Link
+          href="/world-cup-2026"
+          className="text-xs sm:text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
+        >
+          {t.viewAll} →
+        </Link>
+      </div>
+
+      {/* Divider */}
+      <div className="h-0.5 bg-gray-200 mb-4"></div>
+
       {/* Main World Cup Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900">
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-blue-900 to-red-900 rounded-xl">
       {/* Stadium Background Image */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-blue-900/85 to-red-900/90 z-10" />
@@ -371,6 +403,6 @@ export function WorldCupHeroSectionEnhanced({ lang = 'en', compact = false }: Wo
           animation: shimmer 3s ease-in-out infinite;
         }
       `}</style>
-    </div>
+    </section>
   );
 }

@@ -157,9 +157,16 @@ export function getFromClientCache<T>(url: string): CachedData<T> | null {
 
     updateCacheStats('hit');
 
+    // Reduced logging - only log in development and only once per URL per 60 seconds
     if (process.env.NODE_ENV === 'development') {
-      const age = Math.round((Date.now() - parsed.cachedAt) / 1000);
-      console.log(`📦 Client cache HIT: ${url.substring(0, 60)}... (age: ${age}s)`);
+      const logKey = `__cache_log_${url}`;
+      const lastLog = (globalThis as any)[logKey] || 0;
+      const now = Date.now();
+      if (now - lastLog > 60000) { // Only log once per minute per URL
+        const age = Math.round((now - parsed.cachedAt) / 1000);
+        console.log(`📦 Client cache HIT: ${url.substring(0, 60)}... (age: ${age}s)`);
+        (globalThis as any)[logKey] = now;
+      }
     }
 
     return parsed;

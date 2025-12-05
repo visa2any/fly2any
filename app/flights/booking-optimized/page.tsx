@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plane, ChevronLeft, ChevronRight, Loader2, User, Clock, CheckCircle2, Star } from 'lucide-react';
+import { Plane, ChevronLeft, ChevronRight, ArrowLeft, Loader2, User, Clock, CheckCircle2, Star } from 'lucide-react';
 import { formatCityCode } from '@/lib/data/airports';
 import { FareSelector } from '@/components/booking/FareSelector';
 import { AddOnsTabs } from '@/components/booking/AddOnsTabs';
@@ -11,7 +11,7 @@ import AirlineLogo from '@/components/flights/AirlineLogo';
 import { StickySummary } from '@/components/booking/StickySummary';
 import { CompactPassengerForm } from '@/components/booking/CompactPassengerForm';
 import { ReviewAndPay } from '@/components/booking/ReviewAndPay';
-import SeatMapModal from '@/components/flights/SeatMapModal';
+import SeatMapModal, { type SeatPreference } from '@/components/flights/SeatMapModal';
 import { parseSeatMap, type ParsedSeatMap, type Seat } from '@/lib/flights/seat-map-parser';
 import { AIRPORTS } from '@/lib/data/airports';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
@@ -29,6 +29,7 @@ interface FareOption {
   currency: string;
   features: string[];
   restrictions?: string[];
+  positives?: string[]; // Positive policies like "Free changes", "Fully refundable"
   recommended?: boolean;
   popularityPercent?: number;
   originalOffer?: any; // For Duffel fare variants - contains the full offer for booking
@@ -109,7 +110,6 @@ function BookingPageContent() {
 
   // Step 3: Review & Pay
   const [paymentData, setPaymentData] = useState<any>(null);
-  const [isReturningCustomer, setIsReturningCustomer] = useState(false);
 
   // Seat map modal
   const [seatMapOpen, setSeatMapOpen] = useState(false);
@@ -524,23 +524,8 @@ function BookingPageContent() {
     );
   };
 
-  const handlePassengersUpdate = async (updatedPassengers: PassengerData[]) => {
+  const handlePassengersUpdate = (updatedPassengers: PassengerData[]) => {
     setPassengers(updatedPassengers);
-
-    // Check if first passenger has email and check returning customer status
-    const firstPassengerEmail = updatedPassengers[0]?.email;
-    if (firstPassengerEmail && firstPassengerEmail.includes('@')) {
-      try {
-        const response = await fetch(`/api/customer/returning-status?email=${encodeURIComponent(firstPassengerEmail)}`);
-        if (response.ok) {
-          const data = await response.json();
-          setIsReturningCustomer(data.isReturning || false);
-        }
-      } catch (error) {
-        // Silently fail - assume not returning customer
-        setIsReturningCustomer(false);
-      }
-    }
   };
 
   const handleViewSeatMap = async () => {
@@ -580,8 +565,18 @@ function BookingPageContent() {
     }
   };
 
-  const handleSelectSeat = (seat: Seat) => {
-    setSelectedSeat(seat);
+  const handleSelectSeat = (selection: Seat | SeatPreference) => {
+    // Handle both specific seat selection and seat preferences
+    if ('type' in selection && selection.type === 'preference') {
+      // User selected a seat preference (window, aisle, etc.)
+      console.log('✅ Seat preference selected:', selection.position, 'Extra legroom:', selection.extraLegroom);
+      // We could store preference separately, but for now just acknowledge it
+      setSelectedSeat(null);
+    } else {
+      // User selected a specific seat
+      setSelectedSeat(selection as Seat);
+      console.log('✅ Seat selected:', (selection as Seat).number, 'Price:', (selection as Seat).price);
+    }
 
     // Update add-on categories to reflect seat selection
     setAddOnCategories(prev =>
@@ -600,7 +595,6 @@ function BookingPageContent() {
     );
 
     setSeatMapOpen(false);
-    console.log('✅ Seat selected:', seat.number, 'Price:', seat.price);
   };
 
   const handleContinue = () => {
@@ -831,6 +825,16 @@ function BookingPageContent() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Back to Search Results Button */}
+              <button
+                onClick={() => router.back()}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                aria-label="Go back to search results"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back to Results</span>
+              </button>
+              <div className="h-6 w-px bg-gray-200 hidden sm:block" />
               <Plane className="w-6 h-6 text-primary-500" />
               <h1 className="text-xl font-bold text-gray-900">Complete Your Booking</h1>
             </div>
@@ -1125,8 +1129,6 @@ function BookingPageContent() {
                   isProcessing={isProcessing}
                   requiresDOTCompliance={selectedFareId === 'basic'}
                   formId="payment-form"
-                  isReturningCustomer={isReturningCustomer}
-                  customerEmail={passengers[0]?.email}
                 />
               </div>
             )}

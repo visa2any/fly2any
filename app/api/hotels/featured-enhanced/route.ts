@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('hotels:featured-enhanced', {
       continent: continentFilter,
       limit,
-      version: 'v3-liteapi-only', // Cache bust - no more demo data
+      version: 'v4-improved-images', // Cache bust - improved image extraction
     });
 
     // Try cache (1 hour TTL)
@@ -168,6 +168,16 @@ export async function GET(request: NextRequest) {
 
           if (!hotel) return null;
 
+          // Debug: Log photo fields for first few hotels
+          if (filteredDestinations.indexOf(dest) < 3) {
+            console.log(`📸 Hotel "${hotel.name}" photo fields:`, {
+              image: hotel.image,
+              thumbnail: hotel.thumbnail,
+              images: hotel.images?.slice(0, 2),
+              main_photo: (hotel as any).main_photo,
+            });
+          }
+
           // LiteAPI hotel structure
           const price = hotel.lowestPricePerNight || hotel.lowestPrice || 0;
 
@@ -218,9 +228,39 @@ export async function GET(request: NextRequest) {
             viewersLast24h,
             bookingsLast24h,
 
-            // Photos
+            // Photos - Robust extraction from LiteAPI normalized response
+            // LiteAPI returns: image (string), thumbnail (string), images (array of {url, alt})
             images: hotel.images || [],
-            mainImage: hotel.images && hotel.images.length > 0 ? hotel.images[0].url : null,
+            mainImage: (() => {
+              // Try images array first (has highest quality photos)
+              if (hotel.images && Array.isArray(hotel.images) && hotel.images.length > 0) {
+                const firstImg = hotel.images[0] as any;
+                if (firstImg) {
+                  // Object with url property
+                  if (typeof firstImg === 'object' && firstImg.url && String(firstImg.url).length > 0) {
+                    return String(firstImg.url);
+                  }
+                  // Direct string URL
+                  if (typeof firstImg === 'string' && firstImg.length > 0) {
+                    return firstImg;
+                  }
+                }
+              }
+              // Try direct image field
+              if (hotel.image && String(hotel.image).length > 0) {
+                return String(hotel.image);
+              }
+              // Try thumbnail
+              if (hotel.thumbnail && String(hotel.thumbnail).length > 0) {
+                return String(hotel.thumbnail);
+              }
+              // Try raw LiteAPI fields
+              if (hotelAny.main_photo && String(hotelAny.main_photo).length > 0) {
+                return String(hotelAny.main_photo);
+              }
+              // No photo available
+              return null;
+            })(),
 
             // Additional data
             starRating: hotelAny.starRating || hotelAny.stars,

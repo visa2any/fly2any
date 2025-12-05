@@ -10,6 +10,17 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Redirect legacy /home-new to root /
+  async redirects() {
+    return [
+      {
+        source: '/home-new',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
+
   // Mobile build: static export for Capacitor
   ...(process.env.MOBILE_BUILD === 'true' && {
     output: 'export',

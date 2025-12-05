@@ -100,7 +100,7 @@ function InsuranceResultsContent() {
               <h1 className="text-2xl font-bold text-gray-900">Travel Insurance Plans</h1>
               <p className="text-sm text-gray-600 mt-1">{searchData.destination} · Trip cost: ${searchData.tripCost}</p>
             </div>
-            <Button variant="outline" onClick={() => router.push('/home-new')}>Modify Search</Button>
+            <Button variant="outline" onClick={() => router.push('/')}>Modify Search</Button>
           </div>
         </div>
       </div>
