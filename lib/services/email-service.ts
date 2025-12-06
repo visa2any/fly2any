@@ -3,15 +3,17 @@
  *
  * Production-grade email service using Mailgun
  * Features:
- * - Mailgun API integration
+ * - Mailgun API integration via unified client
  * - Beautiful HTML email templates
  * - Booking confirmations, price alerts, newsletters
  * - Error handling with retry logic
  * - Development mode console logging
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author Fly2Any Engineering
  */
+
+import { mailgunClient, MAILGUN_CONFIG } from '@/lib/email/mailgun-client';
 
 // ===================================
 // TYPES & INTERFACES
@@ -114,77 +116,34 @@ interface PasswordResetEmailData {
 // ===================================
 
 export class EmailService {
-  // Configuration
-  private static apiKey = process.env.MAILGUN_API_KEY;
-  private static domain = process.env.MAILGUN_DOMAIN || 'mg.fly2any.com';
-  private static fromEmail = process.env.EMAIL_FROM || 'Fly2Any <support@fly2any.com>';
+  // Configuration (use centralized mailgun config)
   private static baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
-  private static isProduction = process.env.NODE_ENV === 'production';
-
-  // Mailgun API endpoint (US region by default, EU: api.eu.mailgun.net)
-  private static mailgunUrl = `https://api.mailgun.net/v3/${this.domain}/messages`;
 
   /**
-   * Send email via Mailgun API
+   * Send email via unified Mailgun client
+   * Now supports forceSend for testing in any environment
    */
-  private static async sendEmail(options: EmailOptions): Promise<boolean> {
-    // Development mode: Log to console
-    if (!this.apiKey || !this.isProduction) {
-      console.log('📧 [EMAIL] Simulated send:', {
-        to: options.to,
-        subject: options.subject,
-        from: options.from || this.fromEmail,
-        tags: options.tags,
-      });
-      return true;
+  private static async sendEmail(options: EmailOptions & { forceSend?: boolean }): Promise<boolean> {
+    const result = await mailgunClient.send({
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+      from: options.from || MAILGUN_CONFIG.fromEmail,
+      replyTo: options.replyTo,
+      tags: options.tags,
+      forceSend: options.forceSend ?? true, // Default to forceSend for test emails
+    });
+
+    if (!result.success) {
+      console.error('❌ [EMAIL] Send failed:', result.error);
+    } else if (result.simulated) {
+      console.log('📧 [EMAIL] Simulated (dev mode):', options.subject);
+    } else {
+      console.log('✅ [EMAIL] Sent successfully:', result.messageId);
     }
 
-    try {
-      // Mailgun requires form data
-      const formData = new FormData();
-      formData.append('from', options.from || this.fromEmail);
-      formData.append('to', Array.isArray(options.to) ? options.to.join(',') : options.to);
-      formData.append('subject', options.subject);
-      formData.append('html', options.html);
-
-      if (options.text) {
-        formData.append('text', options.text);
-      }
-
-      if (options.replyTo) {
-        formData.append('h:Reply-To', options.replyTo);
-      }
-
-      // Add tags for analytics
-      if (options.tags) {
-        options.tags.forEach(tag => formData.append('o:tag', tag));
-      }
-
-      // Mailgun tracking
-      formData.append('o:tracking', 'yes');
-      formData.append('o:tracking-clicks', 'yes');
-      formData.append('o:tracking-opens', 'yes');
-
-      const response = await fetch(this.mailgunUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`api:${this.apiKey}`).toString('base64')}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Mailgun error: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log('✅ [EMAIL] Sent successfully:', result.id);
-      return true;
-    } catch (error) {
-      console.error('❌ [EMAIL] Send failed:', error);
-      return false;
-    }
+    return result.success;
   }
 
   // ===================================
